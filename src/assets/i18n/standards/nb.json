@@ -222,7 +222,10 @@
       "privacy_notice": "Personvernerklæring gitt",
       "screening": "Screening mot kriteriene",
       "checks": "Bakgrunnssjekker",
-      "offer": "Tilbud"
+      "offer": "Tilbud",
+      "obligations": "Forpliktelser",
+      "documentation": "Teknisk dokumentasjon",
+      "kind": "Fullført vurdering"
     },
     "origin": {
       "manual": "Lagt til manuelt",

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
@@ -35,13 +36,13 @@ import { AiUserSelect } from '../ui/user-select';
   host: { class: 'block' },
   template: `
     <app-card>
-      <h2 class="mb-1 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+      <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
         {{ 'aiGovernance.review.title' | transloco }}
         <app-field-help [scope]="scope" page="systemDetail" field="review" />
       </h2>
-      <p class="mb-3 text-[12.5px] text-fg-muted">{{ 'aiGovernance.review.body' | transloco }}</p>
+      <p class="mb-3 text-meta text-fg-muted">{{ 'aiGovernance.review.body' | transloco }}</p>
       @if (created(); as c) {
-        <p class="mb-3 rounded-tile bg-pass-soft px-3 py-2 text-[13px] text-fg" role="status">
+        <p class="mb-3 rounded-tile bg-pass-soft px-3 py-2 text-ui text-fg" role="status">
           {{ 'aiGovernance.review.created' | transloco }}
           @if (c.due_at) {
             {{ 'aiGovernance.review.firstDue' | transloco: { date: (c.due_at | localDay) } }}
@@ -58,18 +59,18 @@ import { AiUserSelect } from '../ui/user-select';
         @if (open()) {
           <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()">
             <app-recurrence-picker [(rrule)]="rrule" idPrefix="ai-review-rrule" />
-            <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+            <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
               {{ 'aiGovernance.review.startAt' | transloco }}
               <input
                 type="date"
                 required
-                class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+                class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
                 [value]="start()"
                 (input)="start.set($any($event.target).value)"
               />
             </label>
             <label
-              class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted"
+              class="flex flex-col gap-1 text-meta font-semibold text-fg-muted"
               for="ai-review-assignee"
             >
               {{ 'aiGovernance.review.assignee' | transloco }}
@@ -102,6 +103,7 @@ export class AiSystemReviewSchedule {
   private readonly api = inject(AiGovernanceApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
+  private readonly language = inject(LanguageService);
 
   readonly systemId = input.required<string>();
   readonly canWrite = input(false);
@@ -125,6 +127,7 @@ export class AiSystemReviewSchedule {
         rrule: this.rrule(),
         start_at: startOfDay(this.start()),
         assignee_user_id: this.assignee() || null,
+        lang: this.language.active() === 'nb' ? 'nb' : 'en',
       })
       .subscribe({
         next: (result) => {

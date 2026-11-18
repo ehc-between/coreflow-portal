@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   signal,
@@ -12,19 +13,21 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
+import { Term } from '../../../shared/guidance/term';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { startOfDay, todayDay } from '../../../shared/tasks/task-display';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { AiGovernanceStore } from '../data/ai-governance-store';
@@ -33,20 +36,18 @@ import {
   LiteracyCoverage,
   LiteracyRecord,
   LiteracySource,
+  LiteracyUser,
 } from '../data/ai-governance.models';
-import {
-  AI_GOVERNANCE_MODULE,
-  AI_GOVERNANCE_SCOPE,
-  literacySourceKey,
-} from '../data/ai-governance-display';
+import { AI_GOVERNANCE_MODULE, literacySourceKey } from '../data/ai-governance-display';
+import { AiField } from '../ui/ai-field';
 import { AiGovPage } from '../ui/ai-gov-page';
-import { AiLessonCard } from '../ui/ai-lesson-card';
 import { AiUserSelect } from '../ui/user-select';
 
 const PAGE_SIZE = 25;
+/** People shown before "Vis alle (n)". */
+export const PEOPLE_PREVIEW = 12;
 
 interface Draft {
-  user_id: string;
   topic: string;
   source: LiteracySource;
   completed: string;
@@ -55,7 +56,6 @@ interface Draft {
 }
 
 const emptyDraft = (): Draft => ({
-  user_id: '',
   topic: '',
   source: 'training',
   completed: todayDay(),
@@ -63,61 +63,93 @@ const emptyDraft = (): Draft => ({
   notes: '',
 });
 
+/** People matching a search (name or department), case-insensitive. */
+export function filterPeople(people: readonly LiteracyUser[], q: string): LiteracyUser[] {
+  const needle = q.trim().toLowerCase();
+  if (!needle) {
+    return [...people];
+  }
+  return people.filter(
+    (p) =>
+      p.name.toLowerCase().includes(needle) || (p.department ?? '').toLowerCase().includes(needle),
+  );
+}
+
 /**
- * `/ai-governance/literacy`: AI literacy (Art. 4) — coverage of the org's
- * members (covered, expired, missing), the records list, and recording a
- * training, briefing or self-study. Courses themselves live in Training.
+ * `/ai-governance/literacy`: AI literacy (Art. 4, ISO/IEC 42001 7.2). Coverage
+ * of the people in scope (everyone, or only those who own or oversee AI
+ * systems — set in the settings), who is missing or expired (name and
+ * department, searchable), the Training courses tagged "AI literacy" whose
+ * completions count automatically, and the records list. Briefings and
+ * external courses are recorded here in a side panel.
  */
 @Component({
   selector: 'app-ai-literacy-page',
   imports: [
     RouterLink,
     TranslocoPipe,
-    FieldHelp,
     TeachingEmpty,
+    Term,
     LocalDayPipe,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
     Icon,
     KpiTile,
+    LoadingState,
     Pager,
     ProgressBar,
     SlideOver,
+    StatusBadge,
+    AiField,
     AiGovPage,
-    AiLessonCard,
     AiUserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-ai-gov-page titleKey="aiGovernance.literacy.title" page="literacy">
-      <div actions class="flex flex-wrap gap-2">
-        <a
-          routerLink="/training"
-          class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-        >
-          {{ 'aiGovernance.literacy.toTraining' | transloco }}
-        </a>
-        @if (store.canWrite()) {
-          <app-button size="sm" (click)="openForm()" data-testid="literacy-new">
-            <app-icon name="plus" [size]="14" />
-            {{ 'aiGovernance.literacy.record' | transloco }}
-          </app-button>
-        }
-      </div>
+    <app-ai-gov-page
+      titleKey="aiGovernance.literacy.title"
+      descriptionKey="aiGovernance.literacy.subtitle"
+      [breadcrumbs]="[{ labelKey: 'aiGovernance.literacy.title' }]"
+      page="literacy"
+      lesson="ai-literacy"
+    >
+      @if (store.canWrite()) {
+        <app-button primary size="sm" (click)="openForm()" data-testid="literacy-new">
+          <app-icon name="plus" [size]="14" />
+          {{ 'aiGovernance.literacy.record' | transloco }}
+        </app-button>
+      }
+      <a
+        secondary
+        [routerLink]="trainingLink()"
+        class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+        data-testid="literacy-training"
+      >
+        {{ 'aiGovernance.literacy.toTraining' | transloco }}
+      </a>
 
-      @if (coverage(); as c) {
+      @if (coverageError()) {
+        <app-error-state (retry)="reload.update((n) => n + 1)" />
+      } @else if (coverage(); as c) {
         <div class="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
           <app-kpi-tile
             [label]="'aiGovernance.literacy.coverage' | transloco"
-            [value]="c.coverage + '%'"
-            [tone]="c.coverage >= 80 ? 'pass' : c.coverage >= 50 ? 'warn' : 'fail'"
+            [value]="c.coverage + ' %'"
+            [tone]="c.coverage >= 80 ? 'pass' : 'accent'"
           />
           <app-kpi-tile
             [label]="'aiGovernance.literacy.covered' | transloco"
             [value]="c.covered"
             tone="pass"
+            [delta]="
+              c.covered_by_training
+                ? ('aiGovernance.literacy.viaTraining'
+                  | transloco: { count: c.covered_by_training })
+                : ''
+            "
+            deltaTone="neutral"
           />
           <app-kpi-tile
             [label]="'aiGovernance.literacy.expired' | transloco"
@@ -127,10 +159,17 @@ const emptyDraft = (): Draft => ({
           <app-kpi-tile
             [label]="'aiGovernance.literacy.missing' | transloco"
             [value]="c.missing"
-            [tone]="c.missing ? 'fail' : 'neutral'"
+            [tone]="c.missing ? 'warn' : 'neutral'"
           />
         </div>
-        <app-card class="mb-5">
+
+        <app-card class="mb-5" data-testid="literacy-coverage">
+          <p class="mb-2 text-ui font-semibold text-fg">
+            {{
+              'aiGovernance.literacy.coverageOf'
+                | transloco: { covered: c.covered, total: c.members_total }
+            }}
+          </p>
           <app-progress-bar
             [value]="c.coverage"
             [label]="
@@ -138,72 +177,143 @@ const emptyDraft = (): Draft => ({
                 | transloco: { covered: c.covered, total: c.members_total }
             "
           />
-          @if (c.missing_users.length || c.expired_users.length) {
-            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-              @if (c.missing_users.length) {
-                <div>
-                  <h2 class="mb-1.5 text-[13px] font-bold text-fg">
-                    {{ 'aiGovernance.literacy.missingUsers' | transloco }}
-                  </h2>
-                  <ul class="flex flex-wrap gap-1.5">
-                    @for (u of c.missing_users; track u.id) {
-                      <li>
-                        @if (store.canWrite()) {
-                          <button
-                            type="button"
-                            class="rounded-full border border-border px-2.5 py-0.5 text-[12.5px] text-fg hover:border-accent hover:text-accent"
-                            (click)="openForm(u.id)"
-                          >
-                            {{ u.name }}
-                          </button>
-                        } @else {
-                          <span
-                            class="rounded-full border border-border px-2.5 py-0.5 text-[12.5px] text-fg"
-                            >{{ u.name }}</span
-                          >
+          <p class="mt-2 text-meta text-fg-muted" data-testid="literacy-scope">
+            {{ 'aiGovernance.literacy.scope.' + (c.scope ?? 'all') | transloco }}
+            @if (store.canManage()) {
+              <a
+                routerLink="/ai-governance/settings"
+                class="font-semibold text-accent hover:underline"
+                >{{ 'aiGovernance.literacy.changeScope' | transloco }}</a
+              >
+            }
+          </p>
+
+          @if (people().length) {
+            <div class="mt-4 border-t border-border pt-4">
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-card font-semibold text-fg">
+                  {{
+                    'aiGovernance.literacy.needsAttention' | transloco: { count: people().length }
+                  }}
+                </h2>
+                @if (people().length > preview) {
+                  <label class="sr-only" for="lit-search">{{
+                    'aiGovernance.literacy.searchPeople' | transloco
+                  }}</label>
+                  <input
+                    id="lit-search"
+                    type="search"
+                    class="h-9 w-full max-w-[260px] rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                    [placeholder]="'aiGovernance.literacy.searchPeople' | transloco"
+                    [value]="peopleQuery()"
+                    (input)="peopleQuery.set($any($event.target).value)"
+                  />
+                }
+              </div>
+              <ul
+                class="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3"
+                data-testid="literacy-people"
+              >
+                @for (p of shownPeople(); track p.user.id) {
+                  <li
+                    class="flex min-h-10 items-center justify-between gap-2 rounded-tile border px-3 py-1.5"
+                    [class]="p.expired ? 'border-warn/40 bg-warn-soft' : 'border-border'"
+                  >
+                    <span class="min-w-0">
+                      <span class="block truncate text-ui font-semibold text-fg">{{
+                        p.user.name
+                      }}</span>
+                      <span class="block truncate text-meta text-fg-muted">
+                        {{
+                          p.user.department || ('aiGovernance.literacy.noDepartment' | transloco)
+                        }}
+                        @if (p.expired) {
+                          · {{ 'aiGovernance.literacy.expiredOne' | transloco }}
                         }
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
-              @if (c.expired_users.length) {
-                <div>
-                  <h2 class="mb-1.5 text-[13px] font-bold text-fg">
-                    {{ 'aiGovernance.literacy.expiredUsers' | transloco }}
-                  </h2>
-                  <ul class="flex flex-wrap gap-1.5">
-                    @for (u of c.expired_users; track u.id) {
-                      <li
-                        class="rounded-full border border-warn/40 bg-warn-soft px-2.5 py-0.5 text-[12.5px] text-fg"
+                      </span>
+                    </span>
+                    @if (store.canWrite()) {
+                      <app-button
+                        size="sm"
+                        variant="ghost"
+                        [attr.aria-label]="
+                          'aiGovernance.literacy.recordFor' | transloco: { name: p.user.name }
+                        "
+                        (click)="openForm(p.user.id)"
                       >
-                        {{ u.name }}
-                      </li>
+                        <app-icon name="plus" [size]="13" />
+                      </app-button>
                     }
-                  </ul>
-                </div>
+                  </li>
+                } @empty {
+                  <li class="text-ui text-fg-muted">
+                    {{ 'aiGovernance.picker.noResults' | transloco }}
+                  </li>
+                }
+              </ul>
+              @if (filteredPeople().length > preview && !showAll()) {
+                <app-button
+                  class="mt-2"
+                  size="sm"
+                  variant="ghost"
+                  (click)="showAll.set(true)"
+                  data-testid="literacy-show-all"
+                >
+                  {{
+                    'aiGovernance.literacy.showAll' | transloco: { count: filteredPeople().length }
+                  }}
+                </app-button>
               }
             </div>
           }
         </app-card>
+
+        <app-card class="mb-5" data-testid="literacy-courses">
+          <h2 class="mb-1 text-card font-semibold text-fg">
+            {{ 'aiGovernance.literacy.courses' | transloco }}
+          </h2>
+          @if (c.training_courses?.length) {
+            <p class="mb-2 text-meta text-fg-muted">
+              {{ 'aiGovernance.literacy.coursesHint' | transloco }}
+            </p>
+            <ul class="flex flex-col gap-1">
+              @for (course of c.training_courses; track course.id) {
+                <li>
+                  <a
+                    [routerLink]="course.url"
+                    class="inline-flex min-h-6 items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                  >
+                    <span class="font-mono text-meta text-fg-subtle">{{ course.code }}</span>
+                    {{ course.title }}
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-ui text-fg-muted">
+              {{ 'aiGovernance.literacy.noCourses' | transloco }}
+            </p>
+          }
+        </app-card>
+      } @else {
+        <app-loading-state class="mb-5" [rows]="2" />
       }
 
+      <h2 class="mb-2 font-display text-section font-bold text-fg">
+        {{ 'aiGovernance.literacy.records' | transloco }}
+      </h2>
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted">
-              {{ 'aiGovernance.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="4" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'aiGovernance.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload.update((n) => n + 1)" />
           }
           @default {
             @if (records().length === 0) {
               <app-teaching-empty
-                [scope]="scope"
+                scope="ai-governance"
                 page="literacy"
                 [showAction]="store.canWrite()"
                 (action)="openForm()"
@@ -213,29 +323,32 @@ const emptyDraft = (): Draft => ({
                 @for (r of records(); track r.id) {
                   <li class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
                     <div class="min-w-0 flex-1">
-                      <p class="text-[13.5px] font-semibold text-fg">{{ r.user.name }}</p>
-                      <p class="text-[12.5px] text-fg-muted">
+                      <p class="text-body font-semibold text-fg">{{ r.user.name }}</p>
+                      <p class="text-meta text-fg-muted">
                         {{ r.topic }} · {{ sourceKey(r.source) | transloco }} ·
                         {{ r.completed_at | localDay }}
                       </p>
                     </div>
-                    <span class="flex items-center gap-2 text-[12.5px] text-fg-muted">
+                    <span class="flex items-center gap-2 text-meta text-fg-muted">
                       @if (r.valid_until) {
                         {{
                           'aiGovernance.literacy.validUntil'
                             | transloco: { date: (r.valid_until | localDay) }
                         }}
                       }
-                      <app-badge [tone]="r.valid ? 'pass' : 'warn'">{{
-                        (r.valid
-                          ? 'aiGovernance.literacy.valid'
-                          : 'aiGovernance.literacy.expiredOne'
-                        ) | transloco
-                      }}</app-badge>
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="r.valid ? 'effective' : 'expired'"
+                        [labelKey]="
+                          r.valid
+                            ? 'aiGovernance.literacy.valid'
+                            : 'aiGovernance.literacy.expiredOne'
+                        "
+                      />
                       @if (store.canWrite()) {
                         <button
                           type="button"
-                          class="rounded-[8px] p-1 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          class="inline-flex h-7 w-7 items-center justify-center rounded-tile text-fg-subtle hover:text-fail-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                           [attr.aria-label]="
                             'aiGovernance.literacy.delete'
                               | transloco: { name: r.user.name, topic: r.topic }
@@ -262,10 +375,11 @@ const emptyDraft = (): Draft => ({
           }
         }
       </app-card>
-
-      <div class="mt-5">
-        <app-ai-lesson-card lesson="ai-literacy" />
-      </div>
+      <p class="mt-3 text-meta text-fg-muted">
+        <app-term scope="ai-governance" key="ai-literacy">{{
+          'aiGovernance.literacy.termLink' | transloco
+        }}</app-term>
+      </p>
     </app-ai-gov-page>
 
     <app-slide-over
@@ -280,76 +394,80 @@ const emptyDraft = (): Draft => ({
         novalidate
         data-testid="literacy-form"
       >
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted" for="lit-user">
-          {{ 'aiGovernance.literacy.person' | transloco }}
-        </label>
-        <app-ai-user-select
-          class="-mt-3"
-          selectId="lit-user"
-          noneKey="aiGovernance.literacy.pickPerson"
+        <app-ai-field
+          inputId="lit-user"
+          labelKey="aiGovernance.literacy.person"
           [required]="true"
-          [(value)]="userId"
-        />
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-          {{ 'aiGovernance.literacy.topic' | transloco }}
+          [plain]="true"
+        >
+          <app-ai-user-select
+            selectId="lit-user"
+            noneKey="aiGovernance.literacy.pickPerson"
+            [required]="true"
+            [(value)]="userId"
+          />
+        </app-ai-field>
+        <app-ai-field
+          inputId="lit-topic"
+          labelKey="aiGovernance.literacy.topic"
+          [required]="true"
+          helpPage="literacy"
+          helpField="topic"
+        >
           <input
+            id="lit-topic"
             type="text"
             required
             maxlength="200"
-            class="h-9 rounded-tile border border-border bg-bg px-3 text-[13.5px] font-normal text-fg"
             [placeholder]="'aiGovernance.literacy.topicPlaceholder' | transloco"
             [value]="draft().topic"
             (input)="patch({ topic: $any($event.target).value })"
           />
-        </label>
-        <app-field-help [scope]="scope" page="literacy" field="topic" />
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-          {{ 'aiGovernance.literacy.source' | transloco }}
-          <select
-            class="h-9 rounded-tile border border-border bg-bg px-2 text-[13.5px] font-normal text-fg"
-            (change)="patch({ source: $any($event.target).value })"
-          >
+        </app-ai-field>
+        <app-ai-field inputId="lit-source" labelKey="aiGovernance.literacy.source">
+          <select id="lit-source" (change)="patch({ source: $any($event.target).value })">
             @for (s of sources; track s) {
               <option [value]="s" [selected]="draft().source === s">
                 {{ sourceKey(s) | transloco }}
               </option>
             }
           </select>
-        </label>
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-          {{ 'aiGovernance.literacy.completedAt' | transloco }}
+        </app-ai-field>
+        <app-ai-field
+          inputId="lit-completed"
+          labelKey="aiGovernance.literacy.completedAt"
+          [required]="true"
+        >
           <input
+            id="lit-completed"
             type="date"
             required
-            class="h-9 rounded-tile border border-border bg-bg px-3 text-[13.5px] font-normal text-fg"
             [value]="draft().completed"
             (input)="patch({ completed: $any($event.target).value })"
           />
-        </label>
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-          {{ 'aiGovernance.literacy.validUntilLabel' | transloco }}
+        </app-ai-field>
+        <app-ai-field inputId="lit-valid" labelKey="aiGovernance.literacy.validUntilLabel">
           <input
+            id="lit-valid"
             type="date"
-            class="h-9 rounded-tile border border-border bg-bg px-3 text-[13.5px] font-normal text-fg"
             [value]="draft().valid_until"
             (input)="patch({ valid_until: $any($event.target).value })"
           />
-          <span class="text-[12px] font-normal text-fg-subtle">{{
-            'aiGovernance.literacy.validUntilHint' | transloco
-          }}</span>
-        </label>
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-          {{ 'aiGovernance.literacy.notes' | transloco }}
+          <span hint>{{ 'aiGovernance.literacy.validUntilHint' | transloco }}</span>
+        </app-ai-field>
+        <app-ai-field inputId="lit-notes" labelKey="aiGovernance.literacy.notes">
           <textarea
+            id="lit-notes"
             rows="3"
             maxlength="4000"
-            class="rounded-tile border border-border bg-bg px-3 py-2 text-[13.5px] font-normal text-fg"
             [value]="draft().notes"
             (input)="patch({ notes: $any($event.target).value })"
           ></textarea>
-        </label>
+        </app-ai-field>
         @if (formError()) {
-          <p class="text-[12.5px] text-fail" role="alert">{{ formError()! | transloco }}</p>
+          <p class="text-meta font-semibold text-fail-ink" role="alert">
+            {{ formError()! | transloco }}
+          </p>
         }
         <div class="flex justify-end gap-2">
           <app-button variant="secondary" (click)="formOpen.set(false)">{{
@@ -375,6 +493,7 @@ const emptyDraft = (): Draft => ({
       "
       [confirmLabel]="'aiGovernance.common.delete' | transloco"
       [cancelLabel]="'aiGovernance.common.cancel' | transloco"
+      confirmVariant="danger"
       [busy]="deleting()"
       (confirmed)="remove()"
       (cancelled)="pendingDelete.set(null)"
@@ -388,12 +507,13 @@ export class AiLiteracyPage {
   private readonly notifications = inject(NotificationService);
   protected readonly store = inject(AiGovernanceStore);
 
-  protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly sources = LITERACY_SOURCES;
   protected readonly sourceKey = literacySourceKey;
   protected readonly pageSize = PAGE_SIZE;
+  protected readonly preview = PEOPLE_PREVIEW;
 
   protected readonly coverage = signal<LiteracyCoverage | null>(null);
+  protected readonly coverageError = signal(false);
   protected readonly records = signal<readonly LiteracyRecord[]>([]);
   protected readonly total = signal(0);
   protected readonly offset = signal(0);
@@ -405,13 +525,47 @@ export class AiLiteracyPage {
   protected readonly formError = signal<string | null>(null);
   protected readonly pendingDelete = signal<LiteracyRecord | null>(null);
   protected readonly deleting = signal(false);
-  private readonly reload = signal(0);
+  protected readonly peopleQuery = signal('');
+  protected readonly showAll = signal(false);
+  protected readonly reload = signal(0);
+
+  /** Missing first, then expired. */
+  protected readonly people = computed(() => {
+    const c = this.coverage();
+    if (!c) {
+      return [];
+    }
+    return [
+      ...c.missing_users.map((user) => ({ user, expired: false })),
+      ...c.expired_users.map((user) => ({ user, expired: true })),
+    ];
+  });
+  protected readonly filteredPeople = computed(() => {
+    const matching = new Set(
+      filterPeople(
+        this.people().map((p) => p.user),
+        this.peopleQuery(),
+      ).map((u) => u.id),
+    );
+    return this.people().filter((p) => matching.has(p.user.id));
+  });
+  protected readonly shownPeople = computed(() =>
+    this.showAll() || this.peopleQuery().trim()
+      ? this.filteredPeople()
+      : this.filteredPeople().slice(0, PEOPLE_PREVIEW),
+  );
+  /** Deep link to the AI literacy course when there is exactly one, else Training. */
+  protected readonly trainingLink = computed(() => {
+    const courses = this.coverage()?.training_courses ?? [];
+    return courses.length === 1 ? courses[0].url : '/training';
+  });
 
   constructor() {
     providePageContext(() => ({
       module: AI_GOVERNANCE_MODULE,
       view: 'list',
       title: this.language.translate('aiGovernance.literacy.title'),
+      requirements: ['eu_ai_act:4', 'iso42001:7.2'],
     }));
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -421,9 +575,10 @@ export class AiLiteracyPage {
         if (!orgId) {
           return;
         }
+        this.coverageError.set(false);
         this.api.literacyCoverage(orgId).subscribe({
           next: (c) => this.coverage.set(c),
-          error: () => this.coverage.set(null),
+          error: () => this.coverageError.set(true),
         });
         this.api.listLiteracy(orgId, { limit: PAGE_SIZE, offset }).subscribe({
           next: (page) => {

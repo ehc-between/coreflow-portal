@@ -222,7 +222,10 @@
       "privacy_notice": "Privacy notice given",
       "screening": "Screening against the criteria",
       "checks": "Background checks",
-      "offer": "Offer"
+      "offer": "Offer",
+      "obligations": "Obligations",
+      "documentation": "Technical documentation",
+      "kind": "Completed assessment"
     },
     "origin": {
       "manual": "Added by hand",

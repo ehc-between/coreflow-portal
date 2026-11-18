@@ -432,14 +432,13 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for KI-systemet",
-      "to_assessment": "KI-vurdering"
+      "to_assessment": "KI-vurdering",
+      "to_incident": "KI-hendelse for dette systemet",
+      "to_risk": "KI-risiko for dette systemet",
+      "to_task": "Oppgave for dette systemet"
     },
     "asset": {
-      "to_deviation": "Avvik for denne eiendelen",
-      "to_risk": "Risiko for denne eiendelen",
-      "to_processing": "Behandlingsaktivitet (behandlingsprotokoll)",
-      "to_change": "Endringsforespørsel for denne eiendelen",
-      "to_access_review": "Tilgangsgjennomgang av dette systemet"
+      "to_ict_system": "IKT-tjeneste for kontinuitet"
     },
     "calibration": {
       "to_deviation": "Avvik fra denne kalibreringen"
@@ -536,9 +535,6 @@
       "to_task": "Oppgave på kontrakten",
       "to_dpa": "Databehandleravtale for kontrakten"
     },
-    "asset": {
-      "to_ict_system": "IKT-tjeneste for kontinuitet"
-    },
     "bia": {
       "to_plan": "Kontinuitetsplan for aktiviteten",
       "to_risk": "Vurder risiko for aktiviteten"
@@ -617,6 +613,9 @@
       "to_task": "Oppgave fra en beslutning",
       "to_deviation": "Avvik tatt opp i møtet",
       "to_risk": "Risiko tatt opp i møtet"
+    },
+    "ai_assessment": {
+      "to_risk": "Risiko fra denne vurderingen"
     }
   },
   "frameworks": {

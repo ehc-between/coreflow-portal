@@ -432,14 +432,13 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for this AI system",
-      "to_assessment": "AI assessment"
+      "to_assessment": "AI assessment",
+      "to_incident": "AI incident for this system",
+      "to_risk": "AI risk for this system",
+      "to_task": "Task for this system"
     },
     "asset": {
-      "to_deviation": "Deviation for this asset",
-      "to_risk": "Risk to this asset",
-      "to_processing": "Processing activity (record of processing)",
-      "to_change": "Change request for this asset",
-      "to_access_review": "Access review of this system"
+      "to_ict_system": "ICT service for continuity"
     },
     "calibration": {
       "to_deviation": "Deviation from this calibration"
@@ -536,9 +535,6 @@
       "to_task": "Task on this contract",
       "to_dpa": "Data processing agreement for this contract"
     },
-    "asset": {
-      "to_ict_system": "ICT service for continuity"
-    },
     "bia": {
       "to_plan": "Continuity plan for the activity",
       "to_risk": "Assess the risk of the activity"
@@ -617,6 +613,9 @@
       "to_task": "Task from a decision",
       "to_deviation": "Deviation raised in the meeting",
       "to_risk": "Risk raised in the meeting"
+    },
+    "ai_assessment": {
+      "to_risk": "Risk from this assessment"
     }
   },
   "frameworks": {

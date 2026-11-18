@@ -29,6 +29,17 @@ export const AI_GOVERNANCE_ERROR_CODES = [
   'title_required',
   'unknown_section',
   'module_disabled',
+  'classification_downgrade',
+  'reason_required',
+  'reason_too_long',
+  'obligation_not_found',
+  'obligation_has_task',
+  'invalid_supplier',
+  'invalid_ropa_entry',
+  'duplicate_metric',
+  'metric_required',
+  'too_many_metrics',
+  'too_many_overseers',
 ] as const;
 
 export type AiGovernanceErrorCode = (typeof AI_GOVERNANCE_ERROR_CODES)[number];
@@ -58,6 +69,11 @@ export function aiGovernanceErrorKey(error: unknown): string {
     return httpErrorMessageKey(error.status);
   }
   return 'errors.generic';
+}
+
+/** Whether a failed completion was refused because the class would go down (409). */
+export function isDowngradeRefusal(error: unknown): boolean {
+  return codedErrorDetail(error)?.code === 'classification_downgrade';
 }
 
 /** The section keys a 422 `assessment_incomplete` reports as missing (empty otherwise). */

@@ -96,6 +96,10 @@ const KNOWN_FIELDS = new Set([
   'screening',
   'checks',
   'offer',
+  // AI governance (A18): obligations / documentation on ai_system, kind on ai_assessment.
+  'obligations',
+  'documentation',
+  'kind',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */
