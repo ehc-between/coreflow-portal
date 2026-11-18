@@ -698,7 +698,11 @@
         "settings": "Innstillinger",
         "retention": "Oppbevaringsregler",
         "significanceMethod": "Vurderingsmetode for miljøaspekter",
-        "roleOverviews": "Rolleoversikter"
+        "roleOverviews": "Rolleoversikter",
+        "riskRegisters": "Risikoregistre",
+        "questionnaires": "Spørreskjemaer",
+        "peopleChecklists": "Sjekklister for oppstart og avslutning",
+        "privacyContacts": "Behandlingsansvarlig og kontakter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner",
       "groups": {
@@ -706,8 +710,14 @@
         "people": "Personer og tilgang",
         "work": "Varsler og arbeidsflyter",
         "learning": "Læring",
-        "trace": "Sporbarhet"
-      }
+        "trace": "Sporbarhet",
+        "advanced": "Avansert"
+      },
+      "advancedHint": "Egne registertyper og slettelogger."
+    },
+    "moduleConfig": {
+      "note": "Her bestemmer du hvordan modulen fungerer. Det daglige arbeidet gjør du i selve modulen.",
+      "openModule": "Gå til {{ module }}"
     },
     "mfa": {
       "title": "Totrinnsbekreftelse",

@@ -19,15 +19,16 @@ interface DocumentsNavItem {
   readonly distribute?: boolean;
 }
 
-/** The documents module's sub-pages, in nav order (`documents.control.nav.<key>`). */
+/**
+ * The documents module's sub-pages, in nav order (`documents.control.nav.<key>`).
+ * Types, templates and retention rules are configuration (U10): they sit behind the
+ * gear, under `/settings/modules/documents`.
+ */
 export const DOCUMENTS_NAV: readonly DocumentsNavItem[] = [
   { key: 'documents', link: '/documents', exact: true },
   { key: 'register', link: '/documents/register', exact: false },
   { key: 'campaigns', link: '/documents/campaigns', exact: false, distribute: true },
   { key: 'external', link: '/documents/external', exact: false },
-  { key: 'types', link: '/documents/types', exact: false },
-  { key: 'templates', link: '/documents/templates', exact: false },
-  { key: 'retention', link: '/documents/retention', exact: false },
 ];
 
 /**

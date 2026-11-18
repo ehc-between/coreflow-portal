@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toEmployees = { redirectTo: '/people/employees' };
 const toPositions = { redirectTo: '/people/positions' };
@@ -91,10 +92,8 @@ export default [
         path: 'checklists/:id',
         loadComponent: () => import('./checklist-detail').then((m) => m.ChecklistDetailPage),
       },
-      {
-        path: 'settings',
-        loadComponent: () => import('./people-settings').then((m) => m.PeopleSettings),
-      },
+      // U10: the module's configuration lives under /settings/modules/people.
+      moduleConfigRedirect('settings', 'people', ''),
     ],
   },
 ] satisfies Routes;

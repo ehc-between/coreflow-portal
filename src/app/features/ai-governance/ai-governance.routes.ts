@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const write = (redirectTo: string) => permissionGuard('ai_governance:write', { redirectTo });
 
@@ -77,11 +78,8 @@ export default [
         path: 'literacy',
         loadComponent: () => import('./literacy/literacy-page').then((m) => m.AiLiteracyPage),
       },
-      {
-        path: 'settings',
-        loadComponent: () =>
-          import('./settings/ai-governance-settings').then((m) => m.AiGovernanceSettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/ai-governance.
+      moduleConfigRedirect('settings', 'ai-governance', ''),
     ],
   },
 ] satisfies Routes;

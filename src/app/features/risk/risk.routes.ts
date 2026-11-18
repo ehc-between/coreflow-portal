@@ -1,16 +1,17 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const write = permissionGuard('risk:write', { redirectTo: '/risk' });
-const manage = permissionGuard('risk:manage', { redirectTo: '/risk' });
 
 /**
  * M04 risk and opportunity management, and the Statement of Applicability
  * (lazy-loaded; `app.routes.ts` already wraps it in `moduleGuard('risk')` +
  * `permissionGuard('risk:read')`). Entity URLs from the backend:
  * `/risk/risks/<id>` (`?treatment=<id>`), `/risk/opportunities/<id>`,
- * `/risk/matrices/<id>`, `/risk/registers/<id>`, `/risk/soa/<key>?control=<ref>`.
+ * `/risk/matrices/<id>`, `/risk/registers/<id>` (both redirect to `/settings/modules/risk/…`),
+ * `/risk/soa/<key>?control=<ref>`.
  */
 export default [
   {
@@ -70,28 +71,12 @@ export default [
         path: 'soa/:key',
         loadComponent: () => import('./soa/soa-view').then((m) => m.SoaViewPage),
       },
-      {
-        path: 'registers',
-        loadComponent: () => import('./registers/register-list').then((m) => m.RegisterListPage),
-      },
-      {
-        path: 'registers/:id',
-        loadComponent: () =>
-          import('./registers/register-detail').then((m) => m.RegisterDetailPage),
-      },
-      {
-        path: 'matrices',
-        loadComponent: () => import('./matrices/matrix-list').then((m) => m.MatrixListPage),
-      },
-      {
-        path: 'matrices/new',
-        canActivate: [manage],
-        loadComponent: () => import('./matrices/matrix-editor').then((m) => m.MatrixEditorPage),
-      },
-      {
-        path: 'matrices/:id',
-        loadComponent: () => import('./matrices/matrix-editor').then((m) => m.MatrixEditorPage),
-      },
+      // U10: registers and matrices are configuration, under /settings/modules/risk.
+      moduleConfigRedirect('registers', 'risk'),
+      moduleConfigRedirect('registers/:id', 'risk'),
+      moduleConfigRedirect('matrices', 'risk'),
+      moduleConfigRedirect('matrices/new', 'risk'),
+      moduleConfigRedirect('matrices/:id', 'risk'),
     ],
   },
 ] satisfies Routes;

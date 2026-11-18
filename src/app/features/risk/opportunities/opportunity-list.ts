@@ -86,7 +86,7 @@ export type OpportunityStatusFilter = (typeof OPPORTUNITY_STATUS_FILTERS)[number
       descriptionKey="risk.opportunities.subtitle"
       scope="risk"
       page="opportunities"
-      settingsLink="/risk/registers"
+      settingsLink="/settings/modules/risk"
       [breadcrumbs]="[
         { labelKey: 'modules.names.risk', link: '/risk' },
         { labelKey: 'risk.opportunities.title' },

@@ -102,7 +102,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
 }
 
 /**
- * Create (`/documents/types/new`) or view and edit (`/documents/types/:id`) a
+ * Create (`/settings/modules/documents/types/new`) or view and edit (`/settings/modules/documents/types/:id`) a
  * document type: its numbering scheme with a live preview of the next code, and
  * the defaults new documents of the type get.
  */
@@ -382,7 +382,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
               >
                 {{ 'documents.control.common.save' | transloco }}
               </app-button>
-              <a routerLink="/documents/types">
+              <a routerLink="/settings/modules/documents/types">
                 <app-button type="button" variant="ghost">
                   {{ 'documents.control.common.cancel' | transloco }}
                 </app-button>
@@ -401,7 +401,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
           [tabs]="tabs"
           [canEdit]="perms.canManage()"
           [includeAudit]="perms.canReadAudit()"
-          backLink="/documents/types"
+          backLink="/settings/modules/documents/types"
           backLabelKey="documents.control.types.back"
         >
           <div header>
@@ -446,7 +446,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
     } @else {
       <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
-          routerLink="/documents/types"
+          routerLink="/settings/modules/documents/types"
           class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
@@ -467,7 +467,7 @@ export class DocumentTypeFormPage {
   private readonly language = inject(LanguageService);
   protected readonly perms = inject(DocumentControlPermissions);
 
-  /** Set on `/documents/types/:id`. */
+  /** Set on `/settings/modules/documents/types/:id`. */
   readonly id = input<string | undefined>(undefined);
 
   protected readonly tabs = TABS;
@@ -597,7 +597,7 @@ export class DocumentTypeFormPage {
       next: (t) => {
         this.saving.set(false);
         this.toasts.success('documents.control.common.savedToast');
-        void this.router.navigate(['/documents/types', t.id]);
+        void this.router.navigate(['/settings/modules/documents/types', t.id]);
       },
       error: (e: unknown) => this.fail(e),
     });
@@ -620,7 +620,7 @@ export class DocumentTypeFormPage {
         this.saving.set(false);
         this.deleteOpen.set(false);
         this.toasts.success('documents.control.common.deletedToast');
-        void this.router.navigateByUrl('/documents/types');
+        void this.router.navigateByUrl('/settings/modules/documents/types');
       },
       error: (e: unknown) => {
         this.deleteOpen.set(false);

@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const draft = permissionGuard('documents:draft', { redirectTo: '/documents' });
-const manage = permissionGuard('documents:manage', { redirectTo: '/documents' });
 /** Every documents route provides the `documents` i18n scope (kept flat for route specs). */
 const scope = [provideTranslocoScope('documents')];
 const distribute = permissionGuard('documents:distribute', { redirectTo: '/documents' });
@@ -11,16 +11,15 @@ const distribute = permissionGuard('documents:distribute', { redirectTo: '/docum
 /**
  * Documents feature routes (lazy-loaded; `app.routes.ts` already wraps the module
  * in `moduleGuard('documents')` + `permissionGuard('documents:read')`). The
- * section pages (list, master list, campaigns, external documents, types,
- * templates, retention) show the section navigation (`app-documents-nav`) under
+ * section pages (list, master list, campaigns, external documents) show the section navigation (`app-documents-nav`) under
  * their header; a document's own pages (new, detail, editor, history) do not. Entity URLs from the backend:
- * `/documents/<id>`, `/documents/types/<id>`, `/documents/templates/<id>`,
- * `/documents/retention/<id>`, `/documents/external/<id>`, `/documents/campaigns/<id>`.
+ * `/documents/<id>`, `/documents/external/<id>`, `/documents/campaigns/<id>`, and
+ * `/documents/types|templates|retention/<id>`, which redirect to their configuration
+ * home under `/settings/modules/documents` (U10, `documents-config.routes.ts`).
  */
 export default [
   {
-    // The section pages (list, master list, distribution, external, types,
-    // templates, retention) each render the module navigation under their header.
+    // The section pages (list, master list, distribution, external) each render the module navigation under their header.
     providers: scope,
     path: '',
     children: [
@@ -42,19 +41,10 @@ export default [
         path: 'external',
         loadComponent: () => import('./external/external-list').then((m) => m.ExternalListPage),
       },
-      {
-        path: 'types',
-        loadComponent: () =>
-          import('./types/document-type-list').then((m) => m.DocumentTypeListPage),
-      },
-      {
-        path: 'templates',
-        loadComponent: () => import('./templates/template-list').then((m) => m.TemplateListPage),
-      },
-      {
-        path: 'retention',
-        loadComponent: () => import('./retention/retention-list').then((m) => m.RetentionListPage),
-      },
+      // U10: types, templates and retention rules are configuration (/settings/modules/documents).
+      moduleConfigRedirect('types', 'documents'),
+      moduleConfigRedirect('templates', 'documents'),
+      moduleConfigRedirect('retention', 'documents'),
     ],
   },
   {
@@ -86,39 +76,12 @@ export default [
     path: 'external/:id',
     loadComponent: () => import('./external/external-detail').then((m) => m.ExternalDetailPage),
   },
-  {
-    providers: scope,
-    path: 'types/new',
-    canActivate: [manage],
-    loadComponent: () => import('./types/document-type-form').then((m) => m.DocumentTypeFormPage),
-  },
-  {
-    providers: scope,
-    path: 'types/:id',
-    loadComponent: () => import('./types/document-type-form').then((m) => m.DocumentTypeFormPage),
-  },
-  {
-    providers: scope,
-    path: 'templates/new',
-    canActivate: [manage],
-    loadComponent: () => import('./templates/template-form').then((m) => m.TemplateFormPage),
-  },
-  {
-    providers: scope,
-    path: 'templates/:id',
-    loadComponent: () => import('./templates/template-form').then((m) => m.TemplateFormPage),
-  },
-  {
-    providers: scope,
-    path: 'retention/new',
-    canActivate: [manage],
-    loadComponent: () => import('./retention/retention-form').then((m) => m.RetentionFormPage),
-  },
-  {
-    providers: scope,
-    path: 'retention/:id',
-    loadComponent: () => import('./retention/retention-form').then((m) => m.RetentionFormPage),
-  },
+  moduleConfigRedirect('types/new', 'documents'),
+  moduleConfigRedirect('types/:id', 'documents'),
+  moduleConfigRedirect('templates/new', 'documents'),
+  moduleConfigRedirect('templates/:id', 'documents'),
+  moduleConfigRedirect('retention/new', 'documents'),
+  moduleConfigRedirect('retention/:id', 'documents'),
   {
     providers: scope,
     path: 'new',

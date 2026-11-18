@@ -181,7 +181,7 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
             {{ 'aiGovernance.literacy.scope.' + (c.scope ?? 'all') | transloco }}
             @if (store.canManage()) {
               <a
-                routerLink="/ai-governance/settings"
+                routerLink="/settings/modules/ai-governance"
                 class="font-semibold text-accent hover:underline"
                 >{{ 'aiGovernance.literacy.changeScope' | transloco }}</a
               >

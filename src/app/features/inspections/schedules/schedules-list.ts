@@ -200,9 +200,11 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
                   </p>
                   <p class="truncate text-meta text-fg-muted">
                     @if (s.template; as t) {
-                      <a [routerLink]="['/inspections/templates', t.id]" class="hover:underline">{{
-                        t.title
-                      }}</a>
+                      <a
+                        [routerLink]="['/settings/modules/inspections/templates', t.id]"
+                        class="hover:underline"
+                        >{{ t.title }}</a
+                      >
                     }
                     @if (s.location) {
                       · {{ s.location }}

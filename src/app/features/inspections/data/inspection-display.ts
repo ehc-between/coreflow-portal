@@ -21,12 +21,11 @@ import {
 export const INSPECTIONS_NAV: readonly ModuleNavItem[] = [
   { labelKey: 'inspections.sections.inspections', link: '/inspections', exact: true },
   { labelKey: 'inspections.sections.findings', link: '/inspections/findings' },
-  { labelKey: 'inspections.sections.templates', link: '/inspections/templates' },
   { labelKey: 'inspections.sections.schedules', link: '/inspections/schedules' },
 ];
 
 /** The gear in the page header: checklist templates are the module's configuration. */
-export const INSPECTIONS_SETTINGS_LINK = '/inspections/templates';
+export const INSPECTIONS_SETTINGS_LINK = '/settings/modules/inspections';
 
 export function templateStatusKey(status: TemplateStatus | string): string {
   return `inspections.templateStatus.${status}`;

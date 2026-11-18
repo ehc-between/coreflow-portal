@@ -21,10 +21,11 @@ import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { Switch } from '../../shared/ui/switch/switch';
 import { ContractField } from './contract-field';
-import { CONTRACTS_CRUMB } from './contracts-nav';
 import { ContractsApi } from './data/contracts-api';
 import { ContractSettings, PERM_MANAGE } from './data/contract.models';
 import { contractErrorKey } from './data/contract-errors';
+import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../core/modules/module-config';
 
 /** Whole months 1-60, or null. */
 export function reviewMonths(value: string): number | null {
@@ -33,7 +34,7 @@ export function reviewMonths(value: string): number | null {
 }
 
 /**
- * Contract settings of the organisation (`/contracts/settings`): segregation of
+ * Contract settings of the organisation (`/settings/modules/contracts`): segregation of
  * duties for approvals (on by default: the person who submitted or owns a contract
  * cannot approve it) and how often supplier, SLA and data processing agreements are
  * reviewed. Read for members, editable with `contracts:manage`; changes are audited.
@@ -41,6 +42,7 @@ export function reviewMonths(value: string): number | null {
 @Component({
   selector: 'app-contract-settings',
   imports: [
+    ModuleConfigNav,
     TranslocoPipe,
     Button,
     Card,
@@ -60,6 +62,7 @@ export function reviewMonths(value: string): number | null {
         backLink="/contracts"
         backLabelKey="contracts.common.backToList"
       />
+      <app-module-config-nav module="contracts" />
       @switch (state()) {
         @case ('loading') {
           <app-loading-state [rows]="3" />
@@ -144,7 +147,7 @@ export class ContractSettingsPage {
   private readonly language = inject(LanguageService);
 
   protected readonly breadcrumbs: readonly Breadcrumb[] = [
-    CONTRACTS_CRUMB,
+    ...moduleConfigCrumbs('contracts'),
     { labelKey: 'contracts.settings.title' },
   ];
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');

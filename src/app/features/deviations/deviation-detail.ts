@@ -247,7 +247,7 @@ interface ClauseChip {
         [entityId]="dev.id"
         [title]="dev.title"
         [breadcrumbs]="breadcrumbs()"
-        [settingsLink]="isAdmin() ? '/deviations/types' : null"
+        [settingsLink]="isAdmin() ? '/settings/modules/deviations' : null"
         [tabs]="tabs"
         [canEdit]="canEditThis()"
         [canComment]="canWrite()"

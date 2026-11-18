@@ -374,7 +374,7 @@ function legacyAttention(o: AiGovernanceOverview): AttentionItemDto[] {
                 <p class="text-ui text-fg-muted">
                   {{ 'aiGovernance.overview.noPolicy' | transloco }}
                   <a
-                    routerLink="/ai-governance/settings"
+                    routerLink="/settings/modules/ai-governance"
                     class="font-semibold text-accent hover:underline"
                     >{{ 'aiGovernance.overview.linkPolicy' | transloco }}</a
                   >

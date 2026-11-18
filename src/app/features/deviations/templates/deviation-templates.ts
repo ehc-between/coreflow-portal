@@ -15,9 +15,10 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
-import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
 import { fieldTypeLabelKey, standardLabelKey } from '../deviation-enums';
 import { DeviationStatusLabels } from '../deviation-status';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 /** A template's text in the UI language (falls back to English, then any language). */
 export function templateText(text: Readonly<Record<string, string>>, lang: string): string {
@@ -35,6 +36,7 @@ export function templateText(text: Readonly<Record<string, string>>, lang: strin
 @Component({
   selector: 'app-deviation-templates',
   imports: [
+    ModuleConfigNav,
     TourStepDirective,
     RouterLink,
     TranslocoPipe,
@@ -52,8 +54,9 @@ export function templateText(text: Readonly<Record<string, string>>, lang: strin
         titleKey="deviations.templates.title"
         descriptionKey="deviations.templates.subtitle"
         [breadcrumbs]="breadcrumbs"
-        backLink="/deviations/types"
+        backLink="/settings"
       />
+      <app-module-config-nav module="deviations" />
       <app-help-strip scope="deviations" page="templates" lesson="designing-your-process" />
 
       @if (loading()) {
@@ -142,7 +145,10 @@ export function templateText(text: Readonly<Record<string, string>>, lang: strin
               <div class="mt-auto flex flex-wrap items-center gap-2 pt-1">
                 @if (template.deviation_type_id) {
                   <a
-                    [routerLink]="['/deviations/types', template.deviation_type_id]"
+                    [routerLink]="[
+                      '/settings/modules/deviations/types',
+                      template.deviation_type_id,
+                    ]"
                     class="text-ui font-semibold text-accent hover:underline"
                   >
                     {{ 'deviations.templates.openType' | transloco }}
@@ -188,8 +194,7 @@ export class DeviationTemplatesPage {
   protected readonly standardLabelKey = standardLabelKey;
   protected readonly fieldTypeLabelKey = fieldTypeLabelKey;
   protected readonly breadcrumbs = [
-    DEVIATIONS_ROOT_CRUMB,
-    { labelKey: 'deviations.types.title', link: '/deviations/types' },
+    ...moduleConfigCrumbs('deviations'),
     { labelKey: 'deviations.templates.title' },
   ];
   protected readonly templates = signal<readonly DeviationTemplate[]>([]);

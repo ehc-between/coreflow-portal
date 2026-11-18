@@ -3,6 +3,7 @@ import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { PERM_READ } from './data/privacy.models';
 import { REGISTER_LIST, RegisterDef } from './data/privacy-registers';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toOverview = { redirectTo: '/privacy' };
 
@@ -43,11 +44,8 @@ export default [
         pathMatch: 'full',
         loadComponent: () => import('./privacy-overview').then((m) => m.PrivacyOverview),
       },
-      {
-        // Controller and DPO contacts (read by every privacy reader, changed by privacy:manage).
-        path: 'settings',
-        loadComponent: () => import('./privacy-settings').then((m) => m.PrivacySettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/privacy.
+      moduleConfigRedirect('settings', 'privacy', ''),
       ...REGISTER_LIST.map(registerRoutes),
       { path: '**', redirectTo: '' },
     ],

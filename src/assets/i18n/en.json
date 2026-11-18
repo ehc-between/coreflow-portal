@@ -698,7 +698,11 @@
         "settings": "Settings",
         "retention": "Retention rules",
         "significanceMethod": "Significance method",
-        "roleOverviews": "Role overviews"
+        "roleOverviews": "Role overviews",
+        "riskRegisters": "Risk registers",
+        "questionnaires": "Questionnaires",
+        "peopleChecklists": "Joiner and leaver checklists",
+        "privacyContacts": "Controller and contacts"
       },
       "membersSection": "Members, departments and invitations",
       "groups": {
@@ -706,8 +710,14 @@
         "people": "People and access",
         "work": "Notifications and workflows",
         "learning": "Learning",
-        "trace": "Traceability"
-      }
+        "trace": "Traceability",
+        "advanced": "Advanced"
+      },
+      "advancedHint": "Custom record types and deletion logs."
+    },
+    "moduleConfig": {
+      "note": "Set up how the module works here. The daily work happens in the module itself.",
+      "openModule": "Go to {{ module }}"
     },
     "mfa": {
       "title": "Two-step verification",

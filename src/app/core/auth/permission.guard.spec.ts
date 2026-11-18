@@ -11,6 +11,7 @@ import {
 } from '@angular/router';
 import { firstValueFrom, isObservable, Observable, of, Subject } from 'rxjs';
 import { routes as appRoutes } from '../../app.routes';
+import deviationConfigRoutes from '../../features/deviations/deviations-config.routes';
 import deviationRoutes from '../../features/deviations/deviations.routes';
 import documentRoutes from '../../features/documents/documents.routes';
 import { NAV_ITEMS } from '../../layout/nav';
@@ -178,6 +179,8 @@ describe('permissionGuard', () => {
     const shell = appRoutes.find((r) => r.path === '' && r.children)!;
     // The deviations routes sit under one scope-providing parent (M03).
     const deviationChildren = deviationRoutes[0].children!;
+    // U10: the module's configuration lives under /settings/modules/deviations.
+    const deviationConfig = deviationConfigRoutes[0].children!;
 
     function find(routes: readonly Route[], path: string): Route {
       const route = routes.find((r) => r.path === path);
@@ -209,32 +212,12 @@ describe('permissionGuard', () => {
       ['/documents/new', find(documentRoutes, 'new'), 'documents:draft', '/documents'],
       ['/documents/:id/edit', find(documentRoutes, ':id/edit'), 'documents:draft', '/documents'],
       ['/deviations/new', find(deviationChildren, 'new'), 'deviations:write', '/deviations'],
-      ['/deviations/types', find(deviationChildren, 'types'), 'deviations:admin', '/deviations'],
-      [
-        '/deviations/types/new',
-        find(deviationChildren, 'types/new'),
-        'deviations:admin',
-        '/deviations',
-      ],
-      [
-        '/deviations/types/:id',
-        find(deviationChildren, 'types/:id'),
-        'deviations:admin',
-        '/deviations',
-      ],
-      [
-        '/deviations/templates',
-        find(deviationChildren, 'templates'),
-        'deviations:admin',
-        '/deviations',
-      ],
+      ['config types', find(deviationConfig, 'types'), 'deviations:admin', '/deviations'],
+      ['config types/new', find(deviationConfig, 'types/new'), 'deviations:admin', '/deviations'],
+      ['config types/:id', find(deviationConfig, 'types/:id'), 'deviations:admin', '/deviations'],
+      ['config templates', find(deviationConfig, 'templates'), 'deviations:admin', '/deviations'],
       ['/deviations/intake', find(deviationChildren, 'intake'), 'deviations:intake', '/deviations'],
-      [
-        '/deviations/intake/settings',
-        find(deviationChildren, 'intake/settings'),
-        'deviations:admin',
-        '/deviations',
-      ],
+      ['config intake', find(deviationConfig, 'intake'), 'deviations:admin', '/deviations'],
       [
         '/deviations/intake/:id',
         find(deviationChildren, 'intake/:id'),
@@ -255,6 +238,21 @@ describe('permissionGuard', () => {
         expect(check(route, [])).toBe(deniedTo);
       });
     }
+
+    it('redirects the old deviation configuration URLs to Settings (U10)', () => {
+      expect(find(deviationChildren, 'types').data?.['moduleConfigTarget']).toBe(
+        '/settings/modules/deviations/types',
+      );
+      expect(find(deviationChildren, 'types/:id').data?.['moduleConfigTarget']).toBe(
+        '/settings/modules/deviations/types/:id',
+      );
+      expect(find(deviationChildren, 'templates').data?.['moduleConfigTarget']).toBe(
+        '/settings/modules/deviations/templates',
+      );
+      expect(find(deviationChildren, 'intake/settings').data?.['moduleConfigTarget']).toBe(
+        '/settings/modules/deviations/intake',
+      );
+    });
 
     it('denied users of the default landing page fall back to an unguarded route', () => {
       const fallback = find(shell.children!, 'my-work');

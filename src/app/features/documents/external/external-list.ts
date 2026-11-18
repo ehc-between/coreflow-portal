@@ -122,7 +122,7 @@ export function externalQuery(
         { labelKey: 'modules.names.documents', link: '/documents' },
         { labelKey: 'documents.control.external.title' },
       ]"
-      settingsLink="/documents/types"
+      settingsLink="/settings/modules/documents"
       scope="documents"
       page="external"
       searchPlaceholderKey="documents.control.external.searchPlaceholder"

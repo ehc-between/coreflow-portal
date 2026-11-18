@@ -33,6 +33,7 @@ import {
   FeedbackSettings,
   PERM_MANAGE,
 } from '../data/feedback.models';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 /** Days per kind as form text ('' = no default deadline). */
 export type DaysForm = Readonly<Record<FeedbackKind, string>>;
@@ -62,7 +63,7 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
 }
 
 /**
- * Customer feedback settings (`/feedback/settings`): the default reply time per kind
+ * Customer feedback settings (`/settings/modules/feedback`): the default reply time per kind
  * (pre-fills the reply date of new feedback, so reminders and "overdue" work) and
  * the privacy notice linked from public surveys that ask for a name or e-mail.
  * Everyone can read them; `feedback:manage` can change them.
@@ -70,6 +71,7 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
 @Component({
   selector: 'app-feedback-settings',
   imports: [
+    ModuleConfigNav,
     TranslocoPipe,
     FieldHelp,
     Alert,
@@ -89,12 +91,13 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
         descriptionKey="feedback.settings.subtitle"
         [breadcrumbs]="[
           { labelKey: 'nav.settings', link: '/settings' },
-          { labelKey: 'modules.names.feedback', link: '/feedback' },
+          { labelKey: 'modules.names.feedback' },
           { labelKey: 'feedback.settings.crumb' },
         ]"
         backLink="/feedback"
         backLabelKey="feedback.common.backToList"
       />
+      <app-module-config-nav module="feedback" />
       <app-help-strip scope="feedback" page="settings" />
 
       @switch (state()) {

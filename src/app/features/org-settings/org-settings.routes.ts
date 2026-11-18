@@ -89,13 +89,6 @@ const routes: Routes = [
       import('./department-detail/department-detail').then((m) => m.DepartmentDetail),
   },
   {
-    path: 'modules',
-    canActivate: [orgManageGuard],
-    providers: [provideTranslocoScope('modules')],
-    loadComponent: () =>
-      import('../org-modules/modules-settings/modules-settings').then((m) => m.ModulesSettings),
-  },
-  {
     path: 'profile',
     canActivate: [orgManageGuard],
     providers: [provideTranslocoScope('modules')],
