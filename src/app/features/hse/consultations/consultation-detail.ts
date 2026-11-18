@@ -176,7 +176,7 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
             [title]="c.title"
             [breadcrumbs]="breadcrumbs()"
             [tabs]="tabs"
-            [counts]="{ tasks: c.actions?.open ?? 0 }"
+            [counts]="{ tasks: c.actions?.total ?? 0 }"
             [canEdit]="perms.write()"
           >
             <ng-container ngProjectAs="[meta]">
