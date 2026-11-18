@@ -23,9 +23,11 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Switch } from '../../../shared/ui/switch/switch';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { GUIDE_CLAUSES, frameworkShortKey } from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
-import { ModulesLesson } from '../guide/modules-lesson';
+import { frameworkShortKey } from '../frameworks';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { providePageContext } from '../../../core/ai/page-context';
 import { moduleDescriptionKey, moduleNameKey, moduleNameList } from '../module-names';
 
 export type ModuleStatusFilter = 'all' | 'enabled' | 'disabled';
@@ -50,6 +52,37 @@ export function filterModules(
 }
 
 /**
+ * The module that carries most of a framework's day-to-day work: when the
+ * framework is in scope but this module is off, the page says so.
+ */
+export const FRAMEWORK_KEY_MODULE: Readonly<Record<string, string>> = {
+  iso9001: 'deviations',
+  iso27001: 'risk',
+  iso14001: 'environment',
+  iso45001: 'hse',
+  iso42001: 'ai_governance',
+  eu_ai_act: 'ai_governance',
+  gdpr: 'privacy',
+  nis2: 'continuity',
+};
+
+/** Frameworks in scope whose key module exists but is switched off. */
+export function scopeGaps(
+  frameworks: readonly string[],
+  modules: readonly OrgModule[],
+): { framework: string; module: OrgModule }[] {
+  const out: { framework: string; module: OrgModule }[] = [];
+  for (const framework of frameworks) {
+    const key = FRAMEWORK_KEY_MODULE[framework];
+    const module = modules.find((m) => m.key === key);
+    if (module && !module.enabled && !out.some((g) => g.module.key === module.key)) {
+      out.push({ framework, module });
+    }
+  }
+  return out;
+}
+
+/**
  * Settings → Modules (`org:manage`): every module of the platform as a card
  * with an on/off switch, its frameworks and dependency hints. Turning a module
  * off asks first (data is kept; members lose access until it's back on). The
@@ -68,26 +101,22 @@ export function filterModules(
     ConfirmDialog,
     Icon,
     Switch,
-    ModulesGuide,
-    ModulesLesson,
+    HelpStrip,
+    WhyItMatters,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <nav class="mb-2 text-[13px]" [attr.aria-label]="'modules.common.breadcrumb' | transloco">
-        <a routerLink="/settings" class="font-semibold text-accent hover:underline">
-          {{ 'nav.settings' | transloco }}
-        </a>
-      </nav>
-      <div class="mb-[18px] flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'modules.settings.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">
-            {{ 'modules.settings.subtitle' | transloco }}
-          </p>
-        </div>
+      <app-page-header
+        titleKey="modules.settings.title"
+        descriptionKey="modules.settings.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: 'modules.settings.title' },
+        ]"
+      />
+      <div class="mb-[18px] -mt-2 flex flex-wrap items-start justify-end gap-3">
         <div class="flex flex-wrap gap-2">
           <app-button variant="secondary" size="sm" (click)="askFit()">
             <app-icon name="spark" [size]="15" />
@@ -95,7 +124,7 @@ export function filterModules(
           </app-button>
           <a
             routerLink="/setup"
-            class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+            class="inline-flex h-8 items-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
           >
             <app-icon name="sliders" [size]="15" />
             {{ 'modules.settings.runWizard' | transloco }}
@@ -103,30 +132,53 @@ export function filterModules(
         </div>
       </div>
 
-      <app-modules-guide class="mb-5 block" page="modules" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="modules" lesson="modules-basics" />
+
+      @for (gap of gaps(); track gap.module.key) {
+        <p
+          class="mb-3 flex flex-wrap items-center gap-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+          role="status"
+          data-testid="scope-gap"
+        >
+          <app-icon name="alert" [size]="15" />
+          <span class="min-w-0 flex-1">{{
+            'modules.settings.scopeGap'
+              | transloco
+                : {
+                    framework: (frameworkShortKey(gap.framework) | transloco),
+                    module: (nameKey(gap.module) | transloco),
+                  }
+          }}</span>
+          <app-button size="sm" variant="secondary" (click)="request(gap.module, true)">
+            {{
+              'modules.settings.turnOn' | transloco: { module: (nameKey(gap.module) | transloco) }
+            }}
+          </app-button>
+        </p>
+      }
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else {
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end" role="search">
-          <label class="flex flex-1 flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-1 flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.search' | transloco }}
             <input
               type="search"
-              class="h-9 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="query()"
               (input)="query.set($any($event.target).value)"
               [placeholder]="'modules.settings.searchPlaceholder' | transloco"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.statusFilter' | transloco }}
             <select
-              class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="status()"
               (change)="status.set($any($event.target).value)"
             >
@@ -137,10 +189,10 @@ export function filterModules(
               }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.frameworkFilter' | transloco }}
             <select
-              class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg outline-none focus:border-accent"
               [value]="framework()"
               (change)="framework.set($any($event.target).value)"
             >
@@ -158,14 +210,14 @@ export function filterModules(
 
         @if (loading()) {
           <app-card>
-            <p class="py-10 text-center text-[14px] text-fg-muted">
+            <p class="py-10 text-center text-body text-fg-muted">
               {{ 'common.loading' | transloco }}
             </p>
           </app-card>
         } @else if (loadFailed()) {
           <app-card>
             <div class="flex flex-col items-center gap-3 py-10 text-center">
-              <p class="text-[14px] text-fg-muted">{{ 'modules.common.loadFailed' | transloco }}</p>
+              <p class="text-body text-fg-muted">{{ 'modules.common.loadFailed' | transloco }}</p>
               <app-button size="sm" variant="secondary" (click)="load()">
                 {{ 'modules.common.retry' | transloco }}
               </app-button>
@@ -174,16 +226,16 @@ export function filterModules(
         } @else if (modules().length === 0) {
           <app-card>
             <div class="flex flex-col items-center gap-2 py-10 text-center">
-              <p class="text-[15px] font-bold text-fg">
+              <p class="text-card font-bold text-fg">
                 {{ 'modules.settings.empty.title' | transloco }}
               </p>
-              <p class="max-w-md text-[13.5px] text-fg-muted">
+              <p class="max-w-md text-ui text-fg-muted">
                 {{ 'modules.settings.empty.body' | transloco }}
               </p>
             </div>
           </app-card>
         } @else {
-          <p class="mb-2 text-[13px] text-fg-muted" role="status">
+          <p class="mb-2 text-ui text-fg-muted" role="status">
             {{
               'modules.settings.count'
                 | transloco
@@ -192,7 +244,7 @@ export function filterModules(
           </p>
           @if (visible().length === 0) {
             <app-card>
-              <p class="py-8 text-center text-[14px] text-fg-muted">
+              <p class="py-8 text-center text-body text-fg-muted">
                 {{ 'modules.settings.noMatches' | transloco }}
               </p>
             </app-card>
@@ -206,10 +258,10 @@ export function filterModules(
                 >
                   <div class="flex items-start gap-3">
                     <div class="min-w-0 flex-1">
-                      <h2 class="text-[15px] font-bold text-fg" [id]="'module-' + m.key">
+                      <h2 class="text-card font-bold text-fg" [id]="'module-' + m.key">
                         {{ nameKey(m) | transloco }}
                       </h2>
-                      <p class="mt-0.5 text-[13px] text-fg-muted">
+                      <p class="mt-0.5 text-ui text-fg-muted">
                         {{ descriptionKey(m) | transloco }}
                       </p>
                     </div>
@@ -237,19 +289,29 @@ export function filterModules(
                   @if (m.frameworks.length) {
                     <div class="flex flex-wrap gap-1">
                       @for (fw of m.frameworks; track fw) {
-                        <app-badge>{{ frameworkShortKey(fw) | transloco }}</app-badge>
+                        <button
+                          type="button"
+                          class="rounded-full focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          [attr.aria-label]="
+                            'modules.settings.filterByFramework'
+                              | transloco: { framework: (frameworkShortKey(fw) | transloco) }
+                          "
+                          (click)="framework.set(fw)"
+                        >
+                          <app-badge>{{ frameworkShortKey(fw) | transloco }}</app-badge>
+                        </button>
                       }
                     </div>
                   }
                   @if (m.depends_on.length) {
-                    <p class="text-[12.5px] text-fg-subtle">
+                    <p class="text-meta text-fg-subtle">
                       {{
                         'modules.settings.dependsOn' | transloco: { modules: names(m.depends_on) }
                       }}
                     </p>
                   }
                   @if (m.required_by.length) {
-                    <p class="text-[12.5px] text-fg-subtle">
+                    <p class="text-meta text-fg-subtle">
                       {{
                         'modules.settings.requiredBy' | transloco: { modules: names(m.required_by) }
                       }}
@@ -258,7 +320,7 @@ export function filterModules(
                   @if (m.enabled && m.portal_path) {
                     <a
                       [routerLink]="['/', m.portal_path]"
-                      class="self-start text-[13px] font-semibold text-accent hover:underline"
+                      class="self-start text-ui font-semibold text-accent hover:underline"
                     >
                       {{ 'modules.settings.open' | transloco }}
                     </a>
@@ -268,8 +330,6 @@ export function filterModules(
             </ul>
           }
         }
-
-        <app-modules-lesson class="mt-6 block" />
       }
 
       <app-confirm-dialog
@@ -283,6 +343,8 @@ export function filterModules(
         (confirmed)="confirmDisable()"
         (cancelled)="pendingDisable.set(null)"
       />
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="modules" />
     </div>
   `,
 })
@@ -295,7 +357,6 @@ export class ModulesSettings {
   private readonly ask = inject(AskPanelService);
   private readonly language = inject(LanguageService);
 
-  protected readonly clauses = GUIDE_CLAUSES.modules;
   protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly statusOptions: readonly ModuleStatusFilter[] = ['all', 'enabled', 'disabled'];
   protected readonly frameworkShortKey = frameworkShortKey;
@@ -312,14 +373,24 @@ export class ModulesSettings {
   protected readonly status = signal<ModuleStatusFilter>('all');
   protected readonly framework = signal('');
 
+  /** Frameworks in the organisation profile (for the scope-gap hints). */
+  protected readonly profileFrameworks = signal<readonly string[]>([]);
+  protected readonly gaps = computed(() => scopeGaps(this.profileFrameworks(), this.modules()));
+
   protected readonly visible = computed(() => {
+    const collator = new Intl.Collator(this.language.active() === 'nb' ? 'nb' : 'en');
     return filterModules(this.modules(), {
       status: this.status(),
       framework: this.framework(),
       query: this.query(),
       text: (m) =>
         `${this.language.translate(moduleNameKey(m.key))} ${this.language.translate(moduleDescriptionKey(m.key))} ${m.key}`,
-    });
+    }).sort((a, b) =>
+      collator.compare(
+        this.language.translate(moduleNameKey(a.key)),
+        this.language.translate(moduleNameKey(b.key)),
+      ),
+    );
   });
   protected readonly enabledCount = computed(() => this.modules().filter((m) => m.enabled).length);
   protected readonly pendingName = computed(() => {
@@ -328,13 +399,27 @@ export class ModulesSettings {
   });
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'org_module',
+      view: 'settings',
+      title: this.language.translate('modules.settings.title'),
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       untracked(() => {
         this.modules.set([]);
+        this.profileFrameworks.set([]);
         this.error.set(null);
         if (orgId) {
           this.load();
+          this.api.getProfile(orgId).subscribe({
+            next: (profile) => {
+              if (this.orgId() === orgId) this.profileFrameworks.set(profile.frameworks ?? []);
+            },
+            error: () => undefined,
+          });
         }
       });
     });

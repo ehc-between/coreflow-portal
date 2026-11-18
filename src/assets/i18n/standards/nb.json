@@ -196,6 +196,8 @@
     "moreLabelOne": "Vis 1 koblet krav til",
     "fromField": "Fra feltet «{{field}}»",
     "fromFieldHint": "Endre feltet på posten for å fjerne denne koblingen.",
+    "fromRecordField": "Fra et felt på posten",
+    "fromRecordType": "Fra oppsettet av registertypen",
     "managedByField": "Koblingen kommer fra et felt på posten. Endre feltet for å fjerne den.",
     "error": "Kunne ikke oppdatere kravkoblingene. Prøv igjen.",
     "loadError": "Kunne ikke laste kravene. Prøv igjen.",

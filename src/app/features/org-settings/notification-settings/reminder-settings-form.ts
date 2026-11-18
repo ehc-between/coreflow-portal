@@ -39,11 +39,11 @@ import { Switch } from '../../../shared/ui/switch/switch';
     <app-card>
       <h2
         id="reminder-settings-title"
-        class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg"
+        class="font-display text-section font-bold tracking-[-0.02em] text-fg"
       >
         {{ 'activity.reminders.title' | transloco }}
       </h2>
-      <p class="mt-0.5 text-[13px] text-fg-muted">
+      <p class="mt-0.5 text-ui text-fg-muted">
         {{ 'activity.reminders.subtitle' | transloco }}
       </p>
 
@@ -81,10 +81,10 @@ import { Switch } from '../../../shared/ui/switch/switch';
               aria-describedby="escalation-days-help"
             />
           </app-form-field>
-          <p id="reminder-days-help" class="-mt-2 text-[12px] text-fg-muted">
+          <p id="reminder-days-help" class="-mt-2 text-meta text-fg-muted">
             {{ 'activity.reminders.reminderDaysHelp' | transloco: { max: reminderMax } }}
           </p>
-          <p id="escalation-days-help" class="-mt-2 text-[12px] text-fg-muted">
+          <p id="escalation-days-help" class="-mt-2 text-meta text-fg-muted">
             {{ 'activity.reminders.escalationDaysHelp' | transloco: { max: escalationMax } }}
           </p>
         </div>
@@ -104,7 +104,7 @@ import { Switch } from '../../../shared/ui/switch/switch';
             }
           </select>
         </app-form-field>
-        <p id="escalation-role-help" class="-mt-2 text-[12px] text-fg-muted">
+        <p id="escalation-role-help" class="-mt-2 text-meta text-fg-muted">
           {{ 'activity.reminders.escalationRoleHelp' | transloco }}
         </p>
 
@@ -115,7 +115,7 @@ import { Switch } from '../../../shared/ui/switch/switch';
           >
             {{ 'activity.reminders.escalateToLead' | transloco }}
           </app-switch>
-          <p class="mt-1 pl-1 text-[12px] text-fg-muted">
+          <p class="mt-1 pl-1 text-meta text-fg-muted">
             {{ 'activity.reminders.escalateToLeadHelp' | transloco }}
           </p>
         </div>

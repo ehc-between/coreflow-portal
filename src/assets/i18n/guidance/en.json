@@ -126,7 +126,8 @@
     "records": "Record types and workflows",
     "tasks": "Tasks",
     "kit": "Working with records",
-    "search": "Search and the assistant"
+    "search": "Search and the assistant",
+    "settings": "Settings"
   },
   "tour": {
     "start": "Tour",
@@ -190,12 +191,12 @@
     "sortQuizzes": "Quizzes passed",
     "sortActivity": "Last activity",
     "colMember": "Member",
-    "colSeen": "Lessons seen",
+    "colSeen": "Opened lessons",
     "colCompleted": "Completed",
     "colQuizzes": "Quizzes passed",
     "colLastActivity": "Last activity",
     "never": "No activity yet",
-    "unnamed": "Unnamed member",
+    "unnamed": "Member without a name",
     "noMatches": "No members match your search."
   },
   "member": {
@@ -208,7 +209,10 @@
     "colCompleted": "Completed",
     "colQuiz": "Quiz",
     "notYet": "Not yet",
-    "noQuiz": "No attempts"
+    "noQuiz": "No attempts",
+    "openPerson": "Open in the People register",
+    "trainingHint": "Lessons show awareness, but do not replace training records. Record completed training under",
+    "openTraining": "Training"
   },
   "notifications": {
     "lessonCompleted": "{{ actor_name }} completed the lesson {{ lesson_key }}",

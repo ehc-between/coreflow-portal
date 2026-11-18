@@ -45,15 +45,15 @@ export function timezoneOptions(current: string): string[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card>
-      <h2 class="text-[14.5px] font-semibold text-fg">
+      <h2 class="text-body font-semibold text-fg">
         {{ 'activity.quietHours.title' | transloco }}
       </h2>
-      <p class="mt-0.5 text-[12.5px] text-fg-muted">
+      <p class="mt-0.5 text-meta text-fg-muted">
         {{ 'activity.quietHours.subtitle' | transloco }}
       </p>
 
       @if (loading()) {
-        <p class="mt-4 text-[13px] text-fg-muted">{{ 'activity.page.loading' | transloco }}</p>
+        <p class="mt-4 text-ui text-fg-muted">{{ 'activity.page.loading' | transloco }}</p>
       } @else if (loadError()) {
         <div class="mt-4">
           <app-alert>{{ 'activity.quietHours.loadError' | transloco }}</app-alert>

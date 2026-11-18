@@ -26,7 +26,7 @@ function keepFilled(pair: Record<LabelLang, string>): Record<string, string> {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="min-w-0">
-      <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+      <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
         {{ label() }}
         @if (required()) {
           <span class="text-fail" aria-hidden="true">*</span>
@@ -37,7 +37,7 @@ function keepFilled(pair: Record<LabelLang, string>): Record<string, string> {
           <div class="flex items-start gap-2">
             <label
               [attr.for]="id + '-' + lang"
-              class="mt-2.5 w-6 flex-none text-[11px] font-bold text-fg-subtle uppercase"
+              class="mt-2.5 w-6 flex-none text-micro font-bold text-fg-subtle uppercase"
               [attr.title]="'records.langs.' + lang | transloco"
             >
               {{ lang }}
@@ -51,7 +51,7 @@ function keepFilled(pair: Record<LabelLang, string>): Record<string, string> {
                 [value]="pair()[lang]"
                 (input)="update(lang, $event)"
                 [attr.aria-required]="(required() && lang === 'en') || null"
-                class="min-w-0 flex-1 rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                class="min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
               ></textarea>
             } @else {
               <input
@@ -62,7 +62,7 @@ function keepFilled(pair: Record<LabelLang, string>): Record<string, string> {
                 [value]="pair()[lang]"
                 (input)="update(lang, $event)"
                 [attr.aria-required]="(required() && lang === 'en') || null"
-                class="h-10 min-w-0 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                class="h-10 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
               />
             }
           </div>

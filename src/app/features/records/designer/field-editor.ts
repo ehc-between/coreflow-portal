@@ -16,6 +16,10 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { NUMERIC_TYPES, OPTION_TYPES, SectionDraft, uniqueKey } from '../designer-model';
 import { RecordsFieldHelp } from '../guidance/records-guidance';
 import { LocalizedInput } from './localized-input';
+import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+
+/** Most requirements one field can name (backend limit). */
+export const FIELD_REQUIREMENTS_MAX = 8;
 
 let nextId = 0;
 
@@ -28,7 +32,16 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
  */
 @Component({
   selector: 'app-field-editor',
-  imports: [FormsModule, TranslocoPipe, Badge, FormField, Icon, LocalizedInput, RecordsFieldHelp],
+  imports: [
+    FormsModule,
+    TranslocoPipe,
+    Badge,
+    ClausePicker,
+    FormField,
+    Icon,
+    LocalizedInput,
+    RecordsFieldHelp,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = field();
@@ -48,20 +61,20 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
             <app-icon name="chevron" [size]="14" />
           </span>
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-[13.5px] font-semibold text-fg">
+            <span class="block truncate text-ui font-semibold text-fg">
               {{ displayLabel() || ('records.fields.untitled' | transloco) }}
               @if (f.required) {
                 <span class="text-fail" aria-hidden="true">*</span>
               }
             </span>
-            <span class="block truncate font-mono text-[11.5px] text-fg-subtle">{{ f.key }}</span>
+            <span class="block truncate font-mono text-micro text-fg-subtle">{{ f.key }}</span>
           </span>
           <app-badge tone="neutral">{{ 'records.fieldTypes.' + f.type | transloco }}</app-badge>
         </button>
         @if (!readonly()) {
           <button
             type="button"
-            class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg disabled:opacity-40"
+            class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg disabled:opacity-40"
             [disabled]="first()"
             [attr.aria-label]="'records.fields.moveUp' | transloco: { name: displayLabel() }"
             (click)="move.emit(-1)"
@@ -70,7 +83,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
           </button>
           <button
             type="button"
-            class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg disabled:opacity-40"
+            class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg disabled:opacity-40"
             [disabled]="last()"
             [attr.aria-label]="'records.fields.moveDown' | transloco: { name: displayLabel() }"
             (click)="move.emit(1)"
@@ -79,7 +92,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
           </button>
           <button
             type="button"
-            class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+            class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
             [attr.aria-label]="'records.fields.remove' | transloco: { name: displayLabel() }"
             (click)="remove.emit()"
           >
@@ -89,7 +102,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
       </div>
 
       @if (issues().length) {
-        <ul class="px-3 pb-2 text-[12px] font-medium text-fail">
+        <ul class="px-3 pb-2 text-meta font-medium text-fail">
           @for (code of issues(); track code) {
             <li>{{ 'records.issues.' + code | transloco }}</li>
           }
@@ -122,7 +135,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                 (ngModelChange)="patch({ key: $event })"
                 [attr.aria-describedby]="id + '-key-help'"
               />
-              <p [id]="id + '-key-help'" class="text-[11.5px] text-fg-subtle">
+              <p [id]="id + '-key-help'" class="text-micro text-fg-subtle">
                 {{ 'records.fields.keyHelp' | transloco }}
               </p>
             </app-form-field>
@@ -163,7 +176,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
             </app-form-field>
 
             @if (f.type !== 'calculated') {
-              <label class="flex items-center gap-2 self-end pb-2.5 text-[13.5px] text-fg">
+              <label class="flex items-center gap-2 self-end pb-2.5 text-ui text-fg">
                 <input
                   type="checkbox"
                   class="h-4 w-4 accent-[var(--accent)]"
@@ -181,6 +194,22 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                 [value]="f.help"
                 (valueChange)="patch({ help: $event })"
               />
+            </div>
+
+            <div class="sm:col-span-2" data-testid="field-requirements">
+              <app-form-field
+                [label]="'records.fields.requirements' | transloco"
+                [inputId]="id + '-requirements'"
+              >
+                <app-clause-picker
+                  [inputId]="id + '-requirements'"
+                  [ngModel]="f.requirements ?? []"
+                  (ngModelChange)="setRequirements($event)"
+                />
+                <p class="text-micro text-fg-subtle">
+                  {{ 'records.fields.requirementsHint' | transloco: { max: requirementsMax } }}
+                </p>
+              </app-form-field>
             </div>
 
             @if (isText() || f.type === 'number') {
@@ -259,7 +288,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                     [attr.aria-describedby]="id + '-formula-help'"
                     placeholder="likelihood * consequence"
                   />
-                  <p [id]="id + '-formula-help'" class="text-[11.5px] text-fg-subtle">
+                  <p [id]="id + '-formula-help'" class="text-micro text-fg-subtle">
                     {{
                       'records.fields.formulaHelp'
                         | transloco: { fields: numericKeys().join(', ') || '—' }
@@ -271,7 +300,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
 
             @if (hasOptions()) {
               <div class="sm:col-span-2">
-                <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+                <p class="mb-1.5 text-ui font-semibold text-fg-muted">
                   {{ 'records.fields.options' | transloco }}
                 </p>
                 <ul class="flex flex-col gap-2">
@@ -301,7 +330,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                       @if (!readonly()) {
                         <button
                           type="button"
-                          class="flex self-center rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                          class="flex self-center rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
                           [attr.aria-label]="
                             'records.fields.removeOption' | transloco: { value: option.value }
                           "
@@ -316,7 +345,7 @@ const TEXT_TYPES: readonly FieldType[] = ['text', 'textarea', 'richtext'];
                 @if (!readonly()) {
                   <button
                     type="button"
-                    class="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent hover:underline"
+                    class="mt-2 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
                     (click)="addOption()"
                   >
                     <app-icon name="plus" [size]="14" />
@@ -449,6 +478,14 @@ export class FieldEditor {
 
   protected sectionName(section: SectionDraft): string {
     return localize(section.label, this.lang()) || section.key;
+  }
+
+  protected readonly requirementsMax = FIELD_REQUIREMENTS_MAX;
+
+  /** The requirements this field documents (canonical refs, at most 8; empty = none). */
+  protected setRequirements(refs: unknown): void {
+    const list = Array.isArray(refs) ? refs.filter((r): r is string => typeof r === 'string') : [];
+    this.patch({ requirements: list.length ? list.slice(0, FIELD_REQUIREMENTS_MAX) : null });
   }
 
   protected patch(changes: Partial<FieldSpec>): void {

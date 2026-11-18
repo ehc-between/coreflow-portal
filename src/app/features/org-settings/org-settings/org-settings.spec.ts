@@ -13,6 +13,7 @@ import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { orgManageGuard, settingsGuard } from '../../../core/auth/org-manage.guard';
 import { APP_CONFIG } from '../../../core/config/app-config';
+import { provideFakeGuidance } from '../../../core/guidance/guidance.testing';
 import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { OrgSettings } from './org-settings';
@@ -25,6 +26,7 @@ function configure(permissions: string[]): void {
     imports: [OrgSettings, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
     providers: [
       provideZonelessChangeDetection(),
+      ...provideFakeGuidance().providers,
       provideRouter([]),
       provideHttpClient(),
       provideHttpClientTesting(),
@@ -64,60 +66,59 @@ describe('Settings access for a users:invite-only user', () => {
     expect(runGuard(orgManageGuard)).toBeInstanceOf(UrlTree);
   });
 
+  it('lets auditors reach settings for the audit log', () => {
+    configure(['audit:read']);
+    expect(runGuard(settingsGuard)).toBe(true);
+  });
+
   it('redirects a user with neither permission away from settings', () => {
     configure(['dashboard:view']);
     expect(runGuard(settingsGuard)).toBeInstanceOf(UrlTree);
   });
 
-  it('shows Invitations only and never requests departments or members', async () => {
+  it('shows the invitation and role cards only, and never requests departments', async () => {
     configure(['users:invite']);
     const fixture = TestBed.createComponent(OrgSettings);
     await fixture.whenStable();
     const http = TestBed.inject(HttpTestingController);
-
     http.expectNone(`${BASE}/v1/orgs/${ORG}/departments`);
-    http.expectNone(`${BASE}/v1/orgs/${ORG}/members`);
-    http.expectNone(`${BASE}/v1/orgs/${ORG}/settings`);
-    http.expectOne(`${BASE}/v1/orgs/${ORG}/roles`).flush([]);
-    http.expectOne(`${BASE}/v1/orgs/${ORG}/invitations`).flush([]);
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('app-org-invitations')).not.toBeNull();
-    expect(root.querySelector('app-org-members')).toBeNull();
-    expect(root.querySelector('[data-testid="settings-departments"]')).toBeNull();
+    expect(
+      root.querySelector('[data-testid="settings-card-settings.hub.cards.invitations"]'),
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="settings-card-settings.hub.cards.roles"]'),
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="settings-card-settings.hub.cards.members"]'),
+    ).toBeNull();
   });
+});
 
-  it('shows Departments and Members (not Invitations) for an org:manage-only user', async () => {
-    configure(['org:manage']);
+describe('Settings hub for an org:manage user', () => {
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('groups the cards and flags departments without a lead', async () => {
+    configure(['org:manage', 'audit:read']);
     const fixture = TestBed.createComponent(OrgSettings);
     await fixture.whenStable();
     const http = TestBed.inject(HttpTestingController);
-
-    http.expectOne(`${BASE}/v1/orgs/${ORG}/departments`).flush([]);
-    // The members table and the MFA policy section each load the role catalogue.
-    http.match(`${BASE}/v1/orgs/${ORG}/roles`).forEach((req) => req.flush([]));
-    http.expectOne(`${BASE}/v1/orgs/${ORG}/members`).flush([]);
-    // Document, MFA policy and attachment settings each read the org settings.
-    const settings = http.match(`${BASE}/v1/orgs/${ORG}/settings`);
-    expect(settings.length).toBe(3);
-    settings.forEach((req) =>
-      req.flush({
-        require_document_segregation: false,
-        mfa_policy: 'off',
-        mfa_required_roles: [],
-        allow_macro_attachments: false,
-      }),
-    );
-    http.expectNone(`${BASE}/v1/orgs/${ORG}/invitations`);
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/departments`).flush([
+      { id: 'd1', name: 'IT', member_count: 2, lead_user_id: 'u1', lead_name: 'Ada' },
+      { id: 'd2', name: 'Salg', member_count: 0, lead_user_id: null, lead_name: null },
+    ]);
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('[data-testid="settings-departments"]')).not.toBeNull();
-    expect(root.querySelector('[data-testid="settings-documents"]')).not.toBeNull();
-    expect(root.querySelector('[data-testid="settings-mfa"]')).not.toBeNull();
-    expect(root.querySelector('[data-testid="settings-attachments"]')).not.toBeNull();
-    expect(root.querySelector('app-org-members')).not.toBeNull();
-    expect(root.querySelector('app-org-invitations')).toBeNull();
+    for (const group of ['organisation', 'people', 'work', 'learning', 'trace']) {
+      expect(root.querySelector(`[data-testid="settings-section-${group}"]`)).not.toBeNull();
+    }
+    expect(
+      root.querySelector('[data-testid="settings-card-settings.hub.cards.auditLog"]'),
+    ).not.toBeNull();
+    const attention = root.querySelector('[data-testid="settings-attention-leads"]');
+    expect(attention?.textContent).toContain('settings.departments.noLeadWarningOne');
   });
 });

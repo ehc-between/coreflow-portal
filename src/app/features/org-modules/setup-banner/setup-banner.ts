@@ -37,21 +37,21 @@ const DISMISS_PREFIX = 'coreflow.setupBanner.dismissed.';
           <app-icon name="spark" [size]="20" />
         </span>
         <div class="min-w-0 flex-1">
-          <h2 id="setup-banner-title" class="text-[14px] font-bold text-fg">
+          <h2 id="setup-banner-title" class="text-body font-bold text-fg">
             {{ 'modules.banner.title' | transloco }}
           </h2>
-          <p class="text-[13px] text-fg-muted">{{ 'modules.banner.body' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'modules.banner.body' | transloco }}</p>
         </div>
         <div class="flex flex-none gap-2">
           <a
             routerLink="/setup"
-            class="inline-flex h-9 items-center rounded-tile border border-transparent bg-accent px-4 text-[13.5px] font-semibold text-white hover:bg-accent-2 focus-visible:outline-2 focus-visible:outline-accent"
+            class="inline-flex h-9 items-center rounded-tile border border-transparent bg-accent px-4 text-ui font-semibold text-white hover:bg-accent-2 focus-visible:outline-2 focus-visible:outline-accent"
           >
             {{ 'modules.banner.start' | transloco }}
           </a>
           <button
             type="button"
-            class="inline-flex h-9 items-center rounded-tile px-3 text-[13px] font-semibold text-fg-muted hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
+            class="inline-flex h-9 items-center rounded-tile px-3 text-ui font-semibold text-fg-muted hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:outline-accent"
             (click)="dismiss()"
           >
             {{ 'modules.banner.later' | transloco }}

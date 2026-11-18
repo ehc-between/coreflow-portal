@@ -469,6 +469,7 @@ export function cleanFields(fields: readonly FieldSpec[]): FieldSpec[] {
     if (field.type === 'entity_ref') out['entity_type'] = field.entity_type;
     if (field.type === 'calculated') out['formula'] = field.formula;
     if (field.visible_if?.field) out['visible_if'] = field.visible_if;
+    if (field.requirements?.length) out['requirements'] = [...field.requirements];
     if (
       field.default !== null &&
       field.default !== undefined &&

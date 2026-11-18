@@ -55,10 +55,10 @@ let nextId = 0;
             <app-icon name="chevron" [size]="14" />
           </span>
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-[13.5px] font-semibold text-fg">
+            <span class="block truncate text-ui font-semibold text-fg">
               {{ label(t.label) || t.key }}
             </span>
-            <span class="block truncate text-[11.5px] text-fg-subtle">
+            <span class="block truncate text-micro text-fg-subtle">
               {{ fromNames() }} → {{ stateName(t.to) }}
             </span>
           </span>
@@ -71,7 +71,7 @@ let nextId = 0;
         @if (!readonly()) {
           <button
             type="button"
-            class="flex rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+            class="flex rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
             [attr.aria-label]="
               'records.transitions.remove' | transloco: { name: label(t.label) || t.key }
             "
@@ -83,7 +83,7 @@ let nextId = 0;
       </div>
 
       @if (issues().length) {
-        <ul class="px-3 pb-2 text-[12px] font-medium text-fail">
+        <ul class="px-3 pb-2 text-meta font-medium text-fail">
           @for (code of issues(); track code) {
             <li>{{ 'records.issues.' + code | transloco }}</li>
           }
@@ -121,12 +121,12 @@ let nextId = 0;
             </app-form-field>
 
             <fieldset class="sm:col-span-2">
-              <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+              <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
                 {{ 'records.transitions.from' | transloco }}
               </legend>
               <div class="flex flex-wrap gap-x-4 gap-y-2">
                 @for (state of states(); track state.key) {
-                  <label class="flex items-center gap-2 text-[13px] text-fg">
+                  <label class="flex items-center gap-2 text-ui text-fg">
                     <input
                       type="checkbox"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -181,7 +181,7 @@ let nextId = 0;
               <app-records-field-help page="workflow" field="guards" />
             </app-form-field>
 
-            <label class="flex items-center gap-2 text-[13.5px] text-fg">
+            <label class="flex items-center gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 class="h-4 w-4 accent-[var(--accent)]"
@@ -190,7 +190,7 @@ let nextId = 0;
               />
               {{ 'records.transitions.requireComment' | transloco }}
             </label>
-            <label class="flex items-center gap-2 text-[13.5px] text-fg">
+            <label class="flex items-center gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 class="h-4 w-4 accent-[var(--accent)]"
@@ -201,15 +201,15 @@ let nextId = 0;
             </label>
 
             <fieldset class="sm:col-span-2">
-              <legend class="mb-1 text-[13px] font-semibold text-fg-muted">
+              <legend class="mb-1 text-ui font-semibold text-fg-muted">
                 {{ 'records.transitions.allowedRoles' | transloco }}
               </legend>
-              <p class="mb-1.5 text-[11.5px] text-fg-subtle">
+              <p class="mb-1.5 text-micro text-fg-subtle">
                 {{ 'records.transitions.allowedHelp' | transloco }}
               </p>
               <div class="flex flex-wrap gap-x-4 gap-y-2">
                 @for (role of roles; track role) {
-                  <label class="flex items-center gap-2 text-[13px] text-fg">
+                  <label class="flex items-center gap-2 text-ui text-fg">
                     <input
                       type="checkbox"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -241,7 +241,7 @@ let nextId = 0;
 
             <!-- Approval -->
             <div class="rounded-tile border border-border p-3 sm:col-span-2">
-              <label class="flex items-center gap-2 text-[13.5px] font-semibold text-fg">
+              <label class="flex items-center gap-2 text-ui font-semibold text-fg">
                 <input
                   type="checkbox"
                   class="h-4 w-4 accent-[var(--accent)]"
@@ -290,12 +290,12 @@ let nextId = 0;
                     </app-form-field>
                   }
                   <fieldset class="sm:col-span-2">
-                    <legend class="mb-1.5 text-[13px] font-semibold text-fg-muted">
+                    <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
                       {{ 'records.transitions.approverRoles' | transloco }}
                     </legend>
                     <div class="flex flex-wrap gap-x-4 gap-y-2">
                       @for (role of roles; track role) {
-                        <label class="flex items-center gap-2 text-[13px] text-fg">
+                        <label class="flex items-center gap-2 text-ui text-fg">
                           <input
                             type="checkbox"
                             class="h-4 w-4 accent-[var(--accent)]"
@@ -326,7 +326,7 @@ let nextId = 0;
                       }
                     </datalist>
                   </app-form-field>
-                  <label class="flex items-center gap-2 self-end pb-2.5 text-[13.5px] text-fg">
+                  <label class="flex items-center gap-2 self-end pb-2.5 text-ui text-fg">
                     <input
                       type="checkbox"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -341,7 +341,7 @@ let nextId = 0;
 
             <!-- Automatic tasks -->
             <div class="rounded-tile border border-border p-3 sm:col-span-2">
-              <p class="text-[13.5px] font-semibold text-fg">
+              <p class="text-ui font-semibold text-fg">
                 {{ 'records.transitions.tasks' | transloco }}
               </p>
               <app-records-field-help page="workflow" field="create_tasks" />
@@ -426,7 +426,7 @@ let nextId = 0;
                       <div class="sm:col-span-2">
                         <button
                           type="button"
-                          class="text-[12.5px] font-semibold text-fail hover:underline"
+                          class="text-meta font-semibold text-fail hover:underline"
                           (click)="removeTask(i)"
                         >
                           {{ 'records.transitions.removeTask' | transloco }}
@@ -439,7 +439,7 @@ let nextId = 0;
               @if (!readonly()) {
                 <button
                   type="button"
-                  class="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent hover:underline"
+                  class="mt-2 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
                   (click)="addTask()"
                 >
                   <app-icon name="plus" [size]="14" />
@@ -450,7 +450,7 @@ let nextId = 0;
 
             <!-- Notifications -->
             <div class="rounded-tile border border-border p-3 sm:col-span-2">
-              <p class="text-[13.5px] font-semibold text-fg">
+              <p class="text-ui font-semibold text-fg">
                 {{ 'records.transitions.notify' | transloco }}
               </p>
               <ul class="mt-2 flex flex-col gap-2">
@@ -499,7 +499,7 @@ let nextId = 0;
                     @if (!readonly()) {
                       <button
                         type="button"
-                        class="flex self-end rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                        class="flex self-end rounded-lg p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail"
                         [attr.aria-label]="'records.transitions.removeNotify' | transloco"
                         (click)="removeNotify(i)"
                       >
@@ -517,7 +517,7 @@ let nextId = 0;
               @if (!readonly()) {
                 <button
                   type="button"
-                  class="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent hover:underline"
+                  class="mt-2 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
                   (click)="addNotify()"
                 >
                   <app-icon name="plus" [size]="14" />

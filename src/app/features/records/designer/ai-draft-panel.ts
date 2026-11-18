@@ -75,12 +75,12 @@ export const MAX_DESCRIPTION = 5000;
             aria-describedby="ai-draft-count"
             [disabled]="busy()"
           ></textarea>
-          <p id="ai-draft-count" class="text-right text-[11.5px] text-fg-subtle">
+          <p id="ai-draft-count" class="text-right text-micro text-fg-subtle">
             {{ 'records.ai.count' | transloco: { count: description().length, max: max } }}
           </p>
         </app-form-field>
 
-        <p class="text-[12px] text-fg-subtle">{{ 'records.ai.reviewNote' | transloco }}</p>
+        <p class="text-meta text-fg-subtle">{{ 'records.ai.reviewNote' | transloco }}</p>
 
         <div class="flex justify-end">
           <app-button [loading]="busy()" [disabled]="!canSubmit()" (click)="submit()">
@@ -90,7 +90,7 @@ export const MAX_DESCRIPTION = 5000;
         </div>
 
         @if (busy()) {
-          <p class="text-[13px] text-fg-muted" role="status">
+          <p class="text-ui text-fg-muted" role="status">
             {{ 'records.ai.working' | transloco }}
           </p>
         }
@@ -104,19 +104,19 @@ export const MAX_DESCRIPTION = 5000;
             [attr.aria-label]="'records.ai.result' | transloco"
           >
             <div>
-              <h3 class="font-display text-[16px] font-bold text-fg">{{ d.name }}</h3>
+              <h3 class="font-display text-section font-bold text-fg">{{ d.name }}</h3>
               @if (d.description) {
-                <p class="mt-0.5 text-[13px] text-fg-muted">{{ d.description }}</p>
+                <p class="mt-0.5 text-ui text-fg-muted">{{ d.description }}</p>
               }
             </div>
             <div>
-              <p class="mb-1 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+              <p class="mb-1 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                 {{ 'records.ai.fields' | transloco: { count: d.fields.length } }}
               </p>
               <ul class="flex flex-wrap gap-1.5">
                 @for (field of d.fields; track field.key) {
                   <li
-                    class="rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-[12px] text-fg"
+                    class="rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-meta text-fg"
                   >
                     {{ label(field.label) }}
                     <span class="text-fg-subtle"

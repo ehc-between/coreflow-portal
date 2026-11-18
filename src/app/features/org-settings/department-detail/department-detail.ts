@@ -10,25 +10,46 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { providePageContext } from '../../../core/ai/page-context';
+import { NotificationRulesApi } from '../../../core/notifications/notification-rules-api';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { OrgApi } from '../../../core/org/org-api';
 import { DepartmentDetail as DepartmentDetailModel, OrgMember } from '../../../core/org/org.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
+import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { countKey } from '../departments/departments-page';
 import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 
 /**
- * Department detail, scoped to the currently selected org: member list, an
- * add-member control offering org members not yet in the department, and a
- * per-member remove action. If the user switches org, navigates back to the
+ * Department detail, scoped to the currently selected org: the department hub.
+ * Shows the lead (the escalation target for overdue reminders, chosen here with
+ * the department's own members listed first) and warns when there is none, the
+ * member list with add / remove, and the People-register entries placed in the
+ * department. If the user switches org, navigates back to the
  * settings list rather than showing a department that belongs to another org.
  */
 @Component({
   selector: 'app-department-detail',
-  imports: [ReactiveFormsModule, RouterLink, TranslocoPipe, Card, FormField, Button, Icon],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TranslocoPipe,
+    Badge,
+    Card,
+    EmptyState,
+    FormField,
+    Button,
+    Icon,
+    LoadingState,
+    PageHeader,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './department-detail.html',
 })
@@ -38,6 +59,9 @@ export class DepartmentDetail {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly rulesApi = inject(NotificationRulesApi);
+  protected readonly countKey = countKey;
+  protected readonly savingLead = signal(false);
 
   /** Route param `deptId`, bound via withComponentInputBinding(). */
   readonly deptId = input.required<string>();
@@ -52,7 +76,17 @@ export class DepartmentDetail {
   /** Org members not already in this department, for the add-member select. */
   protected readonly addableMembers = computed<readonly OrgMember[]>(() => {
     const inDept = new Set(this.department()?.members.map((m) => m.user_id) ?? []);
-    return this.members().filter((m) => !inDept.has(m.user_id));
+    return this.members().filter((m) => !inDept.has(m.user_id) && !m.is_platform_operator);
+  });
+
+  /** Lead candidates: the department's members first, then everyone else. */
+  protected readonly departmentMembers = computed<readonly OrgMember[]>(() => {
+    const inDept = new Set(this.department()?.members.map((m) => m.user_id) ?? []);
+    return this.members().filter((m) => inDept.has(m.user_id) && !m.is_platform_operator);
+  });
+  protected readonly otherMembers = computed<readonly OrgMember[]>(() => {
+    const inDept = new Set(this.department()?.members.map((m) => m.user_id) ?? []);
+    return this.members().filter((m) => !inDept.has(m.user_id) && !m.is_platform_operator);
   });
 
   protected readonly addForm = this.fb.nonNullable.group({
@@ -62,12 +96,20 @@ export class DepartmentDetail {
   private currentOrgId: string | null = null;
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'department',
+      entityId: this.deptId(),
+      view: 'detail',
+      title: this.department()?.name ?? null,
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       const deptId = this.deptId();
       // The org switcher changed the active org out from under this department.
       if (this.currentOrgId !== null && orgId !== this.currentOrgId) {
-        void this.router.navigateByUrl('/settings');
+        void this.router.navigateByUrl('/settings/departments');
         return;
       }
       this.currentOrgId = orgId;
@@ -103,6 +145,27 @@ export class DepartmentDetail {
         if (error instanceof HttpErrorResponse && error.status !== 404) {
           this.load(orgId, this.deptId());
         }
+      },
+    });
+  }
+
+  /** Set (or clear, with '') the department lead; reloads to refresh the gap flag. */
+  protected setLead(userId: string): void {
+    const orgId = this.orgId();
+    if (!orgId || this.savingLead()) {
+      return;
+    }
+    this.savingLead.set(true);
+    this.rulesApi.setDepartmentLead(orgId, this.deptId(), userId || null).subscribe({
+      next: () => {
+        this.savingLead.set(false);
+        this.notifications.success('settings.departments.leadSaved');
+        this.load(orgId, this.deptId());
+      },
+      error: () => {
+        this.savingLead.set(false);
+        this.notifications.error('settings.departments.leadFailed');
+        this.load(orgId, this.deptId());
       },
     });
   }

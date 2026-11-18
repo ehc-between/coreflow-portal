@@ -153,7 +153,10 @@
       "requiredBy": "{{ module }} is used by {{ modules }}. Turn those off first.",
       "alwaysOn": "{{ module }} is always on and can't be turned off.",
       "unknown": "That module doesn't exist any more. Reload the page."
-    }
+    },
+    "scopeGap": "{{framework}} is in scope, but {{module}} is switched off.",
+    "turnOn": "Switch on {{module}}",
+    "filterByFramework": "Show the modules for {{framework}}"
   },
   "profile": {
     "title": "Organisation profile",
@@ -163,7 +166,7 @@
     "askAiRolePrompt": "We are an organisation in the industry \"{{ industry }}\" and have chosen the AI Act role \"{{ role }}\". Explain in plain language what this role means, which obligations typically follow, and how we can check that the role is right.",
     "sections": {
       "basics": "About the organisation",
-      "frameworks": "Frameworks in scope",
+      "frameworks": "Standards in scope",
       "targets": "Certification targets",
       "sites": "Sites and locations"
     },
@@ -191,7 +194,29 @@
       "site": "A site needs a name and a two-letter country code.",
       "save": "The profile could not be saved. Check the fields and try again."
     },
-    "savedToast": "The organisation profile is saved."
+    "savedToast": "The organisation profile is saved.",
+    "standardOn": "Switched on in Standards and requirements",
+    "standardOff": "Switches on in Standards and requirements when you save",
+    "standardUnavailable": "Not in the requirement catalogue yet",
+    "frameworksSync": "The standards you tick here are switched on in Standards and requirements, and unticked ones are switched off.",
+    "openStandards": "Open Standards and requirements",
+    "certificatesLive": "Targets are plans. Certificates you hold (number, valid until, next surveillance audit) are kept under Audits.",
+    "openCertificates": "Open certifications",
+    "scopeTitle": "Scope of the management system",
+    "scopeBody": "The description above is not the scope. Write the scope statement, with any exclusions and why, under Context.",
+    "scopeLink": "Open scope statements",
+    "siteKindNone": "Not set",
+    "siteKinds": {
+      "head_office": "Head office",
+      "office": "Office",
+      "production": "Production",
+      "warehouse": "Warehouse",
+      "data_centre": "Data centre",
+      "store": "Shop",
+      "construction_site": "Construction site",
+      "remote": "Remote work",
+      "other": "Other"
+    }
   },
   "terminology": {
     "title": "Terminology",
@@ -322,53 +347,14 @@
     "later": "Later"
   },
   "guide": {
-    "whyTitle": "Why this matters",
-    "show": "Show guide",
-    "hide": "Hide",
-    "start": "Start",
-    "explainClause": "Explain",
-    "tutorPrompt": "Teach me {{ clause }} in plain language, as it applies to the page \"{{ page }}\": what it requires, a short example, and one question to check that I understood.",
-    "lessonLabel": "Micro-lesson, {{ minutes }} minutes",
-    "quizTitle": "Check your understanding",
-    "check": "Check answers",
-    "correct": "Correct.",
-    "incorrect": "Not quite.",
-    "score": "{{ score }} of {{ total }} correct",
-    "retry": "Try again",
     "pages": {
-      "modules": {
-        "intro": {
-          "title": "Modules match CoreFlow to your management system",
-          "body": "Each module covers one area the standards ask for, such as risk, audits or training. Turn on only what you need; you can add more as your system grows.",
-          "steps": {
-            "s1": "Start with the modules the setup wizard recommends for your frameworks.",
-            "s2": "Check the \"Needs\" hint: some modules build on others.",
-            "s3": "Turning a module off hides it but keeps its records."
-          }
-        },
-        "why": {
-          "body": "Standards expect a defined set of processes (the process approach) and risk-based planning. Choosing modules deliberately documents which processes your system includes."
-        }
-      },
       "profile": {
-        "intro": {
-          "title": "The profile describes your context",
-          "body": "ISO management systems start with understanding the organisation, the interested parties and the scope. The profile is the short version of that context.",
-          "steps": {
-            "s1": "Fill in industry, size and the countries you operate in.",
-            "s2": "Tick the frameworks in scope and add certification targets with dates.",
-            "s3": "Choose your role under the EU AI Act. \"Not sure yet\" is fine for now."
-          }
-        },
-        "why": {
-          "body": "Clauses 4.1 to 4.3 require you to understand your context, the needs of interested parties and the scope of the system. Auditors often start here."
-        },
         "fields": {
           "industry": {
             "help": "In your own words, for example \"food production\" or \"IT consulting\"."
           },
           "countries": {
-            "help": "Two-letter codes, separated by commas. Laws and regulators depend on them."
+            "help": "Pick from the list. Laws and regulators depend on where you operate."
           },
           "description": {
             "help": "What you do, for whom and where. A few sentences are enough."
@@ -384,73 +370,6 @@
           },
           "sites": {
             "help": "List the locations your management system covers. It shapes the scope statement."
-          }
-        }
-      },
-      "terminology": {
-        "intro": {
-          "title": "Speak your organisation's language",
-          "body": "People follow a system more easily when it uses their words. Change the wording here and CoreFlow uses it everywhere.",
-          "steps": {
-            "s1": "Pick the terms you call something else, for example \"nonconformity\" for deviation.",
-            "s2": "Fill in the singular and the plural for each language you use.",
-            "s3": "Save, and check the preview above the list."
-          }
-        },
-        "why": {
-          "body": "Awareness and communication (clause 7.4) work better in familiar language, and controlled documents (clause 7.5) should use terms consistently."
-        }
-      },
-      "setup": {
-        "intro": {
-          "title": "Set up in a few minutes",
-          "body": "The wizard walks you through the basics of a management system: context, scope, the right modules, roles and the first tasks.",
-          "steps": {
-            "s1": "Describe the organisation and choose the frameworks in scope.",
-            "s2": "Review the recommended modules. Use \"Ask why\" if something is unclear.",
-            "s3": "Invite people and start with a few first tasks."
-          }
-        },
-        "why": {
-          "body": "The scope (clause 4.3), roles and responsibilities (clause 5.3) and planning for risks (clause 6.1) are the foundation every later audit checks."
-        }
-      }
-    },
-    "lessons": {
-      "modulesBasics": {
-        "title": "Frameworks, modules and your management system",
-        "sections": {
-          "s1": {
-            "heading": "One structure, many standards",
-            "body": "ISO 9001, 27001, 14001, 42001 and 45001 share the same clause structure, from context (4) to improvement (10). Work you do once, such as a management review, can count for several standards."
-          },
-          "s2": {
-            "heading": "Frameworks decide the requirements",
-            "body": "A framework is the standard or regulation you follow. It decides what you must be able to show an auditor, for example a risk assessment or training records."
-          },
-          "s3": {
-            "heading": "Modules are where the work happens",
-            "body": "A module is the part of CoreFlow where you do that work and keep the evidence. Turn on the modules your frameworks need and leave the rest off until you need them."
-          }
-        },
-        "quiz": {
-          "q1": {
-            "question": "What decides which requirements you must meet?",
-            "options": {
-              "a": "The modules you turn on",
-              "b": "The frameworks in scope",
-              "c": "The size of the organisation"
-            },
-            "explanation": "The frameworks decide the requirements; modules are where you meet them."
-          },
-          "q2": {
-            "question": "What happens to the records when you turn a module off?",
-            "options": {
-              "a": "They are deleted",
-              "b": "They move to another module",
-              "c": "They are kept and come back when you turn it on"
-            },
-            "explanation": "Turning a module off only hides it; the records stay."
           }
         }
       }

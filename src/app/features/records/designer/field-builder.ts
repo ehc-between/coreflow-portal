@@ -43,7 +43,7 @@ let nextId = 0;
     <div class="flex flex-col gap-6">
       <section [attr.aria-labelledby]="id + '-fields'">
         <div class="mb-2 flex flex-wrap items-end justify-between gap-3">
-          <h3 [id]="id + '-fields'" class="font-display text-[15px] font-bold text-fg">
+          <h3 [id]="id + '-fields'" class="font-display text-card font-bold text-fg">
             {{ 'records.fields.title' | transloco }}
           </h3>
           @if (!readonly()) {
@@ -90,7 +90,7 @@ let nextId = 0;
             </li>
           } @empty {
             <li
-              class="rounded-tile border border-dashed border-border px-4 py-6 text-center text-[13px] text-fg-muted"
+              class="rounded-tile border border-dashed border-border px-4 py-6 text-center text-ui text-fg-muted"
             >
               {{ 'records.fields.empty' | transloco }}
             </li>
@@ -100,7 +100,7 @@ let nextId = 0;
 
       <section [attr.aria-labelledby]="id + '-sections'">
         <div class="mb-2 flex items-center justify-between gap-3">
-          <h3 [id]="id + '-sections'" class="font-display text-[15px] font-bold text-fg">
+          <h3 [id]="id + '-sections'" class="font-display text-card font-bold text-fg">
             {{ 'records.layout.title' | transloco }}
           </h3>
           @if (!readonly()) {
@@ -139,7 +139,7 @@ let nextId = 0;
                 @if (!readonly()) {
                   <button
                     type="button"
-                    class="flex self-end rounded-[8px] p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
+                    class="flex self-end rounded-lg p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
                     [disabled]="sections().length <= 1"
                     [attr.aria-label]="'records.layout.remove' | transloco"
                     (click)="removeSection(i)"
@@ -148,7 +148,7 @@ let nextId = 0;
                   </button>
                 }
               </fieldset>
-              <p class="mt-1.5 text-[11.5px] text-fg-subtle">
+              <p class="mt-1.5 text-micro text-fg-subtle">
                 {{ 'records.layout.fieldCount' | transloco: { count: countIn(section.key, i) } }}
               </p>
             </li>

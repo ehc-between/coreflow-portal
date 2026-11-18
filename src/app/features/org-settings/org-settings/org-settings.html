@@ -8,164 +8,28 @@
       </div>
     </app-card>
   } @else {
-    <div class="flex flex-col gap-10">
-      <app-settings-links />
-      <div
-        [id]="membersAnchor"
-        tabindex="-1"
-        class="flex scroll-mt-4 flex-col gap-10 outline-none"
-        data-testid="settings-members-block"
-      >
-        <h2 class="-mb-6 font-display text-section font-bold text-fg">
-          {{ 'settings.hub.membersSection' | transloco }}
-        </h2>
-        @if (canManage()) {
-          <section data-testid="settings-departments">
-            <h2 class="mb-3 font-display text-section font-bold text-fg">
-              {{ 'settings.departments.title' | transloco }}
-            </h2>
-
-            <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
-              <app-card [padded]="false">
-                @if (loading()) {
-                  <div class="px-4 py-10 text-center text-body text-fg-muted">
-                    {{ 'common.loading' | transloco }}
-                  </div>
-                } @else if (departments().length === 0) {
-                  <div class="px-4 py-10 text-center text-body text-fg-muted">
-                    {{ 'settings.departments.empty' | transloco }}
-                  </div>
-                } @else {
-                  <ul>
-                    @for (department of departments(); track department.id) {
-                      <li
-                        class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-3 last:border-b-0 hover:bg-surface-2"
-                      >
-                        @if (editingId() === department.id) {
-                          <form
-                            class="flex flex-1 items-center gap-2"
-                            [formGroup]="renameForm"
-                            (ngSubmit)="rename(department)"
-                          >
-                            <div class="flex flex-1 flex-col gap-1">
-                              <input
-                                type="text"
-                                formControlName="name"
-                                autocomplete="off"
-                                [attr.aria-label]="'settings.departments.name' | transloco"
-                                class="h-9 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                              />
-                              @if (renameTaken()) {
-                                <p role="alert" class="text-meta font-medium text-fail">
-                                  {{ 'settings.departments.nameTaken' | transloco }}
-                                </p>
-                              }
-                            </div>
-                            <app-button type="submit" size="sm" [loading]="renaming()">
-                              {{ 'settings.save' | transloco }}
-                            </app-button>
-                            <app-button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              (click)="cancelRename()"
-                            >
-                              {{ 'settings.cancel' | transloco }}
-                            </app-button>
-                          </form>
-                        } @else {
-                          <a
-                            [routerLink]="['/settings/departments', department.id]"
-                            class="flex-1 truncate font-semibold text-accent hover:underline"
-                          >
-                            {{ department.name }}
-                          </a>
-                          <span class="text-ui text-fg-muted">
-                            {{
-                              'settings.departments.memberCount'
-                                | transloco: { count: department.member_count }
-                            }}
-                          </span>
-                          <app-button variant="ghost" size="sm" (click)="startRename(department)">
-                            {{ 'settings.departments.rename' | transloco }}
-                          </app-button>
-                          <app-button variant="ghost" size="sm" (click)="remove(department)">
-                            {{ 'settings.departments.delete' | transloco }}
-                          </app-button>
-                        }
-                      </li>
-                    }
-                  </ul>
-                }
-              </app-card>
-
-              <app-card>
-                <h3 class="font-display text-card font-bold text-fg">
-                  {{ 'settings.departments.create' | transloco }}
-                </h3>
-                <form
-                  class="mt-4 flex flex-col gap-4"
-                  [formGroup]="createForm"
-                  (ngSubmit)="create()"
-                >
-                  <app-form-field
-                    inputId="department-name"
-                    [label]="'settings.departments.name' | transloco"
-                  >
-                    <input
-                      id="department-name"
-                      type="text"
-                      formControlName="name"
-                      autocomplete="off"
-                    />
-                  </app-form-field>
-
-                  @if (nameTaken()) {
-                    <p
-                      role="alert"
-                      class="rounded-tile border border-fail/30 bg-fail-soft px-3 py-2 text-ui font-medium text-fail"
-                    >
-                      {{ 'settings.departments.nameTaken' | transloco }}
-                    </p>
-                  }
-
-                  <app-button type="submit" [full]="true" [loading]="creating()" class="mt-1">
-                    <app-icon name="plus" [size]="15" />
-                    {{ 'settings.departments.create' | transloco }}
-                  </app-button>
-                </form>
-              </app-card>
-            </div>
-
-            <app-confirm-dialog
-              [open]="pendingDelete() !== null"
-              [busy]="deleting()"
-              [title]="'settings.departments.deleteTitle' | transloco"
-              [message]="
-                'settings.departments.confirmDelete'
-                  | transloco: { name: pendingDelete()?.name ?? '' }
-              "
-              [confirmLabel]="'settings.departments.delete' | transloco"
-              [cancelLabel]="'settings.cancel' | transloco"
-              (confirmed)="confirmDelete()"
-              (cancelled)="cancelDelete()"
-            />
-          </section>
-
-          <!-- The members table is wide; let it scroll inside its own box on phones. -->
-          <div class="min-w-0 overflow-x-auto"><app-org-members /></div>
-
-          <app-org-document-settings />
-
-          <app-org-mfa-settings />
-
-          <app-org-attachment-settings />
-        }
-
-        @if (canInvite()) {
-          <app-org-invitations />
-        }
-      </div>
+    <div class="mb-6">
+      <app-help-strip scope="platform" page="settings" />
     </div>
+
+    @if (withoutLead().length > 0) {
+      <a
+        routerLink="/settings/departments"
+        data-testid="settings-attention-leads"
+        class="mb-6 flex items-start gap-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink hover:underline"
+      >
+        <app-icon name="alert" [size]="15" />
+        <span>{{
+          countKey('settings.departments.noLeadWarning', withoutLead().length)
+            | transloco
+              : {
+                  count: withoutLead().length,
+                  names: withoutLeadNames(),
+                }
+        }}</span>
+      </a>
+    }
+
+    <app-settings-links />
   }
 </div>

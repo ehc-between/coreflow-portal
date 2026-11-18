@@ -126,7 +126,8 @@
     "records": "Registertyper og arbeidsflyter",
     "tasks": "Oppgaver",
     "kit": "Arbeid med registreringer",
-    "search": "Søk og assistenten"
+    "search": "Søk og assistenten",
+    "settings": "Innstillinger"
   },
   "tour": {
     "start": "Omvisning",
@@ -190,7 +191,7 @@
     "sortQuizzes": "Beståtte quizer",
     "sortActivity": "Siste aktivitet",
     "colMember": "Medlem",
-    "colSeen": "Sette leksjoner",
+    "colSeen": "Åpnede leksjoner",
     "colCompleted": "Fullført",
     "colQuizzes": "Beståtte quizer",
     "colLastActivity": "Siste aktivitet",
@@ -208,7 +209,10 @@
     "colCompleted": "Fullført",
     "colQuiz": "Quiz",
     "notYet": "Ikke ennå",
-    "noQuiz": "Ingen forsøk"
+    "noQuiz": "Ingen forsøk",
+    "openPerson": "Åpne i personregisteret",
+    "trainingHint": "Leksjoner viser bevissthet, men erstatter ikke opplæringsregistreringer. Registrer gjennomført opplæring under",
+    "openTraining": "Opplæring"
   },
   "notifications": {
     "lessonCompleted": "{{ actor_name }} fullførte leksjonen {{ lesson_key }}",

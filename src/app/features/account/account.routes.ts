@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 /** Current-user account routes (lazy-loaded inside the authenticated shell). */
-const routes: Routes = [
+const children: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'password' },
   {
     path: 'password',
@@ -27,6 +27,15 @@ const routes: Routes = [
   {
     path: 'learning',
     loadChildren: () => import('../learning/learning.routes'),
+  },
+];
+
+/** A26: every account page sits under one layout with a shared tab row. */
+const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./account-layout').then((m) => m.AccountLayout),
+    children,
   },
 ];
 

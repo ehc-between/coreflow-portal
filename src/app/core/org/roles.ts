@@ -55,3 +55,24 @@ export function roleDescription(translate: (key: string) => string, roleKey: str
   const translated = translate(key);
   return translated && translated !== key ? translated : '';
 }
+
+/**
+ * The roles worth offering in pickers and matrices: the seeded roles (in their
+ * fixed order), then any other role somebody in the organisation actually holds
+ * (`heldKeys`), by name. Unused custom roles stay out of the way; the full
+ * catalogue is still available where a page asks for it.
+ */
+export function relevantRoles<T extends NamedRole>(
+  roles: readonly T[],
+  heldKeys: Iterable<string> = [],
+): T[] {
+  const held = new Set(heldKeys);
+  const seeded = ROLE_KEYS as readonly string[];
+  const known = seeded
+    .map((key) => roles.find((role) => role.key === key))
+    .filter((role): role is T => !!role);
+  const extra = roles
+    .filter((role) => !seeded.includes(role.key) && held.has(role.key))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return [...known, ...extra];
+}

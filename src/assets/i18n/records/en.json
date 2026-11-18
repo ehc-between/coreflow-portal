@@ -9,8 +9,6 @@
   "list": {
     "title": "Record types and workflows",
     "subtitle": "Decide what each kind of record captures and the steps it goes through, from registration to closure.",
-    "explain": "Explain this page",
-    "explainPrompt": "Explain how record types and workflows work in CoreFlow: what a record type is, what a workflow is, how versions work and how approvals and SLAs fit in. Keep it short and practical.",
     "newType": "New record type",
     "newWorkflow": "New workflow",
     "describe": "Describe your process",
@@ -42,7 +40,8 @@
     "meta": "{{ fields }} fields · {{ states }} states · {{ transitions }} transitions",
     "installed": "Installed",
     "install": "Install template",
-    "installedToast": "“{{ name }}” is installed. Review it and adjust it to how you work."
+    "installedToast": "“{{ name }}” is installed. Review it and adjust it to how you work.",
+    "documents": "Usually supports:"
   },
   "designer": {
     "newTitle": "New record type",
@@ -104,7 +103,10 @@
     "delete": "Delete record type",
     "deleteTitle": "Delete this record type?",
     "deleteMessage": "“{{ name }}” is removed from the designer. Records created with it keep their data and history.",
-    "deletedToast": "The record type is deleted."
+    "deletedToast": "The record type is deleted.",
+    "blockKeyEmpty": "Add a key under the name.",
+    "codePrefixPlaceholder": "NC",
+    "requirementsHint": "These are the requirements this kind of record usually supports. They stay suggestions: a requirement only counts as covered once a record of this type exists with the linked fields filled in."
   },
   "workflow": {
     "newTitle": "New workflow",
@@ -121,7 +123,8 @@
     "delete": "Delete workflow",
     "deleteTitle": "Delete this workflow?",
     "deleteMessage": "“{{ name }}” is removed. A workflow that a record type still uses can't be deleted.",
-    "deletedToast": "The workflow is deleted."
+    "deletedToast": "The workflow is deleted.",
+    "create": "Create workflow"
   },
   "fields": {
     "title": "Fields",
@@ -157,7 +160,9 @@
     "visibleEquals": "has the value",
     "moveUp": "Move {{ name }} up",
     "moveDown": "Move {{ name }} down",
-    "remove": "Remove {{ name }}"
+    "remove": "Remove {{ name }}",
+    "requirements": "Requirements this field documents",
+    "requirementsHint": "Optional, at most {{max}}. When the field is filled in, the record counts as documentation for these requirements."
   },
   "layout": {
     "title": "Form sections",
@@ -180,7 +185,8 @@
     "sla": "Deadline (hours)",
     "initial": "Start",
     "remove": "Remove state {{ name }}",
-    "newLabel": "New state"
+    "newLabel": "New state",
+    "slaDays": "= {{days}} days"
   },
   "transitions": {
     "title": "Steps",
@@ -318,18 +324,7 @@
     "line": "{{ transition }} · requested by {{ name }} {{ when }}"
   },
   "guide": {
-    "introLabel": "About this page",
-    "show": "Show",
-    "hide": "Hide",
-    "whyTitle": "Why this matters",
-    "explainClause": "Explain {{ clause }}",
-    "clausePrompt": "Explain what {{ clause }} requires, in plain language, and how configurable record types and workflows in CoreFlow help meet it. End with one short check question.",
-    "lessonButton": "Lesson ({{ minutes }} min)",
-    "lessonMinutes": "{{ minutes }} minute lesson",
-    "close": "Close",
-    "quiz": "Check your understanding",
-    "correct": "Correct.",
-    "incorrect": "Not quite."
+    "example": "For example: {{example}}"
   },
   "langs": {
     "en": "English",

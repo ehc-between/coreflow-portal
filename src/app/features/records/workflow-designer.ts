@@ -7,6 +7,8 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -51,13 +53,8 @@ import {
 import { AiDraftPanel } from './designer/ai-draft-panel';
 import { VersionEntry, VersionHistory } from './designer/version-history';
 import { WorkflowEditor } from './designer/workflow-editor';
-import {
-  RecordsFieldHelp,
-  RecordsGuideIntro,
-  RecordsLesson,
-  RecordsWhy,
-} from './guidance/records-guidance';
-import { providePageContext } from './page-context';
+import { RecordsFieldHelp } from './guidance/records-guidance';
+import { providePageContext } from '../../core/ai/page-context';
 
 /**
  * The workflow designer (`/settings/record-types/workflows/new` and `/:id`):
@@ -72,6 +69,8 @@ import { providePageContext } from './page-context';
     FormsModule,
     RouterLink,
     TranslocoPipe,
+    HelpStrip,
+    WhyItMatters,
     Alert,
     Badge,
     Button,
@@ -82,9 +81,6 @@ import { providePageContext } from './page-context';
     AiDraftPanel,
     VersionHistory,
     WorkflowEditor,
-    RecordsGuideIntro,
-    RecordsWhy,
-    RecordsLesson,
     RecordsFieldHelp,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -93,31 +89,31 @@ import { providePageContext } from './page-context';
       <a
         routerLink="/settings/record-types"
         [queryParams]="{ tab: 'workflows' }"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'records.backToList' | transloco }}
       </a>
 
       @if (loading()) {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
+        <p class="py-10 text-center text-body text-fg-muted">
           {{ 'common.loading' | transloco }}
         </p>
       } @else if (notFound()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'records.workflow.notFound' | transloco }}
           </p>
         </app-card>
       } @else {
         <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
           <div class="min-w-0">
-            <h1 class="font-display text-[24px] font-bold tracking-[-0.025em] text-fg">
+            <h1 class="font-display text-page font-bold text-fg">
               {{ isNew() ? ('records.workflow.newTitle' | transloco) : name() || workflow()?.name }}
             </h1>
-            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">
+            <div class="mt-1.5 flex flex-wrap items-center gap-2 text-ui text-fg-muted">
               @if (workflow(); as wf) {
-                <span class="font-mono text-[12px]">{{ wf.key }}</span>
+                <span class="font-mono text-meta">{{ wf.key }}</span>
                 <app-badge tone="neutral">{{ moduleLabel(wf.module) | transloco }}</app-badge>
                 @if (wf.current_version) {
                   <app-badge tone="accent">
@@ -143,13 +139,10 @@ import { providePageContext } from './page-context';
                 {{ 'records.list.describe' | transloco }}
               </app-button>
             }
-            <app-records-lesson lesson="workflows-101" />
           </div>
         </div>
 
-        <div class="mb-5">
-          <app-records-guide-intro page="workflow" />
-        </div>
+        <app-help-strip scope="records" page="workflow" lesson="workflows-101" />
 
         @if (viewingOld()) {
           <div class="mb-4 flex flex-wrap items-center gap-3">
@@ -229,10 +222,10 @@ import { providePageContext } from './page-context';
           <aside class="flex flex-col gap-4">
             @if (canAdmin() && !viewingOld()) {
               <app-card>
-                <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                   {{ 'records.designer.publish' | transloco }}
                 </h2>
-                <p class="mb-3 text-[12.5px] text-fg-muted">
+                <p class="mb-3 text-meta text-fg-muted">
                   {{
                     (dirtyDefinition() || isNew()
                       ? 'records.workflow.publishHint'
@@ -253,9 +246,9 @@ import { providePageContext } from './page-context';
                     [placeholder]="'records.designer.changeNotePlaceholder' | transloco"
                   ></textarea>
                 </app-form-field>
-                @if (blockers().length) {
-                  <ul class="mt-2 text-[12px] font-medium text-fail">
-                    @for (b of blockers(); track b) {
+                @if (visibleBlockers().length) {
+                  <ul class="mt-2 text-meta font-medium text-fail" role="alert">
+                    @for (b of visibleBlockers(); track b) {
                       <li>{{ b | transloco }}</li>
                     }
                   </ul>
@@ -264,22 +257,22 @@ import { providePageContext } from './page-context';
                   <app-button
                     [full]="true"
                     [loading]="saving()"
-                    [disabled]="!canSave()"
+                    [disabled]="!canPress()"
                     (click)="save()"
                   >
                     {{
-                      (isNew() ? 'records.designer.create' : 'records.designer.save') | transloco
+                      (isNew() ? 'records.workflow.create' : 'records.designer.save') | transloco
                     }}
                   </app-button>
                 </div>
               </app-card>
             }
 
-            <app-records-why page="workflow" />
+            <app-why-it-matters scope="records" page="workflow" />
 
             @if (!isNew()) {
               <app-card>
-                <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+                <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
                   {{ 'records.workflow.usedBy' | transloco }}
                 </h2>
                 @if (usedBy().length) {
@@ -288,7 +281,7 @@ import { providePageContext } from './page-context';
                       <li>
                         <a
                           [routerLink]="['/settings/record-types', rt.id]"
-                          class="text-[13px] font-semibold text-accent hover:underline"
+                          class="text-ui font-semibold text-accent hover:underline"
                         >
                           {{ rt.name }}
                         </a>
@@ -296,7 +289,7 @@ import { providePageContext } from './page-context';
                     }
                   </ul>
                 } @else {
-                  <p class="text-[12.5px] text-fg-muted">
+                  <p class="text-meta text-fg-muted">
                     {{ 'records.workflow.unused' | transloco }}
                   </p>
                 }
@@ -409,14 +402,28 @@ export class WorkflowDesigner {
     () => this.definitionPrint() !== this.baseline().definition,
   );
   private readonly dirtyMeta = computed(() => this.metaPrint() !== this.baseline().meta);
+  /** The user changed something on a new form. */
+  protected readonly touched = computed(() => !!this.name().trim());
 
+  /** Set on the first publish attempt: blank-form problems are shown only after it. */
+  protected readonly attempted = signal(false);
   protected readonly blockers = computed(() => {
     const out: string[] = [];
     if (!this.name().trim()) out.push('records.designer.blockName');
-    if (this.isNew() && !TYPE_KEY_RE.test(this.key())) out.push('records.designer.blockKey');
+    if (this.isNew() && !this.key()) {
+      if (this.name().trim()) out.push('records.designer.blockKeyEmpty');
+    } else if (this.isNew() && !TYPE_KEY_RE.test(this.key())) {
+      out.push('records.designer.blockKey');
+    }
     if (checkDefinition(this.definition()).length) out.push('records.designer.blockWorkflowIssues');
     return out;
   });
+  /** Problems to show: on an untouched new form, only after a publish attempt. */
+  protected readonly visibleBlockers = computed(() =>
+    this.isNew() && !this.attempted() && !this.touched() ? [] : this.blockers(),
+  );
+  /** The publish button works on a new form even with problems (it then shows them). */
+  protected readonly canPress = computed(() => !this.saving() && (this.isNew() || this.canSave()));
   protected readonly canSave = computed(
     () =>
       !this.saving() &&
@@ -521,6 +528,7 @@ export class WorkflowDesigner {
 
   protected save(): void {
     const orgId = this.selectedOrg.currentOrgId();
+    this.attempted.set(true);
     if (!orgId || !this.canSave()) {
       return;
     }

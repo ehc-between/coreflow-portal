@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   signal,
@@ -14,8 +15,12 @@ import {
   CERTIFICATION_STATUSES,
   FRAMEWORK_KEYS,
   OrgProfile,
+  ProfileStandard,
   SIZE_BANDS,
 } from '../../../core/modules/module.models';
+import { providePageContext } from '../../../core/ai/page-context';
+import { CountryPicker } from '../../../shared/ui/country-picker/country-picker';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ModulesApi } from '../../../core/modules/modules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -26,15 +31,14 @@ import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { frameworkDescriptionKey, frameworkNameKey, frameworkShortKey } from '../frameworks';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import {
-  GUIDE_CLAUSES,
-  frameworkDescriptionKey,
-  frameworkNameKey,
-  frameworkShortKey,
-} from '../frameworks';
-import { ModulesGuide } from '../guide/modules-guide';
-import {
+  PROFILE_COUNTRY_CODES,
+  SITE_KINDS,
   createProfileForm,
+  parseCountries,
   patchProfileForm,
   readProfileForm,
   selectedFrameworks,
@@ -60,54 +64,53 @@ import {
     Card,
     FormField,
     Icon,
-    ModulesGuide,
+    HelpStrip,
+    WhyItMatters,
+    CountryPicker,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = 'modules.profile';
     @let help = 'modules.guide.pages.profile.fields';
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <nav class="mb-2 text-[13px]" [attr.aria-label]="'modules.common.breadcrumb' | transloco">
-        <a routerLink="/settings" class="font-semibold text-accent hover:underline">
-          {{ 'nav.settings' | transloco }}
-        </a>
-      </nav>
-      <div class="mb-[18px] flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ p + '.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">{{ p + '.subtitle' | transloco }}</p>
-          @if (profile()?.updated_at; as updated) {
-            <p class="mt-1 text-[12.5px] text-fg-subtle">
-              {{ p + '.lastUpdated' | transloco: { date: (updated | localDate) } }}
-            </p>
-          }
-        </div>
-        <app-button variant="secondary" size="sm" (click)="askAiRole()">
+      <app-page-header
+        [titleKey]="p + '.title'"
+        [descriptionKey]="p + '.subtitle'"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: p + '.title' },
+        ]"
+      >
+        @if (profile()?.updated_at; as updated) {
+          <p meta class="text-meta text-fg-subtle">
+            {{ p + '.lastUpdated' | transloco: { date: (updated | localDate) } }}
+          </p>
+        }
+        <app-button secondary variant="secondary" size="sm" (click)="askAiRole()">
           <app-icon name="spark" [size]="15" />
           {{ p + '.askAiRole' | transloco }}
         </app-button>
-      </div>
+      </app-page-header>
 
-      <app-modules-guide class="mb-5 block" page="profile" [steps]="3" [clauses]="clauses" />
+      <app-help-strip scope="settings" page="profile" />
 
       @if (!orgId()) {
         <app-card>
-          <p class="py-8 text-center text-[14px] text-fg-muted">
+          <p class="py-8 text-center text-body text-fg-muted">
             {{ 'modules.common.noOrg' | transloco }}
           </p>
         </app-card>
       } @else if (loading()) {
         <app-card>
-          <p class="py-10 text-center text-[14px] text-fg-muted">
+          <p class="py-10 text-center text-body text-fg-muted">
             {{ 'common.loading' | transloco }}
           </p>
         </app-card>
       } @else {
         <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
           <app-card>
-            <h2 class="mb-3 text-[16px] font-bold text-fg">
+            <h2 class="mb-3 text-section font-bold text-fg">
               {{ p + '.sections.basics' | transloco }}
             </h2>
             <div class="grid gap-4 md:grid-cols-2">
@@ -122,7 +125,7 @@ import {
                     autocomplete="off"
                   />
                 </app-form-field>
-                <p id="profile-industry-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-industry-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.industry.help' | transloco }}
                 </p>
               </div>
@@ -138,20 +141,19 @@ import {
               </div>
               <div class="md:col-span-2">
                 <app-form-field inputId="profile-countries" [label]="p + '.countries' | transloco">
-                  <input
-                    id="profile-countries"
-                    type="text"
-                    formControlName="countries"
-                    autocomplete="off"
-                    [placeholder]="p + '.countriesPlaceholder' | transloco"
-                    aria-describedby="profile-countries-help"
+                  <app-country-picker
+                    inputId="profile-countries"
+                    [options]="countryCodes"
+                    [value]="countryList()"
+                    [label]="p + '.countries' | transloco"
+                    (valueChange)="setCountries($event)"
                   />
                 </app-form-field>
-                <p id="profile-countries-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-countries-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.countries.help' | transloco }}
                 </p>
                 @if (form.controls.countries.invalid && form.controls.countries.touched) {
-                  <p role="alert" class="mt-1 text-[12px] font-medium text-fail">
+                  <p role="alert" class="mt-1 text-meta font-medium text-fail">
                     {{ p + '.errors.countries' | transloco }}
                   </p>
                 }
@@ -169,7 +171,7 @@ import {
                     aria-describedby="profile-description-help"
                   ></textarea>
                 </app-form-field>
-                <p id="profile-description-help" class="mt-1 text-[12px] text-fg-subtle">
+                <p id="profile-description-help" class="mt-1 text-meta text-fg-subtle">
                   {{ help + '.description.help' | transloco }}
                 </p>
               </div>
@@ -177,11 +179,22 @@ import {
           </app-card>
 
           <app-card>
+            <h2 class="mb-1 text-section font-bold text-fg">{{ p + '.scopeTitle' | transloco }}</h2>
+            <p class="text-ui text-fg-muted">{{ p + '.scopeBody' | transloco }}</p>
+            <a
+              routerLink="/context/scopes"
+              class="mt-2 inline-flex text-ui font-semibold text-accent hover:underline"
+              data-testid="profile-scope-link"
+              >{{ p + '.scopeLink' | transloco }}</a
+            >
+          </app-card>
+
+          <app-card>
             <fieldset>
-              <legend class="mb-1 text-[16px] font-bold text-fg">
+              <legend class="mb-1 text-section font-bold text-fg">
                 {{ p + '.sections.frameworks' | transloco }}
               </legend>
-              <p class="mb-3 text-[12.5px] text-fg-subtle">
+              <p class="mb-3 text-meta text-fg-subtle">
                 {{ help + '.frameworks.help' | transloco }}
               </p>
               <div class="grid gap-2 sm:grid-cols-2" formGroupName="frameworks">
@@ -195,25 +208,49 @@ import {
                       [formControlName]="fw"
                     />
                     <span>
-                      <span class="block text-[13.5px] font-semibold text-fg">{{
+                      <span class="block text-ui font-semibold text-fg">{{
                         frameworkNameKey(fw) | transloco
                       }}</span>
-                      <span class="block text-[12.5px] text-fg-muted">{{
+                      <span class="block text-meta text-fg-muted">{{
                         frameworkDescriptionKey(fw) | transloco
                       }}</span>
+                      @if (standardOf(fw); as std) {
+                        @if (std.standard_enabled && std.standard_key) {
+                          <a
+                            class="mt-1 inline-flex text-meta font-semibold text-accent hover:underline"
+                            [routerLink]="['/standards', std.standard_key]"
+                            data-testid="profile-standard-link"
+                            >{{ p + '.standardOn' | transloco }}</a
+                          >
+                        } @else if (!std.available) {
+                          <span class="mt-1 block text-meta text-fg-subtle">{{
+                            p + '.standardUnavailable' | transloco
+                          }}</span>
+                        } @else {
+                          <span class="mt-1 block text-meta text-fg-subtle">{{
+                            p + '.standardOff' | transloco
+                          }}</span>
+                        }
+                      }
                     </span>
                   </label>
                 }
               </div>
+              <p class="mt-3 text-meta text-fg-muted">
+                {{ p + '.frameworksSync' | transloco }}
+                <a routerLink="/standards" class="font-semibold text-accent hover:underline">{{
+                  p + '.openStandards' | transloco
+                }}</a>
+              </p>
             </fieldset>
           </app-card>
 
           <app-card>
             <fieldset>
-              <legend class="mb-1 text-[16px] font-bold text-fg">
+              <legend class="mb-1 text-section font-bold text-fg">
                 {{ p + '.aiActRole' | transloco }}
               </legend>
-              <p class="mb-3 text-[12.5px] text-fg-subtle">
+              <p class="mb-3 text-meta text-fg-subtle">
                 {{ help + '.aiActRole.help' | transloco }}
               </p>
               <div class="grid gap-2 sm:grid-cols-2">
@@ -228,10 +265,10 @@ import {
                       [value]="role"
                     />
                     <span>
-                      <span class="block text-[13.5px] font-semibold text-fg">{{
+                      <span class="block text-ui font-semibold text-fg">{{
                         'modules.aiActRoles.' + role + '.name' | transloco
                       }}</span>
-                      <span class="block text-[12.5px] text-fg-muted">{{
+                      <span class="block text-meta text-fg-muted">{{
                         'modules.aiActRoles.' + role + '.description' | transloco
                       }}</span>
                     </span>
@@ -243,19 +280,30 @@ import {
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[16px] font-bold text-fg">
+              <h2 class="text-section font-bold text-fg">
                 {{ p + '.sections.targets' | transloco }}
               </h2>
               <app-button variant="secondary" size="sm" (click)="addTarget()">
                 <app-icon name="plus" [size]="14" /> {{ p + '.addTarget' | transloco }}
               </app-button>
             </div>
-            <p class="mb-3 text-[12.5px] text-fg-subtle">
+            <p class="mb-3 text-meta text-fg-subtle">
               {{ help + '.targets.help' | transloco }}
+            </p>
+            <p
+              class="mb-3 flex flex-wrap items-center gap-x-2 rounded-tile border border-border bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+              data-testid="profile-certificates-link"
+            >
+              {{ p + '.certificatesLive' | transloco }}
+              <a
+                routerLink="/audits/certifications"
+                class="font-semibold text-accent hover:underline"
+                >{{ p + '.openCertificates' | transloco }}</a
+              >
             </p>
             @if (form.controls.certification_targets.length === 0) {
               <p
-                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-[13px] text-fg-muted"
+                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-ui text-fg-muted"
               >
                 {{ p + '.noTargets' | transloco }}
               </p>
@@ -319,15 +367,17 @@ import {
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-[16px] font-bold text-fg">{{ p + '.sections.sites' | transloco }}</h2>
+              <h2 class="text-section font-bold text-fg">
+                {{ p + '.sections.sites' | transloco }}
+              </h2>
               <app-button variant="secondary" size="sm" (click)="addSite()">
                 <app-icon name="plus" [size]="14" /> {{ p + '.addSite' | transloco }}
               </app-button>
             </div>
-            <p class="mb-3 text-[12.5px] text-fg-subtle">{{ help + '.sites.help' | transloco }}</p>
+            <p class="mb-3 text-meta text-fg-subtle">{{ help + '.sites.help' | transloco }}</p>
             @if (form.controls.sites.length === 0) {
               <p
-                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-[13px] text-fg-muted"
+                class="rounded-tile border border-dashed border-border px-3 py-4 text-center text-ui text-fg-muted"
               >
                 {{ p + '.noSites' | transloco }}
               </p>
@@ -353,12 +403,12 @@ import {
                     [inputId]="'site-country-' + i"
                     [label]="p + '.siteCountry' | transloco"
                   >
-                    <input
-                      [id]="'site-country-' + i"
-                      type="text"
-                      formControlName="country"
-                      maxlength="2"
-                      autocomplete="off"
+                    <app-country-picker
+                      [inputId]="'site-country-' + i"
+                      [multiple]="false"
+                      [options]="countryCodes"
+                      [value]="row.controls.country.value ? [row.controls.country.value] : []"
+                      (valueChange)="setSiteCountry(i, $event[0] ?? '')"
                     />
                   </app-form-field>
                   <app-form-field
@@ -376,19 +426,23 @@ import {
                     [inputId]="'site-kind-' + i"
                     [label]="p + '.siteKind' | transloco"
                   >
-                    <input
-                      [id]="'site-kind-' + i"
-                      type="text"
-                      formControlName="kind"
-                      maxlength="64"
-                      [placeholder]="p + '.siteKindPlaceholder' | transloco"
-                    />
+                    <select [id]="'site-kind-' + i" formControlName="kind">
+                      <option value="">{{ p + '.siteKindNone' | transloco }}</option>
+                      @for (kind of siteKinds; track kind) {
+                        <option [value]="kind">{{ p + '.siteKinds.' + kind | transloco }}</option>
+                      }
+                      @if (row.controls.kind.value && !isKnownKind(row.controls.kind.value)) {
+                        <option [value]="row.controls.kind.value">
+                          {{ row.controls.kind.value }}
+                        </option>
+                      }
+                    </select>
                   </app-form-field>
                   <app-button variant="ghost" size="sm" (click)="removeSite(i)">
                     {{ 'modules.common.remove' | transloco }}
                   </app-button>
                   @if (row.invalid && row.touched) {
-                    <p role="alert" class="text-[12px] font-medium text-fail sm:col-span-5">
+                    <p role="alert" class="text-meta font-medium text-fail sm:col-span-5">
                       {{ p + '.errors.site' | transloco }}
                     </p>
                   }
@@ -411,6 +465,8 @@ import {
           </div>
         </form>
       }
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="profile" />
     </div>
   `,
 })
@@ -422,7 +478,6 @@ export class OrgProfilePage {
   private readonly transloco = inject(TranslocoService);
   private readonly ask = inject(AskPanelService);
 
-  protected readonly clauses = GUIDE_CLAUSES.profile;
   protected readonly frameworks = FRAMEWORK_KEYS;
   protected readonly sizeBands = SIZE_BANDS;
   protected readonly aiActRoles = AI_ACT_ROLES;
@@ -438,8 +493,43 @@ export class OrgProfilePage {
   protected readonly error = signal(false);
 
   protected readonly form = createProfileForm(this.fb);
+  protected readonly countryCodes = PROFILE_COUNTRY_CODES;
+  protected readonly siteKinds = SITE_KINDS;
+  /** Bumped when the countries control changes, so the picker re-reads it. */
+  private readonly countriesRevision = signal(0);
+  protected readonly countryList = computed(() => {
+    this.countriesRevision();
+    return parseCountries(this.form.controls.countries.value);
+  });
+
+  protected standardOf(framework: string): ProfileStandard | null {
+    return this.profile()?.standards?.find((s) => s.framework === framework) ?? null;
+  }
+
+  protected setCountries(codes: readonly string[]): void {
+    this.form.controls.countries.setValue(codes.join(', '));
+    this.form.controls.countries.markAsDirty();
+    this.countriesRevision.update((n) => n + 1);
+  }
+
+  protected setSiteCountry(index: number, code: string): void {
+    const control = this.form.controls.sites.at(index)?.controls.country;
+    control?.setValue(code);
+    control?.markAsDirty();
+  }
+
+  protected isKnownKind(kind: string): boolean {
+    return (SITE_KINDS as readonly string[]).includes(kind);
+  }
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'org_profile',
+      view: 'settings',
+      title: this.transloco.translate('modules.profile.title'),
+    }));
+
     effect(() => {
       const orgId = this.orgId();
       untracked(() => {
@@ -500,6 +590,7 @@ export class OrgProfilePage {
         this.profile.set(profile);
         patchProfileForm(this.fb, this.form, profile);
         this.form.markAsPristine();
+        this.countriesRevision.update((n) => n + 1);
         this.notifications.success('modules.profile.savedToast');
       },
       error: () => {
@@ -529,6 +620,7 @@ export class OrgProfilePage {
         this.profile.set(profile);
         patchProfileForm(this.fb, this.form, profile);
         this.form.markAsPristine();
+        this.countriesRevision.update((n) => n + 1);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),

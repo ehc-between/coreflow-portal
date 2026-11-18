@@ -153,7 +153,10 @@
       "requiredBy": "{{ module }} brukes av {{ modules }}. Slå av dem først.",
       "alwaysOn": "{{ module }} er alltid på og kan ikke slås av.",
       "unknown": "Den modulen finnes ikke lenger. Last inn siden på nytt."
-    }
+    },
+    "scopeGap": "{{framework}} er i omfang, men {{module}} er slått av.",
+    "turnOn": "Slå på {{module}}",
+    "filterByFramework": "Vis modulene for {{framework}}"
   },
   "profile": {
     "title": "Organisasjonsprofil",
@@ -163,7 +166,7 @@
     "askAiRolePrompt": "Vi er en organisasjon i bransjen «{{ industry }}» og har valgt rollen «{{ role }}» etter KI-forordningen. Forklar på enkelt språk hva rollen betyr, hvilke plikter som vanligvis følger, og hvordan vi kan sjekke at rollen er riktig.",
     "sections": {
       "basics": "Om organisasjonen",
-      "frameworks": "Rammeverk i omfang",
+      "frameworks": "Standarder i omfang",
       "targets": "Sertifiseringsmål",
       "sites": "Lokasjoner"
     },
@@ -191,7 +194,29 @@
       "site": "En lokasjon trenger et navn og en landkode på to bokstaver.",
       "save": "Profilen kunne ikke lagres. Sjekk feltene og prøv igjen."
     },
-    "savedToast": "Organisasjonsprofilen er lagret."
+    "savedToast": "Organisasjonsprofilen er lagret.",
+    "standardOn": "Slått på i Standarder og krav",
+    "standardOff": "Slås på i Standarder og krav når du lagrer",
+    "standardUnavailable": "Finnes ikke i kravkatalogen ennå",
+    "frameworksSync": "Standardene du krysser av her, slås på i Standarder og krav, og de du fjerner, slås av.",
+    "openStandards": "Åpne Standarder og krav",
+    "certificatesLive": "Mål er planer. Sertifikater dere har (nummer, gyldig til, neste overvåkingsrevisjon), registreres under Revisjoner.",
+    "openCertificates": "Åpne sertifiseringer",
+    "scopeTitle": "Omfanget av styringssystemet",
+    "scopeBody": "Beskrivelsen over er ikke omfanget. Skriv omfangserklæringen, med eventuelle unntak og begrunnelse, under Kontekst.",
+    "scopeLink": "Åpne omfangserklæringer",
+    "siteKindNone": "Ikke satt",
+    "siteKinds": {
+      "head_office": "Hovedkontor",
+      "office": "Kontor",
+      "production": "Produksjon",
+      "warehouse": "Lager",
+      "data_centre": "Datasenter",
+      "store": "Butikk",
+      "construction_site": "Byggeplass",
+      "remote": "Fjernarbeid",
+      "other": "Annet"
+    }
   },
   "terminology": {
     "title": "Terminologi",
@@ -322,53 +347,14 @@
     "later": "Senere"
   },
   "guide": {
-    "whyTitle": "Hvorfor dette er viktig",
-    "show": "Vis veiledning",
-    "hide": "Skjul",
-    "start": "Start",
-    "explainClause": "Forklar",
-    "tutorPrompt": "Lær meg {{ clause }} på enkelt språk, slik det gjelder for siden «{{ page }}»: hva kravet går ut på, et kort eksempel og ett spørsmål som sjekker at jeg har forstått.",
-    "lessonLabel": "Minikurs, {{ minutes }} minutter",
-    "quizTitle": "Sjekk forståelsen",
-    "check": "Sjekk svarene",
-    "correct": "Riktig.",
-    "incorrect": "Ikke helt.",
-    "score": "{{ score }} av {{ total }} riktige",
-    "retry": "Prøv igjen",
     "pages": {
-      "modules": {
-        "intro": {
-          "title": "Moduler tilpasser CoreFlow til styringssystemet",
-          "body": "Hver modul dekker ett område standardene krever, for eksempel risiko, revisjoner eller opplæring. Slå bare på det dere trenger; dere kan legge til mer etter hvert som systemet vokser.",
-          "steps": {
-            "s1": "Start med modulene oppsettsveiviseren anbefaler for rammeverkene deres.",
-            "s2": "Se på «Krever»: noen moduler bygger på andre.",
-            "s3": "Når en modul slås av, skjules den, men registreringene beholdes."
-          }
-        },
-        "why": {
-          "body": "Standardene forventer et definert sett med prosesser (prosesstilnærmingen) og risikobasert planlegging. Et bevisst valg av moduler dokumenterer hvilke prosesser systemet omfatter."
-        }
-      },
       "profile": {
-        "intro": {
-          "title": "Profilen beskriver konteksten deres",
-          "body": "ISO-styringssystemer starter med å forstå organisasjonen, interessentene og omfanget. Profilen er kortversjonen av den konteksten.",
-          "steps": {
-            "s1": "Fyll inn bransje, størrelse og landene dere driver i.",
-            "s2": "Kryss av rammeverkene i omfang og legg til sertifiseringsmål med datoer.",
-            "s3": "Velg rollen etter EUs KI-forordning. «Usikker foreløpig» er greit inntil videre."
-          }
-        },
-        "why": {
-          "body": "Kapittel 4.1 til 4.3 krever at dere forstår konteksten, interessentenes behov og omfanget av systemet. Revisorer starter ofte her."
-        },
         "fields": {
           "industry": {
             "help": "Med egne ord, for eksempel «matproduksjon» eller «IT-rådgivning»."
           },
           "countries": {
-            "help": "Koder på to bokstaver, skilt med komma. Lover og tilsyn avhenger av dem."
+            "help": "Velg fra listen. Hvilke lover og tilsyn som gjelder, avhenger av hvor dere driver."
           },
           "description": {
             "help": "Hva dere gjør, for hvem og hvor. Noen setninger er nok."
@@ -384,73 +370,6 @@
           },
           "sites": {
             "help": "List opp stedene styringssystemet omfatter. Det former omfangsbeskrivelsen."
-          }
-        }
-      },
-      "terminology": {
-        "intro": {
-          "title": "Snakk organisasjonens språk",
-          "body": "Folk følger et system lettere når det bruker deres ord. Endre ordbruken her, så bruker CoreFlow den overalt.",
-          "steps": {
-            "s1": "Velg begrepene dere kaller noe annet, for eksempel «uoverensstemmelse» for avvik.",
-            "s2": "Fyll inn entall og flertall for hvert språk dere bruker.",
-            "s3": "Lagre, og se på forhåndsvisningen over listen."
-          }
-        },
-        "why": {
-          "body": "Bevissthet og kommunikasjon (kapittel 7.4) fungerer bedre med kjent språk, og styrte dokumenter (kapittel 7.5) bør bruke begreper konsekvent."
-        }
-      },
-      "setup": {
-        "intro": {
-          "title": "Kom i gang på noen minutter",
-          "body": "Veiviseren tar deg gjennom det grunnleggende i et styringssystem: kontekst, omfang, riktige moduler, roller og de første oppgavene.",
-          "steps": {
-            "s1": "Beskriv organisasjonen og velg rammeverkene i omfang.",
-            "s2": "Se gjennom de anbefalte modulene. Bruk «Spør hvorfor» hvis noe er uklart.",
-            "s3": "Inviter folk og start med noen få oppgaver."
-          }
-        },
-        "why": {
-          "body": "Omfanget (kapittel 4.3), roller og ansvar (kapittel 5.3) og planlegging for risiko (kapittel 6.1) er grunnmuren alle senere revisjoner sjekker."
-        }
-      }
-    },
-    "lessons": {
-      "modulesBasics": {
-        "title": "Rammeverk, moduler og styringssystemet",
-        "sections": {
-          "s1": {
-            "heading": "Én struktur, mange standarder",
-            "body": "ISO 9001, 27001, 14001, 42001 og 45001 deler samme kapittelstruktur, fra kontekst (4) til forbedring (10). Arbeid dere gjør én gang, for eksempel ledelsens gjennomgang, kan telle for flere standarder."
-          },
-          "s2": {
-            "heading": "Rammeverkene bestemmer kravene",
-            "body": "Et rammeverk er standarden eller regelverket dere følger. Det avgjør hva dere må kunne vise en revisor, for eksempel en risikovurdering eller opplæringsregistreringer."
-          },
-          "s3": {
-            "heading": "Modulene er der arbeidet skjer",
-            "body": "En modul er delen av CoreFlow der dere gjør arbeidet og tar vare på bevisene. Slå på modulene rammeverkene krever, og la resten være av til dere trenger dem."
-          }
-        },
-        "quiz": {
-          "q1": {
-            "question": "Hva avgjør hvilke krav dere må oppfylle?",
-            "options": {
-              "a": "Modulene dere slår på",
-              "b": "Rammeverkene i omfang",
-              "c": "Størrelsen på organisasjonen"
-            },
-            "explanation": "Rammeverkene avgjør kravene; modulene er der dere oppfyller dem."
-          },
-          "q2": {
-            "question": "Hva skjer med registreringene når en modul slås av?",
-            "options": {
-              "a": "De slettes",
-              "b": "De flyttes til en annen modul",
-              "c": "De beholdes og kommer tilbake når modulen slås på"
-            },
-            "explanation": "Å slå av en modul skjuler den bare; registreringene blir liggende."
           }
         }
       }

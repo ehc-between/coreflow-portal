@@ -29,23 +29,23 @@ import { Card } from '../../../shared/ui/card/card';
   template: `
     <app-card [padded]="false">
       <div class="border-b border-border px-5 py-4">
-        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+        <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
           {{ 'activity.leads.title' | transloco }}
         </h2>
-        <p class="mt-0.5 text-[13px] text-fg-muted">{{ 'activity.leads.subtitle' | transloco }}</p>
+        <p class="mt-0.5 text-ui text-fg-muted">{{ 'activity.leads.subtitle' | transloco }}</p>
       </div>
 
       @if (leads().length === 0) {
         <div class="px-5 py-8 text-center" data-testid="leads-empty">
-          <p class="text-[13.5px] font-semibold text-fg">
+          <p class="text-ui font-semibold text-fg">
             {{ 'activity.leads.emptyTitle' | transloco }}
           </p>
-          <p class="mx-auto mt-1 max-w-md text-[13px] text-fg-muted">
+          <p class="mx-auto mt-1 max-w-md text-ui text-fg-muted">
             {{ 'activity.leads.emptyBody' | transloco }}
           </p>
           <a
-            routerLink="/settings"
-            class="mt-3 inline-block text-[13px] font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            routerLink="/settings/departments"
+            class="mt-3 inline-block text-ui font-semibold text-accent hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             {{ 'activity.leads.emptyCta' | transloco }}
           </a>
@@ -54,19 +54,31 @@ import { Card } from '../../../shared/ui/card/card';
         <ul class="divide-y divide-border">
           @for (lead of leads(); track lead.department_id) {
             <li class="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:gap-4">
-              <label
-                [for]="'lead-' + lead.department_id"
-                class="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-fg"
-              >
-                {{ lead.name }}
-              </label>
+              <div class="min-w-0 flex-1">
+                <label
+                  [for]="'lead-' + lead.department_id"
+                  class="block truncate text-ui font-semibold text-fg"
+                >
+                  {{ lead.name }}
+                </label>
+                @if (!lead.lead_user_id) {
+                  <span class="text-meta text-warn" data-testid="lead-gap">{{
+                    'activity.leads.gap' | transloco
+                  }}</span>
+                }
+                <a
+                  [routerLink]="['/settings/departments', lead.department_id]"
+                  class="block text-meta text-accent hover:underline"
+                  >{{ 'activity.leads.openDepartment' | transloco }}</a
+                >
+              </div>
               <select
                 [id]="'lead-' + lead.department_id"
                 data-testid="lead-select"
                 [disabled]="saving().has(lead.department_id)"
                 [value]="lead.lead_user_id ?? ''"
                 (change)="change(lead, $event)"
-                class="h-9 w-full rounded-[10px] border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent disabled:opacity-60 sm:w-64"
+                class="h-9 w-full rounded-tile border border-border bg-bg px-2.5 text-ui text-fg outline-none focus:border-accent disabled:opacity-60 sm:w-64"
               >
                 <option value="">{{ 'activity.leads.none' | transloco }}</option>
                 @for (member of activeMembers(); track member.user_id) {
@@ -101,7 +113,9 @@ export class DepartmentLeads {
 
   protected readonly saving = signal<ReadonlySet<string>>(new Set());
   protected readonly errorKey = signal<string | null>(null);
-  protected readonly activeMembers = computed(() => this.members().filter((m) => m.is_active));
+  protected readonly activeMembers = computed(() =>
+    this.members().filter((m) => m.is_active && !m.is_platform_operator),
+  );
 
   protected change(lead: DepartmentLead, event: Event): void {
     const select = event.target as HTMLSelectElement;

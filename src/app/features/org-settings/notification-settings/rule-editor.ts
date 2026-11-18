@@ -21,6 +21,7 @@ import { activityErrorKey } from '../../../core/notifications/activity-errors';
 import { NotificationRulesApi } from '../../../core/notifications/notification-rules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { OrgMember, OrgRole } from '../../../core/org/org.models';
+import { relevantRoles } from '../../../core/org/roles';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -66,21 +67,21 @@ export interface RecipientOption {
       @if (rule(); as r) {
         @let d = draft();
         <div class="flex flex-col gap-6 px-5 py-5" data-testid="rule-editor">
-          <p class="font-mono text-[12px] text-fg-subtle">{{ r.event_kind }}</p>
+          <p class="font-mono text-meta text-fg-subtle">{{ r.event_kind }}</p>
 
           <app-switch [checked]="d.enabled" (checkedChange)="setEnabled($event)">
             {{ 'activity.rules.editor.enabled' | transloco }}
           </app-switch>
 
           <fieldset class="flex flex-col gap-2" [disabled]="!d.enabled">
-            <legend class="mb-1 text-[13px] font-semibold text-fg">
+            <legend class="mb-1 text-ui font-semibold text-fg">
               {{ 'activity.rules.editor.recipients' | transloco }}
             </legend>
-            <p class="text-[12.5px] text-fg-muted">
+            <p class="text-meta text-fg-muted">
               {{ 'activity.rules.editor.recipientsHint' | transloco }}
             </p>
             @for (type of simpleTypes; track type) {
-              <label class="flex items-start gap-2.5 text-[13px] text-fg">
+              <label class="flex items-start gap-2.5 text-ui text-fg">
                 <input
                   type="checkbox"
                   class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
@@ -92,7 +93,7 @@ export interface RecipientOption {
                   <span class="font-medium">{{
                     'activity.recipients.' + type + '.label' | transloco
                   }}</span>
-                  <span class="block text-[12px] text-fg-muted">{{
+                  <span class="block text-meta text-fg-muted">{{
                     'activity.recipients.' + type + '.hint' | transloco
                   }}</span>
                 </span>
@@ -101,14 +102,14 @@ export interface RecipientOption {
 
             @for (type of valueTypes; track type) {
               <div class="mt-2 flex flex-col gap-1.5">
-                <label [for]="'add-' + type" class="text-[12.5px] font-semibold text-fg-muted">
+                <label [for]="'add-' + type" class="text-meta font-semibold text-fg-muted">
                   {{ 'activity.recipients.' + type + '.label' | transloco }}
                 </label>
                 @if (d.values[type].length > 0) {
                   <ul class="flex flex-wrap gap-1.5">
                     @for (value of d.values[type]; track value) {
                       <li
-                        class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
+                        class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
                       >
                         {{ optionLabel(type, value) }}
                         <button
@@ -130,7 +131,7 @@ export interface RecipientOption {
                   [id]="'add-' + type"
                   [attr.data-testid]="'add-' + type"
                   (change)="addValue(type, $event)"
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2.5 text-[13px] text-fg outline-none focus:border-accent disabled:opacity-60"
+                  class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg outline-none focus:border-accent disabled:opacity-60"
                 >
                   <option value="">{{ 'activity.rules.editor.add' | transloco }}</option>
                   @for (option of available(type); track option.value) {
@@ -142,11 +143,11 @@ export interface RecipientOption {
           </fieldset>
 
           <fieldset class="flex flex-col gap-2" [disabled]="!d.enabled">
-            <legend class="mb-1 text-[13px] font-semibold text-fg">
+            <legend class="mb-1 text-ui font-semibold text-fg">
               {{ 'activity.rules.editor.channels' | transloco }}
             </legend>
             @for (channel of channels; track channel) {
-              <label class="flex items-start gap-2.5 text-[13px] text-fg">
+              <label class="flex items-start gap-2.5 text-ui text-fg">
                 <input
                   type="checkbox"
                   class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
@@ -158,7 +159,7 @@ export interface RecipientOption {
                   <span class="font-medium">{{
                     'activity.channels.' + channel + '.label' | transloco
                   }}</span>
-                  <span class="block text-[12px] text-fg-muted">{{
+                  <span class="block text-meta text-fg-muted">{{
                     'activity.channels.' + channel + '.hint' | transloco
                   }}</span>
                 </span>
@@ -225,6 +226,8 @@ export class RuleEditor {
   readonly roles = input<readonly OrgRole[]>([]);
   readonly departments = input<readonly DepartmentLead[]>([]);
   readonly members = input<readonly OrgMember[]>([]);
+  /** The kind's readable name from the host (its notification text); falls back to the kind. */
+  readonly kindLabel = input<string>('');
 
   readonly saved = output<NotificationRule>();
   /** The org rule was deleted; the host reloads to get the default back. */
@@ -253,17 +256,20 @@ export class RuleEditor {
 
   protected readonly title = computed(() => {
     const rule = this.rule();
-    return rule ? kindLabel(rule.event_kind, this.lookup) : '';
+    return rule ? this.kindLabel() || kindLabel(rule.event_kind, this.lookup) : '';
   });
 
   private readonly options = computed<Record<ValueRecipientType, RecipientOption[]>>(() => ({
-    role: this.roles().map((r) => ({
+    role: relevantRoles(
+      this.roles(),
+      this.members().flatMap((m) => m.roles),
+    ).map((r) => ({
       value: r.key,
       label: this.lookup(`roles.${r.key}.name`) ?? r.name,
     })),
     department: this.departments().map((d) => ({ value: d.department_id, label: d.name })),
     user: this.members()
-      .filter((m) => m.is_active)
+      .filter((m) => m.is_active && !m.is_platform_operator)
       .map((m) => ({ value: m.user_id, label: m.full_name || m.email })),
   }));
 
@@ -273,7 +279,11 @@ export class RuleEditor {
       untracked(() => {
         this.errorKey.set(null);
         this.confirmReset.set(false);
-        if (rule) this.draft.set(draftFromRule(rule));
+        if (rule) {
+          const draft = draftFromRule(rule);
+          // Opening a kind that is off by default means "turn it on": start enabled.
+          this.draft.set(!rule.notify && rule.is_default ? { ...draft, enabled: true } : draft);
+        }
       });
     });
   }

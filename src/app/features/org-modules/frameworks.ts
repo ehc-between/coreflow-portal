@@ -32,11 +32,3 @@ export function frameworkNameKey(key: string): string {
 export function frameworkDescriptionKey(key: string): string {
   return `modules.frameworks.${key}.description`;
 }
-
-/** Clauses each F1 page explains in its "why this matters" note. */
-export const GUIDE_CLAUSES = {
-  modules: ['hs:4.4', 'hs:6.1', 'iso27001:6.1.3'],
-  profile: ['hs:4.1', 'hs:4.2', 'hs:4.3', 'eu_ai_act:3'],
-  terminology: ['hs:7.4', 'hs:7.5'],
-  setup: ['hs:4.3', 'hs:5.3', 'hs:6.1'],
-} as const satisfies Record<string, readonly ClauseRef[]>;
