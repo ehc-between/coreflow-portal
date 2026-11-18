@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  untracked,
+} from '@angular/core';
+import { PageHelpRegistry } from '../../../core/guidance/page-help.registry';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { TasksGuidance } from '../../../core/tasks/tasks-guidance';
@@ -35,7 +45,7 @@ export function parseClauseRef(ref: string): ClauseChip {
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (why(); as why) {
+    @if (!registry.hasStrip() && why(); as why) {
       <aside
         class="rounded-card border border-border bg-surface px-4 py-3"
         [attr.aria-label]="'tasks.guide.whyTitle' | transloco"
@@ -77,8 +87,19 @@ export class TaskWhyItMatters {
   private readonly guidance = inject(TasksGuidance);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
+  protected readonly registry = inject(PageHelpRegistry);
 
   readonly page = input.required<string>();
+
+  constructor() {
+    // U38: with a help strip on the page this note moves behind its "?".
+    let id: number | null = null;
+    effect(() => {
+      const entry = { scope: 'tasks', page: this.page(), frameworks: null };
+      untracked(() => (id = this.registry.setWhy(id, entry)));
+    });
+    inject(DestroyRef).onDestroy(() => this.registry.removeWhy(id));
+  }
 
   protected readonly why = computed(() => this.guidance.file()?.pages[this.page()]?.why);
   protected readonly chips = computed(() => (this.why()?.clauses ?? []).map(parseClauseRef));

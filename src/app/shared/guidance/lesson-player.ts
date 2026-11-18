@@ -182,6 +182,12 @@ export function scoreQuiz(
 export class LessonPlayer {
   readonly lesson = input.required<Lesson>();
   readonly completed = output<LessonResult>();
+  /**
+   * The learner moved past the first page (next page or quiz): the lesson is really
+   * opened, not just shown. Emits once per lesson (U38: lessons count when opened).
+   */
+  readonly started = output<void>();
+  private startedFor: Lesson | null = null;
 
   protected readonly titleId = `lesson-${nextId++}`;
 
@@ -223,6 +229,14 @@ export class LessonPlayer {
     const s = this.stage();
     if (s.kind === 'section' && s.index < this.lesson().sections.length - 1) {
       this.stage.set({ kind: 'section', index: s.index + 1 });
+      this.markStarted();
+    }
+  }
+
+  private markStarted(): void {
+    if (this.startedFor !== this.lesson()) {
+      this.startedFor = this.lesson();
+      this.started.emit();
     }
   }
 
@@ -235,6 +249,7 @@ export class LessonPlayer {
 
   protected startQuiz(): void {
     this.stage.set({ kind: 'quiz' });
+    this.markStarted();
   }
 
   protected backFromQuiz(): void {

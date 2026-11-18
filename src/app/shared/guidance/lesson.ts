@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  untracked,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { LessonResult, progressLessonKey } from '../../core/guidance/guidance.models';
@@ -20,7 +11,8 @@ import { LessonPlayer } from './lesson-player';
 /**
  * A micro-lesson from the guidance file (`lessons.<lesson>`), played with
  * `<app-lesson-player>` and recorded as learning progress (`"<scope>.<lesson>"`):
- * "seen" when it opens, "completed" at the end, or the quiz result.
+ * "seen" once the learner moves past the first page (U38: showing a lesson, e.g. on a
+ * page visit, does not count it as started), "completed" at the end, or the quiz result.
  */
 @Component({
   selector: 'app-lesson',
@@ -46,7 +38,11 @@ import { LessonPlayer } from './lesson-player';
           }
         </div>
       }
-      <app-lesson-player [lesson]="lesson" (completed)="onCompleted($event)" />
+      <app-lesson-player
+        [lesson]="lesson"
+        (started)="onStarted()"
+        (completed)="onCompleted($event)"
+      />
     } @else if (loaded()) {
       <p data-testid="lesson-missing" class="text-ui text-fg-muted">
         {{ 'guidance.lesson.missing' | transloco }}
@@ -80,17 +76,15 @@ export class LessonView {
 
   constructor() {
     this.progressService.ensureLoaded();
-    effect(() => {
-      const ready = this.content() !== null;
-      const key = this.lessonKey();
-      const scope = this.scope();
-      if (ready && !this.seen.has(key)) {
-        this.seen.add(key);
-        untracked(() =>
-          this.progressService.record(scope, key, 'seen').subscribe({ error: () => undefined }),
-        );
-      }
-    });
+  }
+
+  protected onStarted(): void {
+    const key = this.lessonKey();
+    if (this.seen.has(key) || this.progress()) {
+      return; // already counted
+    }
+    this.seen.add(key);
+    this.progressService.record(this.scope(), key, 'seen').subscribe({ error: () => undefined });
   }
 
   protected onCompleted(result: LessonResult): void {

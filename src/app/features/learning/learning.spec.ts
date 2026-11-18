@@ -174,9 +174,12 @@ describe('LearningCentre', () => {
     return { fixture, el, progress, render: () => fixture.detectChanges() };
   }
 
-  it('lists lessons with their status and filters them', () => {
+  it('folds the library until asked, then lists lessons with their status and filters them', () => {
     const { el, render, progress } = setup();
     expect(progress.ensureLoaded).toHaveBeenCalled();
+    expect(el.querySelector('[data-testid="lesson-row"]')).toBeNull();
+    el.querySelector<HTMLButtonElement>('[data-testid="lessons-toggle"]')!.click();
+    render();
     const rows = () =>
       Array.from(el.querySelectorAll<HTMLAnchorElement>('[data-testid="lesson-row"]'));
     // Default sort: by status (in progress, not started, completed).
@@ -199,9 +202,20 @@ describe('LearningCentre', () => {
     expect(el.querySelector('[data-testid="lessons-empty"]')).not.toBeNull();
   });
 
-  it('searches the glossary', () => {
+  it('shows a "Start her" path of the lessons that exist', () => {
+    const { el } = setup();
+    const start = Array.from(el.querySelectorAll('[data-testid="start-lesson"]'));
+    // Only the platform file is loaded in this test, and it has none of the path's lessons.
+    expect(start).toHaveLength(0);
+    expect(el.querySelector('[data-testid="learning-start"]')).not.toBeNull();
+  });
+
+  it('searches the glossary once it is opened', () => {
     const { el, render } = setup();
     const entries = () => el.querySelectorAll('[data-testid="glossary-entry"]');
+    expect(entries()).toHaveLength(0);
+    el.querySelector<HTMLButtonElement>('[data-testid="glossary-toggle"]')!.click();
+    render();
     expect(entries()).toHaveLength(2);
     const search = el.querySelector<HTMLInputElement>('[data-testid="glossary-search"]')!;
     search.value = 'uncertainty';
@@ -233,11 +247,10 @@ describe('LessonView', () => {
     return { fixture, progress, record$, el: fixture.nativeElement as HTMLElement };
   }
 
-  it('records "seen" once and "completed" at the end', () => {
+  it('does not count a lesson as started just because it is shown, and records "completed" at the end', () => {
     const { fixture, progress, record$, el } = setup();
-    expect(progress.record).toHaveBeenCalledWith('platform', 'platform.alpha', 'seen');
     fixture.detectChanges();
-    expect(progress.record).toHaveBeenCalledTimes(1);
+    expect(progress.record).not.toHaveBeenCalled();
 
     const finished: unknown[] = [];
     fixture.componentInstance.finished.subscribe((r) => finished.push(r));
@@ -245,6 +258,17 @@ describe('LessonView', () => {
     expect(progress.record).toHaveBeenLastCalledWith('platform', 'platform.alpha', 'completed');
     record$.next(progressItem({ completed_at: '2026-11-02T10:00:00' }));
     expect(finished).toEqual([{ score: null, passed: null }]);
+  });
+
+  it('records "seen" once the learner moves on to the quiz', () => {
+    const { fixture, progress, el } = setup();
+    fixture.componentRef.setInput('lesson', 'beta');
+    fixture.detectChanges();
+    expect(progress.record).not.toHaveBeenCalled();
+    el.querySelector<HTMLButtonElement>('[data-testid="lesson-start-quiz"] button')!.click();
+    fixture.detectChanges();
+    expect(progress.record).toHaveBeenCalledWith('platform', 'platform.beta', 'seen');
+    expect(progress.record).toHaveBeenCalledTimes(1);
   });
 
   it('says when the lesson does not exist', () => {
