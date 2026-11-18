@@ -968,3 +968,20 @@ Mapper guidance (binding for L2):
 13. **D13: the migration id is `cf120_req_locations`.** Its `down_revision` is set to the head of
     `origin/main` when the L1 branch is created (today `cf61_assistant_everything`), and the
     integrator re-chains if needed (polish §5).
+
+---
+
+## 10. Portal build notes (L3, L4-portal, L5), decided while building
+
+Recorded by the portal engineer on 2026-11-17; nobody was available to ask.
+
+1. **P1. New types stay in `core/locations/locations.models.ts`.** The optional fields that L4 adds to standards DTOs (`basis`, `location_text`, `fill_in`, `by_basis`) are declared there as small structural interfaces (`LocatedRequirementFields`, `GapFillInFields`, `ReadinessBasisFields`), so `core/standards/standards.models.ts` (owned by the standards area) is not touched.
+2. **P2. The catalogue tree reads the tree payload, not `POST …/evaluate`.** The L4 tree DTO already carries `location_outcome` and `location_text` per requirement, so `<app-location-hint>` in `requirement-row.ts` renders from it, and no extra request is made. `LocationsApi.evaluate()` exists and is used by the override preview.
+3. **P3. The basis tooltip lives on the hint, not on the status badge.** "Status fra stedet der kravet fylles ut: …" is the hint's title, so the badge markup (standards area) is untouched. On the requirement page, the `status.text` line is shown only when the place does not decide the status (`manual`, `links`), because otherwise it repeats the card's status line.
+4. **P4. Assistant context goes through `requirements`, not a new `location_key` field.** The backend page context has no `location_key`, and P2 already feeds `requirements` to the assistant. `provideLocationContext()` adds the refs that a page fulfils (primary first) to whichever page context is active, through a small additive `PageContextService.supplement()`. It never replaces the page's own context.
+5. **P5. The "Dette oppfyller" strip on module pages is one tag.** On pages built with `app-record-list-page`, it is projected into the existing `[help]` slot, right under the header. On the three pages with their own header (documents, deviations, tasks), it sits right after the header. Pages that serve several places from one component (context registers, privacy registers) omit `locationKey`, and the strip matches the current path against the vocabulary routes (exact path, no placeholders).
+6. **P6. One strip per module, on its main register page.** Context and privacy get one per register through path matching. Other secondary registers (KPIs, treatments, findings …) can add the same one-line tag later.
+7. **P7. Re-point is two calls.** The API has no combined endpoint, so "Bruk et annet sted" creates a `disable` override and then an `add` override. If the second call fails, the dialog says so, and the page reloads so the switched-off place is visible (with "Bruk standardoppsettet igjen" to undo).
+8. **P8. Managers can add a place to an unmapped requirement.** The block stays hidden for everyone else, as designed. A user with `standards:manage` sees one small "Legg til stedet der dere fyller ut dette" button.
+9. **P9. Strip order.** Clauses filled in here come before "also relevant" ones, then ISO standards before regulations, then natural order (ISO 9001 before ISO 14001). Each clause shows one chip with the worst primary outcome.
+10. **P10. Failures stay quiet.** All location reads use `SKIP_ERROR_TOAST`. On any failure the block or strip is not rendered, and the page looks as it did before.

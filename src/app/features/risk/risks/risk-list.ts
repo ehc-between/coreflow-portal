@@ -54,6 +54,7 @@ import {
 import { RatingBadge } from '../shared/rating-badge';
 import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 50;
 
@@ -142,6 +143,7 @@ export function moreFiltersCount(filters: RiskFilters): number {
 @Component({
   selector: 'app-risk-list',
   imports: [
+    FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -183,6 +185,7 @@ export function moreFiltersCount(filters: RiskFilters): number {
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="risk.risks" />
       @if (perms.canWrite()) {
         <app-button primary [appTourStep]="'risk-new'" (click)="newRisk()">
           <app-icon name="plus" [size]="14" />

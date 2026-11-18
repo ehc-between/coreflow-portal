@@ -257,7 +257,8 @@
       "allTypes": "Alle typer"
     },
     "card": {
-      "evidenceTitle": "Dokumentasjon",
+      "evidenceTitle": "Konkret dokumentasjon",
+      "evidenceHint": "Koble enkeltposter som ekstra dokumentasjon",
       "suggestions": "Foreslått dokumentasjon ({{count}})",
       "loadError": "Kunne ikke laste dokumentasjonen. Prøv igjen.",
       "canBeEvidencedBy": "Kan dokumenteres med",

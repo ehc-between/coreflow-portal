@@ -41,6 +41,7 @@ import {
   ProcessStatus,
 } from './data/process.models';
 import { ProcessesApi } from './data/processes-api';
+import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
 
@@ -111,6 +112,7 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
 @Component({
   selector: 'app-processes-list',
   imports: [
+    FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -141,6 +143,7 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
+      <app-fulfils-requirements help locationKey="processes.register" />
       <div intro class="mt-1.5 max-w-[640px]">
         <p class="text-[14px] text-fg-muted">{{ 'processes.list.subtitle' | transloco }}</p>
       </div>

@@ -33,6 +33,7 @@ import { ReadinessBar } from './readiness-bar';
 import { EntityTypesService } from '../../../core/kit/entity-types.service';
 import { providePageContext } from '../../../core/ai/page-context';
 import { pluralKey } from '../../../shared/i18n/plural';
+import { BasisSummary } from '../../../shared/requirement-locations/basis-summary';
 
 interface ReadinessRow {
   readonly view: FrameworkView;
@@ -86,6 +87,7 @@ export function evidenceSources(
     ReadinessBar,
     StandardsGuide,
     StandardsLesson,
+    BasisSummary, // requirement-locations (L4)
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -196,6 +198,8 @@ export function evidenceSources(
                         }
                       </p>
                     }
+                    <!-- requirement-locations (L4) -->
+                    <app-basis-summary [readiness]="row.view.breakdown" />
                     @if (row.fromFields > 0) {
                       <p class="mt-1 text-meta text-fg-subtle" data-testid="readiness-fields">
                         {{
