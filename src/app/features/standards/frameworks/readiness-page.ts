@@ -20,23 +20,52 @@ import {
 } from '../../../core/standards/frameworks-data';
 import { StandardsApi } from '../../../core/standards/standards-api';
 import { pctColor } from '../../../core/standards/standards-data';
+import {
+  legalFormKey,
+  legalFormOf,
+  legalFormTone,
+  standardName,
+} from '../../../core/standards/standards-display';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { NotificationService } from '../../../core/notifications/notification.service';
+import { ExportFormat, LegalForm } from '../../../core/standards/standards.models';
+import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ProgressRing } from '../../../shared/ui/progress-ring/progress-ring';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { StandardsGuide } from '../guide/standards-guide';
-import { StandardsLesson } from '../guide/standards-lesson';
 import { loadFrameworks } from './frameworks-load';
-import { ReadinessBar } from './readiness-bar';
+import { ReadinessBar, SegmentLink } from './readiness-bar';
 import { EntityTypesService } from '../../../core/kit/entity-types.service';
 import { providePageContext } from '../../../core/ai/page-context';
 import { pluralKey } from '../../../shared/i18n/plural';
 import { BasisSummary } from '../../../shared/requirement-locations/basis-summary';
 
+/** Each readiness segment opens the requirements behind it in the workspace. */
+export function segmentLinks(
+  standardKey: string,
+): Partial<Record<keyof ReadinessParts, SegmentLink>> {
+  const link = ['/standards', standardKey];
+  return {
+    stale: { link, queryParams: { filter: 'stale' } },
+    partial: { link, queryParams: { filter: 'gaps' } },
+    missing: { link: ['/standards/gaps', standardKey] },
+  };
+}
+
 interface ReadinessRow {
   readonly view: FrameworkView;
+  /** The standard's name in the UI language. */
+  readonly name: string;
+  readonly form: LegalForm;
+  readonly links: Partial<Record<keyof ReadinessParts, SegmentLink>>;
   readonly score: number;
   readonly applicable: number;
   /** EU AI Act: points left out as not applicable (derived). */
@@ -82,66 +111,46 @@ export function evidenceSources(
     Badge,
     Button,
     Card,
+    EmptyState,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
+    OverflowMenu,
+    PageHeader,
     ProgressRing,
     ReadinessBar,
-    StandardsGuide,
-    StandardsLesson,
     BasisSummary, // requirement-locations (L4)
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/standards"
-        class="mb-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-fg-muted hover:text-accent"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'standards.readiness.back' | transloco }}
-      </a>
-      <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-          {{ 'standards.readiness.title' | transloco }}
-        </h1>
-        <p class="mt-1.5 text-[14px] text-fg-muted">
-          {{ 'standards.readiness.subtitle' | transloco }}
-        </p>
-      </div>
+      <app-page-header
+        titleKey="standards.readiness.title"
+        descriptionKey="standards.readiness.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.standards', link: '/standards' },
+          { labelKey: 'standards.readiness.crumb' },
+        ]"
+      />
 
-      <app-standards-guide page="readiness" [clauses]="guideClauses" />
+      <app-help-strip scope="standards" page="readiness" lesson="readiness" />
 
       @if (loading()) {
-        <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted">
-            {{ 'common.loading' | transloco }}
-          </div>
-        </app-card>
+        <app-loading-state [rows]="3" />
       } @else if (loadError()) {
-        <app-card>
-          <div class="px-2 py-10 text-center text-[14px] text-fg-muted" role="alert">
-            {{ 'standards.readiness.loadError' | transloco }}
-          </div>
-        </app-card>
+        <app-error-state (retry)="reload()" />
       } @else if (rows().length === 0) {
-        <app-card>
-          <div class="flex flex-col items-center gap-2 py-10 text-center">
-            <span class="flex text-fg-subtle"><app-icon name="iso" [size]="28" /></span>
-            <p class="text-[14px] font-semibold text-fg">
-              {{ 'standards.readiness.empty.title' | transloco }}
-            </p>
-            <p class="max-w-md text-[13px] text-fg-muted">
-              {{ 'standards.readiness.empty.body' | transloco }}
-            </p>
-            <a
-              routerLink="/standards"
-              class="mt-2 inline-flex h-9 items-center rounded-tile bg-accent px-4 text-[13.5px] font-semibold text-white hover:bg-accent-2"
-            >
-              {{ 'standards.readiness.empty.cta' | transloco }}
-            </a>
-          </div>
-        </app-card>
+        <app-empty-state
+          icon="iso"
+          titleKey="standards.readiness.empty.title"
+          bodyKey="standards.readiness.empty.body"
+          ctaKey="standards.readiness.empty.cta"
+          ctaLink="/standards"
+        />
       } @else {
-        <p class="mb-3 text-[12.5px] text-fg-muted">
+        <p class="mb-3 text-meta text-fg-muted">
           {{ 'standards.readiness.weights' | transloco }}
         </p>
         <ul class="flex flex-col gap-4">
@@ -157,19 +166,19 @@ export function evidenceSources(
                   />
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
-                      <h2 class="font-display text-[17px] font-bold tracking-[-0.02em] text-fg">
-                        {{ row.view.name }}
+                      <h2 class="font-display text-card font-bold text-fg [overflow-wrap:anywhere]">
+                        {{ row.name }}
                       </h2>
-                      <app-badge [tone]="row.view.kind === 'regulation' ? 'info' : 'neutral'">
-                        {{ 'standards.frameworks.kind.' + row.view.kind | transloco }}
+                      <app-badge [tone]="legalFormTone(row.form)">
+                        {{ legalFormKey(row.form) | transloco }}
                       </app-badge>
                     </div>
-                    <p class="mt-0.5 text-[12.5px] text-fg-subtle">
+                    <p class="mt-0.5 text-meta text-fg-subtle">
                       {{ 'standards.readiness.applicable' | transloco: { count: row.applicable } }}
                     </p>
                     @if (row.derivedNotApplicable > 0) {
                       <p
-                        class="mt-0.5 text-[12.5px] text-fg-subtle"
+                        class="mt-0.5 text-meta text-fg-subtle"
                         data-testid="derived-not-applicable"
                       >
                         {{
@@ -182,9 +191,8 @@ export function evidenceSources(
                       <div class="mt-3">
                         <app-readiness-bar
                           [parts]="parts"
-                          [label]="
-                            ('standards.readiness.breakdown' | transloco) + ': ' + row.view.name
-                          "
+                          [links]="row.links"
+                          [label]="('standards.readiness.breakdown' | transloco) + ': ' + row.name"
                         />
                       </div>
                     }
@@ -212,7 +220,7 @@ export function evidenceSources(
                   <div class="flex flex-none flex-wrap gap-2 sm:flex-col sm:items-end">
                     <a
                       [routerLink]="['/standards', row.view.standardKey]"
-                      class="inline-flex h-8 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-[13px] font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg transition-colors hover:border-border-strong hover:bg-surface-2"
                     >
                       {{ 'standards.readiness.open' | transloco }}
                       <app-icon name="arrow" [size]="14" />
@@ -235,6 +243,26 @@ export function evidenceSources(
                         {{ 'standards.readiness.summarise' | transloco }}
                       </app-button>
                     }
+                    <app-overflow-menu
+                      labelKey="standards.export.menu"
+                      [attr.data-testid]="'readiness-export-' + row.view.standardKey"
+                    >
+                      @for (format of exportFormats; track format) {
+                        <button
+                          appMenuItem
+                          type="button"
+                          [disabled]="exporting() !== null"
+                          (click)="exportMatrix(row, format)"
+                        >
+                          <app-icon name="reports" [size]="15" />
+                          {{ 'standards.export.' + format | transloco }}
+                        </button>
+                      }
+                      <a appMenuItem routerLink="/reports/audit-packs">
+                        <app-icon name="qa" [size]="15" />
+                        {{ 'standards.export.auditPack' | transloco }}
+                      </a>
+                    </app-overflow-menu>
                   </div>
                 </div>
               </app-card>
@@ -242,10 +270,6 @@ export function evidenceSources(
           }
         </ul>
       }
-
-      <div class="mt-6">
-        <app-standards-lesson lessonKey="readiness" />
-      </div>
     </div>
   `,
 })
@@ -256,9 +280,13 @@ export class ReadinessPage {
   private readonly transloco = inject(TranslocoService);
   protected readonly aiUnavailable = inject(AiAvailability).unavailable;
 
-  /** HS clauses on monitoring and management review: where readiness feeds in. */
-  protected readonly guideClauses = ['hs:9.1', 'hs:9.3'];
   protected readonly pctColor = pctColor;
+  protected readonly legalFormKey = legalFormKey;
+  protected readonly legalFormTone = legalFormTone;
+  protected readonly exportFormats: readonly ExportFormat[] = ['xlsx', 'csv', 'pdf'];
+  protected readonly exporting = signal<string | null>(null);
+  private readonly language = inject(LanguageService);
+  private readonly notifications = inject(NotificationService);
   protected readonly plural = pluralKey;
   private readonly entityTypes = inject(EntityTypesService);
 
@@ -275,7 +303,10 @@ export class ReadinessPage {
       .filter((v) => v.enabled)
       .map((view) => ({
         view,
-        score: view.readiness ?? view.standard?.completeness.pct ?? 0,
+        name: view.standard ? standardName(view.standard, this.language.active()) : view.name,
+        form: legalFormOf(view.standard, view.kind),
+        links: segmentLinks(view.standardKey),
+        score: view.standard?.score ?? view.readiness ?? view.standard?.completeness.pct ?? 0,
         applicable: view.breakdown?.applicable ?? view.standard?.completeness.applicable ?? 0,
         derivedNotApplicable: view.breakdown?.derived_not_applicable ?? 0,
         parts: view.breakdown ? readinessParts(view.breakdown) : null,
@@ -311,12 +342,43 @@ export class ReadinessPage {
     const parts = row.parts ?? { fresh: 0, stale: 0, partial: 0, missing: row.applicable };
     this.ask.showWith(
       this.transloco.translate('standards.readiness.summarisePrompt', {
-        name: row.view.name,
+        name: row.name,
         score: row.score,
         applicable: row.applicable,
         ...parts,
       }),
     );
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId());
+  }
+
+  /** Download the standard's compliance matrix (requirement, status, evidence, owner …). */
+  protected exportMatrix(row: ReadinessRow, format: ExportFormat): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.exporting()) {
+      return;
+    }
+    const key = row.view.standardKey;
+    this.exporting.set(key);
+    this.api.exportMatrix(orgId, key, format).subscribe({
+      next: (blob) => {
+        this.exporting.set(null);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${key}-${this.language.active()}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: () => {
+        this.exporting.set(null);
+        this.notifications.error('standards.export.error');
+      },
+    });
   }
 
   private load(orgId: string | null): void {

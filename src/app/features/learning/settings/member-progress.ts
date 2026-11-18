@@ -10,7 +10,12 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, of } from 'rxjs';
+import { providePageContext } from '../../../core/ai/page-context';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { OrgMembersApi } from '../../../core/org/org-members-api';
+import { OrgMember } from '../../../core/org/org.models';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { GuidanceApi } from '../../../core/guidance/guidance-api';
 import { GuidanceContentService } from '../../../core/guidance/guidance-content.service';
 import { LearningProgressItem } from '../../../core/guidance/guidance.models';
@@ -19,7 +24,6 @@ import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
 import { lessonStatus } from '../lesson-catalog';
 
 /**
@@ -28,40 +32,49 @@ import { lessonStatus } from '../lesson-catalog';
  */
 @Component({
   selector: 'app-member-progress',
-  imports: [RouterLink, TranslocoPipe, LocalDatePipe, Alert, Badge, Card, Icon],
+  imports: [RouterLink, TranslocoPipe, LocalDatePipe, Alert, Badge, Card, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/settings/guidance"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+      <app-page-header
+        [title]="heading()"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: 'settings.hub.cards.guidance', link: '/settings/guidance' },
+          { label: displayName() || heading() },
+        ]"
       >
-        <app-icon name="back" [size]="15" />
-        {{ 'guidance.member.back' | transloco }}
-      </a>
-      <h1 class="mb-[18px] font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{
-          name()
-            ? ('guidance.member.title' | transloco: { name: name() })
-            : ('guidance.member.titleUnnamed' | transloco)
-        }}
-      </h1>
+        @if (person(); as p) {
+          <a
+            secondary
+            [routerLink]="p.url"
+            class="text-ui font-semibold text-accent hover:underline"
+            >{{ 'guidance.member.openPerson' | transloco }}</a
+          >
+        }
+      </app-page-header>
+      <p class="mb-4 max-w-3xl text-ui text-fg-muted">
+        {{ 'guidance.member.trainingHint' | transloco }}
+        <a routerLink="/training" class="font-semibold text-accent hover:underline">{{
+          'guidance.member.openTraining' | transloco
+        }}</a>
+      </p>
 
       @if (!canRead()) {
         <app-card>
-          <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+          <p class="px-2 py-8 text-center text-body text-fg-muted">
             {{ 'guidance.settings.noAccess' | transloco }}
           </p>
         </app-card>
       } @else if (error()) {
         <app-alert>{{ 'guidance.settings.loadError' | transloco }}</app-alert>
       } @else if (loading()) {
-        <p class="text-[13.5px] text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'guidance.loading' | transloco }}</p>
       } @else if (rows().length === 0) {
         <app-card>
           <p
             data-testid="member-progress-empty"
-            class="px-2 py-8 text-center text-[14px] text-fg-muted"
+            class="px-2 py-8 text-center text-body text-fg-muted"
           >
             {{ 'guidance.member.empty' | transloco }}
           </p>
@@ -69,9 +82,9 @@ import { lessonStatus } from '../lesson-catalog';
       } @else {
         <app-card [padded]="false">
           <div class="overflow-x-auto">
-            <table class="w-full min-w-[620px] text-left text-[13px]">
+            <table class="w-full min-w-[620px] text-left text-ui">
               <thead>
-                <tr class="border-b border-border text-[12px] text-fg-subtle">
+                <tr class="border-b border-border text-meta text-fg-subtle">
                   <th scope="col" class="px-4 py-2.5 font-semibold">
                     {{ 'guidance.member.colLesson' | transloco }}
                   </th>
@@ -94,9 +107,6 @@ import { lessonStatus } from '../lesson-catalog';
                   >
                     <td class="px-4 py-2.5">
                       <div class="font-semibold text-fg">{{ row.title }}</div>
-                      <div class="font-mono text-[11.5px] text-fg-subtle">
-                        {{ row.item.lesson_key }}
-                      </div>
                     </td>
                     <td class="px-3 py-2.5">
                       <app-badge [tone]="row.status === 'completed' ? 'pass' : 'info'">
@@ -105,7 +115,7 @@ import { lessonStatus } from '../lesson-catalog';
                     </td>
                     <td class="px-3 py-2.5 text-fg-muted">
                       @if (row.item.completed_at) {
-                        {{ row.item.completed_at | localDate: 'medium' }}
+                        {{ row.item.completed_at | localDate }}
                       } @else {
                         {{ 'guidance.member.notYet' | transloco }}
                       }
@@ -140,6 +150,21 @@ export class MemberProgress {
   private readonly api = inject(GuidanceApi);
   private readonly content = inject(GuidanceContentService);
   private readonly selectedOrg = inject(SelectedOrgService);
+  private readonly membersApi = inject(OrgMembersApi);
+  private readonly language = inject(LanguageService);
+  /** The org member (for the email fallback and the People-register link). */
+  protected readonly member = signal<OrgMember | null>(null);
+  protected readonly person = computed(() => this.member()?.person ?? null);
+  /** Name, else email (never "member without a name"). */
+  protected readonly displayName = computed(
+    () => this.name()?.trim() || this.member()?.full_name?.trim() || this.member()?.email || '',
+  );
+  protected readonly heading = computed(() => {
+    const name = this.displayName();
+    return name
+      ? this.language.translate('guidance.member.title', { name })
+      : this.language.translate('guidance.member.titleUnnamed');
+  });
 
   /** Route param (component input binding). */
   readonly userId = input.required<string>();
@@ -159,7 +184,7 @@ export class MemberProgress {
       const key = item.lesson_key.slice(dot + 1);
       return {
         item,
-        title: this.content.readLesson(scope, key)?.title ?? key,
+        title: this.content.readLesson(scope, key)?.title ?? this.humanKey(key),
         status: lessonStatus(item),
       };
     }),
@@ -168,6 +193,13 @@ export class MemberProgress {
   private subs: Subscription[] = [];
 
   constructor() {
+    providePageContext(() => ({
+      module: null,
+      entityType: 'learning_progress',
+      view: 'detail',
+      title: this.heading(),
+    }));
+
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const userId = this.userId();
@@ -201,6 +233,16 @@ export class MemberProgress {
         next: (res) => this.name.set(res.items.find((r) => r.user_id === userId)?.name ?? null),
         error: () => undefined,
       }),
+      this.membersApi
+        .listMembers(orgId)
+        .pipe(catchError(() => of([] as OrgMember[])))
+        .subscribe((members) => this.member.set(members.find((m) => m.user_id === userId) ?? null)),
     ];
+  }
+
+  /** A lesson whose guidance file is not loaded yet: "first-document" → "First document". */
+  private humanKey(key: string): string {
+    const text = key.replace(/[-_]/g, ' ');
+    return text.charAt(0).toUpperCase() + text.slice(1);
   }
 }

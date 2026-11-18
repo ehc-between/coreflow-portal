@@ -1,95 +1,269 @@
-<div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
-  <a
-    routerLink="/settings"
-    class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-  >
-    <app-icon name="back" [size]="16" />
-    {{ 'settings.departments.backToList' | transloco }}
-  </a>
-
-  @if (loading()) {
-    <div class="py-10 text-center text-[14px] text-fg-muted">
-      {{ 'common.loading' | transloco }}
-    </div>
+<div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+  @if (loading() && !department()) {
+    <app-loading-state [rows]="5" />
   } @else if (department(); as department) {
-    <div class="mb-[18px]">
-      <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{ department.name }}
-      </h1>
-      <div class="mt-1.5 text-[14px] text-fg-muted">
-        {{ 'settings.departments.memberCount' | transloco: { count: department.members.length } }}
-      </div>
-    </div>
+    <app-page-header
+      [title]="department.name"
+      [breadcrumbs]="[
+        { labelKey: 'settings.hub.title', link: '/settings' },
+        { labelKey: 'settings.departments.title', link: '/settings/departments' },
+        { label: department.name },
+      ]"
+    >
+      <p meta class="text-ui text-fg-muted">
+        {{
+          countKey('settings.departments.memberCount', department.members.length)
+            | transloco: { count: department.members.length }
+        }}
+        @if (department.employees) {
+          ·
+          {{
+            countKey('settings.departments.employeeCount', department.employees.length)
+              | transloco: { count: department.employees.length }
+          }}
+        }
+      </p>
+    </app-page-header>
+
+    @if (department.escalation_gap) {
+      <p
+        role="status"
+        data-testid="department-escalation-gap"
+        class="mb-4 flex items-start gap-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+      >
+        <app-icon name="alert" [size]="15" />
+        <span>{{ 'settings.departments.escalationGap' | transloco }}</span>
+      </p>
+    }
 
     <div class="grid gap-5 lg:grid-cols-[1fr_320px]">
-      <app-card [padded]="false">
-        <div class="border-b border-border px-4 py-3">
-          <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
-            {{ 'settings.member.title' | transloco }}
-          </h2>
-        </div>
-        @if (department.members.length === 0) {
-          <div class="px-4 py-8 text-center text-[14px] text-fg-muted">
-            {{ 'settings.member.empty' | transloco }}
+      <div class="flex min-w-0 flex-col gap-5">
+        <app-card [padded]="false">
+          <div class="border-b border-border px-4 py-3">
+            <h2 class="font-display text-card font-bold text-fg">
+              {{ 'settings.member.title' | transloco }}
+            </h2>
+            <p class="mt-0.5 text-meta text-fg-muted">
+              {{ 'settings.departments.membersHint' | transloco }}
+            </p>
           </div>
-        } @else {
-          <table class="w-full text-left text-[13.5px]">
-            <thead>
-              <tr class="border-b border-border text-[12px] font-semibold text-fg-subtle">
-                <th class="px-4 py-3 font-semibold">{{ 'settings.member.email' | transloco }}</th>
-                <th class="px-4 py-3 font-semibold">{{ 'settings.member.name' | transloco }}</th>
-                <th class="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
+          @if (department.members.length === 0) {
+            <app-empty-state
+              icon="people"
+              titleKey="settings.member.empty"
+              bodyKey="settings.departments.membersEmptyBody"
+              [compact]="true"
+            />
+          } @else {
+            <ul>
               @for (member of department.members; track member.user_id) {
-                <tr class="border-b border-border last:border-b-0">
-                  <td class="px-4 py-3 text-fg">{{ member.email }}</td>
-                  <td class="px-4 py-3 text-fg-muted">{{ member.full_name }}</td>
-                  <td class="px-4 py-3 text-right">
-                    <app-button variant="ghost" size="sm" (click)="remove(member)">
-                      {{ 'settings.member.remove' | transloco }}
-                    </app-button>
-                  </td>
-                </tr>
+                <li
+                  class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-3 last:border-b-0"
+                >
+                  <div class="min-w-0 flex-1">
+                    <span class="block truncate font-semibold text-fg">{{
+                      member.full_name || member.email
+                    }}</span>
+                    @if (member.full_name) {
+                      <span class="block truncate text-meta text-fg-muted">{{ member.email }}</span>
+                    }
+                  </div>
+                  @if (department.lead?.user_id === member.user_id) {
+                    <app-badge tone="accent">{{
+                      'settings.departments.lead' | transloco
+                    }}</app-badge>
+                  }
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    [attr.aria-label]="
+                      'settings.member.removeLabel'
+                        | transloco: { name: member.full_name || member.email }
+                    "
+                    (click)="remove(member)"
+                  >
+                    {{ 'settings.member.remove' | transloco }}
+                  </app-button>
+                </li>
               }
-            </tbody>
-          </table>
-        }
-      </app-card>
+            </ul>
+          }
+        </app-card>
 
-      <app-card>
-        <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
-          {{ 'settings.member.add' | transloco }}
-        </h2>
-        @if (addableMembers().length === 0) {
-          <p class="mt-3 text-[13px] text-fg-muted">{{ 'settings.member.allAdded' | transloco }}</p>
-        } @else {
-          <form class="mt-4 flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="add()">
-            <app-form-field inputId="member-user" [label]="'settings.member.select' | transloco">
-              <select id="member-user" formControlName="user_id">
-                <option value="" disabled>
-                  {{ 'settings.member.selectPlaceholder' | transloco }}
+        @if (department.employees; as employees) {
+          <app-card [padded]="false">
+            <div class="border-b border-border px-4 py-3">
+              <h2 class="font-display text-card font-bold text-fg">
+                {{ 'settings.departments.employeesTitle' | transloco }}
+              </h2>
+              <p class="mt-0.5 text-meta text-fg-muted">
+                {{ 'settings.departments.employeesHint' | transloco }}
+              </p>
+            </div>
+            @if (employees.length === 0) {
+              <app-empty-state
+                icon="people"
+                titleKey="settings.departments.employeesEmpty"
+                bodyKey="settings.departments.employeesEmptyBody"
+                ctaKey="settings.departments.openPeople"
+                ctaLink="/people/employees"
+                ctaVariant="secondary"
+                [compact]="true"
+              />
+            } @else {
+              <ul>
+                @for (employee of employees; track employee.id) {
+                  <li
+                    class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-3 last:border-b-0"
+                    data-testid="department-employee"
+                  >
+                    <span class="font-mono text-meta text-fg-subtle">{{ employee.code }}</span>
+                    <a
+                      [routerLink]="employee.url"
+                      class="min-w-0 flex-1 truncate font-semibold text-accent hover:underline"
+                      >{{ employee.full_name }}</a
+                    >
+                    @if (employee.job_title) {
+                      <span class="text-meta text-fg-muted">{{ employee.job_title }}</span>
+                    }
+                    @if (!employee.user_id) {
+                      <app-badge tone="neutral">{{
+                        'settings.departments.noAccount' | transloco
+                      }}</app-badge>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </app-card>
+        }
+      </div>
+
+      <aside class="flex flex-col gap-5">
+        <app-card>
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'settings.departments.lead' | transloco }}
+          </h2>
+          <p class="mt-1 text-meta text-fg-muted">
+            {{ 'settings.departments.leadHint' | transloco }}
+          </p>
+          @if (department.lead; as lead) {
+            <p class="mt-3 text-ui font-semibold text-fg" data-testid="department-lead">
+              {{ lead.name || lead.email }}
+            </p>
+            @if (!lead.is_member) {
+              <p class="mt-1 text-meta text-warn">
+                {{ 'settings.departments.leadNotMember' | transloco }}
+              </p>
+            }
+          }
+          <div class="mt-3">
+            <app-form-field
+              inputId="department-lead"
+              [label]="'settings.departments.chooseLead' | transloco"
+            >
+              <select
+                id="department-lead"
+                [disabled]="savingLead()"
+                (change)="setLead($any($event.target).value)"
+              >
+                <option value="" [selected]="!department.lead">
+                  {{ 'settings.departments.noLeadOption' | transloco }}
                 </option>
-                @for (member of addableMembers(); track member.user_id) {
-                  <option [value]="member.user_id">
-                    {{ member.full_name }} — {{ member.email }}
-                  </option>
+                @if (departmentMembers().length) {
+                  <optgroup [label]="'settings.departments.inDepartment' | transloco">
+                    @for (m of departmentMembers(); track m.user_id) {
+                      <option
+                        [value]="m.user_id"
+                        [selected]="department.lead?.user_id === m.user_id"
+                      >
+                        {{ m.full_name || m.email }}
+                      </option>
+                    }
+                  </optgroup>
+                }
+                @if (otherMembers().length) {
+                  <optgroup [label]="'settings.departments.otherMembers' | transloco">
+                    @for (m of otherMembers(); track m.user_id) {
+                      <option
+                        [value]="m.user_id"
+                        [selected]="department.lead?.user_id === m.user_id"
+                      >
+                        {{ m.full_name || m.email }}
+                      </option>
+                    }
+                  </optgroup>
                 }
               </select>
             </app-form-field>
+          </div>
+        </app-card>
 
-            <app-button type="submit" [full]="true" [loading]="adding()" class="mt-1">
-              <app-icon name="userplus" [size]="15" />
-              {{ 'settings.member.add' | transloco }}
-            </app-button>
-          </form>
-        }
-      </app-card>
+        <app-card>
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'settings.member.add' | transloco }}
+          </h2>
+          @if (addableMembers().length === 0) {
+            <p class="mt-3 text-ui text-fg-muted">{{ 'settings.member.allAdded' | transloco }}</p>
+          } @else {
+            <form class="mt-4 flex flex-col gap-4" [formGroup]="addForm" (ngSubmit)="add()">
+              <app-form-field inputId="member-user" [label]="'settings.member.select' | transloco">
+                <select id="member-user" formControlName="user_id">
+                  <option value="" disabled>
+                    {{ 'settings.member.selectPlaceholder' | transloco }}
+                  </option>
+                  @for (member of addableMembers(); track member.user_id) {
+                    <option [value]="member.user_id">
+                      {{
+                        member.full_name ? member.full_name + ' — ' + member.email : member.email
+                      }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+              <app-button type="submit" [full]="true" [loading]="adding()">
+                <app-icon name="userplus" [size]="15" />
+                {{ 'settings.member.add' | transloco }}
+              </app-button>
+            </form>
+          }
+        </app-card>
+
+        <app-card>
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'settings.departments.relatedTitle' | transloco }}
+          </h2>
+          <ul class="mt-2 flex flex-col gap-1.5 text-ui">
+            <li>
+              <a
+                routerLink="/settings/notifications"
+                [queryParams]="{ tab: 'reminders' }"
+                class="font-semibold text-accent hover:underline"
+                >{{ 'settings.departments.relatedEscalation' | transloco }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/people/employees" class="font-semibold text-accent hover:underline">{{
+                'settings.departments.openPeople' | transloco
+              }}</a>
+            </li>
+            <li>
+              <a
+                routerLink="/context/responsibilities"
+                class="font-semibold text-accent hover:underline"
+                >{{ 'settings.members.responsibilitiesLink' | transloco }}</a
+              >
+            </li>
+          </ul>
+        </app-card>
+      </aside>
     </div>
   } @else {
-    <div class="py-10 text-center text-[14px] text-fg-muted">
-      {{ 'settings.departments.notFound' | transloco }}
-    </div>
+    <app-empty-state
+      icon="people"
+      titleKey="settings.departments.notFound"
+      ctaKey="settings.departments.backToList"
+      ctaLink="/settings/departments"
+    />
   }
 </div>

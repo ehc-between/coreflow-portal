@@ -58,7 +58,12 @@ describe('RequirementCard applicability', () => {
     await fixture.whenStable();
   }
 
-  async function setup(req: RequirementDetail, canManage: boolean, reply = OVERRIDDEN) {
+  async function setup(
+    req: RequirementDetail,
+    canManage: boolean,
+    reply = OVERRIDDEN,
+    permissions: string[] = [],
+  ) {
     TestBed.configureTestingModule({
       imports: [RequirementCard, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
       providers: [
@@ -70,12 +75,15 @@ describe('RequirementCard applicability', () => {
           provide: APP_CONFIG,
           useValue: { apiBaseUrl: 'http://test/api', i18n: { availableLanguages: ['en', 'nb'] } },
         },
-        { provide: AuthService, useValue: { accessToken: signal(null).asReadonly() } },
+        {
+          provide: AuthService,
+          useValue: { accessToken: signal(null).asReadonly(), user: signal(null).asReadonly() },
+        },
         {
           provide: SelectedOrgService,
           useValue: {
             currentOrgId: signal(ORG).asReadonly(),
-            currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions: [] }).asReadonly(),
+            currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
           },
         },
       ],
@@ -157,11 +165,78 @@ describe('RequirementCard applicability', () => {
       startEdit(): void;
       save(): void;
       formOverride: { set(v: string): void };
+      formNote: { set(v: string): void };
+      noteMissing(): boolean;
     };
     card.startEdit();
     card.formOverride.set('covered');
+    // A manual "covered" needs a note saying why (auditors ask).
     card.save();
-    expect(update).toHaveBeenCalledWith(ORG, plain.ref, { status_override: 'covered', note: null });
+    expect(update).not.toHaveBeenCalled();
+    expect(card.noteMissing()).toBe(true);
+    card.formNote.set('Policy approved by the board');
+    card.save();
+    expect(update).toHaveBeenCalledWith(ORG, plain.ref, {
+      status_override: 'covered',
+      note: 'Policy approved by the board',
+    });
+  });
+
+  it('never lets an ISO clause 4–10 requirement be excluded, and says why', async () => {
+    const locked: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:5.1.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      exclusion: 'not_allowed',
+    };
+    await setup(locked, true, locked);
+    const card = fixture.componentInstance as unknown as { startEdit(): void };
+    card.startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const box = el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!;
+    expect(box.disabled).toBe(true);
+    expect(el.querySelector('[data-testid="exclusion-hint"]')?.textContent).toContain(
+      'standards.exclusion.notAllowed',
+    );
+  });
+
+  it('sends the owner, target date and review stamp only when they change', async () => {
+    const owned: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso9001-2026:5.2.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      exclusion: 'allowed',
+      owner: { id: 'u-1', name: 'Kari Nordmann' },
+      due_date: '2026-12-01',
+    };
+    await setup(owned, true, owned);
+    const card = fixture.componentInstance as unknown as {
+      startEdit(): void;
+      save(): void;
+      formDue: { set(v: string): void };
+      formReviewed: { set(v: boolean): void };
+    };
+    card.startEdit();
+    card.formDue.set('2027-01-15');
+    card.formReviewed.set(true);
+    card.save();
+    expect(update).toHaveBeenCalledWith(ORG, owned.ref, {
+      status_override: null,
+      note: null,
+      due_date: '2027-01-15',
+      reviewed: true,
+    });
   });
 
   it('still requires a justification when the org marks a point not applicable', async () => {
@@ -187,5 +262,102 @@ describe('RequirementCard applicability', () => {
       status_override: null,
       note: null,
     });
+  });
+
+  it('locks an Annex A control decided in the SoA for users who cannot maintain the SoA', async () => {
+    const control: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:A.7.4.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      soa: {
+        id: 'soa-1',
+        applicable: true,
+        implementation_status: 'implemented',
+        justification: null,
+        inclusion_reasons: [],
+        implementation_notes: null,
+        owner: null,
+        reviewed_at: null,
+        risks: [],
+        treatment_count: 0,
+        url: '/risk/soa',
+      },
+    };
+    const card = () =>
+      fixture.componentInstance as unknown as {
+        startEdit(): void;
+        save(): void;
+        formApplicable: { set(v: boolean): void };
+        formJustification: { set(v: string): void };
+      };
+    await setup(control, true, control, ['standards:manage', 'risk:read']);
+    card().startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!.disabled).toBe(
+      true,
+    );
+    expect(el.querySelector('[data-testid="soa-form-hint"]')?.textContent).toContain(
+      'standards.soa.lockedHint',
+    );
+    card().formApplicable.set(false);
+    card().formJustification.set('No premises');
+    card().save();
+    expect(update).toHaveBeenCalledWith(ORG, control.ref, { status_override: null, note: null });
+  });
+
+  it('lets an SoA maintainer change an Annex A control from the workspace', async () => {
+    const control: RequirementDetail = {
+      ...DERIVED_NA,
+      ref: 'iso27001-2022:A.7.4.r1',
+      status: 'not_started',
+      applicable: true,
+      applicability_source: 'default',
+      derived_applicable: null,
+      derived_reason: null,
+      meta: null,
+      soa: {
+        id: 'soa-1',
+        applicable: true,
+        implementation_status: 'implemented',
+        justification: null,
+        inclusion_reasons: [],
+        implementation_notes: null,
+        owner: null,
+        reviewed_at: null,
+        risks: [],
+        treatment_count: 0,
+        url: '/risk/soa',
+      },
+    };
+    await setup(control, true, control, ['standards:manage', 'risk:manage']);
+    (fixture.componentInstance as unknown as { startEdit(): void }).startEdit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector<HTMLInputElement>('[data-testid="assess-applicable"]')!.disabled).toBe(
+      false,
+    );
+    expect(el.querySelector('[data-testid="soa-form-hint"]')?.textContent).toContain(
+      'standards.soa.formHint',
+    );
+  });
+  it('explains weak evidence only when the links decide the status', async () => {
+    const weak = (basis?: string): RequirementDetail =>
+      ({ ...OVERRIDDEN, status: 'partial', weak_evidence: true, basis }) as RequirementDetail;
+    const notice = () => el.querySelector('[data-testid="weak-evidence"]');
+
+    await setup(weak(), false);
+    expect(notice()?.textContent).toContain('standards.quality.weakNotice');
+
+    for (const basis of ['links', 'location', 'location+links', 'manual']) {
+      fixture.componentRef.setInput('requirement', weak(basis));
+      await render();
+      expect(notice() !== null, basis).toBe(basis === 'links');
+    }
   });
 });

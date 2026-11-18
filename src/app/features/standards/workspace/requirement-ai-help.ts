@@ -78,18 +78,25 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
       [attr.aria-label]="'standards.ai.title' | transloco"
       data-testid="ai-help"
     >
-      <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <h3 class="flex items-center gap-1.5 text-[13px] font-bold text-fg">
+      <div class="flex items-center gap-1.5">
+        <h3 class="flex items-center gap-1.5 text-ui font-bold text-fg">
           <span class="flex text-accent"><app-icon name="spark" [size]="14" /></span>
           {{ 'standards.ai.title' | transloco }}
         </h3>
-        <span class="text-[11.5px] text-fg-subtle">{{
-          'standards.ai.disclaimer' | transloco
-        }}</span>
+        <!-- The disclaimer once, as an info tip, instead of a line in every requirement. -->
+        <span
+          class="inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-border text-micro font-bold text-fg-subtle"
+          tabindex="0"
+          role="img"
+          data-testid="ai-disclaimer"
+          [title]="'standards.ai.disclaimer' | transloco"
+          [attr.aria-label]="'standards.ai.disclaimer' | transloco"
+          >i</span
+        >
       </div>
 
       @if (aiOff()) {
-        <p class="mt-1.5 text-[12.5px] text-fg-muted" data-testid="ai-off">
+        <p class="mt-1.5 text-meta text-fg-muted" data-testid="ai-off">
           {{ 'standards.ai.notConfigured' | transloco }}
         </p>
       } @else {
@@ -143,13 +150,13 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
           </div>
         }
         @if (mapError(); as key) {
-          <p class="mt-2 text-[12.5px] text-fail" role="alert">{{ key | transloco }}</p>
+          <p class="mt-2 text-meta text-fail" role="alert">{{ key | transloco }}</p>
         }
 
         @if (guidance(); as g) {
           <div class="mt-2.5 rounded-tile border border-border bg-surface" data-testid="guidance">
             <div class="flex items-center gap-2 border-b border-border px-3 py-1.5">
-              <span class="flex-1 text-[12px] font-semibold text-fg-muted">
+              <span class="flex-1 text-meta font-semibold text-fg-muted">
                 {{ 'standards.ai.guidanceTitle' | transloco }}
                 <span class="ml-1 font-normal text-fg-subtle">{{
                   'standards.ai.suggestionLabel' | transloco
@@ -158,7 +165,7 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
               @if (g.status !== 'streaming') {
                 <button
                   type="button"
-                  class="rounded-[6px] px-1.5 py-0.5 text-[12px] font-semibold text-accent hover:underline"
+                  class="rounded-md px-1.5 py-0.5 text-meta font-semibold text-accent hover:underline"
                   data-testid="guidance-regenerate"
                   (click)="startGuidance()"
                 >
@@ -167,7 +174,7 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
               }
               <button
                 type="button"
-                class="flex rounded-[6px] p-1 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                class="flex rounded-md p-1 text-fg-subtle hover:bg-surface-2 hover:text-fg"
                 [attr.aria-expanded]="guidanceOpen()"
                 [attr.aria-controls]="guidanceBodyId"
                 [attr.aria-label]="
@@ -199,12 +206,12 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
             >
               @if (g.text) {
                 <div
-                  class="cf-prose text-[13px] leading-relaxed text-fg"
+                  class="cf-prose text-ui leading-relaxed text-fg"
                   data-testid="guidance-text"
                   [innerHTML]="g.text | appMarkdown"
                 ></div>
               } @else if (g.status === 'streaming') {
-                <p class="flex items-center gap-2 text-[12.5px] text-fg-muted">
+                <p class="flex items-center gap-2 text-meta text-fg-muted">
                   <span class="animate-cf-pulse inline-flex text-accent"
                     ><app-icon name="spark" [size]="13"
                   /></span>
@@ -212,15 +219,13 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
                 </p>
               }
               @if (g.status === 'error') {
-                <p class="mt-1.5 text-[12.5px] text-fail" role="alert">
+                <p class="mt-1.5 text-meta text-fail" role="alert">
                   {{ 'standards.ai.guidanceError' | transloco }}
                 </p>
               }
               @if (g.sources.length > 0) {
                 <div class="mt-2.5">
-                  <div
-                    class="mb-1 text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
-                  >
+                  <div class="mb-1 text-micro font-bold tracking-wide text-fg-subtle uppercase">
                     {{ 'standards.ai.sources' | transloco }}
                   </div>
                   <ul class="flex flex-wrap gap-1.5" data-testid="guidance-sources">
@@ -228,7 +233,7 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
                       <li>
                         <a
                           [routerLink]="['/documents', source.id]"
-                          class="inline-flex max-w-[260px] items-center gap-1 rounded-full border border-border bg-bg px-2 py-0.5 text-[12px] text-fg hover:border-accent hover:text-accent"
+                          class="inline-flex max-w-[260px] items-center gap-1 rounded-full border border-border bg-bg px-2 py-0.5 text-meta text-fg hover:border-accent hover:text-accent"
                         >
                           <app-icon name="documents" [size]="12" />
                           <span class="truncate">{{ source.title }}</span>
@@ -256,7 +261,7 @@ export function applyGuidanceEvent(guidance: Guidance, event: GuidanceEvent): Gu
           </div>
         }
         @if (draftError(); as key) {
-          <p class="mt-2 text-[12.5px] text-fail" role="alert">{{ key | transloco }}</p>
+          <p class="mt-2 text-meta text-fail" role="alert">{{ key | transloco }}</p>
         }
       }
     </section>

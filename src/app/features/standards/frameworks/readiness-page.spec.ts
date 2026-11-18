@@ -4,6 +4,7 @@ import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import guideEn from '../../../../assets/guidance/en/standards.json';
 import en from '../../../../assets/i18n/en.json';
 import scoped from '../../../../assets/i18n/standards/en.json';
 import { APP_CONFIG } from '../../../core/config/app-config';
@@ -81,10 +82,14 @@ async function setup() {
 describe('ReadinessPage', () => {
   afterEach(() => {
     const http = TestBed.inject(HttpTestingController);
-    // Record type names for "Dokumentert av" (optional side load).
+    // Record type names for "Dokumentert av" and the help strip's guidance (side loads).
     http
       .match((req) => req.url.endsWith('/entity-types'))
       .forEach((req) => req.flush({ items: [], link_types: [] }));
+    http
+      .match((req) => req.url.includes('/assets/guidance/'))
+      .filter((req) => !req.cancelled)
+      .forEach((req) => req.flush({}));
     http.verify();
   });
 
@@ -134,6 +139,13 @@ describe('ReadinessPage', () => {
     expect(el.textContent).toContain('Covered, evidence older than a year: 2');
     expect(el.textContent).toContain('Partly covered: 2');
     expect(el.textContent).toContain('Not started: 3');
+    // Each part of the bar opens the requirements behind it.
+    const missing = el.querySelector<HTMLAnchorElement>(
+      '[data-testid="readiness-segment-missing"]',
+    );
+    expect(missing?.getAttribute('href')).toBe('/standards/gaps/iso9001-2026');
+    const stale = el.querySelector<HTMLAnchorElement>('[data-testid="readiness-segment-stale"]');
+    expect(stale?.getAttribute('href')).toBe('/standards/iso9001-2026?filter=stale');
 
     const summarise = Array.from(el.querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Summarise'),
@@ -202,29 +214,18 @@ describe('ReadinessPage', () => {
     expect(el.textContent).toContain('10 applicable requirements');
   });
 
-  it('shows the guide and the readiness micro-lesson with its check question', async () => {
+  it('teaches through the module help strip (intro from the standards guidance file)', async () => {
     const { http, el, render } = await setup();
     http.expectOne(`${ROOT}/standards`).flush([]);
     http.expectOne(`${ROOT}/frameworks`).flush([]);
     http.expectOne(`${ROOT}/frameworks/readiness`).flush([]);
+    http
+      .match((req) => req.url.endsWith('/assets/guidance/en/standards.json'))
+      .forEach((req) => req.flush(guideEn));
     await render();
-    expect(el.textContent).toContain('What requirement coverage tells you');
-
-    const start = Array.from(el.querySelectorAll('button')).find((b) =>
-      b.textContent?.includes('Start the lesson'),
-    ) as HTMLButtonElement;
-    start.click();
     await render();
-    const radios = el.querySelectorAll<HTMLInputElement>('input[type="radio"]');
-    expect(radios).toHaveLength(3);
-    radios[1].click();
-    await render();
-    (
-      Array.from(el.querySelectorAll('button')).find((b) =>
-        b.textContent?.includes('Check answer'),
-      ) as HTMLButtonElement
-    ).click();
-    await render();
-    expect(el.querySelector('[role="status"]')?.textContent).toContain('Correct.');
+    expect(el.querySelector('[data-testid="help-strip"]')?.textContent).toContain(
+      'What requirement coverage tells you',
+    );
   });
 });

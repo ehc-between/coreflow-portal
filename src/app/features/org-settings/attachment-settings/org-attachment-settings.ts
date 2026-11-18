@@ -18,21 +18,21 @@ import { Card } from '../../../shared/ui/card/card';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section data-testid="settings-attachments">
-      <h2 class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg">
+      <h2 class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg">
         {{ 'settings.attachments.title' | transloco }}
       </h2>
       <app-card>
         @if (loading()) {
-          <p class="text-[13px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'common.loading' | transloco }}</p>
         } @else if (loadError()) {
           <app-alert>{{ 'settings.attachments.loadError' | transloco }}</app-alert>
         } @else {
           <div class="flex items-center gap-4">
             <div class="min-w-0 flex-1">
-              <div id="macro-label" class="text-[13.5px] font-semibold text-fg">
+              <div id="macro-label" class="text-ui font-semibold text-fg">
                 {{ 'settings.attachments.allowMacros' | transloco }}
               </div>
-              <div id="macro-hint" class="mt-0.5 text-[12.5px] text-fg-muted">
+              <div id="macro-hint" class="mt-0.5 text-meta text-fg-muted">
                 {{ 'settings.attachments.allowMacrosHint' | transloco }}
               </div>
             </div>

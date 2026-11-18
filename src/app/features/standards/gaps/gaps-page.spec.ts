@@ -107,7 +107,15 @@ describe('fixActions', () => {
 });
 
 describe('GapsPage', () => {
-  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    // The help strip's guidance file and the learning preferences (side loads).
+    http
+      .match((r) => r.url.includes('/assets/guidance/') || r.url.includes('/me/preferences'))
+      .filter((r) => !r.cancelled)
+      .forEach((r) => r.flush({}));
+    http.verify();
+  });
 
   it('lists the gaps with a create action per record type and a link to the requirement', async () => {
     const { http, el, render } = await setup();

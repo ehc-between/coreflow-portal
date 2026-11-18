@@ -64,10 +64,10 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
       <div class="mb-[18px] flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+          <h1 class="font-display text-page font-bold text-fg">
             {{ 'guidance.centre.title' | transloco }}
           </h1>
-          <div class="mt-1.5 text-[14px] text-fg-muted">
+          <div class="mt-1.5 text-body text-fg-muted">
             {{ 'guidance.centre.subtitle' | transloco }}
           </div>
         </div>
@@ -93,7 +93,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
           >
             <h2
               id="learning-progress-title"
-              class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+              class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg"
             >
               {{ 'guidance.centre.progressTitle' | transloco }}
             </h2>
@@ -123,7 +123,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
           >
             <h2
               id="learning-lessons-title"
-              class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+              class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg"
             >
               {{ 'guidance.centre.lessonsTitle' | transloco }}
             </h2>
@@ -131,7 +131,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
               <input
                 type="search"
                 data-testid="lesson-search"
-                class="h-9 min-w-0 flex-1 rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+                class="h-9 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                 [attr.aria-label]="'guidance.centre.searchLessons' | transloco"
                 [placeholder]="'guidance.centre.searchLessons' | transloco"
                 [value]="lessonQuery()"
@@ -139,7 +139,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
               />
               <select
                 data-testid="lesson-area-filter"
-                class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                 [attr.aria-label]="'guidance.centre.filterArea' | transloco"
                 [value]="areaFilter()"
                 (change)="areaFilter.set($any($event.target).value)"
@@ -151,7 +151,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
               </select>
               <select
                 data-testid="lesson-status-filter"
-                class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                 [attr.aria-label]="'guidance.centre.filterStatus' | transloco"
                 [value]="statusFilter()"
                 (change)="statusFilter.set($any($event.target).value)"
@@ -164,7 +164,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
                 }
               </select>
               <select
-                class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg outline-none focus:border-accent"
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                 [attr.aria-label]="'guidance.centre.sort' | transloco"
                 [value]="sort()"
                 (change)="sort.set($any($event.target).value)"
@@ -176,14 +176,11 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
 
             <app-card [padded]="false">
               @if (!filesLoaded()) {
-                <p class="px-4 py-8 text-center text-[13.5px] text-fg-muted">
+                <p class="px-4 py-8 text-center text-ui text-fg-muted">
                   {{ 'guidance.loading' | transloco }}
                 </p>
               } @else if (visibleLessons().length === 0) {
-                <p
-                  data-testid="lessons-empty"
-                  class="px-4 py-8 text-center text-[13.5px] text-fg-muted"
-                >
+                <p data-testid="lessons-empty" class="px-4 py-8 text-center text-ui text-fg-muted">
                   {{
                     (catalog().length === 0
                       ? 'guidance.centre.noLessons'
@@ -201,10 +198,10 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
                         class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-none"
                       >
                         <span class="min-w-0 flex-1">
-                          <span class="block truncate text-[13.5px] font-semibold text-accent">
+                          <span class="block truncate text-ui font-semibold text-accent">
                             {{ lesson.title }}
                           </span>
-                          <span class="block text-[12.5px] text-fg-muted">
+                          <span class="block text-meta text-fg-muted">
                             @if (lesson.minutes) {
                               {{
                                 'guidance.lesson.minutes' | transloco: { minutes: lesson.minutes }
@@ -243,11 +240,11 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
           >
             <h2
               id="learning-level-title"
-              class="mb-1 font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+              class="mb-1 font-display text-section font-bold tracking-[-0.02em] text-fg"
             >
               {{ 'guidance.centre.levelTitle' | transloco }}
             </h2>
-            <p class="mb-3 text-[13px] text-fg-muted">
+            <p class="mb-3 text-ui text-fg-muted">
               {{
                 'guidance.centre.levelCurrent'
                   | transloco
@@ -270,14 +267,14 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
           >
             <h2
               id="learning-glossary-title"
-              class="mb-3 font-display text-[18px] font-bold tracking-[-0.02em] text-fg"
+              class="mb-3 font-display text-section font-bold tracking-[-0.02em] text-fg"
             >
               {{ 'guidance.glossary.title' | transloco }}
             </h2>
             <input
               type="search"
               data-testid="glossary-search"
-              class="mb-3 h-9 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="mb-3 h-9 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
               [attr.aria-label]="'guidance.glossary.search' | transloco"
               [placeholder]="'guidance.glossary.search' | transloco"
               [value]="termQuery()"
@@ -285,15 +282,15 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
             />
             <app-card [padded]="false">
               @if (terms().length === 0) {
-                <p class="px-4 py-6 text-center text-[13px] text-fg-muted">
+                <p class="px-4 py-6 text-center text-ui text-fg-muted">
                   {{ 'guidance.glossary.noMatches' | transloco }}
                 </p>
               } @else {
                 <dl class="max-h-[560px] divide-y divide-border overflow-y-auto">
                   @for (entry of terms(); track entry.key) {
                     <div class="px-4 py-3" data-testid="glossary-entry">
-                      <dt class="text-[13.5px] font-semibold text-fg">{{ entry.term }}</dt>
-                      <dd class="mt-0.5 text-[12.5px] leading-snug text-fg-muted">
+                      <dt class="text-ui font-semibold text-fg">{{ entry.term }}</dt>
+                      <dd class="mt-0.5 text-meta leading-snug text-fg-muted">
                         {{ entry.definition }}
                       </dd>
                       @if (entry.clauses?.length) {
@@ -306,7 +303,7 @@ const STATUS_ORDER: Record<LessonStatus, number> = { in_progress: 0, not_started
                 </dl>
               }
             </app-card>
-            <p class="mt-2 text-[12px] text-fg-subtle">
+            <p class="mt-2 text-meta text-fg-subtle">
               {{ 'guidance.glossary.count' | transloco: { count: terms().length } }}
             </p>
           </section>

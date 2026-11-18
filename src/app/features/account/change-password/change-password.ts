@@ -24,10 +24,10 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto w-full max-w-lg px-6 py-8">
-      <h1 class="font-display text-[24px] font-bold tracking-[-0.02em] text-fg">
+      <h1 class="font-display text-page font-bold text-fg">
         {{ 'auth.changePassword.title' | transloco }}
       </h1>
-      <p class="mt-1 text-[13.5px] text-fg-muted">
+      <p class="mt-1 text-ui text-fg-muted">
         {{ 'auth.changePassword.subtitle' | transloco }}
       </p>
 

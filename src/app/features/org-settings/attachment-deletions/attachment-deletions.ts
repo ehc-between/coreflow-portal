@@ -28,43 +28,40 @@ const PAGE_SIZE = 50;
     <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
       <a
         routerLink="/settings"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'settings.attachmentDeletions.back' | transloco }}
       </a>
 
       <div class="mb-[18px]">
-        <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+        <h1 class="font-display text-page font-bold text-fg">
           {{ 'settings.attachmentDeletions.title' | transloco }}
         </h1>
-        <div class="mt-1.5 text-[14px] text-fg-muted">
+        <div class="mt-1.5 text-body text-fg-muted">
           {{ 'settings.attachmentDeletions.subtitle' | transloco }}
         </div>
       </div>
 
       <app-card [padded]="false">
         @if (loading()) {
-          <div class="px-4 py-10 text-center text-[14px] text-fg-muted">
+          <div class="px-4 py-10 text-center text-body text-fg-muted">
             {{ 'common.loading' | transloco }}
           </div>
         } @else if (failed()) {
-          <div role="alert" class="px-4 py-10 text-center text-[14px] text-fail">
+          <div role="alert" class="px-4 py-10 text-center text-body text-fail">
             {{ 'settings.attachmentDeletions.loadError' | transloco }}
           </div>
         } @else if (items().length === 0) {
-          <div
-            data-testid="deletions-empty"
-            class="px-4 py-10 text-center text-[14px] text-fg-muted"
-          >
+          <div data-testid="deletions-empty" class="px-4 py-10 text-center text-body text-fg-muted">
             {{ 'settings.attachmentDeletions.empty' | transloco }}
           </div>
         } @else {
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-[13.5px]">
+            <table class="w-full text-left text-ui">
               <thead>
                 <tr
-                  class="border-b border-border text-[11px] font-bold tracking-[0.08em] text-fg-subtle uppercase"
+                  class="border-b border-border text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase"
                 >
                   <th class="px-4 py-2.5">
                     {{ 'settings.attachmentDeletions.deletedAt' | transloco }}
@@ -98,8 +95,8 @@ const PAGE_SIZE = 50;
                       </app-badge>
                     </td>
                     <td class="px-4 py-3 align-top">
-                      <div class="font-mono text-[12px] text-fg">{{ item.entity_type }}</div>
-                      <div class="font-mono text-[11.5px] text-fg-subtle" [title]="item.entity_id">
+                      <div class="font-mono text-meta text-fg">{{ item.entity_type }}</div>
+                      <div class="font-mono text-micro text-fg-subtle" [title]="item.entity_id">
                         {{ short(item.entity_id) }}
                       </div>
                     </td>
@@ -107,14 +104,14 @@ const PAGE_SIZE = 50;
                       {{ item.versions_deleted }}
                     </td>
                     <td
-                      class="px-4 py-3 align-top font-mono text-[12px] text-fg-muted"
+                      class="px-4 py-3 align-top font-mono text-meta text-fg-muted"
                       [title]="item.object_key_sha256"
                     >
                       {{ short(item.object_key_sha256) }}
                     </td>
                     <td class="px-4 py-3 align-top text-fg-muted">
                       @if (item.actor_user_id) {
-                        <span class="font-mono text-[12px]" [title]="item.actor_user_id">{{
+                        <span class="font-mono text-meta" [title]="item.actor_user_id">{{
                           short(item.actor_user_id)
                         }}</span>
                       } @else {

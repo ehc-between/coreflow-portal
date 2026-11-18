@@ -28,7 +28,8 @@ describe('MappingStatus', () => {
   let fixture: ComponentFixture<MappingStatus>;
   let el: HTMLElement;
   let maps: number;
-  let shows: number;
+  let suggests: number;
+  let dismissals: number;
 
   async function setup(inputs: Record<string, unknown>): Promise<void> {
     TestBed.configureTestingModule({
@@ -38,10 +39,7 @@ describe('MappingStatus', () => {
           langs: {
             en: {
               standards: {
-                mapping: {
-                  lastMapped: 'Last mapped {{date}} · {{count}} suggestions',
-                  showSuggestions: 'Show {{count}} requirements with suggestions',
-                },
+                mapping: { lastMappedOn: 'Last searched with AI {{date}}' },
               },
             },
           },
@@ -59,35 +57,48 @@ describe('MappingStatus', () => {
       fixture.componentRef.setInput(key, value);
     }
     maps = 0;
-    shows = 0;
+    suggests = 0;
+    dismissals = 0;
     fixture.componentInstance.map.subscribe(() => maps++);
-    fixture.componentInstance.showSuggestions.subscribe(() => shows++);
+    fixture.componentInstance.suggestFromRecords.subscribe(() => suggests++);
+    fixture.componentInstance.dismiss.subscribe(() => dismissals++);
     fixture.detectChanges();
     await fixture.whenStable();
     el = fixture.nativeElement as HTMLElement;
   }
 
   const testId = (id: string) => el.querySelector(`[data-testid="${id}"]`);
+  const buttons = () => [...el.querySelectorAll<HTMLButtonElement>('app-button button')];
 
-  it('never mapped: a banner with a one-click "map existing documents"', async () => {
+  it('never searched: one AI action (same name as the header) and the AI-free suggestions', async () => {
     await setup({ mapping: null, canMap: true });
     expect(testId('mapping-never')?.textContent).toContain('standards.reqs.mapping.never');
-    const button = el.querySelector<HTMLButtonElement>('app-button button')!;
-    expect(button.textContent).toContain('standards.reqs.mapping.findAll');
-    button.click();
+    const [ai, records] = buttons();
+    expect(ai.textContent).toContain('standards.view.mapWithAi');
+    ai.click();
     expect(maps).toBe(1);
+    expect(records.textContent).toContain('standards.bulk.suggestAllShort');
+    records.click();
+    expect(suggests).toBe(1);
   });
 
-  it('never mapped, read-only: the banner without the button', async () => {
+  it('can be dismissed', async () => {
+    await setup({ mapping: null, canMap: true });
+    el.querySelector<HTMLButtonElement>('[data-testid="mapping-dismiss"]')!.click();
+    expect(dismissals).toBe(1);
+  });
+
+  it('never searched, read-only: the banner without actions', async () => {
     await setup({ mapping: null, canMap: false });
     expect(testId('mapping-never')).not.toBeNull();
     expect(el.querySelector('app-button')).toBeNull();
   });
 
-  it('never mapped with AI off: a neutral hint instead of the button', async () => {
+  it('never searched with AI off: only the AI-free action, with a neutral hint', async () => {
     await setup({ mapping: null, canMap: true, aiOff: true });
-    expect(testId('mapping-never')?.textContent).toContain('standards.ai.notConfigured');
-    expect(el.querySelector('app-button')).toBeNull();
+    expect(testId('mapping-never')?.textContent).toContain('standards.reqs.mapping.neverHintNoAi');
+    expect(buttons().length).toBe(1);
+    expect(testId('mapping-suggest-records')).not.toBeNull();
   });
 
   it('running: a progress line', async () => {
@@ -95,22 +106,12 @@ describe('MappingStatus', () => {
     expect(testId('mapping-running')?.textContent).toContain('standards.reqs.mapping.running');
   });
 
-  it('done: last mapped date and count, and a link to the requirements with suggestions', async () => {
-    await setup({ mapping: DONE, pendingCount: 3 });
+  it('done: only the date (pending suggestions are counted once, in the next step)', async () => {
+    await setup({ mapping: DONE });
     const text = testId('mapping-done')?.textContent ?? '';
-    expect(text).toContain('Last mapped');
+    expect(text).toContain('Last searched with AI');
     expect(text).toContain('2026');
-    expect(text).toContain('· 7 suggestions');
-    const show = el.querySelector<HTMLButtonElement>('[data-testid="mapping-show-suggestions"]')!;
-    expect(show.textContent).toContain('Show 3 requirements with suggestions');
-    show.click();
-    expect(shows).toBe(1);
-  });
-
-  it('done with nothing left to review: no filter link', async () => {
-    await setup({ mapping: DONE, pendingCount: 0 });
-    expect(testId('mapping-done')).not.toBeNull();
-    expect(testId('mapping-show-suggestions')).toBeNull();
+    expect(text).not.toContain('7');
   });
 
   it('failed: a note and "try again"', async () => {

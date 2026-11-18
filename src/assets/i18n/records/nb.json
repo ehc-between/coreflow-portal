@@ -9,8 +9,6 @@
   "list": {
     "title": "Registertyper og arbeidsflyter",
     "subtitle": "Bestem hva hver type registrering skal inneholde og hvilke steg den går gjennom, fra registrering til lukking.",
-    "explain": "Forklar denne siden",
-    "explainPrompt": "Forklar hvordan registertyper og arbeidsflyter fungerer i CoreFlow: hva en registertype er, hva en arbeidsflyt er, hvordan versjoner fungerer og hvordan godkjenninger og frister henger sammen. Hold det kort og praktisk.",
     "newType": "Ny registertype",
     "newWorkflow": "Ny arbeidsflyt",
     "describe": "Beskriv prosessen din",
@@ -42,7 +40,8 @@
     "meta": "{{ fields }} felt · {{ states }} statuser · {{ transitions }} overganger",
     "installed": "Installert",
     "install": "Installer mal",
-    "installedToast": "«{{ name }}» er installert. Gå gjennom den og tilpass den til hvordan dere jobber."
+    "installedToast": "«{{ name }}» er installert. Gå gjennom den og tilpass den til hvordan dere jobber.",
+    "documents": "Støtter vanligvis:"
   },
   "designer": {
     "newTitle": "Ny registertype",
@@ -104,7 +103,10 @@
     "delete": "Slett registertype",
     "deleteTitle": "Slette denne registertypen?",
     "deleteMessage": "«{{ name }}» fjernes fra designeren. Registreringer som er laget med den, beholder data og historikk.",
-    "deletedToast": "Registertypen er slettet."
+    "deletedToast": "Registertypen er slettet.",
+    "blockKeyEmpty": "Legg inn en nøkkel under navnet.",
+    "codePrefixPlaceholder": "AV",
+    "requirementsHint": "Dette er kravene denne typen post vanligvis støtter. De er bare forslag: et krav regnes som dekket først når det finnes en post av denne typen der de koblede feltene er fylt ut."
   },
   "workflow": {
     "newTitle": "Ny arbeidsflyt",
@@ -121,7 +123,8 @@
     "delete": "Slett arbeidsflyt",
     "deleteTitle": "Slette denne arbeidsflyten?",
     "deleteMessage": "«{{ name }}» fjernes. En arbeidsflyt som fortsatt brukes av en registertype, kan ikke slettes.",
-    "deletedToast": "Arbeidsflyten er slettet."
+    "deletedToast": "Arbeidsflyten er slettet.",
+    "create": "Opprett arbeidsflyt"
   },
   "fields": {
     "title": "Felt",
@@ -157,7 +160,9 @@
     "visibleEquals": "har verdien",
     "moveUp": "Flytt {{ name }} opp",
     "moveDown": "Flytt {{ name }} ned",
-    "remove": "Fjern {{ name }}"
+    "remove": "Fjern {{ name }}",
+    "requirements": "Krav dette feltet dokumenterer",
+    "requirementsHint": "Valgfritt, høyst {{max}}. Når feltet er fylt ut, teller posten som dokumentasjon for disse kravene."
   },
   "layout": {
     "title": "Skjemaseksjoner",
@@ -180,7 +185,8 @@
     "sla": "Frist (timer)",
     "initial": "Start",
     "remove": "Fjern statusen {{ name }}",
-    "newLabel": "Ny status"
+    "newLabel": "Ny status",
+    "slaDays": "= {{days}} dager"
   },
   "transitions": {
     "title": "Steg",
@@ -318,18 +324,7 @@
     "line": "{{ transition }} · forespurt av {{ name }} {{ when }}"
   },
   "guide": {
-    "introLabel": "Om denne siden",
-    "show": "Vis",
-    "hide": "Skjul",
-    "whyTitle": "Hvorfor dette er viktig",
-    "explainClause": "Forklar {{ clause }}",
-    "clausePrompt": "Forklar med enkle ord hva {{ clause }} krever, og hvordan konfigurerbare registertyper og arbeidsflyter i CoreFlow hjelper med å oppfylle det. Avslutt med ett kort kontrollspørsmål.",
-    "lessonButton": "Leksjon ({{ minutes }} min)",
-    "lessonMinutes": "Leksjon på {{ minutes }} minutter",
-    "close": "Lukk",
-    "quiz": "Sjekk hva du har lært",
-    "correct": "Riktig.",
-    "incorrect": "Ikke helt."
+    "example": "For eksempel: {{example}}"
   },
   "langs": {
     "en": "Engelsk",

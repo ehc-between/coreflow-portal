@@ -185,7 +185,7 @@ export const SETTINGS_NAV_ITEM: NavItem = {
   path: 'settings',
   labelKey: 'nav.settings',
   icon: 'sliders',
-  permission: ['org:manage', 'users:invite'],
+  permission: ['org:manage', 'users:invite', 'records:admin', 'audit:read'],
 };
 
 /**

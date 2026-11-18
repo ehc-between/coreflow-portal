@@ -30,17 +30,18 @@
       "fresh": "Dekket, fersk dokumentasjon",
       "stale": "Dekket, dokumentasjon eldre enn ett år",
       "partial": "Delvis dekket",
-      "missing": "Ikke påbegynt"
+      "missing": "Ikke startet"
     },
     "segment": "{{label}}: {{count}}",
-    "weights": "Dekket med fersk dokumentasjon teller fullt, dekket med eldre dokumentasjon teller 60 %, delvis dekket teller 50 %, og ikke påbegynt teller ingenting.",
+    "weights": "Dekket med fersk dokumentasjon teller fullt, dekket med eldre dokumentasjon teller 60 %, delvis dekket teller 50 %, og ikke startet teller ingenting.",
     "summarise": "Oppsummer",
-    "summarisePrompt": "Oppsummer kravdekningen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke påbegynt. Hva bør vi gjøre først, og hvorfor?",
+    "summarisePrompt": "Oppsummer kravdekningen vår for {{name}}: {{score}} %, {{applicable}} gjeldende krav, {{fresh}} dekket med fersk dokumentasjon, {{stale}} dekket med eldre dokumentasjon, {{partial}} delvis dekket og {{missing}} ikke startet. Hva bør vi gjøre først, og hvorfor?",
     "empty": {
       "title": "Ingen standarder er aktivert ennå",
       "body": "Kravdekningen beregnes for hver standard organisasjonen har aktivert. Aktiver ISO 9001, ISO/IEC 27001, GDPR eller en annen standard fra standardoversikten for å se den her.",
       "cta": "Gå til standardoversikten"
-    }
+    },
+    "crumb": "Kravdekning"
   },
   "kinds": {
     "article": "Artikkel",
@@ -48,7 +49,7 @@
     "annex": "Vedlegg"
   },
   "hs": {
-    "badge": "Felles ISO {{clause}}",
+    "badge": "Felles ISO-punkt {{clause}}",
     "title": "Felles ISO-krav, punkt {{clause}}: det samme kravet finnes i alle ISO-standarder for styringssystemer, så én dokumentasjon kan dekke alle."
   },
   "aiAct": {
@@ -88,7 +89,11 @@
     "notEnabled": "Ikke aktivert",
     "ask": "Spør hvordan disse henger sammen",
     "askPrompt": "Forklar hvordan punkt {{number}} i {{standard}} henger sammen med disse punktene i andre standarder, og hvordan én dokumentasjon kan dekke alle: {{targets}}.",
-    "hsBadge": "Felles ISO"
+    "hsBadge": "Felles ISO",
+    "reuse": "Gjenbruk dokumentasjon",
+    "reuseHint": "Foreslå den bekreftede dokumentasjonen fra det punktet her. Du bekrefter hvert forslag.",
+    "reused": "Forslag lagt til: {{count}}. Bekreft dem i kravene nedenfor.",
+    "reusedNone": "Det punktet har ingen bekreftet dokumentasjon å gjenbruke ennå."
   },
   "support": {
     "title": "Poster som kan dokumentere dette",
@@ -102,70 +107,22 @@
     "none": "Ingen forslag. Søk for å finne et krav.",
     "searchAll": "Eller søk i alle krav:"
   },
-  "guide": {
-    "show": "Vis veiledning",
-    "hide": "Skjul veiledning",
-    "stepsTitle": "Slik bruker du siden",
-    "whyTitle": "Hvorfor dette er viktig",
-    "clauseAsk": "Spør om {{clause}}",
-    "clausePrompt": "Lær meg med enkle ord hva {{clause}} krever, med et kort eksempel fra en organisasjon som vår.",
-    "overview": {
-      "title": "Standardene deres samlet",
-      "body": "Hvert kort er en standard eller forordning organisasjonen arbeider mot. Ringen viser kravdekningen: hvor mye av standarden som er dokumentert av poster dere har koblet, og hvor ferske de er.",
-      "step1": "Aktiver standardene som gjelder dere. Begynn med dem kundene eller myndighetene spør om.",
-      "step2": "Åpne en standard for å vurdere hvert krav: merk det som ikke gjelder, og koble risikoer, dokumenter, leverandører eller andre poster som dokumentasjon.",
-      "step3": "Åpne listen over mangler for å se hva som mangler og hvordan dere lukker det, og hold dokumentasjonen oppdatert så kravdekningen holder seg høy.",
-      "why": "Standarder for styringssystemer krever at dere planlegger, gjennomfører og kan dokumentere. Punkt 4 til 10 har samme struktur i alle ISO-standardene, så én godt vedlikeholdt post dekker ofte flere standarder samtidig."
-    },
-    "readiness": {
-      "title": "Hva kravdekningen forteller dere",
-      "body": "Tallet oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Det teller bare krav dere har merket som gjeldende.",
-      "step1": "Se på det grå feltet først: krav ingen har begynt på ennå.",
-      "step2": "Forny deretter dokumentasjon som er eldre enn ett år. Revisorer forventer at registreringer er oppdaterte.",
-      "step3": "Åpne standarden for å koble dokumentasjon, eller be om en oppsummering av hva dere bør gjøre videre.",
-      "why": "ISO-standardene krever at dere overvåker og evaluerer styringssystemet og gjennomgår det på ledelsesnivå. Kravdekning per standard er et enkelt innspill til den gjennomgangen."
-    }
-  },
-  "lesson": {
-    "badge": "Leksjon",
-    "minutes": "{{count}} min",
-    "start": "Start leksjonen",
-    "close": "Lukk leksjonen",
-    "check": "Sjekk svaret",
-    "correct": "Riktig.",
-    "incorrect": "Ikke helt.",
-    "questionLabel": "Sjekk forståelsen din",
-    "readiness": {
-      "title": "Slik beregnes kravdekningen",
-      "s1Heading": "Bare gjeldende krav teller",
-      "s1Body": "Når et krav ikke gjelder for dere, merker dere det som ikke gjeldende og skriver en kort begrunnelse. Da holdes det utenfor beregningen, så tallet viser det dere faktisk må gjøre.",
-      "s2Heading": "Dokumentasjon gjør et krav dekket",
-      "s2Body": "Et krav er dekket når dere har bekreftet minst én aktiv registrering som dokumentasjon, eller selv har satt statusen til dekket. Et delvis dekket krav teller halvt.",
-      "s3Heading": "Fersk dokumentasjon teller fullt",
-      "s3Body": "Dokumentasjon som er bekreftet eller oppdatert de siste 365 dagene, teller fullt. Eldre dokumentasjon teller 60 %, fordi revisorer forventer at registreringer holdes oppdatert.",
-      "question": "Dere dekker et krav med en prosedyre som sist ble gjennomgått for to år siden. Hvor mye teller den?",
-      "option1": "Ingenting",
-      "option2": "60 %",
-      "option3": "Fullt",
-      "explanation": "Kravet er fortsatt dekket, men dokumentasjonen er eldre enn ett år, så det teller 60 %. Gjennomgå prosedyren for at den skal telle fullt igjen."
-    }
-  },
   "notifications": {
-    "evidenceLinked": "Dokumentasjon koblet til punkt {{clause_number}} ({{standard_key}})",
-    "evidenceRejected": "Foreslått dokumentasjon avvist for punkt {{clause_number}} ({{standard_key}})",
-    "evidenceUnlinked": "Dokumentasjon fjernet fra punkt {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "Standard aktivert: {{standard_key}}",
-    "standardDisabled": "Standard deaktivert: {{standard_key}}",
-    "requirementUpdated": "Krav {{ref}} oppdatert",
+    "evidenceLinked": "Dokumentasjon koblet til {{requirement_label_nb}}",
+    "evidenceRejected": "Foreslått dokumentasjon avvist for {{requirement_label_nb}}",
+    "evidenceUnlinked": "Dokumentasjon fjernet fra {{requirement_label_nb}}",
+    "standardEnabled": "Standarden {{standard_name_nb}} er aktivert",
+    "standardDisabled": "Standarden {{standard_name_nb}} er deaktivert",
+    "requirementUpdated": "En kravvurdering er oppdatert i {{standard_name_nb}}",
     "requirementLinksSynced": "Kravkoblinger oppdatert fra et felt på posten"
   },
   "timeline": {
-    "evidenceLinked": "koblet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
-    "evidenceRejected": "avviste forslaget om at denne registreringen dokumenterer punkt {{clause_number}} ({{standard_key}})",
-    "evidenceUnlinked": "fjernet denne registreringen som dokumentasjon for punkt {{clause_number}} ({{standard_key}})",
-    "standardEnabled": "aktiverte standarden {{standard_key}}",
-    "standardDisabled": "deaktiverte standarden {{standard_key}}",
-    "requirementUpdated": "oppdaterte vurderingen av krav {{ref}}",
+    "evidenceLinked": "koblet denne posten som dokumentasjon for {{requirement_label_nb}}",
+    "evidenceRejected": "avviste forslaget om at denne posten dokumenterer {{requirement_label_nb}}",
+    "evidenceUnlinked": "fjernet denne posten som dokumentasjon for {{requirement_label_nb}}",
+    "standardEnabled": "aktiverte standarden {{standard_name_nb}}",
+    "standardDisabled": "deaktiverte standarden {{standard_name_nb}}",
+    "requirementUpdated": "oppdaterte en kravvurdering i {{standard_name_nb}}",
     "requirementLinksSynced": "oppdaterte kravkoblingene fra et felt på posten ({{added}} lagt til, {{removed}} fjernet)"
   },
   "reqs": {
@@ -196,6 +153,8 @@
     "moreLabelOne": "Vis 1 koblet krav til",
     "fromField": "Fra feltet «{{field}}»",
     "fromFieldHint": "Endre feltet på posten for å fjerne denne koblingen.",
+    "fromRecordField": "Fra et felt på posten",
+    "fromRecordType": "Fra oppsettet av registertypen",
     "managedByField": "Koblingen kommer fra et felt på posten. Endre feltet for å fjerne den.",
     "error": "Kunne ikke oppdatere kravkoblingene. Prøv igjen.",
     "loadError": "Kunne ikke laste kravene. Prøv igjen.",
@@ -287,7 +246,9 @@
       "never": "Postene deres er ikke gjennomsøkt etter dokumentasjon for denne standarden ennå.",
       "neverHint": "La KI foreslå hvilke poster, i alle moduler, som dokumenterer hvert krav. Du bekrefter hvert forslag.",
       "findAll": "Finn dokumentasjon i alle moduler",
-      "running": "Ser etter dokumentasjon i alle moduler …"
+      "running": "Ser etter dokumentasjon i alle moduler …",
+      "neverHintNoAi": "CoreFlow kan foreslå hvilke av postene dere allerede har som dokumenterer hvert krav. Du bekrefter hvert forslag.",
+      "dismiss": "Skjul denne meldingen"
     },
     "readiness": {
       "documentedBy": "Dokumentert av:",
@@ -316,5 +277,146 @@
       "loadError": "Kunne ikke laste manglene. Prøv igjen."
     },
     "fromRegister": "Fra registeret"
+  },
+  "scoreHint": "Kravdekning: krav som er dekket med fersk dokumentasjon teller fullt, eldre dokumentasjon 60 % og delvis dekket 50 %. Bare krav som gjelder dere, teller.",
+  "scoreLine": "Kravdekning {{pct}} %",
+  "notSet": "Ikke satt",
+  "adopted": "Vedtatt {{edition}}",
+  "legalForm": {
+    "standard": "ISO-standard",
+    "regulation": "EU-forordning",
+    "directive": "EU-direktiv"
+  },
+  "cert": {
+    "label": "Sertifisering · {{body}}",
+    "nextSurveillance": "neste oppfølgingsrevisjon {{date}}",
+    "status": {
+      "planned": "Planlagt",
+      "in_progress": "Pågår",
+      "certified": "Sertifisert",
+      "suspended": "Suspendert",
+      "withdrawn": "Trukket tilbake",
+      "expired": "Utløpt"
+    }
+  },
+  "export": {
+    "menu": "Eksporter",
+    "xlsx": "Eksporter kravmatrisen (Excel)",
+    "csv": "Eksporter kravmatrisen (CSV)",
+    "pdf": "Eksporter kravmatrisen (PDF)",
+    "auditPack": "Lag en revisjonspakke",
+    "error": "Kunne ikke eksportere kravmatrisen. Prøv igjen."
+  },
+  "bulk": {
+    "suggestAll": "Foreslå dokumentasjon fra eksisterende poster",
+    "suggestAllShort": "Foreslå fra eksisterende poster",
+    "suggested": "{{count}} nye forslag. Poster gjennomgått: {{records}}. Bekreft dem som stemmer.",
+    "suggestedNone": "Ingen nye forslag. Poster gjennomgått: {{records}}.",
+    "recordCount": "{{count}} i registeret",
+    "suggestType": "Foreslå fra disse",
+    "suggestTypeHint": "Finn poster av denne typen som passer kravene i standarden. Du bekrefter hvert forslag, og ingenting teller før det."
+  },
+  "nextStep": {
+    "title": "Neste anbefalte steg",
+    "suggestions": "{{count}} krav har forslag som venter på deg.",
+    "suggestionsAction": "Gå gjennom forslag",
+    "gap": "Dokumenter {{clause}} {{title}}. {{count}} krav mangler fortsatt dokumentasjon.",
+    "gapAction": "Åpne kravet",
+    "stale": "{{count}} krav har gammel eller svak dokumentasjon.",
+    "staleAction": "Vis dem"
+  },
+  "workspace": {
+    "onlyStale": "Gammel eller svak dokumentasjon",
+    "noStale": "Ingen krav har gammel eller svak dokumentasjon."
+  },
+  "licensed": {
+    "copyright": "Selve standardteksten er beskyttet av opphavsrett, så CoreFlow viser egne forklaringer. Last opp PDF-en dere har kjøpt for å se den offisielle teksten ved siden av.",
+    "needsPdf": "Last opp PDF-en av standarden først."
+  },
+  "mapping": {
+    "lastMappedOn": "Sist gjennomsøkt med KI {{date}}"
+  },
+  "actionErrors": {
+    "exclusionNotAllowed": "Dette kravet kan ikke merkes som ikke relevant: punkt 4–10 i en ISO-standard gjelder alltid.",
+    "noteRequired": "Skriv et notat om hvorfor kravet er dekket eller delvis dekket.",
+    "invalidUser": "Den ansvarlige må være medlem av organisasjonen.",
+    "notMapped": "Disse punktene er ikke koblet til hverandre, så dokumentasjonen kan ikke gjenbrukes.",
+    "notDeclared": "Poster av denne typen kan ikke dokumentere denne standarden.",
+    "soaManageRequired": "Bare den som vedlikeholder anvendelseserklæringen, kan endre om denne kontrollen gjelder."
+  },
+  "soa": {
+    "title": "Anvendelseserklæring",
+    "applicable": "Gjelder",
+    "notApplicable": "Gjelder ikke",
+    "open": "Åpne i anvendelseserklæringen",
+    "justification": "Begrunnelse",
+    "reasons": "Grunner for å ta med",
+    "owner": "Ansvarlig",
+    "reviewed": "Sist gjennomgått",
+    "risks": "Risikoer",
+    "treatments": "Risikobehandlinger: {{count}}",
+    "hint": "Om kontrollen gjelder, og begrunnelsen, bestemmes i anvendelseserklæringen og gjelder alle kravene i kontrollen.",
+    "setBySoa": "Satt i anvendelseserklæringen",
+    "formHint": "Når du lagrer «Gjelder» og begrunnelsen, oppdateres anvendelseserklæringen for alle kravene i denne kontrollen.",
+    "lockedHint": "Om denne kontrollen gjelder, bestemmes i anvendelseserklæringen. Be den som vedlikeholder den, om å endre det.",
+    "reason": {
+      "risk_assessment": "Risikovurdering",
+      "legal": "Lovkrav",
+      "contractual": "Kontraktskrav",
+      "business": "Forretningskrav",
+      "best_practice": "Beste praksis"
+    },
+    "implementation": {
+      "not_started": "Ikke startet",
+      "planned": "Planlagt",
+      "partial": "Delvis innført",
+      "implemented": "Innført"
+    }
+  },
+  "audit": {
+    "lastAudited": "Sist revidert {{date}}",
+    "neverAudited": "Ikke revidert ennå",
+    "nextAudit": "Neste revisjon {{date}}",
+    "openFindings": "Åpne funn: {{count}} (avvik: {{nc}})"
+  },
+  "exclusion": {
+    "notAllowed": "Punkt 4–10 i en ISO-standard gjelder alltid og kan ikke utelates.",
+    "conditional": "Krav i punkt 8 kan bare utelates når omfanget (4.3) begrunner det. Skriv grunnen i begrunnelsen.",
+    "badge": "Gjelder alltid"
+  },
+  "clauseLink": {
+    "start": "Koble én post til alle {{count}} kravene",
+    "done": "Koblet til {{count}} krav.",
+    "pickHint": "Finn posten som dokumenterer dette punktet.",
+    "confirmTitle": "Koble «{{record}}» til disse kravene:",
+    "confirmHint": "Fjern haken for kravene posten ikke dokumenterer.",
+    "save": "Koble til {{count}} krav"
+  },
+  "quality": {
+    "current": "Godkjent",
+    "draft": "Utkast",
+    "review_overdue": "Gjennomgang forfalt",
+    "obsolete": "Utgått",
+    "weakNotice": "Dokumentasjonen er bare utkast, utgåtte dokumenter eller dokumenter med forfalt gjennomgang, så kravet teller som delvis dekket. Godkjenn eller gjennomgå dokumentet for at det skal telle fullt.",
+    "version": "versjon {{version}}",
+    "approvedOn": "godkjent {{date}}"
+  },
+  "evidenceState": {
+    "stale": "Gammel dokumentasjon",
+    "weak": "Svak dokumentasjon"
+  },
+  "owner": {
+    "owner": "Ansvarlig",
+    "dueDate": "Frist",
+    "due": "Frist",
+    "overdue": "forfalt",
+    "ownerIs": "Ansvarlig: {{name}}",
+    "reviewed": "Sist gjennomgått",
+    "reviewedBy": "{{date}} av {{name}}",
+    "neverReviewed": "Ikke gjennomgått ennå",
+    "statusSet": "Status satt",
+    "statusSetBy": "{{status}} av {{name}}, {{date}}",
+    "markReviewed": "Merk som gjennomgått nå",
+    "noteRequiredLabel": "Notat (påkrevd)"
   }
 }

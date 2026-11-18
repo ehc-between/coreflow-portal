@@ -22,7 +22,8 @@ import { SectionStatus, TocRow, tocDomId } from './workspace-data';
 const DOT_CLASSES: Record<SectionStatus, string> = {
   covered: 'bg-pass',
   partial: 'bg-warn',
-  not_started: 'bg-fail',
+  // Not started is a to-do, not a failure: grey, never red (plan decision 11).
+  not_started: 'bg-border-strong',
   not_applicable: 'border border-fg-subtle bg-transparent',
   none: 'bg-transparent',
 };
@@ -44,20 +45,20 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
     <div class="flex h-full min-h-0 flex-col">
       <div class="flex-none border-b border-border px-3 pt-3 pb-3">
         <div class="mb-2.5 flex items-center justify-between gap-2 px-1">
-          <h2 class="text-[11.5px] font-bold tracking-[0.1em] text-fg-subtle uppercase">
+          <h2 class="text-micro font-bold tracking-wider text-fg-subtle uppercase">
             {{ 'standards.workspace.contents' | transloco }}
           </h2>
           <div class="flex items-center gap-0.5">
             <button
               type="button"
-              class="rounded-[7px] px-2 py-1 text-[12px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
+              class="rounded-md px-2 py-1 text-meta font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
               (click)="collapseAll.emit()"
             >
               {{ 'standards.view.collapseAll' | transloco }}
             </button>
             <button
               type="button"
-              class="flex rounded-[7px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+              class="flex rounded-md p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
               [attr.aria-label]="'standards.workspace.hideContents' | transloco"
               [title]="'standards.workspace.hideContents' | transloco"
               (click)="hide.emit()"
@@ -67,7 +68,7 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
           </div>
         </div>
         <div
-          class="flex h-9 items-center gap-2 rounded-[9px] border border-border bg-bg px-2.5 focus-within:border-accent"
+          class="flex h-9 items-center gap-2 rounded-lg border border-border bg-bg px-2.5 focus-within:border-accent"
         >
           <span class="flex text-fg-subtle"><app-icon name="search" [size]="15" /></span>
           <input
@@ -78,10 +79,10 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
             (keydown.escape)="clearSearch($event)"
             [placeholder]="'standards.workspace.searchPlaceholder' | transloco"
             [attr.aria-label]="'standards.workspace.searchPlaceholder' | transloco"
-            class="h-full min-w-0 flex-1 bg-transparent text-[13px] text-fg outline-none"
+            class="h-full min-w-0 flex-1 bg-transparent text-ui text-fg outline-none"
           />
           <kbd
-            class="hidden rounded border border-border px-1.5 font-mono text-[10.5px] text-fg-subtle sm:inline"
+            class="hidden rounded border border-border px-1.5 font-mono text-micro text-fg-subtle sm:inline"
             aria-hidden="true"
             >/</kbd
           >
@@ -100,6 +101,15 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
             (checkedChange)="suggestionsOnlyChange.emit($event)"
             >{{ 'standards.workspace.hasAiSuggestions' | transloco }}</app-switch
           >
+          @if (staleCount() > 0 || staleOnly()) {
+            <app-switch
+              data-testid="filter-stale"
+              [checked]="staleOnly()"
+              [count]="staleCount()"
+              (checkedChange)="staleOnlyChange.emit($event)"
+              >{{ 'standards.workspace.onlyStale' | transloco }}</app-switch
+            >
+          }
         </div>
       </div>
 
@@ -109,7 +119,7 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
         [attr.aria-label]="'standards.workspace.tocLabel' | transloco: { name: standardName() }"
       >
         @if (rows().length === 0) {
-          <p class="px-3 py-6 text-center text-[13px] text-fg-muted">
+          <p class="px-3 py-6 text-center text-ui text-fg-muted">
             {{ 'standards.workspace.noTocMatches' | transloco }}
           </p>
         } @else {
@@ -117,7 +127,7 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
             @for (row of rows(); track row.number) {
               @if (row.themeHeading; as theme) {
                 <li
-                  class="pt-3 pb-1 text-[10.5px] font-bold tracking-[0.1em] text-fg-subtle uppercase"
+                  class="pt-3 pb-1 text-micro font-bold tracking-wider text-fg-subtle uppercase"
                   [style.padding-left.px]="30 + row.depth * 14"
                   aria-hidden="true"
                 >
@@ -130,18 +140,18 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
               }
               <li>
                 <div
-                  class="group flex items-center rounded-[7px]"
+                  class="group flex items-center rounded-md"
                   [class]="row.number === active() ? 'bg-accent-soft' : 'hover:bg-surface-2'"
                   [style.padding-left.px]="row.depth * 14"
                 >
                   @if (row.hasChildren) {
                     <button
                       type="button"
-                      class="flex h-7 w-6 flex-none items-center justify-center rounded-[6px] text-fg-subtle hover:text-fg"
+                      class="flex h-7 w-6 flex-none items-center justify-center rounded-md text-fg-subtle hover:text-fg"
                       [attr.aria-expanded]="row.expanded"
                       [attr.aria-label]="
                         (row.expanded ? 'standards.view.collapse' : 'standards.view.expand')
-                          | transloco: { number: row.number }
+                          | transloco: { number: row.label }
                       "
                       (click)="nodeToggled.emit(row.number)"
                     >
@@ -157,8 +167,8 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
                   }
                   <a
                     [id]="domId(row.number)"
-                    [routerLink]="['/standards', standardKey(), row.number]"
-                    class="flex min-w-0 flex-1 items-center gap-2 py-[5px] pr-2 text-[13px] leading-snug"
+                    [routerLink]="['/standards', standardKey(), row.segment]"
+                    class="flex min-w-0 flex-1 items-start gap-2 py-[5px] pr-2 text-ui leading-snug"
                     [class]="
                       row.number === active()
                         ? 'font-semibold text-accent'
@@ -167,28 +177,30 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
                           : 'text-fg-muted hover:text-fg'
                     "
                     [attr.aria-current]="row.number === active() ? 'location' : null"
-                    [title]="row.number + ' ' + text(row.title)"
+                    [title]="row.label + ' ' + text(row.title)"
                     (click)="onNavigate($event, row.number)"
                   >
                     <span
-                      class="h-[7px] w-[7px] flex-none rounded-full"
+                      class="mt-[6px] h-[7px] w-[7px] flex-none rounded-full"
                       [class]="dotClass(row.status)"
                       aria-hidden="true"
                     ></span>
                     <span
-                      class="flex-none font-mono text-[11.5px] tabular-nums"
+                      class="mt-px flex-none font-mono text-meta tabular-nums"
                       [class.text-fg-subtle]="row.number !== active()"
-                      >{{ row.number }}</span
+                      >{{ row.label }}</span
                     >
-                    <span class="min-w-0 flex-1 truncate" [class.font-semibold]="row.depth === 0">{{
-                      text(row.title)
-                    }}</span>
+                    <span
+                      class="line-clamp-2 min-w-0 flex-1"
+                      [class.font-semibold]="row.depth === 0"
+                      >{{ text(row.title) }}</span
+                    >
                     @if (row.status !== 'none') {
                       <span class="sr-only">{{ statusLabelKey(row.status) | transloco }}</span>
                     }
                     @if (row.pct !== null) {
                       <span
-                        class="flex-none text-[11.5px] font-semibold text-fg-subtle tabular-nums"
+                        class="mt-px flex-none text-meta font-semibold text-fg-subtle tabular-nums"
                         >{{ row.pct }}%</span
                       >
                     }
@@ -201,7 +213,7 @@ const DOT_CLASSES: Record<SectionStatus, string> = {
       </nav>
 
       <p
-        class="flex-none border-t border-border px-4 py-2.5 text-[11.5px] leading-relaxed text-fg-subtle"
+        class="flex-none border-t border-border px-4 py-2.5 text-micro leading-relaxed text-fg-subtle"
       >
         {{ 'standards.workspace.shortcutsHint' | transloco }}
       </p>
@@ -223,12 +235,16 @@ export class StandardToc {
   readonly suggestionsOnly = input(false);
   /** Requirements with AI suggestions waiting for review. */
   readonly suggestionCount = input(0);
+  /** "Old or weak evidence" filter (shown only when there is any). */
+  readonly staleOnly = input(false);
+  readonly staleCount = input(0);
   /** Rendered as the mobile drawer (close icon instead of "hide"). */
   readonly drawer = input(false);
 
   readonly queryChange = output<string>();
   readonly gapsOnlyChange = output<boolean>();
   readonly suggestionsOnlyChange = output<boolean>();
+  readonly staleOnlyChange = output<boolean>();
   readonly nodeToggled = output<string>();
   readonly navigate = output<string>();
   readonly collapseAll = output<void>();

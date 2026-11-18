@@ -1,10 +1,18 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { NotificationPreference } from '../../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../../core/notifications/user-notifications-api';
-import { AskPanelService } from '../../ask/ask-panel.service';
-import { ActivityGuide } from '../../../shared/activity/activity-guide';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Card } from '../../../shared/ui/card/card';
 import { CategoryPreferences } from './category-preferences';
@@ -18,33 +26,38 @@ import { QuietHours } from './quiet-hours';
  */
 @Component({
   selector: 'app-notification-preferences',
-  imports: [TranslocoPipe, Alert, Card, ActivityGuide, CategoryPreferences, QuietHours],
+  imports: [TranslocoPipe, Alert, Card, HelpStrip, WhyItMatters, CategoryPreferences, QuietHours],
   viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      <h1 class="font-display text-[24px] font-bold tracking-[-0.02em] text-fg">
+      <h1 class="font-display text-page font-bold text-fg">
         {{ 'notifications.preferences.title' | transloco }}
       </h1>
-      <p class="mt-1 text-[13.5px] text-fg-muted">
+      <p class="mt-1 text-ui text-fg-muted">
         {{ 'notifications.preferences.subtitle' | transloco }}
       </p>
 
-      <app-activity-guide class="mt-6 block" page="preferences" (explain)="ask.showWith($event)" />
+      <app-help-strip
+        class="mt-6 block"
+        scope="settings"
+        page="notification-preferences"
+        lesson="following-records"
+      />
 
-      <app-category-preferences class="mt-6 block" />
+      <app-category-preferences class="mt-6 block" [digestOff]="digestOff()" />
 
       <app-card class="mt-6 block" [padded]="false" data-testid="digest-card">
         <div class="border-b border-border px-4 py-3.5">
-          <h2 class="text-[14.5px] font-semibold text-fg">
+          <h2 class="text-body font-semibold text-fg">
             {{ 'notifications.preferences.digestTitle' | transloco }}
           </h2>
-          <p class="mt-0.5 text-[12.5px] text-fg-muted">
+          <p class="mt-0.5 text-meta text-fg-muted">
             {{ 'notifications.preferences.digestSubtitle' | transloco }}
           </p>
         </div>
         @if (loading()) {
-          <p data-testid="preferences-loading" class="px-4 py-6 text-[13px] text-fg-muted">
+          <p data-testid="preferences-loading" class="px-4 py-6 text-ui text-fg-muted">
             {{ 'notifications.panel.loading' | transloco }}
           </p>
         } @else if (loadError()) {
@@ -52,7 +65,7 @@ import { QuietHours } from './quiet-hours';
             <app-alert>{{ 'notifications.preferences.loadError' | transloco }}</app-alert>
           </div>
         } @else if (items().length === 0) {
-          <p data-testid="preferences-empty" class="px-4 py-6 text-[13px] text-fg-muted">
+          <p data-testid="preferences-empty" class="px-4 py-6 text-ui text-fg-muted">
             {{ 'notifications.preferences.empty' | transloco }}
           </p>
         } @else {
@@ -62,11 +75,11 @@ import { QuietHours } from './quiet-hours';
                 <div class="min-w-0 flex-1">
                   <div
                     [id]="'digest-label-' + pref.org_id"
-                    class="truncate text-[13.5px] font-semibold text-fg"
+                    class="truncate text-ui font-semibold text-fg"
                   >
                     {{ pref.org_name }}
                   </div>
-                  <div class="text-[12.5px] text-fg-muted">
+                  <div class="text-meta text-fg-muted">
                     {{ 'notifications.preferences.emailDigest' | transloco }}
                   </div>
                 </div>
@@ -91,20 +104,28 @@ import { QuietHours } from './quiet-hours';
               </li>
             }
           </ul>
-          <p id="digest-hint" class="border-t border-border px-4 py-3 text-[12.5px] text-fg-muted">
+          <p id="digest-hint" class="border-t border-border px-4 py-3 text-meta text-fg-muted">
             {{ 'notifications.preferences.emailDigestHint' | transloco }}
           </p>
         }
       </app-card>
 
       <app-quiet-hours class="mt-6 block" />
+
+      <app-why-it-matters class="mt-6 block" scope="settings" page="notification-preferences" />
     </div>
   `,
 })
 export class NotificationPreferences implements OnInit {
   private readonly api = inject(UserNotificationsApi);
   private readonly toasts = inject(NotificationService);
-  protected readonly ask = inject(AskPanelService);
+  private readonly selectedOrg = inject(SelectedOrgService);
+  /** The daily digest is off for the current org, so "digest" categories send no email. */
+  protected readonly digestOff = computed(
+    () =>
+      this.items().find((p) => p.org_id === this.selectedOrg.currentOrgId())?.email_digest ===
+      false,
+  );
 
   protected readonly items = signal<readonly NotificationPreference[]>([]);
   protected readonly loading = signal(true);

@@ -182,9 +182,44 @@ describe('standards-data', () => {
     it('chapterBars lists top-level chapters with applicable requirements', () => {
       const tree = [...sampleTree(), node('A', { title: { en: 'Annex', nb: 'Vedlegg' } })];
       expect(chapterBars(tree)).toEqual([
-        { number: '4', title: 'Context of the organization', pct: 50, applicable: 2, covered: 1 },
-        { number: '5', title: 'Leadership', pct: 0, applicable: 1, covered: 0 },
+        {
+          number: '4',
+          label: '4',
+          segment: '4',
+          title: 'Context of the organization',
+          pct: 50,
+          applicable: 2,
+          covered: 1,
+        },
+        {
+          number: '5',
+          label: '5',
+          segment: '5',
+          title: 'Leadership',
+          pct: 0,
+          applicable: 1,
+          covered: 0,
+        },
       ]);
+    });
+
+    it('chapterBars uses the localised label and the URL slug when the API has them', () => {
+      const [chapter] = sampleTree();
+      const tree = [
+        {
+          ...chapter,
+          number: 'Chapter II',
+          label: { en: 'Chapter II', nb: 'Kapittel II' },
+          slug: 'chapter-ii',
+        },
+      ];
+      expect(chapterBars(tree, 'nb')[0]).toEqual(
+        expect.objectContaining({
+          number: 'Chapter II',
+          label: 'Kapittel II',
+          segment: 'chapter-ii',
+        }),
+      );
     });
   });
 

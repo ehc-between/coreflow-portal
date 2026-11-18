@@ -26,11 +26,11 @@ export interface VersionEntry {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-label]="'records.versions.title' | transloco">
-      <h2 class="mb-2 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
+      <h2 class="mb-2 text-meta font-bold tracking-[0.06em] text-fg-subtle uppercase">
         {{ 'records.versions.title' | transloco }}
       </h2>
       @if (versions().length === 0) {
-        <p class="text-[12.5px] text-fg-muted">{{ 'records.versions.none' | transloco }}</p>
+        <p class="text-meta text-fg-muted">{{ 'records.versions.none' | transloco }}</p>
       } @else {
         <ol class="relative flex flex-col gap-3 border-l border-border pl-4">
           @for (v of versions(); track v.version) {
@@ -43,7 +43,7 @@ export interface VersionEntry {
               <div class="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  class="text-[13px] font-semibold text-accent hover:underline"
+                  class="text-ui font-semibold text-accent hover:underline"
                   [attr.aria-pressed]="v.version === viewing()"
                   (click)="view.emit(v.version)"
                 >
@@ -57,7 +57,7 @@ export interface VersionEntry {
                 }
               </div>
               <p
-                class="text-[11.5px] text-fg-subtle"
+                class="text-micro text-fg-subtle"
                 [attr.title]="v.published_at | localDate: 'medium'"
               >
                 {{
@@ -71,7 +71,7 @@ export interface VersionEntry {
                 · {{ v.summary }}
               </p>
               @if (v.change_note) {
-                <p class="mt-0.5 text-[12.5px] text-fg-muted">{{ v.change_note }}</p>
+                <p class="mt-0.5 text-meta text-fg-muted">{{ v.change_note }}</p>
               }
             </li>
           }

@@ -1,0 +1,191 @@
+{
+  "pages": {
+    "notifications": {
+      "intro": {
+        "title": "Getting the right people involved at the right time",
+        "body": "Every change in CoreFlow is recorded as an event. Rules turn events into notifications, reminders keep deadlines visible, and escalation makes sure overdue work reaches someone who can act.",
+        "steps": [
+          "Review the rules below. Each event starts with a sensible default; change it only when your organization needs something different.",
+          "Set how many days ahead reminders go out and after how many overdue days work escalates.",
+          "Give each department a lead, so escalations and \"department lead\" rules reach a real person."
+        ]
+      },
+      "why": {
+        "body": "Management system standards expect you to decide what is communicated, to whom, when and how, and to make responsibilities clear. Consistent notifications and escalation show that in practice, and the audit log records every change to these settings.",
+        "clauses": ["hs:7.4", "hs:5.3"]
+      }
+    },
+    "notification-preferences": {
+      "intro": {
+        "title": "Make notifications work for you",
+        "body": "Your organization decides which events reach you. Here you choose how they reach you: in the app, by email right away, in a daily digest, or not by email at all.",
+        "steps": [
+          "Choose the organization in the top bar, then adjust each category.",
+          "Use the daily digest for things you only need to scan, and immediate email for things you must act on.",
+          "Set quiet hours so urgent emails wait until your working day starts."
+        ]
+      },
+      "why": {
+        "body": "Clear, timely communication is a requirement, not a courtesy. Tuning your notifications keeps important messages visible instead of lost in noise.",
+        "clauses": ["hs:7.4"]
+      }
+    },
+    "modules": {
+      "intro": {
+        "title": "Modules match CoreFlow to your management system",
+        "body": "Each module covers one area the standards ask for, such as risk, audits or training. Turn on only what you need; you can add more as your system grows.",
+        "steps": [
+          "Start with the modules the setup wizard recommends for your standards.",
+          "Each card shows the standards the module supports. Click a standard to see all its modules.",
+          "Turning a module off hides it but keeps its records."
+        ]
+      },
+      "why": {
+        "body": "Standards expect a defined set of processes (the process approach) and risk-based planning. Choosing modules deliberately documents which processes your system includes.",
+        "clauses": ["hs:4.4", "hs:6.1", "iso27001:6.1.3"]
+      }
+    },
+    "profile": {
+      "intro": {
+        "title": "The profile describes your context",
+        "body": "ISO management systems start with understanding the organisation, the interested parties and the scope. The profile is the short version of that context.",
+        "steps": [
+          "Fill in industry, size and the countries you operate in.",
+          "Tick the standards in scope and add certification targets with dates.",
+          "Choose your role under the EU AI Act. \"Not sure yet\" is fine for now."
+        ]
+      },
+      "why": {
+        "body": "Clauses 4.1 to 4.3 require you to understand your context, the needs of interested parties and the scope of the system. Auditors often start here.",
+        "clauses": ["hs:4.1", "hs:4.2", "hs:4.3", "eu_ai_act:3"]
+      }
+    },
+    "terminology": {
+      "intro": {
+        "title": "Speak your organisation's language",
+        "body": "People follow a system more easily when it uses their words. Change the wording here and CoreFlow uses it everywhere.",
+        "steps": [
+          "Pick the terms you call something else, for example \"nonconformity\" for deviation.",
+          "Fill in the singular and the plural for each language you use.",
+          "Save, and check the preview above the list."
+        ]
+      },
+      "why": {
+        "body": "Awareness and communication (clause 7.4) work better in familiar language, and controlled documents (clause 7.5) should use terms consistently.",
+        "clauses": ["hs:7.4", "hs:7.5"]
+      }
+    },
+    "setup": {
+      "intro": {
+        "title": "Set up in a few minutes",
+        "body": "The wizard walks you through the basics of a management system: context, scope, the right modules, roles and the first tasks.",
+        "steps": [
+          "Describe the organisation and choose the frameworks in scope.",
+          "Review the recommended modules. Use \"Ask why\" if something is unclear.",
+          "Invite people and start with a few first tasks."
+        ]
+      },
+      "why": {
+        "body": "The scope (clause 4.3), roles and responsibilities (clause 5.3) and planning for risks (clause 6.1) are the foundation every later audit checks.",
+        "clauses": ["hs:4.3", "hs:5.3", "hs:6.1"]
+      }
+    }
+  },
+  "lessons": {
+    "reminders-and-escalation": {
+      "title": "How reminders and escalation work",
+      "minutes": 3,
+      "sections": [
+        {
+          "heading": "Reminders",
+          "body": "Every morning CoreFlow checks open items with a due date. Items due within the reminder window send a \"due soon\" reminder to their owners and assignees, and overdue items send an \"overdue\" reminder. Each person gets at most one of each per item per day."
+        },
+        {
+          "heading": "Escalation",
+          "body": "When an item has been overdue for the escalation period, it escalates once to the department lead and/or everyone holding the escalation role. After another full period it escalates again at the next level."
+        },
+        {
+          "heading": "Channels",
+          "body": "In-app notifications appear under the bell. Email can be sent immediately or collected in the daily digest. Each person can fine-tune categories and quiet hours in their own notification settings."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "Escalation is set to 3 days. An item is 7 days overdue. How many times has it escalated?",
+          "options": ["Once", "Twice", "Seven times, once a day"],
+          "answer": 1,
+          "explanation": "Twice: once at 3 days overdue (level 1) and once at 6 days overdue (level 2)."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "following-records": {
+      "title": "Following records",
+      "minutes": 2,
+      "sections": [
+        {
+          "heading": "Follow what you care about",
+          "body": "Use the Follow button on a record to be notified about its changes, even if you aren't the owner or an assignee. Creators and owners are often added automatically."
+        },
+        {
+          "heading": "Quiet hours",
+          "body": "During quiet hours, immediate emails are held for the next daily digest. In-app notifications still arrive, so nothing is lost."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "You turn off in-app notifications for comments but keep email on Immediately. What happens when someone comments?",
+          "options": [
+            "An email straight away (unless it is during your quiet hours), but no entry under the bell",
+            "An entry under the bell, but no email",
+            "Nothing at all until the daily digest"
+          ],
+          "answer": 0,
+          "explanation": "You get an email straight away (unless it's during your quiet hours), but no entry under the bell."
+        }
+      ],
+      "pass_mark": 1
+    },
+    "modules-basics": {
+      "title": "Frameworks, modules and your management system",
+      "minutes": 4,
+      "sections": [
+        {
+          "heading": "One structure, many standards",
+          "body": "ISO 9001, 27001, 14001, 42001 and 45001 share the same clause structure, from context (4) to improvement (10). Work you do once, such as a management review, can count for several standards."
+        },
+        {
+          "heading": "Frameworks decide the requirements",
+          "body": "A framework is the standard or regulation you follow. It decides what you must be able to show an auditor, for example a risk assessment or training records."
+        },
+        {
+          "heading": "Modules are where the work happens",
+          "body": "A module is the part of CoreFlow where you do that work and keep the evidence. Turn on the modules your frameworks need and leave the rest off until you need them."
+        }
+      ],
+      "quiz": [
+        {
+          "question": "What decides which requirements you must meet?",
+          "options": [
+            "The modules you turn on",
+            "The frameworks in scope",
+            "The size of the organisation"
+          ],
+          "answer": 1,
+          "explanation": "The frameworks decide the requirements; modules are where you meet them."
+        },
+        {
+          "question": "What happens to the records when you turn a module off?",
+          "options": [
+            "They are deleted",
+            "They move to another module",
+            "They are kept and come back when you turn it on"
+          ],
+          "answer": 2,
+          "explanation": "Turning a module off only hides it; the records stay."
+        }
+      ],
+      "pass_mark": 0.8
+    }
+  }
+}

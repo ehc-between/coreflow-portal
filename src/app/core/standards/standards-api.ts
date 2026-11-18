@@ -11,6 +11,9 @@ import {
   BulkLinksResponse,
   CatalogueClause,
   ClauseDetail,
+  ClauseLinkRequest,
+  ClauseLinkResponse,
+  ExportFormat,
   GapsQuery,
   GapsResponse,
   RequirementCoverageResponse,
@@ -28,9 +31,11 @@ import {
   RequirementLink,
   RequirementLinkQuery,
   RequirementPatch,
+  ReuseEvidenceResponse,
   StandardJob,
   StandardJobStarted,
   StandardSummary,
+  SuggestFromRecordsResponse,
 } from './standards.models';
 
 /** Default poll interval for background standards jobs. */
@@ -275,6 +280,60 @@ export class StandardsApi {
     return this.api.get<EvidenceSuggestions>(`${this.base(orgId)}/evidence-suggestions`, {
       ...INLINE_ERRORS,
       params: { entity_type: entityType, entity_id: entityId },
+    });
+  }
+
+  // --- A03: bulk evidence actions and export ----------------------------------
+
+  /** One record as confirmed evidence for every requirement of a clause, minus opt-outs. */
+  linkClause(
+    orgId: string,
+    key: string,
+    number: string,
+    body: ClauseLinkRequest,
+  ): Observable<ClauseLinkResponse> {
+    return this.api.post<ClauseLinkResponse>(
+      `${this.base(orgId)}/standards/${encodeURIComponent(key)}/clauses/${encodeURIComponent(number)}/links`,
+      body,
+      INLINE_ERRORS,
+    );
+  }
+
+  /** Suggest the confirmed evidence of a mapped clause (another standard) on this clause. */
+  reuseEvidence(
+    orgId: string,
+    key: string,
+    number: string,
+    from: { readonly standardKey: string; readonly number: string },
+  ): Observable<ReuseEvidenceResponse> {
+    return this.api.post<ReuseEvidenceResponse>(
+      `${this.base(orgId)}/standards/${encodeURIComponent(key)}/clauses/${encodeURIComponent(number)}/reuse-evidence`,
+      { from_standard_key: from.standardKey, from_number: from.number },
+      INLINE_ERRORS,
+    );
+  }
+
+  /**
+   * Suggested evidence links from the org's existing records (keyword ranking, no
+   * AI): every declared record type, or one. Suggestions never count until confirmed.
+   */
+  suggestFromRecords(
+    orgId: string,
+    key: string,
+    entityType?: string | null,
+  ): Observable<SuggestFromRecordsResponse> {
+    return this.api.post<SuggestFromRecordsResponse>(
+      `${this.base(orgId)}/standards/${encodeURIComponent(key)}/suggest-from-records`,
+      { entity_type: entityType ?? null },
+      INLINE_ERRORS,
+    );
+  }
+
+  /** The compliance matrix of a standard as a file (labels in the UI language). */
+  exportMatrix(orgId: string, key: string, format: ExportFormat): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/standards/${encodeURIComponent(key)}/export`, {
+      ...INLINE_ERRORS,
+      params: { format, lang: this.lang() },
     });
   }
 

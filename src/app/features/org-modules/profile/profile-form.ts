@@ -38,6 +38,73 @@ function countryCode(control: AbstractControl<string>): ValidationErrors | null 
   return COUNTRY.test(value) ? null : { country: true };
 }
 
+/** Kinds of site offered in the profile (`modules.profile.siteKinds.<kind>`). */
+export const SITE_KINDS = [
+  'head_office',
+  'office',
+  'production',
+  'warehouse',
+  'data_centre',
+  'store',
+  'construction_site',
+  'remote',
+  'other',
+] as const;
+
+/**
+ * Countries offered for the organisation and its sites: the EEA, the UK and
+ * Switzerland, then the most common trading partners outside Europe.
+ */
+export const PROFILE_COUNTRY_CODES = [
+  'NO',
+  'SE',
+  'DK',
+  'FI',
+  'IS',
+  'DE',
+  'NL',
+  'BE',
+  'LU',
+  'FR',
+  'IE',
+  'GB',
+  'CH',
+  'AT',
+  'IT',
+  'ES',
+  'PT',
+  'PL',
+  'CZ',
+  'SK',
+  'HU',
+  'SI',
+  'HR',
+  'RO',
+  'BG',
+  'GR',
+  'CY',
+  'MT',
+  'EE',
+  'LV',
+  'LT',
+  'LI',
+  'US',
+  'CA',
+  'MX',
+  'BR',
+  'AU',
+  'NZ',
+  'JP',
+  'KR',
+  'CN',
+  'IN',
+  'SG',
+  'AE',
+  'ZA',
+  'TR',
+  'UA',
+] as const;
+
 export function siteGroup(fb: FormBuilder) {
   return fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(200)]],

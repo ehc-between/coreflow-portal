@@ -20,10 +20,10 @@ import { Card } from '../../shared/ui/card/card';
       <app-card>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="min-w-0">
-            <h2 class="font-display text-[16px] font-bold tracking-[-0.02em] text-fg">
+            <h2 class="font-display text-section font-bold tracking-[-0.02em] text-fg">
               {{ 'records.settingsLink.title' | transloco }}
             </h2>
-            <p class="mt-0.5 text-[13px] text-fg-muted">
+            <p class="mt-0.5 text-ui text-fg-muted">
               {{ 'records.settingsLink.subtitle' | transloco }}
             </p>
           </div>

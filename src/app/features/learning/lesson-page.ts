@@ -18,7 +18,7 @@ import { Icon } from '../../shared/ui/icon/icon';
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <a
           routerLink="/account/learning"
-          class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+          class="inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="15" />
           {{ 'guidance.centre.backToCentre' | transloco }}
@@ -34,7 +34,7 @@ import { Icon } from '../../shared/ui/icon/icon';
         <div
           data-testid="lesson-done"
           role="status"
-          class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-card border border-pass/30 bg-pass-soft px-4 py-3 text-[13.5px] font-semibold text-pass"
+          class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-card border border-pass/30 bg-pass-soft px-4 py-3 text-ui font-semibold text-pass"
         >
           {{ 'guidance.lesson.recorded' | transloco }}
           <a routerLink="/account/learning" class="text-accent hover:underline">

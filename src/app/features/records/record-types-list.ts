@@ -7,6 +7,8 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -29,17 +31,12 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
-import { AskPanelService } from '../ask/ask-panel.service';
 import { MODULE_KEYS, moduleLabelKey } from './designer-model';
 import { AiDraftPanel } from './designer/ai-draft-panel';
 import { RecordDraftStore } from './draft-store';
-import {
-  RecordsGuideIntro,
-  RecordsLesson,
-  RecordsTeachingEmpty,
-  RecordsWhy,
-} from './guidance/records-guidance';
-import { providePageContext } from './page-context';
+import { RecordsTeachingEmpty } from './guidance/records-guidance';
+import { providePageContext } from '../../core/ai/page-context';
+import { ClauseChips } from '../../shared/guidance/clause-chips';
 
 export type ListTab = 'types' | 'workflows' | 'templates';
 export type ListSort = 'name' | 'updated';
@@ -74,6 +71,8 @@ export function filterAndSort<
     FormsModule,
     RouterLink,
     TranslocoPipe,
+    HelpStrip,
+    WhyItMatters,
     RelativeTimePipe,
     Badge,
     Button,
@@ -81,17 +80,15 @@ export function filterAndSort<
     FormField,
     Icon,
     AiDraftPanel,
-    RecordsGuideIntro,
-    RecordsWhy,
-    RecordsLesson,
     RecordsTeachingEmpty,
+    ClauseChips,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
       <a
         routerLink="/settings"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
       >
         <app-icon name="back" [size]="16" />
         {{ 'records.backToSettings' | transloco }}
@@ -99,24 +96,14 @@ export function filterAndSort<
 
       <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div class="min-w-0">
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
+          <h1 class="font-display text-page font-bold text-fg">
             {{ 'records.list.title' | transloco }}
           </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">{{ 'records.list.subtitle' | transloco }}</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <app-button variant="ghost" size="sm" (click)="explain()">
-            <app-icon name="spark" [size]="15" />
-            {{ 'records.list.explain' | transloco }}
-          </app-button>
-          <app-records-lesson lesson="workflows-101" />
+          <p class="mt-1.5 text-body text-fg-muted">{{ 'records.list.subtitle' | transloco }}</p>
         </div>
       </div>
 
-      <div class="mb-5 grid gap-4 lg:grid-cols-[1fr_320px]">
-        <app-records-guide-intro page="list" />
-        <app-records-why page="list" />
-      </div>
+      <app-help-strip scope="records" page="list" lesson="designing-record-types" />
 
       @if (canAdmin()) {
         <div class="mb-5 flex flex-wrap gap-2" data-testid="records-actions">
@@ -152,7 +139,7 @@ export function filterAndSort<
             [attr.aria-selected]="tab() === t"
             [attr.aria-controls]="'records-panel-' + t"
             [attr.tabindex]="tab() === t ? 0 : -1"
-            class="-mb-px border-b-2 px-3 py-2 text-[13.5px] font-semibold"
+            class="-mb-px border-b-2 px-3 py-2 text-ui font-semibold"
             [class]="
               tab() === t
                 ? 'border-accent text-fg'
@@ -202,7 +189,7 @@ export function filterAndSort<
         [attr.aria-labelledby]="'records-tab-' + tab()"
       >
         @if (tab() === 'types') {
-          <label class="mb-3 flex items-center gap-2 text-[13px] text-fg-muted">
+          <label class="mb-3 flex items-center gap-2 text-ui text-fg-muted">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -213,7 +200,7 @@ export function filterAndSort<
           </label>
           <app-card [padded]="false">
             @if (loading()) {
-              <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
+              <p class="px-4 py-10 text-center text-body text-fg-muted">
                 {{ 'common.loading' | transloco }}
               </p>
             } @else if (visibleTypes().length === 0) {
@@ -224,7 +211,7 @@ export function filterAndSort<
                   (action)="selectTab('templates')"
                 />
               } @else {
-                <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
+                <p class="px-4 py-10 text-center text-body text-fg-muted">
                   {{ 'records.list.noMatch' | transloco }}
                 </p>
               }
@@ -236,19 +223,19 @@ export function filterAndSort<
                       [routerLink]="['/settings/record-types', type.id]"
                       class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3"
                     >
-                      <span class="w-[72px] flex-none font-mono text-[12px] text-fg-subtle">{{
+                      <span class="w-[72px] flex-none font-mono text-meta text-fg-subtle">{{
                         type.code_prefix ?? '—'
                       }}</span>
                       <span class="min-w-0 flex-1">
                         <span class="block truncate font-semibold text-fg">{{ type.name }}</span>
-                        <span class="block truncate font-mono text-[12px] text-fg-subtle">{{
+                        <span class="block truncate font-mono text-meta text-fg-subtle">{{
                           type.key
                         }}</span>
                       </span>
                       <app-badge tone="neutral">{{
                         moduleLabel(type.module) | transloco
                       }}</app-badge>
-                      <span class="text-[12.5px] text-fg-muted">
+                      <span class="text-meta text-fg-muted">
                         @if (type.current_version; as v) {
                           {{
                             'records.list.typeMeta'
@@ -280,7 +267,7 @@ export function filterAndSort<
         @if (tab() === 'workflows') {
           <app-card [padded]="false">
             @if (loading()) {
-              <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
+              <p class="px-4 py-10 text-center text-body text-fg-muted">
                 {{ 'common.loading' | transloco }}
               </p>
             } @else if (visibleWorkflows().length === 0) {
@@ -291,7 +278,7 @@ export function filterAndSort<
                   (action)="newWorkflow()"
                 />
               } @else {
-                <p class="px-4 py-10 text-center text-[14px] text-fg-muted">
+                <p class="px-4 py-10 text-center text-body text-fg-muted">
                   {{ 'records.list.noMatch' | transloco }}
                 </p>
               }
@@ -305,12 +292,12 @@ export function filterAndSort<
                     >
                       <span class="min-w-0 flex-1">
                         <span class="block truncate font-semibold text-fg">{{ wf.name }}</span>
-                        <span class="block truncate font-mono text-[12px] text-fg-subtle">{{
+                        <span class="block truncate font-mono text-meta text-fg-subtle">{{
                           wf.key
                         }}</span>
                       </span>
                       <app-badge tone="neutral">{{ moduleLabel(wf.module) | transloco }}</app-badge>
-                      <span class="text-[12.5px] text-fg-muted">
+                      <span class="text-meta text-fg-muted">
                         @if (wf.current_version; as v) {
                           {{
                             'records.list.workflowMeta'
@@ -325,7 +312,7 @@ export function filterAndSort<
                           {{ 'records.list.unpublished' | transloco }}
                         }
                       </span>
-                      <span class="text-[12px] text-fg-subtle">
+                      <span class="text-meta text-fg-subtle">
                         {{
                           'records.list.updated'
                             | transloco: { when: wf.updated_at | relativeTime: lang() }
@@ -342,7 +329,7 @@ export function filterAndSort<
         @if (tab() === 'templates') {
           @if (templates().length === 0 && !loading()) {
             <app-card>
-              <p class="px-2 py-8 text-center text-[14px] text-fg-muted">
+              <p class="px-2 py-8 text-center text-body text-fg-muted">
                 {{ 'records.templates.empty' | transloco }}
               </p>
             </app-card>
@@ -353,10 +340,10 @@ export function filterAndSort<
                 <app-card>
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <h3 class="font-display text-[15px] font-bold text-fg">
+                      <h3 class="font-display text-card font-bold text-fg">
                         {{ text(tpl.name) }}
                       </h3>
-                      <p class="mt-0.5 text-[12px] text-fg-subtle">
+                      <p class="mt-0.5 text-meta text-fg-subtle">
                         {{ moduleLabel(tpl.module) | transloco }}
                         ·
                         {{
@@ -376,9 +363,20 @@ export function filterAndSort<
                       }}</app-badge>
                     }
                   </div>
-                  <p class="mt-2 text-[13px] leading-relaxed text-fg-muted">
+                  <p class="mt-2 text-ui leading-relaxed text-fg-muted">
                     {{ text(tpl.description) }}
                   </p>
+                  @if (tpl.requirements?.length) {
+                    <p
+                      class="mt-2 flex flex-wrap items-baseline gap-x-1.5"
+                      data-testid="template-requirements"
+                    >
+                      <span class="text-meta font-semibold text-fg-muted">{{
+                        'records.templates.documents' | transloco
+                      }}</span>
+                      <app-clause-chips [clauses]="tpl.requirements ?? []" />
+                    </p>
+                  }
                   @if (!tpl.installed) {
                     <div class="mt-3">
                       <app-button
@@ -397,6 +395,8 @@ export function filterAndSort<
           </ul>
         }
       </div>
+
+      <app-why-it-matters class="mt-6 block" scope="records" page="list" />
     </div>
 
     @if (canAdmin()) {
@@ -416,7 +416,6 @@ export class RecordTypesList {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly drafts = inject(RecordDraftStore);
-  private readonly ask = inject(AskPanelService);
   private readonly transloco = inject(TranslocoService);
 
   protected readonly lang = inject(LanguageService).active;
@@ -512,10 +511,6 @@ export class RecordTypesList {
 
   protected newWorkflow(): void {
     void this.router.navigate(['/settings/record-types/workflows/new']);
-  }
-
-  protected explain(): void {
-    this.ask.showWith(this.transloco.translate('records.list.explainPrompt'));
   }
 
   protected useDraft(event: { module: string; draft: WorkflowAiDraft }): void {

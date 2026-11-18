@@ -12,7 +12,6 @@ import { TERM_KEYS } from '../../core/modules/terminology-transpiler';
 import { ROLE_KEYS } from '../../core/org/roles';
 import { MODULE_NAV_ITEMS, NAV_ITEMS, NAV_SECTIONS } from '../../layout/nav';
 import { SETTINGS_LINKS } from '../org-settings/settings-links/settings-links';
-import { GUIDE_CLAUSES, clauseFramework } from './frameworks';
 import { FIRST_TASKS, SETUP_STEPS } from './setup/setup-steps';
 
 type Dict = Record<string, unknown>;
@@ -174,9 +173,6 @@ describe('F1 i18n', () => {
           has(`modules.frameworks.${fw}.short`);
           has(`modules.frameworks.${fw}.description`);
         });
-        Object.values(GUIDE_CLAUSES)
-          .flat()
-          .forEach((ref) => has(`modules.frameworks.${clauseFramework(ref)}.short`));
         SIZE_BANDS.forEach((band) => has(`modules.sizeBands.${band}`));
         AI_ACT_ROLES.forEach((role) => {
           has(`modules.aiActRoles.${role}.name`);
@@ -202,12 +198,9 @@ describe('F1 i18n', () => {
         });
       });
 
-      it('has the guidance for every F1 page', () => {
-        for (const page of ['modules', 'profile', 'terminology', 'setup']) {
-          has(`modules.guide.pages.${page}.intro.title`);
-          has(`modules.guide.pages.${page}.intro.body`);
-          ['s1', 's2', 's3'].forEach((s) => has(`modules.guide.pages.${page}.intro.steps.${s}`));
-          has(`modules.guide.pages.${page}.why.body`);
+      it('has the field help for the organisation profile', () => {
+        for (const field of ['industry', 'countries', 'description', 'frameworks', 'targets']) {
+          has(`modules.guide.pages.profile.fields.${field}.help`);
         }
       });
 
