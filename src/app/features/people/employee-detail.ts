@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Injector,
   afterNextRender,
   computed,
   effect,
@@ -9,37 +10,49 @@ import {
   input,
   signal,
   untracked,
-  Injector,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
+import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
-import { Icon } from '../../shared/ui/icon/icon';
+import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { PeopleApi } from './data/people-api';
-import { employeeStatusTone, hasPerm, screeningTone } from './data/people-display';
+import { countKey, employeeStatusLook, hasPerm, sameTitle } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
-import { Employee, PERM_DISCIPLINARY, PERM_MANAGE } from './data/people.models';
+import {
+  ChecklistKind,
+  Employee,
+  EmployeeCompliance,
+  PERM_DISCIPLINARY,
+  PERM_MANAGE,
+} from './data/people.models';
 import { EmployeeAwarenessSection } from './employee-awareness';
 import { EmployeeChecklistsSection } from './employee-checklists';
 import { EmployeeCompetencesSection } from './employee-competences';
 import { EmployeeDisciplinarySection } from './employee-disciplinary';
-import { PeopleLessonLink } from './people-section-nav';
+import { EmployeeAccount } from './ui/employee-account';
+import { ComplianceFix, EmployeeComplianceCard } from './ui/employee-compliance';
+import { EmployeeHandoverSection, EmployeeTrainingSection } from './ui/employee-training';
+import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -50,8 +63,16 @@ const TABS: readonly RecordTab[] = [
   'revisions',
 ];
 
-/** Sections of the details tab that `?tab=` links (from the backend URLs) scroll to. */
-const SECTION_ANCHORS = new Set(['competences', 'checklists', 'awareness', 'disciplinary']);
+/** Sections of the details tab that `?section=` / `?tab=` links scroll to. */
+const SECTION_ANCHORS = new Set([
+  'compliance',
+  'competences',
+  'training',
+  'checklists',
+  'awareness',
+  'handover',
+  'disciplinary',
+]);
 
 /** Revision snapshot field -> i18n key (for the revisions tab). */
 export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -60,6 +81,7 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
   position_id: 'people.fields.position',
   department_id: 'people.fields.department',
   manager_id: 'people.fields.manager',
+  user_id: 'people.fields.user',
   employment_type: 'people.fields.employmentType',
   status: 'people.fields.status',
   start_date: 'people.fields.startDate',
@@ -68,13 +90,40 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
   security_terms_accepted_on: 'people.fields.securityTermsAcceptedOn',
   screening_status: 'people.fields.screeningStatus',
   screening_completed_on: 'people.fields.screeningCompletedOn',
+  screening_scope: 'people.fields.screeningScope',
+  screening_legal_basis: 'people.fields.screeningLegalBasis',
+  screening_recheck_on: 'people.fields.screeningRecheckOn',
+  post_employment_ack_on: 'people.fields.postEmploymentAckOn',
 };
 
+/** The one main action of the page header for this person, if any. */
+export type PrimaryAction =
+  | { readonly kind: 'openChecklist'; readonly checklist: ChecklistKind; readonly id: string }
+  | { readonly kind: 'start'; readonly checklist: ChecklistKind }
+  | { readonly kind: 'edit' };
+
+export function primaryActionFor(e: Employee): PrimaryAction | null {
+  if (!e.can_edit) {
+    return null;
+  }
+  if (e.open_offboarding_id) {
+    return { kind: 'openChecklist', checklist: 'offboarding', id: e.open_offboarding_id };
+  }
+  if (e.open_onboarding_id) {
+    return { kind: 'openChecklist', checklist: 'onboarding', id: e.open_onboarding_id };
+  }
+  if (e.status === 'onboarding') {
+    return { kind: 'start', checklist: 'onboarding' };
+  }
+  return { kind: 'edit' };
+}
+
 /**
- * An employee (`/people/employees/:id`): role and employment, the security terms of
- * employment, competences against the position's requirements, onboarding and
- * offboarding checklists, awareness records and (restricted) disciplinary records;
- * related records, activity, comments, attachments and revisions from the record kit.
+ * A person (`/people/employees/:id`): what the standards require for them
+ * ("Krav for denne personen"), role and employment, competence against the
+ * position (with actions on gaps), training from M11, awareness (policies read,
+ * linked to the document version), joiner/leaver checklists, equipment and access
+ * when they leave, and (restricted) disciplinary cases; plus the record kit.
  */
 @Component({
   selector: 'app-people-employee-detail',
@@ -84,40 +133,45 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
     LocalDatePipe,
     LocalDayPipe,
     WatchButton,
-    AskAbout,
-    GuideIntro,
     WhyItMatters,
     RecordDetailLayout,
-    SupportsRequirements,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
-    Icon,
+    EmptyState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    LoadingState,
+    MenuItem,
+    StatusBadge,
+    EmployeeAccount,
     EmployeeAwarenessSection,
     EmployeeChecklistsSection,
     EmployeeCompetencesSection,
+    EmployeeComplianceCard,
     EmployeeDisciplinarySection,
-    PeopleLessonLink,
+    EmployeeHandoverSection,
+    EmployeeTrainingSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'people.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-8 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
-          <app-alert tone="error">{{ errorKey() | transloco }}</app-alert>
-          <a
-            routerLink="/people/employees"
-            class="mt-4 inline-block text-[13px] font-semibold text-accent"
-          >
-            {{ 'people.common.backToList' | transloco }}
-          </a>
+          <app-empty-state
+            icon="search"
+            [titleKey]="errorKey()"
+            bodyKey="people.detail.notFoundBody"
+            ctaKey="people.common.backToList"
+            ctaLink="/people/employees"
+          />
         </div>
       }
       @default {
@@ -125,69 +179,140 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             entityType="employee"
             [entityId]="e.id"
+            [title]="e.full_name"
+            [breadcrumbs]="[root, { label: e.full_name }]"
+            [settingsLink]="settingsLink"
             [tabs]="tabs"
             [canEdit]="e.can_edit"
+            [requirementsPanel]="true"
             [fieldLabels]="fieldLabels"
-            backLink="/people/employees"
-            backLabelKey="people.common.backToList"
           >
-            <div header>
-              <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
-                <span class="font-mono font-semibold">{{ e.code }}</span>
-                @if (e.employee_number) {
-                  <span>{{ 'people.detail.number' | transloco: { n: e.employee_number } }}</span>
-                }
-                <span>{{ 'people.employmentTypes.' + e.employment_type | transloco }}</span>
-              </p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-                data-testid="employee-heading"
-              >
-                {{ e.full_name }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="statusTone(e.status)" data-testid="employee-status">{{
-                  'people.status.' + e.status | transloco
-                }}</app-badge>
-                @if (e.position?.name ?? e.job_title; as role) {
-                  <span class="text-[13px] text-fg-muted">{{ role }}</span>
-                }
-              </div>
-            </div>
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono" data-testid="employee-code">{{ e.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'people.employmentTypes.' + e.employment_type | transloco }}</span>
+              @if (e.position?.name ?? e.job_title; as role) {
+                <span aria-hidden="true">·</span>
+                <span>{{ role }}</span>
+              }
+              <app-status-badge
+                [meaning]="statusLook(e.status).meaning"
+                [value]="statusLook(e.status).value"
+                [labelKey]="'people.status.' + e.status"
+                data-testid="employee-status"
+              />
+              <span class="sr-only" data-testid="employee-heading">{{ e.full_name }}</span>
+            </ng-container>
 
-            <ng-container actions>
-              <app-watch-button entityType="employee" [entityId]="e.id" />
-              <app-ask-about [prompt]="'people.ask.summariseEmployee' | transloco" />
-              @if (e.can_edit) {
-                <a
-                  [routerLink]="['/people/employees', e.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  data-testid="employee-edit"
-                >
-                  {{ 'people.common.edit' | transloco }}
+            @if (primary(); as action) {
+              <ng-container ngProjectAs="[primary]">
+                @switch (action.kind) {
+                  @case ('openChecklist') {
+                    @if (action.kind === 'openChecklist') {
+                      <a
+                        [routerLink]="['/people/checklists', action.id]"
+                        data-testid="open-checklist"
+                      >
+                        <app-button>{{
+                          'people.detail.openChecklist.' + action.checklist | transloco
+                        }}</app-button>
+                      </a>
+                    }
+                  }
+                  @case ('start') {
+                    @if (action.kind === 'start') {
+                      <app-button
+                        (click)="startChecklist(action.checklist)"
+                        [attr.data-testid]="'start-' + action.checklist"
+                      >
+                        {{ 'people.checklists.start.' + action.checklist | transloco }}
+                      </app-button>
+                    }
+                  }
+                  @default {
+                    <a
+                      [routerLink]="['/people/employees', e.id, 'edit']"
+                      data-testid="employee-edit"
+                    >
+                      <app-button>{{ 'people.common.edit' | transloco }}</app-button>
+                    </a>
+                  }
+                }
+              </ng-container>
+            }
+
+            <ng-container ngProjectAs="[secondary]">
+              @if (e.can_edit && primary()?.kind !== 'edit') {
+                <a [routerLink]="['/people/employees', e.id, 'edit']" data-testid="employee-edit">
+                  <app-button variant="secondary">{{
+                    'people.common.edit' | transloco
+                  }}</app-button>
                 </a>
               }
+              <app-watch-button entityType="employee" [entityId]="e.id" />
+            </ng-container>
+
+            <ng-container ngProjectAs="[overflow]">
+              <button appMenuItem type="button" (click)="summarise()" data-testid="summarise">
+                {{ 'people.detail.summarise' | transloco }}
+              </button>
+              <a
+                appMenuItem
+                [routerLink]="['/people/employees', e.id, 'competence-record']"
+                data-testid="competence-record"
+              >
+                {{ 'people.record.open' | transloco }}
+              </a>
+              @if (e.can_edit) {
+                @if (
+                  !e.open_onboarding_id && primary()?.kind !== 'start' && e.status !== 'former'
+                ) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    (click)="startChecklist('onboarding')"
+                    data-testid="start-onboarding"
+                  >
+                    {{ 'people.checklists.start.onboarding' | transloco }}
+                  </button>
+                }
+                @if (!e.open_offboarding_id && e.status !== 'former') {
+                  <button
+                    appMenuItem
+                    type="button"
+                    (click)="startChecklist('offboarding')"
+                    data-testid="start-offboarding"
+                  >
+                    {{ 'people.checklists.start.offboarding' | transloco }}
+                  </button>
+                }
+              }
               @if (canRevoke()) {
-                <app-button
-                  variant="secondary"
-                  size="sm"
+                <button
+                  appMenuItem
+                  type="button"
                   (click)="revoking.set(true)"
                   data-testid="employee-revoke-access"
                 >
                   {{ 'people.detail.revokeAccess' | transloco }}
-                </app-button>
+                </button>
               }
               @if (canManage()) {
-                <app-button variant="ghost" size="sm" (click)="deleting.set(true)">
-                  <app-icon name="trash" [size]="14" />
+                <button
+                  appMenuItem
+                  type="button"
+                  [danger]="true"
+                  (click)="deleting.set(true)"
+                  data-testid="employee-delete"
+                >
                   {{ 'people.common.delete' | transloco }}
-                </app-button>
+                </button>
               }
             </ng-container>
 
-            <div class="flex flex-col gap-6">
-              <app-guide-intro scope="people" page="detail" />
+            <app-help-strip help scope="people" page="detail" lesson="competence-basics" />
 
+            <div class="flex flex-col gap-5">
               @if (e.status === 'former') {
                 <app-alert tone="info">{{ 'people.detail.formerNotice' | transloco }}</app-alert>
               }
@@ -201,158 +326,120 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
                   'people.detail.accessRevokesOn' | transloco: { date: (e.end_date | localDay) }
                 }}</app-alert>
               }
+              @if (!e.user && e.status !== 'former') {
+                <app-people-employee-account
+                  [employee]="e"
+                  [canEdit]="e.can_edit"
+                  (linked)="onUpdated($event)"
+                />
+              }
 
               <app-card>
-                <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                  {{ 'people.detail.summary' | transloco }}
-                </h2>
-                <dl
-                  class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 lg:grid-cols-3"
-                >
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.position' | transloco }}</dt>
-                    <dd class="text-fg">
-                      @if (e.position; as p) {
-                        <a
-                          [routerLink]="['/people/positions', p.id]"
-                          class="font-semibold text-accent hover:underline"
-                          >{{ p.name }}</a
-                        >
-                      } @else {
-                        {{ 'people.common.none' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.jobTitle' | transloco }}</dt>
-                    <dd class="text-fg">{{ e.job_title ?? ('people.common.none' | transloco) }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.department' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{ e.department?.name ?? ('people.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.manager' | transloco }}</dt>
-                    <dd class="text-fg">
-                      @if (e.manager; as m) {
-                        <a
-                          [routerLink]="['/people/employees', m.id]"
-                          class="font-semibold text-accent hover:underline"
-                          >{{ m.name }}</a
-                        >
-                      } @else {
-                        {{ 'people.common.none' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.user' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{ e.user?.name ?? ('people.detail.noUser' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.location' | transloco }}</dt>
-                    <dd class="text-fg">{{ e.location ?? ('people.common.none' | transloco) }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.email' | transloco }}</dt>
-                    <dd class="break-all text-fg">
-                      {{ e.email ?? ('people.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  @if (e.phone) {
-                    <div>
-                      <dt class="text-fg-subtle">{{ 'people.fields.phone' | transloco }}</dt>
-                      <dd class="text-fg">{{ e.phone }}</dd>
-                    </div>
-                  }
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.startDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        e.start_date
-                          ? (e.start_date | localDay)
-                          : ('people.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">{{ 'people.fields.endDate' | transloco }}</dt>
-                    <dd class="text-fg">
-                      {{
-                        e.end_date ? (e.end_date | localDay) : ('people.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                </dl>
-                @if (e.notes) {
-                  <p class="mt-4 text-[13px] whitespace-pre-line text-fg-muted">
-                    <span class="font-semibold text-fg"
-                      >{{ 'people.fields.notes' | transloco }}:</span
-                    >
-                    {{ e.notes }}
-                  </p>
-                }
+                <app-people-employee-compliance
+                  [employee]="e"
+                  [canEdit]="e.can_edit"
+                  [refresh]="refreshCount()"
+                  (fix)="fix($event)"
+                  (loaded)="onCompliance($event)"
+                />
               </app-card>
 
               <app-card>
-                <h2 class="mb-3 flex items-center gap-2 font-display text-[15px] font-bold text-fg">
-                  {{ 'people.detail.securityTerms' | transloco }}
-                  <app-ask-about
-                    [prompt]="'people.ask.securityTerms' | transloco"
-                    field="security_terms"
-                  />
+                <h2 class="mb-3 text-card font-bold text-fg">
+                  {{ 'people.detail.summary' | transloco }}
                 </h2>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3">
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'people.fields.confidentialitySignedOn' | transloco }}
-                    </dt>
-                    <dd data-testid="confidentiality">
-                      @if (e.confidentiality_signed_on) {
-                        <span class="text-pass">{{ e.confidentiality_signed_on | localDay }}</span>
-                      } @else {
-                        <span class="font-semibold text-warn">{{
-                          'people.detail.notSigned' | transloco
+                <app-field-list [columns]="2">
+                  <app-field-item labelKey="people.fields.position" empty="none">
+                    @if (e.position; as p) {
+                      <a
+                        [routerLink]="['/people/positions', p.id]"
+                        class="font-semibold text-accent hover:underline"
+                        >{{ p.name }}</a
+                      >
+                      @if (e.position_risk_level; as risk) {
+                        <span class="ml-1 text-meta text-fg-muted">{{
+                          'people.riskLevels.' + risk | transloco
                         }}</span>
                       }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'people.fields.securityTermsAcceptedOn' | transloco }}
-                    </dt>
-                    <dd>
-                      @if (e.security_terms_accepted_on) {
-                        <span class="text-pass">{{ e.security_terms_accepted_on | localDay }}</span>
-                      } @else {
-                        <span class="font-semibold text-warn">{{
-                          'people.detail.notAccepted' | transloco
-                        }}</span>
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-fg-subtle">
-                      {{ 'people.fields.screeningStatus' | transloco }}
-                    </dt>
-                    <dd class="flex flex-wrap items-center gap-2">
-                      <app-badge [tone]="screeningTone(e.screening_status)">{{
-                        'people.screening.' + e.screening_status | transloco
-                      }}</app-badge>
-                      @if (e.screening_completed_on) {
-                        <span class="text-fg-muted">{{ e.screening_completed_on | localDay }}</span>
-                      }
-                    </dd>
-                  </div>
-                </dl>
+                    }
+                  </app-field-item>
+                  @if (!sameTitle(e.job_title, e.position?.name)) {
+                    <app-field-item labelKey="people.fields.ownTitle" [value]="e.job_title" />
+                  }
+                  <app-field-item
+                    labelKey="people.fields.department"
+                    [value]="e.department?.name"
+                  />
+                  <app-field-item labelKey="people.fields.manager" empty="none">
+                    @if (e.manager; as m) {
+                      <a
+                        [routerLink]="['/people/employees', m.id]"
+                        class="font-semibold text-accent hover:underline"
+                        >{{ m.name }}</a
+                      >
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="people.fields.user"
+                    empty="none"
+                    [value]="e.user?.name"
+                  />
+                  <app-field-item labelKey="people.fields.email" [value]="e.email" />
+                  @if (e.phone) {
+                    <app-field-item labelKey="people.fields.phone" [value]="e.phone" />
+                  }
+                  <app-field-item labelKey="people.fields.location" [value]="e.location" />
+                  <app-field-item labelKey="people.fields.startDate">
+                    @if (e.start_date) {
+                      {{ e.start_date | localDay }}
+                    }
+                  </app-field-item>
+                  <app-field-item labelKey="people.fields.endDate">
+                    @if (e.end_date) {
+                      {{ e.end_date | localDay }}
+                    }
+                  </app-field-item>
+                  @if (e.employee_number) {
+                    <app-field-item
+                      labelKey="people.fields.employeeNumber"
+                      [value]="e.employee_number"
+                    />
+                  }
+                  @if (e.source_application; as app) {
+                    <app-field-item labelKey="people.fields.sourceApplication">
+                      <a [routerLink]="app.url" class="font-semibold text-accent hover:underline">{{
+                        'people.detail.hiredThrough' | transloco: { code: app.requisition.code }
+                      }}</a>
+                    </app-field-item>
+                  }
+                  @if (e.notes) {
+                    <app-field-item
+                      labelKey="people.fields.notes"
+                      [value]="e.notes"
+                      [wide]="true"
+                      [multiline]="true"
+                    />
+                  }
+                </app-field-list>
               </app-card>
 
               <app-card>
                 <app-people-employee-competences
+                  [employeeId]="e.id"
+                  [employeeName]="e.full_name"
+                  [hasUser]="!!e.user"
+                  [canEdit]="e.can_edit"
+                  [refresh]="refreshCount()"
+                  (changed)="reload()"
+                />
+              </app-card>
+
+              <app-card>
+                <app-people-employee-training [employeeId]="e.id" />
+              </app-card>
+
+              <app-card>
+                <app-people-employee-awareness
                   [employeeId]="e.id"
                   [canEdit]="e.can_edit"
                   (changed)="reload()"
@@ -364,14 +451,16 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
                   [employeeId]="e.id"
                   [canEdit]="e.can_edit"
                   [endDate]="e.end_date"
-                  [refresh]="checklistRefresh()"
+                  [refresh]="refreshCount()"
                   (changed)="reload()"
                 />
               </app-card>
 
-              <app-card>
-                <app-people-employee-awareness [employeeId]="e.id" [canEdit]="e.can_edit" />
-              </app-card>
+              @if (showHandover()) {
+                <app-card>
+                  <app-people-employee-handover [employeeId]="e.id" [refresh]="refreshCount()" />
+                </app-card>
+              }
 
               @if (canDisciplinary()) {
                 <app-card>
@@ -380,34 +469,43 @@ export const EMPLOYEE_FIELD_LABELS: Readonly<Record<string, string>> = {
               }
             </div>
 
-            <ng-container aside>
+            <ng-container ngProjectAs="[aside]">
               <app-card>
-                <h2 class="mb-2 text-[13px] font-semibold text-fg-subtle">
+                <h2 class="mb-2 text-ui font-semibold text-fg-subtle">
                   {{ 'people.detail.atAGlance' | transloco }}
                 </h2>
-                <ul class="flex flex-col gap-1.5 text-[13px]">
-                  <li [class.text-warn]="e.gap_count > 0" data-testid="glance-gaps">
-                    {{ 'people.employees.gapCount' | transloco: { count: e.gap_count } }}
+                <ul class="flex flex-col gap-1.5 text-ui">
+                  <li [class.text-warn-ink]="e.gap_count > 0" data-testid="glance-gaps">
+                    {{
+                      countKey('people.employees.gapCount', e.gap_count)
+                        | transloco: { count: e.gap_count }
+                    }}
                   </li>
+                  @if (e.expiring_count) {
+                    <li class="text-warn-ink" data-testid="glance-expiring">
+                      {{
+                        countKey('people.employees.expiringCount', e.expiring_count)
+                          | transloco: { count: e.expiring_count }
+                      }}
+                    </li>
+                  }
                   <li>
                     {{
-                      'people.employees.openChecklists' | transloco: { count: e.open_checklists }
+                      countKey('people.employees.openChecklists', e.open_checklists)
+                        | transloco: { count: e.open_checklists }
                     }}
                   </li>
                 </ul>
                 <a
                   routerLink="/people/matrix"
-                  class="mt-3 inline-block text-[12.5px] font-semibold text-accent hover:underline"
+                  class="mt-3 inline-block text-meta font-semibold text-accent hover:underline"
                 >
                   {{ 'people.detail.openMatrix' | transloco }}
                 </a>
               </app-card>
-              <app-supports-requirements entityType="employee" [entityId]="e.id" />
+            </ng-container>
+            <ng-container ngProjectAs="[aside-learn]">
               <app-why-it-matters scope="people" page="detail" />
-              <div class="flex flex-col items-start gap-1">
-                <app-people-lesson-link lesson="competence-basics" />
-                <app-people-lesson-link lesson="joiners-and-leavers" />
-              </div>
             </ng-container>
           </app-record-detail-layout>
 
@@ -445,13 +543,22 @@ export class EmployeeDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
   private readonly auth = inject(AuthService);
+  private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
 
   readonly id = input.required<string>();
 
+  private readonly checklists = viewChild(EmployeeChecklistsSection);
+  private readonly competences = viewChild(EmployeeCompetencesSection);
+  private readonly awareness = viewChild(EmployeeAwarenessSection);
+
   protected readonly tabs = TABS;
+  protected readonly root = PEOPLE_ROOT;
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
   protected readonly fieldLabels = EMPLOYEE_FIELD_LABELS;
-  protected readonly statusTone = employeeStatusTone;
-  protected readonly screeningTone = screeningTone;
+  protected readonly statusLook = employeeStatusLook;
+  protected readonly countKey = countKey;
+  protected readonly sameTitle = sameTitle;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('people.common.loadFailed');
@@ -459,8 +566,20 @@ export class EmployeeDetail {
   protected readonly deleting = signal(false);
   protected readonly revoking = signal(false);
   protected readonly busy = signal(false);
-  /** Bumped after access is revoked so the checklists re-load (the system item ticks). */
-  protected readonly checklistRefresh = signal(0);
+  /** Bumped after changes so the sections that depend on the record reload. */
+  protected readonly refreshCount = signal(0);
+  /** The clauses the person's controls document (sent to the assistant). */
+  private readonly documented = signal<readonly string[]>([]);
+
+  protected readonly primary = computed(() => {
+    const e = this.employee();
+    return e ? primaryActionFor(e) : null;
+  });
+
+  protected readonly showHandover = computed(() => {
+    const e = this.employee();
+    return !!e && (e.status === 'offboarding' || e.status === 'former' || !!e.open_offboarding_id);
+  });
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions);
   protected readonly canManage = computed(() => hasPerm(this.permissions(), PERM_MANAGE));
@@ -493,6 +612,7 @@ export class EmployeeDetail {
         entityId: this.id(),
         view: 'detail',
         title: e ? `${e.code} ${e.full_name}` : null,
+        requirements: this.documented(),
       };
     });
     effect(() => {
@@ -506,6 +626,55 @@ export class EmployeeDetail {
     this.load(this.selectedOrg.currentOrgId(), this.id(), false);
   }
 
+  protected onUpdated(employee: Employee): void {
+    this.employee.set(employee);
+    this.refreshCount.update((n) => n + 1);
+  }
+
+  protected onCompliance(data: EmployeeCompliance): void {
+    this.documented.set(
+      data.items.filter((i) => i.status === 'ok').flatMap((i) => [...i.clause_refs]),
+    );
+  }
+
+  protected summarise(): void {
+    this.ask.askAbout(this.language.translate('people.ask.summariseEmployee'));
+  }
+
+  protected startChecklist(kind: ChecklistKind): void {
+    this.checklists()?.openStart(kind);
+  }
+
+  /** "Registrer" / "Fiks" in the compliance card. */
+  protected fix(target: ComplianceFix): void {
+    const e = this.employee();
+    if (!e) {
+      return;
+    }
+    switch (target) {
+      case 'edit':
+        void this.router.navigate(['/people/employees', e.id, 'edit'], {
+          fragment: 'security',
+        });
+        return;
+      case 'competences':
+        this.scrollTo('competences');
+        this.competences()?.openAssess(null);
+        return;
+      case 'awareness':
+        this.scrollTo('awareness');
+        this.awareness()?.open(null);
+        return;
+      case 'offboarding':
+        if (e.open_offboarding_id) {
+          void this.router.navigate(['/people/checklists', e.open_offboarding_id]);
+        } else {
+          this.startChecklist('offboarding');
+        }
+        return;
+    }
+  }
+
   protected revokeAccess(): void {
     const orgId = this.selectedOrg.currentOrgId();
     const e = this.employee();
@@ -517,8 +686,7 @@ export class EmployeeDetail {
       next: (employee) => {
         this.busy.set(false);
         this.revoking.set(false);
-        this.employee.set(employee);
-        this.checklistRefresh.update((n) => n + 1);
+        this.onUpdated(employee);
         this.notifications.success('people.notices.accessRevoked', { name: employee.full_name });
       },
       error: (error: unknown) => {
@@ -551,20 +719,21 @@ export class EmployeeDetail {
     });
   }
 
-  /** `?tab=awareness` (and other section names) scrolls to that section once. */
+  private scrollTo(section: string): void {
+    afterNextRender(() => document.getElementById(section)?.scrollIntoView?.({ block: 'start' }), {
+      injector: this.injector,
+    });
+  }
+
+  /** `?section=awareness` (or the older `?tab=awareness`) scrolls to that section once. */
   private scrollToSection(): void {
-    const tab = this.route.snapshot.queryParamMap.get('tab');
-    if (this.scrolled || !tab || !SECTION_ANCHORS.has(tab)) {
+    const params = this.route.snapshot.queryParamMap;
+    const section = params.get('section') ?? params.get('tab');
+    if (this.scrolled || !section || !SECTION_ANCHORS.has(section)) {
       return;
     }
     this.scrolled = true;
-    afterNextRender(
-      () => {
-        const el = document.getElementById(tab);
-        el?.scrollIntoView?.({ block: 'start' });
-      },
-      { injector: this.injector },
-    );
+    this.scrollTo(section);
   }
 
   private load(orgId: string | null, id: string, initial: boolean): void {
@@ -579,6 +748,9 @@ export class EmployeeDetail {
       next: (employee) => {
         this.employee.set(employee);
         this.state.set('ready');
+        if (!initial) {
+          this.refreshCount.update((n) => n + 1);
+        }
         this.scrollToSection();
       },
       error: (error: unknown) => {

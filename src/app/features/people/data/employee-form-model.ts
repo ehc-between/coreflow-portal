@@ -6,6 +6,8 @@ import {
   EmployeeStatus,
   EmployeeUpdate,
   EmploymentType,
+  SCREENING_SCOPES,
+  ScreeningScope,
   ScreeningStatus,
 } from './people.models';
 
@@ -29,6 +31,10 @@ export interface EmployeeFormValue {
   readonly security_terms_accepted_on: string;
   readonly screening_status: ScreeningStatus;
   readonly screening_completed_on: string;
+  readonly screening_scope: readonly ScreeningScope[];
+  readonly screening_legal_basis: string;
+  readonly screening_recheck_on: string;
+  readonly post_employment_ack_on: string;
   readonly notes: string;
 }
 
@@ -52,6 +58,10 @@ export function emptyEmployeeForm(): EmployeeFormValue {
     security_terms_accepted_on: '',
     screening_status: 'not_required',
     screening_completed_on: '',
+    screening_scope: [],
+    screening_legal_basis: '',
+    screening_recheck_on: '',
+    post_employment_ack_on: '',
     notes: '',
   };
 }
@@ -76,6 +86,12 @@ export function formFromEmployee(e: Employee): EmployeeFormValue {
     security_terms_accepted_on: e.security_terms_accepted_on ?? '',
     screening_status: e.screening_status,
     screening_completed_on: e.screening_completed_on ?? '',
+    screening_scope: (e.screening_scope ?? []).filter((s) =>
+      (SCREENING_SCOPES as readonly string[]).includes(s),
+    ),
+    screening_legal_basis: e.screening_legal_basis ?? '',
+    screening_recheck_on: e.screening_recheck_on ?? '',
+    post_employment_ack_on: e.post_employment_ack_on ?? '',
     notes: e.notes ?? '',
   };
 }
@@ -93,6 +109,16 @@ export function validateEmployeeForm(v: EmployeeFormValue): Readonly<Record<stri
   }
   if (v.start_date && v.end_date && v.end_date < v.start_date) {
     errors['end_date'] = 'people.form.errors.endBeforeStart';
+  }
+  if (v.screening_scope.includes('criminal_record') && !v.screening_legal_basis.trim()) {
+    errors['screening_legal_basis'] = 'people.form.errors.legalBasisRequired';
+  }
+  if (
+    v.screening_recheck_on &&
+    v.screening_completed_on &&
+    v.screening_recheck_on <= v.screening_completed_on
+  ) {
+    errors['screening_recheck_on'] = 'people.form.errors.recheckAfterCheck';
   }
   return errors;
 }
@@ -117,6 +143,10 @@ export function toEmployeeFields(v: EmployeeFormValue): EmployeeFields {
     security_terms_accepted_on: v.security_terms_accepted_on || null,
     screening_status: v.screening_status,
     screening_completed_on: v.screening_completed_on || null,
+    screening_scope: [...v.screening_scope],
+    screening_legal_basis: textOrNull(v.screening_legal_basis),
+    screening_recheck_on: v.screening_recheck_on || null,
+    post_employment_ack_on: v.post_employment_ack_on || null,
     notes: textOrNull(v.notes),
   };
 }
@@ -139,7 +169,10 @@ export function toEmployeeUpdate(
   const b = toEmployeeFields(after);
   const body: Record<string, unknown> = {};
   for (const key of Object.keys(b) as (keyof EmployeeFields)[]) {
-    if (a[key] !== b[key]) {
+    const changed = Array.isArray(b[key])
+      ? JSON.stringify(a[key]) !== JSON.stringify(b[key])
+      : a[key] !== b[key];
+    if (changed) {
       body[key] = b[key];
     }
   }

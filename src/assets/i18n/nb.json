@@ -1965,7 +1965,7 @@
       "audits": "Revisjonsprogram, planer, funn og sertifiseringssykluser.",
       "management_review": "Gjennomgangsmøter med samlet grunnlag, referat og beslutninger.",
       "objectives": "Mål med målverdier, eiere, planer og målte KPI-er.",
-      "people": "Ansattregister, kompetansematrise og onboarding.",
+      "people": "Personregister, kompetanse, oppstart og avslutning.",
       "recruitment": "Stillingsbehov, kandidatløp og bakgrunnssjekker.",
       "training": "Kurs, tildelinger, gjennomføringer og fornyet opplæring.",
       "contracts": "Kontraktsregister, viktige datoer, forpliktelser og fornyelser.",
@@ -2044,7 +2044,7 @@
       "meeting": "Møte",
       "objective": "Mål",
       "kpi": "KPI",
-      "employee": "Ansatt",
+      "employee": "Person",
       "position": "Stilling",
       "competence": "Kompetanse",
       "job_requisition": "Stillingsbehov",
@@ -2146,8 +2146,8 @@
       "other": "leverandører"
     },
     "employee": {
-      "one": "ansatt",
-      "other": "ansatte"
+      "one": "person",
+      "other": "personer"
     }
   },
   "ui": {

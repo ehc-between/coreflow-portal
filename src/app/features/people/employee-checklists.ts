@@ -18,16 +18,18 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { AssigneeSelect } from '../../shared/tasks/assignee-select';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PeopleApi } from './data/people-api';
-import { checklistStatusTone, textOrNull } from './data/people-display';
+import { textOrNull } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
-import { CHECKLIST_KINDS, Checklist, ChecklistCreate, ChecklistKind } from './data/people.models';
+import { Checklist, ChecklistCreate, ChecklistKind } from './data/people.models';
 
 export interface StartDraft {
   readonly kind: ChecklistKind;
@@ -79,8 +81,10 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
     LocalDayPipe,
     FieldHelp,
     AssigneeSelect,
-    Badge,
     Button,
+    ErrorState,
+    LoadingState,
+    StatusBadge,
     ConfirmDialog,
     FormField,
     Icon,
@@ -89,40 +93,35 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-emp-cl-h" id="checklists">
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-emp-cl-h" class="font-display text-[15px] font-bold text-fg">
+      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="cf-emp-cl-h" class="text-card font-bold text-fg">
           {{ 'people.checklists.employeeTitle' | transloco }}
         </h2>
-        @if (canEdit()) {
-          <div class="flex flex-wrap gap-2">
-            @for (k of kinds; track k) {
-              <app-button
-                size="sm"
-                variant="secondary"
-                (click)="openStart(k)"
-                [attr.data-testid]="'start-' + k"
-              >
-                <app-icon name="plus" [size]="14" />
-                {{ 'people.checklists.start.' + k | transloco }}
-              </app-button>
-            }
-          </div>
+        @if (canEdit() && !hasOpen('onboarding') && !items().length) {
+          <app-button
+            size="sm"
+            variant="secondary"
+            (click)="openStart('onboarding')"
+            data-testid="start-onboarding-inline"
+          >
+            <app-icon name="plus" [size]="14" />
+            {{ 'people.checklists.start.onboarding' | transloco }}
+          </app-button>
         }
       </div>
+      <p class="mb-3 text-meta text-fg-muted">
+        {{ 'people.checklists.employeeSubtitle' | transloco }}
+      </p>
       @switch (state()) {
         @case ('loading') {
-          <p class="py-4 text-[13px] text-fg-muted" role="status">
-            {{ 'people.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="2" />
         }
         @case ('error') {
-          <p class="py-4 text-[13px] text-fail" role="alert">
-            {{ 'people.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @default {
           @if (items().length === 0) {
-            <p class="py-3 text-[13px] text-fg-muted">
+            <p class="py-3 text-ui text-fg-muted">
               {{ 'people.checklists.employeeEmpty' | transloco }}
             </p>
           } @else {
@@ -132,10 +131,10 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
                   <div class="min-w-0 flex-1">
                     <a
                       [routerLink]="['/people/checklists', c.id]"
-                      class="text-[13.5px] font-semibold text-fg hover:underline"
+                      class="text-body font-semibold text-fg hover:underline"
                       >{{ c.title }}</a
                     >
-                    <p class="text-[12px] text-fg-subtle">
+                    <p class="text-meta text-fg-muted">
                       {{ 'people.checklistKinds.' + c.kind | transloco }}
                       @if (c.due_date) {
                         ·
@@ -151,16 +150,18 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
                           | transloco: { done: c.items_done, total: c.items_total }
                       "
                     />
-                    <p class="mt-1 text-[11.5px] text-fg-subtle">
+                    <p class="mt-1 text-meta text-fg-subtle">
                       {{
                         'people.checklists.progress'
                           | transloco: { done: c.items_done, total: c.items_total }
                       }}
                     </p>
                   </div>
-                  <app-badge [tone]="tone(c.status)">{{
-                    'people.checklistStatus.' + c.status | transloco
-                  }}</app-badge>
+                  <app-status-badge
+                    meaning="lifecycle"
+                    [value]="c.status"
+                    [labelKey]="'people.checklistStatus.' + c.status"
+                  />
                 </li>
               }
             </ul>
@@ -199,7 +200,7 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
                 data-testid="start-end-date"
               />
             </app-form-field>
-            <p id="cf-cl-end-hint" class="-mt-1 text-[12px] text-fg-subtle">
+            <p id="cf-cl-end-hint" class="-mt-1 text-meta text-fg-muted">
               {{ 'people.checklists.lastWorkingDayHint' | transloco }}
             </p>
           }
@@ -232,6 +233,11 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
             />
           </app-form-field>
           <app-field-help scope="people" page="detail" field="checklist_assignee" />
+          @if (d.kind === 'offboarding') {
+            <p class="text-meta text-fg-muted">
+              {{ 'people.checklists.offboardingHint' | transloco }}
+            </p>
+          }
         </div>
       }
     </app-confirm-dialog>
@@ -250,8 +256,6 @@ export class EmployeeChecklistsSection {
   readonly refresh = input(0);
   readonly changed = output<void>();
 
-  protected readonly kinds = CHECKLIST_KINDS;
-  protected readonly tone = checklistStatusTone;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly Checklist[]>([]);
   protected readonly draft = signal<StartDraft | null>(null);
@@ -273,7 +277,17 @@ export class EmployeeChecklistsSection {
     });
   }
 
-  protected openStart(kind: ChecklistKind): void {
+  /** Whether an open checklist of that kind exists. */
+  protected hasOpen(kind: ChecklistKind): boolean {
+    return this.items().some((c) => c.kind === kind && c.status === 'open');
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.employeeId());
+  }
+
+  /** Opened from the page header ("Start oppstart" / "Start avslutning"). */
+  openStart(kind: ChecklistKind): void {
     this.draft.set({
       kind,
       title: '',

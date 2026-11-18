@@ -8,13 +8,12 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../shared/kit/record-list-page';
@@ -25,7 +24,9 @@ import { Card } from '../../shared/ui/card/card';
 import { Icon } from '../../shared/ui/icon/icon';
 import { Pager } from '../../shared/ui/pager/pager';
 import { PeopleApi } from './data/people-api';
-import { FILTER_SELECT_CLASS, hasPerm, recordStatusTone } from './data/people-display';
+import { FILTER_SELECT_CLASS, countKey, hasPerm } from './data/people-display';
+import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
+import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
 import {
   COMPETENCE_CATEGORIES,
   Competence,
@@ -35,7 +36,12 @@ import {
   RECORD_STATUSES,
   RecordStatus,
 } from './data/people.models';
-import { PeopleLessonLink, PeopleSectionNav } from './people-section-nav';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { PEOPLE_NAV, PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
 const PAGE_SIZE = 50;
 
@@ -43,24 +49,31 @@ const PAGE_SIZE = 50;
 @Component({
   selector: 'app-people-competences-list',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    GuideIntro,
     TeachingEmpty,
     WhyItMatters,
     RecordListPage,
     Badge,
+    CoverageChip,
+    RecordRow,
+    RecordRowHeader,
     Button,
     Card,
     Icon,
     Pager,
-    PeopleLessonLink,
-    PeopleSectionNav,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    ModuleNav,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
       titleKey="people.competences.title"
+      descriptionKey="people.competences.subtitle"
+      [breadcrumbs]="[root, { labelKey: 'people.competences.title' }]"
+      [settingsLink]="settingsLink"
       scope="people"
       page="competences"
       searchPlaceholderKey="people.competences.searchPlaceholder"
@@ -70,15 +83,12 @@ const PAGE_SIZE = 50;
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
-      <div intro class="mt-1 flex flex-col gap-2">
-        <app-people-section-nav />
-        <p class="text-[14px] text-fg-muted">{{ 'people.competences.subtitle' | transloco }}</p>
-        <app-guide-intro scope="people" page="competences" />
-      </div>
+      <app-module-nav nav [items]="nav" labelKey="people.sections.label" />
+      <app-help-strip help scope="people" page="competences" lesson="competence-basics" />
 
       @if (canManage()) {
-        <app-button toolbar size="sm" (click)="newCompetence()" data-testid="new-competence">
-          <app-icon name="plus" [size]="14" />
+        <app-button primary (click)="newCompetence()" data-testid="new-competence">
+          <app-icon name="plus" [size]="15" />
           {{ 'people.competences.new' | transloco }}
         </app-button>
       }
@@ -124,53 +134,41 @@ const PAGE_SIZE = 50;
       <app-card [padded]="false">
         @switch (state()) {
           @case ('loading') {
-            <p class="py-10 text-center text-[14px] text-fg-muted" role="status">
-              {{ 'people.common.loading' | transloco }}
-            </p>
+            <app-loading-state [rows]="5" />
           }
           @case ('error') {
-            <p class="py-10 text-center text-[14px] text-fail" role="alert">
-              {{ 'people.common.loadFailed' | transloco }}
-            </p>
+            <app-error-state (retry)="reload()" />
           }
           @default {
             @if (rows().length === 0) {
-              <p class="py-10 text-center text-[14px] text-fg-muted" data-testid="no-match">
+              <p class="px-4 py-10 text-center text-body text-fg-muted" data-testid="no-match">
                 {{ 'people.competences.noMatch' | transloco }}
               </p>
             } @else {
-              <ul class="divide-y divide-border" data-testid="competence-rows">
+              <div role="list" data-testid="competence-rows">
+                <app-record-row-header titleKey="people.fields.name" [owner]="false" />
                 @for (c of rows(); track c.id) {
-                  <li class="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
-                    <div class="min-w-0 flex-1">
-                      <a
-                        [routerLink]="['/people/competences', c.id]"
-                        class="text-[13.5px] font-semibold text-fg hover:underline"
-                        >{{ c.name }}</a
-                      >
-                      <span
-                        class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12px] text-fg-subtle"
-                      >
-                        <span>{{ 'people.categories.' + c.category | transloco }}</span>
-                        @if (c.validity_months) {
-                          <span>{{
-                            'people.competences.validFor' | transloco: { months: c.validity_months }
-                          }}</span>
-                        }
-                        <span>{{
-                          'people.competences.usedBy' | transloco: { count: c.position_count }
-                        }}</span>
-                        <span>{{
-                          'people.competences.heldBy' | transloco: { count: c.holder_count }
-                        }}</span>
-                      </span>
-                    </div>
-                    <app-badge [tone]="statusTone(c.status)">{{
-                      'people.recordStatus.' + c.status | transloco
-                    }}</app-badge>
-                  </li>
+                  <app-record-row
+                    [title]="c.name"
+                    [subtitle]="subtitle(c)"
+                    [link]="['/people/competences', c.id]"
+                  >
+                    <app-coverage-chip coverage entityType="competence" [entityId]="c.id" />
+                    <ng-container ngProjectAs="[badges]">
+                      @if (c.status !== 'active') {
+                        <app-status-badge
+                          meaning="lifecycle"
+                          [value]="c.status"
+                          [labelKey]="'people.recordStatus.' + c.status"
+                        />
+                      }
+                      <app-badge tone="neutral">{{
+                        'people.categories.' + c.category | transloco
+                      }}</app-badge>
+                    </ng-container>
+                  </app-record-row>
                 }
-              </ul>
+              </div>
               <div class="border-t border-border px-4 py-2.5">
                 <app-pager
                   [offset]="offset()"
@@ -185,10 +183,7 @@ const PAGE_SIZE = 50;
         }
       </app-card>
 
-      <div class="mt-6 flex flex-col gap-3">
-        <app-why-it-matters scope="people" page="competences" />
-        <app-people-lesson-link lesson="competence-basics" />
-      </div>
+      <app-why-it-matters below scope="people" page="competences" />
 
       <div empty class="flex flex-col gap-6">
         <app-card>
@@ -200,7 +195,6 @@ const PAGE_SIZE = 50;
           />
         </app-card>
         <app-why-it-matters scope="people" page="competences" />
-        <app-people-lesson-link lesson="competence-basics" />
       </div>
     </app-record-list-page>
   `,
@@ -215,7 +209,6 @@ export class CompetencesList {
   protected readonly categories = COMPETENCE_CATEGORIES;
   protected readonly statuses = RECORD_STATUSES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly statusTone = recordStatusTone;
 
   protected readonly canManage = computed(() =>
     hasPerm(this.selectedOrg.currentOrg()?.permissions, PERM_MANAGE),
@@ -242,6 +235,11 @@ export class CompetencesList {
     status: this.status(),
   }));
 
+  protected readonly nav = PEOPLE_NAV;
+  protected readonly root = PEOPLE_ROOT;
+  protected readonly settingsLink = PEOPLE_SETTINGS_LINK;
+
+  private lastQuery: CompetenceQuery = {};
   private request = new Subscription();
 
   constructor() {
@@ -295,8 +293,28 @@ export class CompetencesList {
     void this.router.navigate(['/people/competences/new']);
   }
 
+  protected subtitle(c: Competence): string {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    const parts = [
+      c.validity_months
+        ? t(countKey('people.competences.validFor', c.validity_months), {
+            months: c.validity_months,
+          })
+        : t('people.competences.noExpiry'),
+      t(countKey('people.competences.usedBy', c.position_count), { count: c.position_count }),
+      t(countKey('people.competences.heldBy', c.holder_count), { count: c.holder_count }),
+    ];
+    return parts.join(' · ');
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.lastQuery);
+  }
+
   private load(orgId: string | null, query: CompetenceQuery): void {
     this.request.unsubscribe();
+    this.lastQuery = query;
     if (!orgId) {
       return;
     }

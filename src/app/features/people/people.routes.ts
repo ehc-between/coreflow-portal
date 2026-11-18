@@ -7,11 +7,13 @@ const toPositions = { redirectTo: '/people/positions' };
 const toCompetences = { redirectTo: '/people/competences' };
 
 /**
- * People, roles and competence (M09, scope `people`). `app.routes.ts` already gates
+ * People, roles and competence (M09, scope `people`; nav label and h1 "Personer"). `app.routes.ts` already gates
  * the area on the `people` module and `people:read`. Employees are written with
  * `people:write`; positions and competences need `people:manage`. The backend links
  * records as `/people/employees/<id>`, `/people/positions/<id>`,
- * `/people/competences/<id>` and `/people/checklists/<id>`.
+ * `/people/competences/<id>` and `/people/checklists/<id>`. `/people/settings` holds the
+ * organisation's own joiner/leaver checklist templates (changing them needs `people:manage`);
+ * `/people/employees/<id>/competence-record` is the printable competence record.
  */
 export default [
   {
@@ -31,6 +33,10 @@ export default [
       {
         path: 'employees/:id',
         loadComponent: () => import('./employee-detail').then((m) => m.EmployeeDetail),
+      },
+      {
+        path: 'employees/:id/competence-record',
+        loadComponent: () => import('./competence-record').then((m) => m.CompetenceRecordPage),
       },
       {
         path: 'employees/:id/edit',
@@ -84,6 +90,10 @@ export default [
       {
         path: 'checklists/:id',
         loadComponent: () => import('./checklist-detail').then((m) => m.ChecklistDetailPage),
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./people-settings').then((m) => m.PeopleSettings),
       },
     ],
   },
