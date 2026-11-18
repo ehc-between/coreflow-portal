@@ -18,6 +18,7 @@ import { ShellPreferencesService } from '../../core/shell/shell-preferences.serv
 import { AskPanel } from '../../features/ask/ask-panel';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPalette } from '../../features/command-palette/command-palette';
+import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { Notifications } from '../../shared/notifications/notifications';
 import { trapTabKey } from '../../shared/ui/focus-trap';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -60,6 +61,7 @@ import { TopBar } from '../top-bar/top-bar';
 })
 export class MainLayout {
   protected readonly ask = inject(AskPanelService);
+  protected readonly palette = inject(CommandPaletteService);
   protected readonly drawer = inject(NavDrawerService);
   protected readonly shell = inject(ShellPreferencesService);
   private readonly navPanel = viewChild.required<ElementRef<HTMLElement>>('navPanel');

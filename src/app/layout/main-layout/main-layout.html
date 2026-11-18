@@ -67,6 +67,11 @@
   }
 
   <app-notifications />
-  <app-ask-panel />
-  <app-command-palette />
+  <!-- Kept out of the initial bundle (X01): fetched once the page is idle, created the first time they open. -->
+  @defer (when ask.open(); prefetch on idle) {
+    <app-ask-panel />
+  }
+  @defer (when palette.open(); prefetch on idle) {
+    <app-command-palette />
+  }
 </div>
