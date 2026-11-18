@@ -104,6 +104,10 @@ describe('ReportWidgets', () => {
     expect(widgetUnavailableReason('risk', on, [])).toBe('noAccess');
     expect(widgetUnavailableReason('risk', on, ['risk:read'])).toBe('failed');
     expect(widgetUnavailableReason(null, on, [])).toBe('failed');
+    // A widget with its own permission (audit packs) is checked against that one.
+    const pack = 'reports:audit_pack';
+    expect(widgetUnavailableReason('reports', on, ['reports:read'], pack)).toBe('noAccess');
+    expect(widgetUnavailableReason('reports', on, [pack], pack)).toBe('failed');
   });
 
   it('shows a neutral message when the dashboard fails to load', async () => {

@@ -40,14 +40,16 @@ export type WidgetUnavailableReason = 'moduleOff' | 'noAccess' | 'failed';
 
 /**
  * The backend sends `available: false` both when the caller may not see a metric
- * (module off, no `<module>:read`) and when computing it failed. Tell them apart
+ * (module off, no `permission`) and when computing it failed. Tell them apart
  * from what the portal knows, so an enabled module is never reported as switched
- * off (simplify D9).
+ * off (simplify D9). `permission` is the widget's own (e.g. `reports:audit_pack`),
+ * `<module>:read` when the server does not send it.
  */
 export function widgetUnavailableReason(
   module: string | null,
   isEnabled: (key: string) => boolean,
   permissions: readonly string[],
+  permission?: string | null,
 ): WidgetUnavailableReason {
   if (!module) {
     return 'failed';
@@ -55,7 +57,7 @@ export function widgetUnavailableReason(
   if (!isEnabled(module)) {
     return 'moduleOff';
   }
-  return permissions.includes(`${module}:read`) ? 'failed' : 'noAccess';
+  return permissions.includes(permission || `${module}:read`) ? 'failed' : 'noAccess';
 }
 
 type State =
@@ -275,6 +277,7 @@ export class ReportWidgets {
       widget.module,
       (key) => this.modules.isEnabled(key),
       this.selectedOrg.currentOrg()?.permissions ?? [],
+      widget.permission,
     );
   }
 
