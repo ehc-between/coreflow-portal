@@ -75,15 +75,13 @@ describe('ModulesSettings', () => {
     fixture = TestBed.createComponent(ModulesSettings);
     fixture.detectChanges();
     await fixture.whenStable();
-    http
-      .expectOne(`${BASE}/v1/orgs/${ORG}/modules`)
-      .flush([
-        mod('documents', true, { required_by: ['audits'] }),
-        mod('audits', false, { depends_on: ['documents'] }),
-        mod('tasks', true, { always_on: true }),
-        // A module whose page sits below another route (encoded '/' once broke it).
-        mod('records', true, { always_on: true, portal_path: 'settings/record-types' }),
-      ]);
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules`).flush([
+      mod('documents', true, { required_by: ['audits'] }),
+      mod('audits', false, { depends_on: ['documents'] }),
+      mod('tasks', true, { always_on: true }),
+      // A module whose page sits below another route (encoded '/' once broke it).
+      mod('records', true, { always_on: true, portal_path: 'settings/record-types' }),
+    ]);
     // A26: the profile's frameworks drive the scope-gap hints.
     http.expectOne(`${BASE}/v1/orgs/${ORG}/profile`).flush({ frameworks: [] });
     fixture.detectChanges();
