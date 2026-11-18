@@ -13,11 +13,11 @@ const MAX_RISKS = 50;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-3">
-      <legend class="mb-1 text-[13px] font-semibold text-fg-muted">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted">
         {{ 'privacy.fields.risks' | transloco }}
       </legend>
       @if (value().length === 0) {
-        <p class="text-[13px] text-fg-muted">{{ 'privacy.dpia.noRisks' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'privacy.dpia.noRisks' | transloco }}</p>
       }
       @for (risk of value(); track $index; let i = $index) {
         <div class="rounded-tile border border-border p-3" [attr.data-testid]="'risk-' + i">
@@ -29,7 +29,7 @@ const MAX_RISKS = 50;
               [id]="'cf-risk-desc-' + i"
               rows="2"
               maxlength="1000"
-              class="w-full rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] text-fg outline-none focus:border-accent"
+              class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
               [placeholder]="'privacy.dpia.riskDescription' | transloco"
               [value]="risk.description"
               (input)="patch(i, { description: $any($event.target).value })"
@@ -45,10 +45,10 @@ const MAX_RISKS = 50;
           </div>
           <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
             @for (dim of dims; track dim) {
-              <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+              <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                 {{ 'privacy.dpia.' + dim | transloco }}
                 <select
-                  class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] font-normal text-fg"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
                   (change)="setLevel(i, dim, $any($event.target).value)"
                 >
                   @if (dim === 'residual') {
@@ -65,12 +65,12 @@ const MAX_RISKS = 50;
               </label>
             }
           </div>
-          <label class="mt-2 flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="mt-2 flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'privacy.dpia.mitigation' | transloco }}
             <textarea
               rows="2"
               maxlength="2000"
-              class="rounded-[10px] border border-border bg-bg px-3 py-2 text-[13.5px] font-normal text-fg outline-none focus:border-accent"
+              class="rounded-tile border border-border bg-bg px-3 py-2 text-body font-normal text-fg outline-none focus:border-accent"
               [value]="risk.mitigation ?? ''"
               (input)="patch(i, { mitigation: $any($event.target).value })"
             ></textarea>

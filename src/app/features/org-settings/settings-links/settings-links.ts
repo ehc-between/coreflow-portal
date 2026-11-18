@@ -185,6 +185,11 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     icon: 'spark',
     links: [{ path: '/ai-governance/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
   },
+  {
+    module: 'privacy',
+    icon: 'shield',
+    links: [{ path: '/privacy/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
+  },
 ];
 
 /** The settings hub: organisation cards, then one card per enabled module with settings. */

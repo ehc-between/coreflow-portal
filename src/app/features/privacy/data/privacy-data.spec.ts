@@ -7,7 +7,14 @@ import { makeBreach, makeDsr, makeRopa } from '../privacy.testing';
 import { PrivacyApi, privacyListParams } from './privacy-api';
 import { screeningResult } from './privacy.models';
 import { fromDateInput, fromDateTimeInput, toDateInput, toDateTimeInput } from './privacy-dates';
-import { clockFact, rowFacts } from './privacy-display';
+import { ToneMeaning, toneFor } from '../../../shared/ui/tones';
+import {
+  classifyCountry,
+  clockFact,
+  rowFacts,
+  rowSubtitle,
+  suggestedMechanism,
+} from './privacy-display';
 import { privacyError } from './privacy-errors';
 import {
   createBody,
@@ -346,24 +353,64 @@ describe('privacy form model', () => {
 });
 
 describe('privacy display', () => {
+  const tone = (f: { meaning: ToneMeaning; value: string }) => toneFor(f.meaning, f.value);
+
   it('shows the request deadline and the breach clock on list rows', () => {
     const dsr = rowFacts(REGISTERS.dsr, makeDsr());
-    expect(dsr.map((f) => f.key)).toEqual([
-      'privacy.options.dsrType.access',
-      'privacy.dsr.daysLeft',
-    ]);
+    expect(dsr.map((f) => f.key)).toEqual(['privacy.dsr.daysLeft']);
     const overdue = rowFacts(REGISTERS.dsr, makeDsr({ is_overdue: true, days_remaining: -2 }));
-    expect(overdue[1]).toMatchObject({ key: 'privacy.dsr.overdue', tone: 'fail' });
+    expect(overdue[0].key).toBe('privacy.dsr.overdue');
+    expect(tone(overdue[0])).toBe('fail');
 
-    expect(clockFact(makeBreach())).toMatchObject({
-      key: 'privacy.breach.clock.hoursLeft',
-      params: { hours: 30 },
-      tone: 'warn',
+    const clock = clockFact(makeBreach());
+    expect(clock).toMatchObject({ key: 'privacy.breach.clock.hoursLeft', params: { hours: 30 } });
+    expect(tone(clock)).toBe('warn');
+    const late = clockFact(makeBreach({ clock_status: 'late', hours_remaining: null }));
+    expect(late.key).toBe('privacy.breach.clock.late');
+    expect(tone(late)).toBe('fail');
+  });
+
+  it('puts the facts an auditor scans for in the row subtitle', () => {
+    const ropa = rowSubtitle(REGISTERS.ropa, makeRopa());
+    expect(ropa.map((p) => p.key)).toEqual([
+      'privacy.options.ropaRole.controller',
+      'privacy.options.legalBasis.legal_obligation',
+    ]);
+    const incomplete = rowSubtitle(
+      REGISTERS.ropa,
+      makeRopa({
+        legal_basis: null,
+        completeness: { filled: 5, total: 7, missing: ['legal_basis', 'security_measures'] },
+      }),
+    );
+    expect(incomplete.map((p) => p.key)).toEqual([
+      'privacy.options.ropaRole.controller',
+      'privacy.list.noLegalBasis',
+      'privacy.ropa.completenessShort',
+    ]);
+    expect(rowSubtitle(REGISTERS.dsr, makeDsr())[1]).toMatchObject({
+      key: 'privacy.list.receivedOn',
+      date: '2026-11-01T09:00:00',
     });
-    expect(clockFact(makeBreach({ clock_status: 'late', hours_remaining: null }))).toMatchObject({
-      key: 'privacy.breach.clock.late',
-      tone: 'fail',
-    });
+  });
+
+  it('shows a notified breach as waiting to be closed, not on the clock', () => {
+    const facts = rowFacts(REGISTERS.breach, makeBreach({ status: 'notified' }));
+    expect(facts.map((f) => f.key)).toEqual(['privacy.breach.awaitingClosure']);
+    expect(rowFacts(REGISTERS.breach, makeBreach({ status: 'closed' }))).toEqual([]);
+  });
+
+  it('classifies countries from the backend lists', () => {
+    const lists = { eea: ['NO', 'IE'], adequacy: ['GB', 'JP'], adequacy_partial: ['US'] };
+    expect(classifyCountry('no', lists)).toBe('eea');
+    expect(classifyCountry('GB', lists)).toBe('adequacy');
+    expect(classifyCountry('US', lists)).toBe('adequacy_partial');
+    expect(classifyCountry('IN', lists)).toBe('third_country');
+    expect(classifyCountry('India', lists)).toBe('unknown');
+    expect(classifyCountry('IN', { eea: [], adequacy: [], adequacy_partial: [] })).toBe('unknown');
+    expect(suggestedMechanism('third_country')).toBe('sccs');
+    expect(suggestedMechanism('adequacy')).toBe('adequacy');
+    expect(suggestedMechanism('eea')).toBeNull();
   });
 });
 

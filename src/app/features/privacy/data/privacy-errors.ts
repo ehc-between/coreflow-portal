@@ -40,6 +40,7 @@ export const PRIVACY_ERROR_CODES = [
   'aware_at_forbidden',
   'aware_at_in_future',
   'change_reason_required',
+  'schedule_not_active',
 ] as const;
 
 export type PrivacyErrorCode = (typeof PRIVACY_ERROR_CODES)[number];

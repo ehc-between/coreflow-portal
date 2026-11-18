@@ -1,31 +1,56 @@
 {
   "nav": {
     "label": "Privacy registers",
-    "overview": "Overview"
+    "overview": "Overview",
+    "ropa": "Record of processing",
+    "dpia": "DPIAs",
+    "dsr": "Requests",
+    "breach": "Breaches",
+    "processor": "Processors",
+    "transfer": "Transfers",
+    "retention": "Retention",
+    "consent": "Consents",
+    "lba": "Legal basis"
   },
   "overview": {
     "title": "Privacy and GDPR",
-    "subtitle": "Records of processing, impact assessments, data subject requests, breaches, processors and transfers in one place.",
+    "subtitle": "Your record of processing, impact assessments, requests from individuals, personal data breaches, processors and transfers in one place.",
     "kpis": "Privacy key figures",
     "tiles": {
       "ropaActive": "Active processing records",
       "breachesOpen": "Open breaches",
       "breachesOverdue": "Breaches past 72 hours",
       "dsrOpen": "Open requests",
-      "dsrOverdue": "Overdue requests",
+      "dsrOverdue": "Requests past their deadline",
       "dpiasOpen": "DPIAs in progress",
-      "dpiasRequiredUndecided": "Required DPIAs not decided",
-      "processorsWithoutDpa": "Processors without a DPA",
-      "transfersMissingTia": "Transfers missing a TIA",
+      "dpiasRequiredUndecided": "DPIAs required but not decided",
+      "processorsWithoutDpa": "Processors without a data processing agreement (DPA)",
+      "transfersMissingTia": "Transfers without a transfer impact assessment (TIA)",
       "reviewsOverdue": "Reviews overdue",
-      "transfersUnsignedSafeguards": "Active SCC transfers without a signed agreement"
+      "transfersUnsignedSafeguards": "Transfers on standard contractual clauses (SCC) without a signed agreement",
+      "breachesActive": "Breaches being assessed (72-hour clock)",
+      "retentionExecutionsDue": "Deletions overdue",
+      "breachesAwaitingClosure": "Notified breaches waiting to be closed"
     },
-    "breachesNow": "Breaches on the clock",
-    "noBreaches": "No open breaches. Register one the moment you become aware of it.",
-    "requestsNow": "Requests by deadline",
+    "breachesNow": "Personal data breaches that need action",
+    "noBreaches": "No breaches with a running 72-hour deadline. Report a breach the moment you become aware of it.",
+    "requestsNow": "Nearest response deadlines",
     "noRequests": "No open data subject requests.",
     "dueOn": "Due {{ date }}",
-    "registers": "Registers"
+    "registers": "Registers",
+    "reportBreach": "Report a personal data breach",
+    "attention": "Needs action",
+    "nothingUrgent": "Nothing needs action right now: no breaches on the clock, no overdue requests and no missing agreements.",
+    "overdueSince": "Overdue since {{ date }}",
+    "stats": "Key figures",
+    "stat": {
+      "ropa": "{{ active }} of {{ total }} processing activities active",
+      "dpias": "{{ count }} DPIAs in progress",
+      "requests": "{{ count }} open requests",
+      "breaches": "{{ count }} breaches not closed",
+      "gaps": "{{ count }} gaps between the registers"
+    },
+    "contextSummary": "{{ gaps }} gaps, {{ breaches }} breaches being assessed, {{ requests }} open requests, {{ dpias }} DPIAs awaiting a decision."
   },
   "registers": {
     "ropa": {
@@ -86,15 +111,52 @@
   "list": {
     "searchPlaceholder": "Search by code, title or text",
     "status": "Status",
-    "statusOpen": "Open",
     "statusAll": "All statuses",
-    "anyValue": "Any {{ field }}",
     "anyOwner": "Any owner",
     "mine": "Owned by me",
     "sort": "Sort",
-    "overdue": "Overdue only",
     "noMatch": "Nothing matches these filters.",
-    "owner": "Owner: {{ name }}"
+    "owner": "Owner: {{ name }}",
+    "statusOpen": {
+      "ropa": "Current",
+      "dpia": "Not finished",
+      "dsr": "Open",
+      "breach": "Not closed",
+      "processor": "Current",
+      "transfer": "Current",
+      "retention": "Current",
+      "consent": "Active",
+      "lba": "Not decided"
+    },
+    "any": {
+      "role": "All roles",
+      "legal_basis": "All legal bases",
+      "screening_result": "All screening results",
+      "request_type": "All request types",
+      "risk_level": "All risk levels",
+      "dpa_status": "All agreement statuses",
+      "risk_rating": "All risk ratings",
+      "mechanism": "All transfer tools",
+      "tia_status": "All assessment statuses",
+      "disposal_method": "All disposal methods",
+      "method": "All methods"
+    },
+    "overdue": {
+      "ropa": "Review overdue",
+      "dpia": "Review overdue",
+      "dsr": "Past the response deadline",
+      "breach": "Past 72 hours",
+      "processor": "Review overdue",
+      "transfer": "Review overdue",
+      "retention": "Review overdue",
+      "consent": "Review overdue",
+      "lba": "Review overdue"
+    },
+    "contextTitle": "{{ title }} ({{ filters }}): {{ count }} records",
+    "receivedOn": "Received {{ date }}",
+    "awareOn": "Aware since {{ date }}",
+    "givenOn": "Given {{ date }}",
+    "noLegalBasis": "No legal basis yet"
   },
   "sorts": {
     "created_atDesc": "Newest first",
@@ -221,7 +283,7 @@
     "consentPurpose": "Purpose consented to",
     "given_at": "Consent given",
     "method": "How consent was given",
-    "notice_version": "Privacy notice version",
+    "notice_version": "Version (free text)",
     "evidence_reference": "Evidence reference",
     "withdrawn_at": "Withdrawn",
     "justification": "Justification",
@@ -230,7 +292,28 @@
     "balancing_test": "Balancing test",
     "safeguards": "Safeguards",
     "is_lia": "Legitimate interests assessment",
-    "contract_id": "Signed agreement (contract)"
+    "contract_id": "Signed agreement (contract)",
+    "processor_ids": "Processors (recipients)",
+    "asset_ids": "Systems and assets",
+    "data_source": "Where the data comes from",
+    "privacy_notice_document_id": "Privacy notice",
+    "automated_decisions": "Automated decisions or profiling",
+    "automated_decision_logic": "How the automated decisions work",
+    "ropa_entry_ids": "Processing activities affected",
+    "supplier_id": "Supplier",
+    "dpa_contract_id": "Data processing agreement (contract)",
+    "dpa_document_id": "Data processing agreement (document)",
+    "mechanismTool": "Transfer tool",
+    "tiaProgress": "Status of the assessment",
+    "retentionPeriodText": "Period in words (optional)",
+    "execution_interval_months": "Delete every (months)",
+    "next_execution_due_at": "Next deletion",
+    "last_executed_at": "Last deletion",
+    "notice_document_id": "Privacy notice (document)",
+    "employee_id": "Person record",
+    "executed_at": "Carried out",
+    "records_affected": "Records deleted",
+    "notes": "Notes"
   },
   "options": {
     "ropaRole": {
@@ -293,8 +376,8 @@
     },
     "breachRisk": {
       "unlikely": "Unlikely to result in a risk",
-      "risk": "Risk",
-      "high_risk": "High risk"
+      "risk": "Likely risk (notify the authority)",
+      "high_risk": "High risk (also tell the people affected)"
     },
     "subjectsExemption": {
       "protected": "Data unintelligible, e.g. encrypted (Art. 34(3)(a))",
@@ -408,12 +491,13 @@
       "authority": "Notifying the authority (Art. 33)",
       "subjects": "Telling the people affected (Art. 34)",
       "dpa": "Data processing agreement",
-      "mechanism": "Transfer tool",
+      "mechanism": "Destination and transfer tool",
       "tia": "Transfer impact assessment",
       "rule": "Retention rule",
       "evidence": "Evidence",
       "tests": "Assessment",
-      "facts": "Key dates and results"
+      "facts": "Key dates and results",
+      "execution": "Deletion"
     },
     "required": "This field is required.",
     "removeTag": "Remove {{ value }}",
@@ -430,7 +514,15 @@
     "awareCorrectionHint": "Correcting this moves the 72-hour deadline. The original time stays in the revision history; give the reason below.",
     "changeReasonRequired": "Reason for the change *",
     "changeReasonNeeded": "Give a reason for correcting the awareness time.",
-    "notInFuture": "This time cannot be in the future."
+    "notInFuture": "This time cannot be in the future.",
+    "quickIntro": "Quick registration: describe what happened and when you became aware of it. The 72-hour clock starts when you save; add the rest afterwards.",
+    "quickAll": "Show all fields",
+    "quickSave": "Register and start the clock",
+    "periodRequired": "Give the period in months, or describe it in words.",
+    "mechanismHint": "Usual tool: {{ mechanism }}.",
+    "addRecord": "Add a record…",
+    "noRecords": "No records to choose from",
+    "crumbRecord": "{{ code }}"
   },
   "common": {
     "loading": "Loading…",
@@ -447,7 +539,8 @@
     "none": "None",
     "someone": "A member",
     "reviewDue": "Review {{ date }}",
-    "reviewOverdue": "Review overdue since {{ date }}"
+    "reviewOverdue": "Review overdue since {{ date }}",
+    "reviewOverdueBadge": "Review overdue"
   },
   "dsr": {
     "overdue": "Overdue since {{ date }}",
@@ -464,7 +557,31 @@
     "extendMessage": "The deadline moves two months later. Explain why; the requester must be told within the first month.",
     "extensionReason": "Reason for the extension",
     "outcomeTitle": "Record the outcome",
-    "outcomeMessage": "Describe what you did, or why the request was refused. A refusal must tell the person about their right to complain to the authority."
+    "outcomeMessage": "Describe what you did, or why the request was refused. A refusal must tell the person about their right to complain to the authority.",
+    "handlingTitle": "Handling the request",
+    "handlingIntro": "Work through the steps in order. Each tick is saved at once and shows in the activity log.",
+    "stepDone": "Done {{ date }}",
+    "steps": {
+      "verify_identity": {
+        "title": "Verify who is asking",
+        "body": "Check the identity before you share or change any data. Ask only for what you need."
+      },
+      "search_systems": {
+        "title": "Search the systems",
+        "body": "Find the person's data in every system listed below."
+      },
+      "draft_reply": {
+        "title": "Draft the reply",
+        "body": "Answer in plain language. The assistant can write a first draft."
+      },
+      "send_reply": {
+        "title": "Send the reply",
+        "body": "Send it before the deadline; the date is noted here."
+      }
+    },
+    "systemsTitle": "Processing activities to search ({{ count }})",
+    "systemRetention": "kept {{ period }}",
+    "noSystems": "No active processing activity lists its systems yet."
   },
   "breach": {
     "clock": {
@@ -491,7 +608,10 @@
     "decisionHint": {
       "authority": "Decide whether the authority must be notified. If not, write down why: the reasoning must be documented even when you do not notify.",
       "subjects": "When the risk to people is high they must be told without undue delay, unless an Art. 34(3) exemption applies."
-    }
+    },
+    "awaitingClosure": "Notified, waiting to be closed",
+    "followUpTitle": "Follow up the breach",
+    "followUpIntro": "A personal data breach is also a security incident. Register it as a deviation with corrective action, add the risk it reveals, or give someone a task (ISO 27001 A.5.24–A.5.28, 10.2)."
   },
   "dpia": {
     "priorConsultation": "Prior consultation needed",
@@ -509,14 +629,41 @@
     "levelSummary": "Likelihood {{ likelihood }}, severity {{ severity }}",
     "residualSummary": "Residual {{ level }}",
     "criteriaMet": "Criteria met",
-    "noneMet": "No criteria met"
+    "noneMet": "No criteria met",
+    "requiredBadge": "DPIA required",
+    "stage": {
+      "screening": {
+        "title": "Screening",
+        "body": "Is a DPIA needed? Tick the criteria that apply."
+      },
+      "assessment": {
+        "title": "Assessment",
+        "body": "Describe the necessity, the risks and the measures."
+      },
+      "decision": {
+        "title": "Decision",
+        "body": "The approver accepts the residual risk or rejects it."
+      }
+    },
+    "screeningOutcome": {
+      "required": "The screening says a DPIA is required. Start the impact assessment.",
+      "recommended": "One criterion is met: a DPIA is recommended.",
+      "not_required": "No criteria are ticked yet. Tick the ones that apply, or conclude that no DPIA is needed."
+    },
+    "closedNotRequired": "Concluded: no DPIA is needed. Keep the screening as documentation.",
+    "notScreenedYet": "Not screened yet: tick the criteria that apply.",
+    "authorityList": "Datatilsynet also lists processing that always needs a DPIA, for example systematic monitoring of employees, location tracking and large-scale processing of special categories.",
+    "toRiskRegister": "Transfer to the risk register",
+    "measuresToTask": "Make the measures a task"
   },
   "processor": {
-    "dpaBadge": "DPA: {{ status }}"
+    "dpaBadge": "DPA: {{ status }}",
+    "noDpaBadge": "No signed DPA"
   },
   "transfer": {
     "destination": "To {{ country }}",
-    "tiaBadge": "TIA: {{ status }}"
+    "tiaBadge": "TIA: {{ status }}",
+    "tiaOpenBadge": "Transfer assessment in progress"
   },
   "lba": {
     "liaExplain": "Legitimate interests need a documented three-part test: a legitimate purpose, a necessary processing, and a balance that does not override the people's interests and rights."
@@ -561,7 +708,9 @@
     },
     "deleteTitle": "Delete {{ code }}?",
     "deleteMessage": "The record is removed from the register. It stays in the audit trail.",
-    "linkedRecord": "Linked record"
+    "linkedRecord": "Linked record",
+    "setStatus": "Set status: {{ status }}",
+    "missingArt30": "Missing (required by Art. 30)"
   },
   "ai": {
     "ropaTitle": "Draft from a description",
@@ -575,11 +724,20 @@
     "draftBreach": "Draft an assessment",
     "useAsConsequences": "Use as likely consequences",
     "breachHint": "Get a draft risk assessment and a notification recommendation based on this record.",
-    "disclaimer": "A draft to support you. The decision is yours."
+    "disclaimer": "A draft to support you. The decision is yours.",
+    "checkRopaTitle": "Check against Art. 30",
+    "checkRopaHint": "The assistant reads the entry and lists what an auditor or the authority would ask for.",
+    "checkRopa": "Check the entry",
+    "draftLia": "Draft the three-part test",
+    "draftTia": "Draft the transfer assessment",
+    "useAsTiaSummary": "Use as the summary",
+    "draftReply": "Draft the reply"
   },
   "ask": {
     "field": "Explain \"{{ field }}\" in plain language, in the context of the GDPR.",
-    "summarise": "Summarise {{ code }} and tell me what is missing or due."
+    "summarise": "Summarise {{ code }} and tell me what is missing or due.",
+    "button": "Ask about this",
+    "fieldTooltip": "Ask the assistant about this field"
   },
   "lessons": {
     "link": "Lesson: {{ title }} ({{ minutes }} min)"
@@ -592,7 +750,8 @@
     "rejected": "{{ code }} rejected.",
     "statusChanged": "{{ code }} is now {{ status }}.",
     "withdrawn": "The withdrawal of {{ code }} was recorded.",
-    "deleted": "{{ code }} deleted."
+    "deleted": "{{ code }} deleted.",
+    "executionLogged": "The deletion under {{ code }} is logged."
   },
   "errors": {
     "not_found": "The record was not found. It may have been deleted.",
@@ -633,7 +792,8 @@
     "aware_at_in_future": "The awareness time cannot be in the future.",
     "change_reason_required": "Give a reason for the change.",
     "scc_contract_required": "Link the signed agreement with the standard contractual clauses before the transfer can be active.",
-    "scc_contract_unsigned": "The linked agreement is not signed and active yet. A transfer under standard contractual clauses can only be active once they are signed."
+    "scc_contract_unsigned": "The linked agreement is not signed and active yet. A transfer under standard contractual clauses can only be active once they are signed.",
+    "schedule_not_active": "Activate the retention rule before you log deletions."
   },
   "notifications": {
     "ropaEntryCreated": "Processing record registered: {{ code }} {{ title }}",
@@ -688,7 +848,8 @@
     "dpiaDecided": "DPIA decided: {{ code }} {{ title }}",
     "legalBasisAssessmentDecided": "Legal basis assessment decided: {{ code }} {{ title }}",
     "dataBreachAwareCorrected": "Awareness time corrected for {{ code }} {{ title }}: the 72-hour deadline has moved",
-    "dataBreachClockReminder": "{{ hours_remaining }} hours left to notify the authority of {{ code }} {{ title }}"
+    "dataBreachClockReminder": "{{ hours_remaining }} hours left to notify the authority of {{ code }} {{ title }}",
+    "retentionScheduleExecuted": "Deletion carried out: {{ code }} {{ title }}"
   },
   "timeline": {
     "ropaEntryCreated": "Processing record registered",
@@ -743,7 +904,8 @@
     "dpiaDecided": "Decision recorded",
     "legalBasisAssessmentDecided": "Decision recorded",
     "dataBreachAwareCorrected": "Awareness time corrected",
-    "dataBreachClockReminder": "72-hour clock reminder sent"
+    "dataBreachClockReminder": "72-hour clock reminder sent",
+    "retentionScheduleExecuted": "Deletion carried out"
   },
   "tasks": {
     "breachContain": "Contain breach {{ code }}",
@@ -791,5 +953,273 @@
     "audits_and_information": "Information and audits",
     "international_transfers": "Transfers outside the EU/EEA",
     "unknown": "Other clause"
+  },
+  "export": {
+    "ropa": {
+      "menu": "Export the record",
+      "file": "record-of-processing"
+    },
+    "breaches": {
+      "menu": "Export the breach log",
+      "file": "breach-log"
+    },
+    "requests": {
+      "menu": "Export the request log",
+      "file": "request-log"
+    },
+    "processors": {
+      "menu": "Export the processor list",
+      "file": "processors"
+    },
+    "format": {
+      "pdf": "PDF",
+      "xlsx": "Excel (XLSX)",
+      "csv": "CSV"
+    }
+  },
+  "gaps": {
+    "title": "What is missing ({{ count }})",
+    "recordTitle": "What is missing for this record",
+    "none": "Nothing is missing between the registers. New gaps show here as soon as they appear.",
+    "intro": "Each gap names the article it falls short of. The button opens the fix, already filled in.",
+    "showAll": "Show all {{ count }}",
+    "severity": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "reasons": {
+      "special_categories": "special categories of data",
+      "automated_decisions": "automated decisions",
+      "monitoring": "systematic monitoring"
+    },
+    "unknownCountry": "a country outside the EEA",
+    "kinds": {
+      "lia_missing": {
+        "title": "{{ code }} relies on legitimate interest without an approved assessment",
+        "why": "Art. {{ article }}: legitimate interest needs a documented three-part test (LIA) before you rely on it.",
+        "fix": "Create the assessment"
+      },
+      "dpia_missing": {
+        "title": "{{ code }} needs a DPIA ({{ reasons }})",
+        "why": "Art. {{ article }}: processing with a high risk needs a data protection impact assessment before it starts.",
+        "fix": "Start the DPIA"
+      },
+      "transfer_missing": {
+        "title": "{{ code }} sends data to {{ countries }} without a recorded transfer",
+        "why": "Art. {{ article }}: a transfer out of the EEA needs a transfer tool, such as an adequacy decision or standard contractual clauses.",
+        "fix": "Register the transfer"
+      },
+      "dpa_missing": {
+        "title": "{{ code }} has no signed data processing agreement ({{ dpaStatus }})",
+        "why": "Art. {{ article }}: a processor may only process personal data under a signed agreement.",
+        "fix": "Complete the agreement"
+      },
+      "retention_missing": {
+        "title": "{{ code }} has no retention rule",
+        "why": "Art. {{ article }}(1)(e): say how long the data is kept and what happens to it afterwards.",
+        "fix": "Create the retention rule"
+      },
+      "ropa_incomplete": {
+        "title": "{{ code }} is missing Art. 30 details: {{ fields }}",
+        "why": "Art. {{ article }}: the record of processing must hold these details for every activity.",
+        "fix": "Complete the entry"
+      },
+      "deletion_overdue": {
+        "title": "The deletion under {{ code }} is overdue (due {{ due }})",
+        "why": "Art. {{ article }}(1)(e): log each deletion so you can show that the rule is followed.",
+        "fix": "Log the deletion"
+      },
+      "supplier_not_processor": {
+        "title": "Supplier {{ code }} processes personal data but is not a registered processor",
+        "why": "Art. {{ article }}: every supplier that processes personal data for you needs a processor record and an agreement.",
+        "fix": "Register as processor"
+      },
+      "generic": {
+        "title": "{{ code }}: something is missing",
+        "why": "Art. {{ article }}",
+        "fix": "Open"
+      }
+    },
+    "kindShort": {
+      "lia_missing": "missing legitimate-interest assessment",
+      "dpia_missing": "missing DPIA",
+      "transfer_missing": "missing transfer record",
+      "dpa_missing": "missing data processing agreement",
+      "retention_missing": "missing retention rule",
+      "ropa_incomplete": "incomplete Art. 30 entries",
+      "deletion_overdue": "overdue deletion",
+      "supplier_not_processor": "supplier without a processor record",
+      "generic": "other gaps"
+    }
+  },
+  "setup": {
+    "title": "Start here",
+    "progress": "{{ done }} of {{ total }} done",
+    "complete": "The basics are in place. Keep the registers up to date as your processing changes.",
+    "showSteps": "Show the steps",
+    "intro": "Set up your privacy work in this order. Each step builds on the one before.",
+    "tick": "Routine in place",
+    "doneSr": "(done)",
+    "steps": {
+      "settings": {
+        "title": "Name the controller and the data protection officer",
+        "body": "They head the record of processing and your privacy notices.",
+        "cta": "Open the settings"
+      },
+      "ropa": {
+        "title": "Map your processing activities",
+        "body": "One entry per activity in the record of processing (Art. 30).",
+        "cta": "Open the record"
+      },
+      "processors": {
+        "title": "Register your processors",
+        "body": "Who processes data for you, and whether the agreement is signed (Art. 28).",
+        "cta": "Open processors"
+      },
+      "retention": {
+        "title": "Set retention rules",
+        "body": "How long each kind of data is kept, and how it is deleted.",
+        "cta": "Open retention rules"
+      },
+      "dpia": {
+        "title": "Assess high-risk processing",
+        "body": "Screen each activity and carry out a DPIA where one is needed (Art. 35).",
+        "cta": "Open DPIAs"
+      },
+      "requests": {
+        "title": "Agree how you answer requests",
+        "body": "Who receives requests from individuals, and how you answer within one month.",
+        "cta": "Open requests"
+      },
+      "breaches": {
+        "title": "Agree how you handle breaches",
+        "body": "Who is told, and how you notify the authority within 72 hours.",
+        "cta": "Open breaches"
+      }
+    }
+  },
+  "settings": {
+    "title": "Privacy settings",
+    "subtitle": "Who is responsible for the processing, and how people reach your data protection officer.",
+    "sections": {
+      "controller": "Controller",
+      "dpo": "Data protection officer"
+    },
+    "fields": {
+      "controller_name": "Name of the controller",
+      "controller_contact": "Address and contact details",
+      "representative": "Representative in the EU/EEA (if any)",
+      "dpo_name": "Name",
+      "dpo_email": "Email",
+      "dpo_phone": "Phone"
+    },
+    "save": "Save the settings",
+    "saved": "The privacy settings are saved.",
+    "readOnly": "Only privacy managers can change these settings."
+  },
+  "next": {
+    "activateRopa": "Mark as active",
+    "dpiaNotRequired": "Conclude: no DPIA needed",
+    "startDpia": "Start the impact assessment",
+    "sendForDecision": "Send for decision",
+    "closeRequest": "Close the request",
+    "startAssessment": "Start the assessment",
+    "closeBreach": "Close the breach",
+    "activateProcessor": "Mark as active",
+    "activateTransfer": "Activate the transfer",
+    "activateRetention": "Activate the rule",
+    "breachClock": {
+      "title": "Notify the authority about {{ code }}: {{ hours }} hours left",
+      "why": "Art. 33: notify within 72 hours of becoming aware, or record why no notification is needed."
+    },
+    "breachOverdue": {
+      "title": "{{ code }} is past the 72-hour deadline",
+      "why": "Notify the authority now and give the reason for the delay (Art. 33(1))."
+    },
+    "deletionDue": {
+      "title": "Carry out the deletion under {{ code }}",
+      "why": "The deletion of the retention rule is due. Log it as evidence (Art. 5(1)(e))."
+    },
+    "gap": {
+      "lia_missing": {
+        "title": "Assess the legitimate interest behind {{ code }}",
+        "why": "{{ title }} relies on legitimate interest without an approved assessment."
+      },
+      "dpia_missing": {
+        "title": "Start a DPIA for {{ code }}",
+        "why": "{{ title }} may carry a high risk for the people concerned."
+      },
+      "transfer_missing": {
+        "title": "Register the transfer for {{ code }}",
+        "why": "{{ title }} sends data out of the EEA without a recorded transfer tool."
+      },
+      "dpa_missing": {
+        "title": "Get a signed data processing agreement from {{ code }}",
+        "why": "{{ title }} processes personal data without a signed agreement."
+      },
+      "retention_missing": {
+        "title": "Set a retention rule for {{ code }}",
+        "why": "{{ title }} has no rule for how long the data is kept."
+      },
+      "ropa_incomplete": {
+        "title": "Complete {{ code }} in the record of processing",
+        "why": "{{ title }} lacks details that Art. 30 requires."
+      },
+      "deletion_overdue": {
+        "title": "Carry out the deletion under {{ code }}",
+        "why": "The deletion under {{ title }} is overdue."
+      },
+      "supplier_not_processor": {
+        "title": "Register {{ code }} as a processor",
+        "why": "{{ title }} processes personal data for you but has no processor record."
+      }
+    }
+  },
+  "ropa": {
+    "linkedTitle": "Linked to this processing activity",
+    "linkedIntro": "Everything that supports this activity: the legal basis, the impact assessment, retention, transfers and consents.",
+    "linkedNone": {
+      "lba": "No legal basis assessment yet.",
+      "dpia": "No DPIA linked.",
+      "retention": "No retention rule linked.",
+      "transfer": "No transfers linked.",
+      "consent": "No consents linked."
+    },
+    "completenessTitle": "Art. 30 details",
+    "completeness": "{{ filled }} of {{ total }} filled in",
+    "completenessShort": "Art. 30: {{ filled }}/{{ total }}",
+    "completenessMissing": "Fill these in before you mark the entry as active:",
+    "completenessDone": "Every Art. 30 detail is filled in."
+  },
+  "retention": {
+    "months": "{{ count }} months",
+    "everyMonths": "Every {{ count }} months",
+    "deletionOverdue": "Deletion overdue",
+    "runsTitle": "Deletions carried out",
+    "neverRun": "Not carried out yet",
+    "noSchedule": "Not scheduled",
+    "activateFirst": "Activate the rule to log deletions.",
+    "execute": "Log a completed deletion",
+    "executeSave": "Log the deletion",
+    "evidencePlaceholder": "e.g. a ticket number, a log file or a report",
+    "logTitle": "Log",
+    "logEmpty": "No deletions logged yet. Log each one so you can show that the rule is followed.",
+    "recordsAffected": "{{ count }} records",
+    "evidenceShown": "Evidence: {{ ref }}"
+  },
+  "countryStatus": {
+    "eea": "EEA",
+    "adequacy": "Adequacy decision",
+    "adequacy_partial": "Partial adequacy",
+    "third_country": "Third country",
+    "unknown": "Unknown country",
+    "explain": {
+      "eea": "{{ country }} is in the EEA: no transfer tool is needed.",
+      "adequacy": "{{ country }} has an EU adequacy decision: the transfer can rely on it (Art. 45).",
+      "adequacy_partial": "{{ country }} has an adequacy decision for some recipients only (for example the EU–US Data Privacy Framework). Check that the recipient is covered.",
+      "third_country": "{{ country }} is a third country: the transfer needs standard contractual clauses or another tool (Art. 46–49) and a transfer impact assessment.",
+      "unknown": "The country could not be classified."
+    }
   }
 }

@@ -1,31 +1,56 @@
 {
   "nav": {
     "label": "Personvernregistre",
-    "overview": "Oversikt"
+    "overview": "Oversikt",
+    "ropa": "Behandlingsprotokoll",
+    "dpia": "DPIA-er",
+    "dsr": "Henvendelser",
+    "breach": "Personvernbrudd",
+    "processor": "Databehandlere",
+    "transfer": "Overføringer",
+    "retention": "Lagringsregler",
+    "consent": "Samtykker",
+    "lba": "Behandlingsgrunnlag"
   },
   "overview": {
     "title": "Personvern og GDPR",
-    "subtitle": "Behandlingsprotokoll, konsekvensvurderinger, henvendelser fra registrerte, avvik, databehandlere og overføringer på ett sted.",
+    "subtitle": "Behandlingsprotokoll, konsekvensvurderinger, henvendelser fra registrerte, personvernbrudd, databehandlere og overføringer på ett sted.",
     "kpis": "Nøkkeltall for personvern",
     "tiles": {
       "ropaActive": "Aktive behandlinger",
       "breachesOpen": "Åpne personvernbrudd",
-      "breachesOverdue": "Brudd over 72 timer",
+      "breachesOverdue": "Personvernbrudd over 72 timer",
       "dsrOpen": "Åpne henvendelser",
-      "dsrOverdue": "Henvendelser over frist",
+      "dsrOverdue": "Henvendelser over svarfristen",
       "dpiasOpen": "DPIA-er under arbeid",
-      "dpiasRequiredUndecided": "Påkrevde DPIA-er uten beslutning",
-      "processorsWithoutDpa": "Databehandlere uten avtale",
-      "transfersMissingTia": "Overføringer uten TIA",
+      "dpiasRequiredUndecided": "Påkrevde konsekvensvurderinger (DPIA) uten beslutning",
+      "processorsWithoutDpa": "Databehandlere uten databehandleravtale",
+      "transfersMissingTia": "Overføringer uten overføringsvurdering (TIA)",
       "reviewsOverdue": "Gjennomganger over frist",
-      "transfersUnsignedSafeguards": "Aktive SCC-overføringer uten signert avtale"
+      "transfersUnsignedSafeguards": "Overføringer på standard personvernbestemmelser (SCC) uten signert avtale",
+      "breachesActive": "Personvernbrudd under vurdering (72-timersfrist)",
+      "retentionExecutionsDue": "Slettinger som er forfalt",
+      "breachesAwaitingClosure": "Varslede personvernbrudd som venter på lukking"
     },
-    "breachesNow": "Brudd med klokken i gang",
-    "noBreaches": "Ingen åpne personvernbrudd. Registrer et brudd i det øyeblikket dere blir kjent med det.",
-    "requestsNow": "Henvendelser etter frist",
+    "breachesNow": "Personvernbrudd som krever handling",
+    "noBreaches": "Ingen personvernbrudd med løpende 72-timersfrist. Registrer et brudd i det øyeblikket dere blir kjent med det.",
+    "requestsNow": "Nærmeste svarfrister",
     "noRequests": "Ingen åpne henvendelser fra registrerte.",
     "dueOn": "Frist {{ date }}",
-    "registers": "Registre"
+    "registers": "Registre",
+    "reportBreach": "Registrer et personvernbrudd",
+    "attention": "Krever handling",
+    "nothingUrgent": "Ingenting krever handling akkurat nå: ingen personvernbrudd med løpende frist, ingen henvendelser over frist og ingen manglende avtaler.",
+    "overdueSince": "Over frist siden {{ date }}",
+    "stats": "Nøkkeltall",
+    "stat": {
+      "ropa": "{{ active }} av {{ total }} behandlinger er aktive",
+      "dpias": "{{ count }} DPIA-er pågår",
+      "requests": "{{ count }} åpne henvendelser",
+      "breaches": "{{ count }} personvernbrudd ikke lukket",
+      "gaps": "{{ count }} mangler mellom registrene"
+    },
+    "contextSummary": "{{ gaps }} mangler, {{ breaches }} personvernbrudd under vurdering, {{ requests }} åpne henvendelser, {{ dpias }} DPIA-er venter på beslutning."
   },
   "registers": {
     "ropa": {
@@ -86,15 +111,52 @@
   "list": {
     "searchPlaceholder": "Søk etter kode, tittel eller tekst",
     "status": "Status",
-    "statusOpen": "Åpne",
     "statusAll": "Alle statuser",
-    "anyValue": "Alle: {{ field }}",
     "anyOwner": "Alle eiere",
     "mine": "Eid av meg",
     "sort": "Sortering",
-    "overdue": "Kun over frist",
     "noMatch": "Ingenting passer med disse filtrene.",
-    "owner": "Eier: {{ name }}"
+    "owner": "Eier: {{ name }}",
+    "statusOpen": {
+      "ropa": "Gjeldende",
+      "dpia": "Ikke avsluttet",
+      "dsr": "Åpne",
+      "breach": "Ikke lukket",
+      "processor": "Gjeldende",
+      "transfer": "Gjeldende",
+      "retention": "Gjeldende",
+      "consent": "Aktive",
+      "lba": "Ikke avgjort"
+    },
+    "any": {
+      "role": "Alle roller",
+      "legal_basis": "Alle behandlingsgrunnlag",
+      "screening_result": "Alle resultater av forhåndsvurderingen",
+      "request_type": "Alle typer henvendelser",
+      "risk_level": "Alle risikonivåer",
+      "dpa_status": "Alle avtalestatuser",
+      "risk_rating": "Alle risikovurderinger",
+      "mechanism": "Alle overføringsgrunnlag",
+      "tia_status": "Alle vurderingsstatuser",
+      "disposal_method": "Alle slettemetoder",
+      "method": "Alle metoder"
+    },
+    "overdue": {
+      "ropa": "Gjennomgang over frist",
+      "dpia": "Gjennomgang over frist",
+      "dsr": "Over svarfristen",
+      "breach": "Over 72 timer",
+      "processor": "Gjennomgang over frist",
+      "transfer": "Gjennomgang over frist",
+      "retention": "Gjennomgang over frist",
+      "consent": "Gjennomgang over frist",
+      "lba": "Gjennomgang over frist"
+    },
+    "contextTitle": "{{ title }} ({{ filters }}): {{ count }} poster",
+    "receivedOn": "Mottatt {{ date }}",
+    "awareOn": "Kjent siden {{ date }}",
+    "givenOn": "Gitt {{ date }}",
+    "noLegalBasis": "Behandlingsgrunnlag ikke satt"
   },
   "sorts": {
     "created_atDesc": "Nyeste først",
@@ -221,7 +283,7 @@
     "consentPurpose": "Formålet det er samtykket til",
     "given_at": "Samtykke gitt",
     "method": "Hvordan samtykket ble gitt",
-    "notice_version": "Versjon av personvernerklæringen",
+    "notice_version": "Versjon (fritekst)",
     "evidence_reference": "Referanse til dokumentasjon",
     "withdrawn_at": "Trukket tilbake",
     "justification": "Begrunnelse",
@@ -230,7 +292,28 @@
     "balancing_test": "Interesseavveining",
     "safeguards": "Garantier",
     "is_lia": "Vurdering av berettiget interesse",
-    "contract_id": "Signert avtale (kontrakt)"
+    "contract_id": "Signert avtale (kontrakt)",
+    "processor_ids": "Databehandlere (mottakere)",
+    "asset_ids": "Systemer og eiendeler",
+    "data_source": "Hvor opplysningene kommer fra",
+    "privacy_notice_document_id": "Personvernerklæring",
+    "automated_decisions": "Automatiserte avgjørelser eller profilering",
+    "automated_decision_logic": "Hvordan de automatiserte avgjørelsene fungerer",
+    "ropa_entry_ids": "Berørte behandlinger",
+    "supplier_id": "Leverandør",
+    "dpa_contract_id": "Databehandleravtale (kontrakt)",
+    "dpa_document_id": "Databehandleravtale (dokument)",
+    "mechanismTool": "Overføringsgrunnlag",
+    "tiaProgress": "Status for vurderingen",
+    "retentionPeriodText": "Lagringstid med ord (valgfritt)",
+    "execution_interval_months": "Slett hver (måneder)",
+    "next_execution_due_at": "Neste sletting",
+    "last_executed_at": "Siste sletting",
+    "notice_document_id": "Personvernerklæring (dokument)",
+    "employee_id": "Personen i personregisteret",
+    "executed_at": "Gjennomført",
+    "records_affected": "Antall poster slettet",
+    "notes": "Notater"
   },
   "options": {
     "ropaRole": {
@@ -292,9 +375,9 @@
       "availability": "Tilgjengelighet (tapt eller utilgjengelig)"
     },
     "breachRisk": {
-      "unlikely": "Lite sannsynlig at det medfører risiko",
-      "risk": "Risiko",
-      "high_risk": "Høy risiko"
+      "unlikely": "Lite sannsynlig risiko for de berørte",
+      "risk": "Sannsynlig risiko (varsle Datatilsynet)",
+      "high_risk": "Høy risiko (varsle også de berørte)"
     },
     "subjectsExemption": {
       "protected": "Opplysningene er uleselige, for eksempel kryptert (art. 34 nr. 3 a)",
@@ -408,12 +491,13 @@
       "authority": "Varsling til Datatilsynet (art. 33)",
       "subjects": "Varsling til de berørte (art. 34)",
       "dpa": "Databehandleravtale",
-      "mechanism": "Overføringsgrunnlag",
+      "mechanism": "Mottakerland og overføringsgrunnlag",
       "tia": "Vurdering av overføringen (TIA)",
       "rule": "Lagringsregel",
       "evidence": "Dokumentasjon",
       "tests": "Vurdering",
-      "facts": "Viktige datoer og resultater"
+      "facts": "Viktige datoer og resultater",
+      "execution": "Sletting"
     },
     "required": "Dette feltet må fylles ut.",
     "removeTag": "Fjern {{ value }}",
@@ -430,7 +514,15 @@
     "awareCorrectionHint": "En rettelse flytter 72-timersfristen. Det opprinnelige tidspunktet beholdes i revisjonshistorikken; oppgi grunnen nedenfor.",
     "changeReasonRequired": "Grunn til endringen *",
     "changeReasonNeeded": "Oppgi en grunn til at tidspunktet rettes.",
-    "notInFuture": "Tidspunktet kan ikke være fram i tid."
+    "notInFuture": "Tidspunktet kan ikke være fram i tid.",
+    "quickIntro": "Rask registrering: beskriv hva som skjedde og når dere ble kjent med det. 72-timersfristen starter når du lagrer; resten legger du inn etterpå.",
+    "quickAll": "Vis alle feltene",
+    "quickSave": "Registrer og start klokken",
+    "periodRequired": "Oppgi lagringstiden i måneder, eller beskriv den med ord.",
+    "mechanismHint": "Vanlig grunnlag: {{ mechanism }}.",
+    "addRecord": "Legg til en post …",
+    "noRecords": "Ingen poster å velge",
+    "crumbRecord": "{{ code }}"
   },
   "common": {
     "loading": "Laster …",
@@ -440,14 +532,15 @@
     "edit": "Rediger",
     "delete": "Slett",
     "cancel": "Avbryt",
-    "notSet": "Ikke angitt",
+    "notSet": "Ikke satt",
     "undecided": "Ikke besluttet ennå",
     "yes": "Ja",
     "no": "Nei",
     "none": "Ingen",
     "someone": "Et medlem",
     "reviewDue": "Gjennomgang {{ date }}",
-    "reviewOverdue": "Gjennomgang forfalt {{ date }}"
+    "reviewOverdue": "Gjennomgang forfalt {{ date }}",
+    "reviewOverdueBadge": "Gjennomgang over frist"
   },
   "dsr": {
     "overdue": "Over frist siden {{ date }}",
@@ -464,7 +557,31 @@
     "extendMessage": "Fristen flyttes to måneder frem. Forklar hvorfor; den som spør, må få beskjed innen den første måneden.",
     "extensionReason": "Begrunnelse for forlengelsen",
     "outcomeTitle": "Registrer utfallet",
-    "outcomeMessage": "Beskriv hva dere gjorde, eller hvorfor henvendelsen ble avslått. Et avslag skal opplyse om retten til å klage til Datatilsynet."
+    "outcomeMessage": "Beskriv hva dere gjorde, eller hvorfor henvendelsen ble avslått. Et avslag skal opplyse om retten til å klage til Datatilsynet.",
+    "handlingTitle": "Behandling av henvendelsen",
+    "handlingIntro": "Gå gjennom stegene i rekkefølge. Hver avhaking lagres med en gang og vises i aktivitetsloggen.",
+    "stepDone": "Gjort {{ date }}",
+    "steps": {
+      "verify_identity": {
+        "title": "Bekreft hvem som spør",
+        "body": "Sjekk identiteten før dere deler eller endrer opplysninger. Be bare om det dere trenger."
+      },
+      "search_systems": {
+        "title": "Søk i systemene",
+        "body": "Finn personens opplysninger i alle systemene nedenfor."
+      },
+      "draft_reply": {
+        "title": "Skriv svaret",
+        "body": "Svar med et enkelt språk. Assistenten kan lage et første utkast."
+      },
+      "send_reply": {
+        "title": "Send svaret",
+        "body": "Send svaret før fristen; datoen noteres her."
+      }
+    },
+    "systemsTitle": "Behandlinger å søke i ({{ count }})",
+    "systemRetention": "lagres {{ period }}",
+    "noSystems": "Ingen aktive behandlinger har oppgitt systemer ennå."
   },
   "breach": {
     "clock": {
@@ -491,7 +608,10 @@
     "decisionHint": {
       "authority": "Avgjør om Datatilsynet må varsles. Hvis ikke, skriv hvorfor: begrunnelsen skal dokumenteres også når dere ikke varsler.",
       "subjects": "Når risikoen for personene er høy, skal de varsles uten ugrunnet opphold, med mindre et unntak i art. 34 nr. 3 gjelder."
-    }
+    },
+    "awaitingClosure": "Varslet, venter på lukking",
+    "followUpTitle": "Følg opp personvernbruddet",
+    "followUpIntro": "Et personvernbrudd er også en sikkerhetshendelse. Registrer det som avvik med korrigerende tiltak, legg inn risikoen det avdekker, eller gi noen en oppgave (ISO 27001 A.5.24–A.5.28, 10.2)."
   },
   "dpia": {
     "priorConsultation": "Forhåndsdrøfting nødvendig",
@@ -509,14 +629,41 @@
     "levelSummary": "Sannsynlighet {{ likelihood }}, alvorlighet {{ severity }}",
     "residualSummary": "Restrisiko {{ level }}",
     "criteriaMet": "Oppfylte kriterier",
-    "noneMet": "Ingen kriterier oppfylt"
+    "noneMet": "Ingen kriterier oppfylt",
+    "requiredBadge": "DPIA påkrevd",
+    "stage": {
+      "screening": {
+        "title": "Forhåndsvurdering",
+        "body": "Trengs en DPIA? Kryss av for kriteriene som gjelder."
+      },
+      "assessment": {
+        "title": "Vurdering",
+        "body": "Beskriv nødvendigheten, risikoene og tiltakene."
+      },
+      "decision": {
+        "title": "Beslutning",
+        "body": "Den som godkjenner, aksepterer restrisikoen eller avviser den."
+      }
+    },
+    "screeningOutcome": {
+      "required": "Forhåndsvurderingen sier at en DPIA er påkrevd. Start konsekvensvurderingen.",
+      "recommended": "Ett kriterium er oppfylt: en DPIA anbefales.",
+      "not_required": "Ingen kriterier er krysset av ennå. Kryss av for dem som gjelder, eller konkluder med at DPIA ikke er påkrevd."
+    },
+    "closedNotRequired": "Konkludert: DPIA er ikke påkrevd. Behold forhåndsvurderingen som dokumentasjon.",
+    "notScreenedYet": "Ikke forhåndsvurdert ennå: kryss av for kriteriene som gjelder.",
+    "authorityList": "Datatilsynet har også en liste over behandlinger som alltid krever DPIA, for eksempel systematisk overvåking av ansatte, sporing av lokasjon og omfattende behandling av særlige kategorier.",
+    "toRiskRegister": "Overfør til risikoregisteret",
+    "measuresToTask": "Gjør tiltakene til en oppgave"
   },
   "processor": {
-    "dpaBadge": "Avtale: {{ status }}"
+    "dpaBadge": "Avtale: {{ status }}",
+    "noDpaBadge": "Mangler signert avtale"
   },
   "transfer": {
     "destination": "Til {{ country }}",
-    "tiaBadge": "TIA: {{ status }}"
+    "tiaBadge": "TIA: {{ status }}",
+    "tiaOpenBadge": "Overføringsvurdering pågår"
   },
   "lba": {
     "liaExplain": "Berettiget interesse krever en dokumentert tretrinnstest: et berettiget formål, en nødvendig behandling og en avveining der personenes interesser og rettigheter ikke veier tyngre."
@@ -561,7 +708,9 @@
     },
     "deleteTitle": "Slette {{ code }}?",
     "deleteMessage": "Posten fjernes fra registeret. Den blir værende i revisjonssporet.",
-    "linkedRecord": "Koblet post"
+    "linkedRecord": "Koblet post",
+    "setStatus": "Sett status: {{ status }}",
+    "missingArt30": "Mangler (kreves etter art. 30)"
   },
   "ai": {
     "ropaTitle": "Lag utkast fra en beskrivelse",
@@ -575,11 +724,20 @@
     "draftBreach": "Lag utkast til vurdering",
     "useAsConsequences": "Bruk som sannsynlige konsekvenser",
     "breachHint": "Få et utkast til risikovurdering og en anbefaling om varsling basert på denne posten.",
-    "disclaimer": "Et utkast til støtte. Beslutningen er deres."
+    "disclaimer": "Et utkast til støtte. Beslutningen er deres.",
+    "checkRopaTitle": "Sjekk mot artikkel 30",
+    "checkRopaHint": "Assistenten leser posten og lister opp det en revisor eller Datatilsynet ville spurt etter.",
+    "checkRopa": "Sjekk posten",
+    "draftLia": "Lag utkast til interesseavveiningen",
+    "draftTia": "Lag utkast til overføringsvurderingen",
+    "useAsTiaSummary": "Bruk som oppsummering",
+    "draftReply": "Lag utkast til svaret"
   },
   "ask": {
     "field": "Forklar «{{ field }}» enkelt, i lys av personvernforordningen.",
-    "summarise": "Oppsummer {{ code }} og fortell meg hva som mangler eller har frist."
+    "summarise": "Oppsummer {{ code }} og fortell meg hva som mangler eller har frist.",
+    "button": "Spør om denne",
+    "fieldTooltip": "Spør assistenten om dette feltet"
   },
   "lessons": {
     "link": "Leksjon: {{ title }} ({{ minutes }} min)"
@@ -592,7 +750,8 @@
     "rejected": "{{ code }} er avvist.",
     "statusChanged": "{{ code }} har nå status {{ status }}.",
     "withdrawn": "Tilbaketrekkingen av {{ code }} er registrert.",
-    "deleted": "{{ code }} er slettet."
+    "deleted": "{{ code }} er slettet.",
+    "executionLogged": "Slettingen etter {{ code }} er registrert."
   },
   "errors": {
     "not_found": "Posten finnes ikke. Den kan være slettet.",
@@ -633,7 +792,8 @@
     "aware_at_in_future": "Tidspunktet dere ble kjent med bruddet kan ikke være fram i tid.",
     "change_reason_required": "Oppgi en grunn til endringen.",
     "scc_contract_required": "Koble til den signerte avtalen med standard personvernbestemmelser før overføringen kan bli aktiv.",
-    "scc_contract_unsigned": "Den koblede avtalen er ikke signert og aktiv ennå. En overføring som bygger på standard personvernbestemmelser kan bare bli aktiv når de er signert."
+    "scc_contract_unsigned": "Den koblede avtalen er ikke signert og aktiv ennå. En overføring som bygger på standard personvernbestemmelser kan bare bli aktiv når de er signert.",
+    "schedule_not_active": "Aktiver lagringsregelen før du registrerer slettinger."
   },
   "notifications": {
     "ropaEntryCreated": "Behandlingsprotokoll registrert: {{ code }} {{ title }}",
@@ -688,7 +848,8 @@
     "dpiaDecided": "DPIA avgjort: {{ code }} {{ title }}",
     "legalBasisAssessmentDecided": "Vurdering av behandlingsgrunnlag avgjort: {{ code }} {{ title }}",
     "dataBreachAwareCorrected": "Tidspunktet da dere ble kjent med {{ code }} {{ title }} er rettet: 72-timersfristen er flyttet",
-    "dataBreachClockReminder": "{{ hours_remaining }} timer igjen til å varsle Datatilsynet om {{ code }} {{ title }}"
+    "dataBreachClockReminder": "{{ hours_remaining }} timer igjen til å varsle Datatilsynet om {{ code }} {{ title }}",
+    "retentionScheduleExecuted": "Sletting gjennomført: {{ code }} {{ title }}"
   },
   "timeline": {
     "ropaEntryCreated": "Behandlingsprotokoll registrert",
@@ -743,7 +904,8 @@
     "dpiaDecided": "Beslutning registrert",
     "legalBasisAssessmentDecided": "Beslutning registrert",
     "dataBreachAwareCorrected": "Tidspunkt for kjennskap rettet",
-    "dataBreachClockReminder": "Påminnelse om 72-timersfristen sendt"
+    "dataBreachClockReminder": "Påminnelse om 72-timersfristen sendt",
+    "retentionScheduleExecuted": "Sletting gjennomført"
   },
   "tasks": {
     "breachContain": "Begrens bruddet {{ code }}",
@@ -791,5 +953,273 @@
     "audits_and_information": "Informasjon og revisjoner",
     "international_transfers": "Overføring ut av EU/EØS",
     "unknown": "Annen klausul"
+  },
+  "export": {
+    "ropa": {
+      "menu": "Eksporter protokollen",
+      "file": "behandlingsprotokoll"
+    },
+    "breaches": {
+      "menu": "Eksporter loggen over personvernbrudd",
+      "file": "personvernbrudd"
+    },
+    "requests": {
+      "menu": "Eksporter henvendelsesloggen",
+      "file": "henvendelser"
+    },
+    "processors": {
+      "menu": "Eksporter databehandlerlisten",
+      "file": "databehandlere"
+    },
+    "format": {
+      "pdf": "PDF",
+      "xlsx": "Excel (XLSX)",
+      "csv": "CSV"
+    }
+  },
+  "gaps": {
+    "title": "Mangler ({{ count }})",
+    "recordTitle": "Dette mangler for denne posten",
+    "none": "Ingenting mangler mellom registrene. Nye mangler vises her så snart de oppstår.",
+    "intro": "Hver mangel viser hvilken artikkel som ikke er oppfylt. Knappen åpner løsningen, ferdig utfylt.",
+    "showAll": "Vis alle {{ count }}",
+    "severity": {
+      "high": "Høy",
+      "medium": "Middels",
+      "low": "Lav"
+    },
+    "reasons": {
+      "special_categories": "særlige kategorier av personopplysninger",
+      "automated_decisions": "automatiserte avgjørelser",
+      "monitoring": "systematisk overvåking"
+    },
+    "unknownCountry": "et land utenfor EØS",
+    "kinds": {
+      "lia_missing": {
+        "title": "{{ code }} bygger på berettiget interesse uten godkjent vurdering",
+        "why": "Artikkel {{ article }}: berettiget interesse krever en dokumentert interesseavveining (LIA) før dere kan bygge på den.",
+        "fix": "Lag vurderingen"
+      },
+      "dpia_missing": {
+        "title": "{{ code }} trenger en DPIA ({{ reasons }})",
+        "why": "Artikkel {{ article }}: en behandling med høy risiko krever en personvernkonsekvensvurdering før den starter.",
+        "fix": "Start DPIA-en"
+      },
+      "transfer_missing": {
+        "title": "{{ code }} sender opplysninger til {{ countries }} uten registrert overføring",
+        "why": "Artikkel {{ article }}: en overføring ut av EØS krever et overføringsgrunnlag, for eksempel en beslutning om tilstrekkelig beskyttelse eller standard personvernbestemmelser.",
+        "fix": "Registrer overføringen"
+      },
+      "dpa_missing": {
+        "title": "{{ code }} har ingen signert databehandleravtale ({{ dpaStatus }})",
+        "why": "Artikkel {{ article }}: en databehandler kan bare behandle personopplysninger etter en signert avtale.",
+        "fix": "Fullfør avtalen"
+      },
+      "retention_missing": {
+        "title": "{{ code }} har ingen lagringsregel",
+        "why": "Artikkel {{ article }} nr. 1 bokstav e: angi hvor lenge opplysningene lagres, og hva som skjer med dem etterpå.",
+        "fix": "Lag lagringsregelen"
+      },
+      "ropa_incomplete": {
+        "title": "{{ code }} mangler opplysninger etter artikkel 30: {{ fields }}",
+        "why": "Artikkel {{ article }}: behandlingsprotokollen skal ha disse opplysningene for hver behandling.",
+        "fix": "Fullfør posten"
+      },
+      "deletion_overdue": {
+        "title": "Slettingen etter {{ code }} er forfalt (frist {{ due }})",
+        "why": "Artikkel {{ article }} nr. 1 bokstav e: registrer hver sletting, slik at dere kan vise at regelen følges.",
+        "fix": "Registrer slettingen"
+      },
+      "supplier_not_processor": {
+        "title": "Leverandøren {{ code }} behandler personopplysninger, men er ikke registrert som databehandler",
+        "why": "Artikkel {{ article }}: hver leverandør som behandler personopplysninger på deres vegne, trenger en databehandlerpost og en avtale.",
+        "fix": "Registrer som databehandler"
+      },
+      "generic": {
+        "title": "{{ code }}: noe mangler",
+        "why": "Artikkel {{ article }}",
+        "fix": "Åpne"
+      }
+    },
+    "kindShort": {
+      "lia_missing": "mangler interesseavveining",
+      "dpia_missing": "mangler DPIA",
+      "transfer_missing": "mangler registrert overføring",
+      "dpa_missing": "mangler databehandleravtale",
+      "retention_missing": "mangler lagringsregel",
+      "ropa_incomplete": "ufullstendige poster i protokollen",
+      "deletion_overdue": "forfalt sletting",
+      "supplier_not_processor": "leverandør uten databehandlerpost",
+      "generic": "andre mangler"
+    }
+  },
+  "setup": {
+    "title": "Start her",
+    "progress": "{{ done }} av {{ total }} gjort",
+    "complete": "Grunnmuren er på plass. Hold registrene oppdatert når behandlingene endrer seg.",
+    "showSteps": "Vis stegene",
+    "intro": "Sett opp personvernarbeidet i denne rekkefølgen. Hvert steg bygger på det forrige.",
+    "tick": "Rutinen er på plass",
+    "doneSr": "(gjort)",
+    "steps": {
+      "settings": {
+        "title": "Angi behandlingsansvarlig og personvernombud",
+        "body": "De står øverst i behandlingsprotokollen og i personvernerklæringene.",
+        "cta": "Åpne innstillingene"
+      },
+      "ropa": {
+        "title": "Kartlegg behandlingene",
+        "body": "Én post per behandling i behandlingsprotokollen (art. 30).",
+        "cta": "Åpne protokollen"
+      },
+      "processors": {
+        "title": "Registrer databehandlerne",
+        "body": "Hvem som behandler opplysninger for dere, og om avtalen er signert (art. 28).",
+        "cta": "Åpne databehandlere"
+      },
+      "retention": {
+        "title": "Fastsett lagringsregler",
+        "body": "Hvor lenge hver type opplysninger lagres, og hvordan de slettes.",
+        "cta": "Åpne lagringsregler"
+      },
+      "dpia": {
+        "title": "Vurder behandlinger med høy risiko",
+        "body": "Forhåndsvurder hver behandling, og gjennomfør en DPIA der det trengs (art. 35).",
+        "cta": "Åpne DPIA-er"
+      },
+      "requests": {
+        "title": "Avtal hvordan dere besvarer henvendelser",
+        "body": "Hvem som tar imot henvendelser fra registrerte, og hvordan dere svarer innen én måned.",
+        "cta": "Åpne henvendelser"
+      },
+      "breaches": {
+        "title": "Avtal hvordan dere håndterer personvernbrudd",
+        "body": "Hvem som skal få beskjed, og hvordan dere varsler Datatilsynet innen 72 timer.",
+        "cta": "Åpne personvernbrudd"
+      }
+    }
+  },
+  "settings": {
+    "title": "Innstillinger for personvern",
+    "subtitle": "Hvem som er ansvarlig for behandlingen, og hvordan folk når personvernombudet.",
+    "sections": {
+      "controller": "Behandlingsansvarlig",
+      "dpo": "Personvernombud"
+    },
+    "fields": {
+      "controller_name": "Navn på behandlingsansvarlig",
+      "controller_contact": "Adresse og kontaktopplysninger",
+      "representative": "Representant i EU/EØS (hvis aktuelt)",
+      "dpo_name": "Navn",
+      "dpo_email": "E-post",
+      "dpo_phone": "Telefon"
+    },
+    "save": "Lagre innstillingene",
+    "saved": "Innstillingene for personvern er lagret.",
+    "readOnly": "Bare personvernansvarlige kan endre disse innstillingene."
+  },
+  "next": {
+    "activateRopa": "Sett som aktiv",
+    "dpiaNotRequired": "Konkluder: DPIA ikke påkrevd",
+    "startDpia": "Start konsekvensvurderingen",
+    "sendForDecision": "Send til beslutning",
+    "closeRequest": "Lukk henvendelsen",
+    "startAssessment": "Start vurderingen",
+    "closeBreach": "Lukk personvernbruddet",
+    "activateProcessor": "Sett som aktiv",
+    "activateTransfer": "Aktiver overføringen",
+    "activateRetention": "Aktiver regelen",
+    "breachClock": {
+      "title": "Varsle Datatilsynet om {{ code }}: {{ hours }} timer igjen",
+      "why": "Art. 33: varsle innen 72 timer etter at dere ble kjent med bruddet, eller dokumenter hvorfor varsling ikke trengs."
+    },
+    "breachOverdue": {
+      "title": "{{ code }} er over 72-timersfristen",
+      "why": "Varsle Datatilsynet nå, og begrunn forsinkelsen (art. 33 nr. 1)."
+    },
+    "deletionDue": {
+      "title": "Gjennomfør slettingen etter {{ code }}",
+      "why": "Slettingen etter lagringsregelen er forfalt. Registrer den som dokumentasjon (art. 5 nr. 1 bokstav e)."
+    },
+    "gap": {
+      "lia_missing": {
+        "title": "Vurder den berettigede interessen bak {{ code }}",
+        "why": "{{ title }} bygger på berettiget interesse uten godkjent vurdering."
+      },
+      "dpia_missing": {
+        "title": "Start en DPIA for {{ code }}",
+        "why": "{{ title }} kan gi høy risiko for de registrerte."
+      },
+      "transfer_missing": {
+        "title": "Registrer overføringen for {{ code }}",
+        "why": "{{ title }} sender opplysninger ut av EØS uten registrert overføringsgrunnlag."
+      },
+      "dpa_missing": {
+        "title": "Få en signert databehandleravtale med {{ code }}",
+        "why": "{{ title }} behandler personopplysninger uten signert avtale."
+      },
+      "retention_missing": {
+        "title": "Lag en lagringsregel for {{ code }}",
+        "why": "{{ title }} har ingen regel for hvor lenge opplysningene lagres."
+      },
+      "ropa_incomplete": {
+        "title": "Fullfør {{ code }} i behandlingsprotokollen",
+        "why": "{{ title }} mangler opplysninger som artikkel 30 krever."
+      },
+      "deletion_overdue": {
+        "title": "Gjennomfør slettingen etter {{ code }}",
+        "why": "Slettingen etter {{ title }} er forfalt."
+      },
+      "supplier_not_processor": {
+        "title": "Registrer {{ code }} som databehandler",
+        "why": "{{ title }} behandler personopplysninger for dere, men er ikke registrert som databehandler."
+      }
+    }
+  },
+  "ropa": {
+    "linkedTitle": "Knyttet til denne behandlingen",
+    "linkedIntro": "Alt som underbygger behandlingen: behandlingsgrunnlag, konsekvensvurdering, lagring, overføringer og samtykker.",
+    "linkedNone": {
+      "lba": "Ingen vurdering av behandlingsgrunnlaget ennå.",
+      "dpia": "Ingen DPIA koblet.",
+      "retention": "Ingen lagringsregel koblet.",
+      "transfer": "Ingen overføringer koblet.",
+      "consent": "Ingen samtykker koblet."
+    },
+    "completenessTitle": "Opplysninger etter artikkel 30",
+    "completeness": "{{ filled }} av {{ total }} fylt ut",
+    "completenessShort": "Art. 30: {{ filled }}/{{ total }}",
+    "completenessMissing": "Fyll ut disse før du setter posten som aktiv:",
+    "completenessDone": "Alle opplysningene etter artikkel 30 er fylt ut."
+  },
+  "retention": {
+    "months": "{{ count }} måneder",
+    "everyMonths": "Hver {{ count }}. måned",
+    "deletionOverdue": "Sletting forfalt",
+    "runsTitle": "Gjennomførte slettinger",
+    "neverRun": "Ikke gjennomført ennå",
+    "noSchedule": "Ikke planlagt",
+    "activateFirst": "Aktiver regelen for å registrere slettinger.",
+    "execute": "Registrer gjennomført sletting",
+    "executeSave": "Registrer slettingen",
+    "evidencePlaceholder": "f.eks. et saksnummer, en loggfil eller en rapport",
+    "logTitle": "Logg",
+    "logEmpty": "Ingen slettinger registrert ennå. Registrer hver sletting, slik at dere kan vise at regelen følges.",
+    "recordsAffected": "{{ count }} poster",
+    "evidenceShown": "Dokumentasjon: {{ ref }}"
+  },
+  "countryStatus": {
+    "eea": "EØS",
+    "adequacy": "Tilstrekkelig beskyttelse",
+    "adequacy_partial": "Delvis tilstrekkelig beskyttelse",
+    "third_country": "Tredjeland",
+    "unknown": "Ukjent land",
+    "explain": {
+      "eea": "{{ country }} er i EØS: det trengs ikke noe overføringsgrunnlag.",
+      "adequacy": "{{ country }} har en beslutning om tilstrekkelig beskyttelse fra EU: overføringen kan bygge på den (art. 45).",
+      "adequacy_partial": "{{ country }} har en beslutning om tilstrekkelig beskyttelse bare for noen mottakere (for eksempel EU–US Data Privacy Framework). Sjekk at mottakeren er omfattet.",
+      "third_country": "{{ country }} er et tredjeland: overføringen krever standard personvernbestemmelser eller et annet grunnlag (art. 46–49) og en overføringsvurdering.",
+      "unknown": "Landet kunne ikke klassifiseres."
+    }
   }
 }

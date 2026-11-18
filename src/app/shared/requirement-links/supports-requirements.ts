@@ -83,6 +83,8 @@ const KNOWN_FIELDS = new Set([
   'frameworks',
   'article_refs',
   'requirements',
+  // A17: a privacy record that is the register entry of its article ("Fra registeret").
+  'register_entry',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */
@@ -400,10 +402,14 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
                 data-testid="from-field"
               >
                 <app-icon name="lock" [size]="11" />
-                {{
-                  'standards.reqs.fromField'
-                    | transloco: { field: (fieldKey(row.originField) | transloco) }
-                }}
+                @if (row.originField === 'register_entry') {
+                  {{ 'standards.reqs.fromRegister' | transloco }}
+                } @else {
+                  {{
+                    'standards.reqs.fromField'
+                      | transloco: { field: (fieldKey(row.originField) | transloco) }
+                  }}
+                }
               </p>
             } @else if (row.status === 'suggested' && row.rationale) {
               <p class="mt-0.5 text-micro text-fg-subtle">{{ row.rationale }}</p>

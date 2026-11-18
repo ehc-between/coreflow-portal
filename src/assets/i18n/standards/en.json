@@ -210,7 +210,8 @@
       "frameworks": "Standards",
       "article_refs": "Articles",
       "requirements": "Requirements",
-      "generic": "a field on the record"
+      "generic": "a field on the record",
+      "register_entry": "the register"
     },
     "origin": {
       "manual": "Added by hand",
@@ -296,6 +297,7 @@
       "notEnabledBody": "Enable it on the standards overview to see what is missing.",
       "toOverview": "Go to the standards overview",
       "loadError": "Couldn't load the gaps. Try again."
-    }
+    },
+    "fromRegister": "From the register"
   }
 }

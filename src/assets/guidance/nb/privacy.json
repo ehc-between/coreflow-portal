@@ -2,8 +2,8 @@
   "pages": {
     "overview": {
       "intro": {
-        "title": "Personvern på ett sted",
-        "body": "Personvernforordningen krever at dere vet hvilke personopplysninger dere har, hvorfor dere har dem, og at dere kan vise at dere behandler dem lovlig. Disse registrene er dokumentasjonen.",
+        "title": "Personvernarbeidet samlet",
+        "body": "Er du ny, begynner du med **Start her**. **Krever handling** viser bare det som haster, og **Mangler** viser hull mellom registrene, hver med en knapp som løser dem.",
         "steps": [
           "Start med behandlingsprotokollen: før opp hver aktivitet som bruker personopplysninger.",
           "Forhåndsvurder ny eller risikofylt behandling for DPIA.",
@@ -30,7 +30,7 @@
     "detail": {
       "intro": {
         "title": "Arbeid med posten",
-        "body": "Frister og beslutninger står øverst. Bruk fanene for oppgaver, koblede poster, aktivitetslogg, kommentarer, vedlegg og revisjonshistorikk."
+        "body": "Neste steg er hovedknappen øverst; andre statuser finner du under **Mer**. Frister, beslutninger og det som mangler står først, deretter opplysningene. **Relatert** og panelet til høyre viser hva posten er koblet til."
       }
     },
     "ropa": {
@@ -60,11 +60,13 @@
         },
         "purposes": {
           "help": "Hvorfor dere behandler opplysningene. Vær konkret; «forretningsformål» er for vagt.",
-          "example": "Utbetale lønn og rapportere skatt og pensjon."
+          "example": "Utbetale lønn og rapportere skatt og pensjon.",
+          "requirements": ["gdpr:30", "gdpr:5"]
         },
         "legal_basis": {
           "help": "Hver behandling trenger ett av de seks grunnlagene i artikkel 6. Velg det som faktisk gjelder; dere kan ikke bytte senere fordi det passer bedre.",
-          "example": "Lønn: rettslig forpliktelse og avtale."
+          "example": "Lønn: rettslig forpliktelse og avtale.",
+          "requirements": ["gdpr:6"]
         },
         "special_categories": {
           "help": "Helse, etnisitet, religion, politisk syn, fagforeningsmedlemskap, seksuell orientering, genetiske og biometriske opplysninger. Disse krever i tillegg et unntak etter artikkel 9.",
@@ -72,14 +74,33 @@
         },
         "retention_period": {
           "help": "Hvor lenge opplysningene lagres, eller regelen som avgjør det.",
-          "example": "Fem år etter regnskapsårets slutt."
+          "example": "Fem år etter regnskapsårets slutt.",
+          "requirements": ["gdpr:30", "gdpr:5"]
         },
         "security_measures": {
           "help": "En generell beskrivelse av de tekniske og organisatoriske tiltakene (art. 32).",
-          "example": "Rollebasert tilgang, kryptering, logging, årlig tilgangsgjennomgang."
+          "example": "Rollebasert tilgang, kryptering, logging, årlig tilgangsgjennomgang.",
+          "requirements": ["gdpr:30", "gdpr:32"]
         },
         "international_transfers": {
           "help": "Kryss av hvis opplysningene går ut av EØS, også via en leverandør eller dens underleverandører. Dokumenter da overføringen i overføringsregisteret."
+        },
+        "processor_ids": {
+          "help": "Databehandlerne som mottar opplysningene. Når de kobles her, teller de som mottakere etter art. 30, og behandlingen vises på databehandleren.",
+          "requirements": ["gdpr:30", "gdpr:28"]
+        },
+        "asset_ids": {
+          "help": "Systemene og eiendelene som inneholder opplysningene, fra eiendelsregisteret. En henvendelse eller et personvernbrudd viser da hvor dere skal lete."
+        },
+        "data_source": {
+          "help": "Hvor opplysningene kommer fra når de ikke samles inn fra personen selv, for eksempel et offentlig register eller en samarbeidspartner (art. 14)."
+        },
+        "privacy_notice_document_id": {
+          "help": "Personvernerklæringen som informerer om denne behandlingen (art. 13 og 14), som et styrt dokument.",
+          "requirements": ["gdpr:13"]
+        },
+        "automated_decisions": {
+          "help": "Kryss av hvis et system tar avgjørelser om personer uten at et menneske er involvert, eller hvis personer profileres (art. 22). Det krever som regel en DPIA."
         }
       }
     },
@@ -106,17 +127,20 @@
       "fields": {
         "screening": {
           "help": "To eller flere kriterier oppfylt: DPIA er påkrevd. Ett: den anbefales. Er du i tvil, gjennomfør den.",
-          "example": "Overvåking av ansatte med et nytt verktøy: systematisk overvåking + sårbare registrerte (ansatte) = påkrevd."
+          "example": "Overvåking av ansatte med et nytt verktøy: systematisk overvåking + sårbare registrerte (ansatte) = påkrevd.",
+          "requirements": ["gdpr:35"]
         },
         "necessity_assessment": {
-          "help": "Hvorfor behandlingen er nødvendig for formålet, og hvorfor mindre inngripende løsninger ikke er nok."
+          "help": "Hvorfor behandlingen er nødvendig for formålet, og hvorfor en mindre inngripende løsning ikke holder.",
+          "requirements": ["gdpr:35"]
         },
         "risks": {
           "help": "Risiko for personene opplysningene gjelder, ikke for virksomheten: tap av kontroll, diskriminering, identitetstyveri, økonomisk tap, omdømmeskade.",
           "example": "Uautorisert tilgang til helseopplysninger i saksbehandlingssystemet."
         },
         "residual_risk": {
-          "help": "Risikoen som gjenstår etter tiltakene. Høy restrisiko betyr forhåndsdrøfting med Datatilsynet."
+          "help": "Risikoen som gjenstår etter tiltakene. Høy restrisiko betyr forhåndsdrøfting med Datatilsynet.",
+          "requirements": ["gdpr:35", "gdpr:36"]
         },
         "dpo_advice": {
           "help": "Artikkel 35 nr. 2 krever at dere ber om råd fra personvernombudet, der et slikt er utnevnt."
@@ -146,7 +170,8 @@
       "fields": {
         "request_type": {
           "help": "Rettigheten personen bruker. En henvendelse trenger ikke bruke juridiske ord for å gjelde.",
-          "example": "«Send meg alt dere har om meg» er en innsynsbegjæring."
+          "example": "«Send meg alt dere har om meg» er en innsynsbegjæring.",
+          "requirements": ["gdpr:12", "gdpr:15"]
         },
         "received_at": {
           "help": "Når henvendelsen nådde noen i virksomheten, uansett kanal. Fristen på én måned løper herfra."
@@ -158,7 +183,11 @@
           "help": "Når dere bekreftet hvem den som spør, er. Be bare om dokumentasjon når dere har rimelig tvil."
         },
         "outcome": {
-          "help": "Hva dere gjorde, eller hvorfor dere avslo. Et avslag skal opplyse om retten til å klage til Datatilsynet og til å gå til domstolene."
+          "help": "Hva dere gjorde, eller hvorfor dere avslo. Et avslag skal opplyse om retten til å klage til Datatilsynet og til å gå til domstolene.",
+          "requirements": ["gdpr:12"]
+        },
+        "employee_id": {
+          "help": "Kommer henvendelsen fra en ansatt, kobler du personen i personregisteret, slik at den vises der."
         }
       }
     },
@@ -184,7 +213,8 @@
       },
       "fields": {
         "aware_at": {
-          "help": "Når dere hadde rimelig grad av sikkerhet for at personopplysninger var berørt. Dette starter 72-timersklokken."
+          "help": "Når dere hadde rimelig grad av sikkerhet for at personopplysninger var berørt. Dette starter 72-timersklokken.",
+          "requirements": ["gdpr:33"]
         },
         "breach_types": {
           "help": "Konfidensialitet: sett av noen som ikke skulle. Integritet: endret. Tilgjengelighet: tapt eller midlertidig utilgjengelig."
@@ -194,13 +224,24 @@
           "example": "Passord lekket i klartekst: høy risiko."
         },
         "authority_notification_required": {
-          "help": "Varsle med mindre det er lite sannsynlig at bruddet medfører risiko for personers rettigheter og friheter. Når dere velger å ikke varsle, skriv ned hvorfor."
+          "help": "Varsle med mindre det er lite sannsynlig at bruddet medfører risiko for personers rettigheter og friheter. Når dere velger å ikke varsle, skriv ned hvorfor.",
+          "requirements": ["gdpr:33"]
         },
         "authority_delay_reason": {
           "help": "Varsler dere etter 72 timer, skal varselet begrunne forsinkelsen."
         },
         "subjects_exemption": {
           "help": "Dere kan la være å varsle personene bare hvis opplysningene var uleselige for andre, den høye risikoen ikke lenger er sannsynlig, eller det ville kreve uforholdsmessig innsats (da kreves offentlig kunngjøring)."
+        },
+        "ropa_entry_ids": {
+          "help": "Behandlingene som har fått opplysninger berørt. De forteller hvilke opplysninger og hvor mange personer det gjelder.",
+          "requirements": ["gdpr:33"]
+        },
+        "processor_id": {
+          "help": "Databehandleren der bruddet skjedde, hvis det gjelder en. Avtalen sier hvor raskt de må varsle dere."
+        },
+        "asset_ids": {
+          "help": "Systemene eller enhetene som var involvert, fra eiendelsregisteret."
         }
       }
     },
@@ -226,13 +267,28 @@
       },
       "fields": {
         "dpa_status": {
-          "help": "En databehandler kan bare markeres som aktiv med en signert avtale, eller når dere har dokumentert at avtale ikke trengs."
+          "help": "En databehandler kan bare markeres som aktiv med en signert avtale, eller når dere har dokumentert at avtale ikke trengs.",
+          "requirements": ["gdpr:28"]
         },
         "is_sub_processor": {
           "help": "En underdatabehandler er engasjert av databehandleren deres. Avtalen skal kreve deres godkjenning av nye underdatabehandlere."
         },
         "risk_rating": {
           "help": "Deres vurdering av risikoen databehandleren medfører, ut fra opplysningene, omfanget og sikkerheten de tilbyr."
+        },
+        "supplier_id": {
+          "help": "Det samme selskapet i leverandørregisteret, slik at leverandørvurderinger og databehandlerposten henger sammen."
+        },
+        "dpa_contract_id": {
+          "help": "Den signerte databehandleravtalen i kontraktsregisteret. Det er den som dokumenterer art. 28 nr. 3.",
+          "requirements": ["gdpr:28"]
+        },
+        "dpa_document_id": {
+          "help": "Bruk dette hvis avtalen ligger som et dokument i stedet for en kontrakt."
+        },
+        "country": {
+          "help": "Hvor databehandleren behandler opplysningene. Et land utenfor EØS uten beslutning om tilstrekkelig beskyttelse krever en registrert overføring.",
+          "requirements": ["gdpr:44"]
         }
       }
     },
@@ -258,10 +314,12 @@
       },
       "fields": {
         "mechanism": {
-          "help": "Tilstrekkelig beskyttelse krever ingen TIA. SCC, BCR og andre grunnlag krever en fullført TIA før overføringen blir aktiv. Unntak gjelder bare for enkeltstående overføringer."
+          "help": "Tilstrekkelig beskyttelse krever ingen TIA. SCC, BCR og andre grunnlag krever en fullført TIA før overføringen blir aktiv. Unntak gjelder bare for enkeltstående overføringer.",
+          "requirements": ["gdpr:44", "gdpr:46"]
         },
         "tia_conclusion": {
-          "help": "Om beskyttelsen i mottakerlandet i det vesentlige er likeverdig, eventuelt med supplerende tiltak."
+          "help": "Om beskyttelsen i mottakerlandet i det vesentlige er likeverdig, eventuelt med supplerende tiltak.",
+          "requirements": ["gdpr:46"]
         },
         "supplementary_measures": {
           "help": "Tekniske, avtalemessige eller organisatoriske tiltak som tetter hullene vurderingen fant.",
@@ -269,6 +327,10 @@
         },
         "contract_id": {
           "help": "Kontrakten som inneholder de signerte standard personvernbestemmelsene (eller et annet garantigrunnlag). En overføring etter SCC kan bare bli aktiv når avtalen er signert og aktiv i kontraktsregisteret."
+        },
+        "destination_country": {
+          "help": "Landet opplysningene sendes til. Skjemaet viser om det er i EØS, har en beslutning om tilstrekkelig beskyttelse eller er et tredjeland.",
+          "requirements": ["gdpr:44"]
         }
       }
     },
@@ -302,7 +364,15 @@
           "example": "Avsluttet arbeidsforhold."
         },
         "disposal_method": {
-          "help": "Hva som skjer når perioden er over. Anonymiserte opplysninger er ikke lenger personopplysninger."
+          "help": "Hva som skjer når perioden er over. Anonymiserte opplysninger er ikke lenger personopplysninger.",
+          "requirements": ["gdpr:5"]
+        },
+        "retention_months": {
+          "help": "Hvor lenge opplysningene lagres, i måneder. Bruk tekstfeltet i stedet hvis tiden avhenger av en hendelse, for eksempel «5 år etter at avtalen er avsluttet».",
+          "requirements": ["gdpr:5"]
+        },
+        "execution_interval_months": {
+          "help": "Hvor ofte noen gjennomfører slettingen. Hver sletting registreres som dokumentasjon på at regelen følges."
         }
       }
     },
@@ -332,6 +402,13 @@
         },
         "notice_version": {
           "help": "Versjonen av personvernerklæringen personen så da samtykket ble gitt."
+        },
+        "method": {
+          "requirements": ["gdpr:7"]
+        },
+        "notice_document_id": {
+          "help": "Personvernerklæringen personen så da samtykket ble gitt, som et styrt dokument med versjon.",
+          "requirements": ["gdpr:7"]
         }
       }
     },
@@ -357,18 +434,49 @@
       },
       "fields": {
         "legal_basis": {
-          "help": "Berettiget interesse er fleksibelt, men krever tretrinnstesten. Samtykke må være frivillig, noe som er vanskelig i et arbeidsforhold."
+          "help": "Berettiget interesse er fleksibelt, men krever tretrinnstesten. Samtykke må være frivillig, noe som er vanskelig i et arbeidsforhold.",
+          "requirements": ["gdpr:6"]
         },
         "purpose_test": {
           "help": "Hva er interessen, og er den berettiget?",
-          "example": "Forhindre svindel ved betaling på nett."
+          "example": "Forhindre svindel ved betaling på nett.",
+          "requirements": ["gdpr:6"]
         },
         "necessity_test": {
           "help": "Er behandlingen nødvendig for den interessen, eller finnes det en mindre inngripende måte?"
         },
         "balancing_test": {
           "help": "Vei interessen deres mot konsekvensene for personene: deres rimelige forventninger, hva slags opplysninger det er, og om de er sårbare.",
-          "example": "Kunder forventer svindelkontroll; opplysningene er begrenset til transaksjonen."
+          "example": "Kunder forventer svindelkontroll; opplysningene er begrenset til transaksjonen.",
+          "requirements": ["gdpr:6"]
+        }
+      }
+    },
+    "settings": {
+      "intro": {
+        "title": "Hvem som er ansvarlig",
+        "body": "Angi behandlingsansvarlig og personvernombud én gang. De står øverst i den eksporterte behandlingsprotokollen, og det er dem de registrerte og Datatilsynet skal kontakte."
+      },
+      "fields": {
+        "controller_name": {
+          "help": "Det juridiske navnet på virksomheten som bestemmer hvorfor og hvordan personopplysninger behandles.",
+          "example": "CoreFlow Demo AS"
+        },
+        "controller_contact": {
+          "help": "Postadresse, organisasjonsnummer og en kontaktadresse for spørsmål om personvern."
+        },
+        "representative": {
+          "help": "Bare for behandlingsansvarlige utenfor EU/EØS som tilbyr tjenester her (art. 27). La feltet stå tomt ellers."
+        },
+        "dpo_name": {
+          "help": "Personvernombudet, hvis dere har et (art. 37). Offentlige virksomheter og enkelte omfattende behandlinger må ha det."
+        },
+        "dpo_email": {
+          "help": "En e-postadresse folk kan bruke for å nå ombudet. En felles adresse fungerer også når folk slutter.",
+          "example": "personvern@example.no"
+        },
+        "dpo_phone": {
+          "help": "Valgfritt: et telefonnummer for hastesaker, for eksempel ved et personvernbrudd."
         }
       }
     }
@@ -583,18 +691,18 @@
     "overview": [
       {
         "target": "privacy-kpis",
-        "title": "Nøkkeltall",
-        "body": "Åpne brudd, henvendelser over frist, databehandlere uten avtale og mer. Klikk på et tall for å åpne listen bak det."
+        "title": "Krever handling",
+        "body": "Her vises bare det som trenger oppfølging: personvernbrudd med løpende frist, henvendelser over frist og manglende avtaler. Klikk på en flis for å åpne postene bak den."
       },
       {
         "target": "privacy-breaches",
-        "title": "Det som haster nå",
-        "body": "Brudd med 72-timersklokken i gang og henvendelser sortert etter frist."
+        "title": "Det som haster",
+        "body": "Personvernbrudd med 72-timersfristen i gang, brudd som venter på lukking, og de nærmeste svarfristene for henvendelser."
       },
       {
         "target": "privacy-registers",
         "title": "Registrene",
-        "body": "Hvert register dekker én del av personvernforordningen. Start med behandlingsprotokollen."
+        "body": "Hvert register dekker én del av personvernforordningen. Start med behandlingsprotokollen; alt annet viser tilbake til den."
       }
     ]
   },
@@ -613,6 +721,36 @@
       "term": "Vurdering av overføring (TIA)",
       "definition": "En vurdering av om lovgivning og praksis i et tredjeland undergraver beskyttelsen et overføringsgrunnlag som SCC gir.",
       "clauses": ["gdpr:46"]
+    },
+    "dpa": {
+      "term": "Databehandleravtale",
+      "definition": "Avtalen den behandlingsansvarlige må ha med hver databehandler (art. 28 nr. 3). Den sier hva databehandleren kan gjøre med opplysningene.",
+      "clauses": ["gdpr:28"]
+    },
+    "scc": {
+      "term": "Standard personvernbestemmelser (SCC)",
+      "definition": "Avtalevilkår vedtatt av EU-kommisjonen som beskytter opplysninger som sendes til et land utenfor EØS.",
+      "clauses": ["gdpr:46"]
+    },
+    "bcr": {
+      "term": "Bindende virksomhetsregler (BCR)",
+      "definition": "Godkjente interne regler som lar et konsern overføre opplysninger mellom selskapene sine utenfor EØS.",
+      "clauses": ["gdpr:46"]
+    },
+    "lia": {
+      "term": "Interesseavveining (LIA)",
+      "definition": "Tretrinnstesten dere dokumenterer før dere bygger på berettiget interesse: et berettiget formål, en nødvendig behandling og en avveining som tar hensyn til de registrerte.",
+      "clauses": ["gdpr:6"]
+    },
+    "eea": {
+      "term": "EØS",
+      "definition": "EU-landene sammen med Norge, Island og Liechtenstein. Opplysninger kan flyttes fritt innenfor EØS.",
+      "clauses": ["gdpr:44"]
+    },
+    "dpia": {
+      "term": "Personvernkonsekvensvurdering (DPIA)",
+      "definition": "En vurdering av risikoen for de registrerte før dere starter en behandling som trolig gir høy risiko.",
+      "clauses": ["gdpr:35"]
     }
   }
 }

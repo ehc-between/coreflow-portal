@@ -34,7 +34,8 @@ function flushSide(http: HttpTestingController) {
 describe('transfer safeguards', () => {
   it('asks for the signed agreement for SCC, BCR and other tools, not for adequacy', () => {
     const field = REGISTERS.transfer.fields.find((f) => f.key === 'contract_id')!;
-    expect(field.kind).toBe('contract');
+    expect(field.kind).toBe('entity');
+    expect(field.entity).toBe('contract');
     expect(field.showIf?.({ mechanism: 'sccs' })).toBe(true);
     expect(field.showIf?.({ mechanism: 'bcrs' })).toBe(true);
     expect(field.showIf?.({ mechanism: 'adequacy' })).toBe(false);
@@ -77,14 +78,18 @@ describe('transfer safeguards', () => {
     await render(fixture);
 
     const set = (testid: string, value: string, event = 'input') => {
-      const input = el.querySelector<HTMLInputElement | HTMLSelectElement>(
-        `[data-testid="field-${testid}"]`,
-      )!;
+      // Country pickers carry the test id on the picker; the control is its select.
+      const host = el.querySelector<HTMLElement>(`[data-testid="field-${testid}"]`)!;
+      const input = (
+        host instanceof HTMLInputElement || host instanceof HTMLSelectElement
+          ? host
+          : host.querySelector('select, input')
+      ) as HTMLInputElement | HTMLSelectElement;
       input.value = value;
       input.dispatchEvent(new Event(event));
     };
     set('title', 'Support desk in the US');
-    set('destination_country', 'US');
+    set('destination_country', 'US', 'change');
     set('mechanism', 'sccs', 'change');
     await render(fixture);
     flushSide(http);
@@ -144,9 +149,12 @@ describe('ProcessorDpaCoverage', () => {
       ],
     });
     await render(fixture);
-    expect(el.querySelector('[data-testid="dpa-coverage-status"]')?.textContent).toContain(
-      'privacy.dpaCoverage.status.incomplete',
-    );
+    // An incomplete agreement is amber ("partial"), never green.
+    expect(
+      el
+        .querySelector('[data-testid="dpa-coverage-status"] [data-tone]')
+        ?.getAttribute('data-tone'),
+    ).toBe('warn');
     expect(el.querySelector('[data-testid="dpa-coverage-missing"]')?.textContent).toContain(
       'privacy.dpaClauses.sub_processors',
     );

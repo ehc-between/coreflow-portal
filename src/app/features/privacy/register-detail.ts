@@ -9,28 +9,35 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, of } from 'rxjs';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { StandardsApi } from '../../core/standards/standards-api';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
+import { locationName } from '../../shared/locale/countries';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { Breadcrumb } from '../../shared/ui/page-header/page-header';
 import { PromptDialog } from '../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { PrivacyApi } from './data/privacy-api';
 import {
   ConsentRecord,
@@ -41,45 +48,109 @@ import {
   LegalBasisAssessment,
   PERM_APPROVE,
   PERM_MANAGE,
+  PrivacyGap,
   PrivacyRecord,
+  Processor,
+  RetentionSchedule,
+  RopaEntry,
+  TransferAssessment,
 } from './data/privacy.models';
-import { statusKey, statusTone } from './data/privacy-display';
+import { countryStatusKey, statusKey, statusToneValue } from './data/privacy-display';
 import { privacyError } from './data/privacy-errors';
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import {
-  FactDef,
-  FieldDef,
+  PRIVACY_CRUMB,
+  PRIVACY_SETTINGS_LINK,
   REGISTERS,
   RegisterKey,
-  fieldLabelKey,
+  registerCrumb,
   revisionFieldLabels,
 } from './data/privacy-registers';
-import { BreachPanel, DecisionPanel, DsrPanel } from './detail-panels';
+import { BreachPanel, DecisionPanel, DpiaSteps, DsrPanel } from './detail-panels';
+import { DsrHandling } from './dsr-handling';
+import { PrivacyGaps } from './privacy-gaps';
+import { privacyNavItems, privacyPermissions } from './privacy-nav';
 import { ProcessorDpaCoverage } from './processor-dpa-coverage';
-import { REGISTER_LESSONS } from './register-list';
-import { PrivacyLessonLink, privacyPermissions } from './privacy-nav';
-
-interface ShownValue {
-  readonly key: string;
-  readonly label: string;
-  readonly text: string;
-  readonly wide: boolean;
-  readonly link?: readonly unknown[] | null;
-}
-
-interface ShownSection {
-  readonly key: string;
-  readonly values: readonly ShownValue[];
-}
+import { PrivacyRecordFields } from './record-fields';
+import { RetentionRuns } from './retention-runs';
+import { RopaCompletenessCard, RopaLinked } from './ropa-panels';
 
 /** Statuses that need an outcome on a data subject request. */
 const OUTCOME_STATUSES = ['completed', 'rejected'];
 
+/** One forward step of a record's workflow: the status it moves to, and its button. */
+export interface NextStep {
+  readonly status: string;
+  readonly labelKey: string;
+}
+
 /**
- * A privacy record (`/privacy/<segment>/:id`) of any register: the register's
- * own panel (request deadline, breach clock, DPIA / assessment decision),
- * status changes, every field by section, clause evidence, and the record kit
- * tabs (tasks, related items, activity, comments, attachments, revisions).
+ * The next step of a record, offered as the page's primary button (the full status
+ * list sits in the "Mer ⋯" menu). Null when the next step is not a status change
+ * (decisions, notifications, withdrawals have their own buttons).
+ */
+export function nextStep(register: RegisterKey, record: PrivacyRecord): NextStep | null {
+  const s = record.status;
+  const step = (status: string, label: string): NextStep => ({
+    status,
+    labelKey: `privacy.next.${label}`,
+  });
+  switch (register) {
+    case 'ropa':
+      return s === 'draft' ? step('active', 'activateRopa') : null;
+    case 'dpia': {
+      const d = record as Dpia;
+      if (s === 'screening') {
+        return d.screening_result === 'not_required'
+          ? step('not_required', 'dpiaNotRequired')
+          : step('in_progress', 'startDpia');
+      }
+      return s === 'in_progress' ? step('awaiting_decision', 'sendForDecision') : null;
+    }
+    case 'lba':
+      return s === 'draft' ? step('awaiting_decision', 'sendForDecision') : null;
+    case 'dsr': {
+      const r = record as DataSubjectRequest;
+      if (r.closed_at || ['completed', 'rejected', 'withdrawn'].includes(s)) {
+        return null;
+      }
+      return r.responded_at ? step('completed', 'closeRequest') : null;
+    }
+    case 'breach': {
+      const b = record as DataBreach;
+      if (s === 'open') {
+        return step('assessing', 'startAssessment');
+      }
+      const decided =
+        b.authority_notification_required !== null && b.subjects_notification_required !== null;
+      return s !== 'closed' && decided ? step('closed', 'closeBreach') : null;
+    }
+    case 'processor':
+      return s === 'onboarding' ? step('active', 'activateProcessor') : null;
+    case 'transfer':
+      return s === 'draft' ? step('active', 'activateTransfer') : null;
+    case 'retention':
+      return s === 'draft' ? step('active', 'activateRetention') : null;
+    default:
+      return null;
+  }
+}
+
+/** The breach's follow-up records (create-from-here), in the order they are usually made. */
+const BREACH_FLOWS = [
+  { key: 'data_breach.to_deviation', permission: 'deviations:write', icon: 'alert' },
+  { key: 'data_breach.to_risk', permission: 'risk:write', icon: 'risk' },
+  { key: 'data_breach.to_task', permission: 'tasks:write', icon: 'check' },
+] as const;
+
+/**
+ * A privacy record (`/privacy/<segment>/:id`) of any register on the shared detail
+ * frame: header with code · register · status, the next workflow step as the primary
+ * action and every status in "Mer ⋯"; the register's own panels (request deadline and
+ * handling checklist, breach clock and follow-up, DPIA steps and decision, DPA
+ * coverage, deletion runs, the Art. 30 completeness and what points to a processing
+ * activity); what is missing for this record; the fields by section with links as
+ * record chips; requirements, connections and the record kit tabs.
  */
 @Component({
   selector: 'app-privacy-register-detail',
@@ -87,39 +158,47 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
     RouterLink,
     TranslocoPipe,
     WatchButton,
-    AskAbout,
-    GuideIntro,
     WhyItMatters,
     RecordDetailLayout,
-    SupportsRequirements,
     EntityTasks,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
+    ErrorState,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
+    ModuleNav,
     PromptDialog,
+    StatusBadge,
     BreachPanel,
     DecisionPanel,
+    DpiaSteps,
     DsrPanel,
+    DsrHandling,
+    PrivacyGaps,
+    PrivacyRecordFields,
     ProcessorDpaCoverage,
-    PrivacyLessonLink,
+    RetentionRuns,
+    RopaCompletenessCard,
+    RopaLinked,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted" role="status">
-          {{ 'privacy.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-8 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[760px] px-4 pt-8 sm:px-8">
-          <app-alert tone="error">{{ loadError() | transloco }}</app-alert>
+          <app-error-state [bodyKey]="loadError()" (retry)="reload()" />
           <a
             [routerLink]="['/privacy', def().segment]"
-            class="mt-4 inline-block text-[13px] font-semibold text-accent"
+            class="mt-4 inline-block text-ui font-semibold text-accent"
           >
             {{ 'privacy.common.backToList' | transloco }}
           </a>
@@ -130,66 +209,136 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
           <app-record-detail-layout
             [entityType]="def().entityType"
             [entityId]="r.id"
+            [title]="r.title"
+            [breadcrumbs]="breadcrumbs()"
+            [settingsLink]="canManage() ? settingsLink : null"
             [tabs]="tabs()"
             [canEdit]="canWrite()"
+            [requirementsPanel]="true"
             [fieldLabels]="fieldLabels()"
-            [backLink]="['/privacy', def().segment]"
-            backLabelKey="privacy.common.backToList"
           >
-            <div header>
-              <p class="mb-1 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-subtle">
-                <span class="font-mono font-semibold">{{ r.code }}</span>
-                <span>{{ 'privacy.registers.' + def().key + '.name' | transloco }}</span>
-              </p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] break-words text-fg sm:text-[26px]"
-                data-testid="privacy-heading"
-              >
-                {{ r.title }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="statusTone(r.status)" data-testid="privacy-status">{{
-                  statusKey(r.status) | transloco
-                }}</app-badge>
-                @if (ownerName(); as name) {
-                  <span class="text-[12.5px] text-fg-muted">{{
-                    'privacy.list.owner' | transloco: { name }
-                  }}</span>
-                }
-              </div>
-            </div>
-
-            <ng-container actions>
-              <app-watch-button [entityType]="def().entityType" [entityId]="r.id" />
-              <app-ask-about [prompt]="'privacy.ask.summarise' | transloco: { code: r.code }" />
-              @if (canWrite() && editable()) {
-                <a
-                  [routerLink]="['/privacy', def().segment, r.id, 'edit']"
-                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  data-testid="privacy-edit"
-                >
-                  {{ 'privacy.common.edit' | transloco }}
-                </a>
+            <span
+              meta
+              class="flex flex-wrap items-center gap-x-2 gap-y-1"
+              data-testid="privacy-meta"
+            >
+              <span class="font-mono font-semibold">{{ r.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'privacy.registers.' + def().key + '.name' | transloco }}</span>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="toneValue(r.status)"
+                [labelKey]="statusKey(r.status)"
+                data-testid="privacy-status"
+              />
+              @if (ownerName(); as name) {
+                <span class="text-meta text-fg-muted">{{
+                  'privacy.list.owner' | transloco: { name }
+                }}</span>
               }
-              @if (canDelete()) {
-                <app-button
-                  variant="ghost"
-                  size="sm"
-                  (click)="deleting.set(true)"
-                  data-testid="privacy-delete"
+            </span>
+
+            @if (canWrite() && next(); as step) {
+              <app-button
+                primary
+                size="sm"
+                [loading]="busy()"
+                (click)="applyStatus(step.status)"
+                data-testid="privacy-next-step"
+              >
+                {{ step.labelKey | transloco }}
+              </app-button>
+            }
+            @if (canWrite() && editable() && next()) {
+              <a
+                secondary
+                [routerLink]="['/privacy', def().segment, r.id, 'edit']"
+                class="inline-flex h-9 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                data-testid="privacy-edit"
+              >
+                {{ 'privacy.common.edit' | transloco }}
+              </a>
+            }
+            @if (canWrite() && editable() && !next()) {
+              <a
+                primary
+                [routerLink]="['/privacy', def().segment, r.id, 'edit']"
+                class="inline-flex h-9 items-center rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:bg-accent-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+                data-testid="privacy-edit"
+              >
+                {{ 'privacy.common.edit' | transloco }}
+              </a>
+            }
+            @if (!ai.unavailable()) {
+              <app-button
+                secondary
+                variant="secondary"
+                size="sm"
+                (click)="askAbout()"
+                data-testid="privacy-ask"
+              >
+                <app-icon name="spark" [size]="14" />
+                {{ 'privacy.ask.button' | transloco }}
+              </app-button>
+            }
+            <app-watch-button secondary [entityType]="def().entityType" [entityId]="r.id" />
+
+            <ng-container ngProjectAs="[overflow]">
+              @for (s of canWrite() ? statusOptions() : []; track s) {
+                <button
+                  appMenuItem
+                  type="button"
+                  (click)="applyStatus(s)"
+                  [attr.data-testid]="'status-to-' + s"
                 >
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'privacy.common.delete' | transloco }}
-                </app-button>
+                  {{
+                    'privacy.detail.setStatus' | transloco: { status: (statusKey(s) | transloco) }
+                  }}
+                </button>
               }
             </ng-container>
+            @if (canDelete()) {
+              <button
+                overflow
+                appMenuItem
+                type="button"
+                [danger]="true"
+                (click)="deleting.set(true)"
+                data-testid="privacy-delete"
+              >
+                {{ 'privacy.common.delete' | transloco }}
+              </button>
+            }
+
+            <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
+            <app-help-strip help scope="privacy" page="detail" [lesson]="def().lesson" />
 
             <div class="flex flex-col gap-6">
-              <app-guide-intro scope="privacy" page="detail" />
+              @if (actionError(); as e) {
+                <app-alert tone="error" data-testid="action-error">
+                  {{ e.key | transloco: { fields: e.fields } }}
+                </app-alert>
+              }
+
+              @if (statusHint(); as hint) {
+                <p class="text-ui text-fg-muted" data-testid="status-hint">
+                  {{ hint | transloco }}
+                </p>
+              }
 
               @switch (def().key) {
+                @case ('ropa') {
+                  @if (asRopa().completeness; as c) {
+                    <app-privacy-ropa-completeness [completeness]="c" />
+                  }
+                }
                 @case ('dsr') {
                   <app-privacy-dsr-panel
+                    [request]="asDsr()"
+                    [canWrite]="canWrite()"
+                    (changed)="record.set($event)"
+                  />
+                  <app-privacy-dsr-handling
                     [request]="asDsr()"
                     [canWrite]="canWrite()"
                     (changed)="record.set($event)"
@@ -197,8 +346,50 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
                 }
                 @case ('breach') {
                   <app-privacy-breach-panel [breach]="asBreach()" [canWrite]="canWrite()" />
+                  @if (breachFlows().length) {
+                    <app-card>
+                      <h2 class="mb-1 font-display text-card font-bold text-fg">
+                        {{ 'privacy.breach.followUpTitle' | transloco }}
+                      </h2>
+                      <p class="mb-3 text-ui text-fg-muted">
+                        {{ 'privacy.breach.followUpIntro' | transloco }}
+                      </p>
+                      <div class="flex flex-wrap gap-2" data-testid="breach-follow-up">
+                        @for (f of breachFlows(); track f.key) {
+                          <app-button
+                            variant="secondary"
+                            size="sm"
+                            [disabled]="flows.starting() !== null"
+                            (click)="startFlow(f.key)"
+                            [attr.data-testid]="'flow-' + f.key"
+                          >
+                            <app-icon [name]="f.icon" [size]="14" />
+                            {{ 'kit.flows.' + f.key | transloco }}
+                          </app-button>
+                        }
+                      </div>
+                    </app-card>
+                  }
                 }
                 @case ('dpia') {
+                  <app-privacy-dpia-steps [dpia]="asDpia()" />
+                  <app-card data-section="screening">
+                    <h2 class="mb-2 font-display text-card font-bold text-fg">
+                      {{ 'privacy.form.sections.screening' | transloco }}
+                    </h2>
+                    @if (criteriaMet().length) {
+                      <p class="mb-1 text-ui text-fg-muted">
+                        {{ 'privacy.dpia.criteriaMet' | transloco }}
+                      </p>
+                      <ul class="list-disc pl-5 text-ui text-fg">
+                        @for (c of criteriaMet(); track c) {
+                          <li>{{ 'privacy.criteria.' + c + '.label' | transloco }}</li>
+                        }
+                      </ul>
+                    } @else {
+                      <p class="text-ui text-fg-muted">{{ 'privacy.dpia.noneMet' | transloco }}</p>
+                    }
+                  </app-card>
                   <app-privacy-decision-panel
                     register="dpia"
                     [record]="asDpia()"
@@ -217,50 +408,43 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
                 @case ('processor') {
                   <app-privacy-processor-dpa-coverage [processorId]="r.id" />
                 }
+                @case ('retention') {
+                  <app-privacy-retention-runs
+                    [schedule]="asRetention()"
+                    [canWrite]="canWrite()"
+                    [openForm]="executeOnArrival"
+                    (logged)="reload()"
+                  />
+                }
               }
 
-              @if (canWrite() && statusOptions().length) {
-                <app-card>
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <div class="flex flex-col gap-1.5">
-                      <label
-                        for="cf-privacy-status"
-                        class="text-[13px] font-semibold text-fg-muted"
-                      >
-                        {{ 'privacy.detail.changeStatus' | transloco }}
-                      </label>
-                      <select
-                        id="cf-privacy-status"
-                        class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
-                        (change)="nextStatus.set($any($event.target).value)"
-                        data-testid="status-select"
-                      >
-                        @for (s of statusOptions(); track s) {
-                          <option [value]="s" [selected]="(nextStatus() || r.status) === s">
-                            {{ statusKey(s) | transloco }}
-                          </option>
-                        }
-                      </select>
-                    </div>
-                    <app-button
-                      size="sm"
-                      [disabled]="!nextStatus() || nextStatus() === r.status"
-                      [loading]="busy()"
-                      (click)="applyStatus()"
-                      data-testid="status-apply"
-                    >
-                      {{ 'privacy.detail.applyStatus' | transloco }}
-                    </app-button>
-                  </div>
-                  <p class="mt-2 text-[12.5px] text-fg-subtle">
-                    {{ 'privacy.detail.statusHint.' + def().key | transloco }}
-                  </p>
-                </app-card>
+              @if (countryStatus(); as cs) {
+                <p
+                  class="flex flex-wrap items-center gap-2 text-ui text-fg"
+                  data-testid="country-status"
+                >
+                  <app-status-badge
+                    [meaning]="cs.status === 'third_country' ? 'lifecycle' : 'compliance'"
+                    [value]="
+                      cs.status === 'third_country'
+                        ? 'due'
+                        : cs.status === 'unknown'
+                          ? 'unknown'
+                          : 'met'
+                    "
+                    [labelKey]="countryStatusKey(cs.status)"
+                  />
+                  <span class="text-fg-muted">
+                    {{
+                      'privacy.countryStatus.explain.' + cs.status | transloco: { country: cs.name }
+                    }}
+                  </span>
+                </p>
               }
 
               @if (def().key === 'consent' && canWrite() && r.status === 'active') {
                 <app-card>
-                  <p class="mb-2 text-[13px] text-fg-muted">
+                  <p class="mb-2 text-ui text-fg-muted">
                     {{ 'privacy.consent.withdrawHint' | transloco }}
                   </p>
                   <app-button
@@ -274,53 +458,36 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
                 </app-card>
               }
 
-              @if (actionError(); as e) {
-                <app-alert tone="error" data-testid="action-error">
-                  {{ e.key | transloco: { fields: e.fields } }}
-                </app-alert>
+              @if (gaps().length) {
+                <app-privacy-gaps
+                  [gaps]="gaps()"
+                  [limit]="0"
+                  [canFix]="canWrite()"
+                  [showRecord]="false"
+                  titleKey="privacy.gaps.recordTitle"
+                  data-testid="record-gaps"
+                />
               }
 
               @if (r.description) {
                 <app-card>
-                  <h2 class="mb-2 font-display text-[15px] font-bold text-fg">
+                  <h2 class="mb-2 font-display text-card font-bold text-fg">
                     {{ 'privacy.fields.description' | transloco }}
                   </h2>
-                  <p class="text-[13.5px] whitespace-pre-line text-fg">{{ r.description }}</p>
+                  <p class="text-body whitespace-pre-line text-fg">{{ r.description }}</p>
                 </app-card>
               }
 
-              @for (section of shown(); track section.key) {
-                <app-card>
-                  <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
-                    {{ 'privacy.form.sections.' + section.key | transloco }}
-                  </h2>
-                  <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2">
-                    @for (v of section.values; track v.key) {
-                      <div [class.sm:col-span-2]="v.wide" [attr.data-value]="v.key">
-                        <dt class="text-fg-subtle">{{ v.label }}</dt>
-                        <dd class="break-words whitespace-pre-line text-fg">
-                          @if (v.link) {
-                            <a [routerLink]="v.link" class="text-accent hover:underline">{{
-                              v.text
-                            }}</a>
-                          } @else {
-                            {{ v.text }}
-                          }
-                        </dd>
-                      </div>
-                    }
-                  </dl>
-                </app-card>
-              }
+              <app-privacy-record-fields [register]="def()" [record]="r" [skip]="skipFields()" />
 
               @if (risks().length) {
                 <app-card>
-                  <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+                  <h2 class="mb-3 font-display text-card font-bold text-fg">
                     {{ 'privacy.fields.risks' | transloco }}
                   </h2>
-                  <ul class="flex flex-col gap-2">
+                  <ul class="flex flex-col gap-2" data-testid="dpia-risks">
                     @for (risk of risks(); track $index) {
-                      <li class="rounded-tile border border-border p-3 text-[13px]">
+                      <li class="rounded-tile border border-border p-3 text-ui">
                         <p class="text-fg">{{ risk.description }}</p>
                         <p class="mt-1 flex flex-wrap gap-2 text-fg-muted">
                           <span>{{
@@ -346,18 +513,41 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
                         @if (risk.mitigation) {
                           <p class="mt-1 text-fg-muted">{{ risk.mitigation }}</p>
                         }
+                        @if (canStart('risk:write')) {
+                          <button
+                            type="button"
+                            class="mt-2 inline-flex items-center gap-1 text-meta font-semibold text-accent hover:underline disabled:opacity-60"
+                            [disabled]="flows.starting() !== null"
+                            (click)="startFlow('dpia.to_risk')"
+                            data-testid="dpia-risk-to-register"
+                          >
+                            <app-icon name="risk" [size]="13" />
+                            {{ 'privacy.dpia.toRiskRegister' | transloco }}
+                          </button>
+                        }
                       </li>
                     }
                   </ul>
+                  @if (canStart('tasks:write')) {
+                    <app-button
+                      class="mt-3 inline-block"
+                      variant="secondary"
+                      size="sm"
+                      [disabled]="flows.starting() !== null"
+                      (click)="startFlow('dpia.to_task')"
+                      data-testid="dpia-measures-task"
+                    >
+                      {{ 'privacy.dpia.measuresToTask' | transloco }}
+                    </app-button>
+                  }
                 </app-card>
               }
 
-              <app-supports-requirements [entityType]="def().entityType" [entityId]="r.id" />
+              @if (def().key === 'ropa') {
+                <app-privacy-ropa-linked [ropaId]="r.id" />
+              }
 
-              <div class="flex flex-col gap-3">
-                <app-why-it-matters scope="privacy" [page]="def().key" />
-                <app-privacy-lesson-link [lesson]="lesson()" />
-              </div>
+              <app-why-it-matters scope="privacy" [page]="def().key" />
             </div>
 
             <div tasks>
@@ -410,33 +600,45 @@ const OUTCOME_STATUSES = ['completed', 'rejected'];
 })
 export class PrivacyRegisterDetail {
   private readonly api = inject(PrivacyApi);
+  private readonly standards = inject(StandardsApi);
   private readonly refs = inject(PrivacyRefsService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly notify = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly askPanel = inject(AskPanelService);
   private readonly perms = privacyPermissions();
+  protected readonly ai = inject(AiAvailability);
+  protected readonly flows = inject(CreateFlowService);
 
   readonly register = input.required<RegisterKey>();
   readonly id = input.required<string>();
 
   protected readonly def = computed(() => REGISTERS[this.register()]);
-  protected readonly lesson = computed(() => REGISTER_LESSONS[this.register()]);
+  protected readonly nav = privacyNavItems(this.perms);
+  protected readonly settingsLink = PRIVACY_SETTINGS_LINK;
   protected readonly statusKey = statusKey;
-  protected readonly statusTone = statusTone;
+  protected readonly toneValue = statusToneValue;
+  protected readonly countryStatusKey = countryStatusKey;
+  /** `?execute=1`: open the deletion-run form of a retention rule. */
+  protected readonly executeOnArrival =
+    inject(ActivatedRoute).snapshot.queryParamMap.get('execute') === '1';
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly loadError = signal('privacy.common.loadFailed');
   protected readonly record = signal<PrivacyRecord | null>(null);
+  protected readonly gaps = signal<readonly PrivacyGap[]>([]);
+  private readonly requirementRefs = signal<readonly string[]>([]);
   protected readonly busy = signal(false);
   protected readonly deleting = signal(false);
   protected readonly withdrawing = signal(false);
   protected readonly askOutcome = signal(false);
-  protected readonly nextStatus = signal('');
+  private readonly pendingStatus = signal('');
   protected readonly actionError = signal<{ key: string; fields: string } | null>(null);
 
   protected readonly canWrite = computed(() => this.perms().has(this.def().writePermission));
   protected readonly canApprove = computed(() => this.perms().has(PERM_APPROVE));
+  protected readonly canManage = computed(() => this.perms().has(PERM_MANAGE));
   protected readonly canDelete = computed(
     () =>
       this.perms().has(PERM_MANAGE) &&
@@ -451,6 +653,10 @@ export class PrivacyRegisterDetail {
     );
   });
 
+  protected readonly breadcrumbs = computed<readonly Breadcrumb[]>(() => [
+    PRIVACY_CRUMB,
+    registerCrumb(this.def()),
+  ]);
   protected readonly tabs = computed<readonly RecordTab[]>(() => [
     'details',
     'tasks',
@@ -462,84 +668,120 @@ export class PrivacyRegisterDetail {
   ]);
   protected readonly fieldLabels = computed(() => revisionFieldLabels(this.def()));
 
+  protected readonly next = computed(() => {
+    const r = this.record();
+    return r ? nextStep(this.def().key, r) : null;
+  });
+
+  /** Every other status the user may set (in "Mer ⋯"), minus the primary next step. */
   protected readonly statusOptions = computed(() => {
     const r = this.record();
-    const settable = this.def().settableStatuses;
-    if (!r || !settable.length) {
+    if (!r) {
       return [];
     }
-    return settable.includes(r.status) ? settable : [r.status, ...settable];
+    const next = this.next()?.status;
+    return this.def().settableStatuses.filter((s) => s !== r.status && s !== next);
+  });
+
+  /** What blocks or explains the next status change (shown only while it applies). */
+  protected readonly statusHint = computed(() => {
+    const r = this.record();
+    if (!r || !this.canWrite() || this.def().closedStatuses.includes(r.status)) {
+      return null;
+    }
+    const key = this.def().key;
+    if (key === 'ropa' && r.status === 'draft') {
+      return 'privacy.detail.statusHint.ropa';
+    }
+    if (key === 'breach' && !this.next()) {
+      return 'privacy.detail.statusHint.breach';
+    }
+    if (key === 'processor' && r.status === 'onboarding') {
+      return 'privacy.detail.statusHint.processor';
+    }
+    if (key === 'transfer' && r.status === 'draft') {
+      return 'privacy.detail.statusHint.transfer';
+    }
+    if (key === 'dsr' && !this.next()) {
+      return 'privacy.detail.statusHint.dsr';
+    }
+    return null;
   });
 
   protected readonly ownerName = computed(() => this.refs.userName(this.record()?.owner_user_id));
 
+  protected readonly asRopa = computed(() => this.record() as RopaEntry);
   protected readonly asDsr = computed(() => this.record() as DataSubjectRequest);
   protected readonly asBreach = computed(() => this.record() as DataBreach);
   protected readonly asDpia = computed(() => this.record() as Dpia);
   protected readonly asLba = computed(() => this.record() as LegalBasisAssessment);
+  protected readonly asRetention = computed(() => this.record() as RetentionSchedule);
   protected readonly risks = computed<readonly DpiaRisk[]>(() =>
     this.def().key === 'dpia' ? ((this.record() as Dpia | null)?.risks ?? []) : [],
   );
-
-  /** Facts first, then the editable fields by section (title, description and tables apart). */
-  protected readonly shown = computed<readonly ShownSection[]>(() => {
-    const r = this.record() as unknown as Record<string, unknown> | null;
-    if (!r) {
-      return [];
-    }
-    const sections: ShownSection[] = [];
-    const facts = this.def()
-      .facts.filter((f) => r[f.key] !== null && r[f.key] !== undefined && r[f.key] !== '')
-      .map((f) => this.showFact(f, r[f.key]));
-    if (facts.length) {
-      sections.push({ key: 'facts', values: facts });
-    }
-    const factKeys = new Set(this.def().facts.map((f) => f.key));
-    const order: string[] = [];
-    const grouped = new Map<string, ShownValue[]>();
-    for (const f of this.def().fields) {
-      if (
-        ['title', 'description'].includes(f.key) ||
-        f.kind === 'screening' ||
-        f.kind === 'risks' ||
-        factKeys.has(f.key) ||
-        (f.showIf && !f.showIf(r))
-      ) {
-        continue;
-      }
-      if (!grouped.has(f.section)) {
-        grouped.set(f.section, []);
-        order.push(f.section);
-      }
-      grouped.get(f.section)!.push(this.showField(f, r[f.key]));
-    }
-    for (const key of order) {
-      sections.push({ key, values: grouped.get(key)! });
-    }
-    if (this.def().key === 'dpia') {
-      const screening = (r['screening'] as Record<string, boolean> | undefined) ?? {};
-      const met = Object.keys(screening).filter((k) => screening[k]);
-      sections.push({
-        key: 'screening',
-        values: [
-          {
-            key: 'screening',
-            label: this.t('privacy.dpia.criteriaMet'),
-            text: met.length
-              ? met.map((c) => this.t(`privacy.criteria.${c}.label`)).join('\n')
-              : this.t('privacy.dpia.noneMet'),
-            wide: true,
-          },
-        ],
-      });
-    }
-    return sections;
+  protected readonly criteriaMet = computed(() => {
+    const screening = (this.record() as Dpia | null)?.screening ?? {};
+    return Object.keys(screening).filter((k) => screening[k]);
   });
 
+  /** Facts a panel of the page already shows (the breach clock, the DPIA steps). */
+  protected readonly skipFields = computed<readonly string[]>(() => {
+    switch (this.def().key) {
+      case 'breach':
+        return ['aware_at', 'notification_deadline'];
+      case 'dpia': {
+        const d = this.record() as Dpia | null;
+        return d?.residual_risk
+          ? ['screening_result', 'decided_by', 'decided_at', 'decision_comment']
+          : [
+              'screening_result',
+              'prior_consultation_required',
+              'decided_by',
+              'decided_at',
+              'decision_comment',
+            ];
+      }
+      case 'lba':
+        return ['decided_by', 'decided_at', 'decision_comment'];
+      case 'dsr':
+        return ['received_at', 'due_at', 'extended_due_at', 'extension_reason'];
+      case 'retention':
+        return ['next_execution_due_at', 'execution_interval_months'];
+      default:
+        return [];
+    }
+  });
+
+  /** The chapter V status of the processor's or transfer's country. */
+  protected readonly countryStatus = computed(() => {
+    const r = this.record();
+    const key = this.def().key;
+    if (!r || (key !== 'processor' && key !== 'transfer')) {
+      return null;
+    }
+    const code =
+      key === 'processor'
+        ? (r as Processor).country
+        : (r as TransferAssessment).destination_country;
+    const status = (r as Processor | TransferAssessment).country_status;
+    if (!code || !status) {
+      return null;
+    }
+    return { status, name: locationName(code, this.language) };
+  });
+
+  protected readonly breachFlows = computed(() =>
+    this.def().key === 'breach' ? BREACH_FLOWS.filter((f) => this.perms().has(f.permission)) : [],
+  );
+
   private request = new Subscription();
+  private side = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.side.unsubscribe();
+    });
     this.refs.ensureMembers();
     providePageContext(() => {
       const r = this.record();
@@ -550,6 +792,7 @@ export class PrivacyRegisterDetail {
         view: 'detail',
         // Personal-data registers never put the record title in the context.
         title: r ? (this.def().personal ? r.code : `${r.code} ${r.title}`) : null,
+        requirements: this.requirementRefs(),
       };
     });
     effect(() => {
@@ -564,83 +807,41 @@ export class PrivacyRegisterDetail {
     return this.language.translate(key, params);
   }
 
-  private none(): string {
-    return this.t('privacy.common.none');
+  protected canStart(permission: string): boolean {
+    return this.perms().has(permission);
   }
 
-  private showFact(f: FactDef, value: unknown): ShownValue {
-    const label = this.t(f.labelKey ?? `privacy.fields.${f.key}`);
-    return {
-      key: f.key,
-      label,
-      text: this.format(f.kind, value, f.optionSet),
-      wide: f.kind === 'text',
-    };
+  protected startFlow(key: string): void {
+    const r = this.record();
+    if (r) {
+      void this.flows.start(key, this.def().entityType, r.id);
+    }
   }
 
-  private showField(f: FieldDef, value: unknown): ShownValue {
-    const label = this.t(fieldLabelKey(f));
-    if (f.kind === 'contract' && typeof value === 'string' && value) {
-      return {
-        key: f.key,
-        label,
-        text: this.refs.contractLabel(value) ?? this.t('privacy.detail.linkedRecord'),
-        wide: !!f.wide,
-        link: ['/contracts', value],
-      };
+  protected askAbout(): void {
+    const r = this.record();
+    if (r) {
+      this.askPanel.askAbout(this.t('privacy.ask.summarise', { code: r.code }));
     }
-    if (f.kind === 'ref' && f.ref && typeof value === 'string' && value) {
-      return {
-        key: f.key,
-        label,
-        text: this.refs.label(f.ref, value) ?? this.t('privacy.detail.linkedRecord'),
-        wide: !!f.wide,
-        link: ['/privacy', REGISTERS[f.ref].segment, value],
-      };
-    }
-    return { key: f.key, label, text: this.format(f.kind, value, f.optionSet), wide: !!f.wide };
   }
 
-  private format(kind: string, value: unknown, optionSet?: string): string {
-    if (value === null || value === undefined || value === '') {
-      return kind === 'tristate' ? this.t('privacy.common.undecided') : this.none();
-    }
-    const locale = this.language.locale();
-    switch (kind) {
-      case 'boolean':
-      case 'tristate':
-        return this.t(value ? 'privacy.common.yes' : 'privacy.common.no');
-      case 'date':
-        return formatLocalDay(String(value), 'mediumDate', locale);
-      case 'datetime':
-        return formatLocalDate(String(value), 'medium', locale);
-      case 'select':
-        return optionSet ? this.t(`privacy.options.${optionSet}.${value}`) : String(value);
-      case 'multi':
-        return Array.isArray(value) && value.length
-          ? value.map((v) => this.t(`privacy.options.${optionSet}.${v}`)).join(', ')
-          : this.none();
-      case 'tags':
-        return Array.isArray(value) && value.length ? value.join(', ') : this.none();
-      case 'owner':
-        return this.refs.userName(String(value)) ?? this.t('privacy.common.someone');
-      case 'department':
-        return this.refs.departmentName(String(value)) ?? this.t('privacy.detail.linkedRecord');
-      default:
-        return String(value);
-    }
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.register(), this.id());
   }
 
   private load(orgId: string | null, register: RegisterKey, id: string): void {
     this.request.unsubscribe();
+    this.side.unsubscribe();
     if (!orgId) {
       return;
     }
-    this.state.set('loading');
-    this.request = this.api.get(orgId, REGISTERS[register], id).subscribe({
+    if (!this.record() || this.record()!.id !== id) {
+      this.state.set('loading');
+    }
+    const def = REGISTERS[register];
+    this.request = this.api.get(orgId, def, id).subscribe({
       next: (record) => {
         this.record.set(record);
-        this.nextStatus.set(record.status);
         this.state.set('ready');
       },
       error: (err) => {
@@ -648,14 +849,34 @@ export class PrivacyRegisterDetail {
         this.state.set('error');
       },
     });
+    this.side = new Subscription();
+    // What is missing for this record (gaps are only computed for some registers).
+    this.side.add(
+      this.api
+        .gaps(orgId, { entityId: id })
+        .pipe(catchError(() => of({ items: [], total: 0, by_kind: {} })))
+        .subscribe((g) => this.gaps.set(g.items.filter((x) => x.entity_id === id))),
+    );
+    if (this.perms().has('standards:read')) {
+      this.side.add(
+        this.standards
+          .listLinks(orgId, { entity_type: def.entityType, entity_id: id })
+          .pipe(catchError(() => of([])))
+          .subscribe((links) =>
+            this.requirementRefs.set(
+              links.filter((l) => l.status === 'confirmed').map((l) => l.requirement_ref),
+            ),
+          ),
+      );
+    }
   }
 
-  protected applyStatus(): void {
+  protected applyStatus(status: string): void {
     const r = this.record();
-    const status = this.nextStatus();
     if (!r || !status || status === r.status) {
       return;
     }
+    this.pendingStatus.set(status);
     if (
       this.def().key === 'dsr' &&
       OUTCOME_STATUSES.includes(status) &&
@@ -673,7 +894,7 @@ export class PrivacyRegisterDetail {
     if (!orgId || !r) {
       return;
     }
-    const body: Record<string, unknown> = { status: this.nextStatus() };
+    const body: Record<string, unknown> = { status: this.pendingStatus() };
     if (outcome?.trim()) {
       body['outcome'] = outcome.trim();
     }
@@ -703,7 +924,6 @@ export class PrivacyRegisterDetail {
         this.askOutcome.set(false);
         this.withdrawing.set(false);
         this.record.set(saved);
-        this.nextStatus.set(saved.status);
         this.notify.success(notice, {
           code: saved.code,
           status: this.t(statusKey(saved.status)),
