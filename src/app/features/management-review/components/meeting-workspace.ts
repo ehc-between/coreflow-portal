@@ -18,12 +18,14 @@ import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { Alert } from '../../../shared/ui/alert/alert';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ManagementReviewApi } from '../data/management-review-api';
 import { mrErrorKey } from '../data/management-review-errors';
 import {
@@ -39,6 +41,7 @@ import {
   DecisionIn,
   MeetingDetail,
   MeetingStatus,
+  RelatedRef,
 } from '../data/management-review.models';
 import {
   MR_SCOPE,
@@ -48,14 +51,16 @@ import {
   dayOf,
   decisionCategoryKey,
   dueFromDay,
+  lockReasonKey,
   meetingStatusKey,
-  meetingStatusTone,
   meetingTransitionKey,
   meetingTransitions,
   minutesOrNull,
   minutesStatusKey,
   textOrNull,
+  toneValue,
 } from '../management-review-display';
+import { RecordPicker } from './record-picker';
 import { UserSelect } from './user-select';
 
 /** An agenda row while the agenda is being edited (numbers as input strings). */
@@ -77,6 +82,7 @@ export interface DecisionDraft {
   readonly create_action: boolean;
   readonly action_title: string;
   readonly has_task: boolean;
+  readonly related: readonly RelatedRef[];
 }
 
 const EMPTY_DECISION: DecisionDraft = {
@@ -89,7 +95,13 @@ const EMPTY_DECISION: DecisionDraft = {
   create_action: false,
   action_title: '',
   has_task: false,
+  related: [],
 };
+
+/** Actions get a follow-up task by default: an action nobody follows up is lost. */
+export function defaultCreateAction(category: DecisionCategory): boolean {
+  return category === 'action';
+}
 
 /** The agenda payload of a draft (rows without a title are dropped). */
 export function agendaPayload(rows: readonly AgendaDraft[]): AgendaItemIn[] {
@@ -103,7 +115,11 @@ export function agendaPayload(rows: readonly AgendaDraft[]): AgendaItemIn[] {
     }));
 }
 
-/** The decision payload of a draft (`create_action` only when it adds a new task). */
+/**
+ * The decision payload of a draft. `create_action` is always explicit (the
+ * server would otherwise add a task to every action); it is only true when it
+ * adds a new task. `related` sends the records the decision concerns.
+ */
 export function decisionPayload(d: DecisionDraft): DecisionIn {
   const createAction = d.create_action && !d.has_task;
   return {
@@ -113,6 +129,7 @@ export function decisionPayload(d: DecisionDraft): DecisionIn {
     due_at: dueFromDay(d.due),
     create_action: createAction,
     action_title: createAction ? textOrNull(d.action_title) : null,
+    related: d.related.map((r) => ({ entity_type: r.entity_type, entity_id: r.entity_id })),
   };
 }
 
@@ -127,21 +144,24 @@ function decisionDraft(d: Decision): DecisionDraft {
     create_action: false,
     action_title: '',
     has_task: !!d.task,
+    related: d.related ?? [],
   };
 }
 
 let nextId = 0;
 
 const SMALL_SELECT =
-  'h-9 rounded-[8px] border border-border bg-bg px-2 text-[12.5px] text-fg outline-none focus:border-accent disabled:opacity-60';
+  'h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent disabled:opacity-60';
 
 /**
  * The working area of a meeting, shared by the meeting page and the management
- * review page: status changes, agenda, attendees and attendance, minutes (with
- * an AI draft and approval) and decisions with follow-up actions as tasks.
+ * review page: status changes, agenda (with its total time), attendees and
+ * attendance (who of top management took part), minutes (with an AI draft and
+ * approval) and decisions with follow-up tasks and the records they concern.
  * Every change is saved straight away and the updated meeting is emitted on
- * `changed`. The server flags (`can_edit`, `locked`, `can_approve_minutes`)
- * decide what is editable.
+ * `changed`. The server flags decide what is editable: once the minutes are
+ * approved the meeting is final (`locked_reason`), only a follow-up task can be
+ * added to a decision, and reopening the minutes needs a reason.
  */
 @Component({
   selector: 'app-mr-meeting-workspace',
@@ -157,29 +177,37 @@ const SMALL_SELECT =
     Badge,
     Button,
     Card,
+    EntityChip,
     FormField,
     Icon,
     PromptDialog,
+    RecordPicker,
+    StatusBadge,
     UserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-4' },
   template: `
     @let m = meeting();
-    <app-card>
+    <app-card id="mr-meeting-status">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'managementReview.meeting.statusHeading' | transloco }}
           </h2>
-          <app-badge [tone]="statusTone(m.status)">{{ statusKey(m.status) | transloco }}</app-badge>
-          <app-badge [tone]="m.minutes_status === 'approved' ? 'pass' : 'neutral'">
-            {{ minutesKey(m.minutes_status) | transloco }}
-          </app-badge>
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="tone(m.status)"
+            [labelKey]="statusKey(m.status)"
+          />
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="m.minutes_status === 'approved' ? 'approved' : 'draft'"
+            [labelKey]="minutesKey(m.minutes_status)"
+          />
           @if (m.held_at) {
-            <span class="text-[12.5px] text-fg-muted">{{
-              'managementReview.meeting.heldAt'
-                | transloco: { date: (m.held_at | localDate: 'medium') }
+            <span class="text-meta text-fg-muted">{{
+              'managementReview.meeting.heldAt' | transloco: { date: (m.held_at | localDate) }
             }}</span>
           }
         </div>
@@ -201,10 +229,8 @@ const SMALL_SELECT =
         }
       </div>
       @if (m.locked) {
-        <div class="mt-3">
-          <app-alert tone="info">{{
-            'managementReview.meeting.lockedNotice' | transloco
-          }}</app-alert>
+        <div class="mt-3" data-testid="meeting-locked">
+          <app-alert tone="info">{{ lockKey() | transloco }}</app-alert>
         </div>
       }
     </app-card>
@@ -212,9 +238,29 @@ const SMALL_SELECT =
     <!-- agenda -->
     <app-card>
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
-          {{ 'managementReview.agenda.heading' | transloco: { count: m.agenda.length } }}
-        </h2>
+        <div>
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'managementReview.agenda.heading' | transloco: { count: m.agenda.length } }}
+          </h2>
+          @if (agendaMinutes(); as total) {
+            <p
+              class="text-meta"
+              [class]="agendaOverrun() ? 'font-semibold text-warn-ink' : 'text-fg-muted'"
+              data-testid="agenda-total"
+            >
+              @if (m.duration_minutes) {
+                {{
+                  (agendaOverrun()
+                    ? 'managementReview.agenda.totalOver'
+                    : 'managementReview.agenda.totalOf'
+                  ) | transloco: { total: total, duration: m.duration_minutes }
+                }}
+              } @else {
+                {{ 'managementReview.agenda.total' | transloco: { total: total } }}
+              }
+            </p>
+          }
+        </div>
         @if (m.can_edit && agendaDraft() === null) {
           <app-button size="sm" variant="secondary" (click)="editAgenda()">
             {{ 'managementReview.agenda.edit' | transloco }}
@@ -224,8 +270,8 @@ const SMALL_SELECT =
       @if (agendaDraft(); as rows) {
         <div class="flex flex-col gap-3" data-testid="agenda-editor">
           @for (row of rows; track $index; let i = $index) {
-            <fieldset class="rounded-[10px] border border-border p-3">
-              <legend class="px-1 text-[12px] font-semibold text-fg-muted">
+            <fieldset class="rounded-tile border border-border p-3">
+              <legend class="px-1 text-meta font-semibold text-fg-muted">
                 {{ 'managementReview.agenda.item' | transloco: { n: i + 1 } }}
               </legend>
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px]">
@@ -318,15 +364,15 @@ const SMALL_SELECT =
           </div>
         </div>
       } @else if (m.agenda.length === 0) {
-        <p class="text-[13.5px] text-fg-muted">{{ 'managementReview.agenda.empty' | transloco }}</p>
+        <p class="text-body text-fg-muted">{{ 'managementReview.agenda.empty' | transloco }}</p>
       } @else {
         <ol class="flex flex-col gap-2" data-testid="agenda-items">
           @for (item of m.agenda; track item.id; let i = $index) {
-            <li class="flex gap-3 text-[13.5px]">
+            <li class="flex gap-3 text-body">
               <span class="w-6 flex-none text-right font-mono text-fg-subtle">{{ i + 1 }}.</span>
               <div class="min-w-0 flex-1">
                 <p class="font-semibold text-fg">{{ item.title }}</p>
-                <p class="text-[12px] text-fg-muted">
+                <p class="text-meta text-fg-muted">
                   @if (item.presenter) {
                     {{ item.presenter.name }}
                   }
@@ -338,7 +384,7 @@ const SMALL_SELECT =
                   }
                 </p>
                 @if (item.notes) {
-                  <p class="mt-0.5 text-[12.5px] whitespace-pre-line text-fg-muted">
+                  <p class="mt-0.5 text-meta whitespace-pre-line text-fg-muted">
                     {{ item.notes }}
                   </p>
                 }
@@ -350,28 +396,77 @@ const SMALL_SELECT =
     </app-card>
 
     <!-- attendees -->
-    <app-card>
-      <h2 class="mb-2 font-display text-[15px] font-bold text-fg">
-        {{ 'managementReview.attendees.heading' | transloco: { count: m.attendees.length } }}
-      </h2>
-      <app-field-help [scope]="scope" page="meetingDetail" field="attendance" />
+    <app-card id="mr-meeting-attendees">
+      <div class="mb-1 flex flex-wrap items-center gap-1.5">
+        <h2 class="font-display text-card font-bold text-fg">
+          {{ 'managementReview.attendees.heading' | transloco: { count: m.attendees.length } }}
+        </h2>
+        <app-field-help [scope]="scope" page="meetingDetail" field="attendance" />
+      </div>
+      @if (m.attendance; as at) {
+        @if (at.total > 0) {
+          <p
+            class="flex flex-wrap gap-x-4 gap-y-1 text-meta text-fg-muted"
+            data-testid="attendance-summary"
+          >
+            <span>{{
+              'managementReview.attendees.presentOf'
+                | transloco: { present: at.present, total: at.total }
+            }}</span>
+            @if (m.kind === 'management_review' || at.top_management_total > 0) {
+              <span
+                [class]="
+                  at.top_management_present > 0
+                    ? 'text-pass-ink font-semibold'
+                    : 'text-warn-ink font-semibold'
+                "
+                >{{
+                  'managementReview.attendees.topManagementPresent'
+                    | transloco
+                      : { present: at.top_management_present, total: at.top_management_total }
+                }}</span
+              >
+            }
+          </p>
+        }
+      }
       @if (m.attendees.length === 0) {
-        <p class="mt-2 text-[13.5px] text-fg-muted">
+        <p class="mt-2 text-body text-fg-muted">
           {{ 'managementReview.attendees.empty' | transloco }}
         </p>
       } @else {
         <ul class="mt-2 divide-y divide-border" data-testid="attendees">
           @for (a of m.attendees; track a.id) {
             <li class="flex flex-wrap items-center gap-2 py-2">
-              <span class="min-w-0 flex-1 text-[13.5px] font-semibold text-fg">
+              <span
+                class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-body font-semibold text-fg"
+              >
                 {{ name(a) }}
                 @if (a.external) {
                   <app-badge tone="neutral">{{
                     'managementReview.attendees.external' | transloco
                   }}</app-badge>
                 }
+                @if (a.top_management && !m.can_edit) {
+                  <app-badge tone="accent">{{
+                    'managementReview.attendees.topManagement' | transloco
+                  }}</app-badge>
+                }
               </span>
               @if (m.can_edit) {
+                <label
+                  class="inline-flex min-h-9 items-center gap-1.5 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg"
+                  [title]="'managementReview.attendees.topManagementHint' | transloco"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="!!a.top_management"
+                    [disabled]="busy()"
+                    (change)="updateAttendee(a.id, { top_management: $any($event.target).checked })"
+                    [attr.data-testid]="'top-management-' + a.id"
+                  />
+                  {{ 'managementReview.attendees.topManagement' | transloco }}
+                </label>
                 <select
                   [class]="smallSelect"
                   [attr.aria-label]="
@@ -402,7 +497,7 @@ const SMALL_SELECT =
                 </select>
                 <button
                   type="button"
-                  class="flex rounded-[6px] p-1.5 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent"
+                  class="flex h-9 w-9 items-center justify-center rounded-tile text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent"
                   [attr.aria-label]="
                     'managementReview.attendees.remove' | transloco: { name: name(a) }
                   "
@@ -413,9 +508,11 @@ const SMALL_SELECT =
                 </button>
               } @else {
                 <app-badge tone="neutral">{{ roleKey(a.role) | transloco }}</app-badge>
-                <app-badge [tone]="a.attendance === 'present' ? 'pass' : 'neutral'">
-                  {{ attendanceKey(a.attendance) | transloco }}
-                </app-badge>
+                <app-status-badge
+                  meaning="lifecycle"
+                  [value]="tone(a.attendance)"
+                  [labelKey]="attendanceKey(a.attendance)"
+                />
               }
             </li>
           }
@@ -423,11 +520,11 @@ const SMALL_SELECT =
       }
       @if (m.can_edit) {
         <form
-          class="mt-3 flex flex-col gap-2 rounded-[10px] border border-dashed border-border p-3"
+          class="mt-3 flex flex-col gap-2 rounded-tile border border-dashed border-border p-3"
           (submit)="$event.preventDefault(); addAttendee()"
           data-testid="attendee-form"
         >
-          <div class="flex flex-wrap items-center gap-3 text-[12.5px] text-fg">
+          <div class="flex flex-wrap items-center gap-3 text-meta text-fg">
             <label class="inline-flex items-center gap-1.5">
               <input
                 type="radio"
@@ -456,7 +553,7 @@ const SMALL_SELECT =
                 [id]="fid('att-name')"
                 type="text"
                 maxlength="200"
-                class="h-9 min-w-[180px] flex-1 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg outline-none focus:border-accent"
+                class="h-9 min-w-[180px] flex-1 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
                 [placeholder]="'managementReview.attendees.name' | transloco"
                 [value]="newAttendeeName()"
                 (input)="newAttendeeName.set($any($event.target).value)"
@@ -482,7 +579,20 @@ const SMALL_SELECT =
                 </option>
               }
             </select>
-            <app-button size="sm" type="submit" [disabled]="!canAddAttendee() || busy()">
+            <label class="inline-flex min-h-9 items-center gap-1.5 text-ui text-fg">
+              <input
+                type="checkbox"
+                [checked]="newAttendeeTop()"
+                (change)="newAttendeeTop.set($any($event.target).checked)"
+              />
+              {{ 'managementReview.attendees.topManagement' | transloco }}
+            </label>
+            <app-button
+              size="sm"
+              variant="secondary"
+              type="submit"
+              [disabled]="!canAddAttendee() || busy()"
+            >
               <app-icon name="userplus" [size]="13" />
               {{ 'managementReview.attendees.add' | transloco }}
             </app-button>
@@ -492,11 +602,16 @@ const SMALL_SELECT =
     </app-card>
 
     <!-- minutes -->
-    <app-card>
+    <app-card id="mr-meeting-minutes">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
-          {{ 'managementReview.minutes.heading' | transloco }}
-        </h2>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'managementReview.minutes.heading' | transloco }}
+          </h2>
+          @if (minutesEditable()) {
+            <app-field-help [scope]="scope" page="meetingDetail" field="minutes" />
+          }
+        </div>
         <div class="flex flex-wrap gap-2">
           @if (canApprove()) {
             <app-button
@@ -509,7 +624,7 @@ const SMALL_SELECT =
               {{ 'managementReview.minutes.approve' | transloco }}
             </app-button>
           }
-          @if (canManage() && m.minutes_status === 'approved') {
+          @if (canReopen()) {
             <app-button
               size="sm"
               variant="secondary"
@@ -523,7 +638,7 @@ const SMALL_SELECT =
         </div>
       </div>
       @if (m.minutes_status === 'approved') {
-        <p class="mb-2 text-[12.5px] text-fg-muted">
+        <p class="mb-2 text-meta text-fg-muted">
           {{
             'managementReview.minutes.approvedBy'
               | transloco
@@ -535,11 +650,10 @@ const SMALL_SELECT =
         </p>
       }
       @if (minutesEditable()) {
-        <app-field-help [scope]="scope" page="meetingDetail" field="minutes" />
-        <app-form-field
-          [label]="'managementReview.minutes.label' | transloco"
-          [inputId]="fid('minutes')"
-        >
+        <label class="sr-only" [for]="fid('minutes')">{{
+          'managementReview.minutes.label' | transloco
+        }}</label>
+        <app-form-field [inputId]="fid('minutes')">
           <textarea
             [id]="fid('minutes')"
             rows="10"
@@ -557,39 +671,42 @@ const SMALL_SELECT =
             [input]="{ meeting_id: m.id, notes: minutesDraft() }"
             (text)="minutesDraft.set($event)"
           />
-          <span class="text-[12px] text-fg-subtle">{{
+          <span class="text-meta text-fg-subtle">{{
             'managementReview.ai.draftMinutesHint' | transloco
           }}</span>
           <span class="flex-1"></span>
-          <app-button
-            size="sm"
-            [disabled]="!minutesDirty() || busy()"
-            [loading]="busy()"
-            (click)="saveMinutes()"
-          >
-            {{ 'managementReview.minutes.save' | transloco }}
-          </app-button>
+          @if (minutesDirty()) {
+            <span class="text-meta text-fg-subtle">{{
+              'managementReview.detail.unsaved' | transloco
+            }}</span>
+            <app-button size="sm" [loading]="busy()" (click)="saveMinutes()">
+              {{ 'managementReview.minutes.save' | transloco }}
+            </app-button>
+          }
         </div>
         @if (m.status !== 'completed') {
-          <p class="mt-2 text-[12px] text-fg-subtle">
+          <p class="mt-2 text-meta text-fg-subtle">
             {{ 'managementReview.minutes.approveAfterCompleted' | transloco }}
           </p>
         }
       } @else if (m.minutes) {
-        <div class="cf-prose text-[13.5px] text-fg" [innerHTML]="m.minutes | appMarkdown"></div>
+        <div class="cf-prose text-body text-fg" [innerHTML]="m.minutes | appMarkdown"></div>
       } @else {
-        <p class="text-[13.5px] text-fg-muted">
+        <p class="text-body text-fg-muted">
           {{ 'managementReview.minutes.empty' | transloco }}
         </p>
       }
     </app-card>
 
     <!-- decisions -->
-    <app-card>
+    <app-card id="mr-meeting-decisions">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
-          {{ 'managementReview.decisions.heading' | transloco: { count: m.decisions.length } }}
-        </h2>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <h2 class="font-display text-card font-bold text-fg">
+            {{ 'managementReview.decisions.heading' | transloco: { count: m.decisions.length } }}
+          </h2>
+          <app-field-help [scope]="scope" page="meetingDetail" field="decisions" />
+        </div>
         @if (m.can_edit && decisionDraft() === null) {
           <app-button size="sm" variant="secondary" (click)="newDecision()">
             <app-icon name="plus" [size]="13" />
@@ -597,31 +714,30 @@ const SMALL_SELECT =
           </app-button>
         }
       </div>
-      <app-field-help [scope]="scope" page="meetingDetail" field="decisions" />
       <ng-content select="[decisionsExtra]" />
       @if (m.decisions.length === 0 && decisionDraft() === null) {
-        <p class="mt-2 text-[13.5px] text-fg-muted">
+        <p class="mt-2 text-body text-fg-muted">
           {{ 'managementReview.decisions.empty' | transloco }}
         </p>
       } @else {
         <ul class="mt-2 divide-y divide-border" data-testid="decisions">
           @for (d of m.decisions; track d.id) {
-            <li class="flex flex-col gap-1 py-2.5">
+            <li class="flex flex-col gap-1.5 py-2.5" [attr.data-testid]="'decision-' + d.id">
               <div class="flex flex-wrap items-start gap-2">
                 <app-badge tone="info">{{ categoryKey(d.category) | transloco }}</app-badge>
-                <p class="min-w-0 flex-1 text-[13.5px] whitespace-pre-line text-fg">{{ d.text }}</p>
+                <p class="min-w-0 flex-1 text-body whitespace-pre-line text-fg">{{ d.text }}</p>
                 @if (m.can_edit) {
                   <span class="flex gap-1">
                     <button
                       type="button"
-                      class="rounded-[6px] px-2 py-1 text-[12px] font-semibold text-accent hover:bg-accent-soft"
+                      class="inline-flex h-8 items-center rounded-tile px-2 text-meta font-semibold text-accent hover:bg-accent-soft"
                       (click)="editDecision(d)"
                     >
                       {{ 'managementReview.decisions.edit' | transloco }}
                     </button>
                     <button
                       type="button"
-                      class="flex rounded-[6px] p-1.5 text-fg-subtle hover:text-fail"
+                      class="flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle hover:text-fail"
                       [attr.aria-label]="'managementReview.decisions.remove' | transloco"
                       [disabled]="busy()"
                       (click)="removeDecision(d.id)"
@@ -631,7 +747,7 @@ const SMALL_SELECT =
                   </span>
                 }
               </div>
-              <p class="flex flex-wrap gap-x-3 text-[12px] text-fg-muted">
+              <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-fg-muted">
                 <span>{{
                   d.owner?.name ?? ('managementReview.decisions.noOwner' | transloco)
                 }}</span>
@@ -644,15 +760,47 @@ const SMALL_SELECT =
                   <a [routerLink]="t.url" class="font-semibold text-accent hover:underline">
                     {{ 'managementReview.decisions.task' | transloco: { title: t.title } }}
                   </a>
+                } @else if (d.follow_up_missing) {
+                  <span
+                    class="inline-flex items-center gap-1 rounded-full bg-warn-soft px-2 py-0.5 font-semibold text-warn-ink"
+                    data-testid="follow-up-missing"
+                  >
+                    <app-icon name="alert" [size]="12" />
+                    {{ 'managementReview.decisions.noFollowUp' | transloco }}
+                  </span>
+                  @if (m.can_create_actions) {
+                    <button
+                      type="button"
+                      class="inline-flex h-7 items-center rounded-tile px-2 font-semibold text-accent hover:bg-accent-soft"
+                      [disabled]="busy()"
+                      (click)="createTask(d.id)"
+                      [attr.data-testid]="'create-task-' + d.id"
+                    >
+                      {{ 'managementReview.decisions.createTask' | transloco }}
+                    </button>
+                  }
                 }
               </p>
+              @if (d.related?.length) {
+                <ul
+                  class="flex flex-wrap items-center gap-1.5"
+                  [attr.aria-label]="'managementReview.decisions.concerns' | transloco"
+                >
+                  <li class="text-meta text-fg-subtle">
+                    {{ 'managementReview.decisions.concerns' | transloco }}
+                  </li>
+                  @for (r of d.related; track r.entity_type + ':' + r.entity_id) {
+                    <li><app-entity-chip [ref]="r" /></li>
+                  }
+                </ul>
+              }
             </li>
           }
         </ul>
       }
       @if (decisionDraft(); as d) {
         <form
-          class="mt-3 flex flex-col gap-3 rounded-[10px] border border-border p-3"
+          class="mt-3 flex flex-col gap-3 rounded-tile border border-border p-3"
           (submit)="$event.preventDefault(); saveDecision()"
           data-testid="decision-form"
         >
@@ -674,10 +822,7 @@ const SMALL_SELECT =
               [label]="'managementReview.decisions.category' | transloco"
               [inputId]="fid('dec-cat')"
             >
-              <select
-                [id]="fid('dec-cat')"
-                (change)="setDecision('category', $any($event.target).value)"
-              >
+              <select [id]="fid('dec-cat')" (change)="setCategory($any($event.target).value)">
                 @for (c of categories; track c) {
                   <option [value]="c" [selected]="d.category === c">
                     {{ categoryKey(c) | transloco }}
@@ -708,8 +853,21 @@ const SMALL_SELECT =
               />
             </app-form-field>
           </div>
+          <div>
+            <p class="mb-1.5 text-ui font-semibold text-fg-muted" [id]="fid('dec-related-label')">
+              {{ 'managementReview.decisions.concerns' | transloco }}
+            </p>
+            <app-mr-record-picker
+              [value]="d.related"
+              [label]="'managementReview.decisions.concernsSearch' | transloco"
+              (valueChange)="setRelated($event)"
+            />
+            <p class="mt-1 text-meta text-fg-subtle">
+              {{ 'managementReview.decisions.concernsHint' | transloco }}
+            </p>
+          </div>
           @if (!d.has_task) {
-            <label class="inline-flex items-center gap-2 text-[13px] text-fg">
+            <label class="inline-flex min-h-9 items-center gap-2 text-ui text-fg">
               <input
                 type="checkbox"
                 [checked]="d.create_action"
@@ -717,6 +875,11 @@ const SMALL_SELECT =
               />
               {{ 'managementReview.decisions.createAction' | transloco }}
             </label>
+            @if (!d.create_action && d.category === 'action') {
+              <p class="-mt-1 text-meta font-semibold text-warn-ink">
+                {{ 'managementReview.decisions.noFollowUpWarning' | transloco }}
+              </p>
+            }
             @if (d.create_action) {
               <app-form-field
                 [label]="'managementReview.decisions.actionTitle' | transloco"
@@ -754,9 +917,10 @@ const SMALL_SELECT =
       [open]="reopenOpen()"
       [title]="'managementReview.minutes.reopenTitle' | transloco"
       [message]="'managementReview.minutes.reopenMessage' | transloco"
-      [label]="'managementReview.common.reason' | transloco"
+      [label]="'managementReview.minutes.reopenReason' | transloco"
       [confirmLabel]="'managementReview.minutes.reopen' | transloco"
       [cancelLabel]="'common.cancel' | transloco"
+      [required]="true"
       [busy]="busy()"
       (confirmed)="reopenMinutes($event)"
       (cancelled)="reopenOpen.set(false)"
@@ -769,7 +933,7 @@ export class MeetingWorkspace {
   private readonly notifications = inject(NotificationService);
 
   readonly meeting = input.required<MeetingDetail>();
-  /** Whether the user holds `management_review:manage` (reopen approved minutes). */
+  /** Whether the user holds `management_review:manage` (reopen approved minutes, older servers). */
   readonly canManage = input(false);
   /** The updated meeting after each saved change. */
   readonly changed = output<MeetingDetail>();
@@ -781,7 +945,7 @@ export class MeetingWorkspace {
   protected readonly draftMinutesAssist = ASSIST_DRAFT_MINUTES;
   protected readonly smallSelect = SMALL_SELECT;
   protected readonly statusKey = meetingStatusKey;
-  protected readonly statusTone = meetingStatusTone;
+  protected readonly tone = toneValue;
   protected readonly minutesKey = minutesStatusKey;
   protected readonly roleKey = attendeeRoleKey;
   protected readonly attendanceKey = attendanceKey;
@@ -801,10 +965,28 @@ export class MeetingWorkspace {
   protected readonly newAttendeeUser = signal<string | null>(null);
   protected readonly newAttendeeName = signal('');
   protected readonly newAttendeeRole = signal<AttendeeRole>('participant');
+  protected readonly newAttendeeTop = signal(false);
   protected readonly reopenOpen = signal(false);
   protected readonly minutesDraft = linkedSignal(() => this.meeting().minutes ?? '');
 
   protected readonly transitions = computed(() => meetingTransitions(this.meeting()));
+  protected readonly lockKey = computed(() =>
+    lockReasonKey(this.meeting().locked_reason ?? 'review_signed'),
+  );
+  protected readonly agendaMinutes = computed(() => {
+    const m = this.meeting();
+    return m.agenda_minutes ?? m.agenda.reduce((sum, a) => sum + (a.duration_minutes ?? 0), 0);
+  });
+  protected readonly agendaOverrun = computed(() => {
+    const duration = this.meeting().duration_minutes;
+    return !!duration && this.agendaMinutes() > duration;
+  });
+  protected readonly canReopen = computed(() => {
+    const m = this.meeting();
+    return (
+      m.minutes_status === 'approved' && (m.can_reopen_minutes ?? (this.canManage() && !m.review))
+    );
+  });
   protected readonly memberIds = computed(() =>
     this.meeting()
       .attendees.map((a) => a.user?.id)
@@ -904,8 +1086,17 @@ export class MeetingWorkspace {
       return;
     }
     const body = this.addExternal()
-      ? { name: this.newAttendeeName().trim(), role: this.newAttendeeRole() }
-      : { user_id: this.newAttendeeUser(), role: this.newAttendeeRole() };
+      ? {
+          name: this.newAttendeeName().trim(),
+          role: this.newAttendeeRole(),
+          top_management: this.newAttendeeTop(),
+        }
+      : {
+          user_id: this.newAttendeeUser(),
+          role: this.newAttendeeRole(),
+          // Unticked on a review meeting: let the server prefill it.
+          top_management: this.newAttendeeTop() || (this.meeting().review ? null : false),
+        };
     this.run(
       (org, id) => this.api.addAttendee(org, id, body),
       'managementReview.notices.attendeeAdded',
@@ -913,13 +1104,14 @@ export class MeetingWorkspace {
         this.newAttendeeUser.set(null);
         this.newAttendeeName.set('');
         this.newAttendeeRole.set('participant');
+        this.newAttendeeTop.set(false);
       },
     );
   }
 
   protected updateAttendee(
     attendeeId: string,
-    body: { role?: AttendeeRole; attendance?: Attendance },
+    body: { role?: AttendeeRole; attendance?: Attendance; top_management?: boolean },
   ): void {
     this.run((org, id) => this.api.updateAttendee(org, id, attendeeId, body), null);
   }
@@ -949,8 +1141,12 @@ export class MeetingWorkspace {
   }
 
   protected reopenMinutes(reason: string): void {
+    const text = textOrNull(reason);
+    if (!text) {
+      return;
+    }
     this.run(
-      (org, id) => this.api.reopenMinutes(org, id, textOrNull(reason)),
+      (org, id) => this.api.reopenMinutes(org, id, text),
       'managementReview.notices.minutesReopened',
       () => this.reopenOpen.set(false),
     );
@@ -964,7 +1160,37 @@ export class MeetingWorkspace {
 
   /** Start a decision prefilled from a suggestion (used by the review page). */
   prefillDecision(category: DecisionCategory, text: string): void {
-    this.decisionDraft.set({ ...EMPTY_DECISION, category, text });
+    this.decisionDraft.set({
+      ...EMPTY_DECISION,
+      category,
+      text,
+      create_action: defaultCreateAction(category),
+    });
+  }
+
+  /** A new category; a new action gets a follow-up task by default. */
+  protected setCategory(category: DecisionCategory): void {
+    this.decisionDraft.update((d) =>
+      d
+        ? {
+            ...d,
+            category,
+            create_action: d.id ? d.create_action : defaultCreateAction(category),
+          }
+        : d,
+    );
+  }
+
+  protected setRelated(related: readonly RelatedRef[]): void {
+    this.decisionDraft.update((d) => (d ? { ...d, related } : d));
+  }
+
+  /** Add the missing follow-up task to an action (allowed after approval too). */
+  protected createTask(decisionId: string): void {
+    this.run(
+      (org, id) => this.api.updateDecision(org, id, decisionId, { create_action: true }),
+      'managementReview.notices.taskCreated',
+    );
   }
 
   protected editDecision(d: Decision): void {

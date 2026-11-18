@@ -13,28 +13,28 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
-import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AssigneeIn } from '../../core/tasks/task.models';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { WatchButton } from '../../shared/activity/watch-button';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
-import { LessonView } from '../../shared/guidance/lesson';
-import { TourButton } from '../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { EntityChip } from '../../shared/kit/entity-chip';
 import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
 import { LocalDatePipe } from '../../shared/locale/locale-pipes';
-import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { MeetingWorkspace } from './components/meeting-workspace';
 import { ManagementReviewApi } from './data/management-review-api';
 import { mrErrorKey } from './data/management-review-errors';
@@ -43,10 +43,12 @@ import {
   MR_MODULE,
   MR_PERMISSIONS,
   MR_SCOPE,
+  MR_SETTINGS_LINK,
   meetingKindKey,
   meetingStatusKey,
-  meetingStatusTone,
+  mrCrumbs,
   reviewStatusKey,
+  toneValue,
 } from './management-review-display';
 
 const TABS: readonly RecordTab[] = [
@@ -76,49 +78,56 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
 };
 
 /**
- * `/management-review/meetings/:id`: a meeting with minutes — details, agenda,
- * attendees and attendance, minutes (drafted with AI and approved by the chair),
- * decisions and their follow-up tasks — plus the shared record tabs. A meeting
- * that belongs to a management review links back to it.
+ * `/management-review/meetings/:id`: a meeting with minutes — what it concerns
+ * ("Gjelder"), time and place, the agenda, attendees and attendance, minutes
+ * (drafted with AI and approved by the chair; final once approved), decisions
+ * with their follow-up tasks and the records they concern — plus the shared
+ * record tabs. A management review meeting links back to its review; a safety
+ * committee (AMU) meeting explains what the Working Environment Act expects.
  */
 @Component({
   selector: 'app-mr-meeting-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    HasPermissionDirective,
     LocalDatePipe,
     WatchButton,
-    GuideIntro,
-    LessonView,
-    TourButton,
     TourStepDirective,
     WhyItMatters,
+    EntityChip,
     RecordDetailLayout,
-    SupportsRequirements,
     EntityTasks,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
-    Icon,
+    ErrorState,
+    FieldItem,
+    FieldList,
+    HelpStrip,
+    LoadingState,
+    MenuItem,
+    StatusBadge,
     MeetingWorkspace,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
       @case ('loading') {
-        <p class="py-16 text-center text-[14px] text-fg-muted">
-          {{ 'managementReview.common.loading' | transloco }}
-        </p>
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
       }
       @case ('error') {
         <div class="mx-auto max-w-[880px] px-4 pt-7 sm:px-8">
-          <app-alert tone="error">{{ 'managementReview.common.notFound' | transloco }}</app-alert>
+          <app-error-state
+            titleKey="managementReview.common.notFoundTitle"
+            bodyKey="managementReview.common.notFound"
+            (retry)="reload()"
+          />
           <a
             routerLink="/management-review/meetings"
-            class="mt-3 inline-block text-[13px] font-semibold text-accent"
+            class="mt-3 inline-flex min-h-6 items-center text-ui font-semibold text-accent"
           >
             {{ 'managementReview.common.backToMeetings' | transloco }}
           </a>
@@ -129,50 +138,50 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
           <app-record-detail-layout
             entityType="meeting"
             [entityId]="m.id"
+            [title]="m.title"
+            [breadcrumbs]="crumbs()"
+            [settingsLink]="settingsLink"
             [tabs]="tabs"
             [canEdit]="m.can_edit"
             [fieldLabels]="fieldLabels"
-            backLink="/management-review/meetings"
-            backLabelKey="managementReview.common.backToMeetings"
+            [requirementsPanel]="true"
           >
-            <div header>
-              <p class="font-mono text-[12.5px] text-fg-subtle">{{ m.code }}</p>
-              <h1
-                class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-              >
-                {{ m.title }}
-              </h1>
-              <div class="mt-2 flex flex-wrap items-center gap-2">
-                <app-badge [tone]="statusTone(m.status)">{{
-                  statusKey(m.status) | transloco
-                }}</app-badge>
-                <app-badge tone="neutral">{{ kindKey(m.kind) | transloco }}</app-badge>
-              </div>
-            </div>
-
-            <ng-container actions>
-              <app-tour-button [scope]="scope" tour="meetingDetail" />
-              <app-watch-button entityType="meeting" [entityId]="m.id" />
-              <app-button variant="ghost" size="sm" (click)="askSummary()">
-                <app-icon name="spark" [size]="14" />
-                {{ 'managementReview.ai.summariseMeeting' | transloco }}
-              </app-button>
-              @if (m.can_edit) {
-                <app-button variant="secondary" size="sm" (click)="edit()">
-                  {{ 'managementReview.detail.edit' | transloco }}
-                </app-button>
-              }
-              @if (canDelete()) {
-                <app-button variant="danger" size="sm" (click)="confirmDelete.set(true)">
-                  <app-icon name="trash" [size]="14" />
-                  {{ 'managementReview.meeting.delete' | transloco }}
-                </app-button>
-              }
+            <ng-container meta>
+              <span class="font-mono">{{ m.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ kindKey(m.kind) | transloco }}</span>
+              <span aria-hidden="true">·</span>
+              <app-status-badge
+                meaning="lifecycle"
+                [value]="tone(m.status)"
+                [labelKey]="statusKey(m.status)"
+              />
             </ng-container>
 
-            <div class="flex flex-col gap-4">
-              <app-guide-intro [scope]="scope" page="meetingDetail" />
+            @if (m.can_edit) {
+              <app-button secondary variant="secondary" (click)="edit()">
+                {{ 'managementReview.detail.edit' | transloco }}
+              </app-button>
+            }
+            <app-watch-button secondary entityType="meeting" [entityId]="m.id" />
+            <button appMenuItem overflow (click)="askSummary()">
+              {{ 'managementReview.ai.summariseMeeting' | transloco }}
+            </button>
+            @if (canDelete()) {
+              <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">
+                {{ 'managementReview.meeting.delete' | transloco }}
+              </button>
+            }
 
+            <app-help-strip
+              help
+              [scope]="scope"
+              page="meetingDetail"
+              tour="meetingDetail"
+              lesson="good-minutes"
+            />
+
+            <div class="flex flex-col gap-4">
               @if (m.review; as rv) {
                 <app-alert tone="info">
                   {{ 'managementReview.meeting.partOfReview' | transloco }}
@@ -182,57 +191,57 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
                   ({{ reviewStatusKey(rv.status) | transloco }})
                 </app-alert>
               }
+              @if (m.kind === 'safety') {
+                <app-alert tone="info" data-testid="amu-hint">{{
+                  'managementReview.meeting.amuHint' | transloco
+                }}</app-alert>
+              }
 
               <app-card>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-4 text-[13.5px] sm:grid-cols-2">
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'managementReview.fields.scheduledAt' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        (m.scheduled_at | localDate: 'medium') ||
-                          ('managementReview.common.notScheduled' | transloco)
-                      }}
+                <app-field-list [columns]="2">
+                  <app-field-item labelKey="managementReview.fields.scheduledAt">
+                    @if (m.scheduled_at) {
+                      {{ m.scheduled_at | localDate }}
                       @if (m.duration_minutes) {
                         ·
                         {{
                           'managementReview.common.minutes' | transloco: { n: m.duration_minutes }
                         }}
                       }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'managementReview.fields.location' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ m.location || '—' }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'managementReview.fields.chair' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ m.chair?.name ?? ('managementReview.common.nobody' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-[12px] font-semibold text-fg-muted">
-                      {{ 'managementReview.fields.secretary' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ m.secretary?.name ?? ('managementReview.common.nobody' | transloco) }}
-                    </dd>
-                  </div>
-                  @if (m.purpose) {
-                    <div class="sm:col-span-2">
-                      <dt class="text-[12px] font-semibold text-fg-muted">
-                        {{ 'managementReview.fields.purpose' | transloco }}
-                      </dt>
-                      <dd class="whitespace-pre-line text-fg">{{ m.purpose }}</dd>
-                    </div>
-                  }
-                </dl>
+                    }
+                  </app-field-item>
+                  <app-field-item
+                    labelKey="managementReview.fields.location"
+                    [value]="m.location"
+                  />
+                  <app-field-item
+                    labelKey="managementReview.fields.chair"
+                    [value]="m.chair?.name ?? null"
+                  />
+                  <app-field-item
+                    labelKey="managementReview.fields.secretary"
+                    [value]="m.secretary?.name ?? null"
+                  />
+                  <app-field-item
+                    labelKey="managementReview.fields.purpose"
+                    [value]="m.purpose"
+                    [wide]="true"
+                    [multiline]="true"
+                  />
+                  <app-field-item
+                    labelKey="managementReview.fields.related"
+                    [wide]="true"
+                    empty="none"
+                  >
+                    @if (m.related?.length) {
+                      <ul class="flex flex-wrap gap-1.5" data-testid="meeting-related">
+                        @for (r of m.related; track r.link_id) {
+                          <li><app-entity-chip [ref]="r" /></li>
+                        }
+                      </ul>
+                    }
+                  </app-field-item>
+                </app-field-list>
               </app-card>
 
               <app-mr-meeting-workspace
@@ -255,18 +264,7 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
               />
             </div>
 
-            <ng-container aside>
-              <app-card *appHasPermission="'standards:read'">
-                <app-supports-requirements entityType="meeting" [entityId]="m.id" />
-              </app-card>
-              <app-why-it-matters [scope]="scope" page="meetingDetail" />
-              <details class="rounded-card border border-border bg-surface p-4">
-                <summary class="cursor-pointer text-[13.5px] font-semibold text-fg">
-                  {{ 'managementReview.lessons.goodMinutes' | transloco }}
-                </summary>
-                <div class="mt-3"><app-lesson [scope]="scope" lesson="good-minutes" /></div>
-              </details>
-            </ng-container>
+            <app-why-it-matters aside-learn [scope]="scope" page="meetingDetail" />
           </app-record-detail-layout>
 
           <app-confirm-dialog
@@ -295,10 +293,11 @@ export class MeetingDetailPage {
   readonly id = input.required<string>();
 
   protected readonly scope = MR_SCOPE;
+  protected readonly settingsLink = MR_SETTINGS_LINK;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = MEETING_FIELD_LABELS;
   protected readonly statusKey = meetingStatusKey;
-  protected readonly statusTone = meetingStatusTone;
+  protected readonly tone = toneValue;
   protected readonly kindKey = meetingKindKey;
   protected readonly reviewStatusKey = reviewStatusKey;
 
@@ -307,6 +306,12 @@ export class MeetingDetailPage {
   protected readonly confirmDelete = signal(false);
   protected readonly busy = signal(false);
 
+  protected readonly crumbs = computed(() =>
+    mrCrumbs(
+      { labelKey: 'managementReview.nav.meetings', link: '/management-review/meetings' },
+      { label: this.meeting()?.code ?? '' },
+    ),
+  );
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(MR_PERMISSIONS.manage),
   );
@@ -333,6 +338,10 @@ export class MeetingDetailPage {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected edit(): void {

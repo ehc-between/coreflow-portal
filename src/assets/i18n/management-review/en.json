@@ -1,13 +1,6 @@
 {
-  "tabs": {
-    "label": "Management review sections",
-    "reviews": "Reviews",
-    "meetings": "Meetings"
-  },
   "common": {
-    "loading": "Loading…",
-    "loadFailed": "Could not load the data. Try again in a moment.",
-    "notFound": "This record was not found, or you do not have access to it.",
+    "notFound": "It may have been deleted, or you may not have access to it.",
     "backToList": "Back to management reviews",
     "backToReview": "Back to the review",
     "backToMeetings": "Back to meetings",
@@ -15,13 +8,13 @@
     "noOwner": "No owner",
     "nobody": "Nobody",
     "notScheduled": "Not scheduled",
-    "notSet": "Not filled in yet",
     "minutes": "{{ n }} min",
-    "reason": "Reason (optional)"
+    "reason": "Reason (optional)",
+    "notFoundTitle": "We couldn't open this"
   },
   "list": {
     "title": "Management reviews",
-    "subtitle": "Top management reviews the management system at planned intervals: inputs are compiled for you, decisions become tasks and the report is signed.",
+    "subtitle": "Top management checks at planned intervals that the management system still works. CoreFlow gathers the figures, turns decisions into tasks and keeps the signed report.",
     "searchPlaceholder": "Search by code or title",
     "new": "New review",
     "period": "Period {{ from }} – {{ to }}",
@@ -29,7 +22,7 @@
   },
   "meetings": {
     "title": "Meetings",
-    "subtitle": "Meetings with agenda, attendees, minutes and decisions: committees, project and safety meetings, and the meetings of management reviews.",
+    "subtitle": "Meetings where decisions are taken: management reviews, the working environment committee, project and audit meetings. Each has an agenda, attendees, minutes and decisions with follow-up.",
     "searchPlaceholder": "Search by code, title or place",
     "new": "New meeting",
     "chairedBy": "Chair: {{ name }}",
@@ -46,7 +39,6 @@
     "mine": "Mine",
     "upcoming": "Upcoming only",
     "includeReviews": "Include review meetings",
-    "noMatch": "Nothing matches these filters.",
     "statusOptions": {
       "open": "Open reviews",
       "planned": "Planned",
@@ -139,9 +131,30 @@
     "delete": "Delete"
   },
   "missing": {
-    "conclusions": "Write the conclusions.",
-    "system_assessment": "Choose the overall assessment of the management system.",
-    "meeting_completed": "Mark the review meeting as completed."
+    "conclusions": {
+      "todo": "Write the conclusions",
+      "done": "The conclusions are written"
+    },
+    "meeting_completed": {
+      "todo": "Hold the meeting and mark it as held",
+      "done": "The meeting is held"
+    },
+    "inputs_reviewed": {
+      "todo": "Review every input, or mark it not relevant with a reason ({{ done }} of {{ total }} done)",
+      "done": "Every input is reviewed"
+    },
+    "minutes_approved": {
+      "todo": "Write and approve the minutes",
+      "done": "The minutes are approved"
+    },
+    "top_management_present": {
+      "todo": "Record that top management took part ({{ present }} of {{ total }} present)",
+      "done": "Top management took part"
+    },
+    "assessment_criteria": {
+      "todo": "Rate whether the management system is suitable, adequate and effective",
+      "done": "The conclusions are rated"
+    }
   },
   "fields": {
     "title": "Title",
@@ -167,7 +180,9 @@
     "improvementOpportunities": "Opportunities for improvement",
     "changeNeeds": "Changes needed to the management system",
     "resourceNeeds": "Resource needs",
-    "systemAssessment": "Overall assessment of the management system"
+    "systemAssessment": "Overall assessment",
+    "assessmentCriteria": "9.3 conclusions",
+    "related": "Concerns"
   },
   "form": {
     "newTitle": "New management review",
@@ -177,9 +192,13 @@
     "standardAgenda": "Start with the standard agenda",
     "standardAgendaHint": "Adds the agenda items the standards expect: previous actions, changes, performance, resources, risks, improvement and decisions.",
     "compileInputs": "Compile the inputs now",
-    "compileInputsHint": "Counts from deviations, corrective actions, documents and standards readiness are gathered for the review period. You can refresh them later.",
+    "compileInputsHint": "CoreFlow fetches the figures for the period from deviations, risks, objectives, audits, suppliers and the other modules. You can refresh them later.",
     "create": "Create review",
-    "save": "Save changes"
+    "save": "Save changes",
+    "description": "Plan the review: what it covers, the period, and the meeting where top management goes through it.",
+    "frameworksAdopted": "Only the standards the organisation follows are shown.",
+    "meetingIntro": "The review is held in a meeting with top management. You can change all of this later.",
+    "topManagementHint": "Mark who is top management on the meeting. People marked at the last review are marked again."
   },
   "standardAgenda": {
     "previousActions": "Status of actions from previous management reviews",
@@ -195,7 +214,9 @@
     "editTitle": "Edit meeting",
     "create": "Create meeting",
     "agenda": "Agenda",
-    "agendaPlaceholder": "One agenda item per line"
+    "agendaPlaceholder": "One agenda item per line",
+    "description": "A meeting where decisions are taken. Add what it concerns, so the decisions are linked to the right records.",
+    "relatedOnPage": "Add or remove linked records under the Related tab on the meeting page."
   },
   "detail": {
     "edit": "Edit",
@@ -203,36 +224,65 @@
     "progress": "Review progress",
     "readOnly": "This review can no longer be edited.",
     "cancelledNotice": "This review was cancelled on {{ date }}.",
-    "awaitingNotice": "Submitted for sign-off by {{ name }} on {{ date }}. The review is locked; minutes can still be approved.",
+    "awaitingNotice": "Sent for sign-off by {{ name }} on {{ date }}. The review is locked until it is signed or sent back.",
     "signedNotice": "Signed by {{ name }} on {{ date }}. The report is frozen.",
     "beforeSubmit": "Before you can submit for sign-off:",
     "actionsHeading": "Follow-up actions",
-    "actionStats": "{{ total }} actions: {{ open }} open, {{ done }} done, {{ overdue }} overdue",
+    "actionStats": "Open: {{ open }} · Done: {{ done }} · Overdue: {{ overdue }}",
     "meetingHeading": "Meeting {{ code }}",
     "openMeeting": "Open the meeting page",
     "outputsHeading": "Outputs of the review",
-    "saveOutputs": "Save outputs",
+    "saveOutputs": "Save",
     "unsaved": "Unsaved changes",
     "deleteTitle": "Delete this review?",
-    "deleteMessage": "{{ code }} and its meeting will be removed. This cannot be undone."
+    "deleteMessage": "{{ code }} and its meeting will be removed. This cannot be undone.",
+    "topManagement": "Top management present",
+    "neighbours": "Other reviews",
+    "previous": "Previous: {{ code }}",
+    "next": "Next: {{ code }}",
+    "noMeeting": "This review has no meeting. It may have been removed.",
+    "outputsIntro": "Write what top management concluded and decided. The decisions recorded in the meeting are shown under the matching field; each action there becomes a task with an owner.",
+    "fromMeeting": "From the meeting ({{ category }}):",
+    "saveBar": "Unsaved changes",
+    "discard": "Discard",
+    "leaveUnsaved": "You have unsaved text in this review. Leave without saving?",
+    "topManagementValue": "{{ present }} of {{ total }}"
   },
   "inputs": {
-    "heading": "Inputs ({{ reviewed }} of {{ total }} reviewed)",
-    "compiledAt": "Compiled {{ date }}",
-    "notCompiled": "Not compiled yet",
+    "compiledAt": "Figures fetched {{ date }}",
+    "notCompiled": "Figures not fetched yet",
     "empty": "No inputs yet.",
     "notes": "Notes and evaluation",
     "markReviewed": "Reviewed",
     "reviewed": "Reviewed",
     "notReviewed": "Not reviewed yet",
-    "saveNotes": "Save notes",
     "remove": "Remove",
     "customTitle": "Add your own input, for example a topic from the board",
     "addCustom": "Add input",
     "source": {
-      "auto": "Compiled",
-      "manual": "Manual"
-    }
+      "auto": "Automatic",
+      "manual": "Manual",
+      "autoHint": "CoreFlow fetches these figures from the modules that own the data.",
+      "manualHint": "No figures are fetched: write your own assessment in the notes."
+    },
+    "title": "Inputs to the review",
+    "progress": "{{ done }} of {{ total }} done",
+    "intro": "One row per topic the standards require. Open a row, look at the figures, write what you see, and tick it as reviewed. If a topic does not apply, mark it not relevant and say why.",
+    "onlyOpen": "Show only what is left",
+    "allDone": "Every input is done.",
+    "notRelevant": "Not relevant",
+    "notRelevantBecause": "Not relevant because:",
+    "markNotRelevant": "Not relevant…",
+    "relevantAfterAll": "Relevant after all",
+    "notRelevantTitle": "“{{ title }}” is not relevant?",
+    "notRelevantMessage": "Say briefly why this topic does not apply to the organisation in this period. The reason is shown in the report.",
+    "notRelevantReason": "Reason",
+    "notesPlaceholder": "What do the figures show? What should top management note?",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "savesOnLeave": "Saves when you leave the field",
+    "fetchNow": "Fetch the figures now",
+    "fetchedAt": "Figures fetched {{ date }}"
   },
   "inputCategories": {
     "previous_actions": {
@@ -284,8 +334,8 @@
       "hint": "How suppliers and other external providers performed."
     },
     "compliance_obligations": {
-      "title": "Fulfilment of compliance obligations",
-      "hint": "Status of legal and other requirements the organisation must meet."
+      "title": "Fulfilment of laws, regulations and other obligations",
+      "hint": "Status of the laws, regulations and other obligations the organisation must meet."
     },
     "environmental_aspects": {
       "title": "Significant environmental aspects",
@@ -327,16 +377,37 @@
   "inputSources": {
     "deviations": "Deviations",
     "deviations_customer": "Customer deviations",
-    "deviations_audit": "Audit deviations",
+    "deviations_audit": "Deviations from audits",
     "deviations_incident": "Incidents",
     "corrective_actions": "Corrective actions",
-    "previous_review": "Previous review",
-    "readiness": "Standards readiness",
+    "previous_review": "Actions from the previous review",
+    "readiness": "Requirement coverage per standard",
     "documents": "Documents",
-    "module": "Other module"
+    "module": "Other module",
+    "objectives": "Objectives",
+    "objectives_kpis": "Key figures (KPIs)",
+    "objectives_measurements": "Measurements",
+    "inspections": "Inspections",
+    "processes": "Processes",
+    "risk": "Risks",
+    "risk_opportunities": "Opportunities",
+    "risk_soa": "Statement of Applicability (SoA)",
+    "audits": "Audits",
+    "audits_ofi": "Improvement opportunities from audits",
+    "suppliers": "Suppliers",
+    "obligations": "Laws and regulations",
+    "environment": "Environment",
+    "hse": "Health and safety",
+    "meetings_safety": "Working environment committee meetings",
+    "ai_governance": "AI systems",
+    "feedback": "Customer feedback",
+    "feedback_suggestions": "Suggestions from customers",
+    "context": "Context",
+    "context_interested_parties": "Interested parties",
+    "training": "Training"
   },
   "metrics": {
-    "raised": "Raised",
+    "raised": "Reported",
     "closed": "Closed",
     "open": "Open",
     "overdue": "Overdue",
@@ -360,7 +431,95 @@
     "soa_controls": "Controls in the SoA",
     "soa_applicable": "Applicable controls",
     "soa_implemented": "Implemented controls",
-    "soa_missing_justification": "Controls without justification"
+    "soa_missing_justification": "Controls without justification",
+    "achieved": "Achieved",
+    "active": "Active",
+    "analyses": "Analyses",
+    "analyses_updated": "Analyses updated",
+    "approved_in_period": "Approved in the period",
+    "aspects": "Environmental aspects",
+    "assessments_completed": "Assessments done",
+    "assessments_overdue": "Assessments overdue",
+    "assignments_open": "Training not completed",
+    "assignments_overdue": "Training overdue",
+    "at_risk": "At risk",
+    "audits_cancelled": "Audits cancelled",
+    "audits_completed": "Audits completed",
+    "audits_planned": "Audits planned",
+    "average_progress": "Average progress",
+    "average_satisfaction": "Average satisfaction",
+    "average_score": "Average score",
+    "average_score_pct": "Average score",
+    "certificates_expiring_180_days": "Certificates expiring within 180 days",
+    "changes_to_assess": "Changes to assess",
+    "complaints": "Complaints",
+    "complaints_open": "Open complaints",
+    "compliance_obligations": "With requirements that are obligations",
+    "compliant": "Compliant",
+    "compliments": "Compliments",
+    "consultations_held": "Consultations held",
+    "consultations_planned": "Consultations planned",
+    "controls_applicable": "Controls that apply",
+    "critical": "Critical",
+    "drills": "Drills",
+    "evaluations": "Evaluations",
+    "evaluations_completed": "Evaluations done",
+    "evaluations_overdue": "Evaluations overdue",
+    "expiring_90_days": "Expiring within 90 days",
+    "failed": "Not passed",
+    "findings_closed": "Findings closed",
+    "findings_open": "Findings open",
+    "findings_overdue": "Findings overdue",
+    "findings_raised": "Findings raised",
+    "high_or_critical": "High or critical",
+    "high_risk": "High risk",
+    "identified": "Identified",
+    "implemented": "Implemented",
+    "implemented_rate": "Share implemented",
+    "major_nc": "Major nonconformities",
+    "measurements": "Measurements",
+    "meetings_held": "Meetings held",
+    "minor_nc": "Minor nonconformities",
+    "monitoring_failures": "Monitoring: failed",
+    "monitoring_warnings": "Monitoring: warnings",
+    "new": "New",
+    "non_compliant": "Not compliant",
+    "not_achieved": "Not achieved",
+    "not_applicable": "Not applicable",
+    "not_evaluated": "Not evaluated",
+    "not_measured": "Not measured",
+    "not_started": "Not started",
+    "nps": "NPS",
+    "off_track": "Off track",
+    "on_time_rate": "Delivered on time",
+    "on_track": "On track",
+    "on_track_rate": "Share on track",
+    "partial": "Partly",
+    "partially_compliant": "Partly compliant",
+    "passed": "Passed",
+    "performance_events": "Delivery events",
+    "planned": "Planned",
+    "policies_updated": "Policies updated",
+    "quality_ok_rate": "Delivered without quality issues",
+    "realised": "Realised",
+    "received": "Received",
+    "rejected_or_suspended": "Rejected or suspended",
+    "response_overdue": "Reply overdue",
+    "review_due_90_days": "Review due within 90 days",
+    "reviewed": "Reviewed",
+    "scopes_updated": "Scope updated",
+    "significant": "Significant",
+    "sja_completed": "Safe job analyses (SJA) done",
+    "sja_high_risk": "SJA with high risk",
+    "survey_responses": "Survey responses",
+    "systems": "AI systems",
+    "treatments_done": "Risk treatments done",
+    "treatments_open": "Risk treatments open",
+    "treatments_overdue": "Risk treatments overdue",
+    "unclassified": "Not classified",
+    "with_kpis": "With KPIs",
+    "with_legal_requirement": "With a legal requirement",
+    "with_worker_representative": "With a worker representative"
   },
   "values": {
     "low": "Low",
@@ -388,25 +547,76 @@
     "in_treatment": "In treatment",
     "monitoring": "Monitoring",
     "accepted": "Accepted",
-    "partially_effective": "Partly effective"
+    "partially_effective": "Partly effective",
+    "very_high": "Very high",
+    "very_low": "Very low",
+    "minimal": "Minimal",
+    "limited": "Limited",
+    "prohibited": "Prohibited",
+    "unacceptable": "Unacceptable",
+    "under_review": "Under review",
+    "active": "Active",
+    "retired": "Retired",
+    "conditional": "Approved with conditions",
+    "rejected": "Rejected",
+    "suspended": "Suspended",
+    "planned": "Planned",
+    "compliant": "Compliant",
+    "partially_compliant": "Partly compliant",
+    "non_compliant": "Not compliant",
+    "not_assessed": "Not assessed",
+    "not_applicable": "Not applicable",
+    "addressed": "Followed up",
+    "partially_addressed": "Partly followed up",
+    "not_addressed": "Not followed up",
+    "complaint": "Complaint",
+    "compliment": "Compliment",
+    "suggestion": "Suggestion",
+    "question": "Question",
+    "internal": "Internal",
+    "external": "External",
+    "certification": "Certification",
+    "supplier": "Supplier",
+    "other": "Other",
+    "ofi": "Improvement opportunity",
+    "observation": "Observation",
+    "minor_nc": "Minor nonconformity",
+    "major_nc": "Major nonconformity",
+    "not_evaluated": "Not evaluated",
+    "partially": "Partly"
   },
   "inputData": {
-    "notCompiled": "No data compiled yet. Refresh the inputs to gather the latest figures.",
-    "manual": "No data source yet: write your evaluation in the notes.",
+    "notCompiled": "No figures yet. Fetch them to see the latest numbers for the period.",
+    "manual": "No figures are fetched for this topic: write your assessment in the notes.",
     "by_severity": "By severity",
     "open_by_status": "Open by status",
     "by_status": "By status",
     "effectiveness": "Effectiveness of verified actions",
-    "score": "{{ score }} % ready",
-    "covered": "{{ covered }} of {{ applicable }} requirements covered",
-    "previous": "Previous review:"
+    "score": "{{ score }} % coverage",
+    "covered": "{{ covered }} of {{ applicable }} requirements documented",
+    "previous": "Previous review:",
+    "modulesOff": "Some figures are missing because these modules are off: {{ modules }}.",
+    "turnOn": "Turn modules on",
+    "openList": "See the list",
+    "previousValue": "At the previous review: {{ value }}",
+    "trendUp": "Up since the previous review",
+    "trendDown": "Down since the previous review",
+    "trendSame": "Unchanged",
+    "trendNote": "▲ ▼ show the change since the previous review.",
+    "openTask": "Open the task",
+    "by_level": "By risk level",
+    "by_type": "By type",
+    "by_decision": "By decision",
+    "by_compliance_status": "By compliance status",
+    "by_risk_class": "By risk class",
+    "by_kind": "By kind",
+    "by_addressed_status": "By follow-up"
   },
   "meeting": {
     "statusHeading": "Meeting status",
     "heldAt": "Held {{ date }}",
-    "lockedNotice": "The meeting is locked. Approved minutes can only be reopened by a manager.",
     "readOnly": "This meeting can no longer be edited.",
-    "partOfReview": "This meeting belongs to management review",
+    "partOfReview": "This meeting belongs to the management review",
     "delete": "Delete meeting",
     "deleteTitle": "Delete this meeting?",
     "deleteMessage": "{{ code }} with its agenda, attendees, minutes and decisions will be removed.",
@@ -416,7 +626,14 @@
       "cancelled": "Cancel meeting",
       "reopen": "Reopen meeting",
       "replan": "Plan again"
-    }
+    },
+    "locked": {
+      "review_signed": "The review is signed, so the meeting is part of the signed record and cannot change.",
+      "review_cancelled": "The review is cancelled, so the meeting can no longer be changed.",
+      "review_awaiting_signoff": "The review is waiting for sign-off. Send it back to change the meeting.",
+      "minutes_approved": "The minutes are approved, so the meeting is final. You can still add a follow-up task to a decision. To change anything else, reopen the minutes with a reason."
+    },
+    "amuHint": "Working environment committee (AMU): under the Working Environment Act § 7-2 the committee follows up safety, health and welfare. Record its decisions here so each gets an owner and a deadline. The meeting documents worker participation (ISO 45001 5.4)."
   },
   "agenda": {
     "heading": "Agenda ({{ count }})",
@@ -431,7 +648,10 @@
     "moveDown": "Move down",
     "remove": "Remove",
     "add": "Add item",
-    "save": "Save agenda"
+    "save": "Save agenda",
+    "total": "Agenda: {{ total }} min",
+    "totalOf": "Agenda {{ total }} min of {{ duration }} min booked",
+    "totalOver": "Agenda {{ total }} min, more than the {{ duration }} min booked"
   },
   "attendees": {
     "heading": "Attendees ({{ count }})",
@@ -448,7 +668,11 @@
     "attendanceFor": "Attendance of {{ name }}",
     "remove": "Remove {{ name }}",
     "addPerson": "Add a person",
-    "noneYet": "Nobody added yet."
+    "noneYet": "Nobody added yet.",
+    "presentOf": "Present: {{ present }} of {{ total }}",
+    "topManagementPresent": "Top management: {{ present }} of {{ total }} present",
+    "topManagement": "Top management",
+    "topManagementHint": "ISO requires top management to take part in the review"
   },
   "minutes": {
     "heading": "Minutes",
@@ -460,7 +684,8 @@
     "approvedBy": "Approved by {{ name }} on {{ date }}",
     "approveAfterCompleted": "Minutes can be approved once the meeting is marked completed.",
     "reopenTitle": "Reopen the minutes?",
-    "reopenMessage": "The approved minutes become a draft again and can be edited. The reason is kept in the history."
+    "reopenMessage": "The approved minutes become a draft again and the meeting can be changed. The reason is kept in the history.",
+    "reopenReason": "Why reopen the minutes?"
   },
   "decisions": {
     "heading": "Decisions and actions ({{ count }})",
@@ -478,7 +703,14 @@
     "createAction": "Create a follow-up task for the owner",
     "actionTitle": "Task title",
     "actionTitlePlaceholder": "Leave empty to use the decision text",
-    "save": "Save decision"
+    "save": "Save decision",
+    "noFollowUp": "No task: not followed up",
+    "noFollowUpWarning": "Without a task, nobody is reminded to carry out this action.",
+    "createTask": "Create task",
+    "concerns": "Concerns",
+    "concernsSearch": "Find the records the decision concerns",
+    "concernsHint": "For example the risk, objective, document, deviation or supplier the decision is about.",
+    "taskShort": "Task"
   },
   "sign": {
     "title": "Sign the management review",
@@ -508,7 +740,12 @@
     "meeting": "Meeting {{ code }}",
     "signedLine": "Signed by {{ name }} on {{ date }}",
     "notSigned": "Not signed yet.",
-    "generatedAt": "Generated {{ date }}"
+    "generatedAt": "Generated {{ date }}",
+    "pageTitle": "Report",
+    "period": "Period",
+    "satisfies": "Documents the requirements:",
+    "actions": "Follow-up actions",
+    "action": "Action"
   },
   "ai": {
     "summarise": "Summarise",
@@ -523,25 +760,24 @@
     "recordDecision": "Record as decision",
     "dismiss": "Dismiss",
     "suggestionNote": "Suggestions are drafts. Check them before you save.",
-    "askAssessment": "Ask how to assess",
+    "askAssessment": "Get help with the assessment",
     "prompts": {
       "summariseAll": "Summarise the status of our management reviews: which are open, what is awaiting sign-off and which actions are overdue.",
       "summariseMeetings": "Summarise our recent and upcoming meetings, including decisions and open actions.",
       "summariseReview": "Summarise management review {{ code }} \"{{ title }}\": the key inputs, conclusions, decisions and open actions.",
       "summariseMeeting": "Summarise meeting {{ code }} \"{{ title }}\": attendees, minutes, decisions and follow-up actions.",
-      "askAssessment": "Help me judge whether our management system is effective, partially effective or not effective, based on the inputs of review {{ code }} \"{{ title }}\"."
-    }
-  },
-  "lessons": {
-    "effectiveReview": "Lesson: running an effective management review",
-    "goodMinutes": "Lesson: minutes and decisions that work"
+      "askAssessment": "Help me decide whether our management system is suitable, adequate and effective, based on the inputs in review {{ code }} “{{ title }}”.",
+      "askFrameworks": "Which standards should our management review cover, and what does each standard require of it?",
+      "askPeriod": "What period should a management review cover, and how often should we hold it?"
+    },
+    "askField": "Ask about this field"
   },
   "notices": {
     "reviewCreated": "Management review created.",
     "reviewSaved": "Review saved.",
     "reviewDeleted": "Review deleted.",
     "started": "Review started.",
-    "compiled": "Inputs refreshed.",
+    "compiled": "The figures are updated.",
     "submitted": "Submitted for sign-off.",
     "signed": "Review signed. The report is frozen.",
     "returned": "Review returned for changes.",
@@ -561,7 +797,10 @@
     "minutesApproved": "Minutes approved.",
     "minutesReopened": "Minutes reopened.",
     "decisionSaved": "Decision saved.",
-    "decisionRemoved": "Decision removed."
+    "decisionRemoved": "Decision removed.",
+    "taskCreated": "The follow-up task is created.",
+    "markedNotRelevant": "Marked as not relevant.",
+    "settingsSaved": "The settings are saved."
   },
   "errors": {
     "action_exists": "This decision already has a follow-up task.",
@@ -570,11 +809,11 @@
     "invalid_transition": "That step is not possible from the current status.",
     "meeting_in_review": "This meeting belongs to a management review and is removed with it.",
     "meeting_not_completed": "Mark the meeting as completed before approving the minutes.",
-    "minutes_approved": "The minutes are already approved.",
+    "minutes_approved": "The minutes are approved, so the meeting is final. Reopen the minutes to change it.",
     "minutes_missing": "Write the minutes before approving them.",
     "minutes_not_approved": "The minutes are not approved.",
     "review_awaiting_signoff": "The review is awaiting sign-off and is locked.",
-    "review_incomplete": "The review is not ready for sign-off yet.",
+    "review_incomplete": "The review is not ready for sign-off yet. See what is missing under Sign-off.",
     "review_locked": "The review is signed or cancelled and can no longer be changed.",
     "review_signed": "A signed review is kept as evidence and cannot be deleted.",
     "frameworks_required": "Choose at least one standard.",
@@ -600,7 +839,12 @@
     "too_many_items": "There are too many items.",
     "module_disabled": "Management review is not enabled for this organisation.",
     "forbidden": "You do not have permission to do this.",
-    "unsavedOutputs": "Save the outputs before submitting."
+    "unsavedOutputs": "Save the outputs before submitting.",
+    "reason_required": "Give a reason.",
+    "invalid_setting": "One of the settings is not valid.",
+    "invalid_criterion": "Choose a valid rating.",
+    "invalid_related": "One of the linked records cannot be used. Remove it and try again.",
+    "too_many_related": "You can link at most 20 records."
   },
   "notifications": {
     "reviewCreated": "Management review created: {{ code }} {{ title }}",
@@ -645,5 +889,123 @@
     "minutesReopened": "{{ actor_name }} reopened the minutes",
     "decisionRecorded": "{{ actor_name }} recorded a decision",
     "meetingDeleted": "{{ actor_name }} deleted the meeting"
+  },
+  "nav": {
+    "reviews": "Reviews",
+    "meetings": "Meetings"
+  },
+  "criteria": {
+    "heading": "Is the management system working?",
+    "intro": "ISO asks top management to conclude on each point below. The overall result is the weakest rating.",
+    "derived": "(the weakest rating)",
+    "notDerived": "Set when every point is rated.",
+    "noteFor": "Note on {{ criterion }}",
+    "notePlaceholder": "Why? (optional)",
+    "suitability": {
+      "label": "Suitable",
+      "hint": "Does the management system still fit the organisation, its context and its goals?"
+    },
+    "adequacy": {
+      "label": "Adequate",
+      "hint": "Does it cover what the standards and the organisation need, with enough resources?"
+    },
+    "effectiveness": {
+      "label": "Effective",
+      "hint": "Does it deliver the intended results: objectives met, risks handled, fewer deviations?"
+    },
+    "strategic_alignment": {
+      "label": "Aligned with the strategy",
+      "hint": "Does it support the strategic direction of the organisation (ISO 9001 9.3.1)?"
+    },
+    "rating": {
+      "effective": "Yes",
+      "partially_effective": "Partly",
+      "not_effective": "No"
+    }
+  },
+  "sections": {
+    "label": "Steps of the review",
+    "inputs": "Inputs",
+    "meeting": "Meeting",
+    "outputs": "Outputs",
+    "signoff": "Sign-off",
+    "inputsCount": "{{ done }}/{{ total }}"
+  },
+  "clause": {
+    "tooltip": "Explain this clause in plain words",
+    "shared": "The same requirement in every ISO management system standard",
+    "sharedIn": "Shared ISO requirement, here in {{ standards }}",
+    "explain": "Explain {{ clause }}"
+  },
+  "actionStatus": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled",
+    "no_task": "No task",
+    "overdue": "Overdue"
+  },
+  "related": {
+    "remove": "Remove {{ name }}",
+    "searchPlaceholder": "Search for a risk, objective, document, audit…",
+    "unavailable": "Search is not available right now.",
+    "searching": "Searching…",
+    "noResults": "No records found.",
+    "results": "Search results"
+  },
+  "signoff": {
+    "heading": "Sign-off",
+    "intro": "Before top management can sign, ISO 9.3 needs the points below. Click a point to go to it.",
+    "ready": "Everything is in place. Send the review to top management for sign-off.",
+    "awaiting": "Top management signs here. Signing locks the report with a checksum.",
+    "cancelled": "The review was cancelled.",
+    "disabledHint": "Complete the points above first.",
+    "done": "Done",
+    "todo": "Not done"
+  },
+  "previous": {
+    "heading": "Previous review",
+    "signed": "signed {{ date }}"
+  },
+  "planning": {
+    "label": "Review planning",
+    "lastSigned": "Last signed:",
+    "noneSigned": "No review signed yet",
+    "upcoming": "Next:",
+    "interval": "Held every {{ months }} months",
+    "plan": "Plan the next review",
+    "headline": {
+      "never": "Top management has not reviewed the management system yet",
+      "planned": "The next review is planned",
+      "overdue": "The review was due {{ date }} ({{ days }} days ago)",
+      "due": "Next review due by {{ date }} (in {{ days }} days)"
+    }
+  },
+  "settings": {
+    "title": "Management review settings",
+    "description": "How often top management reviews the management system, and how early CoreFlow reminds you.",
+    "readOnly": "Only a manager of management reviews can change these settings.",
+    "interval": "Review interval",
+    "months": "Every {{ months }} months",
+    "reminder": "Remind me (days before it is due)",
+    "reminderHint": "From {{ days }} days before the due date the review shows on the home page and in My work.",
+    "save": "Save settings",
+    "invalidInterval": "Choose an interval of 1 to 36 months.",
+    "invalidReminder": "Enter 0 to 180 days."
+  },
+  "nextActions": {
+    "overdue": {
+      "title": "The management review is overdue",
+      "why": "It is {{ days }} days overdue. ISO requires reviews at planned intervals."
+    },
+    "due_soon": {
+      "title": "Plan the next management review",
+      "why": "It is due in {{ days }} days. Plan the meeting with top management now."
+    },
+    "never": {
+      "title": "Hold the first management review",
+      "why": "Top management has not reviewed the management system yet. ISO requires it at planned intervals."
+    }
   }
 }

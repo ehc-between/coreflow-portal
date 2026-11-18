@@ -9,38 +9,48 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
+import { KitApi } from '../../core/kit/kit-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { FieldHelp } from '../../shared/guidance/field-help';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { EntityChip } from '../../shared/kit/entity-chip';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { FieldLabel } from './components/field-label';
+import { RecordPicker } from './components/record-picker';
 import { UserSelect, userIdOf } from './components/user-select';
 import { ManagementReviewApi } from './data/management-review-api';
 import { mrErrorKey } from './data/management-review-errors';
 import {
   CREATABLE_MEETING_KINDS,
   CreateMeetingRequest,
+  MEETING_KINDS,
   MeetingDetail,
   MeetingKind,
+  RelatedRef,
   UpdateMeetingRequest,
 } from './data/management-review.models';
 import {
   MR_MODULE,
   MR_SCOPE,
+  MR_SETTINGS_LINK,
   fromLocalInput,
   meetingKindKey,
   minutesOrNull,
+  mrCrumbs,
   textOrNull,
   toLocalInput,
 } from './management-review-display';
@@ -56,6 +66,7 @@ export interface MeetingFormValue {
   readonly secretary_user_id: string | null;
   readonly attendee_ids: readonly string[];
   readonly agenda_text: string;
+  readonly related: readonly RelatedRef[];
   readonly change_reason: string;
 }
 
@@ -71,6 +82,7 @@ export function emptyMeetingForm(chairId: string | null): MeetingFormValue {
     secretary_user_id: null,
     attendee_ids: [],
     agenda_text: '',
+    related: [],
     change_reason: '',
   };
 }
@@ -88,7 +100,7 @@ export function meetingToForm(m: MeetingDetail): MeetingFormValue {
   };
 }
 
-/** The create payload (agenda: one item per non-empty line). */
+/** The create payload (agenda: one item per non-empty line; related: what it concerns). */
 export function createMeetingPayload(f: MeetingFormValue): CreateMeetingRequest {
   return {
     title: f.title.trim(),
@@ -105,6 +117,11 @@ export function createMeetingPayload(f: MeetingFormValue): CreateMeetingRequest 
       .map((line) => line.trim())
       .filter(Boolean)
       .map((title) => ({ title })),
+    ...(f.related.length
+      ? {
+          related: f.related.map((r) => ({ entity_type: r.entity_type, entity_id: r.entity_id })),
+        }
+      : {}),
   };
 }
 
@@ -133,296 +150,357 @@ export function updateMeetingPayload(
   return out as UpdateMeetingRequest;
 }
 
+/** `?related=<entity_type>:<id>` of a meeting started from another record. */
+export function relatedParam(value: string | null): { type: string; id: string } | null {
+  const match = /^([a-z_]{2,32}):([0-9a-f-]{36})$/i.exec(value ?? '');
+  return match ? { type: match[1], id: match[2] } : null;
+}
+
+/** `?kind=` of a meeting started from another module (e.g. `safety` from HSE). */
+export function kindParam(value: string | null): MeetingKind | null {
+  return value && (CREATABLE_MEETING_KINDS as readonly string[]).includes(value)
+    ? (value as MeetingKind)
+    : null;
+}
+
 let nextId = 0;
 
 /**
- * `/management-review/meetings/new` and `.../:id/edit`: a meeting's title, kind,
- * purpose, time and place, chair and secretary; a new meeting can also invite
- * people and start with an agenda. Agenda, attendees, minutes and decisions are
- * then managed on the meeting page.
+ * `/management-review/meetings/new` and `.../:id/edit`: a meeting's title, type,
+ * what it concerns ("Gjelder": an audit, a project, a deviation…), purpose, time
+ * and place, chair and secretary; a new meeting can also invite people and start
+ * with an agenda. Opened from another record (`?related=<type>:<id>`, optional
+ * `?kind=`), that record is filled in. Agenda, attendees, minutes and decisions
+ * are managed on the meeting page.
  */
 @Component({
   selector: 'app-mr-meeting-editor',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    FieldHelp,
-    GuideIntro,
     WhyItMatters,
+    EntityChip,
     Alert,
     Button,
     Card,
+    ErrorState,
     FormField,
+    HelpStrip,
     Icon,
+    LoadingState,
+    PageHeader,
+    FieldLabel,
+    RecordPicker,
     UserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="
-          id() ? ['/management-review/meetings', id()] : ['/management-review/meetings']
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="
+          id() ? 'managementReview.meetingForm.editTitle' : 'managementReview.meetingForm.newTitle'
         "
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{
-          (id()
-            ? 'managementReview.common.backToMeeting'
-            : 'managementReview.common.backToMeetings'
-          ) | transloco
-        }}
-      </a>
-      <h1 class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{
-          (id()
-            ? 'managementReview.meetingForm.editTitle'
-            : 'managementReview.meetingForm.newTitle'
-          ) | transloco
-        }}
-      </h1>
-
-      <div class="mb-4"><app-guide-intro [scope]="scope" page="meetingForm" /></div>
+        descriptionKey="managementReview.meetingForm.description"
+        [breadcrumbs]="crumbs()"
+        [settingsLink]="settingsLink"
+      />
+      <app-help-strip [scope]="scope" page="meetingForm" />
 
       @if (state() === 'loading') {
-        <p class="py-10 text-center text-[14px] text-fg-muted">
-          {{ 'managementReview.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
       } @else if (state() === 'error') {
-        <app-alert tone="error">{{ 'managementReview.common.loadFailed' | transloco }}</app-alert>
+        <app-error-state (retry)="reload()" />
       } @else if (existing()?.can_edit === false) {
         <app-alert tone="info">{{ 'managementReview.meeting.readOnly' | transloco }}</app-alert>
       } @else {
-        <app-card>
-          <form class="flex flex-col gap-4" novalidate (submit)="$event.preventDefault(); save()">
-            @if (errorKey(); as key) {
-              <app-alert tone="error">{{ key | transloco }}</app-alert>
-            }
-            <div>
-              <app-form-field
-                [label]="'managementReview.fields.title' | transloco"
-                [inputId]="fid('title')"
-              >
-                <input
-                  [id]="fid('title')"
-                  type="text"
-                  maxlength="255"
-                  required
-                  autocomplete="off"
-                  [attr.aria-invalid]="titleMissing() || null"
-                  [value]="form().title"
-                  (input)="set('title', $any($event.target).value)"
-                />
-              </app-form-field>
-              @if (titleMissing()) {
-                <p class="mt-1 text-[12.5px] text-fail">
-                  {{ 'managementReview.errors.title_required' | transloco }}
-                </p>
+        <form novalidate (submit)="$event.preventDefault(); save()">
+          <app-card>
+            <div class="flex flex-col gap-5">
+              @if (errorKey(); as key) {
+                <app-alert tone="error">{{ key | transloco }}</app-alert>
               }
-            </div>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <app-form-field
+                <app-mr-field-label
+                  [controlId]="fid('title')"
+                  [label]="'managementReview.fields.title' | transloco"
+                />
+                <app-form-field [inputId]="fid('title')">
+                  <input
+                    [id]="fid('title')"
+                    type="text"
+                    maxlength="255"
+                    required
+                    autocomplete="off"
+                    [attr.aria-invalid]="titleMissing() || null"
+                    [attr.aria-describedby]="titleMissing() ? fid('title-err') : null"
+                    [value]="form().title"
+                    (input)="set('title', $any($event.target).value)"
+                    data-testid="mr-meeting-title"
+                  />
+                </app-form-field>
+                @if (titleMissing()) {
+                  <p [id]="fid('title-err')" class="mt-1 text-meta text-fail-ink" role="alert">
+                    {{ 'managementReview.errors.title_required' | transloco }}
+                  </p>
+                }
+              </div>
+              <div>
+                <app-mr-field-label
+                  [controlId]="fid('kind')"
                   [label]="'managementReview.fields.kind' | transloco"
-                  [inputId]="fid('kind')"
-                >
+                  page="meetingForm"
+                  field="kind"
+                />
+                <app-form-field [inputId]="fid('kind')">
                   <select
                     [id]="fid('kind')"
                     [disabled]="isReviewMeeting()"
                     (change)="set('kind', $any($event.target).value)"
                   >
-                    @if (isReviewMeeting()) {
-                      <option value="management_review" selected>
-                        {{ kindKey('management_review') | transloco }}
-                      </option>
-                    }
-                    @for (k of kinds; track k) {
+                    @for (k of kindOptions(); track k) {
                       <option [value]="k" [selected]="form().kind === k">
                         {{ kindKey(k) | transloco }}
                       </option>
                     }
                   </select>
                 </app-form-field>
-                <app-field-help [scope]="scope" page="meetingForm" field="kind" />
+                @if (form().kind === 'safety') {
+                  <p class="mt-1.5 text-meta text-fg-muted" data-testid="amu-hint">
+                    {{ 'managementReview.meeting.amuHint' | transloco }}
+                  </p>
+                }
               </div>
-              <app-form-field
-                [label]="'managementReview.fields.scheduledAt' | transloco"
-                [inputId]="fid('when')"
-              >
-                <input
-                  [id]="fid('when')"
-                  type="datetime-local"
-                  [value]="form().scheduled_at"
-                  (input)="set('scheduled_at', $any($event.target).value)"
-                />
-              </app-form-field>
-              <app-form-field
-                [label]="'managementReview.fields.duration' | transloco"
-                [inputId]="fid('dur')"
-              >
-                <input
-                  [id]="fid('dur')"
-                  type="number"
-                  min="1"
-                  max="1440"
-                  [value]="form().duration"
-                  (input)="set('duration', $any($event.target).value)"
-                />
-              </app-form-field>
-              <app-form-field
-                [label]="'managementReview.fields.location' | transloco"
-                [inputId]="fid('loc')"
-              >
-                <input
-                  [id]="fid('loc')"
-                  type="text"
-                  maxlength="255"
-                  [value]="form().location"
-                  (input)="set('location', $any($event.target).value)"
-                />
-              </app-form-field>
-              <div>
-                <app-form-field
-                  [label]="'managementReview.fields.chair' | transloco"
-                  [inputId]="fid('chair')"
-                >
-                  <app-mr-user-select
-                    [inputId]="fid('chair')"
-                    [value]="form().chair_user_id"
-                    [currentName]="existing()?.chair?.name ?? null"
-                    (valueChange)="set('chair_user_id', $event)"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="meetingForm" field="chair" />
-              </div>
-              <div>
-                <app-form-field
-                  [label]="'managementReview.fields.secretary' | transloco"
-                  [inputId]="fid('sec')"
-                >
-                  <app-mr-user-select
-                    [inputId]="fid('sec')"
-                    [value]="form().secretary_user_id"
-                    [currentName]="existing()?.secretary?.name ?? null"
-                    (valueChange)="set('secretary_user_id', $event)"
-                  />
-                </app-form-field>
-                <app-field-help [scope]="scope" page="meetingForm" field="secretary" />
-              </div>
-            </div>
-            <div>
-              <app-form-field
-                [label]="'managementReview.fields.purpose' | transloco"
-                [inputId]="fid('purpose')"
-              >
-                <textarea
-                  [id]="fid('purpose')"
-                  rows="3"
-                  maxlength="50000"
-                  [value]="form().purpose"
-                  (input)="set('purpose', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-              <app-field-help [scope]="scope" page="meetingForm" field="purpose" />
-            </div>
 
-            @if (!id()) {
               <div>
-                <p class="mb-1.5 text-[13px] font-semibold text-fg-muted">
-                  {{ 'managementReview.fields.attendees' | transloco }}
-                </p>
-                <ul class="mb-2 flex flex-wrap gap-1.5">
-                  @for (uid of form().attendee_ids; track uid) {
-                    <li
-                      class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-[12.5px] text-fg"
-                    >
-                      {{ userName(uid) }}
-                      <button
-                        type="button"
-                        class="flex rounded-full p-0.5 text-fg-subtle hover:text-fail"
-                        [attr.aria-label]="
-                          'managementReview.attendees.remove' | transloco: { name: userName(uid) }
-                        "
-                        (click)="removeAttendee(uid)"
-                      >
-                        <app-icon name="x" [size]="12" />
-                      </button>
-                    </li>
-                  } @empty {
-                    <li class="text-[12.5px] text-fg-subtle">
-                      {{ 'managementReview.attendees.noneYet' | transloco }}
-                    </li>
-                  }
-                </ul>
-                <app-mr-user-select
-                  selectClass="h-10 w-full rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg sm:w-[320px]"
-                  [ariaLabel]="'managementReview.attendees.addPerson' | transloco"
-                  noneKey="managementReview.attendees.addPerson"
-                  [value]="null"
-                  [exclude]="form().attendee_ids"
-                  (valueChange)="addAttendee($event)"
+                <app-mr-field-label
+                  [label]="'managementReview.fields.related' | transloco"
+                  page="meetingForm"
+                  field="related"
                 />
+                @if (id()) {
+                  @if (existing()?.related?.length) {
+                    <ul class="mb-1.5 flex flex-wrap gap-1.5">
+                      @for (r of existing()?.related ?? []; track r.link_id) {
+                        <li><app-entity-chip [ref]="r" /></li>
+                      }
+                    </ul>
+                  }
+                  <p class="text-meta text-fg-subtle">
+                    {{ 'managementReview.meetingForm.relatedOnPage' | transloco }}
+                  </p>
+                } @else {
+                  <app-mr-record-picker
+                    [value]="form().related"
+                    [label]="'managementReview.fields.related' | transloco"
+                    (valueChange)="set('related', $event)"
+                  />
+                }
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('when')"
+                    [label]="'managementReview.fields.scheduledAt' | transloco"
+                  />
+                  <app-form-field [inputId]="fid('when')">
+                    <input
+                      [id]="fid('when')"
+                      type="datetime-local"
+                      [value]="form().scheduled_at"
+                      (input)="set('scheduled_at', $any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('dur')"
+                    [label]="'managementReview.fields.duration' | transloco"
+                  />
+                  <app-form-field [inputId]="fid('dur')">
+                    <input
+                      [id]="fid('dur')"
+                      type="number"
+                      min="1"
+                      max="1440"
+                      [value]="form().duration"
+                      (input)="set('duration', $any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div class="sm:col-span-2">
+                  <app-mr-field-label
+                    [controlId]="fid('loc')"
+                    [label]="'managementReview.fields.location' | transloco"
+                  />
+                  <app-form-field [inputId]="fid('loc')">
+                    <input
+                      [id]="fid('loc')"
+                      type="text"
+                      maxlength="255"
+                      [value]="form().location"
+                      (input)="set('location', $any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('chair')"
+                    [label]="'managementReview.fields.chair' | transloco"
+                    page="meetingForm"
+                    field="chair"
+                  />
+                  <app-form-field [inputId]="fid('chair')">
+                    <app-mr-user-select
+                      [inputId]="fid('chair')"
+                      [value]="form().chair_user_id"
+                      [currentName]="existing()?.chair?.name ?? null"
+                      (valueChange)="set('chair_user_id', $event)"
+                    />
+                  </app-form-field>
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('sec')"
+                    [label]="'managementReview.fields.secretary' | transloco"
+                    page="meetingForm"
+                    field="secretary"
+                  />
+                  <app-form-field [inputId]="fid('sec')">
+                    <app-mr-user-select
+                      [inputId]="fid('sec')"
+                      [value]="form().secretary_user_id"
+                      [currentName]="existing()?.secretary?.name ?? null"
+                      (valueChange)="set('secretary_user_id', $event)"
+                    />
+                  </app-form-field>
+                </div>
               </div>
               <div>
-                <app-form-field
-                  [label]="'managementReview.meetingForm.agenda' | transloco"
-                  [inputId]="fid('agenda')"
-                >
+                <app-mr-field-label
+                  [controlId]="fid('purpose')"
+                  [label]="'managementReview.fields.purpose' | transloco"
+                  page="meetingForm"
+                  field="purpose"
+                />
+                <app-form-field [inputId]="fid('purpose')">
                   <textarea
-                    [id]="fid('agenda')"
-                    rows="5"
-                    [placeholder]="'managementReview.meetingForm.agendaPlaceholder' | transloco"
-                    [value]="form().agenda_text"
-                    (input)="set('agenda_text', $any($event.target).value)"
+                    [id]="fid('purpose')"
+                    rows="3"
+                    maxlength="50000"
+                    [value]="form().purpose"
+                    (input)="set('purpose', $any($event.target).value)"
                   ></textarea>
                 </app-form-field>
-                <app-field-help [scope]="scope" page="meetingForm" field="agenda" />
               </div>
-            } @else {
-              <app-form-field
-                [label]="'managementReview.fields.changeReason' | transloco"
-                [inputId]="fid('reason')"
-              >
-                <input
-                  [id]="fid('reason')"
-                  type="text"
-                  maxlength="2000"
-                  [value]="form().change_reason"
-                  (input)="set('change_reason', $any($event.target).value)"
-                />
-              </app-form-field>
-            }
 
-            <div class="flex flex-wrap justify-end gap-2">
-              <app-button variant="secondary" (click)="cancel()">{{
-                'common.cancel' | transloco
-              }}</app-button>
-              <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-                {{
-                  (id() ? 'managementReview.form.save' : 'managementReview.meetingForm.create')
-                    | transloco
-                }}
-              </app-button>
+              @if (!id()) {
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('att')"
+                    [label]="'managementReview.fields.attendees' | transloco"
+                  />
+                  <ul class="mb-2 flex flex-wrap gap-1.5">
+                    @for (uid of form().attendee_ids; track uid) {
+                      <li
+                        class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta text-fg"
+                      >
+                        {{ userName(uid) }}
+                        <button
+                          type="button"
+                          class="flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:text-fail"
+                          [attr.aria-label]="
+                            'managementReview.attendees.remove' | transloco: { name: userName(uid) }
+                          "
+                          (click)="removeAttendee(uid)"
+                        >
+                          <app-icon name="x" [size]="12" />
+                        </button>
+                      </li>
+                    } @empty {
+                      <li class="text-meta text-fg-subtle">
+                        {{ 'managementReview.attendees.noneYet' | transloco }}
+                      </li>
+                    }
+                  </ul>
+                  <app-mr-user-select
+                    [inputId]="fid('att')"
+                    selectClass="h-10 w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:w-[320px]"
+                    noneKey="managementReview.attendees.addPerson"
+                    [value]="null"
+                    [exclude]="form().attendee_ids"
+                    (valueChange)="addAttendee($event)"
+                  />
+                </div>
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('agenda')"
+                    [label]="'managementReview.meetingForm.agenda' | transloco"
+                    page="meetingForm"
+                    field="agenda"
+                  />
+                  <app-form-field [inputId]="fid('agenda')">
+                    <textarea
+                      [id]="fid('agenda')"
+                      rows="5"
+                      [placeholder]="'managementReview.meetingForm.agendaPlaceholder' | transloco"
+                      [value]="form().agenda_text"
+                      (input)="set('agenda_text', $any($event.target).value)"
+                    ></textarea>
+                  </app-form-field>
+                </div>
+              } @else {
+                <div>
+                  <app-mr-field-label
+                    [controlId]="fid('reason')"
+                    [label]="'managementReview.fields.changeReason' | transloco"
+                  />
+                  <app-form-field [inputId]="fid('reason')">
+                    <input
+                      [id]="fid('reason')"
+                      type="text"
+                      maxlength="2000"
+                      [value]="form().change_reason"
+                      (input)="set('change_reason', $any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+              }
             </div>
-          </form>
-        </app-card>
-        <div class="mt-4"><app-why-it-matters [scope]="scope" page="meetingForm" /></div>
+          </app-card>
+
+          <div
+            class="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+          >
+            <app-button variant="secondary" (click)="cancel()">{{
+              'common.cancel' | transloco
+            }}</app-button>
+            <app-button type="submit" [loading]="saving()" data-testid="mr-save-meeting">
+              {{
+                (id() ? 'managementReview.form.save' : 'managementReview.meetingForm.create')
+                  | transloco
+              }}
+            </app-button>
+          </div>
+        </form>
+        <div class="mt-8"><app-why-it-matters [scope]="scope" page="meetingForm" /></div>
       }
     </div>
   `,
 })
 export class MeetingEditor {
   private readonly api = inject(ManagementReviewApi);
+  private readonly kit = inject(KitApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly options = inject(AssigneeOptionsService);
   private readonly auth = inject(AuthService);
 
   readonly id = input<string | undefined>(undefined);
 
   protected readonly scope = MR_SCOPE;
-  protected readonly kinds = CREATABLE_MEETING_KINDS;
+  protected readonly settingsLink = MR_SETTINGS_LINK;
   protected readonly kindKey = meetingKindKey;
 
   private readonly uid = ++nextId;
@@ -439,6 +517,22 @@ export class MeetingEditor {
   protected readonly titleMissing = computed(() => this.submitted() && !this.form().title.trim());
   protected readonly isReviewMeeting = computed(
     () => this.existing()?.kind === 'management_review',
+  );
+  protected readonly kindOptions = computed<readonly MeetingKind[]>(() =>
+    this.isReviewMeeting() ? MEETING_KINDS : CREATABLE_MEETING_KINDS,
+  );
+  protected readonly crumbs = computed(() =>
+    mrCrumbs(
+      { labelKey: 'managementReview.nav.meetings', link: '/management-review/meetings' },
+      ...(this.existing()
+        ? [{ label: this.existing()!.code, link: ['/management-review/meetings', this.id()] }]
+        : []),
+      {
+        labelKey: this.id()
+          ? 'managementReview.meetingForm.editTitle'
+          : 'managementReview.meetingForm.newTitle',
+      },
+    ),
   );
 
   private request = new Subscription();
@@ -488,6 +582,10 @@ export class MeetingEditor {
     );
   }
 
+  protected reload(): void {
+    this.init(this.selectedOrg.currentOrgId(), this.id());
+  }
+
   protected save(): void {
     this.submitted.set(true);
     this.errorKey.set(null);
@@ -524,8 +622,21 @@ export class MeetingEditor {
     this.errorKey.set(null);
     if (!id) {
       this.existing.set(null);
-      this.form.set(emptyMeetingForm(this.auth.user()?.id ?? null));
+      const query = this.route.snapshot.queryParamMap;
+      const kind = kindParam(query.get('kind'));
+      this.form.set({
+        ...emptyMeetingForm(this.auth.user()?.id ?? null),
+        ...(kind ? { kind } : {}),
+      });
       this.state.set('ready');
+      const related = relatedParam(query.get('related'));
+      if (orgId && related) {
+        // Started from another record: fill in what the meeting concerns.
+        this.request = this.kit.entity(orgId, related.type, related.id).subscribe({
+          next: (ref) => this.set('related', [ref]),
+          error: () => undefined,
+        });
+      }
       return;
     }
     if (!orgId) {

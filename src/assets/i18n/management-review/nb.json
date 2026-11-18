@@ -1,13 +1,6 @@
 {
-  "tabs": {
-    "label": "Deler av ledelsens gjennomgang",
-    "reviews": "Gjennomganger",
-    "meetings": "Møter"
-  },
   "common": {
-    "loading": "Laster …",
-    "loadFailed": "Kunne ikke laste dataene. Prøv igjen om litt.",
-    "notFound": "Fant ikke denne posten, eller du har ikke tilgang til den.",
+    "notFound": "Den kan være slettet, eller så har du ikke tilgang til den.",
     "backToList": "Tilbake til ledelsens gjennomganger",
     "backToReview": "Tilbake til gjennomgangen",
     "backToMeetings": "Tilbake til møter",
@@ -15,13 +8,13 @@
     "noOwner": "Ingen eier",
     "nobody": "Ingen",
     "notScheduled": "Ikke planlagt",
-    "notSet": "Ikke fylt ut ennå",
     "minutes": "{{ n }} min",
-    "reason": "Begrunnelse (valgfritt)"
+    "reason": "Begrunnelse (valgfritt)",
+    "notFoundTitle": "Vi kunne ikke åpne denne"
   },
   "list": {
     "title": "Ledelsens gjennomganger",
-    "subtitle": "Toppledelsen gjennomgår styringssystemet med planlagte mellomrom: grunnlaget samles for deg, beslutninger blir oppgaver og rapporten signeres.",
+    "subtitle": "Toppledelsen sjekker med faste mellomrom at styringssystemet fortsatt virker. CoreFlow henter tallene, gjør beslutninger til oppgaver og tar vare på den signerte rapporten.",
     "searchPlaceholder": "Søk på kode eller tittel",
     "new": "Ny gjennomgang",
     "period": "Periode {{ from }} – {{ to }}",
@@ -29,7 +22,7 @@
   },
   "meetings": {
     "title": "Møter",
-    "subtitle": "Møter med agenda, deltakere, referat og beslutninger: utvalg, prosjekt- og sikkerhetsmøter, og møtene i ledelsens gjennomganger.",
+    "subtitle": "Møter der beslutninger tas: ledelsens gjennomganger, arbeidsmiljøutvalget, prosjekt- og revisjonsmøter. Hvert møte har agenda, deltakere, referat og beslutninger med oppfølging.",
     "searchPlaceholder": "Søk på kode, tittel eller sted",
     "new": "Nytt møte",
     "chairedBy": "Møteleder: {{ name }}",
@@ -46,7 +39,6 @@
     "mine": "Mine",
     "upcoming": "Bare kommende",
     "includeReviews": "Ta med gjennomgangsmøter",
-    "noMatch": "Ingenting passer med disse filtrene.",
     "statusOptions": {
       "open": "Åpne gjennomganger",
       "planned": "Planlagt",
@@ -139,9 +131,30 @@
     "delete": "Slett"
   },
   "missing": {
-    "conclusions": "Skriv konklusjonene.",
-    "system_assessment": "Velg samlet vurdering av styringssystemet.",
-    "meeting_completed": "Merk gjennomgangsmøtet som gjennomført."
+    "conclusions": {
+      "todo": "Skriv konklusjonene",
+      "done": "Konklusjonene er skrevet"
+    },
+    "meeting_completed": {
+      "todo": "Hold møtet og merk det som gjennomført",
+      "done": "Møtet er gjennomført"
+    },
+    "inputs_reviewed": {
+      "todo": "Gå gjennom hvert grunnlag, eller merk det som ikke relevant med en begrunnelse ({{ done }} av {{ total }} ferdig)",
+      "done": "Alt grunnlag er gjennomgått"
+    },
+    "minutes_approved": {
+      "todo": "Skriv og godkjenn referatet",
+      "done": "Referatet er godkjent"
+    },
+    "top_management_present": {
+      "todo": "Registrer at toppledelsen deltok ({{ present }} av {{ total }} til stede)",
+      "done": "Toppledelsen deltok"
+    },
+    "assessment_criteria": {
+      "todo": "Vurder om styringssystemet er egnet, tilstrekkelig og effektivt",
+      "done": "Konklusjonene er vurdert"
+    }
   },
   "fields": {
     "title": "Tittel",
@@ -167,7 +180,9 @@
     "improvementOpportunities": "Muligheter for forbedring",
     "changeNeeds": "Behov for endringer i styringssystemet",
     "resourceNeeds": "Ressursbehov",
-    "systemAssessment": "Samlet vurdering av styringssystemet"
+    "systemAssessment": "Samlet vurdering",
+    "assessmentCriteria": "Konklusjoner etter 9.3",
+    "related": "Gjelder"
   },
   "form": {
     "newTitle": "Ny ledelsens gjennomgang",
@@ -177,9 +192,13 @@
     "standardAgenda": "Start med standardagendaen",
     "standardAgendaHint": "Legger inn agendapunktene standardene forventer: tidligere tiltak, endringer, ytelse, ressurser, risiko, forbedring og beslutninger.",
     "compileInputs": "Samle grunnlaget nå",
-    "compileInputsHint": "Tall fra avvik, korrigerende tiltak, dokumenter og standardmodenhet hentes for perioden. Du kan oppdatere dem senere.",
+    "compileInputsHint": "CoreFlow henter tallene for perioden fra avvik, risikoer, mål, revisjoner, leverandører og de andre modulene. Du kan oppdatere dem senere.",
     "create": "Opprett gjennomgang",
-    "save": "Lagre endringer"
+    "save": "Lagre endringer",
+    "description": "Planlegg gjennomgangen: hva den dekker, perioden og møtet der toppledelsen går gjennom den.",
+    "frameworksAdopted": "Bare standardene organisasjonen følger, vises.",
+    "meetingIntro": "Gjennomgangen holdes i et møte med toppledelsen. Du kan endre alt dette senere.",
+    "topManagementHint": "Merk hvem som er toppledelse på møtet. De som var merket ved forrige gjennomgang, merkes igjen."
   },
   "standardAgenda": {
     "previousActions": "Status for tiltak fra tidligere gjennomganger",
@@ -195,7 +214,9 @@
     "editTitle": "Rediger møte",
     "create": "Opprett møte",
     "agenda": "Agenda",
-    "agendaPlaceholder": "Ett agendapunkt per linje"
+    "agendaPlaceholder": "Ett agendapunkt per linje",
+    "description": "Et møte der beslutninger tas. Legg til hva det gjelder, så blir beslutningene koblet til riktige poster.",
+    "relatedOnPage": "Legg til eller fjern koblede poster i fanen Relatert på møtesiden."
   },
   "detail": {
     "edit": "Rediger",
@@ -203,36 +224,65 @@
     "progress": "Fremdrift i gjennomgangen",
     "readOnly": "Denne gjennomgangen kan ikke lenger redigeres.",
     "cancelledNotice": "Denne gjennomgangen ble avlyst {{ date }}.",
-    "awaitingNotice": "Sendt til signering av {{ name }} {{ date }}. Gjennomgangen er låst; referatet kan fortsatt godkjennes.",
+    "awaitingNotice": "Sendt til signering av {{ name }} {{ date }}. Gjennomgangen er låst til den er signert eller sendt tilbake.",
     "signedNotice": "Signert av {{ name }} {{ date }}. Rapporten er låst.",
     "beforeSubmit": "Før du kan sende til signering:",
     "actionsHeading": "Oppfølgingstiltak",
-    "actionStats": "{{ total }} tiltak: {{ open }} åpne, {{ done }} utført, {{ overdue }} forfalt",
+    "actionStats": "Åpne: {{ open }} · Utført: {{ done }} · Forfalt: {{ overdue }}",
     "meetingHeading": "Møte {{ code }}",
     "openMeeting": "Åpne møtesiden",
     "outputsHeading": "Resultater av gjennomgangen",
-    "saveOutputs": "Lagre resultater",
+    "saveOutputs": "Lagre",
     "unsaved": "Ulagrede endringer",
     "deleteTitle": "Slette denne gjennomgangen?",
-    "deleteMessage": "{{ code }} og møtet blir fjernet. Dette kan ikke angres."
+    "deleteMessage": "{{ code }} og møtet blir fjernet. Dette kan ikke angres.",
+    "topManagement": "Toppledelsen til stede",
+    "neighbours": "Andre gjennomganger",
+    "previous": "Forrige: {{ code }}",
+    "next": "Neste: {{ code }}",
+    "noMeeting": "Denne gjennomgangen har ikke noe møte. Det kan være fjernet.",
+    "outputsIntro": "Skriv hva toppledelsen konkluderte og besluttet. Beslutningene som er registrert i møtet, vises under feltet de hører til. Hvert tiltak der blir en oppgave med eier.",
+    "fromMeeting": "Fra møtet ({{ category }}):",
+    "saveBar": "Ulagrede endringer",
+    "discard": "Forkast",
+    "leaveUnsaved": "Du har tekst som ikke er lagret i denne gjennomgangen. Vil du gå uten å lagre?",
+    "topManagementValue": "{{ present }} av {{ total }}"
   },
   "inputs": {
-    "heading": "Grunnlag ({{ reviewed }} av {{ total }} gjennomgått)",
-    "compiledAt": "Samlet {{ date }}",
-    "notCompiled": "Ikke samlet ennå",
+    "compiledAt": "Tallene ble hentet {{ date }}",
+    "notCompiled": "Tallene er ikke hentet ennå",
     "empty": "Ikke noe grunnlag ennå.",
     "notes": "Notater og vurdering",
     "markReviewed": "Gjennomgått",
     "reviewed": "Gjennomgått",
     "notReviewed": "Ikke gjennomgått ennå",
-    "saveNotes": "Lagre notater",
     "remove": "Fjern",
     "customTitle": "Legg til eget grunnlag, for eksempel et tema fra styret",
     "addCustom": "Legg til",
     "source": {
-      "auto": "Samlet",
-      "manual": "Manuelt"
-    }
+      "auto": "Automatisk",
+      "manual": "Manuelt",
+      "autoHint": "CoreFlow henter disse tallene fra modulene som eier dataene.",
+      "manualHint": "Ingen tall hentes: skriv din egen vurdering i notatene."
+    },
+    "title": "Grunnlag for gjennomgangen",
+    "progress": "{{ done }} av {{ total }} ferdig",
+    "intro": "Én rad per tema standardene krever. Åpne raden, se på tallene, skriv hva du ser, og huk av for gjennomgått. Hvis et tema ikke gjelder, merker du det som ikke relevant og skriver hvorfor.",
+    "onlyOpen": "Vis bare det som gjenstår",
+    "allDone": "Alt grunnlag er ferdig.",
+    "notRelevant": "Ikke relevant",
+    "notRelevantBecause": "Ikke relevant fordi:",
+    "markNotRelevant": "Ikke relevant …",
+    "relevantAfterAll": "Relevant likevel",
+    "notRelevantTitle": "Er «{{ title }}» ikke relevant?",
+    "notRelevantMessage": "Skriv kort hvorfor temaet ikke gjelder for organisasjonen i denne perioden. Begrunnelsen vises i rapporten.",
+    "notRelevantReason": "Begrunnelse",
+    "notesPlaceholder": "Hva viser tallene? Hva bør toppledelsen merke seg?",
+    "saving": "Lagrer …",
+    "saved": "Lagret",
+    "savesOnLeave": "Lagres når du går ut av feltet",
+    "fetchNow": "Hent tallene nå",
+    "fetchedAt": "Tall hentet {{ date }}"
   },
   "inputCategories": {
     "previous_actions": {
@@ -284,8 +334,8 @@
       "hint": "Hvordan leverandører og andre eksterne tilbydere har levert."
     },
     "compliance_obligations": {
-      "title": "Oppfyllelse av samsvarsforpliktelser",
-      "hint": "Status for lovkrav og andre krav organisasjonen må oppfylle."
+      "title": "Oppfyllelse av lover, forskrifter og andre forpliktelser",
+      "hint": "Status for lover, forskrifter og andre forpliktelser organisasjonen må oppfylle."
     },
     "environmental_aspects": {
       "title": "Vesentlige miljøaspekter",
@@ -327,13 +377,34 @@
   "inputSources": {
     "deviations": "Avvik",
     "deviations_customer": "Kundeavvik",
-    "deviations_audit": "Revisjonsavvik",
+    "deviations_audit": "Avvik fra revisjoner",
     "deviations_incident": "Hendelser",
     "corrective_actions": "Korrigerende tiltak",
-    "previous_review": "Forrige gjennomgang",
-    "readiness": "Modenhet mot standarder",
+    "previous_review": "Tiltak fra forrige gjennomgang",
+    "readiness": "Kravdekning per standard",
     "documents": "Dokumenter",
-    "module": "Annen modul"
+    "module": "Annen modul",
+    "objectives": "Mål",
+    "objectives_kpis": "Nøkkeltall (KPI-er)",
+    "objectives_measurements": "Målinger",
+    "inspections": "Inspeksjoner",
+    "processes": "Prosesser",
+    "risk": "Risikoer",
+    "risk_opportunities": "Muligheter",
+    "risk_soa": "Anvendelseserklæring (SoA)",
+    "audits": "Revisjoner",
+    "audits_ofi": "Forbedringsforslag fra revisjoner",
+    "suppliers": "Leverandører",
+    "obligations": "Lover og forskrifter",
+    "environment": "Miljø",
+    "hse": "HMS",
+    "meetings_safety": "Møter i arbeidsmiljøutvalget",
+    "ai_governance": "KI-systemer",
+    "feedback": "Kundetilbakemeldinger",
+    "feedback_suggestions": "Forslag fra kunder",
+    "context": "Kontekst",
+    "context_interested_parties": "Interessenter",
+    "training": "Opplæring"
   },
   "metrics": {
     "raised": "Meldt",
@@ -351,7 +422,7 @@
     "actions_cancelled": "Tiltak avbrutt",
     "standards": "Standarder",
     "total": "Totalt",
-    "review_overdue": "Revisjon forfalt",
+    "review_overdue": "Gjennomgang forfalt",
     "above_appetite": "Over risikoappetitt",
     "accepted": "Akseptert",
     "effectiveness_unverified": "Tiltak uten kontroll av effekt",
@@ -360,7 +431,95 @@
     "soa_controls": "Kontroller i SoA",
     "soa_applicable": "Aktuelle kontroller",
     "soa_implemented": "Implementerte kontroller",
-    "soa_missing_justification": "Kontroller uten begrunnelse"
+    "soa_missing_justification": "Kontroller uten begrunnelse",
+    "achieved": "Nådd",
+    "active": "Aktive",
+    "analyses": "Analyser",
+    "analyses_updated": "Analyser oppdatert",
+    "approved_in_period": "Godkjent i perioden",
+    "aspects": "Miljøaspekter",
+    "assessments_completed": "Vurderinger utført",
+    "assessments_overdue": "Vurderinger forfalt",
+    "assignments_open": "Opplæring ikke fullført",
+    "assignments_overdue": "Opplæring forfalt",
+    "at_risk": "I faresonen",
+    "audits_cancelled": "Revisjoner avlyst",
+    "audits_completed": "Revisjoner gjennomført",
+    "audits_planned": "Revisjoner planlagt",
+    "average_progress": "Gjennomsnittlig fremdrift",
+    "average_satisfaction": "Gjennomsnittlig tilfredshet",
+    "average_score": "Gjennomsnittlig poengsum",
+    "average_score_pct": "Gjennomsnittlig poengsum",
+    "certificates_expiring_180_days": "Sertifikater som utløper innen 180 dager",
+    "changes_to_assess": "Endringer som må vurderes",
+    "complaints": "Klager",
+    "complaints_open": "Åpne klager",
+    "compliance_obligations": "Med krav som er forpliktelser",
+    "compliant": "I samsvar",
+    "compliments": "Ros",
+    "consultations_held": "Medvirkningsmøter holdt",
+    "consultations_planned": "Medvirkningsmøter planlagt",
+    "controls_applicable": "Kontroller som gjelder",
+    "critical": "Kritiske",
+    "drills": "Øvelser",
+    "evaluations": "Vurderinger",
+    "evaluations_completed": "Vurderinger utført",
+    "evaluations_overdue": "Vurderinger forfalt",
+    "expiring_90_days": "Utløper innen 90 dager",
+    "failed": "Ikke bestått",
+    "findings_closed": "Funn lukket",
+    "findings_open": "Funn åpne",
+    "findings_overdue": "Funn forfalt",
+    "findings_raised": "Funn registrert",
+    "high_or_critical": "Høy eller kritisk",
+    "high_risk": "Høy risiko",
+    "identified": "Identifisert",
+    "implemented": "Innført",
+    "implemented_rate": "Andel innført",
+    "major_nc": "Store avvik",
+    "measurements": "Målinger",
+    "meetings_held": "Møter holdt",
+    "minor_nc": "Mindre avvik",
+    "monitoring_failures": "Overvåking: ikke bestått",
+    "monitoring_warnings": "Overvåking: varsler",
+    "new": "Nye",
+    "non_compliant": "Ikke i samsvar",
+    "not_achieved": "Ikke nådd",
+    "not_applicable": "Gjelder ikke",
+    "not_evaluated": "Ikke vurdert",
+    "not_measured": "Ikke målt",
+    "not_started": "Ikke startet",
+    "nps": "NPS",
+    "off_track": "Ikke i rute",
+    "on_time_rate": "Levert i tide",
+    "on_track": "I rute",
+    "on_track_rate": "Andel i rute",
+    "partial": "Delvis",
+    "partially_compliant": "Delvis i samsvar",
+    "passed": "Bestått",
+    "performance_events": "Leveransehendelser",
+    "planned": "Planlagt",
+    "policies_updated": "Policyer oppdatert",
+    "quality_ok_rate": "Levert uten kvalitetsavvik",
+    "realised": "Realisert",
+    "received": "Mottatt",
+    "rejected_or_suspended": "Avvist eller suspendert",
+    "response_overdue": "Svar forfalt",
+    "review_due_90_days": "Gjennomgang innen 90 dager",
+    "reviewed": "Gjennomgått",
+    "scopes_updated": "Omfang oppdatert",
+    "significant": "Vesentlige",
+    "sja_completed": "Sikre jobbanalyser (SJA) utført",
+    "sja_high_risk": "SJA med høy risiko",
+    "survey_responses": "Svar på undersøkelser",
+    "systems": "KI-systemer",
+    "treatments_done": "Risikobehandlinger utført",
+    "treatments_open": "Risikobehandlinger åpne",
+    "treatments_overdue": "Risikobehandlinger forfalt",
+    "unclassified": "Ikke klassifisert",
+    "with_kpis": "Med KPI-er",
+    "with_legal_requirement": "Med lovkrav",
+    "with_worker_representative": "Med arbeidstakerrepresentant"
   },
   "values": {
     "low": "Lav",
@@ -388,23 +547,74 @@
     "in_treatment": "Under behandling",
     "monitoring": "Overvåkes",
     "accepted": "Akseptert",
-    "partially_effective": "Virker delvis"
+    "partially_effective": "Delvis effektivt",
+    "very_high": "Svært høy",
+    "very_low": "Svært lav",
+    "minimal": "Minimal",
+    "limited": "Begrenset",
+    "prohibited": "Forbudt",
+    "unacceptable": "Uakseptabel",
+    "under_review": "Til gjennomgang",
+    "active": "Aktiv",
+    "retired": "Avviklet",
+    "conditional": "Godkjent med vilkår",
+    "rejected": "Avvist",
+    "suspended": "Suspendert",
+    "planned": "Planlagt",
+    "compliant": "I samsvar",
+    "partially_compliant": "Delvis i samsvar",
+    "non_compliant": "Ikke i samsvar",
+    "not_assessed": "Ikke vurdert",
+    "not_applicable": "Gjelder ikke",
+    "addressed": "Fulgt opp",
+    "partially_addressed": "Delvis fulgt opp",
+    "not_addressed": "Ikke fulgt opp",
+    "complaint": "Klage",
+    "compliment": "Ros",
+    "suggestion": "Forslag",
+    "question": "Spørsmål",
+    "internal": "Intern",
+    "external": "Ekstern",
+    "certification": "Sertifisering",
+    "supplier": "Leverandør",
+    "other": "Annet",
+    "ofi": "Forbedringsforslag",
+    "observation": "Observasjon",
+    "minor_nc": "Mindre avvik",
+    "major_nc": "Stort avvik",
+    "not_evaluated": "Ikke vurdert",
+    "partially": "Delvis"
   },
   "inputData": {
-    "notCompiled": "Ingen data samlet ennå. Oppdater grunnlaget for å hente de siste tallene.",
-    "manual": "Ingen datakilde ennå: skriv vurderingen din i notatene.",
+    "notCompiled": "Ingen tall ennå. Hent dem for å se de siste tallene for perioden.",
+    "manual": "Det hentes ingen tall for dette temaet: skriv vurderingen din i notatene.",
     "by_severity": "Etter alvorlighet",
     "open_by_status": "Åpne etter status",
     "by_status": "Etter status",
     "effectiveness": "Effekt av verifiserte tiltak",
-    "score": "{{ score }} % klar",
-    "covered": "{{ covered }} av {{ applicable }} krav dekket",
-    "previous": "Forrige gjennomgang:"
+    "score": "{{ score }} % kravdekning",
+    "covered": "{{ covered }} av {{ applicable }} krav dokumentert",
+    "previous": "Forrige gjennomgang:",
+    "modulesOff": "Noen tall mangler fordi disse modulene er slått av: {{ modules }}.",
+    "turnOn": "Slå på moduler",
+    "openList": "Se listen",
+    "previousValue": "Ved forrige gjennomgang: {{ value }}",
+    "trendUp": "Opp siden forrige gjennomgang",
+    "trendDown": "Ned siden forrige gjennomgang",
+    "trendSame": "Uendret",
+    "trendNote": "▲ ▼ viser endringen siden forrige gjennomgang.",
+    "openTask": "Åpne oppgaven",
+    "by_level": "Etter risikonivå",
+    "by_type": "Etter type",
+    "by_decision": "Etter beslutning",
+    "by_compliance_status": "Etter samsvarsstatus",
+    "by_risk_class": "Etter risikoklasse",
+    "by_kind": "Etter type",
+    "by_addressed_status": "Etter oppfølging"
   },
   "meeting": {
     "statusHeading": "Møtestatus",
     "heldAt": "Holdt {{ date }}",
-    "lockedNotice": "Møtet er låst. Et godkjent referat kan bare åpnes igjen av en leder.",
     "readOnly": "Dette møtet kan ikke lenger redigeres.",
     "partOfReview": "Dette møtet hører til ledelsens gjennomgang",
     "delete": "Slett møte",
@@ -416,7 +626,14 @@
       "cancelled": "Avlys møtet",
       "reopen": "Gjenåpne møtet",
       "replan": "Planlegg på nytt"
-    }
+    },
+    "locked": {
+      "review_signed": "Gjennomgangen er signert, så møtet er en del av den signerte rapporten og kan ikke endres.",
+      "review_cancelled": "Gjennomgangen er avlyst, så møtet kan ikke lenger endres.",
+      "review_awaiting_signoff": "Gjennomgangen venter på signering. Send den tilbake for å endre møtet.",
+      "minutes_approved": "Referatet er godkjent, så møtet er endelig. Du kan fortsatt legge til en oppfølgingsoppgave på en beslutning. For å endre noe annet må du gjenåpne referatet med en begrunnelse."
+    },
+    "amuHint": "Arbeidsmiljøutvalget (AMU): etter arbeidsmiljøloven § 7-2 skal utvalget følge opp sikkerhet, helse og velferd. Registrer beslutningene her, så får hver av dem eier og frist. Møtet dokumenterer medvirkning (ISO 45001 5.4)."
   },
   "agenda": {
     "heading": "Agenda ({{ count }})",
@@ -431,7 +648,10 @@
     "moveDown": "Flytt ned",
     "remove": "Fjern",
     "add": "Legg til punkt",
-    "save": "Lagre agenda"
+    "save": "Lagre agenda",
+    "total": "Agenda: {{ total }} min",
+    "totalOf": "Agenda {{ total }} min av {{ duration }} min satt av",
+    "totalOver": "Agenda {{ total }} min, mer enn de {{ duration }} min som er satt av"
   },
   "attendees": {
     "heading": "Deltakere ({{ count }})",
@@ -448,7 +668,11 @@
     "attendanceFor": "Oppmøte for {{ name }}",
     "remove": "Fjern {{ name }}",
     "addPerson": "Legg til en person",
-    "noneYet": "Ingen lagt til ennå."
+    "noneYet": "Ingen lagt til ennå.",
+    "presentOf": "Til stede: {{ present }} av {{ total }}",
+    "topManagementPresent": "Toppledelsen: {{ present }} av {{ total }} til stede",
+    "topManagement": "Toppledelse",
+    "topManagementHint": "ISO krever at toppledelsen deltar i gjennomgangen"
   },
   "minutes": {
     "heading": "Referat",
@@ -460,7 +684,8 @@
     "approvedBy": "Godkjent av {{ name }} {{ date }}",
     "approveAfterCompleted": "Referatet kan godkjennes når møtet er merket som gjennomført.",
     "reopenTitle": "Gjenåpne referatet?",
-    "reopenMessage": "Det godkjente referatet blir et utkast igjen og kan redigeres. Begrunnelsen lagres i historikken."
+    "reopenMessage": "Det godkjente referatet blir et utkast igjen, og møtet kan endres. Begrunnelsen lagres i historikken.",
+    "reopenReason": "Hvorfor gjenåpne referatet?"
   },
   "decisions": {
     "heading": "Beslutninger og tiltak ({{ count }})",
@@ -478,7 +703,14 @@
     "createAction": "Opprett en oppfølgingsoppgave til eieren",
     "actionTitle": "Oppgavetittel",
     "actionTitlePlaceholder": "La stå tom for å bruke teksten i beslutningen",
-    "save": "Lagre beslutning"
+    "save": "Lagre beslutning",
+    "noFollowUp": "Ingen oppgave: følges ikke opp",
+    "noFollowUpWarning": "Uten en oppgave blir ingen minnet på å gjennomføre tiltaket.",
+    "createTask": "Opprett oppgave",
+    "concerns": "Gjelder",
+    "concernsSearch": "Finn postene beslutningen gjelder",
+    "concernsHint": "For eksempel risikoen, målet, dokumentet, avviket eller leverandøren beslutningen handler om.",
+    "taskShort": "Oppgave"
   },
   "sign": {
     "title": "Signer ledelsens gjennomgang",
@@ -508,7 +740,12 @@
     "meeting": "Møte {{ code }}",
     "signedLine": "Signert av {{ name }} {{ date }}",
     "notSigned": "Ikke signert ennå.",
-    "generatedAt": "Laget {{ date }}"
+    "generatedAt": "Laget {{ date }}",
+    "pageTitle": "Rapport",
+    "period": "Periode",
+    "satisfies": "Dokumenterer kravene:",
+    "actions": "Oppfølgingstiltak",
+    "action": "Tiltak"
   },
   "ai": {
     "summarise": "Oppsummer",
@@ -523,25 +760,24 @@
     "recordDecision": "Registrer som beslutning",
     "dismiss": "Avvis",
     "suggestionNote": "Forslagene er utkast. Kontroller dem før du lagrer.",
-    "askAssessment": "Spør hvordan du vurderer",
+    "askAssessment": "Få hjelp til vurderingen",
     "prompts": {
       "summariseAll": "Oppsummer status for ledelsens gjennomganger: hvilke er åpne, hva venter på signering og hvilke tiltak er forfalt.",
       "summariseMeetings": "Oppsummer nylige og kommende møter, med beslutninger og åpne tiltak.",
       "summariseReview": "Oppsummer ledelsens gjennomgang {{ code }} «{{ title }}»: viktigste grunnlag, konklusjoner, beslutninger og åpne tiltak.",
       "summariseMeeting": "Oppsummer møtet {{ code }} «{{ title }}»: deltakere, referat, beslutninger og oppfølgingstiltak.",
-      "askAssessment": "Hjelp meg å vurdere om styringssystemet vårt er effektivt, delvis effektivt eller ikke effektivt, basert på grunnlaget i gjennomgang {{ code }} «{{ title }}»."
-    }
-  },
-  "lessons": {
-    "effectiveReview": "Leksjon: en god ledelsens gjennomgang",
-    "goodMinutes": "Leksjon: referater og beslutninger som virker"
+      "askAssessment": "Hjelp meg å vurdere om styringssystemet vårt er egnet, tilstrekkelig og effektivt, basert på grunnlaget i gjennomgang {{ code }} «{{ title }}».",
+      "askFrameworks": "Hvilke standarder bør ledelsens gjennomgang vår dekke, og hva krever hver standard av den?",
+      "askPeriod": "Hvilken periode bør en ledelsens gjennomgang dekke, og hvor ofte bør vi holde den?"
+    },
+    "askField": "Spør om dette feltet"
   },
   "notices": {
     "reviewCreated": "Ledelsens gjennomgang er opprettet.",
     "reviewSaved": "Gjennomgangen er lagret.",
     "reviewDeleted": "Gjennomgangen er slettet.",
     "started": "Gjennomgangen er startet.",
-    "compiled": "Grunnlaget er oppdatert.",
+    "compiled": "Tallene er oppdatert.",
     "submitted": "Sendt til signering.",
     "signed": "Gjennomgangen er signert. Rapporten er låst.",
     "returned": "Gjennomgangen er sendt tilbake for endring.",
@@ -561,7 +797,10 @@
     "minutesApproved": "Referatet er godkjent.",
     "minutesReopened": "Referatet er gjenåpnet.",
     "decisionSaved": "Beslutningen er lagret.",
-    "decisionRemoved": "Beslutningen er fjernet."
+    "decisionRemoved": "Beslutningen er fjernet.",
+    "taskCreated": "Oppfølgingsoppgaven er opprettet.",
+    "markedNotRelevant": "Merket som ikke relevant.",
+    "settingsSaved": "Innstillingene er lagret."
   },
   "errors": {
     "action_exists": "Denne beslutningen har allerede en oppfølgingsoppgave.",
@@ -570,11 +809,11 @@
     "invalid_transition": "Det steget er ikke mulig fra nåværende status.",
     "meeting_in_review": "Dette møtet hører til en ledelsens gjennomgang og fjernes sammen med den.",
     "meeting_not_completed": "Merk møtet som gjennomført før du godkjenner referatet.",
-    "minutes_approved": "Referatet er allerede godkjent.",
+    "minutes_approved": "Referatet er godkjent, så møtet er endelig. Gjenåpne referatet for å endre det.",
     "minutes_missing": "Skriv referatet før du godkjenner det.",
     "minutes_not_approved": "Referatet er ikke godkjent.",
     "review_awaiting_signoff": "Gjennomgangen venter på signering og er låst.",
-    "review_incomplete": "Gjennomgangen er ikke klar for signering ennå.",
+    "review_incomplete": "Gjennomgangen er ikke klar for signering ennå. Se hva som mangler under Signering.",
     "review_locked": "Gjennomgangen er signert eller avlyst og kan ikke lenger endres.",
     "review_signed": "En signert gjennomgang beholdes som dokumentasjon og kan ikke slettes.",
     "frameworks_required": "Velg minst én standard.",
@@ -600,7 +839,12 @@
     "too_many_items": "Det er for mange punkter.",
     "module_disabled": "Ledelsens gjennomgang er ikke slått på for denne organisasjonen.",
     "forbidden": "Du har ikke tillatelse til å gjøre dette.",
-    "unsavedOutputs": "Lagre resultatene før du sender til signering."
+    "unsavedOutputs": "Lagre resultatene før du sender til signering.",
+    "reason_required": "Skriv en begrunnelse.",
+    "invalid_setting": "En av innstillingene er ikke gyldig.",
+    "invalid_criterion": "Velg en gyldig vurdering.",
+    "invalid_related": "En av de koblede postene kan ikke brukes. Fjern den og prøv igjen.",
+    "too_many_related": "Du kan koble til høyst 20 poster."
   },
   "notifications": {
     "reviewCreated": "Ledelsens gjennomgang opprettet: {{ code }} {{ title }}",
@@ -645,5 +889,123 @@
     "minutesReopened": "{{ actor_name }} gjenåpnet referatet",
     "decisionRecorded": "{{ actor_name }} registrerte en beslutning",
     "meetingDeleted": "{{ actor_name }} slettet møtet"
+  },
+  "nav": {
+    "reviews": "Gjennomganger",
+    "meetings": "Møter"
+  },
+  "criteria": {
+    "heading": "Virker styringssystemet?",
+    "intro": "ISO ber toppledelsen konkludere på hvert punkt under. Samlet vurdering blir den svakeste vurderingen.",
+    "derived": "(den svakeste vurderingen)",
+    "notDerived": "Settes når alle punktene er vurdert.",
+    "noteFor": "Kommentar til {{ criterion }}",
+    "notePlaceholder": "Hvorfor? (valgfritt)",
+    "suitability": {
+      "label": "Egnet",
+      "hint": "Passer styringssystemet fortsatt til organisasjonen, situasjonen og målene?"
+    },
+    "adequacy": {
+      "label": "Tilstrekkelig",
+      "hint": "Dekker det det standardene og organisasjonen trenger, med nok ressurser?"
+    },
+    "effectiveness": {
+      "label": "Effektivt",
+      "hint": "Gir det de tiltenkte resultatene: mål nådd, risikoer håndtert, færre avvik?"
+    },
+    "strategic_alignment": {
+      "label": "I tråd med strategien",
+      "hint": "Støtter det organisasjonens strategiske retning (ISO 9001 9.3.1)?"
+    },
+    "rating": {
+      "effective": "Ja",
+      "partially_effective": "Delvis",
+      "not_effective": "Nei"
+    }
+  },
+  "sections": {
+    "label": "Stegene i gjennomgangen",
+    "inputs": "Grunnlag",
+    "meeting": "Møtet",
+    "outputs": "Resultater",
+    "signoff": "Signering",
+    "inputsCount": "{{ done }}/{{ total }}"
+  },
+  "clause": {
+    "tooltip": "Forklar dette punktet med enkle ord",
+    "shared": "Det samme kravet i alle ISO-standardene for styringssystemer",
+    "sharedIn": "Felles ISO-krav, her i {{ standards }}",
+    "explain": "Forklar {{ clause }}"
+  },
+  "actionStatus": {
+    "open": "Åpen",
+    "in_progress": "Pågår",
+    "blocked": "Blokkert",
+    "done": "Utført",
+    "cancelled": "Avbrutt",
+    "no_task": "Ingen oppgave",
+    "overdue": "Forfalt"
+  },
+  "related": {
+    "remove": "Fjern {{ name }}",
+    "searchPlaceholder": "Søk etter en risiko, et mål, et dokument, en revisjon …",
+    "unavailable": "Søket er ikke tilgjengelig akkurat nå.",
+    "searching": "Søker …",
+    "noResults": "Fant ingen poster.",
+    "results": "Søkeresultater"
+  },
+  "signoff": {
+    "heading": "Signering",
+    "intro": "Før toppledelsen kan signere, krever ISO 9.3 punktene under. Klikk på et punkt for å gå dit.",
+    "ready": "Alt er på plass. Send gjennomgangen til toppledelsen for signering.",
+    "awaiting": "Toppledelsen signerer her. Signeringen låser rapporten med en kontrollsum.",
+    "cancelled": "Gjennomgangen ble avlyst.",
+    "disabledHint": "Fullfør punktene over først.",
+    "done": "Ferdig",
+    "todo": "Ikke ferdig"
+  },
+  "previous": {
+    "heading": "Forrige gjennomgang",
+    "signed": "signert {{ date }}"
+  },
+  "planning": {
+    "label": "Planlegging av gjennomganger",
+    "lastSigned": "Sist signert:",
+    "noneSigned": "Ingen gjennomgang er signert ennå",
+    "upcoming": "Neste:",
+    "interval": "Holdes hver {{ months }}. måned",
+    "plan": "Planlegg neste gjennomgang",
+    "headline": {
+      "never": "Toppledelsen har ikke gjennomgått styringssystemet ennå",
+      "planned": "Neste gjennomgang er planlagt",
+      "overdue": "Gjennomgangen skulle vært holdt innen {{ date }} (for {{ days }} dager siden)",
+      "due": "Neste gjennomgang innen {{ date }} (om {{ days }} dager)"
+    }
+  },
+  "settings": {
+    "title": "Innstillinger for ledelsens gjennomgang",
+    "description": "Hvor ofte toppledelsen gjennomgår styringssystemet, og hvor tidlig CoreFlow minner deg på det.",
+    "readOnly": "Bare den som administrerer ledelsens gjennomgang, kan endre disse innstillingene.",
+    "interval": "Hvor ofte gjennomgangen holdes",
+    "months": "Hver {{ months }}. måned",
+    "reminder": "Påminnelse (dager før fristen)",
+    "reminderHint": "Fra {{ days }} dager før fristen vises gjennomgangen på oversikten og i Mitt arbeid.",
+    "save": "Lagre innstillingene",
+    "invalidInterval": "Velg et intervall på 1 til 36 måneder.",
+    "invalidReminder": "Skriv inn 0 til 180 dager."
+  },
+  "nextActions": {
+    "overdue": {
+      "title": "Ledelsens gjennomgang er forfalt",
+      "why": "Den er {{ days }} dager på overtid. ISO krever gjennomganger med planlagte mellomrom."
+    },
+    "due_soon": {
+      "title": "Planlegg neste ledelsens gjennomgang",
+      "why": "Den skal holdes om {{ days }} dager. Planlegg møtet med toppledelsen nå."
+    },
+    "never": {
+      "title": "Hold den første ledelsens gjennomgang",
+      "why": "Toppledelsen har ikke gjennomgått styringssystemet ennå. ISO krever det med planlagte mellomrom."
+    }
   }
 }

@@ -15,7 +15,10 @@ import {
   MeetingDetail,
   MeetingListQuery,
   MeetingSummary,
+  MrSettings,
+  MrSettingsUpdate,
   Page,
+  Planning,
   ReviewDetail,
   ReviewListQuery,
   ReviewReport,
@@ -54,6 +57,23 @@ export class ManagementReviewApi {
 
   inputCategories(orgId: string): Observable<readonly InputCategory[]> {
     return this.api.get<readonly InputCategory[]>(`${this.base(orgId)}/input-categories`);
+  }
+
+  // --- settings and planning ---------------------------------------------------------
+
+  /** Review interval and reminder (`management_review:read`). */
+  settings(orgId: string): Observable<MrSettings> {
+    return this.api.get<MrSettings>(`${this.base(orgId)}/settings`);
+  }
+
+  /** Change the interval or the reminder (`:manage`; 422 `invalid_setting`). */
+  updateSettings(orgId: string, body: MrSettingsUpdate): Observable<MrSettings> {
+    return this.api.put<MrSettings>(`${this.base(orgId)}/settings`, body, skipToast());
+  }
+
+  /** The last signed review, the next one and when the next one is due. */
+  planning(orgId: string): Observable<Planning> {
+    return this.api.get<Planning>(`${this.base(orgId)}/planning`);
   }
 
   // --- reviews -----------------------------------------------------------------------
@@ -247,7 +267,8 @@ export class ManagementReviewApi {
     );
   }
 
-  reopenMinutes(orgId: string, id: string, reason: string | null): Observable<MeetingDetail> {
+  /** Reopen approved minutes. The reason is required and logged (422 `reason_required`). */
+  reopenMinutes(orgId: string, id: string, reason: string): Observable<MeetingDetail> {
     return this.api.post<MeetingDetail>(
       `${this.meeting(orgId, id)}/minutes/reopen`,
       { reason },
