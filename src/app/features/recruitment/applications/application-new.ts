@@ -12,13 +12,12 @@ import { Subject, debounceTime, switchMap } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RecruitmentApi } from '../data/recruitment-api';
 import { blankToNull } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
@@ -35,51 +34,55 @@ import {
   candidatePayload,
   emptyCandidateDraft,
 } from '../shared/candidate-fields';
+import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
+import { RecruitmentField } from '../shared/recruitment-field';
 
 type Mode = 'existing' | 'new';
 
 /**
- * Add a candidate to an open requisition (`?requisition_id=` / `?candidate_id=`
- * preselect): pick an existing candidate or register a new one in the same step.
+ * "Legg til kandidat": add a candidate to an open requisition (`?requisition_id=` /
+ * `?candidate_id=` preselect), either an existing candidate or a new one registered
+ * in the same step.
  */
 @Component({
   selector: 'app-application-new',
   imports: [
     RouterLink,
     TranslocoPipe,
-    FieldHelp,
-    GuideIntro,
     Alert,
     Button,
     Card,
-    FormField,
+    HelpStrip,
     Icon,
+    PageHeader,
     CandidateFields,
+    RecruitmentField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[820px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/recruitment/applications"
-        class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'recruitment.common.back' | transloco }}
-      </a>
-      <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-        {{ 'recruitment.applicationNew.title' | transloco }}
-      </h1>
-      <app-guide-intro class="mt-4" scope="recruitment" page="applicationNew" />
-      <form class="mt-5 flex flex-col gap-5" (submit)="$event.preventDefault(); save()">
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="recruitment.applicationNew.title"
+        [breadcrumbs]="breadcrumbs"
+        backLink="/recruitment/applications"
+        backLabelKey="recruitment.common.back"
+      />
+      <app-help-strip scope="recruitment" page="applicationNew" lesson="candidate-privacy" />
+      <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); save()">
+        <p class="text-meta text-fg-muted">{{ 'recruitment.form.requiredNote' | transloco }}</p>
         <app-card>
-          <app-form-field
-            [label]="'recruitment.fields.requisition' | transloco"
+          <app-recruitment-field
+            labelKey="recruitment.fields.requisition"
             inputId="app-requisition"
+            page="applicationNew"
+            [required]="true"
+            [error]="shown() && !requisitionId() ? 'recruitment.form.errors.requisition' : null"
           >
             <select
               id="app-requisition"
               required
               (change)="requisitionId.set($any($event.target).value)"
+              data-testid="app-new-requisition"
             >
               <option value="" [selected]="!requisitionId()">
                 {{ 'recruitment.applicationNew.chooseRequisition' | transloco }}
@@ -90,9 +93,9 @@ type Mode = 'existing' | 'new';
                 </option>
               }
             </select>
-          </app-form-field>
+          </app-recruitment-field>
           @if (requisitions().length === 0 && loaded()) {
-            <p class="mt-2 text-[12.5px] text-warn">
+            <p class="mt-2 text-meta text-warn-ink">
               {{ 'recruitment.applicationNew.noOpenRequisitions' | transloco }}
             </p>
           }
@@ -100,11 +103,12 @@ type Mode = 'existing' | 'new';
 
         <app-card>
           <fieldset>
-            <legend class="mb-3 font-display text-[15px] font-bold text-fg">
+            <legend class="mb-3 text-card font-bold text-fg">
               {{ 'recruitment.applicationNew.candidate' | transloco }}
+              <span class="text-fail" aria-hidden="true">*</span>
             </legend>
-            <div class="mb-4 flex flex-wrap gap-4 text-[13.5px]">
-              <label class="inline-flex items-center gap-2">
+            <div class="mb-4 flex flex-wrap gap-4 text-body">
+              <label class="inline-flex min-h-6 items-center gap-2">
                 <input
                   type="radio"
                   name="mode"
@@ -114,7 +118,7 @@ type Mode = 'existing' | 'new';
                 />
                 {{ 'recruitment.applicationNew.existing' | transloco }}
               </label>
-              <label class="inline-flex items-center gap-2">
+              <label class="inline-flex min-h-6 items-center gap-2">
                 <input
                   type="radio"
                   name="mode"
@@ -127,9 +131,10 @@ type Mode = 'existing' | 'new';
               </label>
             </div>
             @if (mode() === 'existing') {
-              <app-form-field
-                [label]="'recruitment.applicationNew.findCandidate' | transloco"
+              <app-recruitment-field
+                labelKey="recruitment.applicationNew.findCandidate"
                 inputId="app-cand-search"
+                [error]="shown() && !candidateId() ? 'recruitment.form.errors.candidate' : null"
               >
                 <input
                   id="app-cand-search"
@@ -138,7 +143,7 @@ type Mode = 'existing' | 'new';
                   [value]="candidateQuery()"
                   (input)="searchCandidates($any($event.target).value)"
                 />
-              </app-form-field>
+              </app-recruitment-field>
               <ul
                 class="mt-2 flex max-h-[260px] flex-col overflow-y-auto"
                 role="listbox"
@@ -148,11 +153,11 @@ type Mode = 'existing' | 'new';
                   <li role="option" [attr.aria-selected]="c.id === candidateId()">
                     <button
                       type="button"
-                      class="flex w-full items-center gap-2 rounded-[8px] px-2.5 py-2 text-left text-[13px] hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      class="flex w-full items-center gap-2 rounded-tile px-2.5 py-2 text-left text-ui hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       [class.bg-accent-soft]="c.id === candidateId()"
                       (click)="candidateId.set(c.id)"
                     >
-                      <span class="font-mono text-[11.5px] text-fg-subtle">{{ c.code }}</span>
+                      <span class="font-mono text-meta text-fg-subtle">{{ c.code }}</span>
                       <span class="flex-1 truncate font-semibold text-fg">{{ c.full_name }}</span>
                       @if (c.id === candidateId()) {
                         <app-icon name="check" [size]="14" />
@@ -160,7 +165,7 @@ type Mode = 'existing' | 'new';
                     </button>
                   </li>
                 } @empty {
-                  <li class="px-2.5 py-2 text-[13px] text-fg-muted">
+                  <li class="px-2.5 py-2 text-ui text-fg-muted">
                     {{ 'recruitment.common.noMatches' | transloco }}
                   </li>
                 }
@@ -169,13 +174,23 @@ type Mode = 'existing' | 'new';
               <app-candidate-fields
                 [draft]="newCandidate()"
                 (draftChange)="newCandidate.set($event)"
+                [nameError]="
+                  shown() && !newCandidate().full_name.trim()
+                    ? 'recruitment.form.errors.fullName'
+                    : null
+                "
               />
             }
           </fieldset>
         </app-card>
 
         <app-card>
-          <app-form-field [label]="'recruitment.fields.coverNote' | transloco" inputId="app-cover">
+          <app-recruitment-field
+            labelKey="recruitment.fields.coverNote"
+            inputId="app-cover"
+            page="applicationNew"
+            help="cover_note"
+          >
             <textarea
               id="app-cover"
               rows="5"
@@ -183,18 +198,19 @@ type Mode = 'existing' | 'new';
               [value]="coverNote()"
               (input)="coverNote.set($any($event.target).value)"
             ></textarea>
-          </app-form-field>
-          <app-field-help scope="recruitment" page="applicationNew" field="cover_note" />
+          </app-recruitment-field>
         </app-card>
 
         @if (saveError(); as key) {
           <app-alert>{{ key | transloco }}</app-alert>
         }
-        <div class="flex flex-wrap justify-end gap-2">
+        <div
+          class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+        >
           <a routerLink="/recruitment/applications">
             <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
           </a>
-          <app-button type="submit" [loading]="saving()" [disabled]="!valid()">
+          <app-button type="submit" [loading]="saving()" data-testid="app-new-save">
             {{ 'recruitment.applicationNew.submit' | transloco }}
           </app-button>
         </div>
@@ -209,6 +225,11 @@ export class ApplicationNew {
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   private readonly params = inject(ActivatedRoute).snapshot.queryParamMap;
 
+  protected readonly breadcrumbs = [
+    RECRUITMENT_CRUMB,
+    { labelKey: 'recruitment.nav.applications', link: '/recruitment/applications' },
+    { labelKey: 'recruitment.applicationNew.title' },
+  ];
   protected readonly requisitions = signal<readonly Requisition[]>([]);
   protected readonly loaded = signal(false);
   protected readonly requisitionId = signal(this.params.get('requisition_id') ?? '');
@@ -220,6 +241,8 @@ export class ApplicationNew {
   protected readonly coverNote = signal('');
   protected readonly saving = signal(false);
   protected readonly saveError = signal<string | null>(null);
+  /** Errors are shown after the first save attempt. */
+  protected readonly shown = signal(false);
 
   protected readonly valid = computed(
     () =>
@@ -283,7 +306,12 @@ export class ApplicationNew {
 
   protected save(): void {
     const orgId = this.orgId();
-    if (!orgId || !this.valid() || this.saving()) {
+    if (!orgId || this.saving()) {
+      return;
+    }
+    this.shown.set(true);
+    if (!this.valid()) {
+      this.saveError.set('recruitment.form.fixErrors');
       return;
     }
     const body: ApplicationCreate =

@@ -216,7 +216,13 @@
       "aspect_evaluation": "Aspect evaluation",
       "emergency_preparedness": "Emergency plan",
       "drill_result": "Drill result",
-      "monitoring": "Monitoring"
+      "monitoring": "Monitoring",
+      "screening_criteria": "Screening criteria",
+      "approval": "Requisition approval",
+      "privacy_notice": "Privacy notice given",
+      "screening": "Screening against the criteria",
+      "checks": "Background checks",
+      "offer": "Offer"
     },
     "origin": {
       "manual": "Added by hand",

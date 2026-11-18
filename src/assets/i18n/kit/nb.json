@@ -546,6 +546,19 @@
       "to_objective": "Miljømål for denne indikatoren",
       "to_kpi": "Nøkkeltall (KPI) som følger indikatoren",
       "to_deviation": "Avvik: når ikke målet"
+    },
+    "job_application": {
+      "to_deviation": "Avvik fra søknaden",
+      "to_risk": "Risiko fra søknaden",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "job_requisition": {
+      "to_deviation": "Avvik fra stillingsbehovet",
+      "to_risk": "Risiko fra stillingsbehovet",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "candidate": {
+      "to_data_subject_request": "Henvendelse fra kandidaten (innsyn eller sletting)"
     }
   },
   "frameworks": {

@@ -1,52 +1,60 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { Signal, computed } from '@angular/core';
+import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
+import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
+import { RecruitmentPerms } from './recruitment-perms';
 
-interface NavLink {
-  readonly path: string;
-  readonly labelKey: string;
+/** The module root crumb: the nav label (`modules.names.recruitment`). */
+export const RECRUITMENT_CRUMB: Breadcrumb = {
+  labelKey: 'modules.names.recruitment',
+  link: '/recruitment',
+};
+
+/** The gear on the module's page headers (shown to holders of `recruitment:manage`). */
+export const RECRUITMENT_SETTINGS_LINK = '/recruitment/settings';
+
+/** Sub-pages of the module (`app-module-nav` under every page header). */
+export function recruitmentNavItems(manage: boolean): readonly ModuleNavItem[] {
+  const items: ModuleNavItem[] = [
+    {
+      labelKey: 'recruitment.nav.overview',
+      link: '/recruitment',
+      exact: true,
+      testId: 'nav-overview',
+    },
+    {
+      labelKey: 'recruitment.nav.requisitions',
+      link: '/recruitment/requisitions',
+      testId: 'nav-requisitions',
+    },
+    {
+      labelKey: 'recruitment.nav.applications',
+      link: '/recruitment/applications',
+      testId: 'nav-applications',
+    },
+    {
+      labelKey: 'recruitment.nav.candidates',
+      link: '/recruitment/candidates',
+      testId: 'nav-candidates',
+    },
+  ];
+  if (manage) {
+    items.push({
+      labelKey: 'recruitment.nav.settings',
+      link: '/recruitment/settings',
+      testId: 'nav-settings',
+    });
+  }
+  return items;
 }
 
-/** Section links of the recruitment module (requisitions, candidates, applications, settings). */
-@Component({
-  selector: 'app-recruitment-nav',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
-  template: `
-    <nav
-      class="mb-5 flex gap-1 overflow-x-auto border-b border-border"
-      [attr.aria-label]="'recruitment.nav.label' | transloco"
-    >
-      @for (link of links(); track link.path) {
-        <a
-          [routerLink]="link.path"
-          routerLinkActive="border-accent text-fg"
-          [routerLinkActiveOptions]="{ exact: false }"
-          #rla="routerLinkActive"
-          [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="-mb-px border-b-2 border-transparent px-3 py-2 text-[13px] font-semibold whitespace-nowrap text-fg-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          {{ link.labelKey | transloco }}
-        </a>
-      }
-    </nav>
-  `,
-})
-export class RecruitmentNav {
-  private readonly selectedOrg = inject(SelectedOrgService);
+/** The nav items as a signal of the caller's permissions (call in an injection context). */
+export function injectRecruitmentNav(
+  perms: Signal<RecruitmentPerms>,
+): Signal<readonly ModuleNavItem[]> {
+  return computed(() => recruitmentNavItems(perms().manage));
+}
 
-  protected readonly links = computed<readonly NavLink[]>(() => {
-    const perms = this.selectedOrg.currentOrg()?.permissions ?? [];
-    const links: NavLink[] = [
-      { path: '/recruitment/requisitions', labelKey: 'recruitment.nav.requisitions' },
-      { path: '/recruitment/candidates', labelKey: 'recruitment.nav.candidates' },
-      { path: '/recruitment/applications', labelKey: 'recruitment.nav.applications' },
-    ];
-    if (perms.includes('recruitment:manage')) {
-      links.push({ path: '/recruitment/settings', labelKey: 'recruitment.nav.settings' });
-    }
-    return links;
-  });
+/** The gear link for managers, else none. */
+export function settingsLinkFor(perms: RecruitmentPerms): string | null {
+  return perms.manage ? RECRUITMENT_SETTINGS_LINK : null;
 }

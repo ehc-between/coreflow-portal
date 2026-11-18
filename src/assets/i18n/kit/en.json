@@ -546,6 +546,19 @@
       "to_objective": "Environmental objective for this indicator",
       "to_kpi": "KPI that tracks this indicator",
       "to_deviation": "Deviation: off target"
+    },
+    "job_application": {
+      "to_deviation": "Deviation from this application",
+      "to_risk": "Risk from this application",
+      "to_task": "Follow-up task"
+    },
+    "job_requisition": {
+      "to_deviation": "Deviation from this requisition",
+      "to_risk": "Risk from this requisition",
+      "to_task": "Follow-up task"
+    },
+    "candidate": {
+      "to_data_subject_request": "Request from this candidate (access or erasure)"
     }
   },
   "frameworks": {

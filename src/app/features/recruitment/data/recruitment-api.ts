@@ -20,12 +20,16 @@ import {
   Interview,
   InterviewCreate,
   InterviewUpdate,
+  LinkKind,
+  LinkPrefill,
   ListResponse,
   MoveRequest,
   OfferRequest,
   OfferResponse,
   Pipeline,
+  PositionPrefill,
   PrivacyUpdate,
+  RecruitmentOverview,
   RecruitmentSettings,
   RecruitmentSettingsInput,
   Requisition,
@@ -71,8 +75,43 @@ export class RecruitmentApi {
     return this.api.put<RecruitmentSettings>(`${this.base(orgId)}/settings`, body, skipToast());
   }
 
+  /**
+   * Values to create recruitment's record of processing, DPIA or AI-system entry in
+   * the target module (`lang` = the UI language of the texts).
+   */
+  linkPrefill(orgId: string, kind: LinkKind, lang: string): Observable<LinkPrefill> {
+    return this.api.get<LinkPrefill>(`${this.base(orgId)}/settings/link-prefill`, {
+      params: { kind, lang: lang === 'en' ? 'en' : 'nb' },
+      ...skipToast(),
+    });
+  }
+
+  /**
+   * Create the prefilled record in its own module (`api_path` from `linkPrefill`, under
+   * `/api/v1`); the caller then links it in the settings. Errors are shown by the page.
+   */
+  createLinked(prefill: LinkPrefill): Observable<{ readonly id: string }> {
+    const path = prefill.api_path.replace(/^\/+/, '');
+    return this.api.post<{ readonly id: string }>(`v1/${path}`, prefill.values, skipToast());
+  }
+
   purgeExpired(orgId: string): Observable<{ erased: number }> {
     return this.api.post<{ erased: number }>(`${this.base(orgId)}/purge-expired`, {}, skipToast());
+  }
+
+  // --- overview ----------------------------------------------------------------------
+
+  /** Counters (each with its filtered list), the stage spread and the KPIs; counts only. */
+  getOverview(orgId: string): Observable<RecruitmentOverview> {
+    return this.api.get<RecruitmentOverview>(`${this.base(orgId)}/overview`, skipToast());
+  }
+
+  /** New-requisition values from a People position (title, department, risk, criteria). */
+  positionPrefill(orgId: string, positionId: string): Observable<PositionPrefill> {
+    return this.api.get<PositionPrefill>(
+      `${this.base(orgId)}/positions/${positionId}/prefill`,
+      skipToast(),
+    );
   }
 
   // --- requisitions --------------------------------------------------------------------
@@ -215,6 +254,10 @@ export class RecruitmentApi {
       candidate_id: query.candidate_id || undefined,
       stage: csv(query.stage),
       q: query.q || undefined,
+      screening: query.screening,
+      checks: query.checks,
+      stalled: query.stalled ? true : undefined,
+      sort: query.sort,
       limit: query.limit,
       offset: query.offset,
     };

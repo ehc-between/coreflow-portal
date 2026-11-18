@@ -216,7 +216,13 @@
       "aspect_evaluation": "Vurdering av aspektet",
       "emergency_preparedness": "Beredskapsplan",
       "drill_result": "Resultat av øvelsen",
-      "monitoring": "Overvåking"
+      "monitoring": "Overvåking",
+      "screening_criteria": "Utvalgskriterier",
+      "approval": "Godkjenning av stillingsbehovet",
+      "privacy_notice": "Personvernerklæring gitt",
+      "screening": "Screening mot kriteriene",
+      "checks": "Bakgrunnssjekker",
+      "offer": "Tilbud"
     },
     "origin": {
       "manual": "Lagt til manuelt",

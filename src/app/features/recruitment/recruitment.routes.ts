@@ -2,10 +2,10 @@ import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 
-const toList = { redirectTo: '/recruitment' };
+const toList = { redirectTo: '/recruitment/requisitions' };
 
 /**
- * `/recruitment` (scope `recruitment`, M10): job requisitions with approval, the
+ * `/recruitment` (scope `recruitment`, M10): an overview of what needs attention, job requisitions with approval, the
  * candidate pipeline, interviews, scorecards, background checks, offers and GDPR
  * retention. `app.routes.ts` already wraps the module in `moduleGuard('recruitment')`
  * and `permissionGuard('recruitment:read')`; creating and editing need
@@ -18,7 +18,12 @@ export default [
     path: '',
     providers: [provideTranslocoScope('recruitment')],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'requisitions' },
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./overview/recruitment-overview').then((m) => m.RecruitmentOverviewPage),
+      },
       {
         path: 'requisitions',
         loadComponent: () =>
