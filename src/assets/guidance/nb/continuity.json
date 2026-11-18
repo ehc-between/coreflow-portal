@@ -33,7 +33,7 @@
         ]
       },
       "why": {
-        "body": "Uten en BIA er gjenopprettingsmålene gjetninger. BIA-en er beviset på at kontinuitet og IKT-beredskap bygger på det virksomheten faktisk trenger.",
+        "body": "Uten en BIA er gjenopprettingsmålene gjetninger. BIA-en dokumenterer at kontinuitet og IKT-beredskap bygger på det virksomheten faktisk trenger.",
         "clauses": ["iso27001:A.5.30", "iso27001:A.5.29", "nis2:21.2.c"]
       },
       "empty": {
@@ -237,7 +237,7 @@
         ]
       },
       "why": {
-        "body": "Planlagte øvelser med tydelige mål gir bevis for at planene er effektive.",
+        "body": "Planlagte øvelser med tydelige mål dokumenterer at planene virker.",
         "clauses": ["iso27001:A.5.29", "iso45001:8.2"]
       },
       "fields": {
@@ -321,7 +321,7 @@
         ]
       },
       "why": {
-        "body": "Dokumentert gjenopprettingsevne og sikkerhetskopiordninger er beviset på at IKT-beredskapen svarer til behovet.",
+        "body": "Dokumentert gjenopprettingsevne og sikkerhetskopiordninger viser at IKT-beredskapen svarer til behovet.",
         "clauses": ["iso27001:A.5.30", "iso27001:A.8.13", "iso27001:A.8.14"]
       },
       "fields": {

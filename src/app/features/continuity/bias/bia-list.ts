@@ -280,7 +280,12 @@ const SELECT =
                   dateKind="next"
                   [overdue]="row.review_state === 'overdue'"
                 >
-                  <app-coverage-chip coverage entityType="bia" [entityId]="row.id" />
+                  <app-coverage-chip
+                    coverage
+                    class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                    entityType="bia"
+                    [entityId]="row.id"
+                  />
                   <app-status-badge
                     badges
                     [meaning]="status(row).meaning"
