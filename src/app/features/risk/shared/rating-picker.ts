@@ -25,13 +25,13 @@ let nextId = 0;
   host: { class: 'block' },
   template: `
     <fieldset class="flex flex-col gap-3" [disabled]="disabled()">
-      <legend class="mb-1 text-[13px] font-semibold text-fg">{{ legend() }}</legend>
+      <legend class="mb-1 text-ui font-semibold text-fg">{{ legend() }}</legend>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted" [for]="lId">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" [for]="lId">
           {{ 'risk.rating.likelihood' | transloco }}
           <select
             [id]="lId"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-body text-fg"
             (change)="setLikelihood($any($event.target).value)"
           >
             <option value="" [selected]="value().likelihood === null">
@@ -44,11 +44,11 @@ let nextId = 0;
             }
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted" [for]="cId">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" [for]="cId">
           {{ 'risk.rating.consequence' | transloco }}
           <select
             [id]="cId"
-            class="h-10 rounded-[10px] border border-border bg-bg px-2 text-[13.5px] text-fg"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-body text-fg"
             (change)="setConsequence($any($event.target).value)"
           >
             <option value="" [selected]="value().consequence === null">
@@ -72,7 +72,7 @@ let nextId = 0;
           (cellSelected)="pick($event)"
         />
       }
-      <div class="flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted" aria-live="polite">
+      <div class="flex flex-wrap items-center gap-2 text-meta text-fg-muted" aria-live="polite">
         <span>{{ 'risk.rating.result' | transloco }}</span>
         <app-rating-badge
           [score]="preview()?.score"
@@ -86,7 +86,7 @@ let nextId = 0;
         @if (value().likelihood !== null || value().consequence !== null) {
           <button
             type="button"
-            class="ml-auto rounded-tile px-2 py-1 text-[12.5px] font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
+            class="ml-auto rounded-tile px-2 py-1 text-meta font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg"
             (click)="changed.emit({ likelihood: null, consequence: null })"
           >
             {{ 'risk.rating.clear' | transloco }}

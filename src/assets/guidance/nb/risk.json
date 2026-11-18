@@ -44,13 +44,12 @@
     },
     "form": {
       "intro": {
-        "title": "Vurdere en risiko steg for steg",
-        "body": "En god risikobeskrivelse svarer på tre spørsmål: **hva er utsatt**, **hva kan skje** med det, og **hva blir konsekvensen**. Deretter vurderer du den, bestemmer hvordan den skal behandles, og vurderer den på nytt for situasjonen etter tiltak.",
+        "title": "Vurdere en risiko i tre steg",
+        "body": "En god risikobeskrivelse svarer på tre spørsmål: **hva er utsatt**, **hva kan skje** med det, og **hva blir konsekvensen**. Deretter vurderer du risikoen og bestemmer hva som skal gjøres.",
         "steps": [
-          "Gi risikoen et navn og velg registeret den hører til.",
-          "Beskriv trusselen, sårbarheten den utnytter og konsekvensen. Bruk **Foreslå trusler** hvis du står fast.",
-          "Vurder den iboende risikoen på matrisen, velg en behandlingsstrategi, og vurder restrisikoen.",
-          "Gi den en eier og en dato for gjennomgang."
+          "**Beskriv**: gi risikoen et navn, velg eier og si hva som er utsatt. Koble til den faktiske leverandøren, eiendelen eller prosessen når det finnes en.",
+          "**Vurder**: velg cellen i matrisen som passer risikoen slik den er i dag.",
+          "**Behandle**: velg strategi, velg kontrollene fra katalogen, og vurder risikoen du forventer etter tiltakene."
         ]
       },
       "why": {
@@ -60,7 +59,8 @@
       "fields": {
         "title": {
           "help": "Et kort navn på scenariet, slik at alle kjenner det igjen i en liste.",
-          "example": "Tap av kundedata gjennom en stjålet bærbar PC"
+          "example": "Tap av kundedata gjennom en stjålet bærbar PC",
+          "requirements": ["iso27001:6.1.2"]
         },
         "register": {
           "help": "Registeret bestemmer hvilken matrise risikoen vurderes på, og hvor ofte den gjennomgås som standard."
@@ -86,23 +86,31 @@
         },
         "inherent": {
           "help": "Hvor sannsynlig scenariet er og hvor ille det ville vært **i dag**, med kontrollene dere allerede har, før nye tiltak. Velg cellen som passer best; du kan alltid endre den.",
-          "example": "Sannsynlighet 3 (mulig), konsekvens 4 (alvorlig) = 12"
+          "example": "Sannsynlighet 3 (mulig), konsekvens 4 (alvorlig) = 12",
+          "requirements": ["iso27001:6.1.2", "iso45001:6.1.2"]
         },
         "strategy": {
-          "help": "Redusere = senke sannsynligheten eller konsekvensen; akseptere = bevisst beholde den; unngå = avslutte aktiviteten; overføre = dele den, for eksempel gjennom forsikring eller kontrakt."
+          "help": "Redusere = senke sannsynligheten eller konsekvensen; akseptere = bevisst beholde den; unngå = avslutte aktiviteten; overføre = dele den, for eksempel gjennom forsikring eller kontrakt.",
+          "requirements": ["iso27001:6.1.3"]
         },
         "controls": {
-          "help": "Katalogkontroller tiltaket bygger på, som standard:nummer. De vises i anvendelseserklæringen under «risikovurdering».",
-          "example": "iso27001-2022:A.8.24"
+          "help": "Kontrollene som reduserer risikoen, valgt fra katalogen på nummer eller tittel. Hver av dem vises i anvendelseserklæringen, og risikoen teller som dokumentasjon for den.",
+          "example": "A.8.13 Sikkerhetskopiering av informasjon",
+          "requirements": ["iso27001:6.1.3"]
         },
         "residual": {
           "help": "Vurderingen du forventer når de planlagte tiltakene er på plass. Er den fortsatt over risikoappetitten, planlegg flere tiltak eller få den formelt akseptert."
         },
         "owner": {
-          "help": "Personen som er ansvarlig for risikoen: sørger for at den blir behandlet og gjennomgått. Vanligvis lederen for området det gjelder."
+          "help": "Personen som er ansvarlig for risikoen: sørger for at den blir behandlet og gjennomgått, og godkjenner restrisikoen. Vanligvis lederen for området det gjelder.",
+          "requirements": ["iso27001:6.1.2", "iso45001:6.1.2"]
         },
         "review": {
           "help": "Hvor ofte risikoen gjennomgås. La feltet stå tomt for å bruke registerets intervall. En gjennomgang er også nødvendig når noe endrer seg."
+        },
+        "subject": {
+          "help": "Velg den faktiske posten risikoen gjelder. Da vises risikoen også på den posten, og posten på risikoen.",
+          "example": "Leverandør: Nimbus Data Platform"
         }
       }
     },
@@ -127,8 +135,9 @@
           "help": "Personen som gjennomfører tiltaket. Vedkommende får en oppgave i Mitt arbeid. Standard er risikoeieren."
         },
         "controls": {
-          "help": "Kontrollene dette tiltaket implementerer, som standard:nummer.",
-          "example": "iso27001-2022:A.8.13"
+          "help": "Kontrollene dette tiltaket innfører, valgt fra katalogen.",
+          "example": "A.8.24 Bruk av kryptografi",
+          "requirements": ["iso27001:6.1.3", "iso27001:8.3"]
         }
       }
     },
@@ -163,7 +172,8 @@
       },
       "fields": {
         "benefit": {
-          "help": "Hvor mye virksomheten vil få igjen: 1 = svært lite, 5 = svært mye."
+          "help": "Hvor mye organisasjonen vil få igjen: 1 = svært lite, 5 = svært mye.",
+          "requirements": ["iso9001:6.1"]
         },
         "feasibility": {
           "help": "Hvor realistisk det er å få til med ressursene dere har: 1 = svært vanskelig, 5 = enkelt."
@@ -171,6 +181,14 @@
         "actionPlan": {
           "help": "De konkrete stegene, hvem som tar dem og innen når.",
           "example": "Test det nye planleggingsverktøyet i ett team i første kvartal, og bestem så om det skal rulles ut"
+        },
+        "title": {
+          "help": "Et kort navn på forbedringen, slik at alle kjenner den igjen i en liste.",
+          "example": "Automatiser den månedlige leverandørrapporten",
+          "requirements": ["iso9001:6.1"]
+        },
+        "concerns": {
+          "help": "Hva muligheten gjelder: en prosess, en leverandør, et prosjekt og så videre. Koble til den faktiske posten når det finnes en."
         }
       }
     },
@@ -222,7 +240,8 @@
         },
         "justification": {
           "help": "En til tre setninger en revisor kan følge. For en utelatelse: forklar hvorfor kontrollen ikke er relevant.",
-          "example": "Utelatt: virksomheten utvikler ikke programvare; alle systemer kjøpes som tjenester."
+          "example": "Utelatt: virksomheten utvikler ikke programvare; alle systemer kjøpes som tjenester.",
+          "requirements": ["iso27001:6.1.3"]
         }
       }
     },
@@ -287,7 +306,8 @@
         },
         "appetite": {
           "help": "Risikoer med poeng på eller under denne verdien er akseptable uten flere tiltak. Risikoer over trenger tiltak eller en dokumentert aksept.",
-          "example": "4 på en 5x5-matrise"
+          "example": "4 på en 5x5-matrise",
+          "requirements": ["iso27001:6.1.2"]
         },
         "likelihoodLevels": {
           "help": "Hvor sannsynlig scenariet er, fra lavest til høyest. Beskriv hvert nivå med en hyppighet, som «sjeldnere enn hvert tiende år»."
@@ -491,7 +511,7 @@
         "body": "Start en ny risikovurdering her."
       },
       {
-        "target": "risk-nav-soa",
+        "target": "risk-nav",
         "title": "Anvendelseserklæring",
         "body": "Ta stilling til og begrunn hver kontroll i vedlegg A her."
       }
@@ -508,7 +528,7 @@
         "body": "Registrer en ny risiko og vurder den på matrisen."
       },
       {
-        "target": "risk-nav-registers",
+        "target": "risk-nav",
         "title": "Registre",
         "body": "Organiser risikoene etter område, hvert med sin egen matrise."
       }
@@ -563,6 +583,16 @@
       "term": "Risikoeier",
       "definition": "Personen som er ansvarlig for å håndtere en risiko og godkjenne behandlingen og restrisikoen.",
       "clauses": ["iso27001:6.1.2", "iso27001:6.1.3"]
+    },
+    "current-rating": {
+      "term": "Nåværende vurdering",
+      "definition": "Vurderingen risikoen bedømmes etter i dag: restrisikoen når risikoen er vurdert etter tiltak, ellers den iboende vurderingen.",
+      "clauses": ["iso27001:6.1.2"]
+    },
+    "risk-treatment": {
+      "term": "Risikobehandling",
+      "definition": "Tiltakene som endrer en risiko: redusere, unngå, dele eller akseptere den. Hvert tiltak har en eier, en frist og, når det er fullført, en kontroll av at det virket.",
+      "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
     }
   }
 }

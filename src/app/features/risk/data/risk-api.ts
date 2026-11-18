@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ApiService, QueryParams } from '../../../core/http/api.service';
 import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
+  EffectivenessRequest,
   Heatmap,
   HeatmapQuery,
   ListResponse,
@@ -28,11 +29,14 @@ import {
   RiskUpdate,
   SetupResult,
   Soa,
+  SoaBulkResult,
+  SoaBulkUpdate,
   SoaEntry,
   SoaEntryUpdate,
   SoaGenerateResult,
   SoaQuery,
   SoaStandard,
+  SoaVersion,
   Treatment,
   TreatmentCreate,
   TreatmentUpdate,
@@ -88,8 +92,12 @@ export class RiskApi {
 
   // --- matrices ---------------------------------------------------------------------
 
-  matrixTemplates(orgId: string): Observable<{ readonly items: readonly MatrixTemplate[] }> {
-    return this.api.get(`${this.base(orgId)}/matrix-templates`);
+  /** Templates with labels and level descriptions in `lang`. */
+  matrixTemplates(
+    orgId: string,
+    lang?: string,
+  ): Observable<{ readonly items: readonly MatrixTemplate[] }> {
+    return this.api.get(`${this.base(orgId)}/matrix-templates`, { params: clean({ lang }) });
   }
 
   listMatrices(orgId: string): Observable<ListResponse<Matrix>> {
@@ -149,10 +157,31 @@ export class RiskApi {
         level: csv(query.level),
         source_type: query.source_type,
         review_due: query.review_due,
+        above_appetite: query.above_appetite,
+        source_entity_type: query.source_entity_type,
+        source_entity_id: query.source_entity_id,
         include_closed: query.include_closed,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
+      }),
+    });
+  }
+
+  /** The risk register as CSV, with the list's filters; `lang` sets the headers. */
+  exportRisks(orgId: string, query: RiskListQuery, lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/risks/export.csv`, {
+      params: clean({
+        q: query.q?.trim(),
+        status: csv(query.status),
+        register_id: query.register_id,
+        level: csv(query.level),
+        owner: query.owner,
+        review_due: query.review_due,
+        above_appetite: query.above_appetite,
+        include_closed: query.include_closed,
+        sort: query.sort,
+        lang,
       }),
     });
   }
@@ -213,6 +242,15 @@ export class RiskApi {
     return this.api.delete<void>(`${this.base(orgId)}/treatments/${id}`, QUIET);
   }
 
+  /** Record how (and when) a completed treatment's effectiveness was checked. */
+  checkEffectiveness(orgId: string, id: string, body: EffectivenessRequest): Observable<Treatment> {
+    return this.api.post<Treatment>(
+      `${this.base(orgId)}/treatments/${id}/effectiveness`,
+      body,
+      QUIET,
+    );
+  }
+
   // --- opportunities ----------------------------------------------------------------
 
   listOpportunities(
@@ -270,9 +308,38 @@ export class RiskApi {
     });
   }
 
-  exportSoa(orgId: string, standardKey: string): Observable<Blob> {
+  exportSoa(orgId: string, standardKey: string, lang?: string): Observable<Blob> {
     return this.api.getBlob(
       `${this.base(orgId)}/soa/${encodeURIComponent(standardKey)}/export.csv`,
+      { params: clean({ lang }) },
+    );
+  }
+
+  /** The same change for many entries of one statement (all or nothing). */
+  bulkUpdateSoa(
+    orgId: string,
+    standardKey: string,
+    body: SoaBulkUpdate,
+  ): Observable<SoaBulkResult> {
+    return this.api.post<SoaBulkResult>(
+      `${this.base(orgId)}/soa/${encodeURIComponent(standardKey)}/bulk`,
+      body,
+      QUIET,
+    );
+  }
+
+  listSoaVersions(orgId: string, standardKey: string): Observable<ListResponse<SoaVersion>> {
+    return this.api.get<ListResponse<SoaVersion>>(
+      `${this.base(orgId)}/soa/${encodeURIComponent(standardKey)}/versions`,
+    );
+  }
+
+  /** Approve the statement as a fixed version (snapshot, approver, date). */
+  approveSoa(orgId: string, standardKey: string, note: string | null): Observable<SoaVersion> {
+    return this.api.post<SoaVersion>(
+      `${this.base(orgId)}/soa/${encodeURIComponent(standardKey)}/versions`,
+      { note },
+      QUIET,
     );
   }
 

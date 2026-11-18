@@ -31,8 +31,8 @@
     "lessonButton": "Lesson: {{ title }}"
   },
   "overview": {
-    "title": "Risk and opportunity overview",
-    "subtitle": "Where the organisation's risks sit, what is being done about them, and how the Statement of Applicability is progressing.",
+    "title": "Risks and opportunities",
+    "subtitle": "Where the risks are, what is being done about them, and how far the Statement of Applicability has come.",
     "kpis": "Key figures",
     "openRisks": "Open risks",
     "ofTotal": "of {{ total }} in total",
@@ -46,7 +46,15 @@
     "soaProgress": "Statement of Applicability",
     "soaImplemented": "{{ implemented }} of {{ applicable }} implemented",
     "noSoa": "No Statement of Applicability has been generated yet.",
-    "openSoa": "Go to the Statement of Applicability"
+    "openSoa": "Go to the Statement of Applicability",
+    "openHint": "Every risk that is not closed, including accepted risks the organisation carries.",
+    "appetiteHint": "Open risks rated above the risk appetite that are not formally accepted. They need a decision.",
+    "appetiteTerm": "Risk appetite",
+    "appetiteValue": "Acceptable: up to {{ score }} points",
+    "noAppetite": "No risk appetite set",
+    "acceptedAbove": "{{ count }} accepted above it",
+    "awaitingCheck": "{{ count }} completed treatments are waiting for an effectiveness check.",
+    "seeAll": "See all"
   },
   "setup": {
     "done": "Risk management is set up with a 5x5 matrix and an enterprise risk register.",
@@ -54,16 +62,21 @@
   },
   "heatmap": {
     "title": "Heat map",
-    "basis": "Rating shown",
+    "basis": "Show",
     "bases": {
       "current": "Current rating",
-      "inherent": "Inherent rating",
-      "residual": "Residual rating"
+      "inherent": "Inherent rating (before treatment)",
+      "residual": "Residual rating (after treatment)"
     },
     "defaultMatrix": "Default matrix",
-    "summary": "{{ total }} rated risks, {{ unrated }} not rated yet.",
+    "summary": "{{ rated }} of {{ total }} risks are rated.",
     "cellRisks": "Risks with likelihood {{ likelihood }} and consequence {{ consequence }}",
-    "askPrompt": "Explain what this heat map tells me and which risks I should look at first."
+    "askPrompt": "Explain what this heat map tells me and which risks I should look at first.",
+    "basisHints": {
+      "current": "Each risk is placed by its residual rating if it has one, otherwise by its inherent rating.",
+      "inherent": "Each risk is placed by how it was rated before any treatment.",
+      "residual": "Each risk is placed by the rating expected once its treatments are in place."
+    }
   },
   "matrix": {
     "gridLabel": "Risk matrix",
@@ -96,13 +109,25 @@
     "result": "Result:",
     "notRated": "Not rated",
     "aboveAppetite": "Above risk appetite",
-    "clear": "Clear rating"
+    "clear": "Clear rating",
+    "current": "Current rating",
+    "currentPrefix": "Current:",
+    "acceptedAboveAppetite": "Accepted above appetite",
+    "acceptedAboveAppetiteBy": "Accepted above appetite by {{ name }}",
+    "basisHint": {
+      "residual": "the residual rating, because the risk has been rated after treatment",
+      "inherent": "the inherent rating, because there is no residual rating yet",
+      "none": "not rated yet"
+    }
   },
   "risks": {
-    "title": "Risk register",
+    "title": "Risks",
     "new": "New risk",
     "searchPlaceholder": "Search code, title, threat…",
-    "openTreatments": "{{ count }} open treatments"
+    "openTreatments": "{{ count }} open treatments",
+    "subtitle": "Every risk across all registers, with its current rating and owner.",
+    "export": "Export CSV",
+    "exportFailed": "The export failed. Try again in a moment."
   },
   "filters": {
     "status": "Status",
@@ -132,7 +157,9 @@
       "-created_at": "Newest first",
       "-updated_at": "Recently updated",
       "next_review_at": "Next review"
-    }
+    },
+    "aboveAppetite": "Above risk appetite",
+    "clear": "Clear filters"
   },
   "fields": {
     "code": "Code",
@@ -161,20 +188,24 @@
     "strategy": "Treatment strategy",
     "treatmentNotes": "Treatment notes",
     "controlRefs": "Controls",
-    "reviewInterval": "Review interval (months)",
+    "reviewInterval": "Review every (months)",
     "nextReview": "Next review",
     "lastReviewed": "Last reviewed",
     "changeReason": "Reason for the change (optional)",
     "acceptedAt": "Accepted",
     "acceptanceNote": "Acceptance note",
-    "acceptanceExpires": "Acceptance valid until (optional)",
+    "acceptanceExpires": "Acceptance valid until",
     "dueAt": "Due date",
     "benefit": "Benefit",
     "feasibility": "Feasibility",
     "score": "Score",
     "actionPlan": "Action plan",
     "realisedAt": "Realised",
-    "updatedAt": "Last updated"
+    "updatedAt": "Last updated",
+    "sourceEntity": "Which record",
+    "sourceRefOther": "Or describe it in your own words",
+    "acceptanceNoteRequired": "Why the organisation accepts it (required)",
+    "riskOwner": "Risk owner"
   },
   "categories": {
     "enterprise": "Enterprise",
@@ -233,9 +264,28 @@
     "residualLegend": "Rate the risk you expect once the treatments are in place",
     "inherentMarker": "The ring marks the inherent rating.",
     "noMatrix": "A default 5x5 matrix is created when you save. Rate the risk afterwards.",
-    "controlRefsPlaceholder": "e.g. iso27001-2022:A.5.15, iso27001-2022:A.8.13",
+    "controlRefsPlaceholder": "Search by number or title, e.g. A.8.13 or backup",
     "intervalPlaceholder": "Register default",
-    "acceptanceWarning": "This risk is accepted. Changing a rating revokes the acceptance."
+    "acceptanceWarning": "This risk is accepted. Changing a rating revokes the acceptance.",
+    "required": "required",
+    "stepsLabel": "Steps",
+    "steps": {
+      "describe": "Describe",
+      "assess": "Assess",
+      "treat": "Treat"
+    },
+    "stepHints": {
+      "describe": "Say what could go wrong, what it affects and who owns the risk.",
+      "assess": "Rate the risk as it is today, with the controls you already have.",
+      "treat": "Decide what to do about it, which controls apply and what risk remains."
+    },
+    "next": "Next",
+    "back": "Back",
+    "subjectHint": "Linking the real record shows the risk on that record too.",
+    "controlPickerPlaceholder": "Search by number or title, e.g. A.8.13 or backup",
+    "controlsHint": "Chosen controls are marked as documented by this risk.",
+    "appetiteNote": "Risks scoring above {{ score }} need treatment or a formal acceptance.",
+    "residualAfterStrategy": "Choose a treatment strategy first. Then rate the risk you expect after the treatment."
   },
   "detail": {
     "assessment": "Assessment",
@@ -262,10 +312,21 @@
     "statusTitle": "Change status",
     "statusMessage": "Move the risk to {{ status }}.",
     "controls": "Controls",
-    "noControls": "No controls referenced yet.",
+    "noControls": "No controls chosen yet. Edit the risk to add the controls that reduce it.",
     "context": "Context",
     "deleteTitle": "Delete this risk?",
-    "deleteMessage": "{{ code }} and its open treatment tasks will be removed. This cannot be undone from here."
+    "deleteMessage": "{{ code }} and its open treatment tasks will be removed. This cannot be undone from here.",
+    "what": "What the risk is",
+    "summary": "In short",
+    "noResidual": "Not rated after treatment yet",
+    "appetiteLine": "scores up to {{ score }} are acceptable",
+    "acceptNeedsRating": "Rate the risk before it can be accepted.",
+    "acceptConfirm": "Sign the acceptance",
+    "acceptSigner": "You sign as risk owner or management: {{ name }}",
+    "acceptNoteHint": "Write why the organisation accepts a risk above the appetite.",
+    "acceptExpiryHint": "Set to the next review by default. The acceptance must be renewed after this date.",
+    "acceptanceUntilReview": "Valid until the next review",
+    "controlsHint": "The Annex A controls (or other controls) that reduce this risk."
   },
   "treatments": {
     "title": "Treatment plan",
@@ -326,12 +387,42 @@
       "3": "Medium",
       "4": "High",
       "5": "Very high"
-    }
+    },
+    "subtitle": "Chances to improve, rated on benefit and feasibility, each with an owner.",
+    "what": "What the opportunity is",
+    "concerns": "What it concerns",
+    "evaluationHint": "Rate both from 1 to 5. The score is benefit x feasibility, at most 25.",
+    "scoreOf": "{{ score }} of {{ max }} · {{ band }}",
+    "scoreHint": "Score = benefit x feasibility (1-25). 15 or more is a strong opportunity.",
+    "bands": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "levels": {
+      "benefit": {
+        "1": "Hardly noticeable",
+        "2": "A small improvement for a few",
+        "3": "A clear improvement for one area",
+        "4": "A large gain for several areas or customers",
+        "5": "A major gain for the whole organisation"
+      },
+      "feasibility": {
+        "1": "Very hard: large cost or many unknowns",
+        "2": "Hard: needs budget and decisions",
+        "3": "Doable with some effort",
+        "4": "Easy with existing resources",
+        "5": "Very easy: can start now"
+      }
+    },
+    "actionPlanHint": "Add the concrete steps as action items on the opportunity after saving.",
+    "actionsHint": "Action items are tasks: they appear in the owner's My work. Use \"Create from this\" for an objective or a project.",
+    "openActions": "{{ count }} open actions"
   },
   "soa": {
     "title": "Statement of Applicability",
-    "subtitle": "For each Annex A control: is it applicable, why, and how far is it implemented.",
-    "viewSubtitle": "Decide and justify each control. Controls referenced by risks are marked as chosen by the risk assessment.",
+    "subtitle": "For each control: does it apply, why, how far is it implemented, and where is it documented.",
+    "viewSubtitle": "Decide and justify each control. Controls cited by risks are marked as chosen by the risk assessment.",
     "back": "All statements",
     "enabled": "Standard enabled",
     "notEnabled": "Standard not enabled",
@@ -381,7 +472,8 @@
       "notes": "Implementation notes",
       "risks": "Risks",
       "theme": "Theme",
-      "reviewedAt": "Reviewed"
+      "reviewedAt": "Reviewed",
+      "documentedIn": "Documented in"
     },
     "implementation": {
       "not_started": "Not started",
@@ -395,7 +487,65 @@
       "contractual": "Contractual requirement",
       "business": "Business requirement",
       "best_practice": "Best practice"
-    }
+    },
+    "standards": {
+      "iso27001": "ISO/IEC 27001:2022 – Information security",
+      "iso42001": "ISO/IEC 42001:2023 – AI management"
+    },
+    "notGeneratedShort": "Not generated yet",
+    "missingControls": "{{ count }} controls in the standard are not in the statement yet.",
+    "progress": {
+      "decided": "Decided (justified)",
+      "implemented": "Implemented",
+      "count": "{{ part }} of {{ whole }} controls",
+      "countApplicable": "{{ part }} of {{ whole }} applicable"
+    },
+    "excluded": "Excluded",
+    "showMissing": "Show the controls that need a justification",
+    "applicableHint": "An excluded control needs a justification. Its requirements then count as not applicable.",
+    "saveNextMissing": "Save and go to next without justification",
+    "documentation": {
+      "title": "Documentation",
+      "hint": "The policies and procedures that show this control is in place.",
+      "none": "No documents linked yet.",
+      "linked": "{{ name }} is linked to the control.",
+      "linkFailed": "The document could not be linked. Try again in a moment."
+    },
+    "bulk": {
+      "label": "Change several controls",
+      "selected": "{{ count }} selected",
+      "edit": "Change selected",
+      "clear": "Clear selection",
+      "select": "Select {{ control }}",
+      "selectAll": "Select all shown controls",
+      "title": "Change {{ count }} controls",
+      "hint": "Only the fields you set are changed. Everything else stays as it is.",
+      "unchanged": "Leave as it is",
+      "reasonsHint": "If you tick reasons, they replace the current reasons.",
+      "justificationHint": "Replaces the justification of every selected control.",
+      "apply": "Change {{ count }} controls",
+      "done": "{{ count }} controls changed."
+    },
+    "version": {
+      "approve": "Approve version",
+      "approveTitle": "Approve this version",
+      "approveMessage": "A fixed copy of {{ name }} is saved with your name and today's date. Later changes need a new version.",
+      "approveConfirm": "Approve",
+      "signer": "You approve as: {{ name }}",
+      "note": "Note (optional)",
+      "approved": "Version {{ version }} approved.",
+      "latest": "Last approved: version {{ version }}, {{ date }} by {{ name }}",
+      "none": "Not approved yet",
+      "changed": "Changed since approval",
+      "blocked": "Every control needs a justification before you can approve.",
+      "blockedHint": "{{ count }} controls still need a justification. When all are decided, you can approve a version.",
+      "history": "Version history",
+      "label": "Version {{ version }}",
+      "approvedBy": "Approved by {{ name }} {{ date }}",
+      "empty": "No approved versions yet."
+    },
+    "excludedDelta": "Each needs a justification",
+    "showMissingShort": "Show them"
   },
   "registers": {
     "title": "Risk registers",
@@ -407,15 +557,17 @@
     "name": "Name",
     "matrix": "Matrix",
     "defaultMatrix": "Default matrix (created on save)",
-    "isDefault": "Default register for new risks",
+    "isDefault": "Use for new risks by default",
     "archived": "Archived (no new risks)",
     "archivedBadge": "Archived",
     "default": "Default",
     "risks": "Risks",
     "riskCounts": "{{ open }} open of {{ total }}",
-    "months": "{{ count }} months",
+    "months": "Every {{ count }} months",
     "deleteTitle": "Delete this register?",
-    "deleteMessage": "{{ name }} can only be deleted while it holds no risks."
+    "deleteMessage": "{{ name }} can only be deleted while it holds no risks.",
+    "defaultHint": "New risks go to this register unless you pick another.",
+    "reviewEvery": "Review"
   },
   "matrices": {
     "title": "Risk matrices",
@@ -445,7 +597,7 @@
     "removeLevel": "Remove level {{ value }}",
     "levelLabel": "Label of level {{ value }}",
     "levelDescription": "Description of level {{ value }}",
-    "descriptionPlaceholder": "What this level means in practice (optional)",
+    "descriptionPlaceholder": "What this level means in practice",
     "bands": "Risk levels (bands)",
     "addBand": "Add level",
     "removeBand": "Remove {{ label }}",
@@ -463,7 +615,10 @@
     "auto": "By score",
     "recalcNote": "Saving changed bands recalculates the level of every risk rated on this matrix.",
     "deleteTitle": "Delete this matrix?",
-    "deleteMessage": "{{ name }} can only be deleted while no register uses it."
+    "deleteMessage": "{{ name }} can only be deleted while no register uses it.",
+    "descriptionExample": "For example: {{ example }}",
+    "missingDescriptions": "{{ count }} levels have no description. Auditors expect each level to be defined.",
+    "fillDescriptions": "Fill in examples"
   },
   "ai": {
     "suggestThreats": "Suggest threats",
@@ -484,7 +639,9 @@
   "ask": {
     "inherent": "Help me rate the likelihood and consequence of this risk before treatment.",
     "rating": "Explain this risk's rating and whether the treatment is enough.",
-    "opportunity": "Help me judge the benefit and feasibility of this opportunity."
+    "opportunity": "Help me judge the benefit and feasibility of this opportunity.",
+    "threat": "Help me describe what could happen, the weakness it exploits and the consequence.",
+    "controls": "Which controls would reduce this risk, and why?"
   },
   "notices": {
     "created": "{{ code }} created.",
@@ -501,7 +658,8 @@
     "registerDeleted": "Register {{ name }} deleted.",
     "matrixSaved": "Matrix {{ name }} saved.",
     "matrixDeleted": "Matrix deleted.",
-    "soaSaved": "Control {{ ref }} saved."
+    "soaSaved": "Control {{ ref }} saved.",
+    "effectivenessSaved": "Effectiveness check recorded."
   },
   "errors": {
     "forbidden": "You don't have permission to do this.",
@@ -516,7 +674,7 @@
     "rating_out_of_range": "The rating is outside the matrix's scales.",
     "invalid_owner": "The owner must be a member of the organisation.",
     "invalid_department": "Choose a department of this organisation.",
-    "invalid_control_ref": "One or more control references are unknown. Use the form standard:number, e.g. iso27001-2022:A.5.15.",
+    "invalid_control_ref": "One or more controls are unknown. Pick them from the list.",
     "too_many_control_refs": "Too many control references.",
     "acceptance_note_required": "A risk above the appetite can only be accepted with a note.",
     "invalid_expiry": "The acceptance end date must be in the future.",
@@ -532,7 +690,14 @@
     "justification_required": "An excluded control needs a justification.",
     "standard_not_found": "This standard is not in the catalogue.",
     "no_annex_controls": "This standard has no Annex A controls.",
-    "title_required": "Give it a title."
+    "title_required": "Give it a title.",
+    "owner_required": "Choose a risk owner.",
+    "invalid_source_entity": "That record cannot be linked here. Pick another one.",
+    "treatment_not_done": "Mark the treatment as done before checking its effectiveness.",
+    "effectiveness_note_required": "Describe what did not work.",
+    "invalid_checked_at": "The check date cannot be in the future.",
+    "justification_missing": "Every control needs a justification before you can approve.",
+    "soa_not_generated": "Generate the statement first."
   },
   "notifications": {
     "riskCreated": "New risk {{ code }}: {{ title }}",
@@ -551,7 +716,8 @@
     "opportunityUpdated": "Opportunity {{ code }} updated",
     "opportunityOwnerChanged": "You now own opportunity {{ code }}: {{ title }}",
     "opportunityStatusChanged": "Opportunity {{ code }} changed status: {{ title }}",
-    "soaEntryUpdated": "Statement of Applicability updated: {{ code }}"
+    "soaEntryUpdated": "Statement of Applicability updated: {{ code }}",
+    "treatmentVerified": "Effectiveness checked on {{ code }}: {{ treatment_title }}"
   },
   "timeline": {
     "riskCreated": "Risk created",
@@ -570,6 +736,61 @@
     "opportunityUpdated": "Opportunity updated",
     "opportunityOwnerChanged": "Owner changed",
     "opportunityStatusChanged": "Status changed",
-    "soaEntryUpdated": "Control decision updated"
+    "soaEntryUpdated": "Control decision updated",
+    "treatmentVerified": "Effectiveness checked: {{ treatment_title }}"
+  },
+  "controls": {
+    "openInSoa": "Open the control in the Statement of Applicability",
+    "excluded": "Excluded in the SoA"
+  },
+  "effectiveness": {
+    "title": "Did the treatment work?",
+    "message": "\"{{ title }}\" is done. Record how you checked that it works, so an auditor can see it.",
+    "result": "Result of the check",
+    "results": {
+      "effective": "Effective",
+      "partially_effective": "Partly effective",
+      "not_effective": "Not effective"
+    },
+    "note": "How it was checked (optional)",
+    "noteRequired": "What did not work (required)",
+    "noteHint": "For example: restore test of the backup on 12 November succeeded.",
+    "checkedAt": "Checked on",
+    "save": "Record the check",
+    "later": "Later",
+    "needed": "Effectiveness not checked yet",
+    "check": "Check effectiveness",
+    "checkedBy": "Checked by {{ name }} {{ date }}",
+    "rerateOffer": "Does the residual risk still match? Re-rate it if the treatment changed it.",
+    "rerate": "Re-rate the risk"
+  },
+  "subject": {
+    "placeholder": "Search by name or code…",
+    "noResults": "No matching records.",
+    "remove": "Remove {{ name }}"
+  },
+  "widgets": {
+    "heatMap": {
+      "title": "Risk heat map",
+      "description": "Where the open risks sit on the risk matrix, by likelihood and consequence."
+    }
+  },
+  "next": {
+    "reviewsOverdue": {
+      "title": "Review {{ count }} risks that are overdue",
+      "why": "Risks must be reassessed at planned intervals."
+    },
+    "aboveAppetite": {
+      "title": "Decide on {{ count }} risks above the appetite",
+      "why": "They need treatment or a formal acceptance."
+    },
+    "effectiveness": {
+      "title": "Check whether {{ count }} completed treatments worked",
+      "why": "Auditors ask how you know a treatment is effective."
+    },
+    "soaUnjustified": {
+      "title": "Justify {{ count }} controls in the Statement of Applicability",
+      "why": "Every control needs a decision and a reason before the statement can be approved."
+    }
   }
 }
