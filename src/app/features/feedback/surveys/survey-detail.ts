@@ -7,6 +7,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   signal,
   untracked,
 } from '@angular/core';
@@ -34,7 +35,6 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
-import { Pager } from '../../../shared/ui/pager/pager';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { FeedbackAskButton } from '../ask-button';
 import { FeedbackApi } from '../data/feedback-api';
@@ -50,14 +50,15 @@ import {
   EXPORT_FORMATS,
   ExportFormat,
   PERM_MANAGE,
+  PERM_WRITE,
   SURVEY_ENTITY,
   Survey,
   SurveyAction,
-  SurveyResponse,
   SurveyResults,
 } from '../data/feedback.models';
 import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackThemes } from '../themes-panel';
+import { SurveyAnswers } from './survey-answers';
 import { SurveyResultsView } from './survey-results';
 
 const TABS: readonly RecordTab[] = [
@@ -69,7 +70,9 @@ const TABS: readonly RecordTab[] = [
   'attachments',
   'revisions',
 ];
-const RESPONSES_PAGE = 20;
+/** The survey's two views: its answers (a table) and its set-up and results. */
+export const SURVEY_VIEWS = ['answers', 'overview'] as const;
+export type SurveyView = (typeof SURVEY_VIEWS)[number];
 
 export const SURVEY_FIELD_LABELS: Readonly<Record<string, string>> = {
   title: 'feedback.surveyFields.title',
@@ -103,7 +106,7 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
 /**
  * One survey (`/feedback/surveys/:id`): its questions, the public link to share,
  * publish / close / reopen (one primary step), results with NPS and answer
- * distributions, the individual responses, an AI theme analysis whose
+ * distributions, the answers as a table ("Svar", the default once there are answers), an AI theme analysis whose
  * recommendations can become tasks, an export of the results, and the shared
  * record kit (requirements, connections, tasks, activity, revisions).
  */
@@ -128,11 +131,11 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
     Icon,
     LoadingState,
     MenuItem,
-    Pager,
     StatusBadge,
     FeedbackAskButton,
     FeedbackThemes,
     SurveyResultsView,
+    SurveyAnswers,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -267,227 +270,199 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
             />
 
             <div class="flex flex-col gap-6">
-              <app-card>
-                <h2 class="mb-1 font-display text-card font-bold text-fg">
-                  {{ 'feedback.next.title' | transloco }}
-                </h2>
-                <p class="text-ui text-fg-muted" data-testid="survey-hint">
-                  {{ 'feedback.surveyWorkflow.hint.' + s.status | transloco }}
-                </p>
-              </app-card>
+              <div
+                class="inline-flex w-fit rounded-tile border border-border bg-surface-2 p-0.5"
+                role="group"
+                [attr.aria-label]="'feedback.answers.viewLabel' | transloco"
+                data-testid="survey-view-switch"
+              >
+                @for (v of views; track v) {
+                  <button
+                    type="button"
+                    class="h-8 rounded-[8px] px-3 text-ui font-semibold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    [class]="
+                      view() === v
+                        ? 'bg-surface text-fg shadow-card'
+                        : 'text-fg-muted hover:text-fg'
+                    "
+                    [attr.aria-pressed]="view() === v"
+                    (click)="view.set(v)"
+                    [attr.data-testid]="'survey-view-' + v"
+                  >
+                    {{ 'feedback.answers.views.' + v | transloco: { count: answerCount() } }}
+                  </button>
+                }
+              </div>
 
-              @if (s.status !== 'draft') {
+              <div [hidden]="view() !== 'answers'">
                 <app-card>
-                  <h2 class="mb-2 font-display text-card font-bold text-fg">
-                    {{ 'feedback.share.title' | transloco }}
-                  </h2>
-                  <p class="mb-2 text-meta text-fg-muted">
-                    {{ 'feedback.share.intro' | transloco }}
-                  </p>
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <label for="cf-sv-link" class="sr-only">{{
-                      'feedback.share.linkLabel' | transloco
-                    }}</label>
-                    <input
-                      id="cf-sv-link"
-                      type="text"
-                      readonly
-                      class="h-10 min-w-0 flex-1 rounded-tile border border-border bg-surface-2 px-3 font-mono text-meta text-fg"
-                      [value]="publicUrl()"
-                      (focus)="$any($event.target).select()"
-                      data-testid="survey-link"
-                    />
-                    <div class="flex flex-wrap gap-2">
-                      <app-button size="sm" variant="secondary" (click)="copyLink()">
-                        {{ 'feedback.share.copy' | transloco }}
-                      </app-button>
-                      <a
-                        [href]="publicUrl()"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex h-8 items-center rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
-                      >
-                        {{ 'feedback.share.open' | transloco }}
-                      </a>
-                      @if (canManage()) {
-                        <app-button size="sm" variant="ghost" (click)="regenerating.set(true)">
-                          {{ 'feedback.share.regenerate' | transloco }}
-                        </app-button>
-                      }
-                    </div>
-                  </div>
-                </app-card>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'feedback.surveyDetail.questions' | transloco }}
-                </h2>
-                @if (s.description) {
-                  <p class="mb-3 text-body whitespace-pre-line text-fg">{{ s.description }}</p>
-                }
-                @if (s.questions.length === 0) {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'feedback.surveyDetail.noQuestions' | transloco }}
-                  </p>
-                } @else {
-                  <ol class="flex flex-col gap-2 text-body text-fg" data-testid="survey-questions">
-                    @for (q of s.questions; track q.id; let i = $index) {
-                      <li class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                        <span class="text-fg-subtle">{{ i + 1 }}.</span>
-                        <span class="min-w-0 flex-1">{{ q.label }}</span>
-                        <span class="flex flex-wrap gap-1">
-                          <app-badge tone="neutral">{{ typeKey(q.type) | transloco }}</app-badge>
-                          @if (q.required) {
-                            <app-badge tone="info">{{
-                              'feedback.surveyDetail.requiredBadge' | transloco
-                            }}</app-badge>
-                          }
-                        </span>
-                      </li>
-                    }
-                  </ol>
-                }
-                <dl class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 text-ui sm:grid-cols-3">
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.surveyFields.opensOn' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        s.opens_on ? (s.opens_on | localDay) : ('feedback.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.surveyFields.closesOn' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{
-                        s.closes_on
-                          ? (s.closes_on | localDay)
-                          : ('feedback.common.none' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.surveyDetail.followUpRule' | transloco }}
-                    </dt>
-                    <dd class="text-fg" data-testid="survey-threshold">
-                      @if (s.low_score_threshold === null) {
-                        {{ 'feedback.surveyDetail.noThreshold' | transloco }}
-                      } @else {
-                        {{
-                          'feedback.surveyDetail.thresholdValue'
-                            | transloco
-                              : {
-                                  value: s.low_score_threshold,
-                                  five: onFive(s.low_score_threshold),
-                                }
-                        }}
-                      }
-                    </dd>
-                  </div>
-                </dl>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'feedback.results.title' | transloco }}
-                </h2>
-                @if (results(); as r) {
-                  <app-survey-results [results]="r" />
-                } @else if (resultsFailed()) {
-                  <app-error-state (retry)="reloadExtras()" />
-                } @else {
-                  <app-loading-state [rows]="3" />
-                }
-              </app-card>
-
-              @if ((results()?.response_count ?? 0) > 0) {
-                <app-card>
-                  <app-feedback-themes
-                    [entityType]="entityType"
-                    [entityId]="s.id"
-                    [canCreateTasks]="canCreateTasks()"
-                    (taskRequested)="createTask($event)"
+                  <app-survey-answers
+                    [survey]="s"
+                    [canWrite]="canWrite()"
+                    [canManage]="canManage()"
+                    [canDeviate]="canDeviate()"
+                    (counted)="onCounted($event)"
+                    (changed)="reloadExtras()"
                   />
                 </app-card>
-              }
+              </div>
 
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'feedback.responses.title' | transloco }}
-                </h2>
-                @if (responses().length === 0) {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'feedback.responses.none' | transloco }}
+              <div class="flex flex-col gap-6" [hidden]="view() !== 'overview'">
+                <app-card>
+                  <h2 class="mb-1 font-display text-card font-bold text-fg">
+                    {{ 'feedback.next.title' | transloco }}
+                  </h2>
+                  <p class="text-ui text-fg-muted" data-testid="survey-hint">
+                    {{ 'feedback.surveyWorkflow.hint.' + s.status | transloco }}
                   </p>
-                } @else {
-                  <ul class="divide-y divide-border" data-testid="survey-responses">
-                    @for (r of responses(); track r.id) {
-                      <li class="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:gap-3">
-                        <div class="min-w-0 flex-1 text-ui">
-                          <p class="font-semibold text-fg">{{ r.submitted_at | localDate }}</p>
-                          @if (r.respondent_name || r.respondent_email) {
-                            <p class="text-fg-muted">{{ respondent(r) }}</p>
-                          }
-                          <dl
-                            class="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 text-meta sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
-                          >
-                            @for (q of s.questions; track q.id) {
-                              @if (answerText(r, q.id); as a) {
-                                <dt class="text-fg-muted">{{ q.label }}</dt>
-                                <dd class="mb-1 font-semibold break-words text-fg sm:mb-0">
-                                  {{ a }}
-                                </dd>
-                              }
-                            }
-                          </dl>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 text-meta text-fg-muted">
-                          @if (r.score !== null) {
-                            <app-badge [tone]="r.score >= 75 ? 'pass' : 'warn'">{{
-                              'feedback.responses.score' | transloco: { score: r.score }
-                            }}</app-badge>
-                          }
-                          @if (r.feedback_id) {
-                            <a
-                              [routerLink]="['/feedback/items', r.feedback_id]"
-                              class="font-semibold text-accent hover:underline"
-                            >
-                              {{ 'feedback.responses.followUp' | transloco }}
-                            </a>
-                          }
-                          @if (canManage()) {
-                            <button
-                              type="button"
-                              class="inline-flex h-7 w-7 items-center justify-center rounded-tile text-fg-subtle outline-none hover:bg-surface-2 hover:text-fail focus-visible:ring-2 focus-visible:ring-accent"
-                              [attr.aria-label]="'feedback.responses.delete' | transloco"
-                              (click)="deletingResponse.set(r)"
-                            >
-                              <app-icon name="trash" [size]="14" />
-                            </button>
-                          }
-                        </div>
-                      </li>
-                    }
-                  </ul>
-                  @if (responsesTotal() > responsesPage) {
-                    <div class="mt-2">
-                      <app-pager
-                        [offset]="responsesOffset()"
-                        [pageSize]="responsesPage"
-                        [count]="responses().length"
-                        [total]="responsesTotal()"
-                        (pageChange)="loadResponses($event)"
+                </app-card>
+
+                @if (s.status !== 'draft') {
+                  <app-card>
+                    <h2 class="mb-2 font-display text-card font-bold text-fg">
+                      {{ 'feedback.share.title' | transloco }}
+                    </h2>
+                    <p class="mb-2 text-meta text-fg-muted">
+                      {{ 'feedback.share.intro' | transloco }}
+                    </p>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <label for="cf-sv-link" class="sr-only">{{
+                        'feedback.share.linkLabel' | transloco
+                      }}</label>
+                      <input
+                        id="cf-sv-link"
+                        type="text"
+                        readonly
+                        class="h-10 min-w-0 flex-1 rounded-tile border border-border bg-surface-2 px-3 font-mono text-meta text-fg"
+                        [value]="publicUrl()"
+                        (focus)="$any($event.target).select()"
+                        data-testid="survey-link"
                       />
+                      <div class="flex flex-wrap gap-2">
+                        <app-button size="sm" variant="secondary" (click)="copyLink()">
+                          {{ 'feedback.share.copy' | transloco }}
+                        </app-button>
+                        <a
+                          [href]="publicUrl()"
+                          target="_blank"
+                          rel="noopener"
+                          class="inline-flex h-8 items-center rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
+                        >
+                          {{ 'feedback.share.open' | transloco }}
+                        </a>
+                        @if (canManage()) {
+                          <app-button size="sm" variant="ghost" (click)="regenerating.set(true)">
+                            {{ 'feedback.share.regenerate' | transloco }}
+                          </app-button>
+                        }
+                      </div>
                     </div>
-                  }
+                  </app-card>
                 }
-              </app-card>
+
+                <app-card>
+                  <h2 class="mb-3 font-display text-card font-bold text-fg">
+                    {{ 'feedback.surveyDetail.questions' | transloco }}
+                  </h2>
+                  @if (s.description) {
+                    <p class="mb-3 text-body whitespace-pre-line text-fg">{{ s.description }}</p>
+                  }
+                  @if (s.questions.length === 0) {
+                    <p class="text-ui text-fg-muted">
+                      {{ 'feedback.surveyDetail.noQuestions' | transloco }}
+                    </p>
+                  } @else {
+                    <ol
+                      class="flex flex-col gap-2 text-body text-fg"
+                      data-testid="survey-questions"
+                    >
+                      @for (q of s.questions; track q.id; let i = $index) {
+                        <li class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <span class="text-fg-subtle">{{ i + 1 }}.</span>
+                          <span class="min-w-0 flex-1">{{ q.label }}</span>
+                          <span class="flex flex-wrap gap-1">
+                            <app-badge tone="neutral">{{ typeKey(q.type) | transloco }}</app-badge>
+                            @if (q.required) {
+                              <app-badge tone="info">{{
+                                'feedback.surveyDetail.requiredBadge' | transloco
+                              }}</app-badge>
+                            }
+                          </span>
+                        </li>
+                      }
+                    </ol>
+                  }
+                  <dl class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 text-ui sm:grid-cols-3">
+                    <div>
+                      <dt class="text-meta text-fg-subtle">
+                        {{ 'feedback.surveyFields.opensOn' | transloco }}
+                      </dt>
+                      <dd class="text-fg">
+                        {{
+                          s.opens_on
+                            ? (s.opens_on | localDay)
+                            : ('feedback.common.none' | transloco)
+                        }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-meta text-fg-subtle">
+                        {{ 'feedback.surveyFields.closesOn' | transloco }}
+                      </dt>
+                      <dd class="text-fg">
+                        {{
+                          s.closes_on
+                            ? (s.closes_on | localDay)
+                            : ('feedback.common.none' | transloco)
+                        }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-meta text-fg-subtle">
+                        {{ 'feedback.surveyDetail.followUpRule' | transloco }}
+                      </dt>
+                      <dd class="text-fg" data-testid="survey-threshold">
+                        @if (s.low_score_threshold === null) {
+                          {{ 'feedback.surveyDetail.noThreshold' | transloco }}
+                        } @else {
+                          {{
+                            'feedback.surveyDetail.thresholdValue'
+                              | transloco
+                                : {
+                                    value: s.low_score_threshold,
+                                    five: onFive(s.low_score_threshold),
+                                  }
+                          }}
+                        }
+                      </dd>
+                    </div>
+                  </dl>
+                </app-card>
+
+                <app-card>
+                  <h2 class="mb-3 font-display text-card font-bold text-fg">
+                    {{ 'feedback.results.title' | transloco }}
+                  </h2>
+                  @if (results(); as r) {
+                    <app-survey-results [results]="r" />
+                  } @else if (resultsFailed()) {
+                    <app-error-state (retry)="reloadExtras()" />
+                  } @else {
+                    <app-loading-state [rows]="3" />
+                  }
+                </app-card>
+
+                @if ((results()?.response_count ?? 0) > 0) {
+                  <app-card>
+                    <app-feedback-themes
+                      [entityType]="entityType"
+                      [entityId]="s.id"
+                      [canCreateTasks]="canCreateTasks()"
+                      (taskRequested)="createTask($event)"
+                    />
+                  </app-card>
+                }
+              </div>
             </div>
 
             <div tasks>
@@ -596,16 +571,6 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
             (cancelled)="regenerating.set(false)"
           />
           <app-confirm-dialog
-            [open]="!!deletingResponse()"
-            [title]="'feedback.responses.deleteTitle' | transloco"
-            [message]="'feedback.responses.deleteMessage' | transloco"
-            [confirmLabel]="'feedback.common.delete' | transloco"
-            [cancelLabel]="'common.cancel' | transloco"
-            [busy]="acting()"
-            (confirmed)="removeResponse()"
-            (cancelled)="deletingResponse.set(null)"
-          />
-          <app-confirm-dialog
             [open]="deleting()"
             [title]="'feedback.surveyDetail.deleteTitle' | transloco"
             [message]="'feedback.surveyDetail.deleteMessage' | transloco: { code: s.code }"
@@ -639,27 +604,35 @@ export class SurveyDetail {
   protected readonly statusKey = surveyStatusKey;
   protected readonly typeKey = questionTypeKey;
   protected readonly onFive = thresholdOnFive;
-  protected readonly responsesPage = RESPONSES_PAGE;
+  protected readonly views = SURVEY_VIEWS;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('feedback.common.loadFailed');
   protected readonly survey = signal<Survey | null>(null);
   protected readonly results = signal<SurveyResults | null>(null);
   protected readonly resultsFailed = signal(false);
-  protected readonly responses = signal<readonly SurveyResponse[]>([]);
-  protected readonly responsesTotal = signal(0);
-  protected readonly responsesOffset = signal(0);
+  /** All answers (unfiltered), from the answers table. */
+  protected readonly answerCount = signal(0);
+  /** Svar first once there are answers; the user's choice wins after that. */
+  protected readonly view = linkedSignal<SurveyView>(() =>
+    (this.survey()?.response_count ?? 0) > 0 ? 'answers' : 'overview',
+  );
   protected readonly acting = signal(false);
   protected readonly deleting = signal(false);
   protected readonly regenerating = signal(false);
   protected readonly pendingAction = signal<SurveyAction | null>(null);
-  protected readonly deletingResponse = signal<SurveyResponse | null>(null);
   protected readonly reqLinks = signal<readonly RequirementLink[]>([]);
   /** Bumped to re-create the tasks tab after a task was added from here. */
   protected readonly tasksKey = signal(0);
 
   protected readonly canManage = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_MANAGE),
+  );
+  protected readonly canWrite = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_WRITE),
+  );
+  protected readonly canDeviate = computed(() =>
+    (this.selectedOrg.currentOrg()?.permissions ?? []).includes('deviations:write'),
   );
   protected readonly canCreateTasks = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('tasks:write'),
@@ -710,20 +683,8 @@ export class SurveyDetail {
     });
   }
 
-  protected respondent(r: SurveyResponse): string {
-    return [r.respondent_name, r.respondent_email].filter(Boolean).join(' · ');
-  }
-
-  /** A response's answer to one question as display text ('' when unanswered). */
-  protected answerText(r: SurveyResponse, questionId: string): string {
-    const value = r.answers[questionId];
-    if (value === null || value === undefined || value === '') {
-      return '';
-    }
-    if (typeof value === 'boolean') {
-      return this.language.translate(value ? 'feedback.answer.yes' : 'feedback.answer.no');
-    }
-    return Array.isArray(value) ? value.join(', ') : String(value);
+  protected onCounted(total: number): void {
+    this.answerCount.set(total);
   }
 
   protected copyLink(): void {
@@ -821,27 +782,6 @@ export class SurveyDetail {
     });
   }
 
-  protected removeResponse(): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    const response = this.deletingResponse();
-    if (!orgId || !response || this.acting()) {
-      return;
-    }
-    this.acting.set(true);
-    this.api.deleteResponse(orgId, this.id(), response.id).subscribe({
-      next: () => {
-        this.acting.set(false);
-        this.deletingResponse.set(null);
-        this.notifications.success('feedback.notices.responseDeleted');
-        this.loadExtras(orgId, this.id(), this.responsesOffset());
-      },
-      error: (error: unknown) => {
-        this.acting.set(false);
-        this.notifications.error(feedbackErrorKey(error));
-      },
-    });
-  }
-
   protected remove(): void {
     const orgId = this.selectedOrg.currentOrgId();
     const s = this.survey();
@@ -863,21 +803,6 @@ export class SurveyDetail {
     });
   }
 
-  protected loadResponses(offset: number): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId) {
-      return;
-    }
-    this.responsesOffset.set(offset);
-    this.api.responses(orgId, this.id(), RESPONSES_PAGE, offset).subscribe({
-      next: (page) => {
-        this.responses.set(page.items);
-        this.responsesTotal.set(page.total);
-      },
-      error: () => this.responses.set([]),
-    });
-  }
-
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.id());
   }
@@ -885,7 +810,7 @@ export class SurveyDetail {
   protected reloadExtras(): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (orgId) {
-      this.loadExtras(orgId, this.id(), this.responsesOffset());
+      this.loadExtras(orgId, this.id());
     }
   }
 
@@ -899,7 +824,7 @@ export class SurveyDetail {
       next: (survey) => {
         this.survey.set(survey);
         this.state.set('ready');
-        this.loadExtras(orgId, id, 0);
+        this.loadExtras(orgId, id);
       },
       error: (error: unknown) => {
         this.errorKey.set(feedbackErrorKey(error));
@@ -908,25 +833,13 @@ export class SurveyDetail {
     });
   }
 
-  private loadExtras(orgId: string, id: string, offset: number): void {
+  /** The results (the answers table loads itself). */
+  private loadExtras(orgId: string, id: string): void {
     this.extra.unsubscribe();
     this.resultsFailed.set(false);
-    this.responsesOffset.set(offset);
-    this.extra = new Subscription();
-    this.extra.add(
-      this.api.results(orgId, id).subscribe({
-        next: (results) => this.results.set(results),
-        error: () => this.resultsFailed.set(true),
-      }),
-    );
-    this.extra.add(
-      this.api.responses(orgId, id, RESPONSES_PAGE, offset).subscribe({
-        next: (page) => {
-          this.responses.set(page.items);
-          this.responsesTotal.set(page.total);
-        },
-        error: () => this.responses.set([]),
-      }),
-    );
+    this.extra = this.api.results(orgId, id).subscribe({
+      next: (results) => this.results.set(results),
+      error: () => this.resultsFailed.set(true),
+    });
   }
 }

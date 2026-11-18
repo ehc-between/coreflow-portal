@@ -13,12 +13,11 @@
   },
   "tabs": {
     "label": "Deler av kundetilbakemeldinger",
-    "register": "Tilbakemeldinger",
-    "surveys": "Undersøkelser",
-    "insights": "Innsikt"
+    "register": "Tilbakemeldinger og svar",
+    "surveys": "Undersøkelser"
   },
   "list": {
-    "subtitle": "Klager, ros, forslag og spørsmål fra kunder, og hvordan hver av dem ble håndtert.",
+    "subtitle": "Alle klager, ros, forslag og spørsmål fra kunder, også oppfølging av svar på undersøkelser. Nyeste først.",
     "searchPlaceholder": "Søk på tittel, kode, kunde eller tekst",
     "new": "Registrer tilbakemelding",
     "noMatch": "Ingen tilbakemeldinger passer med disse filtrene.",
@@ -27,13 +26,16 @@
     "countOf": "Viser {{ shown }} av {{ total }}",
     "resetFilters": "Nullstill filtre",
     "noMatchBody": "Prøv færre filtre, eller nullstill dem for å se alle tilbakemeldingene.",
-    "categoryValue": "Kategori: {{ category }}"
+    "categoryValue": "Kategori: {{ category }}",
+    "periodFilter": "Mottatt {{ from }}–{{ to }}.",
+    "clearPeriod": "Alle datoer",
+    "lowScore": "Lav score ({{ score }})"
   },
   "filters": {
     "status": "Status",
     "statusOptions": {
       "all": "Alle statuser",
-      "open": "Fortsatt åpne"
+      "open": "Åpne"
     },
     "kind": "Type",
     "allKinds": "Alle typer",
@@ -55,7 +57,12 @@
     "department": "Avdeling",
     "anyDepartment": "Alle avdelinger",
     "category": "Kategori",
-    "anyCategory": "Alle kategorier"
+    "anyCategory": "Alle kategorier",
+    "source": "Kilde",
+    "allSources": "Alle kilder",
+    "sentiment": "Inntrykk",
+    "anySentiment": "Alle inntrykk",
+    "unanswered": "Ikke svart på mer enn {{ days }} dager"
   },
   "sorts": {
     "updated_atDesc": "Sist oppdatert",
@@ -246,7 +253,7 @@
     "hint": "Koble til et avvik når tilbakemeldingen viser at noe gikk galt.",
     "hintComplaint": "En berettiget klage er et avvik: koble den til et avvik, slik at årsaken blir undersøkt og rettet.",
     "link": "Koble til avvik",
-    "register": "Registrer avvik",
+    "register": "Gjør til avvik",
     "searchLabel": "Finn et avvik",
     "searchPlaceholder": "Søk på kode eller tittel",
     "noHits": "Ingen avvik passer.",
@@ -511,7 +518,8 @@
     "rowLabel": "{{ label }}: {{ count }}. Vis dem",
     "legendOther": "Andre tilbakemeldinger",
     "chartLabel": "Tilbakemeldinger per måned, med klager vist for seg",
-    "showTable": "Vis som tabell"
+    "showTable": "Vis som tabell",
+    "bySource": "Etter kilde"
   },
   "ask": {
     "summarise": "Oppsummer denne kundetilbakemeldingen: hva som skjedde, hvordan den er håndtert og hva som fortsatt er åpent.",
@@ -584,7 +592,10 @@
     "module_disabled": "Kundetilbakemeldinger er ikke slått på for denne organisasjonen.",
     "assessment_required": "Si om klagen var berettiget før du merker den som løst.",
     "invalid_subject": "Den typen registrering kan ikke kobles her.",
-    "invalid_privacy_notice_url": "Bruk en fullstendig nettadresse som begynner med https://."
+    "invalid_privacy_notice_url": "Bruk en fullstendig nettadresse som begynner med https://.",
+    "feedback_exists": "Dette svaret er allerede en tilbakemelding.",
+    "feedback_not_found": "Denne tilbakemeldingen finnes ikke lenger.",
+    "nothing_to_do": "Velg en ny status eller en eier først."
   },
   "notifications": {
     "feedbackCreated": "Tilbakemelding registrert: {{ code }} {{ title }}",
@@ -646,14 +657,16 @@
     }
   },
   "kpis": {
-    "openComplaints": "Åpne klager",
-    "openComplaintsHint": "{{ count }} klager siste 12 måneder",
-    "overdue": "Svar forfalt",
-    "overdueHint": "Svarfristen er passert",
-    "new": "Ikke bekreftet mottatt",
-    "newHint": "Nye, venter på første svar",
     "satisfaction": "Tilfredshet",
-    "satisfactionHint": "Snitt på 1–5, fra {{ count }} vurderinger"
+    "open": "Åpne",
+    "openHint": "Nye eller under behandling",
+    "complaints": "Klager",
+    "complaintsHint": "Alle klager, også lukkede",
+    "complaintsHintDeviations": "Pluss {{ count }} registrert som avvik",
+    "unanswered": "Ubesvart > {{ days }} dager",
+    "unansweredHint": "Åpne, kunden har ikke fått svar",
+    "showStats": "Snitt på 1–5 · Vis statistikk",
+    "hideStats": "Snitt på 1–5 · Skjul statistikk"
   },
   "replyChannels": {
     "email": "E-post",
@@ -768,5 +781,84 @@
   "surveyLanguages": {
     "nb": "Norsk (bokmål)",
     "en": "Engelsk"
+  },
+  "statusWords": {
+    "new": "Ny",
+    "in_work": "Under behandling",
+    "done": "Ferdig"
+  },
+  "sources": {
+    "manual": "Registrert av oss",
+    "survey": "Undersøkelse",
+    "public_form": "Offentlig skjema"
+  },
+  "views": {
+    "complaints": "Klager",
+    "unanswered": "Ubesvart > {{ days }} dager",
+    "fromSurveys": "Fra undersøkelser"
+  },
+  "bulk": {
+    "label": "Endre de valgte tilbakemeldingene",
+    "selected": "Valgt: {{ count }}",
+    "action": "Ny status",
+    "keepStatus": "Behold statusen",
+    "owner": "Eier",
+    "keepOwner": "Behold eieren",
+    "noOwner": "Ingen eier",
+    "apply": "Bruk på {{ count }}",
+    "clear": "Fjern valget",
+    "failedRow": "{{ code }}: {{ reason }}",
+    "done": "Oppdatert: {{ count }}",
+    "someFailed": "Ikke endret: {{ count }}. Årsakene står over listen.",
+    "selectPage": "Velg alle på siden",
+    "selectRow": "Velg {{ code }}"
+  },
+  "complaintDeviations": {
+    "title": "Klager registrert som avvik ({{ count }})",
+    "intro": "Disse klagene ble registrert som avvik. De vises her slik at alle klager står samlet; åpne en for å behandle den som avvik.",
+    "linked": "Koblet til {{ code }}",
+    "more": "Se alle {{ count }} under Avvik",
+    "status": {
+      "open": "Åpen",
+      "in_progress": "Under behandling",
+      "done": "Ferdig",
+      "cancelled": "Avbrutt"
+    }
+  },
+  "stats": {
+    "title": "Statistikk og trender"
+  },
+  "answers": {
+    "title": "Svar",
+    "viewLabel": "Vis",
+    "views": {
+      "answers": "Svar ({{ count }})",
+      "overview": "Oppsett og resultater"
+    },
+    "search": "Søk i svarene",
+    "searchPlaceholder": "Søk i svar, navn eller e-post",
+    "onlyLow": "Bare lave score",
+    "hasFeedback": "Oppfølging",
+    "hasFeedbackOptions": {
+      "any": "Med eller uten oppfølging",
+      "yes": "Har en tilbakemelding",
+      "no": "Ingen tilbakemelding ennå"
+    },
+    "thresholdNote": "Svar med score {{ threshold }} eller lavere blir merket og blir tilbakemeldinger automatisk.",
+    "noMatch": "Ingen svar passer.",
+    "anonymous": "Anonym",
+    "noComment": "Ingen skriftlig kommentar.",
+    "showAll": "Vis alle svarene",
+    "low": "Lav score",
+    "openFeedback": "Åpne {{ code }}",
+    "makeFeedback": "Lag tilbakemelding",
+    "makeDeviation": "Lag avvik",
+    "created": "{{ code }} er lagt til blant tilbakemeldingene.",
+    "columns": {
+      "date": "Mottatt",
+      "answer": "Kommentar",
+      "score": "Score",
+      "followUp": "Oppfølging"
+    }
   }
 }

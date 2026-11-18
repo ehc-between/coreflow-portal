@@ -53,6 +53,13 @@ export type FeedbackSeverity = (typeof FEEDBACK_SEVERITIES)[number];
 export const FEEDBACK_SENTIMENTS = ['positive', 'neutral', 'negative'] as const;
 export type FeedbackSentiment = (typeof FEEDBACK_SENTIMENTS)[number];
 
+/** Where a record came from (derived by the backend, not stored). */
+export const FEEDBACK_SOURCES = ['manual', 'survey', 'public_form'] as const;
+export type FeedbackSource = (typeof FEEDBACK_SOURCES)[number];
+
+/** "Ubesvart > 14 dager": open, the customer not informed, received this many days ago. */
+export const UNANSWERED_DAYS = 14;
+
 export const FEEDBACK_ACTIONS = ['acknowledge', 'start', 'resolve', 'close', 'reopen'] as const;
 export type FeedbackAction = (typeof FEEDBACK_ACTIONS)[number];
 
@@ -170,6 +177,9 @@ export interface FeedbackListItem {
   readonly department_id: string | null;
   readonly department?: DepartmentRef | null;
   readonly survey_id: string | null;
+  /** Kilde: manual, survey (answer or survey channel) or public_form. */
+  readonly source?: FeedbackSource;
+  readonly customer_informed?: boolean;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -259,6 +269,10 @@ export interface FeedbackListQuery {
   readonly open?: boolean;
   readonly received_from?: string;
   readonly received_to?: string;
+  readonly sentiment?: readonly FeedbackSentiment[];
+  readonly source?: readonly FeedbackSource[];
+  /** Open, customer not informed, received at least this many days ago. */
+  readonly unanswered_days?: number;
   readonly sort?: FeedbackSort;
   readonly limit?: number;
   readonly offset?: number;
@@ -326,7 +340,25 @@ export interface MonthlyStat {
   readonly average_satisfaction: number | null;
 }
 
+/**
+ * The register's KPI band: all-time counts, each equal to the total of the list it
+ * opens (`open` → ?open=true, `complaints` → ?kind=complaint, `unanswered` →
+ * ?unanswered_days=14, `complaint_deviations` → the cross-listing).
+ */
+export interface FeedbackKpiBand {
+  readonly open: number;
+  readonly complaints: number;
+  readonly complaint_deviations: number;
+  readonly unanswered: number;
+  readonly unanswered_days: number;
+  /** An average: no list behind it. */
+  readonly average_satisfaction: number | null;
+}
+
 export interface FeedbackStats {
+  readonly band?: FeedbackKpiBand | null;
+  /** Counted for the stats period. */
+  readonly by_source?: Readonly<Record<string, number>>;
   readonly from_date: string;
   readonly to_date: string;
   readonly total: number;
@@ -477,11 +509,92 @@ export interface SurveyResponse {
   readonly respondent_name: string | null;
   readonly respondent_email: string | null;
   readonly feedback_id: string | null;
+  readonly feedback_code?: string | null;
+  /** At or under the survey's follow-up threshold. */
+  readonly low_score?: boolean;
+  /** The free-text answers joined, or null. */
+  readonly comment?: string | null;
 }
 
 export interface SurveyResponseList {
   readonly items: readonly SurveyResponse[];
   readonly total: number;
+  readonly low_score_threshold?: number | null;
+}
+
+export interface SurveyResponseQuery {
+  readonly q?: string;
+  /** Only answers at or under the threshold. */
+  readonly low?: boolean;
+  readonly has_feedback?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+/** `POST surveys/{id}/responses/{rid}/feedback`: turn one answer into a feedback record. */
+export interface ResponseToFeedback {
+  readonly kind?: FeedbackKind;
+  readonly title?: string;
+}
+
+// --- bulk changes and the complaint cross-listing --------------------------------------
+
+/** `POST items/bulk`: leave `owner_user_id` out to keep owners; null unassigns. */
+export interface FeedbackBulk {
+  readonly ids: readonly string[];
+  readonly action?: FeedbackAction;
+  readonly owner_user_id?: string | null;
+  readonly note?: string;
+}
+
+export interface FeedbackBulkFailure {
+  readonly id: string;
+  readonly code: string | null;
+  /** The code the single-record call would answer (`invalid_transition`, …). */
+  readonly error: string;
+}
+
+export interface FeedbackBulkResult {
+  readonly updated: readonly string[];
+  readonly failed: readonly FeedbackBulkFailure[];
+}
+
+export interface LinkedFeedbackRef {
+  readonly id: string;
+  readonly code: string;
+  readonly url: string;
+}
+
+/** A deviation of a customer-complaint type (KLG-*), cross-listed with the complaints. */
+export interface ComplaintDeviation {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly type_name: string;
+  readonly status: string;
+  readonly status_category: string;
+  readonly severity: string | null;
+  readonly raised_at: string;
+  readonly due_at: string | null;
+  readonly overdue: boolean;
+  readonly owner: UserRef | null;
+  readonly url: string;
+  readonly linked_feedback: readonly LinkedFeedbackRef[];
+}
+
+/** `available` is false when the caller cannot read deviations or the module is off. */
+export interface ComplaintDeviationList {
+  readonly available: boolean;
+  readonly items: readonly ComplaintDeviation[];
+  readonly total: number;
+}
+
+export interface ComplaintDeviationQuery {
+  readonly q?: string;
+  readonly open?: boolean;
+  readonly unlinked_only?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 // --- public survey (no sign-in) -------------------------------------------------------
