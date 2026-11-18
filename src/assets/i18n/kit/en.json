@@ -494,7 +494,7 @@
       "to_task": "Follow-up task"
     },
     "interested_party": {
-      "to_obligation": "Obligation from this party's requirements",
+      "to_obligation": "Obligation from the party's requirements",
       "to_risk": "Risk concerning the party",
       "to_task": "Follow-up task"
     },

@@ -494,7 +494,7 @@
       "to_task": "Oppgave for oppfølging"
     },
     "interested_party": {
-      "to_obligation": "Forpliktelse fra kravene til denne interessenten",
+      "to_obligation": "Forpliktelse fra interessentens krav",
       "to_risk": "Risiko knyttet til interessenten",
       "to_task": "Oppgave for oppfølging"
     },
