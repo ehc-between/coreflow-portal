@@ -3,23 +3,29 @@
     "label": "Health and safety sections",
     "overview": "Overview",
     "sja": "Safe job analysis",
-    "ppe": "PPE register",
-    "consultations": "Worker consultation",
+    "ppe": "PPE",
+    "consultations": "Worker participation",
     "safetyRounds": "Safety rounds"
   },
   "common": {
     "loading": "Loading…",
     "loadFailed": "This couldn't be loaded. Try again in a moment.",
-    "notFound": "This record doesn't exist or you no longer have access to it.",
-    "noMatches": "Nothing matches these filters.",
+    "notFoundTitle": "Not found",
+    "notFound": "This record doesn't exist, or you no longer have access to it.",
+    "noMatchesTitle": "Nothing matches",
+    "noMatches": "No records match the search or filters. Change them or clear the filters.",
+    "clearFilters": "Clear filters",
     "allStatuses": "All statuses",
     "status": "Status",
     "sort": "Sort",
     "mine": "Mine",
     "me": "Me",
     "none": "None",
+    "notSet": "Not set",
+    "unknown": "Unknown",
     "yes": "Yes",
     "no": "No",
+    "required": "required",
     "department": "Department",
     "noLocation": "No location",
     "edit": "Edit",
@@ -30,31 +36,131 @@
     "close": "Close",
     "reason": "Reason",
     "changeReason": "Reason for the change",
-    "createdBy": "Created by",
-    "backToRecord": "Back to the record",
+    "createdBy": "Created",
+    "updated": "Last changed",
+    "byOn": "{{ name }}, {{ date }}",
+    "summaryTitle": "Summary",
     "saved": "{{ code }} was saved.",
     "deleted": "{{ code }} was deleted.",
     "willLink": "The new record will be linked to the record you came from.",
     "summarise": "Summarise",
-    "lesson": "Micro-lesson"
+    "askGroup": "Ask the assistant",
+    "onePerLine": "One per line."
+  },
+  "people": {
+    "picked": "People added",
+    "addMember": "Add a member…",
+    "addExternal": "Add a person who is not a member",
+    "externalPlaceholder": "Name of someone outside the organisation",
+    "add": "Add",
+    "remove": "Remove {{ name }}",
+    "external": "External",
+    "externalShort": "external",
+    "hint": "Pick members so their sign-off and training can be traced. Add contractors and visitors by name."
+  },
+  "picker": {
+    "placeholder": "Search…",
+    "noHits": "No matches. Check the spelling, or create the record first.",
+    "remove": "Remove",
+    "removeNamed": "Remove {{ name }}"
+  },
+  "interval": {
+    "weekly": "Every week",
+    "monthly": "Every month",
+    "quarterly": "Every three months",
+    "halfYearly": "Every six months",
+    "yearly": "Every year",
+    "everyTwoYears": "Every two years",
+    "days": "Every {{ days }} days"
+  },
+  "controlType": {
+    "none": "Type of control…",
+    "eliminate": "Eliminate",
+    "substitute": "Substitute",
+    "engineering": "Engineering control",
+    "administrative": "Routine or training",
+    "ppe": "PPE"
   },
   "overview": {
-    "title": "Health and safety",
-    "subtitle": "Safe job analyses, PPE, worker consultation and safety rounds in one place.",
-    "lesson": "ISO 45001 in five minutes",
+    "subtitle": "Workplace health and safety: incidents, safe job analyses, PPE, worker participation and safety rounds.",
     "loadFailed": "The overview couldn't be loaded. Try again in a moment.",
+    "reportIncident": "Report an incident",
     "viewAll": "View all",
+    "attentionTitle": "Needs attention",
     "sections": {
       "sja": "Safe job analysis",
-      "ppe": "PPE register",
-      "consultations": "Worker consultation",
+      "ppe": "PPE",
+      "consultations": "Worker participation",
       "safetyRounds": "Safety rounds"
     },
+    "sjaDraft": "Drafts",
+    "sjaAwaiting": "Awaiting approval",
+    "sjaApproved": "Approved, work not done",
+    "sjaCompleted": "Completed",
     "ppeOverdue": "Inspection or expiry overdue",
     "ppeDueSoon": "Due within 30 days",
+    "ppeInStock": "In stock",
+    "ppeIssued": "Issued",
+    "consultationsPlanned": "Planned",
     "heldLastYear": "Held in the last 12 months",
-    "roundsOpen": "Open rounds",
-    "roundsOverdue": "Overdue rounds"
+    "roundsOpen": "Planned rounds",
+    "roundsOverdue": "Overdue rounds",
+    "walksOpen": "Rounds with open findings",
+    "reason": {
+      "expired": "Expired {{ date }}",
+      "inspection_overdue": "Inspection overdue since {{ date }}",
+      "due_soon": "Due {{ date }}",
+      "awaiting_approval": "Awaiting approval",
+      "overdue": "Date passed, not recorded",
+      "planned": "Planned {{ date }}"
+    },
+    "incidents": {
+      "title": "Incidents and near misses",
+      "hint": "Reported in Deviations as health and safety deviations. Figures cover the last 12 months.",
+      "viewAll": "Open in Deviations",
+      "open": "Open",
+      "nearMisses": "Near misses",
+      "injuries": "Injuries",
+      "lostTime": "Lost-time injuries",
+      "lostDays": "Days of absence",
+      "daysSince": "Days since the last lost-time injury",
+      "recent": "Most recent"
+    },
+    "risks": {
+      "title": "Health and safety risks",
+      "open": "Open risks",
+      "high": "High or critical",
+      "top": "Highest risks",
+      "none": "No open health and safety risks. Add them to a risk register with the category Health and safety."
+    },
+    "tasks": {
+      "title": "Follow-up tasks",
+      "hint": "Tasks from safe job analyses, PPE and consultations.",
+      "open": "Open",
+      "overdue": "Overdue"
+    },
+    "start": {
+      "title": "Get started with health and safety",
+      "body": "Four steps give you the basics most audits ask for. You can do them in any order.",
+      "done": "Done",
+      "todo": "Not done yet",
+      "first_sja": {
+        "title": "Write your first safe job analysis",
+        "body": "Pick a risky job you do soon and go through it step by step with the people who do it."
+      },
+      "first_ppe": {
+        "title": "Register your protective equipment",
+        "body": "Add helmets, harnesses and other gear that must be inspected, so nobody uses something overdue."
+      },
+      "first_consultation": {
+        "title": "Plan a meeting with the safety representative",
+        "body": "Workers must take part in health and safety decisions. Record the meeting and what you agreed."
+      },
+      "plan_safety_round": {
+        "title": "Plan regular safety rounds",
+        "body": "A walk-around with a checklist finds hazards before they hurt someone."
+      }
+    }
   },
   "risk": {
     "none": "Not assessed",
@@ -76,33 +182,35 @@
     "other": "Other"
   },
   "sja": {
+    "one": "Safe job analysis",
     "new": "New safe job analysis",
-    "lesson": "How to do an SJA",
     "created": "{{ code }} was created.",
     "residualBadge": "Residual risk: {{ level }}",
     "deleteTitle": "Delete this safe job analysis?",
-    "deleteMessage": "{{ code }} and its open follow-up actions will be removed. The audit trail keeps a record of it.",
+    "deleteMessage": "{{ code }} and its open follow-up tasks will be removed. The audit trail keeps a record of it.",
     "status": {
       "draft": "Draft",
-      "in_review": "In review",
+      "in_review": "Awaiting approval",
       "approved": "Approved",
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
     "sort": {
       "desc_created_at": "Newest first",
-      "desc_updated_at": "Recently updated",
+      "desc_updated_at": "Recently changed",
       "work_start_at": "Work start (earliest)",
       "desc_work_start_at": "Work start (latest)",
       "code": "Code",
       "title": "Title"
     },
     "list": {
-      "title": "Safe job analysis",
-      "subtitle": "Plan risky jobs step by step: what can go wrong, and what keeps people safe.",
-      "search": "Search by title, code, location or job…",
+      "title": "Safe job analysis (SJA)",
+      "subtitle": "Plan risky jobs step by step with the people who do them: what can go wrong, and what keeps everyone safe.",
+      "search": "Search title, code, place or job",
       "back": "Back to safe job analyses",
-      "counts": "{{ hazards }} hazards · {{ controls }} controls"
+      "counts": "{{ hazards }} hazards · {{ controls }} controls",
+      "signedOff": "{{ signed }} of {{ expected }} signed",
+      "riskBadge": "Risk: {{ level }}"
     },
     "fields": {
       "title": "Job title",
@@ -111,12 +219,12 @@
       "owner": "Owner",
       "work_start_at": "Work starts",
       "work_end_at": "Work ends",
-      "participants": "Participants (one per line)",
-      "step_description": "Step",
-      "hazards": "Hazards (one per line)",
-      "controls": "Controls (one per line)",
-      "responsible": "Responsible",
-      "step_risk": "Risk of this step",
+      "participants": "Participants",
+      "step_description": "What is done in this step",
+      "hazards": "Hazards",
+      "controls": "Controls",
+      "responsible": "Responsible for this step",
+      "step_risk": "Risk in this step",
       "risk_level": "Risk before controls",
       "residual_risk_level": "Residual risk after controls",
       "required_ppe": "Required PPE",
@@ -125,107 +233,189 @@
     "edit": {
       "newTitle": "New safe job analysis",
       "title": "Edit safe job analysis",
-      "create": "Create SJA",
+      "create": "Create safe job analysis",
       "jobSection": "The job",
+      "jobIntro": "plans a risky job before it starts. Write it with the people who will do the work.",
       "stepsSection": "Job steps, hazards and controls",
+      "stepsIntro": "Split the job into steps in the order they are done. Each step needs at least one hazard and one control before it can be sent for approval.",
       "riskSection": "Risk, PPE and emergency",
+      "riskIntro": "The residual risk should be lower than the risk before controls. If it is still high, find better controls before work starts.",
       "stepLabel": "Step {{ n }}",
       "addStep": "Add a step",
       "removeStep": "Remove step {{ n }}",
       "moveUp": "Move step {{ n }} up",
-      "moveDown": "Move step {{ n }} down"
+      "moveDown": "Move step {{ n }} down",
+      "hierarchy": "Hierarchy of controls:",
+      "controlsHint": "start with the most effective. Tag each control so the analysis shows when a step only relies on PPE.",
+      "controlPlaceholder": "What is done to prevent it",
+      "controlN": "Control {{ n }} in step {{ step }}",
+      "controlTypeN": "Type of control {{ n }} in step {{ step }}",
+      "removeControl": "Remove control {{ n }} in step {{ step }}",
+      "addControl": "Add a control",
+      "ppeOnlyWarning": "This step relies only on PPE. Can the hazard be removed, or a barrier or routine be used instead?",
+      "responsibleHint": "Pick a member, or choose “Someone outside” and type the name.",
+      "responsibleExternal": "Someone outside the organisation",
+      "responsibleName": "Name of the person responsible",
+      "ppeHint": "The equipment everyone doing the job must wear. The analysis shows which items in the PPE register cover it."
     },
     "detail": {
+      "jobTitle": "The job",
       "period": "Work period",
-      "approval": "Approval",
-      "submittedAt": "Submitted",
-      "approvedBy": "Approved by",
-      "completedAt": "Completed",
+      "periodRange": "{{ start }} to {{ end }}",
+      "periodFrom": "From {{ start }}",
+      "periodUntil": "Until {{ end }}",
+      "approval": "Approval trail",
+      "hazards": "Hazards",
+      "controls": "Controls",
       "responsible": "Responsible: {{ name }}",
       "noneYet": "None yet",
-      "noStepsYet": "No job steps yet. Edit the SJA to break the job into steps.",
-      "noSteps": "Add at least one job step with a hazard and a control before you submit.",
-      "incomplete": "Every step needs at least one hazard and one control before you submit (check step {{ steps }})."
+      "noStepsYet": "No job steps yet. Edit the analysis to split the job into steps.",
+      "noSteps": "Add at least one job step with a hazard and a control before you send it for approval.",
+      "incomplete": "Every step needs at least one hazard and one control before you send it for approval. Check step {{ steps }}."
+    },
+    "signOff": {
+      "title": "Participants and sign-off",
+      "hint": "Everyone who does the job confirms they went through the analysis before work starts.",
+      "progress": "{{ signed }} of {{ expected }} signed",
+      "signedAt": "Signed {{ date }}",
+      "recordedBy": "recorded by {{ name }}",
+      "notYet": "Not signed yet",
+      "confirmSelf": "I have gone through it",
+      "record": "Record sign-off",
+      "recordFor": "Record that {{ name }} has gone through it",
+      "undo": "Undo",
+      "undoFor": "Undo the sign-off of {{ name }}",
+      "done": "The sign-off of {{ name }} was recorded.",
+      "afterSubmit": "Participants can sign off once the analysis has been sent for approval.",
+      "noParticipants": "No participants yet. Edit the analysis to add the people who will do the job."
+    },
+    "ppe": {
+      "hint": "Items in the PPE register for each required category, with who holds them and when they are due.",
+      "none": "No PPE is required for this job.",
+      "issue": "Issue from stock",
+      "quantity": "{{ count }} in stock",
+      "warning": {
+        "none": "There is nothing in the PPE register for this category. Register it or buy it before work starts.",
+        "all_overdue": "Every item in this category is overdue for inspection or expired. Inspect or replace it before work starts."
+      },
+      "register": "Register PPE"
+    },
+    "warnings": {
+      "residual_not_lower": "The residual risk is not lower than the risk before controls. Check that the controls really reduce the risk.",
+      "residual_high_approved": "The analysis is approved with a {{ level }} residual risk. Consider better controls, or confirm that the risk is acceptable.",
+      "ppe_only_controls": "Step {{ steps }} relies only on PPE. Look for controls higher up the hierarchy.",
+      "self_approved": "The owner approved their own analysis. Another person should check it when possible.",
+      "sign_offs_missing": "{{ count }} participants have not signed off yet."
+    },
+    "trail": {
+      "created": "Created",
+      "submitted": "Sent for approval",
+      "approved": "Approved",
+      "completed": "Work completed",
+      "cancelled": "Cancelled",
+      "byOn": "{{ name }}, {{ date }}",
+      "pending": "Not yet",
+      "role": "Role: {{ role }}",
+      "selfApproved": "Approved by the owner"
+    },
+    "completeCheck": {
+      "title": "Mark as completed without all sign-offs?",
+      "message": "{{ count }} participants have not confirmed that they went through the analysis. You can still mark the job as completed.",
+      "confirm": "Mark as completed"
     },
     "actions": {
-      "submit": "Submit for approval",
+      "submit": "Send for approval",
       "approve": "Approve",
-      "return": "Return for changes",
+      "return": "Send back for changes",
       "revise": "Revise",
       "complete": "Mark as completed",
-      "cancel": "Cancel SJA"
+      "cancel": "Cancel the analysis"
     },
     "reasonMessage": {
       "submit": "Add a note for the approver.",
       "approve": "Add a note for the owner.",
       "return": "Tell the owner what needs to change before it can be approved.",
-      "revise": "Why does this approved SJA need to change? It goes back to draft and must be approved again.",
+      "revise": "Why does this approved analysis need to change? It goes back to draft, sign-offs are cleared and it must be approved again.",
       "complete": "Add a note about how the job went.",
-      "cancel": "Why is this SJA being cancelled?"
+      "cancel": "Why is this analysis being cancelled?"
     },
     "done": {
       "submit": "{{ code }} was sent for approval.",
       "approve": "{{ code }} was approved.",
-      "return": "{{ code }} was returned to draft.",
+      "return": "{{ code }} was sent back to draft.",
       "revise": "{{ code }} is back in draft for revision.",
       "complete": "{{ code }} was marked as completed.",
       "cancel": "{{ code }} was cancelled."
     },
     "ai": {
       "suggest": "Suggest hazards and controls",
-      "applied": "{{ count }} suggested steps were added. Review them before you save.",
-      "review": "Ask the assistant to review this SJA",
+      "applied": "{{ count }} suggested steps were added. Check them before you save.",
+      "review": "Ask the assistant to review this analysis",
       "reviewPrompt": "Review this safe job analysis draft: are any hazards or controls missing, and do the controls follow the hierarchy of controls?",
-      "summarisePrompt": "Summarise safe job analysis {{ code }}: the job, the main hazards, the controls and the residual risk."
+      "summarisePrompt": "Summarise safe job analysis {{ code }}: the job, the main hazards, the controls, the residual risk and who has signed off.",
+      "check": "Check for gaps",
+      "checkPrompt": "Check safe job analysis {{ code }} for gaps an auditor would see: missing hazards, controls that rely only on PPE, PPE that is not in the register, and missing sign-offs.",
+      "askHazards": "Ask about hazards",
+      "hazardsPrompt": "Which hazards should I consider for this job step? Give examples for typical Norwegian workplaces.",
+      "askControls": "Ask about controls",
+      "controlsPrompt": "Which controls would work for these hazards? Order them by the hierarchy of controls.",
+      "askResidual": "Ask about residual risk",
+      "residualPrompt": "How do I judge the residual risk after the controls, and when is it acceptable to start the work?"
     }
   },
   "ppe": {
     "new": "New PPE item",
-    "lesson": "PPE: the last line of defence",
-    "created": "{{ code }} was added to the register.",
+    "created": "{{ code }} was added to the PPE register.",
     "deleteTitle": "Delete this PPE item?",
-    "deleteMessage": "{{ code }} will be removed from the register. The audit trail keeps a record of it.",
+    "deleteMessage": "{{ code }} will be removed from the PPE register. The audit trail keeps a record of it.",
     "status": {
       "in_stock": "In stock",
       "issued": "Issued",
       "out_of_service": "Out of service",
       "retired": "Retired"
     },
+    "badge": {
+      "inspectionOverdue": "Inspection overdue",
+      "expired": "Expired"
+    },
     "sort": {
       "desc_created_at": "Newest first",
       "name": "Name",
       "code": "Code",
+      "due_at": "Next due date",
       "next_inspection_at": "Next inspection",
       "expires_at": "Expiry date"
     },
     "list": {
       "title": "PPE register",
       "subtitle": "Personal protective equipment: who has it, and when it must be inspected or replaced.",
-      "search": "Search by name, code, serial number or holder…",
+      "search": "Search name, code or holder",
       "back": "Back to the PPE register",
       "allCategories": "All categories",
-      "due": "Due",
+      "due": "Due date",
       "dueFilter": {
+        "30": "Due within 30 days",
         "any": "Any due date",
-        "0": "Overdue",
-        "30": "Due within 30 days"
+        "overdue": "Overdue"
       },
-      "heldByMe": "Held by me",
+      "heldByMe": "Issued to me",
       "heldBy": "Held by {{ name }}",
-      "dueOn": "Due {{ date }}",
-      "overdueOn": "Overdue since {{ date }}"
+      "quantity": "{{ count }} in the batch"
     },
     "fields": {
       "name": "Name",
       "category": "Category",
       "description": "Description",
-      "standard_ref": "Standard (e.g. EN 397)",
+      "standard_ref": "Standard",
+      "supplier": "Supplier",
       "manufacturer": "Manufacturer",
       "serial_number": "Serial or batch number",
       "quantity": "Quantity",
       "location": "Storage location",
       "responsible": "Responsible person",
-      "inspection_interval_days": "Inspection interval (days)",
+      "required_course": "Required training",
+      "inspection_interval": "Inspection interval",
+      "last_inspected_at": "Last inspected",
       "next_inspection_at": "Next inspection",
       "expires_at": "Expiry date",
       "notes": "Notes"
@@ -233,28 +423,55 @@
     "edit": {
       "newTitle": "New PPE item",
       "title": "Edit PPE item",
-      "create": "Add to register",
+      "create": "Add to the PPE register",
+      "whatSection": "What it is",
+      "whoSection": "Where it is and who is responsible",
       "inspectionSection": "Inspection and lifetime",
-      "nameRequired": "Give the item a name."
+      "nameRequired": "Give the item a name.",
+      "pickCategory": "Choose a category",
+      "standardHint": "For example EN 397 for helmets or EN 361 for harnesses.",
+      "supplierHint": "Pick it from the Suppliers register, so evaluations and contracts are one click away.",
+      "supplierPlaceholder": "Search for a supplier",
+      "quantityHint": "1 for personal gear that must be traced, such as a fall-arrest harness. More than 1 for a batch on the shelf: issuing part of it creates its own record for that person.",
+      "courseHint": "The course a holder must have done, for example working at height. Issuing warns if the holder has not done it.",
+      "coursePlaceholder": "Search for a course",
+      "intervalHint": "How often the item must be inspected. Choose a common interval or type the number of days.",
+      "days": "days"
     },
     "detail": {
-      "overdue": "Overdue",
+      "aboutTitle": "About the item",
       "holder": "Held by",
-      "issuedOn": "issued {{ date }}",
-      "inspections": "Inspection history",
+      "issuedOn": "Issued {{ date }}",
+      "inspections": "Inspections",
+      "inspectedBy": "{{ date }} · {{ name }}",
       "noInspections": "No inspections recorded yet.",
-      "everyDays": "Every {{ days }} days"
+      "batchNote": "A batch. Issuing part of it creates its own record for the holder.",
+      "fromBatch": "Split off a batch: open the batch",
+      "overdueNotice": "The inspection is overdue. Do not use or issue this item until it has passed an inspection.",
+      "expiredNotice": "This item has expired. Take it out of use and replace it.",
+      "failedCallout": "The last inspection failed. Report a deviation, so the cause is found and the gear is replaced.",
+      "createDeviation": "Create a deviation"
     },
     "actions": {
       "issue": "Issue",
       "return": "Return to stock",
-      "inspect": "Record inspection"
+      "inspect": "Record an inspection",
+      "edit": "Edit"
     },
     "issue": {
       "title": "Issue PPE",
       "holderUser": "Issue to a member",
-      "holderName": "…or type the holder's name",
-      "issuedAt": "Issued on"
+      "holderName": "Or type the name of someone outside the organisation",
+      "issuedAt": "Issued on",
+      "quantity": "How many",
+      "quantityHint": "Leave blank to issue the whole batch. Fewer units become their own record for this person.",
+      "training": {
+        "valid": "{{ course }} is done and valid until {{ date }}.",
+        "expired": "The holder's {{ course }} has expired. Renew the training before you issue the item.",
+        "missing": "The holder has not done {{ course }}. Plan the training before you issue the item.",
+        "unknown": "The holder's training for {{ course }} could not be checked.",
+        "not_required": "No training is required."
+      }
     },
     "inspection": {
       "title": "Record an inspection",
@@ -263,28 +480,31 @@
         "pass": "Passed",
         "fail": "Failed"
       },
-      "failNote": "A failed inspection takes the item out of service and notifies the HSE managers.",
+      "failNote": "A failed inspection takes the item out of service and notifies the health and safety managers. You can then create a deviation from the item.",
       "inspectedAt": "Inspected on",
+      "nextHint": "Leave blank to use the inspection interval.",
       "notes": "Findings and notes",
-      "save": "Save inspection"
+      "save": "Save the inspection"
     },
     "done": {
       "issued": "{{ code }} was issued.",
+      "issuedPart": "{{ count }} units were issued as {{ code }}.",
       "returned": "{{ code }} was returned to stock.",
       "inspected": "The inspection of {{ code }} was recorded.",
-      "inspectionFailed": "The failed inspection was recorded and {{ code }} is now out of service."
+      "inspectionFailed": "The failed inspection was recorded, and {{ code }} is now out of service."
     },
     "ai": {
-      "summarisePrompt": "Summarise PPE item {{ code }}: its status, holder, inspection history and what is due next."
+      "summarisePrompt": "Summarise PPE item {{ code }}: its status, holder, inspection history and what is due next.",
+      "askStandard": "Ask which standard applies",
+      "standardPrompt": "Which European standard (EN) applies to this kind of personal protective equipment, and what does it mean for inspection?"
     }
   },
   "consultation": {
-    "new": "New consultation",
-    "lesson": "Worker participation",
+    "new": "New participation meeting",
     "created": "{{ code }} was created.",
-    "cancelTitle": "Cancel this consultation?",
-    "cancelMessage": "{{ code }} will be marked as cancelled. It can't be held afterwards.",
-    "deleteTitle": "Delete this consultation record?",
+    "cancelTitle": "Cancel this meeting?",
+    "cancelMessage": "{{ code }} will be marked as cancelled. It can't be recorded as held afterwards.",
+    "deleteTitle": "Delete this participation record?",
     "deleteMessage": "{{ code }} will be removed. The audit trail keeps a record of it.",
     "status": {
       "planned": "Planned",
@@ -293,63 +513,88 @@
     },
     "kind": {
       "meeting": "Meeting",
-      "safety_committee": "Safety committee",
+      "safety_committee": "Working environment committee",
       "survey": "Survey",
       "toolbox_talk": "Toolbox talk",
-      "suggestion": "Suggestion",
+      "suggestion": "Suggestion from workers",
       "other": "Other"
     },
     "sort": {
       "desc_created_at": "Newest first",
-      "scheduled_at": "Scheduled (earliest)",
-      "desc_scheduled_at": "Scheduled (latest)",
+      "scheduled_at": "Planned date (earliest)",
+      "desc_scheduled_at": "Planned date (latest)",
       "desc_held_at": "Recently held",
       "code": "Code"
     },
     "list": {
-      "title": "Worker consultation",
-      "subtitle": "How workers and their representatives take part in health and safety decisions.",
-      "search": "Search by title, code or topic…",
-      "back": "Back to worker consultation",
+      "title": "Worker participation",
+      "subtitle": "How workers and their safety representatives take part in health and safety decisions, and what was agreed.",
+      "search": "Search title, code or topic",
+      "back": "Back to worker participation",
       "allKinds": "All kinds",
-      "repPresent": "Worker representative present"
+      "noRep": "No safety representative",
+      "actions": "{{ open }} tasks open, {{ done }} done",
+      "actionsOverdue": "{{ count }} tasks overdue"
     },
     "fields": {
       "title": "Title",
       "kind": "Kind",
-      "scheduled_at": "Scheduled for",
+      "scheduled_at": "Planned for",
       "held_at": "Held on",
       "location": "Location",
       "owner": "Organiser",
       "topics": "Topics",
       "summary": "Summary",
-      "decisions": "Decisions and agreed actions",
-      "participants": "Participants (one per line)",
-      "worker_representatives": "Worker representatives (one per line)",
-      "worker_representative_present": "A worker representative took part"
+      "decisions": "Decisions",
+      "participants": "Participants",
+      "worker_representatives": "Safety representatives and union representatives",
+      "worker_representative_present": "A safety representative took part"
     },
     "edit": {
-      "newTitle": "New worker consultation",
-      "title": "Edit worker consultation",
-      "create": "Create",
-      "outcomeSection": "Outcome"
+      "newTitle": "New participation meeting",
+      "title": "Edit participation meeting",
+      "create": "Create participation meeting",
+      "meetingSection": "The meeting",
+      "peopleSection": "Who takes part",
+      "outcomeSection": "Outcome",
+      "repsHint": "Pick the safety representative if they are a member; add others by name.",
+      "repAuto": "Ticked because a representative is listed.",
+      "decisionsHint": "New decisions become follow-up tasks: add them as tasks on the record."
     },
     "detail": {
-      "noRepWarning": "No worker representative took part. ISO 45001 expects workers' representatives to be consulted where they exist."
+      "aboutTitle": "About the meeting",
+      "repPresent": "Safety representative took part",
+      "noRepWarning": "No safety representative took part. Workers' representatives must be consulted where they exist.",
+      "unrecorded": "The planned date has passed. Record the meeting as held, or cancel it.",
+      "followUp": "Follow-up of the decisions",
+      "actionCounts": "{{ open }} open, {{ overdue }} overdue, {{ done }} done. See the Tasks tab.",
+      "noActions": "No follow-up tasks. Add the agreed actions as tasks, so they get an owner and a due date."
     },
     "actions": {
-      "hold": "Mark as held",
-      "cancel": "Cancel consultation"
+      "hold": "Record as held",
+      "cancel": "Cancel the meeting"
     },
     "hold": {
-      "title": "Record the consultation"
+      "title": "Record the meeting",
+      "actionsTitle": "Agreed actions",
+      "actionsHint": "Each action becomes a follow-up task with an owner and a due date.",
+      "actionN": "Action {{ n }}",
+      "actionPlaceholder": "What was agreed",
+      "assigneeN": "Who follows up action {{ n }}",
+      "dueN": "Due date of action {{ n }}",
+      "noAssignee": "Who follows it up?",
+      "removeAction": "Remove action {{ n }}",
+      "addAction": "Add an action"
     },
     "done": {
       "held": "{{ code }} was recorded as held.",
+      "heldWithActions": "{{ code }} was recorded as held, with {{ count }} follow-up tasks.",
       "cancelled": "{{ code }} was cancelled."
     },
     "ai": {
-      "summarisePrompt": "Summarise worker consultation {{ code }}: the topics, what was decided and the follow-up actions."
+      "summarisePrompt": "Summarise participation meeting {{ code }}: the topics, what was decided and how the follow-up tasks are going.",
+      "askTopics": "Ask what to cover",
+      "topicsPrompt": "Which topics should a working environment committee or safety meeting cover this time of year?"
     }
   },
   "rounds": {
@@ -357,13 +602,26 @@
     "subtitle": "Regular walk-arounds to spot hazards before they hurt someone.",
     "plan": "Plan a safety round",
     "planTitle": "Plan a safety round",
-    "planSubtitle": "The round becomes a task with a checklist; recurring rounds create the next one automatically.",
+    "planSubtitle": "The round becomes a reminder task with a checklist. Recurring rounds create the next one automatically.",
     "defaultTitle": "Safety round",
     "planned": "The safety round was planned.",
     "unassigned": "Unassigned",
-    "recurring": "Recurring",
+    "recurring": "Repeats",
     "overdue": "Overdue",
-    "checklistProgress": "{{ done }}/{{ total }} checked",
+    "checklistProgress": "{{ done }} of {{ total }} checked",
+    "plannedTitle": "Planned rounds",
+    "plannedHint": "Reminders of when the next round is due and who does it.",
+    "walks": {
+      "title": "Safety rounds carried out",
+      "hint": "Rounds done in Inspections with the safety-round checklist. Each finding can become a deviation.",
+      "new": "Carry out a safety round",
+      "findings": "{{ count }} findings, {{ open }} open",
+      "noFindings": "No findings",
+      "empty": "No safety rounds have been carried out yet.",
+      "unavailable": "Turn on Inspections to carry out safety rounds with findings. Until then you can plan rounds as reminders below.",
+      "more": "{{ count }} more.",
+      "openInspections": "Open Inspections"
+    },
     "filter": {
       "open": "Open",
       "all": "All"
@@ -383,7 +641,7 @@
     },
     "schedule": {
       "once": "Once",
-      "recurring": "Recurring"
+      "recurring": "Repeats"
     },
     "fields": {
       "title": "Title",
@@ -393,9 +651,25 @@
       "schedule": "Schedule",
       "due": "Due date",
       "start": "First round on",
-      "leadDays": "Create each round this many days before it is due",
-      "checklist": "Checklist (one item per line)",
+      "leadDays": "Days before the due date to create each round",
+      "checklist": "Checklist",
       "description": "Instructions"
+    }
+  },
+  "next": {
+    "sjaAwaiting": {
+      "title": "Approve {{ count }} safe job analyses",
+      "why": "The work should not start before the analysis is approved.",
+      "titleOne": "Approve {{ code }} “{{ title }}”",
+      "whyOne": "The work should not start before the analysis is approved."
+    },
+    "ppeOverdue": {
+      "title": "Inspect overdue PPE ({{ count }})",
+      "why": "Gear that is overdue for inspection or expired must not be used. The first is {{ code }} {{ title }}."
+    },
+    "consultationUnrecorded": {
+      "title": "Follow up participation meetings past their date ({{ count }})",
+      "why": "The planned date has passed. Record what was agreed, or cancel the meeting. The first is {{ code }} {{ title }}."
     }
   },
   "errors": {
@@ -403,16 +677,24 @@
     "invalid_user": "That person isn't a member of this organisation.",
     "invalid_department": "That department doesn't exist in this organisation.",
     "invalid_period": "The work can't end before it starts.",
-    "invalid_category": "Choose a PPE category.",
-    "sja_locked": "An approved or closed SJA can't be edited. Revise it first.",
-    "sja_incomplete": "Every job step needs at least one hazard and one control before the SJA can be submitted.",
-    "invalid_transition": "That action isn't possible in the current status. Reload the page and try again.",
+    "invalid_category": "Choose a category.",
+    "sja_locked": "An approved or closed analysis can't be edited. Revise it first.",
+    "sja_incomplete": "Every job step needs at least one hazard and one control before the analysis can be sent for approval.",
+    "invalid_transition": "That isn't possible in the current status. Reload the page and try again.",
     "reason_required": "Give a reason.",
     "ppe_not_available": "Only items in stock can be issued. Return it first.",
     "ppe_not_issued": "This item isn't issued to anyone.",
     "ppe_retired": "Retired items can't be inspected.",
+    "ppe_inspection_overdue": "The inspection is overdue. Record a passed inspection before you issue the item.",
+    "ppe_expired": "The item has expired and can't be issued. Replace it.",
+    "invalid_quantity": "Choose a number from 1 up to the number in the batch.",
+    "invalid_supplier": "That supplier doesn't exist, or you can't see it.",
+    "invalid_course": "That course doesn't exist, or you can't see it.",
     "holder_required": "Choose a member or type the holder's name.",
-    "consultation_cancelled": "A cancelled consultation can't be changed.",
+    "sja_not_signable": "Participants can sign off once the analysis is awaiting approval or approved.",
+    "already_signed": "This person has already signed off.",
+    "participant_required": "Only listed participants can sign off. Add the person to the analysis first.",
+    "consultation_cancelled": "A cancelled meeting can't be changed.",
     "invalid_rrule": "That repeat rule isn't supported.",
     "task_required": "Describe the work task first.",
     "module_disabled": "Health and safety is turned off for this organisation.",
@@ -424,11 +706,12 @@
     "sjaUpdated": "Safe job analysis updated: {{ code }} {{ title }}",
     "sjaSubmitted": "Safe job analysis awaiting approval: {{ code }} {{ title }}",
     "sjaApproved": "Safe job analysis approved: {{ code }} {{ title }}",
-    "sjaReturned": "Safe job analysis returned for changes: {{ code }} {{ title }}",
+    "sjaReturned": "Safe job analysis sent back for changes: {{ code }} {{ title }}",
     "sjaRevised": "Safe job analysis under revision: {{ code }} {{ title }}",
     "sjaCompleted": "Safe job analysis completed: {{ code }} {{ title }}",
     "sjaCancelled": "Safe job analysis cancelled: {{ code }} {{ title }}",
     "sjaDeleted": "Safe job analysis deleted: {{ code }} {{ title }}",
+    "sjaSignedOff": "Participant signed off the safe job analysis: {{ code }} {{ title }}",
     "ppeCreated": "PPE item added: {{ code }} {{ title }}",
     "ppeUpdated": "PPE item updated: {{ code }} {{ title }}",
     "ppeIssued": "PPE issued to you: {{ code }} {{ title }}",
@@ -436,33 +719,34 @@
     "ppeInspected": "PPE inspected: {{ code }} {{ title }}",
     "ppeInspectionFailed": "PPE failed inspection and is out of service: {{ code }} {{ title }}",
     "ppeDeleted": "PPE item deleted: {{ code }} {{ title }}",
-    "consultationCreated": "Worker consultation planned: {{ code }} {{ title }}",
-    "consultationUpdated": "Worker consultation updated: {{ code }} {{ title }}",
-    "consultationHeld": "Worker consultation held: {{ code }} {{ title }}",
-    "consultationCancelled": "Worker consultation cancelled: {{ code }} {{ title }}",
-    "consultationDeleted": "Worker consultation deleted: {{ code }} {{ title }}"
+    "consultationCreated": "Participation meeting planned: {{ code }} {{ title }}",
+    "consultationUpdated": "Participation meeting updated: {{ code }} {{ title }}",
+    "consultationHeld": "Participation meeting held: {{ code }} {{ title }}",
+    "consultationCancelled": "Participation meeting cancelled: {{ code }} {{ title }}",
+    "consultationDeleted": "Participation meeting deleted: {{ code }} {{ title }}"
   },
   "timeline": {
     "sjaCreated": "Created the safe job analysis",
     "sjaUpdated": "Updated the safe job analysis",
-    "sjaSubmitted": "Submitted it for approval",
+    "sjaSubmitted": "Sent it for approval",
     "sjaApproved": "Approved the safe job analysis",
-    "sjaReturned": "Returned it for changes",
+    "sjaReturned": "Sent it back for changes",
     "sjaRevised": "Opened it for revision",
     "sjaCompleted": "Marked the job as completed",
     "sjaCancelled": "Cancelled the safe job analysis",
     "sjaDeleted": "Deleted the safe job analysis",
-    "ppeCreated": "Added the item to the register",
+    "sjaSignedOff": "Recorded a participant's sign-off",
+    "ppeCreated": "Added the item to the PPE register",
     "ppeUpdated": "Updated the item",
     "ppeIssued": "Issued the item",
     "ppeReturned": "Returned the item to stock",
     "ppeInspected": "Recorded an inspection",
     "ppeInspectionFailed": "Recorded a failed inspection; the item is out of service",
     "ppeDeleted": "Deleted the item",
-    "consultationCreated": "Planned the consultation",
-    "consultationUpdated": "Updated the consultation",
-    "consultationHeld": "Recorded the consultation as held",
-    "consultationCancelled": "Cancelled the consultation",
-    "consultationDeleted": "Deleted the consultation"
+    "consultationCreated": "Planned the participation meeting",
+    "consultationUpdated": "Updated the participation meeting",
+    "consultationHeld": "Recorded the meeting as held",
+    "consultationCancelled": "Cancelled the participation meeting",
+    "consultationDeleted": "Deleted the participation meeting"
   }
 }

@@ -581,6 +581,21 @@
     "project_design_review": {
       "to_task": "Action from the review (task)",
       "to_deviation": "Deviation from the review"
+    },
+    "sja": {
+      "to_deviation": "Deviation or incident from this job",
+      "to_risk": "Health and safety risk from this job",
+      "to_task": "Task to follow it up",
+      "to_document": "Procedure for doing this job safely"
+    },
+    "ppe_item": {
+      "to_deviation": "Deviation from this item",
+      "to_task": "Task to follow it up"
+    },
+    "worker_consultation": {
+      "to_task": "Task from a decision",
+      "to_deviation": "Deviation raised in the meeting",
+      "to_risk": "Risk raised in the meeting"
     }
   },
   "frameworks": {

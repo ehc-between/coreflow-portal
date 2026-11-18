@@ -1,64 +1,92 @@
-import { BadgeTone } from '../../shared/ui/badge/badge';
-import { ConsultationStatus, PpeStatus, RiskLevel, SjaStatus, SjaStep } from './data/hse.models';
+import {
+  ConsultationStatus,
+  ControlType,
+  PpeStatus,
+  RISK_LEVELS,
+  RiskLevel,
+  SjaStep,
+} from './data/hse.models';
 
-/** Badge tone of an SJA status. */
-export function sjaStatusTone(status: SjaStatus): BadgeTone {
-  switch (status) {
-    case 'draft':
-      return 'neutral';
-    case 'in_review':
-      return 'info';
-    case 'approved':
-      return 'accent';
-    case 'completed':
-      return 'pass';
-    case 'cancelled':
-      return 'warn';
-  }
-}
-
-/** Badge tone of a PPE status. */
-export function ppeStatusTone(status: PpeStatus): BadgeTone {
+/**
+ * The shared tone-map value (`app-status-badge meaning="lifecycle"`) of a PPE status:
+ * in stock = ready (green), issued = in use, out of service = blocked, retired = grey.
+ */
+export function ppeStatusValue(status: PpeStatus): string {
   switch (status) {
     case 'in_stock':
-      return 'pass';
+      return 'effective';
     case 'issued':
-      return 'info';
+      return 'active';
     case 'out_of_service':
-      return 'fail';
+      return 'blocked';
     case 'retired':
-      return 'neutral';
+      return 'retired';
   }
 }
 
-/** Badge tone of a consultation status. */
-export function consultationStatusTone(status: ConsultationStatus): BadgeTone {
-  switch (status) {
-    case 'planned':
-      return 'info';
-    case 'held':
-      return 'pass';
-    case 'cancelled':
-      return 'neutral';
-  }
+/** The shared tone-map value of a consultation status (held = done). */
+export function consultationStatusValue(status: ConsultationStatus): string {
+  return status === 'held' ? 'completed' : status;
 }
 
-/** Badge tone of a risk level (none = neutral). */
-export function riskTone(level: RiskLevel | null | undefined): BadgeTone {
-  switch (level) {
-    case 'low':
-      return 'pass';
-    case 'medium':
-      return 'warn';
-    case 'high':
-    case 'critical':
-      return 'fail';
-    default:
-      return 'neutral';
-  }
+/** The lifecycle value of a safety-round task (overdue wins over its status). */
+export function roundStatusValue(status: string, overdue: boolean): string {
+  return overdue ? 'overdue' : status;
 }
 
-/** Multi-line text -> trimmed, non-empty lines (participants, hazards, controls). */
+/** Position of a risk level (low = 0 … critical = 3; none = -1). */
+export function riskRank(level: RiskLevel | '' | null | undefined): number {
+  return level ? RISK_LEVELS.indexOf(level) : -1;
+}
+
+/** Residual risk is set and not lower than the risk before controls (an SJA red flag). */
+export function residualNotLower(
+  before: RiskLevel | '' | null | undefined,
+  residual: RiskLevel | '' | null | undefined,
+): boolean {
+  return !!before && !!residual && riskRank(residual) >= riskRank(before);
+}
+
+/** The hierarchy-of-controls tag of control `index` of a step (null when untagged). */
+export function controlTypeOf(step: SjaStep, index: number): ControlType | null {
+  return step.control_types?.[index] ?? null;
+}
+
+/** Every control of the step is tagged PPE: the step relies only on the last line of defence. */
+export function ppeOnly(types: readonly (ControlType | null | '')[]): boolean {
+  return types.length > 0 && types.every((t) => t === 'ppe');
+}
+
+/** The translation key and params of an inspection interval in plain words. */
+export function intervalText(days: number | null | undefined): {
+  key: string;
+  params?: Record<string, unknown>;
+} | null {
+  if (!days || days < 1) {
+    return null;
+  }
+  if (days === 7) {
+    return { key: 'hse.interval.weekly' };
+  }
+  if (days >= 28 && days <= 31) {
+    return { key: 'hse.interval.monthly' };
+  }
+  if (days >= 89 && days <= 92) {
+    return { key: 'hse.interval.quarterly' };
+  }
+  if (days >= 180 && days <= 184) {
+    return { key: 'hse.interval.halfYearly' };
+  }
+  if (days === 365 || days === 366) {
+    return { key: 'hse.interval.yearly' };
+  }
+  if (days === 730 || days === 731) {
+    return { key: 'hse.interval.everyTwoYears' };
+  }
+  return { key: 'hse.interval.days', params: { days } };
+}
+
+/** Multi-line text -> trimmed, non-empty lines. */
 export function linesToList(text: string | null | undefined): string[] {
   return (text ?? '')
     .split(/\r?\n/)
@@ -117,6 +145,11 @@ export function dayToWire(day: string | null | undefined): string | null {
   return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? `${day}T00:00:00` : null;
 }
 
+/** A `<input type="date">` day -> the end of that day as a naive wire value (or null). */
+export function dayEndToWire(day: string | null | undefined): string | null {
+  return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? `${day}T23:59:59` : null;
+}
+
 /** Hazard and control totals of a list of steps. */
 export function stepTotals(steps: readonly SjaStep[]): { hazards: number; controls: number } {
   return steps.reduce(
@@ -133,4 +166,18 @@ export function incompleteSteps(steps: readonly SjaStep[]): number[] {
   return steps
     .map((step, index) => (step.hazards.length > 0 && step.controls.length > 0 ? -1 : index))
     .filter((index) => index >= 0);
+}
+
+/** Which period phrasing fits: both ends, only a start ("from … "), only an end, or none. */
+export function periodKind(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): 'range' | 'from' | 'until' | 'none' {
+  if (start && end) {
+    return 'range';
+  }
+  if (start) {
+    return 'from';
+  }
+  return end ? 'until' : 'none';
 }

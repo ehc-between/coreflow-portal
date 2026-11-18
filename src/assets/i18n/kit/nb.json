@@ -581,6 +581,21 @@
     "project_design_review": {
       "to_task": "Tiltak fra gjennomgangen (oppgave)",
       "to_deviation": "Avvik fra gjennomgangen"
+    },
+    "sja": {
+      "to_deviation": "Avvik eller uønsket hendelse fra denne jobben",
+      "to_risk": "HMS-risiko fra denne jobben",
+      "to_task": "Oppgave til oppfølging",
+      "to_document": "Prosedyre for å gjøre jobben sikkert"
+    },
+    "ppe_item": {
+      "to_deviation": "Avvik fra dette utstyret",
+      "to_task": "Oppgave til oppfølging"
+    },
+    "worker_consultation": {
+      "to_task": "Oppgave fra en beslutning",
+      "to_deviation": "Avvik tatt opp i møtet",
+      "to_risk": "Risiko tatt opp i møtet"
     }
   },
   "frameworks": {
