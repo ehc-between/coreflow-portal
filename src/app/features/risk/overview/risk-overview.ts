@@ -16,13 +16,19 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
+import { Term } from '../../../shared/guidance/term';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
+import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
-import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RiskApi } from '../data/risk-api';
+import { currentRating, standardDisplayName } from '../data/risk-display';
 import { riskErrorCode, riskErrorKey } from '../data/risk-errors';
 import {
   HEATMAP_BASES,
@@ -34,15 +40,18 @@ import {
 } from '../data/risk.models';
 import { CellPosition, MatrixGrid } from '../shared/matrix-grid';
 import { RatingBadge } from '../shared/rating-badge';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { SoaProgress } from '../shared/soa-progress';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
 /**
- * Risk module dashboard: headline numbers, the heat map (current, inherent or
- * residual basis, per register), the risks of a chosen cell, and SoA progress.
- * Without a matrix the manager is offered the one-click setup.
+ * Risk module overview: headline numbers (the same "open" as the list), the heat
+ * map (current, inherent or residual basis, per register) with how many risks are
+ * rated, the risks of a chosen cell, and the Statement of Applicability with two
+ * honest bars (decided, implemented). Without a matrix the manager is offered the
+ * one-click setup.
  */
 @Component({
   selector: 'app-risk-overview',
@@ -51,57 +60,57 @@ type LoadState = 'loading' | 'ready' | 'error';
     TranslocoPipe,
     AskAbout,
     TeachingEmpty,
+    Term,
     TourStepDirective,
+    WhyItMatters,
     Button,
     Card,
+    ErrorState,
+    HelpStrip,
     Icon,
     KpiTile,
-    ProgressBar,
+    LoadingState,
+    PageHeader,
     MatrixGrid,
     RatingBadge,
-    RiskPageGuide,
+    RiskNav,
+    SoaProgress,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'risk.overview.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">{{ 'risk.overview.subtitle' | transloco }}</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          @if (perms.canWrite()) {
-            <app-button variant="secondary" size="sm" (click)="go('/risk/opportunities/new')">
-              <app-icon name="plus" [size]="14" />
-              {{ 'risk.opportunities.new' | transloco }}
-            </app-button>
-            <app-button size="sm" [appTourStep]="'risk-new'" (click)="go('/risk/risks/new')">
-              <app-icon name="plus" [size]="14" />
-              {{ 'risk.risks.new' | transloco }}
-            </app-button>
-          }
-        </div>
-      </header>
-
-      <app-risk-page-guide
-        class="mb-5"
-        page="overview"
-        lesson="first-risk-assessment"
-        tour="overview"
-      />
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="modules.names.risk"
+        descriptionKey="risk.overview.subtitle"
+        settingsLink="/risk/matrices"
+      >
+        @if (perms.canWrite()) {
+          <app-button
+            secondary
+            variant="secondary"
+            size="sm"
+            (click)="go('/risk/opportunities/new')"
+          >
+            <app-icon name="plus" [size]="14" />
+            {{ 'risk.opportunities.new' | transloco }}
+          </app-button>
+        }
+        @if (perms.canWrite()) {
+          <app-button primary size="sm" [appTourStep]="'risk-new'" (click)="go('/risk/risks/new')">
+            <app-icon name="plus" [size]="14" />
+            {{ 'risk.risks.new' | transloco }}
+          </app-button>
+        }
+      </app-page-header>
+      <app-risk-nav />
+      <app-help-strip scope="risk" page="overview" tour="overview" lesson="first-risk-assessment" />
 
       @switch (state()) {
         @case ('loading') {
-          <p class="py-10 text-center text-[14px] text-fg-muted">
-            {{ 'risk.common.loading' | transloco }}
-          </p>
+          <app-loading-state [rows]="5" />
         }
         @case ('error') {
-          <p class="py-10 text-center text-[14px] text-fail" role="alert">
-            {{ 'risk.common.loadFailed' | transloco }}
-          </p>
+          <app-error-state (retry)="reload()" />
         }
         @case ('ready') {
           @if (noMatrix()) {
@@ -113,7 +122,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                 (action)="setup()"
               />
               @if (!perms.canManage()) {
-                <p class="pb-4 text-center text-[13px] text-fg-muted">
+                <p class="pb-4 text-center text-ui text-fg-muted">
                   {{ 'risk.setup.askManager' | transloco }}
                 </p>
               }
@@ -125,7 +134,12 @@ type LoadState = 'loading' | 'ready' | 'error';
                 [attr.aria-label]="'risk.overview.kpis' | transloco"
                 [appTourStep]="'risk-kpis'"
               >
-                <a routerLink="/risk/risks" [queryParams]="{ status: 'open' }" class="block">
+                <a
+                  routerLink="/risk/risks"
+                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  [attr.title]="'risk.overview.openHint' | transloco"
+                  data-testid="kpi-open"
+                >
                   <app-kpi-tile
                     [label]="'risk.overview.openRisks' | transloco"
                     [value]="o.risks.open"
@@ -134,16 +148,24 @@ type LoadState = 'loading' | 'ready' | 'error';
                 </a>
                 <a
                   routerLink="/risk/risks"
-                  [queryParams]="{ status: 'open', sort: '-score' }"
-                  class="block"
+                  [queryParams]="{ appetite: 'above' }"
+                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  [attr.title]="'risk.overview.appetiteHint' | transloco"
+                  data-testid="kpi-appetite"
                 >
                   <app-kpi-tile
                     [label]="'risk.overview.aboveAppetite' | transloco"
                     [value]="o.risks.above_appetite"
-                    [tone]="o.risks.above_appetite > 0 ? 'fail' : 'pass'"
+                    [tone]="o.risks.above_appetite > 0 ? 'fail' : 'neutral'"
+                    [delta]="appetiteDelta()"
+                    deltaTone="neutral"
                   />
                 </a>
-                <a routerLink="/risk/risks" [queryParams]="{ review: 'due' }" class="block">
+                <a
+                  routerLink="/risk/risks"
+                  [queryParams]="{ review: 'due' }"
+                  class="block rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                >
                   <app-kpi-tile
                     [label]="'risk.overview.reviewsOverdue' | transloco"
                     [value]="o.risks.reviews_overdue"
@@ -153,10 +175,8 @@ type LoadState = 'loading' | 'ready' | 'error';
                 <app-kpi-tile
                   [label]="'risk.overview.openTreatments' | transloco"
                   [value]="o.treatments.open"
-                  [delta]="
-                    'risk.overview.overdueCount' | transloco: { count: o.treatments.overdue }
-                  "
-                  [deltaTone]="o.treatments.overdue > 0 ? 'fail' : null"
+                  [delta]="treatmentDelta()"
+                  [deltaTone]="o.treatments.overdue > 0 ? 'warn' : 'neutral'"
                 />
               </section>
             }
@@ -164,7 +184,7 @@ type LoadState = 'loading' | 'ready' | 'error';
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
               <app-card>
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1.5 font-display text-[16px] font-bold text-fg">
+                  <h2 class="flex items-center gap-1.5 font-display text-section font-bold text-fg">
                     {{ 'risk.heatmap.title' | transloco }}
                     <app-ask-about
                       [prompt]="'risk.heatmap.askPrompt' | transloco"
@@ -175,12 +195,13 @@ type LoadState = 'loading' | 'ready' | 'error';
                     class="flex flex-wrap items-center gap-2"
                     [appTourStep]="'risk-heatmap-basis'"
                   >
-                    <label class="sr-only" for="risk-heatmap-basis">
+                    <label class="text-meta font-semibold text-fg-muted" for="risk-heatmap-basis">
                       {{ 'risk.heatmap.basis' | transloco }}
                     </label>
                     <select
                       id="risk-heatmap-basis"
-                      class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                      class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                      aria-describedby="risk-heatmap-basis-hint"
                       (change)="setBasis($any($event.target).value)"
                     >
                       @for (b of bases; track b) {
@@ -195,7 +216,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                       </label>
                       <select
                         id="risk-heatmap-register"
-                        class="h-9 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                        class="h-9 max-w-[200px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                         (change)="setRegister($any($event.target).value)"
                       >
                         <option value="" [selected]="!registerId()">
@@ -210,6 +231,9 @@ type LoadState = 'loading' | 'ready' | 'error';
                     }
                   </div>
                 </div>
+                <p id="risk-heatmap-basis-hint" class="mb-3 text-meta text-fg-muted">
+                  {{ 'risk.heatmap.basisHints.' + basis() | transloco }}
+                </p>
                 @if (heatmap(); as h) {
                   <app-matrix-grid
                     mode="heatmap"
@@ -218,15 +242,18 @@ type LoadState = 'loading' | 'ready' | 'error';
                     [ariaLabel]="'risk.heatmap.title' | transloco"
                     (cellSelected)="selectCell($event)"
                   />
-                  <p class="mt-2 text-[12.5px] text-fg-muted">
-                    {{ 'risk.heatmap.summary' | transloco: { total: h.total, unrated: h.unrated } }}
+                  <p class="mt-2 text-meta text-fg-muted" data-testid="heatmap-summary">
+                    {{
+                      'risk.heatmap.summary'
+                        | transloco: { rated: rated(h), total: h.total, unrated: h.unrated }
+                    }}
                   </p>
                 }
 
                 @if (cell(); as c) {
                   <section class="mt-4 border-t border-border pt-3" aria-live="polite">
                     <div class="mb-2 flex items-center justify-between gap-2">
-                      <h3 class="text-[13.5px] font-semibold text-fg">
+                      <h3 class="text-body font-semibold text-fg">
                         {{
                           'risk.heatmap.cellRisks'
                             | transloco: { likelihood: c.likelihood, consequence: c.consequence }
@@ -234,7 +261,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                       </h3>
                       <button
                         type="button"
-                        class="rounded-tile px-2 py-1 text-[12.5px] font-semibold text-fg-muted hover:bg-surface-2"
+                        class="rounded-tile px-2 py-1 text-meta font-semibold text-fg-muted hover:bg-surface-2"
                         (click)="cell.set(null)"
                       >
                         {{ 'risk.common.close' | transloco }}
@@ -242,22 +269,23 @@ type LoadState = 'loading' | 'ready' | 'error';
                     </div>
                     <ul class="divide-y divide-border">
                       @for (r of cellRisks(); track r.id) {
+                        @let rating = current(r);
                         <li class="flex items-center gap-2 py-2">
-                          <span class="font-mono text-[12px] text-fg-subtle">{{ r.code }}</span>
+                          <span class="font-mono text-meta text-fg-subtle">{{ r.code }}</span>
                           <a
                             [routerLink]="['/risk/risks', r.id]"
-                            class="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-fg hover:underline"
+                            class="min-w-0 flex-1 truncate text-body font-semibold text-fg hover:underline"
                             >{{ r.title }}</a
                           >
                           <app-rating-badge
-                            [score]="r.current_score"
-                            [level]="r.current_level"
-                            [label]="(r.residual ?? r.inherent)?.label"
-                            [color]="(r.residual ?? r.inherent)?.color"
+                            [score]="rating?.score"
+                            [level]="rating?.level"
+                            [label]="rating?.label"
+                            [color]="rating?.color"
                           />
                         </li>
                       } @empty {
-                        <li class="py-2 text-[13px] text-fg-muted">
+                        <li class="py-2 text-ui text-fg-muted">
                           {{ 'risk.common.loading' | transloco }}
                         </li>
                       }
@@ -269,10 +297,10 @@ type LoadState = 'loading' | 'ready' | 'error';
               <div class="flex flex-col gap-5">
                 @if (overview(); as o) {
                   <app-card>
-                    <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
+                    <h2 class="mb-3 font-display text-section font-bold text-fg">
                       {{ 'risk.overview.byStatus' | transloco }}
                     </h2>
-                    <ul class="flex flex-col gap-1.5 text-[13px]">
+                    <ul class="flex flex-col gap-1.5 text-ui">
                       @for (s of statusRows(); track s.key) {
                         <li class="flex items-center justify-between">
                           <a
@@ -286,13 +314,21 @@ type LoadState = 'loading' | 'ready' | 'error';
                       }
                     </ul>
                     @if (o.risks.unowned > 0) {
-                      <p class="mt-3 text-[12.5px] text-warn">
+                      <p class="mt-3 text-meta text-warn-ink">
                         {{ 'risk.overview.unowned' | transloco: { count: o.risks.unowned } }}
+                      </p>
+                    }
+                    @if (o.treatments.awaiting_effectiveness_check) {
+                      <p class="mt-2 text-meta text-warn-ink">
+                        {{
+                          'risk.overview.awaitingCheck'
+                            | transloco: { count: o.treatments.awaiting_effectiveness_check }
+                        }}
                       </p>
                     }
                     <a
                       routerLink="/risk/opportunities"
-                      class="mt-3 block text-[13px] font-semibold text-accent hover:underline"
+                      class="mt-3 block text-ui font-semibold text-accent hover:underline"
                     >
                       {{
                         'risk.overview.opportunities' | transloco: { count: o.opportunities.total }
@@ -301,35 +337,40 @@ type LoadState = 'loading' | 'ready' | 'error';
                   </app-card>
 
                   <app-card>
-                    <h2 class="mb-3 font-display text-[16px] font-bold text-fg">
-                      {{ 'risk.overview.soaProgress' | transloco }}
-                    </h2>
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                      <h2 class="font-display text-section font-bold text-fg">
+                        <app-term scope="risk" key="statement-of-applicability">{{
+                          'risk.overview.soaProgress' | transloco
+                        }}</app-term>
+                      </h2>
+                      <a
+                        routerLink="/risk/soa"
+                        class="text-meta font-semibold text-accent hover:underline"
+                        >{{ 'risk.overview.seeAll' | transloco }}</a
+                      >
+                    </div>
                     @for (s of o.soa; track s.standard_key) {
                       <a
                         [routerLink]="['/risk/soa', s.standard_key]"
-                        class="mb-3 block rounded-tile hover:bg-surface-2"
+                        class="mb-4 block rounded-tile p-1 last:mb-0 hover:bg-surface-2"
                       >
-                        <div class="mb-1 flex justify-between text-[13px]">
-                          <span class="font-semibold text-fg">{{ s.standard_key }}</span>
-                          <span class="text-fg-muted">
-                            {{
-                              'risk.overview.soaImplemented'
-                                | transloco
-                                  : { implemented: s.implemented, applicable: s.applicable }
-                            }}
-                          </span>
-                        </div>
-                        <app-progress-bar
-                          [value]="s.applicable ? (s.implemented / s.applicable) * 100 : 0"
+                        <p class="mb-2 text-ui font-semibold text-fg">
+                          {{ standardName(s.standard_label, s.standard_key) }}
+                        </p>
+                        <app-soa-progress
+                          [total]="s.total"
+                          [justified]="soaJustified(s)"
+                          [applicable]="s.applicable"
+                          [implemented]="s.implemented"
                         />
                       </a>
                     } @empty {
-                      <p class="text-[13px] text-fg-muted">
+                      <p class="text-ui text-fg-muted">
                         {{ 'risk.overview.noSoa' | transloco }}
                       </p>
                       <a
                         routerLink="/risk/soa"
-                        class="mt-2 inline-block text-[13px] font-semibold text-accent hover:underline"
+                        class="mt-2 inline-block text-ui font-semibold text-accent hover:underline"
                         >{{ 'risk.overview.openSoa' | transloco }}</a
                       >
                     }
@@ -338,6 +379,7 @@ type LoadState = 'loading' | 'ready' | 'error';
               </div>
             </div>
           }
+          <app-why-it-matters class="mt-8 block" scope="risk" page="overview" />
         }
       }
     </div>
@@ -363,6 +405,8 @@ export class RiskOverviewPage {
   private sub: Subscription | null = null;
   private cellSub: Subscription | null = null;
 
+  protected readonly current = currentRating;
+
   protected readonly counts = computed(() => {
     const out: Record<string, number> = {};
     for (const c of this.heatmap()?.cells ?? []) {
@@ -376,6 +420,28 @@ export class RiskOverviewPage {
     return ['identified', 'assessed', 'in_treatment', 'monitoring', 'accepted', 'closed'].map(
       (key) => ({ key, count: byStatus[key] ?? 0 }),
     );
+  });
+
+  /** "≤ 4 poeng er akseptabelt" under the appetite KPI (from the overview or the heat map). */
+  protected readonly appetiteDelta = computed(() => {
+    const max =
+      this.overview()?.appetite?.max_score ?? this.heatmap()?.matrix.acceptable_max_score ?? null;
+    const accepted = this.overview()?.risks.accepted_above_appetite ?? 0;
+    const parts: string[] = [];
+    if (max !== null && max !== undefined) {
+      parts.push(this.language.translate('risk.overview.appetiteValue', { score: max }));
+    } else {
+      parts.push(this.language.translate('risk.overview.noAppetite'));
+    }
+    if (accepted > 0) {
+      parts.push(this.language.translate('risk.overview.acceptedAbove', { count: accepted }));
+    }
+    return parts.join(' · ');
+  });
+
+  protected readonly treatmentDelta = computed(() => {
+    const t = this.overview()?.treatments;
+    return t ? this.language.translate('risk.overview.overdueCount', { count: t.overdue }) : '';
   });
 
   protected readonly cellRisks = computed(() => {
@@ -396,7 +462,7 @@ export class RiskOverviewPage {
     providePageContext(() => ({
       module: 'risk',
       view: 'dashboard',
-      title: this.language.translate('risk.overview.title'),
+      title: this.language.translate('modules.names.risk'),
     }));
     effect(() => {
       const orgId = this.perms.orgId();
@@ -408,6 +474,28 @@ export class RiskOverviewPage {
       this.sub?.unsubscribe();
       this.cellSub?.unsubscribe();
     });
+  }
+
+  /** Risks rated on the shown basis (older APIs: total minus unrated). */
+  protected rated(h: Heatmap): number {
+    return h.rated ?? Math.max(0, h.total - h.unrated);
+  }
+
+  protected standardName(label: Readonly<Record<string, string>> | undefined, key: string): string {
+    return standardDisplayName(label, key, null, this.language.active(), (k, p) =>
+      this.language.translate(k, p),
+    );
+  }
+
+  protected soaJustified(s: Overview['soa'][number]): number | null {
+    if (s.justified !== undefined) {
+      return s.justified;
+    }
+    return s.missing_justification !== undefined ? s.total - s.missing_justification : null;
+  }
+
+  protected reload(): void {
+    this.load(this.perms.orgId(), this.basis(), this.registerId());
   }
 
   private load(orgId: string | null, basis: HeatmapBasis, registerId: string): void {

@@ -10,9 +10,9 @@ import {
   untracked,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, catchError, forkJoin, of } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -22,10 +22,9 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
-import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { RiskApi } from '../data/risk-api';
-import { bandLabel, levelLabel } from '../data/risk-display';
+import { TranslateFn, bandLabel, levelLabel } from '../data/risk-display';
 import { riskErrorKey } from '../data/risk-errors';
 import {
   MATRIX_TEMPLATES,
@@ -38,8 +37,14 @@ import {
   MatrixUpdate,
 } from '../data/risk.models';
 import { MatrixGrid } from '../shared/matrix-grid';
-import { RiskPageGuide } from '../shared/risk-page-guide';
+import { Badge } from '../../../shared/ui/badge/badge';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RiskPermissions } from '../shared/risk-permissions';
+import { RiskField } from '../shared/risk-field';
 
 export interface MatrixDraft {
   readonly name: string;
@@ -55,6 +60,8 @@ export interface MatrixDraft {
 const MIN_LEVELS = 2;
 const MAX_LEVELS = 10;
 const MAX_BANDS = 8;
+type Axis = 'likelihoodLevels' | 'consequenceLevels';
+
 const TABS: readonly RecordTab[] = ['details', 'activity', 'revisions'];
 
 export const MATRIX_FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -89,13 +96,20 @@ function renumber(levels: readonly MatrixLevel[]): MatrixLevel[] {
   return levels.map((l, i) => ({ ...l, value: i + 1 }));
 }
 
-export function matrixToDraft(m: Matrix): MatrixDraft {
+/**
+ * The editable copy of a matrix. With `t`, labels that are still the template's
+ * English defaults are shown in the user's language, exactly as every grid shows
+ * them, so what the editor shows is what gets saved.
+ */
+export function matrixToDraft(m: Matrix, t?: TranslateFn): MatrixDraft {
+  const levels = (list: readonly MatrixLevel[]) =>
+    t ? list.map((l) => ({ ...l, label: levelLabel(l, t) })) : list;
   return {
     name: m.name,
     description: m.description ?? '',
-    likelihood_levels: m.likelihood_levels,
-    consequence_levels: m.consequence_levels,
-    bands: m.bands,
+    likelihood_levels: levels(m.likelihood_levels),
+    consequence_levels: levels(m.consequence_levels),
+    bands: t ? m.bands.map((b) => ({ ...b, label: bandLabel(b, t) })) : m.bands,
     cells: m.cells,
     acceptable_max_score: m.acceptable_max_score !== null ? String(m.acceptable_max_score) : '',
     is_default: m.is_default,
@@ -142,8 +156,8 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
 @Component({
   selector: 'app-matrix-editor',
   imports: [
+    RiskField,
     NgTemplateOutlet,
-    RouterLink,
     TranslocoPipe,
     FieldHelp,
     RecordDetailLayout,
@@ -151,20 +165,23 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
     Button,
     Card,
     ConfirmDialog,
-    FormField,
     Icon,
     MatrixGrid,
-    RiskPageGuide,
+    Badge,
+    ErrorState,
+    HelpStrip,
+    LoadingState,
+    MenuItem,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #editor>
       <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-        <app-risk-page-guide page="matrixEditor" lesson="risk-matrix" />
         <fieldset class="flex flex-col gap-5" [disabled]="!perms.canManage()">
           <app-card>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-form-field [label]="'risk.matrices.name' | transloco" inputId="matrix-name">
+              <app-risk-field inputId="matrix-name" labelKey="risk.matrices.name">
                 <input
                   id="matrix-name"
                   required
@@ -172,11 +189,13 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   [value]="draft().name"
                   (input)="patch({ name: $any($event.target).value })"
                 />
-              </app-form-field>
+              </app-risk-field>
               @if (!id()) {
-                <app-form-field
-                  [label]="'risk.matrices.template' | transloco"
+                <app-risk-field
                   inputId="matrix-template"
+                  labelKey="risk.matrices.template"
+                  helpPage="matrixEditor"
+                  helpField="template"
                 >
                   <select id="matrix-template" (change)="applyTemplate($any($event.target).value)">
                     @for (t of templateKeys; track t) {
@@ -185,25 +204,23 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                       </option>
                     }
                   </select>
-                  <app-field-help scope="risk" page="matrixEditor" field="template" />
-                </app-form-field>
+                </app-risk-field>
               }
               <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'risk.fields.description' | transloco"
-                  inputId="matrix-description"
-                >
+                <app-risk-field inputId="matrix-description" labelKey="risk.fields.description">
                   <textarea
                     id="matrix-description"
                     rows="2"
                     [value]="draft().description"
                     (input)="patch({ description: $any($event.target).value })"
                   ></textarea>
-                </app-form-field>
+                </app-risk-field>
               </div>
-              <app-form-field
-                [label]="'risk.matrices.appetite' | transloco"
+              <app-risk-field
                 inputId="matrix-appetite"
+                labelKey="risk.matrices.appetite"
+                helpPage="matrixEditor"
+                helpField="appetite"
               >
                 <input
                   id="matrix-appetite"
@@ -213,9 +230,8 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   [value]="draft().acceptable_max_score"
                   (input)="patch({ acceptable_max_score: $any($event.target).value })"
                 />
-                <app-field-help scope="risk" page="matrixEditor" field="appetite" />
-              </app-form-field>
-              <label class="inline-flex items-center gap-2 self-end pb-2 text-[13px] text-fg">
+              </app-risk-field>
+              <label class="inline-flex items-center gap-2 self-end pb-2 text-ui text-fg">
                 <input
                   type="checkbox"
                   [checked]="draft().is_default"
@@ -230,7 +246,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
             @for (axis of axes; track axis) {
               <app-card>
                 <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1.5 font-display text-[16px] font-bold text-fg">
+                  <h2 class="flex items-center gap-1.5 font-display text-section font-bold text-fg">
                     {{ 'risk.matrices.' + axis | transloco }}
                     <app-field-help scope="risk" page="matrixEditor" [field]="axis" />
                   </h2>
@@ -246,11 +262,30 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                     </app-button>
                   }
                 </div>
+                @if (missingDescriptions(axis); as missing) {
+                  <div
+                    class="mb-3 flex flex-wrap items-center gap-2 rounded-tile bg-warn-soft px-3 py-2 text-meta text-warn-ink"
+                    [attr.data-testid]="'matrix-missing-' + axis"
+                  >
+                    <span class="min-w-0 flex-1">{{
+                      'risk.matrices.missingDescriptions' | transloco: { count: missing }
+                    }}</span>
+                    @if (perms.canManage() && suggestionFor(axis)) {
+                      <button
+                        type="button"
+                        class="font-semibold underline-offset-2 hover:underline"
+                        (click)="fillDescriptions(axis)"
+                      >
+                        {{ 'risk.matrices.fillDescriptions' | transloco }}
+                      </button>
+                    }
+                  </div>
+                }
                 <ol class="flex flex-col gap-2">
                   @for (level of levels(axis); track level.value; let i = $index) {
                     <li class="flex items-start gap-2">
                       <span
-                        class="mt-2.5 w-5 flex-none text-center text-[12.5px] font-semibold text-fg-muted"
+                        class="mt-2.5 w-5 flex-none text-center text-meta font-semibold text-fg-muted"
                       >
                         {{ level.value }}
                       </span>
@@ -260,7 +295,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                         </label>
                         <input
                           [id]="axis + '-label-' + i"
-                          class="h-9 rounded-tile border border-border bg-bg px-2.5 text-[13px] text-fg"
+                          class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg"
                           maxlength="64"
                           [value]="level.label"
                           (input)="setLevel(axis, i, { label: $any($event.target).value })"
@@ -270,9 +305,9 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                         </label>
                         <input
                           [id]="axis + '-desc-' + i"
-                          class="h-8 rounded-tile border border-border bg-bg px-2.5 text-[12.5px] text-fg-muted"
+                          class="h-9 rounded-tile border border-border bg-bg px-2.5 text-meta text-fg"
                           maxlength="500"
-                          [placeholder]="'risk.matrices.descriptionPlaceholder' | transloco"
+                          [placeholder]="descriptionPlaceholder(axis, i)"
                           [value]="level.description ?? ''"
                           (input)="setLevel(axis, i, { description: $any($event.target).value })"
                         />
@@ -299,7 +334,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
 
           <app-card>
             <div class="mb-3 flex items-center justify-between gap-2">
-              <h2 class="flex items-center gap-1.5 font-display text-[16px] font-bold text-fg">
+              <h2 class="flex items-center gap-1.5 font-display text-section font-bold text-fg">
                 {{ 'risk.matrices.bands' | transloco }}
                 <app-field-help scope="risk" page="matrixEditor" field="bands" />
               </h2>
@@ -333,7 +368,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   }}</label>
                   <input
                     [id]="'band-label-' + i"
-                    class="h-9 rounded-tile border border-border bg-bg px-2.5 text-[13px] text-fg"
+                    class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg"
                     maxlength="64"
                     [value]="band.label"
                     (input)="setBand(i, { label: $any($event.target).value })"
@@ -346,7 +381,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                     type="number"
                     min="1"
                     [max]="maxScore()"
-                    class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                     [value]="band.min_score"
                     [attr.title]="'risk.matrices.bandMin' | transloco"
                     (input)="setBand(i, { min_score: +$any($event.target).value || 1 })"
@@ -367,17 +402,17 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                 </li>
               }
             </ul>
-            <p class="mt-2 text-[12px] text-fg-subtle">
+            <p class="mt-2 text-meta text-fg-subtle">
               {{ 'risk.matrices.bandHint' | transloco }}
             </p>
           </app-card>
 
           <app-card>
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-[16px] font-bold text-fg">
+              <h2 class="font-display text-section font-bold text-fg">
                 {{ 'risk.matrices.preview' | transloco }}
               </h2>
-              <label class="inline-flex items-center gap-2 text-[13px] text-fg-muted">
+              <label class="inline-flex items-center gap-2 text-ui text-fg-muted">
                 <input
                   type="checkbox"
                   [checked]="customCells()"
@@ -391,12 +426,12 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
               [showAppetite]="true"
               [ariaLabel]="'risk.matrices.preview' | transloco"
             />
-            <p class="mt-1 text-[12px] text-fg-subtle">
+            <p class="mt-1 text-meta text-fg-subtle">
               {{ 'risk.matrices.appetiteHint' | transloco }}
             </p>
             @if (customCells()) {
               <div class="mt-4 overflow-x-auto">
-                <table class="text-[12px]">
+                <table class="text-meta">
                   <caption class="sr-only">
                     {{
                       'risk.matrices.cells' | transloco
@@ -423,7 +458,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                             </label>
                             <select
                               [id]="'cell-' + l + '-' + c"
-                              class="h-8 w-[88px] rounded-tile border border-border bg-bg px-1 text-[12px] text-fg"
+                              class="h-8 w-[88px] rounded-tile border border-border bg-bg px-1 text-meta text-fg"
                               (change)="setCell(l, c, $any($event.target).value)"
                             >
                               <option value="" [selected]="!draft().cells[l + ':' + c]">
@@ -450,18 +485,15 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
 
           @if (id()) {
             <app-card>
-              <app-form-field
-                [label]="'risk.fields.changeReason' | transloco"
-                inputId="matrix-change-reason"
-              >
+              <app-risk-field inputId="matrix-change-reason" labelKey="risk.fields.changeReason">
                 <input
                   id="matrix-change-reason"
                   maxlength="2000"
                   [value]="changeReason()"
                   (input)="changeReason.set($any($event.target).value)"
                 />
-              </app-form-field>
-              <p class="mt-2 text-[12.5px] text-fg-muted">
+              </app-risk-field>
+              <p class="mt-2 text-meta text-fg-muted">
                 {{ 'risk.matrices.recalcNote' | transloco }}
               </p>
             </app-card>
@@ -472,15 +504,10 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
           <app-alert tone="error">{{ key | transloco: errorParams() }}</app-alert>
         }
         @if (perms.canManage()) {
-          <div class="flex flex-wrap justify-between gap-2">
-            @if (id()) {
-              <app-button variant="danger" size="sm" (click)="deleteOpen.set(true)">
-                <app-icon name="trash" [size]="14" />
-                {{ 'risk.common.delete' | transloco }}
-              </app-button>
-            } @else {
-              <span></span>
-            }
+          <div class="flex flex-wrap justify-end gap-2">
+            <app-button variant="ghost" (click)="cancel()">{{
+              'risk.common.cancel' | transloco
+            }}</app-button>
             <app-button
               type="submit"
               [loading]="saving()"
@@ -494,48 +521,58 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
     </ng-template>
 
     @if (state() === 'loading') {
-      <p class="py-16 text-center text-[14px] text-fg-muted">
-        {{ 'risk.common.loading' | transloco }}
-      </p>
+      <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
+        <app-loading-state [rows]="6" />
+      </div>
     } @else if (state() === 'error') {
       <div class="mx-auto max-w-[1180px] px-4 pt-10 sm:px-8">
-        <app-alert tone="error">{{ 'risk.common.loadFailed' | transloco }}</app-alert>
+        <app-error-state (retry)="reload()" />
       </div>
     } @else if (id(); as matrixId) {
       <app-record-detail-layout
         entityType="risk_matrix"
         [entityId]="matrixId"
+        [title]="original()?.name"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'risk.matrices.title', link: '/risk/matrices' },
+          { label: original()?.name ?? '' },
+        ]"
         [tabs]="tabs"
+        [createFlows]="false"
         [canEdit]="perms.canManage()"
         [includeAudit]="perms.canReadAudit()"
         [fieldLabels]="fieldLabels"
         backLink="/risk/matrices"
         backLabelKey="risk.matrices.back"
       >
-        <div header>
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ original()?.name }}
-          </h1>
-          <p class="mt-1 text-[12.5px] text-fg-muted">
-            {{ 'risk.matrices.usedBy' | transloco: { count: original()?.register_count ?? 0 } }}
-          </p>
-        </div>
+        <ng-container ngProjectAs="[meta]">
+          <span>{{
+            'risk.matrices.usedBy' | transloco: { count: original()?.register_count ?? 0 }
+          }}</span>
+          @if (original()?.is_default) {
+            <app-badge tone="accent">{{ 'risk.matrices.default' | transloco }}</app-badge>
+          }
+        </ng-container>
+        @if (perms.canManage()) {
+          <button appMenuItem overflow [danger]="true" (click)="deleteOpen.set(true)">
+            {{ 'risk.common.delete' | transloco }}
+          </button>
+        }
         <ng-container *ngTemplateOutlet="editor" />
+        <app-help-strip aside-learn scope="risk" page="matrixEditor" lesson="risk-matrix" />
       </app-record-detail-layout>
     } @else {
-      <div class="mx-auto max-w-[1000px] px-4 pt-6 pb-12 sm:px-8">
-        <a
-          routerLink="/risk/matrices"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
-        >
-          <app-icon name="back" [size]="16" />
-          {{ 'risk.matrices.back' | transloco }}
-        </a>
-        <h1
-          class="mb-4 font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]"
-        >
-          {{ 'risk.matrices.newTitle' | transloco }}
-        </h1>
+      <div class="mx-auto max-w-[1000px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+        <app-page-header
+          titleKey="risk.matrices.newTitle"
+          [breadcrumbs]="[
+            { labelKey: 'modules.names.risk', link: '/risk' },
+            { labelKey: 'risk.matrices.title', link: '/risk/matrices' },
+            { labelKey: 'risk.matrices.newTitle' },
+          ]"
+        />
+        <app-help-strip scope="risk" page="matrixEditor" lesson="risk-matrix" />
         <ng-container *ngTemplateOutlet="editor" />
       </div>
     }
@@ -643,14 +680,16 @@ export class MatrixEditorPage {
     }
     this.state.set('loading');
     this.sub = forkJoin({
-      templates: id ? of({ items: [] as MatrixTemplate[] }) : this.api.matrixTemplates(orgId),
+      templates: this.api
+        .matrixTemplates(orgId, this.language.active())
+        .pipe(catchError(() => of({ items: [] as MatrixTemplate[] }))),
       matrix: id ? this.api.getMatrix(orgId, id) : of(null),
     }).subscribe({
       next: ({ templates, matrix }) => {
         this.templates.set(templates.items);
         this.original.set(matrix);
         if (matrix) {
-          this.draft.set(matrixToDraft(matrix));
+          this.draft.set(matrixToDraft(matrix, this.t));
           this.customCells.set(Object.keys(matrix.cells).length > 0);
         } else {
           this.applyTemplate('5x5');
@@ -680,6 +719,52 @@ export class MatrixEditorPage {
       acceptable_max_score:
         template.acceptable_max_score !== null ? String(template.acceptable_max_score) : '',
     }));
+  }
+
+  protected reload(): void {
+    this.load(this.perms.orgId(), this.id());
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/risk/matrices']);
+  }
+
+  /** The template with as many levels on this axis (for example descriptions). */
+  protected suggestionFor(axis: Axis): readonly MatrixLevel[] | null {
+    const count = this.levels(axis).length;
+    for (const tpl of this.templates()) {
+      const list = axis === 'likelihoodLevels' ? tpl.likelihood_levels : tpl.consequence_levels;
+      if (list.length === count && list.some((l) => !!l.description)) {
+        return list;
+      }
+    }
+    return null;
+  }
+
+  /** Levels without "what it means in practice": an undefined risk criterion. */
+  protected missingDescriptions(axis: Axis): number {
+    return this.levels(axis).filter((l) => !l.description?.trim()).length;
+  }
+
+  protected descriptionPlaceholder(axis: Axis, index: number): string {
+    const example = this.suggestionFor(axis)?.[index]?.description;
+    return example
+      ? this.t('risk.matrices.descriptionExample', { example })
+      : this.t('risk.matrices.descriptionPlaceholder');
+  }
+
+  /** Fill the empty level descriptions with the template's examples. */
+  protected fillDescriptions(axis: Axis): void {
+    const suggestion = this.suggestionFor(axis);
+    if (!suggestion) {
+      return;
+    }
+    this.setLevels(
+      axis,
+      this.levels(axis).map((l, i) =>
+        l.description?.trim() ? l : { ...l, description: suggestion[i]?.description ?? '' },
+      ),
+    );
   }
 
   protected patch(change: Partial<MatrixDraft>): void {
@@ -792,14 +877,17 @@ export class MatrixEditorPage {
     this.errorKey.set(null);
     const request = id
       ? this.api.updateMatrix(orgId, id, this.changedFields(body))
-      : this.api.createMatrix(orgId, body);
+      : this.api.createMatrix(orgId, {
+          ...body,
+          lang: this.language.active() === 'nb' ? 'nb' : 'en',
+        });
     request.subscribe({
       next: (matrix) => {
         this.saving.set(false);
         this.toasts.success('risk.notices.matrixSaved', { name: matrix.name });
         if (id) {
           this.original.set(matrix);
-          this.draft.set(matrixToDraft(matrix));
+          this.draft.set(matrixToDraft(matrix, this.t));
           this.changeReason.set('');
         } else {
           void this.router.navigate(['/risk/matrices', matrix.id]);
@@ -815,7 +903,7 @@ export class MatrixEditorPage {
   private changedFields(body: MatrixCreate): MatrixUpdate {
     const original = this.original();
     const before: Record<string, unknown> = original
-      ? { ...draftBody(matrixToDraft(original)) }
+      ? { ...draftBody(matrixToDraft(original, this.t)) }
       : {};
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {

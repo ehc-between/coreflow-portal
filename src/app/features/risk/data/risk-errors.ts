@@ -31,6 +31,12 @@ export const RISK_ERROR_CODES = [
   'standard_not_found',
   'no_annex_controls',
   'title_required',
+  'invalid_source_entity',
+  'treatment_not_done',
+  'effectiveness_note_required',
+  'invalid_checked_at',
+  'justification_missing',
+  'soa_not_generated',
 ] as const;
 
 export type RiskErrorCode = (typeof RISK_ERROR_CODES)[number];

@@ -58,8 +58,12 @@ let nextId = 0;
         <button
           type="button"
           data-testid="field-help-toggle"
-          class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border border-border-strong text-micro leading-none font-bold text-fg-muted hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          [attr.aria-label]="'guidance.field.help' | transloco"
+          class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border-strong text-micro leading-none font-bold text-fg-muted hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          [attr.aria-label]="
+            label()
+              ? ('guidance.field.helpFor' | transloco: { field: label() })
+              : ('guidance.field.help' | transloco)
+          "
           [attr.aria-expanded]="open()"
           [attr.aria-controls]="popId"
           (click)="open.set(!open())"
@@ -101,6 +105,8 @@ export class FieldHelp {
   readonly scope = input.required<string>();
   readonly page = input.required<string>();
   readonly field = input.required<string>();
+  /** The field's visible label, for the button's accessible name ("Help: Owner"). */
+  readonly label = input<string | null | undefined>(null);
   /** Clause refs the field documents (`iso9001:8.4.1`); wins over the guidance JSON. */
   readonly requirements = input<readonly string[] | null | undefined>(null);
 

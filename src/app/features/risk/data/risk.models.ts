@@ -50,12 +50,66 @@ export const PATCHABLE_RISK_STATUSES = [
 ] as const;
 export type PatchableRiskStatus = (typeof PATCHABLE_RISK_STATUSES)[number];
 
+/**
+ * Statuses that count as "open": the same set as the backend
+ * (`OPEN_RISK_STATUSES`). An accepted risk is still a risk the organisation
+ * carries, so the list's "Open" filter matches the overview KPI.
+ */
 export const OPEN_RISK_STATUSES: readonly RiskStatus[] = [
   'identified',
   'assessed',
   'in_treatment',
   'monitoring',
+  'accepted',
 ];
+
+/** Record types a risk or opportunity can point at as "what is exposed" (backend `SubjectType`). */
+export const SUBJECT_TYPES = [
+  'asset',
+  'continuity_ict_system',
+  'process',
+  'supplier',
+  'processor',
+  'project',
+  'contract',
+  'ai_system',
+  'ropa_entry',
+  'document',
+  'position',
+] as const;
+export type SubjectType = (typeof SUBJECT_TYPES)[number];
+
+export const EFFECTIVENESS_RESULTS = ['effective', 'partially_effective', 'not_effective'] as const;
+export type EffectivenessResult = (typeof EFFECTIVENESS_RESULTS)[number];
+
+/** A linked record as the platform returns it (`EntityRefDto`); render with `app-entity-chip`. */
+export interface EntityRef {
+  readonly entity_type: string;
+  readonly entity_id: string;
+  readonly title: string;
+  readonly code?: string | null;
+  readonly url?: string | null;
+  readonly status?: string | null;
+  readonly module?: string | null;
+  readonly label_key?: string | null;
+}
+
+/** A cited control, ready to display ("A.8.13 · title") with its SoA status. */
+export interface ControlRef {
+  /** Canonical, e.g. `iso27001:A.8.13`. */
+  readonly ref: string;
+  readonly standard_key: string | null;
+  readonly framework: string | null;
+  readonly short: Readonly<Record<string, string>> | null;
+  readonly number: string;
+  readonly title: string | null;
+  readonly title_nb: string | null;
+  readonly soa_entry_id: string | null;
+  readonly applicable: boolean | null;
+  readonly implementation_status: ImplementationStatus | null;
+  /** The SoA entry page, when the org has one. */
+  readonly url: string | null;
+}
 
 export const STRATEGIES = ['mitigate', 'accept', 'avoid', 'transfer'] as const;
 export type Strategy = (typeof STRATEGIES)[number];
@@ -189,6 +243,8 @@ export interface MatrixCreate {
   readonly cells?: Readonly<Record<string, string>>;
   readonly acceptable_max_score?: number | null;
   readonly is_default?: boolean;
+  /** Language of the template labels and level descriptions. */
+  readonly lang?: 'en' | 'nb';
 }
 
 export interface MatrixUpdate extends Omit<Partial<MatrixCreate>, 'template'> {
@@ -279,6 +335,8 @@ export interface Risk {
   readonly category: RiskCategory;
   readonly source_type: SourceType | null;
   readonly source_ref: string | null;
+  /** The real record the risk is about (null: free text only, or not readable). */
+  readonly source_entity?: EntityRef | null;
   readonly threat: string | null;
   readonly vulnerability: string | null;
   readonly consequence_text: string | null;
@@ -293,8 +351,16 @@ export interface Risk {
   readonly residual: Rating | null;
   readonly current_score: number | null;
   readonly current_level: string | null;
+  /** Which rating "current" is: residual when set, else inherent (null: unrated). */
+  readonly current_basis?: 'residual' | 'inherent' | null;
   readonly above_appetite: boolean;
+  /** Above the appetite but formally accepted (shown neutrally, with who and until when). */
+  readonly accepted_above_appetite?: boolean;
+  readonly appetite_max_score?: number | null;
   readonly control_refs: readonly string[];
+  readonly controls?: readonly ControlRef[];
+  /** Standards a risk of this register usually documents (narrows requirement suggestions). */
+  readonly frameworks?: readonly string[];
   readonly review_interval_months: number | null;
   readonly last_reviewed_at: string | null;
   readonly next_review_at: string | null;
@@ -317,6 +383,8 @@ export interface RiskCreate {
   readonly description?: string | null;
   readonly source_type?: SourceType | null;
   readonly source_ref?: string | null;
+  readonly source_entity_type?: SubjectType | null;
+  readonly source_entity_id?: string | null;
   readonly threat?: string | null;
   readonly vulnerability?: string | null;
   readonly consequence_text?: string | null;
@@ -352,6 +420,10 @@ export interface RiskListQuery {
   readonly level?: readonly string[];
   readonly source_type?: SourceType;
   readonly review_due?: boolean;
+  /** Open, not accepted risks above the appetite. */
+  readonly above_appetite?: boolean;
+  readonly source_entity_type?: string;
+  readonly source_entity_id?: string;
   readonly include_closed?: boolean;
   readonly sort?: RiskSort;
   readonly limit?: number;
@@ -377,6 +449,7 @@ export interface Treatment {
   readonly title: string;
   readonly description: string | null;
   readonly control_refs: readonly string[];
+  readonly controls?: readonly ControlRef[];
   readonly owner: UserRef | null;
   readonly due_at: string | null;
   readonly status: TreatmentStatus;
@@ -384,10 +457,26 @@ export interface Treatment {
   readonly task_id: string | null;
   readonly task_status: string | null;
   readonly completed_at: string | null;
+  readonly effectiveness?: Effectiveness | null;
+  /** Done, but nobody has checked yet whether it worked. */
+  readonly needs_effectiveness_check?: boolean;
   readonly url: string;
   readonly created_by: string | null;
   readonly created_at: string;
   readonly updated_at: string;
+}
+
+export interface Effectiveness {
+  readonly result: EffectivenessResult;
+  readonly note: string | null;
+  readonly checked_at: string | null;
+  readonly checked_by: UserRef | null;
+}
+
+export interface EffectivenessRequest {
+  readonly result: EffectivenessResult;
+  readonly note?: string | null;
+  readonly checked_at?: string | null;
 }
 
 export interface TreatmentCreate {
@@ -413,9 +502,14 @@ export interface Opportunity {
   readonly register: RegisterRef | null;
   readonly source_type: SourceType | null;
   readonly source_ref: string | null;
+  readonly source_entity?: EntityRef | null;
   readonly benefit: number | null;
   readonly feasibility: number | null;
   readonly score: number | null;
+  /** Highest possible score (benefit x feasibility, 25). */
+  readonly max_score?: number;
+  /** Action items: tasks on the opportunity. */
+  readonly actions?: TreatmentCounts;
   readonly status: OpportunityStatus;
   readonly action_plan: string | null;
   readonly owner: UserRef | null;
@@ -437,6 +531,8 @@ export interface OpportunityCreate {
   readonly description?: string | null;
   readonly source_type?: SourceType | null;
   readonly source_ref?: string | null;
+  readonly source_entity_type?: SubjectType | null;
+  readonly source_entity_id?: string | null;
   readonly benefit?: number | null;
   readonly feasibility?: number | null;
   readonly action_plan?: string | null;
@@ -461,12 +557,31 @@ export interface OpportunityListQuery {
 
 // --- Statement of Applicability -----------------------------------------------------
 
+/** A localised display name, `{en, nb}`. */
+export type LocalLabel = Readonly<Record<string, string>>;
+
+export interface SoaVersion {
+  readonly id: string;
+  readonly standard_key: string;
+  readonly version_no: number;
+  readonly note: string | null;
+  readonly approved_by: UserRef | null;
+  readonly approved_at: string;
+  readonly stats: Readonly<Record<string, unknown>>;
+}
+
 export interface SoaStandard {
   readonly standard_key: string;
   readonly standard_name: string;
+  readonly standard_label?: LocalLabel;
   readonly standard_enabled: boolean;
   readonly control_count: number;
   readonly entry_count: number;
+  /** Entries with a written justification ("decided"). */
+  readonly justified?: number;
+  readonly implemented?: number;
+  readonly applicable?: number;
+  readonly latest_version?: SoaVersion | null;
 }
 
 export interface SoaRiskRef {
@@ -495,6 +610,8 @@ export interface SoaEntry {
   readonly reviewed_at: string | null;
   readonly risks: readonly SoaRiskRef[];
   readonly treatment_count: number;
+  /** Documents and policies linked to the entry ("Documented in"). */
+  readonly documentation?: readonly EntityRef[];
   readonly needs_justification: boolean;
   readonly url: string;
   readonly updated_at: string;
@@ -509,14 +626,20 @@ export interface SoaStats {
   readonly planned: number;
   readonly not_started: number;
   readonly missing_justification: number;
+  readonly justified?: number;
+  readonly documented?: number;
 }
 
 export interface Soa {
   readonly standard_key: string;
   readonly standard_name: string;
+  readonly standard_label?: LocalLabel;
   readonly standard_enabled: boolean;
   readonly generated: boolean;
   readonly stats: SoaStats;
+  readonly latest_version?: SoaVersion | null;
+  /** Entries changed after the latest approved version. */
+  readonly changed_since_version?: boolean;
   readonly items: readonly SoaEntry[];
 }
 
@@ -525,6 +648,7 @@ export interface SoaGenerateResult extends Soa {
 }
 
 export interface SoaQuery {
+  readonly missing_justification?: boolean;
   readonly applicable?: boolean;
   readonly implementation_status?: ImplementationStatus;
   readonly theme?: string;
@@ -540,6 +664,17 @@ export interface SoaEntryUpdate {
   readonly owner_user_id?: string | null;
   readonly reviewed?: boolean;
   readonly change_reason?: string | null;
+}
+
+/** The same change for many entries of one SoA (all or nothing). */
+export interface SoaBulkUpdate extends Omit<SoaEntryUpdate, 'implementation_notes'> {
+  readonly entry_ids: readonly string[];
+}
+
+export interface SoaBulkResult {
+  readonly updated: number;
+  readonly unchanged: number;
+  readonly items: readonly SoaEntry[];
 }
 
 // --- heat map / overview ------------------------------------------------------------
@@ -559,6 +694,8 @@ export interface Heatmap {
   readonly basis: HeatmapBasis;
   readonly cells: readonly HeatmapCell[];
   readonly total: number;
+  /** Risks rated on this basis (older APIs omit it: total - unrated). */
+  readonly rated?: number;
   readonly unrated: number;
 }
 
@@ -579,8 +716,20 @@ export interface RiskOverview {
     readonly reviews_overdue: number;
     readonly unowned: number;
     readonly above_appetite: number;
+    readonly rated?: number;
+    readonly unrated?: number;
+    readonly accepted_above_appetite?: number;
   };
-  readonly treatments: { readonly open: number; readonly overdue: number };
+  readonly appetite?: {
+    readonly matrix_id?: string | null;
+    readonly max_score?: number | null;
+    readonly matrix_max_score?: number | null;
+  };
+  readonly treatments: {
+    readonly open: number;
+    readonly overdue: number;
+    readonly awaiting_effectiveness_check?: number;
+  };
   readonly opportunities: {
     readonly total: number;
     readonly by_status: Readonly<Record<string, number>>;
@@ -590,6 +739,9 @@ export interface RiskOverview {
     readonly total: number;
     readonly applicable: number;
     readonly implemented: number;
+    readonly standard_label?: LocalLabel;
+    readonly justified?: number;
+    readonly missing_justification?: number;
   }[];
 }
 

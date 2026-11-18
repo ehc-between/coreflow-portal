@@ -1,19 +1,33 @@
 import {
   bandFor,
   contrastText,
+  appetiteState,
+  canonicalControlRef,
+  controlsOf,
+  currentRating,
+  frameworksForCategory,
   fromDateInput,
-  parseControlRefs,
+  implementationValue,
+  riskStatusValue,
   soaLink,
+  standardDisplayName,
+  subjectTypesFor,
   templateLabel,
   toDateInput,
 } from './data/risk-display';
 import { riskErrorKey } from './data/risk-errors';
 import { HttpErrorResponse } from '@angular/common/http';
 import { bandKey, draftBody } from './matrices/matrix-editor';
-import { emptyRiskForm, toRiskCreate, toRiskUpdate } from './risks/risk-form';
-import { parseRiskFilters, riskQuery } from './risks/risk-list';
-import { soaEntryPatch } from './soa/soa-view';
-import { SoaEntry } from './data/risk.models';
+import { applyRiskPrefill, emptyRiskForm, toRiskCreate, toRiskUpdate } from './risks/risk-form';
+import { moreFiltersCount, parseRiskFilters, riskQuery } from './risks/risk-list';
+import { bulkHasChange, soaBulkBody, soaEntryPatch } from './soa/soa-view';
+import { opportunityBand } from './shared/opportunity-score';
+import {
+  OpportunityFormValue,
+  toOpportunityBody,
+  toOpportunityUpdate,
+} from './opportunities/opportunity-form';
+import { Opportunity, Risk, SoaEntry } from './data/risk.models';
 
 const t = (key: string) => `T(${key})`;
 
@@ -51,7 +65,6 @@ describe('risk display helpers', () => {
     expect(toDateInput('2026-11-12T00:00:00')).toBe('2026-11-12');
     expect(fromDateInput('2026-11-12')).toBe('2026-11-12T00:00:00');
     expect(fromDateInput('')).toBeNull();
-    expect(parseControlRefs('a:1, b:2\nb:2 ;c:3')).toEqual(['a:1', 'b:2', 'c:3']);
     expect(soaLink('iso27001-2022:A.5.15')).toEqual({
       path: ['/risk/soa', 'iso27001-2022'],
       control: 'A.5.15',
@@ -75,14 +88,16 @@ describe('risk form helpers', () => {
     const body = toRiskCreate({
       ...emptyRiskForm('reg-1'),
       title: '  Stolen laptop ',
-      control_refs: 'iso27001-2022:A.8.1, iso27001-2022:A.8.24',
+      control_refs: ['iso27001-2022:A.8.1', 'iso27001:A.8.24', 'iso27001:A.8.24'],
       inherent: { likelihood: 3, consequence: 4 },
     });
     expect(body.title).toBe('Stolen laptop');
     expect(body.register_id).toBe('reg-1');
     expect(body.description).toBeNull();
     expect(body.inherent_likelihood).toBe(3);
-    expect(body.control_refs).toEqual(['iso27001-2022:A.8.1', 'iso27001-2022:A.8.24']);
+    // Canonical framework-key refs, without duplicates.
+    expect(body.control_refs).toEqual(['iso27001:A.8.1', 'iso27001:A.8.24']);
+    expect(body.source_entity_type).toBeNull();
   });
 
   it('patches only what changed, sending ratings as pairs', () => {
@@ -111,13 +126,21 @@ describe('risk list filters', () => {
       level: '',
       owner: 'me',
       review: 'due',
+      appetite: '',
       sort: 'title',
     });
   });
 
   it('turns filters into the API query', () => {
     const open = riskQuery(parseRiskFilters({}), 'fire', 0);
-    expect(open.status).toEqual(['identified', 'assessed', 'in_treatment', 'monitoring']);
+    // The same "open" as the overview KPI: accepted risks are still carried.
+    expect(open.status).toEqual([
+      'identified',
+      'assessed',
+      'in_treatment',
+      'monitoring',
+      'accepted',
+    ]);
     expect(open.include_closed).toBe(false);
     expect(open.q).toBe('fire');
     const all = riskQuery(parseRiskFilters({ status: 'all', level: 'high' }), '', 50);
@@ -188,5 +211,194 @@ describe('matrix editor helpers', () => {
     ]);
     expect(body.cells).toEqual({ '2:2': 'low' });
     expect(body.acceptable_max_score).toBe(2);
+  });
+});
+
+describe('A06 connected-risk helpers', () => {
+  const rating = (score: number) => ({
+    likelihood: 2,
+    consequence: score / 2,
+    score,
+    level: 'high',
+    label: 'High',
+    color: '#f97316',
+  });
+  const risk = (over: Partial<Risk> = {}) =>
+    ({
+      inherent: rating(12),
+      residual: null,
+      above_appetite: false,
+      acceptance: null,
+      status: 'assessed',
+      control_refs: [],
+      ...over,
+    }) as unknown as Risk;
+
+  it('normalises control refs to the framework key', () => {
+    expect(canonicalControlRef('iso27001-2022:A.8.13')).toBe('iso27001:A.8.13');
+    expect(canonicalControlRef('iso27001:A.8.13')).toBe('iso27001:A.8.13');
+    expect(canonicalControlRef('A.8.13')).toBe('A.8.13');
+  });
+
+  it('builds readable control rows from refs when the API sends no labels', () => {
+    const [row] = controlsOf({ control_refs: ['iso27001-2022:A.8.13'] });
+    expect(row.ref).toBe('iso27001:A.8.13');
+    expect(row.number).toBe('A.8.13');
+    expect(row.url).toBe('/risk/soa/iso27001-2022?control=A.8.13');
+  });
+
+  it('judges the current rating and the appetite like the backend', () => {
+    expect(currentRating(risk())?.score).toBe(12);
+    expect(currentRating(risk({ residual: rating(4) }))?.score).toBe(4);
+    expect(appetiteState(risk())).toBeNull();
+    expect(appetiteState(risk({ above_appetite: true }))).toBe('above');
+    expect(appetiteState(risk({ above_appetite: true, status: 'accepted' }))).toBe('accepted');
+    expect(appetiteState(risk({ accepted_above_appetite: true }))).toBe('accepted');
+  });
+
+  it('maps module values onto the shared tone vocabulary', () => {
+    expect(riskStatusValue('in_treatment')).toBe('in_progress');
+    expect(riskStatusValue('accepted')).toBe('archived');
+    expect(implementationValue('not_started')).toBe('not_assessed');
+    expect(implementationValue('implemented')).toBe('implemented');
+  });
+
+  it('narrows standards by register category and records by exposed type', () => {
+    expect(frameworksForCategory('information_security')).toEqual(['iso27001', 'nis2']);
+    expect(frameworksForCategory('enterprise')).toEqual([]);
+    expect(subjectTypesFor('supplier')).toContain('supplier');
+    expect(subjectTypesFor('location')).toEqual([]);
+    expect(subjectTypesFor('')).toEqual([]);
+  });
+
+  it('names a standard without showing its internal key', () => {
+    const tr = (k: string) => (k === 'risk.soa.standards.iso27001' ? 'ISO/IEC 27001:2022' : k);
+    expect(standardDisplayName({ nb: 'ISO 27001 nb' }, 'iso27001-2022', 'x', 'nb', tr)).toBe(
+      'ISO 27001 nb',
+    );
+    expect(standardDisplayName(undefined, 'iso27001-2022', 'Catalogue', 'nb', tr)).toBe(
+      'ISO/IEC 27001:2022',
+    );
+    expect(standardDisplayName(undefined, 'iso9999-2020', 'Catalogue', 'nb', tr)).toBe('Catalogue');
+  });
+
+  it('sends the exposed record with the risk and prefills from a create flow', () => {
+    const subject = { entity_type: 'supplier', entity_id: 's-1', title: 'Nimbus' };
+    const body = toRiskCreate({ ...emptyRiskForm('reg-1', 'u-1'), title: 'X', subject });
+    expect(body.source_entity_type).toBe('supplier');
+    expect(body.source_entity_id).toBe('s-1');
+    expect(body.owner_user_id).toBe('u-1');
+    const prefilled = applyRiskPrefill(
+      emptyRiskForm(),
+      { title: 'Late delivery', source_type: 'supplier', source_ref: 'SUP-0002' },
+      subject,
+    );
+    expect(prefilled.title).toBe('Late delivery');
+    expect(prefilled.source_type).toBe('supplier');
+    expect(prefilled.subject?.entity_id).toBe('s-1');
+  });
+
+  it('sends the exposed record as a pair in an edit', () => {
+    const original = { ...emptyRiskForm('reg-1'), title: 'A' };
+    const next = {
+      ...original,
+      subject: { entity_type: 'asset', entity_id: 'a-1', title: 'Laptop' },
+    };
+    expect(toRiskUpdate(original, next, '')).toEqual({
+      source_entity_type: 'asset',
+      source_entity_id: 'a-1',
+    });
+  });
+
+  it('counts the "Flere filtre" options in use', () => {
+    expect(moreFiltersCount(parseRiskFilters({}))).toBe(0);
+    expect(moreFiltersCount(parseRiskFilters({ owner: 'me', appetite: 'above' }))).toBe(2);
+    expect(riskQuery(parseRiskFilters({ appetite: 'above' }), '', 0).above_appetite).toBe(true);
+  });
+
+  it('builds the SoA bulk body from the chosen fields only', () => {
+    const empty = {
+      applicable: '' as const,
+      implementation_status: '' as const,
+      inclusion_reasons: [],
+      justification: '',
+      reviewed: false,
+      change_reason: '',
+    };
+    expect(bulkHasChange(empty)).toBe(false);
+    expect(bulkHasChange({ ...empty, change_reason: 'x' })).toBe(false);
+    expect(
+      soaBulkBody(['e1', 'e2'], {
+        ...empty,
+        applicable: 'no',
+        justification: ' Not used ',
+        implementation_status: 'planned',
+      }),
+    ).toEqual({
+      entry_ids: ['e1', 'e2'],
+      applicable: false,
+      implementation_status: 'planned',
+      justification: 'Not used',
+    });
+  });
+
+  it('bands opportunity scores and sends their exposed record', () => {
+    expect(opportunityBand(20)).toBe('high');
+    expect(opportunityBand(9)).toBe('medium');
+    expect(opportunityBand(4)).toBe('low');
+    const body = toOpportunityBody({
+      register_id: '',
+      title: ' Idea ',
+      description: '',
+      source_type: 'process',
+      source_ref: '',
+      subject: { entity_type: 'process', entity_id: 'p-1', title: 'Billing' },
+      benefit: '4',
+      feasibility: '5',
+      action_plan: '',
+      owner_user_id: 'u-1',
+      department_id: '',
+      due_at: '',
+    });
+    expect(body.title).toBe('Idea');
+    expect(body.source_entity_type).toBe('process');
+    expect(body.benefit).toBe(4);
+  });
+
+  it('keeps an exposed record the editor cannot see when editing an opportunity', () => {
+    const value: OpportunityFormValue = {
+      register_id: '',
+      title: 'Idea',
+      description: '',
+      source_type: 'supplier',
+      source_ref: 'Acme',
+      subject: null,
+      benefit: '',
+      feasibility: '',
+      action_plan: '',
+      owner_user_id: 'u-1',
+      department_id: '',
+      due_at: '',
+    };
+    // Hidden (unreadable) record: the API returns source_entity null; nothing changed.
+    const hidden = { source_entity: null } as unknown as Opportunity;
+    const unchanged = toOpportunityUpdate(hidden, value);
+    expect('source_entity_type' in unchanged).toBe(false);
+    expect('source_entity_id' in unchanged).toBe(false);
+    expect(unchanged.title).toBe('Idea');
+    // A visible record the user removes is cleared as a pair.
+    const visible = {
+      source_entity: { entity_type: 'supplier', entity_id: 's-1', title: 'Acme' },
+    } as unknown as Opportunity;
+    const cleared = toOpportunityUpdate(visible, value);
+    expect(cleared.source_entity_type).toBeNull();
+    expect(cleared.source_entity_id).toBeNull();
+    // A new record is sent as a pair.
+    const picked = toOpportunityUpdate(hidden, {
+      ...value,
+      subject: { entity_type: 'supplier', entity_id: 's-2', title: 'Beta' },
+    });
+    expect(picked.source_entity_type).toBe('supplier');
+    expect(picked.source_entity_id).toBe('s-2');
   });
 });
