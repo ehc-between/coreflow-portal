@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -18,7 +19,7 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { SearchApi } from '../../../core/search/search-api';
 import { SearchItem } from '../../../core/search/search.models';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -32,29 +33,33 @@ const MIN_QUERY = 2;
 /**
  * The AI incident log of a system (Art. 73): deviations linked to it. AI
  * incidents are recorded in Deviations (the "AI incident" type); here they are
- * listed and an existing deviation can be linked by searching for it.
+ * listed, a new one is reported with the system filled in (the page starts the
+ * `ai_system.to_incident` flow) and an existing deviation can be linked.
  */
 @Component({
   selector: 'app-ai-system-incidents',
-  imports: [RouterLink, TranslocoPipe, FieldHelp, Badge, Button, Card, Icon],
+  imports: [RouterLink, TranslocoPipe, FieldHelp, StatusBadge, Button, Card, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <app-card>
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+        <h2 class="flex items-center gap-2 font-display text-section font-bold text-fg">
           {{ 'aiGovernance.incidents.title' | transloco }}
           <app-field-help [scope]="scope" page="systemDetail" field="incidents" />
         </h2>
         @if (canWrite()) {
           <div class="flex flex-wrap gap-2">
-            <a
-              routerLink="/deviations/new"
-              class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
+            <app-button
+              size="sm"
+              variant="secondary"
+              [loading]="starting()"
+              (click)="report.emit()"
+              data-testid="incident-report"
             >
               <app-icon name="flag" [size]="14" />
               {{ 'aiGovernance.incidents.report' | transloco }}
-            </a>
+            </app-button>
             @if (!pickerOpen()) {
               <app-button size="sm" variant="secondary" (click)="pickerOpen.set(true)">
                 <app-icon name="link" [size]="14" />
@@ -70,11 +75,11 @@ const MIN_QUERY = 2;
           class="mb-4 rounded-tile border border-border bg-surface-2 p-3"
           data-testid="incident-picker"
         >
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.incidents.searchLabel' | transloco }}
             <input
               type="search"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [placeholder]="'aiGovernance.incidents.searchPlaceholder' | transloco"
               [value]="query()"
               (input)="query.set($any($event.target).value)"
@@ -86,14 +91,14 @@ const MIN_QUERY = 2;
               <li
                 class="flex items-center justify-between gap-2 rounded-tile px-2 py-1.5 hover:bg-surface"
               >
-                <span class="min-w-0 truncate text-[13px] text-fg">
+                <span class="min-w-0 truncate text-ui text-fg">
                   @if (hit.code) {
-                    <span class="mr-1 font-mono text-[12px] text-fg-subtle">{{ hit.code }}</span>
+                    <span class="mr-1 font-mono text-meta text-fg-subtle">{{ hit.code }}</span>
                   }
                   {{ hit.title }}
                 </span>
                 @if (linkedIds().has(hit.entity_id)) {
-                  <span class="text-[12px] text-fg-subtle">{{
+                  <span class="text-meta text-fg-subtle">{{
                     'aiGovernance.incidents.alreadyLinked' | transloco
                   }}</span>
                 } @else {
@@ -109,7 +114,7 @@ const MIN_QUERY = 2;
               </li>
             } @empty {
               @if (query().trim().length >= minQuery) {
-                <li class="px-2 py-1.5 text-[12.5px] text-fg-muted">
+                <li class="px-2 py-1.5 text-meta text-fg-muted">
                   {{ 'aiGovernance.incidents.noHits' | transloco }}
                 </li>
               }
@@ -124,9 +129,9 @@ const MIN_QUERY = 2;
       }
 
       @if (state() === 'error') {
-        <p class="text-[13px] text-fail">{{ 'aiGovernance.common.loadFailed' | transloco }}</p>
+        <p class="text-ui text-fail-ink">{{ 'aiGovernance.common.loadFailed' | transloco }}</p>
       } @else if (state() === 'ready' && items().length === 0) {
-        <p class="text-[13px] text-fg-muted">{{ 'aiGovernance.incidents.empty' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'aiGovernance.incidents.empty' | transloco }}</p>
       } @else {
         <ul class="divide-y divide-border" data-testid="incident-list">
           @for (i of items(); track i.entity_id) {
@@ -134,18 +139,18 @@ const MIN_QUERY = 2;
               @if (i.url) {
                 <a
                   [routerLink]="i.url"
-                  class="min-w-0 truncate text-[13.5px] font-semibold text-fg hover:underline"
+                  class="min-w-0 truncate text-body font-semibold text-fg hover:underline"
                 >
                   @if (i.code) {
-                    <span class="mr-1 font-mono text-[12px] text-fg-subtle">{{ i.code }}</span>
+                    <span class="mr-1 font-mono text-meta text-fg-subtle">{{ i.code }}</span>
                   }
                   {{ i.title }}
                 </a>
               } @else {
-                <span class="min-w-0 truncate text-[13.5px] text-fg">{{ i.title }}</span>
+                <span class="min-w-0 truncate text-body text-fg">{{ i.title }}</span>
               }
               @if (i.status) {
-                <app-badge tone="neutral">{{ i.status }}</app-badge>
+                <app-status-badge meaning="lifecycle" [value]="i.status" />
               }
             </li>
           }
@@ -162,6 +167,10 @@ export class AiSystemIncidents {
 
   readonly systemId = input.required<string>();
   readonly canWrite = input(false);
+  /** The "report an incident" flow is starting (prefill being fetched). */
+  readonly starting = input(false);
+  /** "Meld en hendelse": the page starts the ai_system.to_incident flow. */
+  readonly report = output<void>();
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly minQuery = MIN_QUERY;

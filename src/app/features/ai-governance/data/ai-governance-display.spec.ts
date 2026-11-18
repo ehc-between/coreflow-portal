@@ -11,8 +11,17 @@ describe('riskExplainKey', () => {
     }
   });
 
-  it('keeps the shared explanation for the other risk classes', () => {
-    expect(riskExplainKey('limited', 'deployer')).toBe('aiGovernance.riskExplain.limited');
+  it('makes the limited-risk text role-aware (Art. 50(1)-(2) is a provider duty)', () => {
+    expect(riskExplainKey('limited', 'provider')).toBe('aiGovernance.riskExplain.limited');
+    expect(riskExplainKey('limited', 'deployer')).toBe(
+      'aiGovernance.riskExplainByRole.deployer.limited',
+    );
+    expect(riskExplainKey('limited', 'importer')).toBe(
+      'aiGovernance.riskExplainByRole.other.limited',
+    );
+    expect(riskExplainKey('limited', 'deployer', true)).toBe(
+      'aiGovernance.riskExplainByRole.builtin.limited',
+    );
     expect(riskExplainKey('minimal', null)).toBe('aiGovernance.riskExplain.minimal');
   });
 });
@@ -24,11 +33,11 @@ describe('technicalDocCopy', () => {
       body: 'aiGovernance.docs.requiredBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'deployer' })).toEqual({
-      badge: 'aiGovernance.docs.providerDuty',
+      badge: 'aiGovernance.docs.optionalForYou',
       body: 'aiGovernance.docs.deployerBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'other' })).toEqual({
-      badge: 'aiGovernance.docs.providerDuty',
+      badge: 'aiGovernance.docs.optionalForYou',
       body: 'aiGovernance.docs.otherBody',
     });
     expect(technicalDocCopy({ required: false, audience: 'none' })).toEqual({

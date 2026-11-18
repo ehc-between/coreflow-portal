@@ -28,6 +28,9 @@ export const WIZARD_STEPS = [
 ] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
+/** The steps that decide the risk class (Art. 5, Art. 6 / Annex III, Art. 50). */
+export const DECISIVE_STEPS: readonly WizardStep[] = ['prohibited', 'highRisk', 'transparency'];
+
 type BoolKey =
   | 'annex_i_safety_component'
   | 'art6_3_exception'
@@ -61,17 +64,21 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
           <li>
             <button
               type="button"
-              class="rounded-full border px-2.5 py-1 text-[12px] font-semibold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              class="rounded-full border px-2.5 py-1 text-meta font-semibold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               [class]="
                 i === index()
                   ? 'border-accent bg-accent-soft text-accent'
                   : 'border-border text-fg-muted hover:text-fg'
               "
               [attr.aria-current]="i === index() ? 'step' : null"
-              (click)="index.set(i)"
+              (click)="go(i)"
               [attr.data-testid]="'wizard-step-' + s"
             >
               {{ i + 1 }}. {{ 'aiGovernance.wizard.steps.' + s + '.short' | transloco }}
+              @if (visited().includes(s) && i !== index()) {
+                <span class="sr-only">{{ 'aiGovernance.wizard.visited' | transloco }}</span>
+                <span aria-hidden="true">✓</span>
+              }
             </button>
           </li>
         }
@@ -87,7 +94,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
     <fieldset class="flex flex-col gap-3" [disabled]="disabled()">
       <legend class="mb-1 w-full">
         <span class="flex items-center gap-2">
-          <span class="font-display text-[17px] font-bold text-fg">{{
+          <span class="font-display text-section font-bold text-fg">{{
             'aiGovernance.wizard.steps.' + step() + '.title' | transloco
           }}</span>
           <app-ask-about
@@ -96,7 +103,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             labelKey="aiGovernance.wizard.askAbout"
           />
         </span>
-        <span class="mt-1 block text-[13px] text-fg-muted">{{
+        <span class="mt-1 block text-ui text-fg-muted">{{
           'aiGovernance.wizard.steps.' + step() + '.body' | transloco
         }}</span>
       </legend>
@@ -106,7 +113,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
         @case ('role') {
           <div class="flex flex-col gap-1.5">
             @for (role of roles(); track role) {
-              <label class="flex items-start gap-2 text-[13.5px] text-fg">
+              <label class="flex items-start gap-2 text-body text-fg">
                 <input
                   type="radio"
                   name="ai-role"
@@ -117,7 +124,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
                 />
                 <span>
                   <span class="font-semibold">{{ roleKey(role) | transloco }}</span>
-                  <span class="block text-[12.5px] text-fg-muted">{{
+                  <span class="block text-meta text-fg-muted">{{
                     'aiGovernance.roleHelp.' + role | transloco
                   }}</span>
                 </span>
@@ -127,7 +134,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
         }
         @case ('prohibited') {
           @for (item of cat?.prohibited_practices ?? []; track item.key) {
-            <label class="flex items-start gap-2 text-[13.5px] text-fg">
+            <label class="flex items-start gap-2 text-body text-fg">
               <input
                 type="checkbox"
                 class="mt-1"
@@ -136,13 +143,13 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
               />
               <span>
                 {{ prohibitedKey(item.key) | transloco }}
-                <span class="text-[12px] text-fg-subtle">({{ item.ref }})</span>
+                <span class="text-meta text-fg-subtle">({{ item.ref }})</span>
               </span>
             </label>
           }
         }
         @case ('highRisk') {
-          <label class="flex items-start gap-2 text-[13.5px] text-fg">
+          <label class="flex items-start gap-2 text-body text-fg">
             <input
               type="checkbox"
               class="mt-1"
@@ -151,11 +158,11 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             />
             <span>{{ 'aiGovernance.wizard.q.annexI' | transloco }}</span>
           </label>
-          <p class="mt-2 text-[13px] font-semibold text-fg-muted">
+          <p class="mt-2 text-ui font-semibold text-fg-muted">
             {{ 'aiGovernance.wizard.q.annexIii' | transloco }}
           </p>
           @for (item of cat?.annex_iii_areas ?? []; track item.key) {
-            <label class="flex items-start gap-2 text-[13.5px] text-fg">
+            <label class="flex items-start gap-2 text-body text-fg">
               <input
                 type="checkbox"
                 class="mt-1"
@@ -164,7 +171,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
               />
               <span>
                 {{ annexIiiKey(item.key) | transloco }}
-                <span class="text-[12px] text-fg-subtle">({{ item.ref }})</span>
+                <span class="text-meta text-fg-subtle">({{ item.ref }})</span>
               </span>
             </label>
           }
@@ -172,7 +179,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             <div
               class="mt-2 flex flex-col gap-2 rounded-tile border border-border bg-surface-2 p-3"
             >
-              <label class="flex items-start gap-2 text-[13.5px] text-fg">
+              <label class="flex items-start gap-2 text-body text-fg">
                 <input
                   type="checkbox"
                   class="mt-1"
@@ -181,7 +188,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
                 />
                 <span>{{ 'aiGovernance.wizard.q.exception' | transloco }}</span>
               </label>
-              <label class="flex items-start gap-2 text-[13.5px] text-fg">
+              <label class="flex items-start gap-2 text-body text-fg">
                 <input
                   type="checkbox"
                   class="mt-1"
@@ -195,7 +202,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
         }
         @case ('transparency') {
           @for (item of cat?.transparency_triggers ?? []; track item.key) {
-            <label class="flex items-start gap-2 text-[13.5px] text-fg">
+            <label class="flex items-start gap-2 text-body text-fg">
               <input
                 type="checkbox"
                 class="mt-1"
@@ -204,13 +211,13 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
               />
               <span>
                 {{ transparencyKey(item.key) | transloco }}
-                <span class="text-[12px] text-fg-subtle">({{ item.ref }})</span>
+                <span class="text-meta text-fg-subtle">({{ item.ref }})</span>
               </span>
             </label>
           }
         }
         @case ('gpai') {
-          <label class="flex items-start gap-2 text-[13.5px] text-fg">
+          <label class="flex items-start gap-2 text-body text-fg">
             <input
               type="checkbox"
               class="mt-1"
@@ -220,7 +227,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             <span>{{ 'aiGovernance.wizard.q.gpai' | transloco }}</span>
           </label>
           @if (a.gpai) {
-            <label class="flex items-start gap-2 text-[13.5px] text-fg">
+            <label class="flex items-start gap-2 text-body text-fg">
               <input
                 type="checkbox"
                 class="mt-1"
@@ -232,7 +239,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
           }
         }
         @case ('deployer') {
-          <label class="flex items-start gap-2 text-[13.5px] text-fg">
+          <label class="flex items-start gap-2 text-body text-fg">
             <input
               type="checkbox"
               class="mt-1"
@@ -241,7 +248,7 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             />
             <span>{{ 'aiGovernance.wizard.q.publicService' | transloco }}</span>
           </label>
-          <label class="flex items-start gap-2 text-[13.5px] text-fg">
+          <label class="flex items-start gap-2 text-body text-fg">
             <input
               type="checkbox"
               class="mt-1"
@@ -250,12 +257,12 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
             />
             <span>{{ 'aiGovernance.wizard.q.creditInsurance' | transloco }}</span>
           </label>
-          <label class="mt-2 flex flex-col gap-1 text-[13px] font-semibold text-fg-muted">
+          <label class="mt-2 flex flex-col gap-1 text-ui font-semibold text-fg-muted">
             {{ 'aiGovernance.wizard.q.notes' | transloco }}
             <textarea
               rows="3"
               maxlength="4000"
-              class="rounded-tile border border-border bg-bg px-3 py-2 text-[13.5px] font-normal text-fg"
+              class="rounded-tile border border-border bg-bg px-3 py-2 text-body font-normal text-fg"
               [value]="a.notes ?? ''"
               (input)="setNotes($any($event.target).value)"
             ></textarea>
@@ -269,12 +276,12 @@ type ListKey = 'prohibited_practices' | 'annex_iii_areas' | 'transparency';
         variant="secondary"
         size="sm"
         [disabled]="index() === 0"
-        (click)="index.set(index() - 1)"
+        (click)="go(index() - 1)"
       >
         {{ 'aiGovernance.wizard.back' | transloco }}
       </app-button>
       @if (index() < steps.length - 1) {
-        <app-button size="sm" (click)="index.set(index() + 1)" data-testid="wizard-next">
+        <app-button size="sm" (click)="go(index() + 1)" data-testid="wizard-next">
           {{ 'aiGovernance.wizard.next' | transloco }}
         </app-button>
       }
@@ -287,6 +294,8 @@ export class AiClassificationQuestions {
   /** The system's AI Act role, used when the answers name none. */
   readonly defaultRole = input<AiActRole>('deployer');
   readonly disabled = input(false);
+  /** The steps the user has looked at (two-way; the page gates "Fullfør" on it). */
+  readonly visited = model<readonly WizardStep[]>(['role']);
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly steps = WIZARD_STEPS;
@@ -301,6 +310,15 @@ export class AiClassificationQuestions {
   protected readonly prohibitedKey = prohibitedKey;
   protected readonly annexIiiKey = annexIiiKey;
   protected readonly transparencyKey = transparencyKey;
+
+  protected go(i: number): void {
+    const next = Math.max(0, Math.min(WIZARD_STEPS.length - 1, i));
+    this.index.set(next);
+    const step = WIZARD_STEPS[next];
+    if (!this.visited().includes(step)) {
+      this.visited.update((v) => [...v, step]);
+    }
+  }
 
   protected setRole(role: AiActRole): void {
     this.answers.update((a) => ({ ...a, role }));

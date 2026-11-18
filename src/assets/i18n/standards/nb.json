@@ -210,7 +210,10 @@
       "frameworks": "Standarder",
       "article_refs": "Artikler",
       "requirements": "Krav",
-      "generic": "et felt på posten"
+      "generic": "et felt på posten",
+      "obligations": "Forpliktelser",
+      "documentation": "Teknisk dokumentasjon",
+      "kind": "Fullført vurdering"
     },
     "origin": {
       "manual": "Lagt til manuelt",

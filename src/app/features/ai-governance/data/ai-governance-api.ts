@@ -29,6 +29,8 @@ import {
   MonitoringCreate,
   MonitoringEntry,
   Obligation,
+  ObligationTaskRequest,
+  ObligationUpdate,
   Page,
   RegisterFeaturesResult,
   ReviewScheduleRequest,
@@ -105,17 +107,37 @@ export class AiGovernanceApi {
     );
   }
 
+  /**
+   * Save documentation sections: text per section (`sections`) and / or the
+   * controlled document that holds a section (`documents`, null unlinks).
+   */
   updateDocumentation(
     orgId: string,
     id: string,
-    sections: Readonly<Record<string, string | null>>,
-    changeReason?: string | null,
+    change: {
+      readonly sections?: Readonly<Record<string, string | null>>;
+      readonly documents?: Readonly<Record<string, string | null>>;
+      readonly change_reason?: string | null;
+    },
   ): Observable<AiSystem> {
-    return this.api.put<AiSystem>(
-      `${this.base(orgId)}/systems/${id}/documentation`,
-      changeReason ? { sections, change_reason: changeReason } : { sections },
-      quiet(),
-    );
+    const body: Record<string, unknown> = {};
+    if (change.sections) {
+      body['sections'] = change.sections;
+    }
+    if (change.documents) {
+      body['documents'] = change.documents;
+    }
+    if (change.change_reason) {
+      body['change_reason'] = change.change_reason;
+    }
+    return this.api.put<AiSystem>(`${this.base(orgId)}/systems/${id}/documentation`, body, quiet());
+  }
+
+  /** The technical file as a PDF (in the UI language). */
+  exportTechnicalDocumentation(orgId: string, id: string, lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/systems/${id}/technical-documentation/export`, {
+      params: { lang },
+    });
   }
 
   technicalDocumentation(orgId: string, id: string): Observable<TechnicalDocumentation> {
@@ -126,6 +148,46 @@ export class AiGovernanceApi {
 
   obligations(orgId: string, id: string): Observable<Obligation[]> {
     return this.api.get<Obligation[]>(`${this.base(orgId)}/systems/${id}/obligations`);
+  }
+
+  /** Set an obligation's status / reason / evidence; answers with the refreshed list. */
+  updateObligation(
+    orgId: string,
+    id: string,
+    key: string,
+    body: ObligationUpdate,
+  ): Observable<Obligation[]> {
+    return this.api.patch<Obligation[]>(
+      `${this.base(orgId)}/systems/${id}/obligations/${encodeURIComponent(key)}`,
+      body,
+      quiet(),
+    );
+  }
+
+  /** Create the task for an obligation (409 obligation_has_task when one is open). */
+  createObligationTask(
+    orgId: string,
+    id: string,
+    key: string,
+    body: ObligationTaskRequest = {},
+  ): Observable<Obligation[]> {
+    return this.api.post<Obligation[]>(
+      `${this.base(orgId)}/systems/${id}/obligations/${encodeURIComponent(key)}/task`,
+      body,
+      quiet(),
+    );
+  }
+
+  /**
+   * Start a reclassification: a draft classification prefilled with the current
+   * answers (or the open draft). Open the wizard on it.
+   */
+  reclassify(orgId: string, id: string, lang?: string): Observable<Assessment> {
+    return this.api.post<Assessment>(
+      `${this.base(orgId)}/systems/${id}/reclassify`,
+      lang ? { lang } : {},
+      quiet(),
+    );
   }
 
   scheduleReview(
@@ -263,12 +325,12 @@ export class AiGovernanceApi {
 
 /** Drop empty strings / null / undefined so they are not sent as query params. */
 function clean(query: object): QueryParams {
-  const out: Record<string, string | number> = {};
+  const out: Record<string, string | number | boolean> = {};
   for (const [key, value] of Object.entries(query)) {
     if (value === undefined || value === null || value === '') {
       continue;
     }
-    out[key] = value as string | number;
+    out[key] = value as string | number | boolean;
   }
   return out;
 }

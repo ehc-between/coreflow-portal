@@ -210,7 +210,10 @@
       "frameworks": "Standards",
       "article_refs": "Articles",
       "requirements": "Requirements",
-      "generic": "a field on the record"
+      "generic": "a field on the record",
+      "obligations": "Obligations",
+      "documentation": "Technical documentation",
+      "kind": "Completed assessment"
     },
     "origin": {
       "manual": "Added by hand",

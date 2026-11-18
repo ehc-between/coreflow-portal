@@ -67,6 +67,10 @@ describe('AiGovernanceApi', () => {
       owner_user_id: null,
       department_id: null,
       next_review_at: null,
+      supplier_id: 'sup-1',
+      processing_activity_id: null,
+      overseer_user_ids: ['u-2'],
+      monitoring_metrics: [],
     };
     api.createSystem(ORG, body).subscribe();
     const create = http.expectOne(`${ROOT}/systems`);
@@ -96,17 +100,68 @@ describe('AiGovernanceApi', () => {
     preview.flush({});
 
     api
-      .updateDocumentation(ORG, 's-1', { logging: 'Logs kept 6 months', post_market_plan: null })
+      .updateDocumentation(ORG, 's-1', {
+        sections: { logging: 'Logs kept 6 months', post_market_plan: null },
+        documents: { logging: 'doc-1' },
+      })
       .subscribe();
     const doc = http.expectOne(`${ROOT}/systems/s-1/documentation`);
     expect(doc.request.method).toBe('PUT');
     expect(doc.request.body).toEqual({
       sections: { logging: 'Logs kept 6 months', post_market_plan: null },
+      documents: { logging: 'doc-1' },
     });
     doc.flush({});
 
     api.technicalDocumentation(ORG, 's-1').subscribe();
     http.expectOne(`${ROOT}/systems/s-1/technical-documentation`).flush({});
+  });
+
+  it('reclassifies, updates obligations and creates obligation tasks', () => {
+    api.reclassify(ORG, 's-1', 'nb').subscribe();
+    const re = http.expectOne(`${ROOT}/systems/s-1/reclassify`);
+    expect(re.request.method).toBe('POST');
+    expect(re.request.body).toEqual({ lang: 'nb' });
+    expect(re.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
+    re.flush({});
+
+    api
+      .updateObligation(ORG, 's-1', 'ai_literacy', {
+        status: 'not_relevant',
+        reason: 'No staff use it',
+        evidence: null,
+      })
+      .subscribe();
+    const ob = http.expectOne(`${ROOT}/systems/s-1/obligations/ai_literacy`);
+    expect(ob.request.method).toBe('PATCH');
+    expect(ob.request.body).toEqual({
+      status: 'not_relevant',
+      reason: 'No staff use it',
+      evidence: null,
+    });
+    ob.flush([]);
+
+    api.createObligationTask(ORG, 's-1', 'human_oversight').subscribe();
+    const task = http.expectOne(`${ROOT}/systems/s-1/obligations/human_oversight/task`);
+    expect(task.request.method).toBe('POST');
+    expect(task.request.body).toEqual({});
+    task.flush([]);
+
+    api.exportTechnicalDocumentation(ORG, 's-1', 'nb').subscribe();
+    const pdf = http.expectOne(
+      (r) => r.url === `${ROOT}/systems/s-1/technical-documentation/export`,
+    );
+    expect(pdf.request.params.get('lang')).toBe('nb');
+    expect(pdf.request.responseType).toBe('blob');
+    pdf.flush(new Blob(['%PDF']));
+  });
+
+  it('sends needs_review as a list filter', () => {
+    api.listAssessments(ORG, { needs_review: true, status: '' }).subscribe();
+    const list = http.expectOne((r) => r.url === `${ROOT}/assessments`);
+    expect(list.request.params.get('needs_review')).toBe('true');
+    expect(list.request.params.has('status')).toBe(false);
+    list.flush({ items: [], total: 0 });
   });
 
   it('drives the assessment workflow', () => {

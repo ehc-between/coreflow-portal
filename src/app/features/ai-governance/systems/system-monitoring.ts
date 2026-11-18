@@ -14,12 +14,13 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { startOfDay } from '../../../shared/tasks/task-display';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import {
@@ -28,13 +29,14 @@ import {
   MonitoringCreate,
   MonitoringEntry,
   MonitoringKind,
+  MonitoringMetric,
   MonitoringResult,
 } from '../data/ai-governance.models';
 import {
   AI_GOVERNANCE_SCOPE,
   monitoringKindKey,
   monitoringResultKey,
-  monitoringTone,
+  monitoringValue,
 } from '../data/ai-governance-display';
 
 const PAGE_SIZE = 10;
@@ -44,7 +46,8 @@ interface Draft {
   metric: string;
   value: string;
   threshold: string;
-  result: MonitoringResult;
+  /** '' = judge it from the metric definition (else "information"). */
+  result: MonitoringResult | '';
   notes: string;
   measured: string;
 }
@@ -54,7 +57,7 @@ const emptyDraft = (): Draft => ({
   metric: '',
   value: '',
   threshold: '',
-  result: 'pass',
+  result: '',
   notes: '',
   measured: '',
 });
@@ -71,8 +74,11 @@ export function parseNumber(text: string): number | null {
 
 /**
  * Accuracy / robustness / bias / drift monitoring of an AI system (Art. 15 and
- * the post-market monitoring plan, Art. 72): the measurements log with a quick
- * entry form. A failed result raises an alert for the system's owner.
+ * the post-market monitoring plan, Art. 72; ISO/IEC 42001 9.1): the system's
+ * defined metrics (with thresholds) and the measurements log with a quick entry
+ * form. Picking a defined metric fills in its kind and threshold; the result is
+ * left empty so the server judges it (pass / fail against the definition, else
+ * information). A failed measurement offers to report an AI incident.
  */
 @Component({
   selector: 'app-ai-system-monitoring',
@@ -81,21 +87,26 @@ export function parseNumber(text: string): number | null {
     FieldHelp,
     LocalDatePipe,
     LocalNumberPipe,
-    Badge,
+    Alert,
     Button,
     Card,
     ConfirmDialog,
     Icon,
     Pager,
+    StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
   template: `
-    <app-card>
+    <app-card data-testid="system-monitoring">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="flex items-center gap-2 font-display text-[15px] font-bold text-fg">
+        <h2 class="flex items-center gap-2 font-display text-section font-bold text-fg">
           {{ 'aiGovernance.monitoring.title' | transloco }}
-          <app-field-help [scope]="scope" page="systemDetail" field="monitoring" />
+          <app-field-help
+            [scope]="scope"
+            page="systemDetail"
+            field="monitoring"
+            [label]="'aiGovernance.monitoring.title' | transloco"
+          />
         </h2>
         @if (canWrite() && !formOpen()) {
           <app-button size="sm" variant="secondary" (click)="formOpen.set(true)">
@@ -105,16 +116,83 @@ export function parseNumber(text: string): number | null {
         }
       </div>
 
+      @if (metrics().length) {
+        <div class="mb-3">
+          <h3 class="mb-1 text-ui font-semibold text-fg-muted">
+            {{ 'aiGovernance.monitoring.defined' | transloco }}
+          </h3>
+          <ul class="flex flex-wrap gap-1.5" data-testid="monitoring-metrics">
+            @for (m of metrics(); track m.key ?? m.metric) {
+              <li
+                class="rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-meta text-fg"
+              >
+                {{ m.metric }}
+                @if (m.threshold !== null) {
+                  <span class="text-fg-muted">
+                    ·
+                    {{
+                      (m.direction === 'max'
+                        ? 'aiGovernance.monitoring.atMost'
+                        : 'aiGovernance.monitoring.atLeast'
+                      ) | transloco: { value: (m.threshold | localNumber), unit: m.unit ?? '' }
+                    }}
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      } @else if (highRisk() && canWrite()) {
+        <p class="mb-3 text-meta text-fg-muted">
+          {{ 'aiGovernance.monitoring.noMetrics' | transloco }}
+        </p>
+      }
+
+      @if (failed(); as f) {
+        <app-alert tone="error" class="mb-3">
+          <span class="flex flex-wrap items-center gap-2">
+            {{ 'aiGovernance.monitoring.failedAlert' | transloco: { metric: f.metric } }}
+            @if (canWrite()) {
+              <app-button
+                size="sm"
+                variant="secondary"
+                (click)="reportIncident.emit(); failed.set(null)"
+              >
+                {{ 'aiGovernance.monitoring.reportIncident' | transloco }}
+              </app-button>
+            }
+          </span>
+        </app-alert>
+      }
+
       @if (formOpen()) {
         <form
           class="mb-4 grid grid-cols-1 gap-3 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-3"
           (submit)="$event.preventDefault(); save()"
+          (keydown.escape)="close()"
           data-testid="monitoring-form"
         >
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          @if (metrics().length) {
+            <label
+              class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-2 lg:col-span-3"
+            >
+              {{ 'aiGovernance.monitoring.pickMetric' | transloco }}
+              <select
+                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                (change)="pickMetric($any($event.target).value)"
+                data-testid="monitoring-pick"
+              >
+                <option value="">{{ 'aiGovernance.monitoring.otherMetric' | transloco }}</option>
+                @for (m of metrics(); track m.key ?? m.metric; let i = $index) {
+                  <option [value]="i">{{ m.metric }}</option>
+                }
+              </select>
+            </label>
+          }
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.monitoring.kind' | transloco }}
             <select
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
               (change)="patch({ kind: $any($event.target).value })"
             >
               @for (k of kinds; track k) {
@@ -125,45 +203,49 @@ export function parseNumber(text: string): number | null {
             </select>
           </label>
           <label
-            class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-1 lg:col-span-2"
+            class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-1 lg:col-span-2"
           >
             {{ 'aiGovernance.monitoring.metric' | transloco }}
             <input
               type="text"
               required
               maxlength="120"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [placeholder]="'aiGovernance.monitoring.metricPlaceholder' | transloco"
               [value]="draft().metric"
               (input)="patch({ metric: $any($event.target).value })"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.monitoring.value' | transloco }}
             <input
               type="text"
               inputmode="decimal"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().value"
               (input)="patch({ value: $any($event.target).value })"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.monitoring.threshold' | transloco }}
             <input
               type="text"
               inputmode="decimal"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().threshold"
               (input)="patch({ threshold: $any($event.target).value })"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.monitoring.result' | transloco }}
             <select
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
               (change)="patch({ result: $any($event.target).value })"
+              data-testid="monitoring-result"
             >
+              <option value="" [selected]="draft().result === ''">
+                {{ 'aiGovernance.monitoring.resultAuto' | transloco }}
+              </option>
               @for (r of results; track r) {
                 <option [value]="r" [selected]="draft().result === r">
                   {{ resultKey(r) | transloco }}
@@ -171,21 +253,21 @@ export function parseNumber(text: string): number | null {
               }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'aiGovernance.monitoring.measuredAt' | transloco }}
             <input
               type="date"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().measured"
               (input)="patch({ measured: $any($event.target).value })"
             />
           </label>
-          <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted sm:col-span-2">
+          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-2">
             {{ 'aiGovernance.monitoring.notes' | transloco }}
             <input
               type="text"
               maxlength="4000"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-[13px] font-normal text-fg"
+              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().notes"
               (input)="patch({ notes: $any($event.target).value })"
             />
@@ -207,21 +289,21 @@ export function parseNumber(text: string): number | null {
       }
 
       @if (state() === 'error') {
-        <p class="text-[13px] text-fail">{{ 'aiGovernance.common.loadFailed' | transloco }}</p>
+        <p class="text-ui text-fail-ink">{{ 'aiGovernance.common.loadFailed' | transloco }}</p>
       } @else if (state() === 'ready' && entries().length === 0) {
-        <p class="text-[13px] text-fg-muted">{{ 'aiGovernance.monitoring.empty' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'aiGovernance.monitoring.empty' | transloco }}</p>
       } @else {
         <ul class="divide-y divide-border" data-testid="monitoring-list">
           @for (e of entries(); track e.id) {
             <li class="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:gap-3">
               <div class="min-w-0 flex-1">
-                <p class="text-[13.5px] font-semibold text-fg">
+                <p class="text-body font-semibold text-fg">
                   {{ e.metric }}
-                  <span class="ml-1 text-[12px] font-normal text-fg-subtle">{{
+                  <span class="ml-1 text-meta font-normal text-fg-subtle">{{
                     kindKey(e.kind) | transloco
                   }}</span>
                 </p>
-                <p class="text-[12px] text-fg-muted">
+                <p class="text-meta text-fg-muted">
                   @if (e.value !== null) {
                     {{
                       'aiGovernance.monitoring.valueLine'
@@ -235,21 +317,25 @@ export function parseNumber(text: string): number | null {
                         | transloco: { value: (e.threshold | localNumber) }
                     }}
                   }
-                  · {{ e.measured_at | localDate }}
+                  · {{ e.measured_at | localDate: 'mediumDate' }}
                   @if (e.recorded_by) {
                     · {{ e.recorded_by.name }}
                   }
                 </p>
                 @if (e.notes) {
-                  <p class="mt-0.5 text-[12.5px] text-fg">{{ e.notes }}</p>
+                  <p class="mt-0.5 text-ui text-fg">{{ e.notes }}</p>
                 }
               </div>
               <div class="flex items-center gap-2">
-                <app-badge [tone]="tone(e.result)">{{ resultKey(e.result) | transloco }}</app-badge>
+                <app-status-badge
+                  meaning="compliance"
+                  [value]="resultValue(e.result)"
+                  [labelKey]="resultKey(e.result)"
+                />
                 @if (canWrite()) {
                   <button
                     type="button"
-                    class="rounded-[8px] p-1 text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-tile text-fg-subtle hover:text-fail-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     [attr.aria-label]="
                       'aiGovernance.monitoring.delete' | transloco: { metric: e.metric }
                     "
@@ -285,6 +371,7 @@ export function parseNumber(text: string): number | null {
       "
       [confirmLabel]="'aiGovernance.common.delete' | transloco"
       [cancelLabel]="'aiGovernance.common.cancel' | transloco"
+      confirmVariant="danger"
       [busy]="deleting()"
       (confirmed)="remove()"
       (cancelled)="pendingDelete.set(null)"
@@ -298,15 +385,20 @@ export class AiSystemMonitoring {
 
   readonly systemId = input.required<string>();
   readonly canWrite = input(false);
+  /** The system's metric definitions (threshold + direction). */
+  readonly metrics = input<readonly MonitoringMetric[]>([]);
+  readonly highRisk = input(false);
   /** An entry was recorded or removed (the page may refresh its activity). */
   readonly changed = output<void>();
+  /** "Meld som KI-hendelse" after a failed measurement. */
+  readonly reportIncident = output<void>();
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly kinds = MONITORING_KINDS;
   protected readonly results = MONITORING_RESULTS;
   protected readonly kindKey = monitoringKindKey;
   protected readonly resultKey = monitoringResultKey;
-  protected readonly tone = monitoringTone;
+  protected readonly resultValue = monitoringValue;
   protected readonly pageSize = PAGE_SIZE;
 
   protected readonly state = signal<'loading' | 'ready' | 'error'>('loading');
@@ -318,6 +410,8 @@ export class AiSystemMonitoring {
   protected readonly saving = signal(false);
   protected readonly pendingDelete = signal<MonitoringEntry | null>(null);
   protected readonly deleting = signal(false);
+  /** The last measurement recorded here that did not pass. */
+  protected readonly failed = signal<MonitoringEntry | null>(null);
   private readonly reload = signal(0);
 
   constructor() {
@@ -346,6 +440,19 @@ export class AiSystemMonitoring {
     this.draft.update((d) => ({ ...d, ...change }));
   }
 
+  protected pickMetric(index: string): void {
+    const m = index === '' ? null : this.metrics()[Number(index)];
+    if (!m) {
+      this.patch({ metric: '', threshold: '' });
+      return;
+    }
+    this.patch({
+      metric: m.metric,
+      kind: m.kind,
+      threshold: m.threshold === null ? '' : String(m.threshold),
+    });
+  }
+
   protected close(): void {
     this.formOpen.set(false);
     this.draft.set(emptyDraft());
@@ -362,7 +469,7 @@ export class AiSystemMonitoring {
       metric: d.metric.trim(),
       value: parseNumber(d.value),
       threshold: parseNumber(d.threshold),
-      result: d.result,
+      ...(d.result ? { result: d.result } : {}),
       notes: d.notes.trim() || null,
       measured_at: d.measured ? startOfDay(d.measured) : null,
     };
@@ -371,6 +478,7 @@ export class AiSystemMonitoring {
       next: (entry) => {
         this.saving.set(false);
         this.close();
+        this.failed.set(entry.result === 'fail' ? entry : null);
         this.notifications.success(
           entry.result === 'fail'
             ? 'aiGovernance.monitoring.savedAlert'

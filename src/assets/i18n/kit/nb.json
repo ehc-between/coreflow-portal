@@ -421,7 +421,10 @@
     },
     "ai_system": {
       "to_dpia": "DPIA for KI-systemet",
-      "to_assessment": "KI-vurdering"
+      "to_assessment": "KI-vurdering",
+      "to_incident": "KI-hendelse for dette systemet",
+      "to_risk": "KI-risiko for dette systemet",
+      "to_task": "Oppgave for dette systemet"
     },
     "obligation": {
       "to_policy": "Policy som oppfyller forpliktelsen",
@@ -438,6 +441,9 @@
       "to_task": "Tiltak (oppgave)",
       "to_objective": "Mål fra denne muligheten",
       "to_project": "Prosjekt for å realisere den"
+    },
+    "ai_assessment": {
+      "to_risk": "Risiko fra denne vurderingen"
     }
   },
   "frameworks": {
