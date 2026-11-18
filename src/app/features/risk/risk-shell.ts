@@ -1,15 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { RiskSubnav } from './shared/risk-subnav';
 
-/** Frame of the risk module: the section navigation above the active page. */
+/**
+ * Frame of the risk module. Each page renders its own header and the module
+ * sub-navigation (`app-risk-nav`) under it, per the page anatomy.
+ */
 @Component({
   selector: 'app-risk-shell',
-  imports: [RouterOutlet, RiskSubnav],
+  imports: [RouterOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <app-risk-subnav />
-    <router-outlet />
-  `,
+  template: `<router-outlet />`,
 })
 export class RiskShell {}

@@ -1,11 +1,17 @@
-import { BadgeTone } from '../../../shared/ui/badge/badge';
+import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import {
+  ControlRef,
   ImplementationStatus,
   Matrix,
   MatrixBand,
   MatrixLevel,
   OpportunityStatus,
+  Rating,
+  Risk,
+  RiskCategory,
   RiskStatus,
+  SourceType,
+  SubjectType,
   TreatmentStatus,
 } from './risk.models';
 
@@ -111,61 +117,176 @@ export function contrastText(color: string | null | undefined): string {
   return luminance > 0.4 ? '#111827' : '#ffffff';
 }
 
-export function riskStatusTone(status: RiskStatus): BadgeTone {
-  switch (status) {
-    case 'identified':
-      return 'neutral';
-    case 'assessed':
-      return 'info';
-    case 'in_treatment':
-      return 'warn';
-    case 'monitoring':
-      return 'accent';
-    case 'accepted':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
+// --- status values for the shared tone map (docs/ux-guide.md §5) -----------------
+//
+// Badges use `app-status-badge` with the module's own label key; these map a module
+// value onto the shared vocabulary so the colour means the same as everywhere else.
+
+const RISK_STATUS_VALUE: Readonly<Record<RiskStatus, string>> = {
+  identified: 'new',
+  assessed: 'submitted',
+  in_treatment: 'in_progress',
+  monitoring: 'active',
+  // A decision taken on purpose: neutral, never "done" (the risk is still carried).
+  accepted: 'archived',
+  closed: 'closed',
+};
+
+/** Lifecycle value of a risk status (for `app-status-badge meaning="lifecycle"`). */
+export function riskStatusValue(status: RiskStatus): string {
+  return RISK_STATUS_VALUE[status] ?? 'draft';
 }
 
-export function treatmentStatusTone(status: TreatmentStatus): BadgeTone {
-  switch (status) {
-    case 'planned':
-      return 'neutral';
-    case 'in_progress':
-      return 'info';
-    case 'done':
-      return 'pass';
-    default:
-      return 'neutral';
-  }
+/** Lifecycle value of a treatment status (the values already are shared ones). */
+export function treatmentStatusValue(status: TreatmentStatus): string {
+  return status;
 }
 
-export function opportunityStatusTone(status: OpportunityStatus): BadgeTone {
-  switch (status) {
-    case 'realised':
-      return 'pass';
-    case 'rejected':
-      return 'neutral';
-    case 'in_progress':
-    case 'planned':
-      return 'info';
-    default:
-      return 'accent';
-  }
+const OPPORTUNITY_STATUS_VALUE: Readonly<Record<OpportunityStatus, string>> = {
+  identified: 'new',
+  evaluating: 'under_review',
+  planned: 'planned',
+  in_progress: 'in_progress',
+  realised: 'done',
+  // Rejecting an opportunity is a decision, not a failure.
+  rejected: 'cancelled',
+};
+
+export function opportunityStatusValue(status: OpportunityStatus): string {
+  return OPPORTUNITY_STATUS_VALUE[status] ?? 'draft';
 }
 
-export function implementationTone(status: ImplementationStatus): BadgeTone {
-  switch (status) {
-    case 'implemented':
-      return 'pass';
-    case 'partial':
-      return 'info';
-    case 'planned':
-      return 'warn';
-    default:
-      return 'neutral';
+const IMPLEMENTATION_VALUE: Readonly<Record<ImplementationStatus, string>> = {
+  implemented: 'implemented',
+  partial: 'partial',
+  planned: 'planned',
+  // Not started is a to-do, not a failure: neutral.
+  not_started: 'not_assessed',
+};
+
+/** Compliance value of a control's implementation status (`meaning="compliance"`). */
+export function implementationValue(status: ImplementationStatus | null | undefined): string {
+  return status ? (IMPLEMENTATION_VALUE[status] ?? 'not_assessed') : 'not_assessed';
+}
+
+// --- connected records -----------------------------------------------------------
+
+/**
+ * The record types a "what is at risk" choice can point at. Types without records
+ * (location, other) stay free text.
+ */
+export const SOURCE_SUBJECTS: Readonly<Record<SourceType, readonly SubjectType[]>> = {
+  asset: ['asset', 'continuity_ict_system', 'ai_system'],
+  process: ['process'],
+  activity: ['process', 'project'],
+  project: ['project'],
+  location: [],
+  supplier: ['supplier', 'processor', 'contract'],
+  information: ['ropa_entry', 'document', 'asset'],
+  service: ['continuity_ict_system', 'contract', 'process'],
+  other: [],
+};
+
+/** Subject record types for a source type ('' = none chosen: every type). */
+export function subjectTypesFor(
+  source: SourceType | '' | null | undefined,
+): readonly SubjectType[] {
+  if (!source) {
+    return [];
   }
+  return SOURCE_SUBJECTS[source] ?? [];
+}
+
+/**
+ * Standards a register category usually documents. Narrows the control picker and
+ * the requirement suggestions (an information security risk is matched against
+ * ISO 27001 / NIS2 first, not ISO 14001). Empty = no narrowing.
+ */
+const CATEGORY_FRAMEWORKS: Readonly<Record<RiskCategory, readonly string[]>> = {
+  enterprise: [],
+  information_security: ['iso27001', 'nis2'],
+  privacy: ['gdpr', 'iso27001'],
+  ai: ['iso42001', 'eu_ai_act'],
+  hse: ['iso45001'],
+  environmental: ['iso14001'],
+  project: [],
+  quality: ['iso9001'],
+  other: [],
+};
+
+export function frameworksForCategory(
+  category: RiskCategory | null | undefined,
+): readonly string[] {
+  return category ? (CATEGORY_FRAMEWORKS[category] ?? []) : [];
+}
+
+/** Register categories whose risks are rated on confidentiality / integrity / availability. */
+export function usesCia(category: RiskCategory | null | undefined): boolean {
+  return category === 'information_security' || category === 'privacy';
+}
+
+/** A `{en, nb}` label in the UI language, else English, else the fallback. */
+export function localLabel(
+  label: Readonly<Record<string, string>> | null | undefined,
+  lang: string,
+  fallback: string,
+): string {
+  return label?.[lang] || label?.['en'] || fallback;
+}
+
+/**
+ * Canonical form of a control ref: `iso27001-2022:A.8.13` -> `iso27001:A.8.13`.
+ * Refs already in framework-key form are returned unchanged.
+ */
+export function canonicalControlRef(ref: string): string {
+  const at = ref.indexOf(':');
+  if (at <= 0) {
+    return ref;
+  }
+  return `${frameworkOf(ref.slice(0, at))}:${ref.slice(at + 1)}`;
+}
+
+/** The control's number and title in the UI language ("A.8.13 · Backup"). */
+export function controlText(control: ControlRef, lang: string): string {
+  const title = (lang === 'nb' && control.title_nb) || control.title;
+  return title ? `${control.number} · ${title}` : control.number;
+}
+
+/** Catalogue standards with a Statement of Applicability, by framework key. */
+const SOA_STANDARD_KEYS: Readonly<Record<string, string>> = {
+  iso27001: 'iso27001-2022',
+  iso42001: 'iso42001-2023',
+};
+
+/** Display rows for a risk's / treatment's controls; older APIs only send the refs. */
+export function controlsOf(item: {
+  readonly control_refs: readonly string[];
+  readonly controls?: readonly ControlRef[];
+}): readonly ControlRef[] {
+  if (item.controls && item.controls.length) {
+    return item.controls;
+  }
+  return item.control_refs.map((raw) => {
+    const ref = canonicalControlRef(raw);
+    const at = ref.indexOf(':');
+    const framework = at > 0 ? ref.slice(0, at) : null;
+    const number = at > 0 ? ref.slice(at + 1) : ref;
+    const standardKey = framework ? SOA_STANDARD_KEYS[framework] : undefined;
+    const link = standardKey ? soaLink(`${standardKey}:${number}`) : null;
+    return {
+      ref,
+      standard_key: standardKey ?? null,
+      framework,
+      short: null,
+      number,
+      title: null,
+      title_nb: null,
+      soa_entry_id: null,
+      applicable: null,
+      implementation_status: null,
+      url: link ? `${link.path.join('/')}?control=${encodeURIComponent(link.control)}` : null,
+    };
+  });
 }
 
 /** `YYYY-MM-DD` of an ISO date-time (for `<input type="date">`), or ''. */
@@ -206,4 +327,72 @@ export function soaLink(ref: string): { path: string[]; control: string } | null
     return null;
   }
   return { path: ['/risk/soa', ref.slice(0, at)], control: ref.slice(at + 1) };
+}
+
+// --- what the numbers on a risk mean ---------------------------------------------
+
+type RatedRisk = Pick<Risk, 'inherent' | 'residual' | 'above_appetite' | 'acceptance' | 'status'> &
+  Partial<Pick<Risk, 'current_basis' | 'accepted_above_appetite'>>;
+
+/** Which rating "current" is: the residual one when set, else the inherent one. */
+export function currentBasis(risk: RatedRisk): 'residual' | 'inherent' | null {
+  if (risk.current_basis !== undefined) {
+    return risk.current_basis ?? null;
+  }
+  return risk.residual ? 'residual' : risk.inherent ? 'inherent' : null;
+}
+
+/** The rating the risk is judged on today (residual if set, otherwise inherent). */
+export function currentRating(risk: RatedRisk): Rating | null {
+  return currentBasis(risk) === 'residual' ? risk.residual : risk.inherent;
+}
+
+/**
+ * How the risk stands against the appetite: `above` (needs a decision, red),
+ * `accepted` (above, but formally accepted: shown neutrally with who and until
+ * when) or null (within the appetite or not rated).
+ */
+export function appetiteState(risk: RatedRisk): 'above' | 'accepted' | null {
+  if (risk.accepted_above_appetite) {
+    return 'accepted';
+  }
+  if (!risk.above_appetite) {
+    return null;
+  }
+  return risk.acceptance || risk.status === 'accepted' ? 'accepted' : 'above';
+}
+
+/** Hand a downloaded file to the browser. */
+export function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Display name of a standard with a Statement of Applicability: the API's
+ * localised label, else our own short name (`risk.soa.standards.<framework>`,
+ * e.g. "ISO/IEC 27001:2022 – Informasjonssikkerhet"), else the catalogue name.
+ * Internal keys (`iso27001-2022`) are never shown.
+ */
+export function standardDisplayName(
+  label: Readonly<Record<string, string>> | null | undefined,
+  standardKey: string,
+  catalogueName: string | null | undefined,
+  lang: string,
+  t: TranslateFn,
+): string {
+  const own = label?.[lang];
+  if (own) {
+    return own;
+  }
+  const key = `risk.soa.standards.${frameworkOf(standardKey)}`;
+  const translated = t(key);
+  if (translated && translated !== key) {
+    return translated;
+  }
+  return label?.['en'] || catalogueName || frameworkOf(standardKey).toUpperCase();
 }

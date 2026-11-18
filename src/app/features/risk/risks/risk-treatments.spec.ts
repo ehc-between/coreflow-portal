@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { AiAssistApi } from '../../../core/ai/ai-assist-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { StandardsApi } from '../../../core/standards/standards-api';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { RiskApi } from '../data/risk-api';
 import { Risk, Treatment } from '../data/risk.models';
@@ -57,6 +58,7 @@ function setup(items: Treatment[] = [treatment()], focusId: string | null = null
       { provide: RiskApi, useValue: api },
       { provide: NotificationService, useValue: toasts },
       { provide: AiAssistApi, useValue: { run: vi.fn() } },
+      { provide: StandardsApi, useValue: { searchCatalogue: vi.fn(() => of([])) } },
       {
         provide: SelectedOrgService,
         useValue: {
@@ -133,5 +135,37 @@ describe('RiskTreatments', () => {
     setup([treatment()], 't-1');
     const title = document.querySelector<HTMLInputElement>('#treatment-title');
     expect(title?.value).toBe('Encrypt disks');
+  });
+});
+
+describe('RiskTreatments effectiveness (A06)', () => {
+  it('shows a done treatment without a check as needing one', () => {
+    const { el } = setup([treatment({ status: 'done', needs_effectiveness_check: true })]);
+    expect(el.querySelector('[data-testid="treatment-check-t-1"]')).toBeTruthy();
+    expect(el.textContent).toContain('risk.effectiveness.needed');
+  });
+
+  it('shows the recorded check instead of the prompt', () => {
+    const { el } = setup([
+      treatment({
+        status: 'done',
+        effectiveness: {
+          result: 'effective',
+          note: 'Restore test ok',
+          checked_at: '2026-11-12T00:00:00',
+          checked_by: { id: 'u-1', name: 'Ada' },
+        },
+        needs_effectiveness_check: false,
+      }),
+    ]);
+    expect(el.querySelector('[data-testid="treatment-check-t-1"]')).toBeNull();
+    expect(el.textContent).toContain('risk.effectiveness.results.effective');
+  });
+
+  it('shows cited controls as readable rows, not raw keys', () => {
+    const { el } = setup([treatment()]);
+    const list = el.querySelector('[data-testid="control-list"]');
+    expect(list?.textContent).toContain('A.8.24');
+    expect(list?.textContent).not.toContain('iso27001-2022:');
   });
 });
