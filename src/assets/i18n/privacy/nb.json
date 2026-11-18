@@ -33,7 +33,7 @@
       "breachesAwaitingClosure": "Varslede personvernbrudd som venter på lukking"
     },
     "breachesNow": "Personvernbrudd som krever handling",
-    "noBreaches": "Ingen personvernbrudd med løpende 72-timersfrist. Registrer et brudd i det øyeblikket dere blir kjent med det.",
+    "noBreaches": "Ingen personvernbrudd med løpende 72-timersfrist. Registrer et personvernbrudd i det øyeblikket dere blir kjent med det.",
     "requestsNow": "Nærmeste svarfrister",
     "noRequests": "Ingen åpne henvendelser fra registrerte.",
     "dueOn": "Frist {{ date }}",
@@ -75,7 +75,7 @@
       "name": "Personvernbrudd",
       "plural": "Personvernbrudd",
       "description": "Brudd på personopplysningssikkerheten med 72-timersklokken og beslutningene om varsling.",
-      "new": "Registrer et brudd"
+      "new": "Registrer et personvernbrudd"
     },
     "processor": {
       "name": "Databehandler",

@@ -207,9 +207,9 @@
         "clauses": ["gdpr:33", "gdpr:34", "iso27001:A.5.34"]
       },
       "empty": {
-        "title": "Ingen brudd registrert",
+        "title": "Ingen personvernbrudd registrert",
         "body": "En mistet bærbar PC, en e-post til feil mottaker eller en hacket konto kan alle være personvernbrudd. Registrer dem her, så følges klokken og beslutningene opp.",
-        "cta": "Registrer et brudd"
+        "cta": "Registrer et personvernbrudd"
       },
       "fields": {
         "aware_at": {
