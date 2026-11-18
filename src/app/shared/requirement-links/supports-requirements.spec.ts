@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RecordPageContext } from '../kit/record-page-context';
 import {
   RequirementLabel,
   RequirementLink,
@@ -83,6 +84,7 @@ async function setup(
     actions?: { id: string; description: string }[];
     canEdit?: boolean;
     langs?: Record<string, object>;
+    recordPage?: RecordPageContext;
   } = {},
 ) {
   TestBed.configureTestingModule({
@@ -111,6 +113,7 @@ async function setup(
           currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
         },
       },
+      ...(options.recordPage ? [{ provide: RecordPageContext, useValue: options.recordPage }] : []),
     ],
   });
   const fixture = TestBed.createComponent(SupportsRequirements);
@@ -207,6 +210,57 @@ describe('SupportsRequirements', () => {
     const text = rows()[0].row.querySelector('[data-testid="from-field"]')?.textContent ?? '';
     expect(text).toContain('Clauses it documents');
     expect(text).not.toContain('Clauses audited');
+  });
+
+  it('starts compact on a record page and hands its suggestions to the page (U29)', async () => {
+    const page = new RecordPageContext();
+    const { http, render, rows, el } = await setup(['standards:read', 'standards:manage'], {
+      recordPage: page,
+    });
+    http
+      .expectOne(isList())
+      .flush([
+        link({ id: 'l-1', clause_number: '5.1' }),
+        link({ id: 'l-2', clause_number: '6.1' }),
+        link({ id: 'l-3', clause_number: '7.1' }),
+        link({ id: 'l-4', clause_number: '8.1' }),
+        link({ id: 'l-5', clause_number: '9.1' }),
+        link({ id: 'l-6', clause_number: '10.1', status: 'suggested', source: 'ai', origin: 'ai' }),
+      ]);
+    await render(SUGGEST_DELAY_MS + 20);
+    // Something is confirmed: no automatic suggestion request.
+    http.expectNone(`${ROOT}/requirement-links/suggest`);
+    // Three chips and "+2"; no rows, no per-row buttons, no "find more" here.
+    expect(el.querySelector('[data-compact]')).not.toBeNull();
+    expect(el.querySelectorAll('[data-testid="supports-chips"] app-requirement-chip')).toHaveLength(
+      3,
+    );
+    expect(el.querySelector('[data-testid="supports-more"]')?.textContent?.trim()).toBe('+2');
+    expect(rows()).toHaveLength(0);
+    expect(el.querySelector('[data-testid="find-more"]')).toBeNull();
+    // The waiting suggestion goes to the page's "Hva mangler".
+    expect(page.requirements()?.pending).toBe(1);
+    expect(page.requirements()?.suggestMore).toBeNull();
+
+    page.requirements()!.review();
+    await render();
+    expect(el.querySelector('[data-compact]')).toBeNull();
+    expect(rows().map((r) => r.status)).toEqual([
+      'confirmed',
+      'confirmed',
+      'confirmed',
+      'confirmed',
+      'confirmed',
+      'suggested',
+    ]);
+    el.querySelector<HTMLElement>('[data-testid="supports-collapse"]')!.click();
+    await render();
+    expect(el.querySelector('[data-compact]')).not.toBeNull();
+
+    // "+N" opens the full panel too.
+    el.querySelector<HTMLElement>('[data-testid="supports-more"]')!.click();
+    await render();
+    expect(el.querySelector('[data-compact]')).toBeNull();
   });
 
   it('read-only users see links and stored suggestions without actions or suggest calls', async () => {

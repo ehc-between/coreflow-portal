@@ -29,8 +29,9 @@ export interface Breadcrumb {
  *
  *   breadcrumbs (Module › Sub-area › Record)
  *   [lead] (legacy custom heading block), h1 + optional [meta] line (code · type · status on detail pages) + description
- *   actions on the right: [secondary] (≤ 2) · [primary] (one) · "Mer ⋯" ([overflow]) · ⚙
  *   ("Dokumenter og rapporter" leads the actions when `outputsModule` / `outputsStandard` is set)
+ *   [page-help] (the record page's "?", U29)
+ *   [page-help] (the record page's "?", U29)
  *
  *   <app-page-header titleKey="modules.names.risk" descriptionKey="risk.list.description"
  *       [breadcrumbs]="[{ labelKey: 'modules.names.risk' }]" settingsLink="/settings/modules/risk">
@@ -132,6 +133,7 @@ export interface Breadcrumb {
               <app-icon name="gear" [size]="17" />
             </a>
           }
+          <ng-content select="[page-help]" />
         </div>
       </div>
     </header>

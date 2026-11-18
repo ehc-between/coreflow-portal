@@ -250,6 +250,15 @@
       "attachments": "Vedlegg",
       "revisions": "Versjoner",
       "tasks": "Oppgaver"
+    },
+    "more": "Mer",
+    "findRequirements": "Foreslå flere krav",
+    "missing": {
+      "title": "Hva mangler",
+      "requirements": "Bekreft {{ count }} foreslåtte krav",
+      "requirementsOne": "Bekreft 1 foreslått krav",
+      "links": "Se på {{ count }} foreslåtte koblinger",
+      "linksOne": "Se på 1 foreslått kobling"
     }
   },
   "ai": {

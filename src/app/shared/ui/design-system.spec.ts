@@ -15,6 +15,7 @@ import { TourService } from '../guidance/tour.service';
 import { Notifications, TOAST_NAVIGATION_GRACE_MS } from '../notifications/notifications';
 import { ErrorState } from './error-state/error-state';
 import { FieldItem, FieldList } from './field-list/field-list';
+import { RecordPageContext } from '../kit/record-page-context';
 import { HelpStrip } from './help-strip/help-strip';
 import { LoadingState } from './loading-state/loading-state';
 import { ModuleNav, ModuleNavItem } from './module-nav/module-nav';
@@ -202,7 +203,27 @@ describe('PageHeader', () => {
 })
 class EmptyMenuHost {}
 
+@Component({
+  imports: [OverflowMenu, MenuItem],
+  template: `<app-overflow-menu variant="tab" label="Tasks" [active]="true">
+    <button appMenuItem type="button">Tasks</button>
+  </app-overflow-menu>`,
+})
+class TabMenuHost {}
+
 describe('OverflowMenu', () => {
+  it('can look like the open tab of a tab row ("Mer ▾" on record pages)', async () => {
+    configure([TabMenuHost]);
+    const fixture = TestBed.createComponent(TabMenuHost);
+    await fixture.whenStable();
+    await tick();
+    const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="overflow-trigger"]',
+    )!;
+    expect(trigger.textContent?.trim()).toBe('Tasks');
+    expect(trigger.classList.contains('border-accent')).toBe(true);
+  });
+
   it('hides itself when it has no items', async () => {
     configure([EmptyMenuHost]);
     const fixture = TestBed.createComponent(EmptyMenuHost);
@@ -336,7 +357,11 @@ describe('HelpStrip', () => {
     intro: { title: 'What this page is for', body: 'Body text', steps: ['Open **Tavle**'] },
   };
 
-  function setupStrip(level: 'beginner' | 'standard', stored?: string) {
+  function setupStrip(
+    level: 'beginner' | 'standard',
+    stored?: string,
+    recordPage?: RecordPageContext,
+  ) {
     localStorage.clear();
     if (stored) {
       localStorage.setItem('coreflow.help.risk.list', stored);
@@ -376,6 +401,7 @@ describe('HelpStrip', () => {
           provide: LearningProgressService,
           useValue: { ensureLoaded: vi.fn(), byKey: signal(new Map()), record: vi.fn() },
         },
+        ...(recordPage ? [{ provide: RecordPageContext, useValue: recordPage }] : []),
       ],
     );
     const fixture = TestBed.createComponent(StripHost);
@@ -429,6 +455,20 @@ describe('HelpStrip', () => {
     await fixture.whenStable();
     expect(el.querySelector('app-lesson')).toBeNull();
     expect(el.querySelector('[data-testid="help-panel"]')).not.toBeNull();
+  });
+
+  it('on a record page shows no line and hands its "?" to the page header (U29)', async () => {
+    const recordPage = new RecordPageContext();
+    const { fixture, el } = setupStrip('standard', undefined, recordPage);
+    await fixture.whenStable();
+    expect(el.querySelector('[data-testid="help-strip"]')).toBeNull();
+    const open = recordPage.help();
+    expect(open).not.toBeNull();
+    open!();
+    await fixture.whenStable();
+    expect(el.querySelector('[data-testid="help-panel"]')).not.toBeNull();
+    fixture.destroy();
+    expect(recordPage.help()).toBeNull();
   });
 
   it('gives beginners one plain sentence and a labelled button, never the whole intro', async () => {
