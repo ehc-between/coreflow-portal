@@ -229,6 +229,7 @@ export class SideNavV2 {
   protected readonly destinations = computed<readonly NavLink[]>(() => {
     const showAll = this.prefs.showAll();
     const workspace = this.workspace();
+    const library = this.libraryLink();
     const links: NavLink[] = [];
     for (const dest of NAV_DESTINATIONS) {
       if (!showAll && !dest.workspaces.includes(workspace)) {
@@ -236,17 +237,23 @@ export class SideNavV2 {
       }
       if (dest.key === 'registers') {
         if (this.hasRegisters()) {
+          // Pages "Dokumenter og rapporter" opens light that entry, not Registre.
+          const libraryOwns = library?.owns ?? [];
           links.push({
             ...dest,
-            owns: ['registers', ...this.registerModules().map((item) => item.path)],
+            owns: [
+              'registers',
+              ...this.registerModules()
+                .map((item) => item.path)
+                .filter((path) => !libraryOwns.includes(path)),
+            ],
           });
         }
         continue;
       }
       if (dest.key === 'library') {
-        const link = this.libraryLink();
-        if (link) {
-          links.push(link);
+        if (library) {
+          links.push(library);
         }
         continue;
       }

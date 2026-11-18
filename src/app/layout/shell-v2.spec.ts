@@ -300,5 +300,11 @@ describe('SideNavV2', () => {
     expect(el.querySelector('[aria-current="page"]')?.getAttribute('data-testid')).toBe(
       'nav-v2-pin:privacy/ropa',
     );
+    // "Dokumenter og rapporter" opens Documents until /library ships: that entry is current.
+    await router.navigateByUrl('/documents/abc');
+    fixture.detectChanges();
+    expect(el.querySelector('[aria-current="page"]')?.getAttribute('data-testid')).toBe(
+      'nav-v2-library',
+    );
   });
 });
