@@ -10,11 +10,14 @@ export const RECRUITMENT_CRUMB: Breadcrumb = {
 };
 
 /** The gear on the module's page headers (shown to holders of `recruitment:manage`). */
-export const RECRUITMENT_SETTINGS_LINK = '/recruitment/settings';
+export const RECRUITMENT_SETTINGS_LINK = '/settings/modules/recruitment';
 
-/** Sub-pages of the module (`app-module-nav` under every page header). */
-export function recruitmentNavItems(manage: boolean): readonly ModuleNavItem[] {
-  const items: ModuleNavItem[] = [
+/**
+ * Sub-pages of the module (`app-module-nav` under every page header). The settings
+ * are configuration (U10): managers reach them through the gear, not a tab.
+ */
+export function recruitmentNavItems(): readonly ModuleNavItem[] {
+  return [
     {
       labelKey: 'recruitment.nav.overview',
       link: '/recruitment',
@@ -37,21 +40,11 @@ export function recruitmentNavItems(manage: boolean): readonly ModuleNavItem[] {
       testId: 'nav-candidates',
     },
   ];
-  if (manage) {
-    items.push({
-      labelKey: 'recruitment.nav.settings',
-      link: '/recruitment/settings',
-      testId: 'nav-settings',
-    });
-  }
-  return items;
 }
 
-/** The nav items as a signal of the caller's permissions (call in an injection context). */
-export function injectRecruitmentNav(
-  perms: Signal<RecruitmentPerms>,
-): Signal<readonly ModuleNavItem[]> {
-  return computed(() => recruitmentNavItems(perms().manage));
+/** The nav items as a signal (the same for every reader since the settings tab left, U10). */
+export function injectRecruitmentNav(): Signal<readonly ModuleNavItem[]> {
+  return computed(() => recruitmentNavItems());
 }
 
 /** The gear link for managers, else none. */

@@ -25,7 +25,6 @@ import { Button } from '../../../shared/ui/button/button';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
-import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
@@ -81,7 +80,6 @@ export function nextDeadline(
     EmptyState,
     ErrorState,
     HelpStrip,
-    Icon,
     LoadingState,
     LocalDatePipe,
     ModuleNav,
@@ -100,17 +98,8 @@ export function nextDeadline(
         titleKey="deviations.intake.inbox.title"
         descriptionKey="deviations.intake.inbox.subtitle"
         [breadcrumbs]="breadcrumbs"
-        [settingsLink]="isAdmin() ? '/deviations/intake/settings' : null"
-      >
-        @if (isAdmin()) {
-          <a secondary routerLink="/deviations/intake/settings" tabindex="-1">
-            <app-button variant="secondary">
-              <app-icon name="sliders" [size]="15" />
-              {{ 'deviations.intake.settings.link' | transloco }}
-            </app-button>
-          </a>
-        }
-      </app-page-header>
+        [settingsLink]="isAdmin() ? '/settings/modules/deviations/intake' : null"
+      />
       <app-module-nav [items]="nav.items()" labelKey="modules.names.deviations" />
       <app-help-strip scope="deviations" page="intakeInbox" lesson="speaking-up" />
 
@@ -121,7 +110,7 @@ export function nextDeadline(
         >
           <p class="text-ui text-fg">{{ 'deviations.intake.inbox.linkOff' | transloco }}</p>
           @if (isAdmin()) {
-            <a routerLink="/deviations/intake/settings" tabindex="-1">
+            <a routerLink="/settings/modules/deviations/intake" tabindex="-1">
               <app-button size="sm">{{ 'deviations.intake.inbox.turnOn' | transloco }}</app-button>
             </a>
           }

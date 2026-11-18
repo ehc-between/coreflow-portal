@@ -27,7 +27,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { RiskApi } from '../data/risk-api';
 import { riskErrorKey } from '../data/risk-errors';
 import { Matrix, Register } from '../data/risk.models';
-import { RiskNav } from '../shared/risk-nav';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { RegisterFormPanel } from './register-form-panel';
 
@@ -46,7 +46,7 @@ import { RegisterFormPanel } from './register-form-panel';
     Button,
     Card,
     Icon,
-    RiskNav,
+    ModuleConfigNav,
     WhyItMatters,
     ErrorState,
     FieldItem,
@@ -62,9 +62,9 @@ import { RegisterFormPanel } from './register-form-panel';
       <app-page-header
         titleKey="risk.registers.title"
         descriptionKey="risk.registers.subtitle"
-        settingsLink="/risk/matrices"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.risk' },
           { labelKey: 'risk.registers.title' },
         ]"
       >
@@ -75,7 +75,7 @@ import { RegisterFormPanel } from './register-form-panel';
           </app-button>
         }
       </app-page-header>
-      <app-risk-nav />
+      <app-module-config-nav module="risk" />
       <app-help-strip scope="risk" page="registers" />
 
       @switch (state()) {
@@ -102,7 +102,7 @@ import { RegisterFormPanel } from './register-form-panel';
                   <div class="flex flex-wrap items-start justify-between gap-2">
                     <div class="min-w-0">
                       <a
-                        [routerLink]="['/risk/registers', r.id]"
+                        [routerLink]="['/settings/modules/risk/registers', r.id]"
                         class="font-display text-section font-bold text-fg hover:underline"
                         >{{ r.name }}</a
                       >
@@ -125,9 +125,11 @@ import { RegisterFormPanel } from './register-form-panel';
                   </div>
                   <app-field-list class="mt-3" [columns]="2">
                     <app-field-item labelKey="risk.registers.matrix">
-                      <a [routerLink]="['/risk/matrices', r.matrix_id]" class="hover:underline">{{
-                        r.matrix_name ?? ('common.empty.notSet' | transloco)
-                      }}</a>
+                      <a
+                        [routerLink]="['/settings/modules/risk/matrices', r.matrix_id]"
+                        class="hover:underline"
+                        >{{ r.matrix_name ?? ('common.empty.notSet' | transloco) }}</a
+                      >
                     </app-field-item>
                     <app-field-item
                       labelKey="risk.fields.owner"

@@ -24,7 +24,6 @@ import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { EnvironmentApi } from './data/environment-api';
 import {
@@ -37,13 +36,9 @@ import {
 } from './data/environment.models';
 import { environmentErrorKey, fieldErrors } from './data/environment-errors';
 import { parseDecimal } from './data/form-models';
-import {
-  ENV_CRUMBS,
-  ENV_MODULE,
-  ENV_ROOT_CRUMB,
-  EnvField,
-  injectEnvPermissions,
-} from './environment-shared';
+import { ENV_CRUMBS, ENV_MODULE, EnvField, injectEnvPermissions } from './environment-shared';
+import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../core/modules/module-config';
 
 export const MAX_CRITERIA = 10;
 /** Most score levels described per criterion (the backend keeps any scale). */
@@ -210,7 +205,7 @@ export function draftMaxScore(d: ScoringDraft): number | null {
 }
 
 /**
- * `/environment/scoring` (needs `environment:manage`): the organisation's method for
+ * `/settings/modules/environment` (needs `environment:manage`): the organisation's method for
  * deciding which aspects are significant. Each criterion has a name, a short
  * description and what each score means (shown to assessors in the aspect form, so
  * different people score the same way); technical keys are made by the system and
@@ -232,7 +227,7 @@ export function draftMaxScore(d: ScoringDraft): number | null {
     HelpStrip,
     Icon,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     PageHeader,
     EnvField,
   ],
@@ -245,11 +240,7 @@ export function draftMaxScore(d: ScoringDraft): number | null {
         [breadcrumbs]="crumbs"
         titleTestId="scoring-title"
       />
-      <app-module-nav
-        class="mb-4 block"
-        [items]="perms.nav()"
-        labelKey="modules.names.environment"
-      />
+      <app-module-config-nav module="environment" />
       <app-help-strip scope="environment" page="scoring" lesson="significance" />
 
       @switch (state()) {
@@ -701,7 +692,10 @@ export class ScoringSettings {
   private readonly language = inject(LanguageService);
 
   protected readonly perms = injectEnvPermissions();
-  protected readonly crumbs = [ENV_ROOT_CRUMB, { labelKey: ENV_CRUMBS.scoring.labelKey }];
+  protected readonly crumbs = [
+    ...moduleConfigCrumbs('environment'),
+    { labelKey: ENV_CRUMBS.scoring.labelKey },
+  ];
   protected readonly methods = SCORING_METHODS;
   protected readonly maxCriteria = MAX_CRITERIA;
 

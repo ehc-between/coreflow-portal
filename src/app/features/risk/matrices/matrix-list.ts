@@ -20,7 +20,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { RiskApi } from '../data/risk-api';
 import { Matrix } from '../data/risk.models';
 import { MatrixGrid } from '../shared/matrix-grid';
-import { RiskNav } from '../shared/risk-nav';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -39,7 +39,7 @@ import { RiskPermissions } from '../shared/risk-permissions';
     Card,
     Icon,
     MatrixGrid,
-    RiskNav,
+    ModuleConfigNav,
     ErrorState,
     HelpStrip,
     LoadingState,
@@ -52,7 +52,8 @@ import { RiskPermissions } from '../shared/risk-permissions';
         titleKey="risk.matrices.title"
         descriptionKey="risk.matrices.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.risk' },
           { labelKey: 'risk.matrices.title' },
         ]"
       >
@@ -63,7 +64,7 @@ import { RiskPermissions } from '../shared/risk-permissions';
           </app-button>
         }
       </app-page-header>
-      <app-risk-nav />
+      <app-module-config-nav module="risk" />
       <app-help-strip scope="risk" page="matrices" lesson="risk-matrix" />
 
       @switch (state()) {
@@ -90,7 +91,7 @@ import { RiskPermissions } from '../shared/risk-permissions';
                   <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
                     <div class="min-w-0">
                       <a
-                        [routerLink]="['/risk/matrices', m.id]"
+                        [routerLink]="['/settings/modules/risk/matrices', m.id]"
                         class="font-display text-section font-bold text-fg hover:underline"
                         >{{ m.name }}</a
                       >
@@ -172,6 +173,6 @@ export class MatrixListPage {
   }
 
   protected newMatrix(): void {
-    void this.router.navigate(['/risk/matrices/new']);
+    void this.router.navigate(['/settings/modules/risk/matrices/new']);
   }
 }

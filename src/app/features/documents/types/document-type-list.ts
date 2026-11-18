@@ -21,9 +21,9 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { DocumentType } from '../data/document-control.models';
 import { DocumentsPageGuide } from '../shared/documents-page-guide';
-import { DocumentsNav } from '../shared/documents-nav';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { DocumentControlPermissions } from '../shared/document-control-permissions';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 /** Case-insensitive match on name, key and prefix. */
 export function matchesType(type: DocumentType, q: string): boolean {
@@ -52,7 +52,7 @@ export function matchesType(type: DocumentType, q: string): boolean {
     Card,
     Icon,
     DocumentsPageGuide,
-    DocumentsNav,
+    ModuleConfigNav,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,10 +60,10 @@ export function matchesType(type: DocumentType, q: string): boolean {
     <app-record-list-page
       titleKey="documents.control.types.title"
       [breadcrumbs]="[
-        { labelKey: 'modules.names.documents', link: '/documents' },
+        { labelKey: 'nav.settings', link: '/settings' },
+        { labelKey: 'modules.names.documents' },
         { labelKey: 'documents.control.types.title' },
       ]"
-      settingsLink="/documents/types"
       scope="documents"
       page="types"
       searchPlaceholderKey="documents.control.types.searchPlaceholder"
@@ -73,7 +73,7 @@ export function matchesType(type: DocumentType, q: string): boolean {
       (search)="q.set($event)"
       (viewApplied)="showInactive.set($event.filters['inactive'] === '1')"
     >
-      <app-documents-nav nav />
+      <app-module-config-nav nav module="documents" />
       <app-documents-page-guide help page="types" lesson="numbering-and-types" tour="types" />
       <app-why-it-matters below scope="documents" page="types" />
       @if (perms.canManage()) {
@@ -142,7 +142,7 @@ export function matchesType(type: DocumentType, q: string): boolean {
                       <tr class="align-top hover:bg-surface-2" data-testid="type-row">
                         <td class="px-4 py-2.5">
                           <a
-                            [routerLink]="['/documents/types', t.id]"
+                            [routerLink]="['/settings/modules/documents/types', t.id]"
                             class="font-semibold text-fg hover:underline"
                             >{{ t.name }}</a
                           >
@@ -236,6 +236,6 @@ export class DocumentTypeListPage {
   }
 
   protected create(): void {
-    void this.router.navigateByUrl('/documents/types/new');
+    void this.router.navigateByUrl('/settings/modules/documents/types/new');
   }
 }

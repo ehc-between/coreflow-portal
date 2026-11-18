@@ -26,7 +26,9 @@ import { FieldLabel } from './components/field-label';
 import { ManagementReviewApi } from './data/management-review-api';
 import { mrErrorKey } from './data/management-review-errors';
 import { MrSettings, MrSettingsUpdate } from './data/management-review.models';
-import { MR_MODULE, MR_SCOPE, mrCrumbs } from './management-review-display';
+import { MR_MODULE, MR_SCOPE } from './management-review-display';
+import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../core/modules/module-config';
 
 /** The interval options offered (months); any 1-36 value from the API is kept. */
 export const INTERVAL_OPTIONS = [3, 6, 12, 18, 24, 36] as const;
@@ -52,7 +54,7 @@ export function settingsPatch(
 }
 
 /**
- * `/management-review/settings` (the gear on every page of the module): how
+ * `/settings/modules/management-review` (the gear on every page of the module): how
  * often top management reviews the management system and how early CoreFlow
  * reminds you. The next review is due one interval after the last signed one;
  * from the reminder window it shows on the home page and in Mitt arbeid.
@@ -60,6 +62,7 @@ export function settingsPatch(
 @Component({
   selector: 'app-mr-review-settings',
   imports: [
+    ModuleConfigNav,
     TranslocoPipe,
     Alert,
     Button,
@@ -79,6 +82,7 @@ export function settingsPatch(
         descriptionKey="managementReview.settings.description"
         [breadcrumbs]="crumbs"
       />
+      <app-module-config-nav module="management_review" />
       <app-help-strip [scope]="scope" page="settings" />
 
       @switch (state()) {
@@ -176,7 +180,10 @@ export class ReviewSettingsPage {
   private readonly notifications = inject(NotificationService);
 
   protected readonly scope = MR_SCOPE;
-  protected readonly crumbs = mrCrumbs({ labelKey: 'managementReview.settings.title' });
+  protected readonly crumbs = [
+    ...moduleConfigCrumbs('management_review'),
+    { labelKey: 'managementReview.settings.title' },
+  ];
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly settings = signal<MrSettings | null>(null);

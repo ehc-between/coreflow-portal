@@ -87,7 +87,7 @@ export function campaignQuery(
         { labelKey: 'modules.names.documents', link: '/documents' },
         { labelKey: 'documents.control.campaigns.title' },
       ]"
-      settingsLink="/documents/types"
+      settingsLink="/settings/modules/documents"
       scope="documents"
       page="campaigns"
       searchPlaceholderKey="documents.control.campaigns.searchPlaceholder"

@@ -65,15 +65,15 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
         [entityId]="r.id"
         [title]="r.name"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
-          { labelKey: 'risk.registers.title', link: '/risk/registers' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.risk' },
+          { labelKey: 'risk.registers.title', link: '/settings/modules/risk/registers' },
           { label: r.name },
         ]"
-        settingsLink="/risk/matrices"
         [tabs]="tabs"
         [canEdit]="perms.canManage()"
         [includeAudit]="perms.canReadAudit()"
-        backLink="/risk/registers"
+        backLink="/settings/modules/risk/registers"
         backLabelKey="risk.registers.back"
       >
         <ng-container ngProjectAs="[meta]">
@@ -108,7 +108,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
             <app-field-list [columns]="2">
               <app-field-item labelKey="risk.registers.matrix">
                 <a
-                  [routerLink]="['/risk/matrices', r.matrix_id]"
+                  [routerLink]="['/settings/modules/risk/matrices', r.matrix_id]"
                   class="text-accent hover:underline"
                   >{{ r.matrix_name ?? ('common.empty.notSet' | transloco) }}</a
                 >
@@ -267,7 +267,7 @@ export class RegisterDetailPage {
     this.api.deleteRegister(orgId, r.id).subscribe({
       next: () => {
         this.toasts.success('risk.notices.registerDeleted', { name: r.name });
-        void this.router.navigate(['/risk/registers']);
+        void this.router.navigate(['/settings/modules/risk/registers']);
       },
       error: (e: unknown) => this.errorKey.set(riskErrorKey(e)),
     });

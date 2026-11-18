@@ -1,8 +1,8 @@
 import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
 
 /**
- * The suppliers module's sub-pages for `app-module-nav` (register, evaluations,
- * questionnaires). `openEvaluations` adds the count of open evaluations to that tab.
+ * The suppliers module's sub-pages for `app-module-nav` (register, evaluations;
+ * questionnaires are configuration, U10). `openEvaluations` adds the count of open evaluations to that tab.
  */
 export function suppliersNav(openEvaluations?: number | null): readonly ModuleNavItem[] {
   return [
@@ -12,6 +12,5 @@ export function suppliersNav(openEvaluations?: number | null): readonly ModuleNa
       link: '/suppliers/evaluations',
       ...(openEvaluations ? { count: openEvaluations } : {}),
     },
-    { labelKey: 'suppliers.nav.questionnaires', link: '/suppliers/questionnaires' },
   ];
 }

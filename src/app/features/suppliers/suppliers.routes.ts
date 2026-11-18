@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/suppliers' };
 
@@ -30,23 +31,10 @@ export default [
         loadComponent: () =>
           import('./evaluations/evaluations-list').then((m) => m.EvaluationsList),
       },
-      {
-        path: 'questionnaires',
-        loadComponent: () =>
-          import('./questionnaires/questionnaires-list').then((m) => m.QuestionnairesList),
-      },
-      {
-        path: 'questionnaires/new',
-        canActivate: [permissionGuard('suppliers:manage', toList)],
-        loadComponent: () =>
-          import('./questionnaires/questionnaire-editor').then((m) => m.QuestionnaireEditor),
-      },
-      {
-        path: 'questionnaires/:qid/edit',
-        canActivate: [permissionGuard('suppliers:manage', toList)],
-        loadComponent: () =>
-          import('./questionnaires/questionnaire-editor').then((m) => m.QuestionnaireEditor),
-      },
+      // U10: questionnaire templates are configuration (/settings/modules/suppliers).
+      moduleConfigRedirect('questionnaires', 'suppliers'),
+      moduleConfigRedirect('questionnaires/new', 'suppliers'),
+      moduleConfigRedirect('questionnaires/:qid/edit', 'suppliers'),
       {
         path: ':id',
         loadComponent: () => import('./supplier-detail').then((m) => m.SupplierDetailPage),

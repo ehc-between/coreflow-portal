@@ -48,7 +48,7 @@ export function clampMonths(
 }
 
 /**
- * `/ai-governance/settings`: the AI policy (a controlled document), the person
+ * `/settings/modules/ai-governance`: the AI policy (a controlled document), the person
  * responsible for AI governance, who AI literacy is measured over (everyone, or
  * the people who own or oversee AI systems), how long a literacy record stays
  * valid and the default review interval of AI systems and assessments.
@@ -77,6 +77,7 @@ export function clampMonths(
       descriptionKey="aiGovernance.settings.subtitle"
       [breadcrumbs]="[{ labelKey: 'aiGovernance.nav.settings' }]"
       page="settings"
+      [config]="true"
       [settingsLink]="null"
     >
       @if (loadError()) {

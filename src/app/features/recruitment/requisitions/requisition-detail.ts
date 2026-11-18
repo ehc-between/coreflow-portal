@@ -601,7 +601,7 @@ export class RequisitionDetailPage {
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly people = inject(RecruitmentPeople);
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav(this.perms);
+  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
 
   protected readonly entityType = ENTITY_REQUISITION;

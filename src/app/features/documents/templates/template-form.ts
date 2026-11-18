@@ -36,7 +36,7 @@ import { DocumentControlPermissions } from '../shared/document-control-permissio
 const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
 
 /**
- * Create (`/documents/templates/new`) or view and edit (`/documents/templates/:id`)
+ * Create (`/settings/modules/documents/templates/new`) or view and edit (`/settings/modules/documents/templates/:id`)
  * a template: name, the document type it is for, and the body in the rich editor
  * (with an AI first draft). "Use template" creates a new document from it.
  */
@@ -142,7 +142,7 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
             >
               {{ 'documents.control.common.save' | transloco }}
             </app-button>
-            <a routerLink="/documents/templates">
+            <a routerLink="/settings/modules/documents/templates">
               <app-button type="button" variant="ghost">
                 {{ 'documents.control.common.cancel' | transloco }}
               </app-button>
@@ -160,7 +160,7 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
           [tabs]="tabs"
           [canEdit]="perms.canManage()"
           [includeAudit]="perms.canReadAudit()"
-          backLink="/documents/templates"
+          backLink="/settings/modules/documents/templates"
           backLabelKey="documents.control.templates.back"
         >
           <div header>
@@ -232,7 +232,7 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
     } @else {
       <div class="mx-auto max-w-[980px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
-          routerLink="/documents/templates"
+          routerLink="/settings/modules/documents/templates"
           class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
@@ -253,7 +253,7 @@ export class TemplateFormPage {
   private readonly language = inject(LanguageService);
   protected readonly perms = inject(DocumentControlPermissions);
 
-  /** Set on `/documents/templates/:id`. */
+  /** Set on `/settings/modules/documents/templates/:id`. */
   readonly id = input<string | undefined>(undefined);
 
   protected readonly tabs = TABS;
@@ -341,7 +341,7 @@ export class TemplateFormPage {
         if (id) {
           this.current.set({ ...t, content: this.content() });
         } else {
-          void this.router.navigate(['/documents/templates', t.id]);
+          void this.router.navigate(['/settings/modules/documents/templates', t.id]);
         }
       },
       error: (e: unknown) => {
@@ -385,7 +385,7 @@ export class TemplateFormPage {
         this.saving.set(false);
         this.deleteOpen.set(false);
         this.toasts.success('documents.control.common.deletedToast');
-        void this.router.navigateByUrl('/documents/templates');
+        void this.router.navigateByUrl('/settings/modules/documents/templates');
       },
       error: (e: unknown) => {
         this.saving.set(false);

@@ -451,7 +451,7 @@ export function chipRef(r: LinkedRecord) {
                 </p>
                 @if (perms.manage()) {
                   <a
-                    routerLink="/environment/scoring"
+                    routerLink="/settings/modules/environment"
                     class="mt-1 inline-block text-meta font-semibold text-accent hover:underline"
                     >{{ 'environment.aspect.seeMethod' | transloco }}</a
                   >
