@@ -1,0 +1,149 @@
+{
+  "title": "What do you want to add?",
+  "close": "Close",
+  "back": "Back",
+  "cancel": "Cancel",
+  "submit": "Add",
+  "loading": "Loading …",
+  "none": "You do not have access to add anything here. Ask an administrator if you need it.",
+  "me": "Me",
+  "choose": "Choose …",
+  "allTypes": "All types …",
+  "shortcutHint": "Tip: press N on any page to open this window.",
+  "nextHeading": "What happens next:",
+  "deadline": "Deadline: {{date}}.",
+  "incident": {
+    "heading": "Report something that went wrong",
+    "question": "What happened? Pick the closest match."
+  },
+  "other": "Add something else",
+  "triage": {
+    "wentWrong": { "label": "Something was not done as it should be", "term": "Deviation" },
+    "nearMiss": { "label": "Someone was nearly hurt", "term": "Near miss" },
+    "injury": { "label": "Someone was hurt or made ill by work", "term": "HSE incident" },
+    "phishing": {
+      "label": "Suspicious email, text or link",
+      "term": "Phishing (security incident)"
+    },
+    "security": {
+      "label": "Something else with IT or information security",
+      "term": "Security incident"
+    },
+    "breach": { "label": "Personal data got into the wrong hands", "term": "Personal data breach" },
+    "complaint": { "label": "A customer is unhappy", "term": "Complaint" }
+  },
+  "types": {
+    "deviation": "Deviation",
+    "near_miss": "HSE incident",
+    "security_incident": "Security incident",
+    "data_breach": "Personal data breach",
+    "complaint": "Complaint",
+    "improvement": "Improvement idea",
+    "customer_feedback": "Customer feedback",
+    "risk": "Risk",
+    "task": "Task",
+    "document": "Document",
+    "supplier": "Supplier"
+  },
+  "fields": {
+    "title": "Short title",
+    "kind": "Type",
+    "description": "What happened, or what is it about?",
+    "occurred_at": "When did it happen?",
+    "customer_name": "Customer",
+    "document_type": "Document type",
+    "due_at": "Due",
+    "owner_user_id": "Owner"
+  },
+  "kindQuestion": {
+    "near_miss": "What kind of incident?",
+    "security_incident": "What kind of incident?",
+    "customer_feedback": "What kind of feedback?"
+  },
+  "options": {
+    "kind": {
+      "near_miss": "Near miss",
+      "injury": "Injury",
+      "occupational_illness": "Work-related illness",
+      "dangerous_condition": "Dangerous condition",
+      "property_damage": "Property damage",
+      "phishing": "Phishing (fake email, text or link)",
+      "malware": "Malware (virus etc.)",
+      "unauthorised_access": "Someone got access they should not have",
+      "data_loss": "Data was lost or leaked",
+      "denial_of_service": "A system or website is down (denial of service)",
+      "lost_device": "Lost or stolen laptop or phone",
+      "complaint": "Complaint",
+      "compliment": "Compliment",
+      "suggestion": "Suggestion",
+      "inquiry": "Question",
+      "other": "Other"
+    }
+  },
+  "next": {
+    "deviation_follow_up": "The owner gets the deviation, assesses it and finds the cause.",
+    "hse_follow_up": "The HSE owner follows it up. If someone is seriously hurt, the Labour Inspection Authority and the police must be told at once.",
+    "security_follow_up": "The information security owner assesses how serious the incident is.",
+    "breach_72h": "The clock for notifying the Data Protection Authority is running: no later than 72 hours after the breach was discovered.",
+    "breach_reported_72h": "The person responsible for privacy is told. If the breach must be reported, the Data Protection Authority must be notified within 72 hours.",
+    "complaint_response": "The owner replies to the customer and checks whether something needs fixing.",
+    "improvement_review": "The idea is reviewed, and you see the answer on the record.",
+    "feedback_follow_up": "The owner follows up the feedback.",
+    "risk_assess": "Next, assess how likely the risk is and what it could lead to.",
+    "task_assigned": "The task shows under My work for the owner.",
+    "document_draft": "The document is saved as a draft. Write the content and send it for approval.",
+    "supplier_evaluate": "Next, assess how important the supplier is to you."
+  },
+  "context": {
+    "linked": "Linked to: {{title}}",
+    "linkedPage": "Linked to the page you came from",
+    "unlink": "Do not link"
+  },
+  "done": {
+    "title": "Added",
+    "body": "Thank you! It has been registered and the owner has been told."
+  },
+  "complete": {
+    "title": "Added. Complete the record when you have time",
+    "intro": "Still missing:",
+    "dismiss": "Hide",
+    "fields": {
+      "severity": "Severity",
+      "location": "Location",
+      "immediate_action": "Immediate action",
+      "root_cause": "Cause",
+      "persons_involved": "Who was involved",
+      "breach_types": "Type of breach",
+      "data_categories": "Which personal data",
+      "approx_subjects": "About how many people",
+      "risk_level": "Risk to the people affected",
+      "measures_taken": "Measures taken",
+      "customer_organisation": "Customer organisation",
+      "product_or_service": "Product or service",
+      "benefit": "What we gain",
+      "effort": "How much work it is",
+      "channel": "Where the feedback came from",
+      "satisfaction_score": "How satisfied the customer is",
+      "inherent_likelihood": "Likelihood",
+      "inherent_consequence": "Consequence",
+      "treatment_strategy": "What we do about the risk",
+      "priority": "Priority",
+      "checklist": "Checklist",
+      "content": "Content",
+      "review": "Review and approval",
+      "criticality": "How important the supplier is",
+      "category": "Category",
+      "country": "Country",
+      "contact_name": "Contact person"
+    }
+  },
+  "errors": {
+    "generic": "Could not add it. Please try again shortly.",
+    "load": "Could not load the choices. Please try again shortly.",
+    "forbidden": "You do not have access to add this.",
+    "module_disabled": "This module is not switched on for your organisation.",
+    "type_inactive": "This type is switched off in settings.",
+    "field_required": "Fill in “{{field}}”.",
+    "invalid_option": "Pick one of the options for “{{field}}”."
+  }
+}
