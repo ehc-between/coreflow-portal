@@ -30,13 +30,20 @@ import {
   CRITICALITIES,
   Criticality,
   DEPENDENCY_KINDS,
+  DEPENDENCY_LINK_TYPES,
+  DependencyEntityType,
   DependencyKind,
   IMPACT_CATEGORIES,
-  ImpactCategory,
-  Impacts,
+  IMPACT_INTERVALS,
   IctListItem,
+  ImpactCategory,
+  ImpactInterval,
+  ImpactTimeline,
+  Impacts,
+  LinkedRef,
 } from '../data/continuity.models';
-import { ContinuityDurationInput } from '../shared/duration';
+import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration';
+import { ContinuityRecordPicker } from '../shared/record-picker';
 import { ContinuityDepartmentSelect, ContinuityUserSelect } from '../shared/user-select';
 
 export interface DependencyDraft {
@@ -44,15 +51,19 @@ export interface DependencyDraft {
   name: string;
   notes: string;
   ict_system_id: string;
+  /** The register record the dependency points at (supplier, asset, person, record…). */
+  entity: LinkedRef | null;
 }
 
 export interface BiaDraft {
   title: string;
   description: string;
+  process: LinkedRef | null;
   owner_user_id: string;
   department_id: string;
   criticality: Criticality | '';
   impacts: Record<ImpactCategory, number | null>;
+  impact_timeline: Record<ImpactInterval, number | null>;
   impact_notes: string;
   mtpd_minutes: number | null;
   rto_minutes: number | null;
@@ -64,20 +75,55 @@ export interface BiaDraft {
   review_interval_months: string;
 }
 
+/** Values a "create from here" flow (process → BIA) fills in on a new BIA. */
+export type BiaPrefill = Partial<
+  Pick<BiaDraft, 'title' | 'description' | 'owner_user_id' | 'department_id' | 'process'>
+>;
+
+/** Minutes of each impact interval (for the MTPD suggestion). */
+export const INTERVAL_MINUTES: Readonly<Record<ImpactInterval, number>> = {
+  '4h': 240,
+  '1d': 1440,
+  '3d': 4320,
+  '1w': 10080,
+  '2w': 20160,
+};
+
 const emptyImpacts = (): Record<ImpactCategory, number | null> =>
   Object.fromEntries(IMPACT_CATEGORIES.map((c) => [c, null])) as Record<
     ImpactCategory,
     number | null
   >;
 
+const emptyTimeline = (): Record<ImpactInterval, number | null> =>
+  Object.fromEntries(IMPACT_INTERVALS.map((i) => [i, null])) as Record<
+    ImpactInterval,
+    number | null
+  >;
+
+function dependencyEntity(d: BiaDetail['dependencies'][number]): LinkedRef | null {
+  if (d.entity) {
+    return d.entity;
+  }
+  if (d.entity_type && d.entity_id) {
+    return { entity_type: d.entity_type, entity_id: d.entity_id, title: d.name };
+  }
+  return null;
+}
+
 export function biaDraft(b: BiaDetail | null): BiaDraft {
   return {
     title: b?.title ?? '',
     description: b?.description ?? '',
+    process:
+      b?.process ??
+      // A process the reader may not open: keep the link, show a neutral label.
+      (b?.process_id ? { entity_type: 'process', entity_id: b.process_id, title: '—' } : null),
     owner_user_id: b?.owner?.id ?? '',
     department_id: b?.department_id ?? '',
     criticality: b?.criticality ?? '',
     impacts: { ...emptyImpacts(), ...(b?.impacts ?? {}) },
+    impact_timeline: { ...emptyTimeline(), ...(b?.impact_timeline ?? {}) },
     impact_notes: b?.impact_notes ?? '',
     mtpd_minutes: b?.mtpd_minutes ?? null,
     rto_minutes: b?.rto_minutes ?? null,
@@ -90,9 +136,15 @@ export function biaDraft(b: BiaDetail | null): BiaDraft {
       name: d.name ?? '',
       notes: d.notes ?? '',
       ict_system_id: d.ict_system_id ?? '',
+      entity: dependencyEntity(d),
     })),
     review_interval_months: b ? String(b.review_interval_months) : '12',
   };
+}
+
+/** Whether a dependency kind may link to a register record (not ICT, which has its own list). */
+export function linkTypes(kind: DependencyKind): readonly DependencyEntityType[] {
+  return DEPENDENCY_LINK_TYPES[kind] ?? [];
 }
 
 export function biaFields(d: BiaDraft): BiaFields {
@@ -100,10 +152,12 @@ export function biaFields(d: BiaDraft): BiaFields {
   return {
     title: d.title.trim(),
     description: blankToNull(d.description),
+    process_id: d.process?.entity_id ?? null,
     owner_user_id: d.owner_user_id || null,
     department_id: d.department_id || null,
     criticality: d.criticality || null,
     impacts: { ...d.impacts } as Impacts,
+    impact_timeline: { ...d.impact_timeline } as ImpactTimeline,
     impact_notes: blankToNull(d.impact_notes),
     mtpd_minutes: d.mtpd_minutes,
     rto_minutes: d.rto_minutes,
@@ -111,14 +165,52 @@ export function biaFields(d: BiaDraft): BiaFields {
     mbco: blankToNull(d.mbco),
     peak_periods: blankToNull(d.peak_periods),
     workarounds: blankToNull(d.workarounds),
-    dependencies: d.dependencies.map((dep) => ({
-      kind: dep.kind,
-      name: blankToNull(dep.name),
-      notes: blankToNull(dep.notes),
-      ict_system_id: dep.kind === 'ict' && dep.ict_system_id ? dep.ict_system_id : null,
-    })),
+    dependencies: d.dependencies.map((dep) => {
+      const ict = dep.kind === 'ict' && dep.ict_system_id ? dep.ict_system_id : null;
+      const entity =
+        dep.kind !== 'ict' &&
+        dep.entity &&
+        linkTypes(dep.kind).includes(dep.entity.entity_type as DependencyEntityType)
+          ? dep.entity
+          : null;
+      return {
+        kind: dep.kind,
+        name: blankToNull(dep.name) ?? entity?.title ?? null,
+        notes: blankToNull(dep.notes),
+        ict_system_id: ict,
+        entity_type: (entity?.entity_type as DependencyEntityType | undefined) ?? null,
+        entity_id: entity?.entity_id ?? null,
+      };
+    }),
     review_interval_months: interval !== null && Number.isFinite(interval) ? interval : null,
   };
+}
+
+/** Whether the impact over time never falls as the disruption goes on. */
+export function timelineRises(t: Readonly<Record<ImpactInterval, number | null>>): boolean {
+  let last = -1;
+  for (const i of IMPACT_INTERVALS) {
+    const v = t[i];
+    if (v === null || v === undefined) {
+      continue;
+    }
+    if (v < last) {
+      return false;
+    }
+    last = v;
+  }
+  return true;
+}
+
+/** The MTPD the timeline points at: the first interval rated 4 (serious) or worse. */
+export function suggestedMtpd(t: Readonly<Record<ImpactInterval, number | null>>): number | null {
+  for (const i of IMPACT_INTERVALS) {
+    const v = t[i];
+    if (typeof v === 'number' && v >= 4) {
+      return INTERVAL_MINUTES[i];
+    }
+  }
+  return null;
 }
 
 /** The validation problems of a draft, as `continuity.form.errors.*` key suffixes. */
@@ -135,9 +227,14 @@ export function biaProblems(d: BiaDraft): string[] {
     problems.push('interval');
   }
   if (
-    d.dependencies.some((dep) => !dep.name.trim() && !(dep.kind === 'ict' && dep.ict_system_id))
+    d.dependencies.some(
+      (dep) => !dep.name.trim() && !(dep.kind === 'ict' && dep.ict_system_id) && !dep.entity,
+    )
   ) {
     problems.push('dependencyName');
+  }
+  if (!timelineRises(d.impact_timeline)) {
+    problems.push('timelineDecreasing');
   }
   return problems;
 }
@@ -155,14 +252,17 @@ export function applyBiaSuggestion(d: BiaDraft, s: BiaSuggestion): BiaDraft {
     typeof v === 'number' && v >= 0 ? Math.round(v) : fallback;
   const deps = (s.dependencies ?? [])
     .filter((dep) => !!dep.name?.trim())
-    .map((dep) => ({
-      kind: (DEPENDENCY_KINDS as readonly string[]).includes(dep.kind ?? '')
-        ? (dep.kind as DependencyKind)
-        : 'other',
-      name: dep.name!.trim(),
-      notes: dep.notes ?? '',
-      ict_system_id: '',
-    }));
+    .map(
+      (dep): DependencyDraft => ({
+        kind: (DEPENDENCY_KINDS as readonly string[]).includes(dep.kind ?? '')
+          ? (dep.kind as DependencyKind)
+          : 'other',
+        name: dep.name!.trim(),
+        notes: dep.notes ?? '',
+        ict_system_id: '',
+        entity: null,
+      }),
+    );
   return {
     ...d,
     criticality:
@@ -185,11 +285,12 @@ export interface BiaFormValue {
 }
 
 /**
- * Create / edit form of a business impact analysis: the activity, its impact ratings
- * over time, the recovery targets (MTPD, RTO, RPO, MBCO), peak periods, workarounds
- * and dependencies (an ICT dependency can point at an ICT service), plus the review
- * interval. The assistant can suggest ratings and targets from the title and
- * description. In edit mode it also asks for the reason for the change.
+ * Create / edit form of a business impact analysis: the process it analyses (the
+ * recommended start, it names the activity), how bad an outage gets per area and over
+ * time (with the MTPD the timeline suggests), the recovery targets (MTPD, RTO, RPO,
+ * MBCO), peak periods, workarounds and the dependencies — each pointing at the ICT
+ * service, supplier, asset, person or record it relies on — plus the review interval.
+ * The assistant can suggest ratings and targets. Editing asks for the reason.
  */
 @Component({
   selector: 'app-bia-form',
@@ -201,7 +302,9 @@ export interface BiaFormValue {
     Button,
     Card,
     ContinuityDepartmentSelect,
+    ContinuityDuration,
     ContinuityDurationInput,
+    ContinuityRecordPicker,
     ContinuityUserSelect,
     FieldHelp,
     FormField,
@@ -212,7 +315,7 @@ export interface BiaFormValue {
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.activity' | transloco }}
           </h2>
           <app-ai-assist-button
@@ -235,6 +338,21 @@ export interface BiaFormValue {
         }
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
+            <app-form-field [label]="'continuity.fields.process' | transloco" inputId="bia-process">
+              <app-continuity-record-picker
+                inputId="bia-process"
+                [types]="['process']"
+                [value]="d().process"
+                [placeholder]="'continuity.form.processPlaceholder' | transloco"
+                describedBy="bia-process-hint"
+                (picked)="pickProcess($event)"
+              />
+              <p id="bia-process-hint" class="text-meta text-fg-subtle">
+                {{ 'continuity.form.processHint' | transloco }}
+              </p>
+            </app-form-field>
+          </div>
+          <div class="sm:col-span-2">
             <app-form-field [label]="'continuity.fields.title' | transloco" inputId="bia-title">
               <input
                 id="bia-title"
@@ -247,7 +365,7 @@ export interface BiaFormValue {
               />
             </app-form-field>
             @if (showErrors() && !d().title.trim()) {
-              <p class="mt-1 text-[12px] text-fail" role="alert">
+              <p class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'continuity.form.errors.titleRequired' | transloco }}
               </p>
             }
@@ -281,26 +399,19 @@ export interface BiaFormValue {
               (valueChange)="set('department_id', $event)"
             />
           </app-form-field>
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="biaForm" field="criticality" />
-            </div>
-            <app-form-field
-              [label]="'continuity.fields.criticality' | transloco"
-              inputId="bia-crit"
-            >
-              <select id="bia-crit" (change)="set('criticality', $any($event.target).value)">
-                <option value="" [selected]="!d().criticality">
-                  {{ 'continuity.common.notSet' | transloco }}
+          <app-form-field [label]="'continuity.fields.criticality' | transloco" inputId="bia-crit">
+            <select id="bia-crit" (change)="set('criticality', $any($event.target).value)">
+              <option value="" [selected]="!d().criticality">
+                {{ 'continuity.common.notSet' | transloco }}
+              </option>
+              @for (c of criticalities; track c) {
+                <option [value]="c" [selected]="d().criticality === c">
+                  {{ 'continuity.criticality.' + c | transloco }}
                 </option>
-                @for (c of criticalities; track c) {
-                  <option [value]="c" [selected]="d().criticality === c">
-                    {{ 'continuity.criticality.' + c | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
+              }
+            </select>
+            <app-field-help scope="continuity" page="biaForm" field="criticality" />
+          </app-form-field>
           <div>
             <app-form-field
               [label]="'continuity.fields.reviewInterval' | transloco"
@@ -317,7 +428,7 @@ export interface BiaFormValue {
               />
             </app-form-field>
             @if (showErrors() && problems().includes('interval')) {
-              <p class="mt-1 text-[12px] text-fail" role="alert">
+              <p class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'continuity.form.errors.interval' | transloco }}
               </p>
             }
@@ -326,16 +437,14 @@ export interface BiaFormValue {
       </app-card>
 
       <app-card>
-        <div class="mb-1 flex items-center gap-1">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+        <div class="mb-1 flex flex-wrap items-center gap-1">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.impacts' | transloco }}
           </h2>
           <app-field-help scope="continuity" page="biaForm" field="impacts" />
           <app-ask-about [prompt]="'continuity.ai.prompts.impacts' | transloco" field="impacts" />
         </div>
-        <p class="mb-3 text-[12.5px] text-fg-subtle">
-          {{ 'continuity.form.impactScale' | transloco }}
-        </p>
+        <p class="mb-3 text-meta text-fg-subtle">{{ 'continuity.form.impactScale' | transloco }}</p>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           @for (c of impactCategories; track c) {
             <app-form-field
@@ -355,6 +464,59 @@ export interface BiaFormValue {
             </app-form-field>
           }
         </div>
+
+        <fieldset class="mt-5" data-testid="timeline-input">
+          <legend class="flex items-center gap-1 text-card font-semibold text-fg">
+            {{ 'continuity.fields.impactTimeline' | transloco }}
+            <app-field-help scope="continuity" page="biaForm" field="impact_timeline" />
+          </legend>
+          <p class="mt-1 mb-3 text-meta text-fg-subtle">
+            {{ 'continuity.form.timelineHint' | transloco }}
+          </p>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            @for (i of intervals; track i) {
+              <app-form-field
+                [label]="'continuity.intervals.' + i | transloco"
+                [inputId]="'bia-tl-' + i"
+              >
+                <select
+                  [id]="'bia-tl-' + i"
+                  [attr.aria-invalid]="problems().includes('timelineDecreasing') || null"
+                  (change)="setTimeline(i, $any($event.target).value)"
+                >
+                  <option value="" [selected]="d().impact_timeline[i] === null">—</option>
+                  @for (n of ratings; track n) {
+                    <option [value]="n" [selected]="d().impact_timeline[i] === n">
+                      {{ 'continuity.impactShort.' + n | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+            }
+          </div>
+          @if (problems().includes('timelineDecreasing')) {
+            <p class="mt-2 text-meta text-fail-ink" role="alert">
+              {{ 'continuity.errors.impact_timeline_decreasing' | transloco }}
+            </p>
+          }
+          @if (suggestion(); as minutes) {
+            <p
+              class="mt-2 flex flex-wrap items-center gap-2 text-ui text-fg-muted"
+              data-testid="mtpd-suggestion"
+            >
+              {{ 'continuity.bias.suggestedMtpd' | transloco }}
+              <span class="font-semibold text-fg"
+                ><app-continuity-duration [minutes]="minutes"
+              /></span>
+              @if (d().mtpd_minutes !== minutes) {
+                <app-button size="sm" variant="secondary" (click)="set('mtpd_minutes', minutes)">
+                  {{ 'continuity.form.useSuggestion' | transloco }}
+                </app-button>
+              }
+            </p>
+          }
+        </fieldset>
+
         <div class="mt-4">
           <app-form-field
             [label]="'continuity.fields.impactNotes' | transloco"
@@ -373,7 +535,7 @@ export interface BiaFormValue {
 
       <app-card>
         <div class="mb-3 flex items-center gap-1">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.targets' | transloco }}
           </h2>
           <app-ask-about
@@ -382,65 +544,49 @@ export interface BiaFormValue {
           />
         </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="biaForm" field="mtpd_minutes" />
-            </div>
-            <app-form-field [label]="'continuity.fields.mtpd' | transloco" inputId="bia-mtpd">
-              <app-continuity-duration-input
-                inputId="bia-mtpd"
-                [value]="d().mtpd_minutes"
-                (valueChange)="set('mtpd_minutes', $event)"
-              />
-            </app-form-field>
-          </div>
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="biaForm" field="rto_minutes" />
-            </div>
-            <app-form-field [label]="'continuity.fields.rto' | transloco" inputId="bia-rto">
-              <app-continuity-duration-input
-                inputId="bia-rto"
-                [value]="d().rto_minutes"
-                [invalid]="problems().includes('rtoExceedsMtpd')"
-                describedBy="bia-rto-err"
-                (valueChange)="set('rto_minutes', $event)"
-              />
-            </app-form-field>
-          </div>
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="biaForm" field="rpo_minutes" />
-            </div>
-            <app-form-field [label]="'continuity.fields.rpo' | transloco" inputId="bia-rpo">
-              <app-continuity-duration-input
-                inputId="bia-rpo"
-                [value]="d().rpo_minutes"
-                (valueChange)="set('rpo_minutes', $event)"
-              />
-            </app-form-field>
-          </div>
+          <app-form-field [label]="'continuity.fields.mtpd' | transloco" inputId="bia-mtpd">
+            <app-continuity-duration-input
+              inputId="bia-mtpd"
+              [value]="d().mtpd_minutes"
+              (valueChange)="set('mtpd_minutes', $event)"
+            />
+            <app-field-help scope="continuity" page="biaForm" field="mtpd_minutes" />
+          </app-form-field>
+          <app-form-field [label]="'continuity.fields.rto' | transloco" inputId="bia-rto">
+            <app-continuity-duration-input
+              inputId="bia-rto"
+              [value]="d().rto_minutes"
+              [invalid]="problems().includes('rtoExceedsMtpd')"
+              describedBy="bia-rto-err"
+              (valueChange)="set('rto_minutes', $event)"
+            />
+            <app-field-help scope="continuity" page="biaForm" field="rto_minutes" />
+          </app-form-field>
+          <app-form-field [label]="'continuity.fields.rpo' | transloco" inputId="bia-rpo">
+            <app-continuity-duration-input
+              inputId="bia-rpo"
+              [value]="d().rpo_minutes"
+              (valueChange)="set('rpo_minutes', $event)"
+            />
+            <app-field-help scope="continuity" page="biaForm" field="rpo_minutes" />
+          </app-form-field>
         </div>
         @if (problems().includes('rtoExceedsMtpd')) {
-          <p id="bia-rto-err" class="mt-2 text-[12px] text-fail" role="alert">
+          <p id="bia-rto-err" class="mt-2 text-meta text-fail-ink" role="alert">
             {{ 'continuity.errors.rto_exceeds_mtpd' | transloco }}
           </p>
         }
         <div class="mt-4 grid grid-cols-1 gap-4">
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="biaForm" field="mbco" />
-            </div>
-            <app-form-field [label]="'continuity.fields.mbco' | transloco" inputId="bia-mbco">
-              <textarea
-                id="bia-mbco"
-                rows="2"
-                maxlength="20000"
-                [value]="d().mbco"
-                (input)="set('mbco', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
+          <app-form-field [label]="'continuity.fields.mbco' | transloco" inputId="bia-mbco">
+            <textarea
+              id="bia-mbco"
+              rows="2"
+              maxlength="20000"
+              [value]="d().mbco"
+              (input)="set('mbco', $any($event.target).value)"
+            ></textarea>
+            <app-field-help scope="continuity" page="biaForm" field="mbco" />
+          </app-form-field>
           <app-form-field [label]="'continuity.fields.peakPeriods' | transloco" inputId="bia-peak">
             <textarea
               id="bia-peak"
@@ -468,7 +614,7 @@ export interface BiaFormValue {
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-1">
-            <h2 class="font-display text-[15px] font-bold text-fg">
+            <h2 class="font-display text-card font-bold text-fg">
               {{ 'continuity.form.sections.dependencies' | transloco }}
             </h2>
             <app-field-help scope="continuity" page="biaForm" field="dependencies" />
@@ -484,32 +630,40 @@ export interface BiaFormValue {
           </app-button>
         </div>
         @if (d().dependencies.length === 0) {
-          <p class="text-[13px] text-fg-muted">
-            {{ 'continuity.form.noDependencies' | transloco }}
-          </p>
+          <p class="text-ui text-fg-muted">{{ 'continuity.form.noDependencies' | transloco }}</p>
         }
         <ol class="flex flex-col gap-3">
           @for (dep of d().dependencies; track $index; let i = $index) {
             <li class="rounded-tile border border-border p-3">
-              <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-[160px_1fr_auto]">
+              <fieldset class="flex flex-col gap-3">
                 <legend class="sr-only">
                   {{ 'continuity.form.dependencyN' | transloco: { n: i + 1 } }}
                 </legend>
-                <app-form-field
-                  [label]="'continuity.fields.dependencyKind' | transloco"
-                  [inputId]="'bia-dep-kind-' + i"
-                >
-                  <select
-                    [id]="'bia-dep-kind-' + i"
-                    (change)="setDependency(i, 'kind', $any($event.target).value)"
-                  >
-                    @for (k of dependencyKinds; track k) {
-                      <option [value]="k" [selected]="dep.kind === k">
-                        {{ 'continuity.dependencyKind.' + k | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
+                <div class="flex flex-wrap items-end gap-3">
+                  <div class="min-w-[220px] flex-1">
+                    <app-form-field
+                      [label]="'continuity.fields.dependencyKind' | transloco"
+                      [inputId]="'bia-dep-kind-' + i"
+                    >
+                      <select
+                        [id]="'bia-dep-kind-' + i"
+                        (change)="setKind(i, $any($event.target).value)"
+                      >
+                        @for (k of dependencyKinds; track k) {
+                          <option [value]="k" [selected]="dep.kind === k">
+                            {{ 'continuity.dependencyKind.' + k | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </app-form-field>
+                  </div>
+                  <app-button size="sm" variant="ghost" (click)="removeDependency(i)">
+                    <app-icon name="trash" [size]="14" />
+                    <span class="sr-only">{{
+                      'continuity.form.removeDependency' | transloco: { n: i + 1 }
+                    }}</span>
+                  </app-button>
+                </div>
                 @if (dep.kind === 'ict') {
                   <app-form-field
                     [label]="'continuity.fields.ictSystem' | transloco"
@@ -529,30 +683,7 @@ export interface BiaFormValue {
                       }
                     </select>
                   </app-form-field>
-                } @else {
-                  <app-form-field
-                    [label]="'continuity.fields.dependencyName' | transloco"
-                    [inputId]="'bia-dep-name-' + i"
-                  >
-                    <input
-                      [id]="'bia-dep-name-' + i"
-                      type="text"
-                      maxlength="255"
-                      [value]="dep.name"
-                      (input)="setDependency(i, 'name', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                }
-                <div class="flex items-end">
-                  <app-button size="sm" variant="ghost" (click)="removeDependency(i)">
-                    <app-icon name="trash" [size]="14" />
-                    <span class="sr-only">
-                      {{ 'continuity.form.removeDependency' | transloco: { n: i + 1 } }}
-                    </span>
-                  </app-button>
-                </div>
-                @if (dep.kind === 'ict') {
-                  <div class="sm:col-span-3">
+                  @if (!dep.ict_system_id) {
                     <app-form-field
                       [label]="'continuity.fields.dependencyName' | transloco"
                       [inputId]="'bia-dep-name-' + i"
@@ -566,28 +697,59 @@ export interface BiaFormValue {
                         (input)="setDependency(i, 'name', $any($event.target).value)"
                       />
                     </app-form-field>
-                  </div>
+                  }
+                } @else {
+                  @if (types(dep.kind).length) {
+                    <app-form-field
+                      [label]="'continuity.form.linkRecord.' + dep.kind | transloco"
+                      [inputId]="'bia-dep-rec-' + i"
+                    >
+                      <app-continuity-record-picker
+                        [inputId]="'bia-dep-rec-' + i"
+                        [types]="types(dep.kind)"
+                        [value]="dep.entity"
+                        (picked)="setDependency(i, 'entity', $event)"
+                      />
+                    </app-form-field>
+                  }
+                  @if (!dep.entity) {
+                    <app-form-field
+                      [label]="'continuity.fields.dependencyName' | transloco"
+                      [inputId]="'bia-dep-name-' + i"
+                    >
+                      <input
+                        [id]="'bia-dep-name-' + i"
+                        type="text"
+                        maxlength="255"
+                        [placeholder]="
+                          types(dep.kind).length
+                            ? ('continuity.form.nameIfNotListed' | transloco)
+                            : ''
+                        "
+                        [value]="dep.name"
+                        (input)="setDependency(i, 'name', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                  }
                 }
-                <div class="sm:col-span-3">
-                  <app-form-field
-                    [label]="'continuity.fields.dependencyNotes' | transloco"
-                    [inputId]="'bia-dep-notes-' + i"
-                  >
-                    <input
-                      [id]="'bia-dep-notes-' + i"
-                      type="text"
-                      maxlength="1000"
-                      [value]="dep.notes"
-                      (input)="setDependency(i, 'notes', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
+                <app-form-field
+                  [label]="'continuity.fields.dependencyNotes' | transloco"
+                  [inputId]="'bia-dep-notes-' + i"
+                >
+                  <input
+                    [id]="'bia-dep-notes-' + i"
+                    type="text"
+                    maxlength="1000"
+                    [value]="dep.notes"
+                    (input)="setDependency(i, 'notes', $any($event.target).value)"
+                  />
+                </app-form-field>
               </fieldset>
             </li>
           }
         </ol>
         @if (showErrors() && problems().includes('dependencyName')) {
-          <p class="mt-2 text-[12px] text-fail" role="alert">
+          <p class="mt-2 text-meta text-fail-ink" role="alert">
             {{ 'continuity.form.errors.dependencyName' | transloco }}
           </p>
         }
@@ -604,17 +766,19 @@ export interface BiaFormValue {
               [value]="reason()"
               (input)="reason.set($any($event.target).value)"
             ></textarea>
+            <p id="bia-reason-hint" class="text-meta text-fg-subtle">
+              {{ 'continuity.form.changeReasonHint' | transloco }}
+            </p>
           </app-form-field>
-          <p id="bia-reason-hint" class="mt-1 text-[12px] text-fg-subtle">
-            {{ 'continuity.form.changeReasonHint' | transloco }}
-          </p>
         </app-card>
       }
 
-      <div class="flex flex-wrap items-center justify-end gap-2">
-        <app-button variant="ghost" (click)="cancelled.emit()">
-          {{ 'common.cancel' | transloco }}
-        </app-button>
+      <div
+        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
+      >
+        <app-button variant="ghost" (click)="cancelled.emit()">{{
+          'common.cancel' | transloco
+        }}</app-button>
         <app-button type="submit" [loading]="busy()">
           {{ (value() ? 'continuity.form.save' : 'continuity.bias.create') | transloco }}
         </app-button>
@@ -628,20 +792,25 @@ export class BiaForm {
 
   /** The BIA being edited (null = a new BIA). */
   readonly value = input<BiaDetail | null>(null);
+  /** Values from a "create from here" flow, applied to a new BIA. */
+  readonly prefill = input<BiaPrefill | null>(null);
   readonly busy = input(false);
   readonly submitted = output<BiaFormValue>();
   readonly cancelled = output<void>();
 
   protected readonly criticalities = CRITICALITIES;
   protected readonly impactCategories = IMPACT_CATEGORIES;
+  protected readonly intervals = IMPACT_INTERVALS;
   protected readonly dependencyKinds = DEPENDENCY_KINDS;
   protected readonly ratings = [0, 1, 2, 3, 4, 5] as const;
+  protected readonly types = linkTypes;
 
   protected readonly d = signal<BiaDraft>(biaDraft(null));
   protected readonly reason = signal('');
   protected readonly showErrors = signal(false);
   protected readonly rationale = signal<string | null>(null);
   protected readonly problems = computed(() => biaProblems(this.d()));
+  protected readonly suggestion = computed(() => suggestedMtpd(this.d().impact_timeline));
   protected readonly ictSystems = signal<readonly IctListItem[]>([]);
 
   private ictRequest = new Subscription();
@@ -650,7 +819,10 @@ export class BiaForm {
     inject(DestroyRef).onDestroy(() => this.ictRequest.unsubscribe());
     effect(() => {
       const value = this.value();
-      untracked(() => this.d.set(biaDraft(value)));
+      const prefill = this.prefill();
+      untracked(() =>
+        this.d.set(value ? biaDraft(value) : { ...biaDraft(null), ...(prefill ?? {}) }),
+      );
     });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
@@ -671,15 +843,53 @@ export class BiaForm {
     this.d.update((d) => ({ ...d, [key]: value }));
   }
 
+  /** The process names the activity when no title is written yet. */
+  protected pickProcess(ref: LinkedRef | null): void {
+    this.d.update((d) => ({
+      ...d,
+      process: ref,
+      title: ref && !d.title.trim() ? ref.title : d.title,
+    }));
+  }
+
   protected setImpact(category: ImpactCategory, raw: string): void {
     const value = raw === '' ? null : Number(raw);
     this.d.update((d) => ({ ...d, impacts: { ...d.impacts, [category]: value } }));
   }
 
+  protected setTimeline(interval: ImpactInterval, raw: string): void {
+    const value = raw === '' ? null : Number(raw);
+    this.d.update((d) => ({ ...d, impact_timeline: { ...d.impact_timeline, [interval]: value } }));
+  }
+
   protected addDependency(): void {
     this.d.update((d) => ({
       ...d,
-      dependencies: [...d.dependencies, { kind: 'other', name: '', notes: '', ict_system_id: '' }],
+      dependencies: [
+        ...d.dependencies,
+        { kind: 'other', name: '', notes: '', ict_system_id: '', entity: null },
+      ],
+    }));
+  }
+
+  /** A new kind keeps the name and drops links the kind cannot have. */
+  protected setKind(index: number, kind: DependencyKind): void {
+    this.d.update((d) => ({
+      ...d,
+      dependencies: d.dependencies.map((dep, i) =>
+        i === index
+          ? {
+              ...dep,
+              kind,
+              ict_system_id: kind === 'ict' ? dep.ict_system_id : '',
+              entity:
+                dep.entity &&
+                linkTypes(kind).includes(dep.entity.entity_type as DependencyEntityType)
+                  ? dep.entity
+                  : null,
+            }
+          : dep,
+      ),
     }));
   }
 
@@ -695,10 +905,7 @@ export class BiaForm {
   }
 
   protected removeDependency(index: number): void {
-    this.d.update((d) => ({
-      ...d,
-      dependencies: d.dependencies.filter((_, i) => i !== index),
-    }));
+    this.d.update((d) => ({ ...d, dependencies: d.dependencies.filter((_, i) => i !== index) }));
   }
 
   protected applySuggestion(result: unknown): void {

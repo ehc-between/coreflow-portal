@@ -487,7 +487,8 @@
       "to_risk": "Risiko for prosessen",
       "to_task": "Oppgave for prosessen",
       "to_audit_plan": "Internrevisjon av prosessen",
-      "to_kpi": "Nøkkeltall for prosessen"
+      "to_kpi": "Nøkkeltall for prosessen",
+      "to_bia": "Konsekvensanalyse (BIA) for prosessen"
     },
     "objective": {
       "to_kpi": "KPI som måler målet",
@@ -507,6 +508,24 @@
       "to_deviation": "Avvik knyttet til kontrakten",
       "to_task": "Oppgave på kontrakten",
       "to_dpa": "Databehandleravtale for kontrakten"
+    },
+    "asset": {
+      "to_ict_system": "IKT-tjeneste for kontinuitet"
+    },
+    "bia": {
+      "to_plan": "Kontinuitetsplan for aktiviteten",
+      "to_risk": "Vurder risiko for aktiviteten"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Avvik fra øvelsen",
+      "to_risk": "Risiko fra øvelsen",
+      "to_task": "Oppgave for oppfølging"
+    },
+    "continuity_plan": {
+      "to_deviation": "Registrer hendelsen som avvik"
+    },
+    "continuity_ict_system": {
+      "to_task": "Oppgave for å lukke beredskapsmangelen"
     }
   },
   "frameworks": {

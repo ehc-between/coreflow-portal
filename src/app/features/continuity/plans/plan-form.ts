@@ -82,6 +82,29 @@ export function planDraft(p: PlanDetail | null, biaIds: readonly string[] = []):
   };
 }
 
+/** Values a "create from here" flow (BIA → plan) fills in on a new plan. */
+export type PlanPrefill = Partial<
+  Pick<PlanDraft, 'title' | 'plan_type' | 'owner_user_id' | 'department_id' | 'bia_ids'>
+> & { readonly objectives?: string };
+
+export function applyPlanPrefill(d: PlanDraft, p: PlanPrefill | null): PlanDraft {
+  if (!p) {
+    return d;
+  }
+  return {
+    ...d,
+    title: p.title || d.title,
+    plan_type:
+      p.plan_type && (PLAN_TYPES as readonly string[]).includes(p.plan_type)
+        ? p.plan_type
+        : d.plan_type,
+    owner_user_id: p.owner_user_id || d.owner_user_id,
+    department_id: p.department_id || d.department_id,
+    bia_ids: p.bia_ids?.length ? [...new Set([...d.bia_ids, ...p.bia_ids])] : d.bia_ids,
+    texts: p.objectives ? { ...d.texts, objectives: p.objectives } : d.texts,
+  };
+}
+
 export function planFields(d: PlanDraft): PlanFields {
   const interval = parseIntOrNull(d.review_interval_months);
   const texts = Object.fromEntries(
@@ -192,7 +215,7 @@ export interface PlanFormValue {
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
       <app-card>
-        <h2 class="mb-3 font-display text-[15px] font-bold text-fg">
+        <h2 class="mb-3 font-display text-card font-bold text-fg">
           {{ 'continuity.form.sections.plan' | transloco }}
         </h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -209,25 +232,21 @@ export interface PlanFormValue {
               />
             </app-form-field>
             @if (showErrors() && !d().title.trim()) {
-              <p class="mt-1 text-[12px] text-fail" role="alert">
+              <p class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'continuity.form.errors.titleRequired' | transloco }}
               </p>
             }
           </div>
-          <div>
-            <div class="flex items-center gap-1">
-              <app-field-help scope="continuity" page="planForm" field="plan_type" />
-            </div>
-            <app-form-field [label]="'continuity.fields.planType' | transloco" inputId="plan-type">
-              <select id="plan-type" (change)="set('plan_type', $any($event.target).value)">
-                @for (t of types; track t) {
-                  <option [value]="t" [selected]="d().plan_type === t">
-                    {{ 'continuity.planType.' + t | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
+          <app-form-field [label]="'continuity.fields.planType' | transloco" inputId="plan-type">
+            <select id="plan-type" (change)="set('plan_type', $any($event.target).value)">
+              @for (t of types; track t) {
+                <option [value]="t" [selected]="d().plan_type === t">
+                  {{ 'continuity.planType.' + t | transloco }}
+                </option>
+              }
+            </select>
+            <app-field-help scope="continuity" page="planForm" field="plan_type" />
+          </app-form-field>
           <app-form-field [label]="'continuity.fields.location' | transloco" inputId="plan-loc">
             <input
               id="plan-loc"
@@ -267,7 +286,7 @@ export interface PlanFormValue {
               />
             </app-form-field>
             @if (showErrors() && problems().includes('interval')) {
-              <p class="mt-1 text-[12px] text-fail" role="alert">
+              <p class="mt-1 text-meta text-fail-ink" role="alert">
                 {{ 'continuity.form.errors.interval' | transloco }}
               </p>
             }
@@ -277,16 +296,16 @@ export interface PlanFormValue {
 
       <app-card>
         <div class="mb-1 flex items-center gap-1">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.coverage' | transloco }}
           </h2>
           <app-field-help scope="continuity" page="planForm" field="bia_ids" />
         </div>
-        <p class="mb-3 text-[12.5px] text-fg-subtle">
+        <p class="mb-3 text-meta text-fg-subtle">
           {{ 'continuity.form.coverageHint' | transloco }}
         </p>
         @if (bias().length === 0) {
-          <p class="text-[13px] text-fg-muted">{{ 'continuity.form.noBias' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'continuity.form.noBias' | transloco }}</p>
         } @else {
           <fieldset>
             <legend class="sr-only">{{ 'continuity.form.sections.coverage' | transloco }}</legend>
@@ -294,7 +313,7 @@ export interface PlanFormValue {
               @for (b of bias(); track b.id) {
                 <li>
                   <label
-                    class="flex cursor-pointer items-start gap-2 rounded-tile border border-border px-3 py-2 text-[13px] hover:bg-surface-2"
+                    class="flex cursor-pointer items-start gap-2 rounded-tile border border-border px-3 py-2 text-ui hover:bg-surface-2"
                   >
                     <input
                       type="checkbox"
@@ -304,10 +323,10 @@ export interface PlanFormValue {
                     />
                     <span class="min-w-0">
                       <span class="block text-fg">
-                        <span class="font-mono text-[12px] text-fg-muted">{{ b.code }}</span>
+                        <span class="font-mono text-meta text-fg-muted">{{ b.code }}</span>
                         {{ b.title }}
                       </span>
-                      <span class="block text-[12px] text-fg-subtle">
+                      <span class="block text-meta text-fg-subtle">
                         {{ 'continuity.fields.rtoShort' | transloco }}:
                         <app-continuity-duration [minutes]="b.rto_minutes" />
                         · {{ 'continuity.status.' + b.status | transloco }}
@@ -323,7 +342,7 @@ export interface PlanFormValue {
 
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-[15px] font-bold text-fg">
+          <h2 class="font-display text-card font-bold text-fg">
             {{ 'continuity.form.sections.content' | transloco }}
           </h2>
           <app-ai-assist-button
@@ -341,7 +360,7 @@ export interface PlanFormValue {
           />
         </div>
         @if (!value() && d().bia_ids.length === 0) {
-          <p class="mb-3 text-[12.5px] text-fg-subtle">
+          <p class="mb-3 text-meta text-fg-subtle">
             {{ 'continuity.ai.draftNeedsBia' | transloco }}
           </p>
         }
@@ -366,29 +385,31 @@ export interface PlanFormValue {
         }
         <div class="flex flex-col gap-4">
           @for (f of textFields; track f) {
-            <div>
-              <div class="flex items-center gap-1">
+            <app-form-field
+              [label]="'continuity.planText.' + f | transloco"
+              [inputId]="'plan-' + f"
+            >
+              <textarea
+                [id]="'plan-' + f"
+                rows="4"
+                maxlength="20000"
+                [value]="d().texts[f]"
+                (input)="setText(f, $any($event.target).value)"
+              ></textarea>
+              <span class="flex flex-wrap items-center gap-2">
                 <app-field-help scope="continuity" page="planForm" [field]="f" />
-                @if (f === 'activation_criteria') {
+                @if (f === 'activation_criteria' || f === 'recovery_strategy') {
                   <app-ask-about
-                    [prompt]="'continuity.ai.prompts.activation' | transloco"
-                    field="activation_criteria"
+                    [prompt]="
+                      'continuity.ai.prompts.' +
+                        (f === 'activation_criteria' ? 'activation' : 'recoveryStrategy')
+                        | transloco
+                    "
+                    [field]="f"
                   />
                 }
-              </div>
-              <app-form-field
-                [label]="'continuity.planText.' + f | transloco"
-                [inputId]="'plan-' + f"
-              >
-                <textarea
-                  [id]="'plan-' + f"
-                  rows="4"
-                  maxlength="20000"
-                  [value]="d().texts[f]"
-                  (input)="setText(f, $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
+              </span>
+            </app-form-field>
           }
         </div>
       </app-card>
@@ -396,7 +417,7 @@ export interface PlanFormValue {
       <app-card>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-1">
-            <h2 class="font-display text-[15px] font-bold text-fg">
+            <h2 class="font-display text-card font-bold text-fg">
               {{ 'continuity.form.sections.steps' | transloco }}
             </h2>
             <app-field-help scope="continuity" page="planForm" field="steps" />
@@ -412,7 +433,7 @@ export interface PlanFormValue {
           </app-button>
         </div>
         @if (d().steps.length === 0) {
-          <p class="text-[13px] text-fg-muted">{{ 'continuity.form.noSteps' | transloco }}</p>
+          <p class="text-ui text-fg-muted">{{ 'continuity.form.noSteps' | transloco }}</p>
         }
         <ol class="flex flex-col gap-3">
           @for (
@@ -424,7 +445,7 @@ export interface PlanFormValue {
           ) {
             <li class="rounded-tile border border-border p-3">
               <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <legend class="mb-1 text-[12.5px] font-semibold text-fg-muted">
+                <legend class="mb-1 text-meta font-semibold text-fg-muted">
                   {{ 'continuity.form.stepN' | transloco: { n: i + 1 } }}
                 </legend>
                 <app-form-field
@@ -513,7 +534,7 @@ export interface PlanFormValue {
           }
         </ol>
         @if (showErrors() && problems().includes('stepTitle')) {
-          <p class="mt-2 text-[12px] text-fail" role="alert">
+          <p class="mt-2 text-meta text-fail-ink" role="alert">
             {{ 'continuity.form.errors.stepTitle' | transloco }}
           </p>
         }
@@ -534,13 +555,15 @@ export interface PlanFormValue {
               (input)="reason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="plan-reason-hint" class="mt-1 text-[12px] text-fg-subtle">
+          <p id="plan-reason-hint" class="mt-1 text-meta text-fg-subtle">
             {{ 'continuity.form.changeReasonHint' | transloco }}
           </p>
         </app-card>
       }
 
-      <div class="flex flex-wrap items-center justify-end gap-2">
+      <div
+        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
+      >
         <app-button variant="ghost" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
@@ -559,6 +582,8 @@ export class PlanForm {
   readonly value = input<PlanDetail | null>(null);
   /** BIAs preselected on a new plan (e.g. "create a plan for this BIA"). */
   readonly initialBiaIds = input<readonly string[]>([]);
+  /** Values from a "create from here" flow, applied to a new plan. */
+  readonly prefill = input<PlanPrefill | null>(null);
   readonly busy = input(false);
   readonly submitted = output<PlanFormValue>();
   readonly cancelled = output<void>();
@@ -582,7 +607,10 @@ export class PlanForm {
     effect(() => {
       const value = this.value();
       const initial = this.initialBiaIds();
-      untracked(() => this.d.set(planDraft(value, initial)));
+      const prefill = this.prefill();
+      untracked(() =>
+        this.d.set(value ? planDraft(value) : applyPlanPrefill(planDraft(null, initial), prefill)),
+      );
     });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();

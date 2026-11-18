@@ -9,65 +9,71 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
+import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { ContinuityApi } from '../data/continuity-api';
 import { changedFields } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
-import { PlanDetail } from '../data/continuity.models';
-import { PlanForm, PlanFormValue, planDraft, planFields } from './plan-form';
+import { PlanDetail, PlanType } from '../data/continuity.models';
+import { formCrumbs } from '../shared/continuity-page';
+import { prefillIds, prefillText } from '../shared/flow-prefill';
+import { PlanForm, PlanFormValue, PlanPrefill, planDraft, planFields } from './plan-form';
 
 /**
- * Create (`/continuity/plans/new`, optionally `?bia=<id>` to preselect a BIA) or edit
- * (`/continuity/plans/:id/edit`) a continuity plan. Editing sends only the changed
- * fields with the change reason.
+ * Create (`/continuity/plans/new`, optionally `?bia=<id>`, or from a BIA with "create
+ * from here") or edit (`/continuity/plans/:id/edit`) a continuity plan. Editing sends
+ * only the changed fields with the change reason.
  */
 @Component({
   selector: 'app-plan-editor',
-  imports: [RouterLink, TranslocoPipe, Alert, GuideIntro, Icon, PlanForm, WhyItMatters],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    FlowBanner,
+    HelpStrip,
+    LoadingState,
+    PageHeader,
+    PlanForm,
+    WhyItMatters,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[920px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/continuity/plans', id()] : '/continuity/plans'"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ (id() ? 'continuity.common.backToRecord' : 'continuity.plans.back') | transloco }}
-      </a>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="plan() ? 'continuity.plans.editTitle' : 'continuity.plans.newTitle'"
+        [titleParams]="{ code: plan()?.code, title: plan()?.title }"
+        [breadcrumbs]="crumbs()"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'continuity.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
           <app-alert>{{ 'continuity.common.notFound' | transloco }}</app-alert>
         }
         @default {
-          <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            @if (plan(); as p) {
-              {{ 'continuity.plans.editTitle' | transloco: { code: p.code, title: p.title } }}
-            } @else {
-              {{ 'continuity.plans.newTitle' | transloco }}
-            }
-          </h1>
           @if (plan()?.can_edit === false) {
             <app-alert tone="info">{{ 'continuity.form.readOnly' | transloco }}</app-alert>
           } @else {
+            <app-flow-banner [flow]="flow()" (cancelled)="flows.cancel()" />
             @if (plan()?.status === 'approved' || plan()?.status === 'in_review') {
-              <div class="mt-2">
+              <div class="mb-4">
                 <app-alert tone="info">{{ 'continuity.form.backToDraft' | transloco }}</app-alert>
               </div>
             }
-            <div class="mt-3 mb-4"><app-guide-intro scope="continuity" page="planForm" /></div>
+            <app-help-strip scope="continuity" page="planForm" lesson="writing-a-plan" />
             @if (error(); as key) {
               <div class="mb-4">
                 <app-alert>{{ key | transloco }}</app-alert>
@@ -76,11 +82,12 @@ import { PlanForm, PlanFormValue, planDraft, planFields } from './plan-form';
             <app-plan-form
               [value]="plan()"
               [initialBiaIds]="initialBias()"
+              [prefill]="prefill()"
               [busy]="busy()"
               (submitted)="save($event)"
               (cancelled)="back()"
             />
-            <div class="mt-6"><app-why-it-matters scope="continuity" page="planForm" /></div>
+            <div class="mt-8"><app-why-it-matters scope="continuity" page="planForm" /></div>
           }
         }
       }
@@ -93,12 +100,30 @@ export class PlanEditor {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  protected readonly flows = inject(CreateFlowService);
 
   /** Route `:id` (absent on `/new`). */
   readonly id = input<string | undefined>(undefined);
   /** Query `?bia=` on `/new`. */
   readonly bia = input<string | undefined>(undefined);
 
+  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+    targetType: 'continuity_plan',
+  });
+  protected readonly prefill = computed<PlanPrefill | null>(() => {
+    const values = this.flow()?.prefill;
+    if (!values) {
+      return null;
+    }
+    return {
+      title: prefillText(values, 'title'),
+      plan_type: (prefillText(values, 'plan_type') || undefined) as PlanType | undefined,
+      owner_user_id: prefillText(values, 'owner_user_id'),
+      department_id: prefillText(values, 'department_id'),
+      bia_ids: prefillIds(values, 'bia_ids'),
+      objectives: prefillText(values, 'objectives'),
+    };
+  });
   protected readonly initialBias = computed(() => {
     const bia = this.bia();
     return bia ? [bia] : [];
@@ -107,6 +132,14 @@ export class PlanEditor {
   protected readonly plan = signal<PlanDetail | null>(null);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly crumbs = computed(() => {
+    const p = this.plan();
+    return formCrumbs(
+      'plans',
+      p ? { id: p.id, label: p.code } : null,
+      p ? 'continuity.common.edit' : 'continuity.plans.new',
+    );
+  });
   private request = new Subscription();
 
   constructor() {
@@ -151,6 +184,7 @@ export class PlanEditor {
         next: (p) => {
           this.busy.set(false);
           this.notifications.success('continuity.plans.created', { code: p.code });
+          this.flows.complete(p.id, 'continuity_plan').subscribe();
           void this.router.navigate(['/continuity/plans', p.id]);
         },
         error: (err: unknown) => {

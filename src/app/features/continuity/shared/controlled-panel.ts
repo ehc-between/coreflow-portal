@@ -3,17 +3,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
-import {
-  actionNeedsNote,
-  actionVariant,
-  controlledStatusTone,
-  orderedActions,
-  reviewStateTone,
-} from '../data/continuity-display';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { actionNeedsNote, actionVariant, badge, orderedActions } from '../data/continuity-display';
 import { ControlledAction, ControlledDetail } from '../data/continuity.models';
 
 export interface ControlledActionRequest {
@@ -21,84 +15,128 @@ export interface ControlledActionRequest {
   readonly note: string | null;
 }
 
+/** What the approval row can say about a record. */
+export type ApprovalState = 'dated' | 'by' | 'undated' | 'none';
+
+/**
+ * The approval row: a date (and who), only who (older records without a date), an
+ * approved record without either, or not approved. Never "not approved yet" next to
+ * an "approved" badge.
+ */
+export function approvalState(r: ControlledDetail): ApprovalState {
+  if (r.approved_at) {
+    return 'dated';
+  }
+  if (r.approved_by?.name) {
+    return 'by';
+  }
+  return r.status === 'approved' ? 'undated' : 'none';
+}
+
 /**
  * The document-control card of a BIA or continuity plan: status, version, who
  * submitted and approved it, the periodic review schedule, and the workflow actions
- * the caller may take (submit, approve, reject, review, retire, restore). Each
- * action asks for a note (required to reject) before `(acted)` fires.
+ * the caller may take (submit, approve, reject, review, restore). Each action asks
+ * for a note (required to reject) before `(acted)` fires. Retiring is offered in the
+ * page header's "More" menu, which calls `open('retire')`.
  */
 @Component({
   selector: 'app-continuity-controlled-panel',
-  imports: [TranslocoPipe, LocalDayPipe, Alert, AskAbout, Badge, Button, Card, PromptDialog],
+  imports: [TranslocoPipe, LocalDayPipe, Alert, AskAbout, Button, Card, PromptDialog, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = record();
     <app-card>
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'continuity.control.title' | transloco }}
         </h2>
         <app-ask-about [prompt]="'continuity.ai.prompts.nextStep' | transloco" field="status" />
       </div>
-      <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-[13.5px] sm:grid-cols-2">
+      <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-body sm:grid-cols-2">
         <div>
-          <dt class="text-[12px] text-fg-muted">{{ 'continuity.fields.status' | transloco }}</dt>
+          <dt class="text-meta text-fg-muted">{{ 'continuity.fields.status' | transloco }}</dt>
           <dd class="flex flex-wrap items-center gap-2 text-fg">
-            <app-badge [tone]="statusTone(r.status)">
-              {{ 'continuity.status.' + r.status | transloco }}
-            </app-badge>
-            <span class="text-[12.5px] text-fg-muted">
+            <app-status-badge
+              [meaning]="statusBadge().meaning"
+              [value]="statusBadge().value"
+              [labelKey]="'continuity.status.' + r.status"
+            />
+            <span class="text-meta text-fg-muted">
               {{ 'continuity.control.version' | transloco: { version: r.version } }}
             </span>
           </dd>
-          <dd class="mt-1 text-[12.5px] text-fg-subtle">
+          <dd class="mt-1 text-meta text-fg-subtle">
             {{ 'continuity.statusHelp.' + r.status | transloco }}
           </dd>
         </div>
         <div>
-          <dt class="text-[12px] text-fg-muted">{{ 'continuity.fields.approved' | transloco }}</dt>
-          <dd class="text-fg">
-            @if (r.approved_at) {
-              {{
-                'continuity.control.approvedOn'
-                  | transloco
-                    : { date: (r.approved_at | localDay), name: r.approved_by?.name ?? '–' }
-              }}
-            } @else {
-              {{ 'continuity.control.notApproved' | transloco }}
+          <dt class="text-meta text-fg-muted">{{ 'continuity.fields.approved' | transloco }}</dt>
+          <dd class="text-fg" data-testid="approval">
+            @switch (approval()) {
+              @case ('dated') {
+                {{
+                  'continuity.control.approvedOn'
+                    | transloco
+                      : {
+                          date: (r.approved_at | localDay),
+                          name:
+                            r.approved_by?.name || ('continuity.common.unknownPerson' | transloco),
+                        }
+                }}
+              }
+              @case ('by') {
+                {{ 'continuity.control.approvedBy' | transloco: { name: r.approved_by?.name } }}
+              }
+              @case ('undated') {
+                {{ 'continuity.control.approvedUndated' | transloco }}
+              }
+              @default {
+                {{ 'continuity.control.notApproved' | transloco }}
+              }
             }
           </dd>
           @if (r.submitted_at && r.status === 'in_review') {
-            <dd class="mt-1 text-[12.5px] text-fg-subtle">
+            <dd class="mt-1 text-meta text-fg-subtle">
               {{
                 'continuity.control.submittedOn'
                   | transloco
-                    : { date: (r.submitted_at | localDay), name: r.submitted_by?.name ?? '–' }
+                    : {
+                        date: (r.submitted_at | localDay),
+                        name:
+                          r.submitted_by?.name || ('continuity.common.unknownPerson' | transloco),
+                      }
               }}
             </dd>
           }
         </div>
         <div>
-          <dt class="text-[12px] text-fg-muted">
+          <dt class="text-meta text-fg-muted">
             {{ 'continuity.fields.lastReviewed' | transloco }}
           </dt>
           <dd class="text-fg">
-            {{ r.last_reviewed_on ? (r.last_reviewed_on | localDay) : '–' }}
+            {{
+              r.last_reviewed_on
+                ? (r.last_reviewed_on | localDay)
+                : ('continuity.common.notYet' | transloco)
+            }}
           </dd>
         </div>
         <div>
-          <dt class="text-[12px] text-fg-muted">
+          <dt class="text-meta text-fg-muted">
             {{ 'continuity.fields.nextReview' | transloco }}
           </dt>
           <dd class="flex flex-wrap items-center gap-2 text-fg">
             @if (r.next_review_on) {
               <span>{{ r.next_review_on | localDay }}</span>
             }
-            <app-badge [tone]="reviewTone(r.review_state)">
-              {{ 'continuity.reviewState.' + r.review_state | transloco }}
-            </app-badge>
+            <app-status-badge
+              [meaning]="reviewBadge().meaning"
+              [value]="reviewBadge().value"
+              [labelKey]="'continuity.reviewState.' + r.review_state"
+            />
           </dd>
-          <dd class="mt-1 text-[12.5px] text-fg-subtle">
+          <dd class="mt-1 text-meta text-fg-subtle">
             {{ 'continuity.control.interval' | transloco: { months: r.review_interval_months } }}
           </dd>
         </div>
@@ -132,7 +170,7 @@ export interface ControlledActionRequest {
       [label]="'continuity.control.note' | transloco"
       [confirmLabel]="'continuity.actions.' + (pending() ?? 'submit') | transloco"
       [cancelLabel]="'common.cancel' | transloco"
-      [confirmVariant]="pending() === 'reject' || pending() === 'retire' ? 'danger' : 'primary'"
+      [confirmVariant]="pending() === 'reject' ? 'danger' : 'primary'"
       [required]="noteRequired()"
       [busy]="busy()"
       (confirmed)="confirm($event)"
@@ -146,13 +184,18 @@ export class ContinuityControlledPanel {
   readonly error = input<string | null>(null);
   readonly acted = output<ControlledActionRequest>();
 
-  protected readonly statusTone = controlledStatusTone;
-  protected readonly reviewTone = reviewStateTone;
   protected readonly variant = actionVariant;
   protected readonly pending = signal<ControlledAction | null>(null);
+  /** Retiring sits in the page header's "More" menu (it can be undone). */
   protected readonly actions = computed(
-    () => orderedActions(this.record().allowed_actions) as ControlledAction[],
+    () =>
+      orderedActions(this.record().allowed_actions).filter(
+        (a) => a !== 'retire',
+      ) as ControlledAction[],
   );
+  protected readonly statusBadge = computed(() => badge.controlled(this.record().status));
+  protected readonly reviewBadge = computed(() => badge.review(this.record().review_state));
+  protected readonly approval = computed(() => approvalState(this.record()));
   protected readonly noteRequired = computed(() => actionNeedsNote(this.pending() ?? ''));
 
   /** Close the note dialog (the host calls this once the action succeeded). */
@@ -160,7 +203,8 @@ export class ContinuityControlledPanel {
     this.pending.set(null);
   }
 
-  protected open(action: ControlledAction): void {
+  /** Ask for the note of an action (the header's "Retire" menu item calls this too). */
+  open(action: ControlledAction): void {
     this.pending.set(action);
   }
 

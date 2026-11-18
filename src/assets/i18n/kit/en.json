@@ -487,7 +487,8 @@
       "to_risk": "Risk for the process",
       "to_task": "Task for the process",
       "to_audit_plan": "Internal audit of the process",
-      "to_kpi": "KPI for the process"
+      "to_kpi": "KPI for the process",
+      "to_bia": "Impact analysis (BIA) for the process"
     },
     "objective": {
       "to_kpi": "KPI that measures the objective",
@@ -507,6 +508,24 @@
       "to_deviation": "Deviation about this contract",
       "to_task": "Task on this contract",
       "to_dpa": "Data processing agreement for this contract"
+    },
+    "asset": {
+      "to_ict_system": "ICT service for continuity"
+    },
+    "bia": {
+      "to_plan": "Continuity plan for the activity",
+      "to_risk": "Assess the risk of the activity"
+    },
+    "continuity_exercise": {
+      "to_deviation": "Deviation from the exercise",
+      "to_risk": "Risk from the exercise",
+      "to_task": "Follow-up task"
+    },
+    "continuity_plan": {
+      "to_deviation": "Register the incident as a deviation"
+    },
+    "continuity_ict_system": {
+      "to_task": "Task to close the readiness gap"
     }
   },
   "frameworks": {

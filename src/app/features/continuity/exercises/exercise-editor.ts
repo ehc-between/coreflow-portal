@@ -2,23 +2,26 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { formCrumbs } from '../shared/continuity-page';
 import { ContinuityApi } from '../data/continuity-api';
 import { changedFields } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
@@ -38,36 +41,27 @@ import {
  */
 @Component({
   selector: 'app-exercise-editor',
-  imports: [RouterLink, TranslocoPipe, Alert, ExerciseForm, GuideIntro, Icon, WhyItMatters],
+  imports: [TranslocoPipe, Alert, ExerciseForm, HelpStrip, LoadingState, PageHeader, WhyItMatters],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[920px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="id() ? ['/continuity/exercises', id()] : '/continuity/exercises'"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ (id() ? 'continuity.common.backToRecord' : 'continuity.exercises.back') | transloco }}
-      </a>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="exercise() ? 'continuity.exercises.editTitle' : 'continuity.exercises.newTitle'"
+        [titleParams]="{ code: exercise()?.code, title: exercise()?.title }"
+        [breadcrumbs]="crumbs()"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'continuity.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
           <app-alert>{{ 'continuity.common.notFound' | transloco }}</app-alert>
         }
         @default {
-          <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            @if (exercise(); as e) {
-              {{ 'continuity.exercises.editTitle' | transloco: { code: e.code, title: e.title } }}
-            } @else {
-              {{ 'continuity.exercises.newTitle' | transloco }}
-            }
-          </h1>
           @if (exercise()?.can_edit === false) {
             <app-alert tone="info">{{ 'continuity.form.readOnly' | transloco }}</app-alert>
           } @else {
-            <div class="mt-3 mb-4"><app-guide-intro scope="continuity" page="exerciseForm" /></div>
+            <app-help-strip scope="continuity" page="exerciseForm" lesson="exercising-plans" />
             @if (error(); as key) {
               <div class="mb-4">
                 <app-alert>{{ key | transloco }}</app-alert>
@@ -134,6 +128,15 @@ export class ExerciseEditor {
       });
     });
   }
+
+  protected readonly crumbs = computed(() => {
+    const e = this.exercise();
+    return formCrumbs(
+      'exercises',
+      e ? { id: e.id, label: e.code } : null,
+      e ? 'continuity.common.edit' : 'continuity.exercises.new',
+    );
+  });
 
   protected save(value: ExerciseFormValue): void {
     const orgId = this.selectedOrg.currentOrgId();

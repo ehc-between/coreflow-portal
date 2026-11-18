@@ -34,6 +34,7 @@ import {
   PlanDetail,
   PlanFields,
   PlanListItem,
+  PlanActivationRequest,
   PlanListQuery,
   PlanUpdate,
 } from './continuity.models';
@@ -77,6 +78,7 @@ export class ContinuityApi {
         owner: query.owner || undefined,
         uncovered: query.uncovered,
         review_due: query.review_due,
+        process_id: query.process_id || undefined,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,
@@ -158,6 +160,36 @@ export class ContinuityApi {
       { note },
       skipToast(),
     );
+  }
+
+  /** Record a real activation of the plan (an incident, not an exercise). */
+  activatePlan(
+    orgId: string,
+    id: string,
+    body: PlanActivationRequest = {},
+  ): Observable<PlanDetail> {
+    return this.api.post<PlanDetail>(
+      `${this.base(orgId)}/plans/${id}/activation`,
+      body,
+      skipToast(),
+    );
+  }
+
+  /** The current version was printed or downloaded for offline use. */
+  recordDistribution(orgId: string, id: string): Observable<PlanDetail> {
+    return this.api.post<PlanDetail>(
+      `${this.base(orgId)}/plans/${id}/distribution`,
+      {},
+      skipToast(),
+    );
+  }
+
+  /** The plan (targets, texts, steps, contacts, ICT services) as a printable PDF. */
+  exportPlanPdf(orgId: string, id: string, lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/plans/${id}/export.pdf`, {
+      params: { lang },
+      ...skipToast(),
+    });
   }
 
   exerciseSchedule(orgId: string, planId: string): Observable<TaskList> {
@@ -292,6 +324,38 @@ export class ContinuityApi {
         params: { scope, plan_id: planId || undefined },
       })
       .pipe(map((res) => res.items));
+  }
+
+  /** Search name, crisis role, organisation and notes across every contact list. */
+  searchContacts(orgId: string, q: string): Observable<readonly Contact[]> {
+    return this.api
+      .get<{ items: readonly Contact[] }>(`${this.base(orgId)}/contacts`, { params: { q } })
+      .pipe(map((res) => res.items));
+  }
+
+  /** The new order of one list (every live contact of it exactly once). */
+  reorderContacts(
+    orgId: string,
+    planId: string | null,
+    contactIds: readonly string[],
+  ): Observable<readonly Contact[]> {
+    return this.api
+      .post<{
+        items: readonly Contact[];
+      }>(
+        `${this.base(orgId)}/contacts/reorder`,
+        { plan_id: planId, contact_ids: contactIds },
+        skipToast(),
+      )
+      .pipe(map((res) => res.items));
+  }
+
+  /** Every crisis contact list as a printable PDF. */
+  exportContactsPdf(orgId: string, lang: string): Observable<Blob> {
+    return this.api.getBlob(`${this.base(orgId)}/contacts/export.pdf`, {
+      params: { lang },
+      ...skipToast(),
+    });
   }
 
   createContact(orgId: string, body: ContactCreate): Observable<Contact> {
