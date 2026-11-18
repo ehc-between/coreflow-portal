@@ -10,6 +10,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -40,8 +41,14 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
   template: `
     <section aria-labelledby="cf-keydates-h">
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-keydates-h" class="font-display text-[15px] font-bold text-fg">
+        <h2
+          id="cf-keydates-h"
+          class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
+        >
           {{ 'contracts.keyDates.title' | transloco }}
+          @if (!beginner()) {
+            <app-field-help scope="contracts" page="detail" field="key_dates" />
+          }
         </h2>
         @if (canEdit() && !adding()) {
           <app-button
@@ -55,7 +62,9 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
           </app-button>
         }
       </div>
-      <app-field-help scope="contracts" page="detail" field="key_dates" />
+      @if (beginner()) {
+        <app-field-help scope="contracts" page="detail" field="key_dates" />
+      }
 
       @if (adding()) {
         <form
@@ -114,7 +123,7 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
       }
 
       @if (keyDates().length === 0) {
-        <p class="text-[13px] text-fg-muted">{{ 'contracts.keyDates.none' | transloco }}</p>
+        <p class="text-ui text-fg-muted">{{ 'contracts.keyDates.none' | transloco }}</p>
       } @else {
         <ul class="divide-y divide-border rounded-tile border border-border">
           @for (k of sorted(); track k.id) {
@@ -123,18 +132,18 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
               [class.opacity-60]="!!k.done_at"
             >
               <span
-                class="w-[120px] flex-none text-[13px] font-semibold"
+                class="w-[120px] flex-none text-ui font-semibold"
                 [class.text-fail]="k.overdue && !k.done_at"
               >
                 {{ k.due_date | localDay }}
               </span>
-              <span class="min-w-0 flex-1 text-[13px] text-fg">
+              <span class="min-w-0 flex-1 text-ui text-fg">
                 <span [class.line-through]="!!k.done_at">{{ k.label }}</span>
-                <span class="ml-2 text-[12px] text-fg-subtle">
+                <span class="ml-2 text-meta text-fg-subtle">
                   {{ 'contracts.deadlineKinds.' + k.kind | transloco }}
                 </span>
                 @if (k.notes) {
-                  <span class="block text-[12px] text-fg-muted">{{ k.notes }}</span>
+                  <span class="block text-meta text-fg-muted">{{ k.notes }}</span>
                 }
               </span>
               <span class="flex items-center gap-1">
@@ -166,6 +175,7 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
   `,
 })
 export class ContractKeyDates {
+  protected readonly beginner = inject(GuidanceService).isBeginner;
   private readonly api = inject(ContractsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);

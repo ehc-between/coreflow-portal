@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "One register for every agreement",
-        "body": "The contract register shows every agreement the organisation has made: customers, suppliers, NDAs, data processing agreements, employment contracts and SLAs. Each contract has an owner, its parties, its value and the dates that matter, so nobody is surprised by an automatic renewal or a missed notice deadline.",
+        "body": "Every agreement the organisation has made, with its owner, parties and the dates that matter. The register warns you before a notice deadline passes and when a data processing agreement or a review is missing.",
         "steps": [
           "Register a contract, or paste its text and let the assistant fill in the details.",
           "Add the key dates and the obligations it commits you to.",
@@ -12,7 +12,7 @@
       },
       "why": {
         "body": "Before you commit to deliver, the standards expect you to review what you have agreed and to keep a record of it. Supplier and outsourcing agreements must set out your quality, security and privacy requirements, and anyone who processes personal data for you needs a data processing agreement.",
-        "clauses": ["iso9001:8.2", "iso9001:8.4", "iso27001:A.5.20", "gdpr:28"]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20", "gdpr:28"]
       },
       "empty": {
         "title": "No contracts registered yet",
@@ -32,16 +32,13 @@
       },
       "why": {
         "body": "A contract is controlled information: who agreed what, when and on which terms. Recording the terms in a structured way lets the system remind the owner in time, and gives an auditor clear evidence that agreements are reviewed and approved before they are signed.",
-        "clauses": ["iso9001:8.2", "hs:7.5", "iso27001:A.5.20"]
+        "clauses": ["iso9001:8.2.3", "iso27001:A.5.20", "gdpr:28"]
       },
       "fields": {
         "contract_type": {
           "help": "The type decides which checks apply. A data processing agreement covers personal data processed on your behalf; an employment contract is confidential by default.",
-          "example": "A cloud hosting agreement is a supplier agreement, with a separate data processing agreement linked to it."
-        },
-        "processes_personal_data": {
-          "help": "Tick this when the counterparty handles personal data for you (for example payroll, hosting or customer support). The contract then needs a data processing agreement.",
-          "example": "An email marketing provider that stores your customer list processes personal data."
+          "example": "A cloud hosting agreement is a supplier agreement, with a separate data processing agreement linked to it.",
+          "requirements": ["iso9001:8.2.3", "iso9001:8.4.3", "iso27001:A.5.20", "iso27001:A.6.6"]
         },
         "confidential": {
           "help": "Confidential contracts are only visible to the owner, the person who registered it and those who manage or approve contracts.",
@@ -49,11 +46,13 @@
         },
         "review_date": {
           "help": "When the contract should next be reviewed, even if it does not end. A yearly review catches price changes, new requirements and supplier problems.",
-          "example": "One month before the yearly price adjustment."
+          "example": "One month before the yearly price adjustment.",
+          "requirements": ["iso9001:8.4.3", "iso27001:A.5.22"]
         },
         "notice_period_days": {
           "help": "How many days before the end date notice must be given. The notice deadline is worked out from the end date and this period.",
-          "example": "A contract ending 31 December with 90 days' notice must be terminated by 2 October."
+          "example": "A contract ending 31 December with 90 days' notice must be terminated by 2 October.",
+          "requirements": ["iso9001:8.4.3"]
         },
         "auto_renew": {
           "help": "Tick this if the contract continues for a new term unless someone gives notice. Then the notice deadline is the date to watch.",
@@ -62,29 +61,31 @@
         "parties": {
           "help": "Everyone who signs the contract. Mark your own organisation as \"This is our own organisation\" so the others show as counterparties.",
           "example": "Your company (internal) and the supplier, with its organisation number."
+        },
+        "owner": {
+          "help": "The person who follows the contract up: deadlines, renewals, reviews and obligations. The owner cannot approve the contract themselves.",
+          "example": "The IT manager owns the hosting agreement."
+        },
+        "transfer_basis": {
+          "help": "If the counterparty (or its sub-processors) handles the personal data outside the EU/EEA, the transfer needs a legal basis under GDPR chapter V.",
+          "example": "A US cloud provider certified under the EU-US Data Privacy Framework: adequacy decision.",
+          "requirements": ["gdpr:44", "gdpr:46"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Keeping a contract under control",
-        "body": "This page holds everything about the contract: its terms, its parties and dates, its versions and signed copies, and the obligations it creates. Use the **Tasks** tab for obligations and **Related** to link the supplier, the risks it carries or its data processing agreement.",
+        "body": "Everything about the contract in one place: what needs attention, the approval, the parties (linked to the supplier register), dates, versions with signed copies and the data processing agreement. Obligations have their own tab.",
         "steps": [
-          "Move it through approval with the buttons at the top.",
-          "Add key dates and obligations so the right people are reminded.",
-          "Record each new version and pin the signed copy to it."
+          "Deal with anything under \"Needs attention\" first.",
+          "Move the contract through approval with the buttons in the workflow card. The approver answers a short requirements review.",
+          "Upload the signed copy on the version, then mark the contract as active."
         ]
       },
       "why": {
         "body": "A signed contract is only useful if its commitments are met. Tracking obligations as tasks, keeping every version with its signed copy and reviewing the contract on time shows that you monitor suppliers and meet what you promised customers.",
-        "clauses": [
-          "iso9001:8.4",
-          "iso27001:A.5.19",
-          "iso27001:A.5.20",
-          "iso27001:A.5.31",
-          "iso27001:A.6.6",
-          "gdpr:28"
-        ]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20", "iso27001:A.6.6", "gdpr:28"]
       },
       "fields": {
         "key_dates": {
@@ -113,7 +114,7 @@
       },
       "why": {
         "body": "Monitoring and reviewing supplier agreements on time is a requirement in its own right, and it is how you catch changes to services, prices and security commitments before they bind you for another term.",
-        "clauses": ["iso9001:8.4", "iso27001:A.5.19", "iso27001:A.5.20"]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20"]
       },
       "empty": {
         "title": "No deadlines in this period",
@@ -242,13 +243,13 @@
       },
       {
         "target": "contracts-filters",
-        "title": "Find the right contracts",
-        "body": "Filter by status, type, owner and end date, and save the combination as a view you can return to."
+        "title": "Find what needs attention",
+        "body": "Filter by status, type and what needs attention, such as personal data without a data processing agreement. Save the combination as a view."
       },
       {
         "target": "contracts-deadlines",
         "title": "Watch the deadlines",
-        "body": "All notice deadlines, end dates and reviews in one list, so nothing renews by accident."
+        "body": "All notice deadlines, end dates and reviews in one list, with the owner and a button to create a task. Add them to your calendar."
       }
     ]
   },

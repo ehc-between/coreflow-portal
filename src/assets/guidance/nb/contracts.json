@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Ett register for alle avtaler",
-        "body": "Kontraktregisteret viser alle avtaler virksomheten har inngått: kunder, leverandører, taushetserklæringer, databehandleravtaler, arbeidsavtaler og tjenestenivåavtaler. Hver kontrakt har en eier, sine parter, sin verdi og datoene som betyr noe, slik at ingen blir overrasket av en automatisk fornyelse eller en glemt oppsigelsesfrist.",
+        "body": "Alle avtaler organisasjonen har inngått, med eier, parter og datoene som betyr noe. Registeret varsler deg før en oppsigelsesfrist går ut, og når en databehandleravtale eller en gjennomgang mangler.",
         "steps": [
           "Registrer en kontrakt, eller lim inn teksten og la assistenten fylle ut opplysningene.",
           "Legg til viktige datoer og forpliktelsene kontrakten gir dere.",
@@ -12,7 +12,7 @@
       },
       "why": {
         "body": "Før dere forplikter dere til å levere, forventer standardene at dere gjennomgår det som er avtalt og tar vare på dokumentasjonen. Leverandør- og utkontrakteringsavtaler skal beskrive kravene deres til kvalitet, sikkerhet og personvern, og alle som behandler personopplysninger for dere, trenger en databehandleravtale.",
-        "clauses": ["iso9001:8.2", "iso9001:8.4", "iso27001:A.5.20", "gdpr:28"]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20", "gdpr:28"]
       },
       "empty": {
         "title": "Ingen kontrakter registrert ennå",
@@ -32,16 +32,13 @@
       },
       "why": {
         "body": "En kontrakt er styrt informasjon: hvem som avtalte hva, når og på hvilke vilkår. Når vilkårene registreres strukturert, kan systemet varsle eieren i tide, og en revisor får tydelig dokumentasjon på at avtaler gjennomgås og godkjennes før de signeres.",
-        "clauses": ["iso9001:8.2", "hs:7.5", "iso27001:A.5.20"]
+        "clauses": ["iso9001:8.2.3", "iso27001:A.5.20", "gdpr:28"]
       },
       "fields": {
         "contract_type": {
           "help": "Typen avgjør hvilke kontroller som gjelder. En databehandleravtale dekker personopplysninger som behandles på deres vegne; en arbeidsavtale er konfidensiell som standard.",
-          "example": "En avtale om skytjenester er en leverandøravtale, med en egen databehandleravtale koblet til."
-        },
-        "processes_personal_data": {
-          "help": "Kryss av når motparten håndterer personopplysninger for dere (for eksempel lønn, drift eller kundestøtte). Kontrakten trenger da en databehandleravtale.",
-          "example": "En leverandør av e-postmarkedsføring som lagrer kundelisten deres, behandler personopplysninger."
+          "example": "En avtale om skytjenester er en leverandøravtale, med en egen databehandleravtale koblet til.",
+          "requirements": ["iso9001:8.2.3", "iso9001:8.4.3", "iso27001:A.5.20", "iso27001:A.6.6"]
         },
         "confidential": {
           "help": "Konfidensielle kontrakter er bare synlige for eieren, den som registrerte den, og de som forvalter eller godkjenner kontrakter.",
@@ -49,11 +46,13 @@
         },
         "review_date": {
           "help": "Når kontrakten skal gjennomgås neste gang, selv om den ikke utløper. En årlig gjennomgang fanger opp prisendringer, nye krav og problemer med leverandøren.",
-          "example": "En måned før den årlige prisreguleringen."
+          "example": "En måned før den årlige prisreguleringen.",
+          "requirements": ["iso9001:8.4.3", "iso27001:A.5.22"]
         },
         "notice_period_days": {
           "help": "Hvor mange dager før sluttdatoen oppsigelse må gis. Oppsigelsesfristen beregnes fra sluttdatoen og denne perioden.",
-          "example": "En kontrakt som utløper 31. desember med 90 dagers oppsigelse, må sies opp innen 2. oktober."
+          "example": "En kontrakt som utløper 31. desember med 90 dagers oppsigelse, må sies opp innen 2. oktober.",
+          "requirements": ["iso9001:8.4.3"]
         },
         "auto_renew": {
           "help": "Kryss av hvis kontrakten fortsetter en ny periode med mindre noen sier den opp. Da er det oppsigelsesfristen dere må følge med på.",
@@ -62,29 +61,31 @@
         "parties": {
           "help": "Alle som signerer kontrakten. Marker deres egen virksomhet med «Dette er vår egen virksomhet», så vises de andre som motparter.",
           "example": "Deres selskap (internt) og leverandøren, med organisasjonsnummer."
+        },
+        "owner": {
+          "help": "Personen som følger opp kontrakten: frister, fornyelser, gjennomganger og forpliktelser. Eieren kan ikke godkjenne kontrakten selv.",
+          "example": "IT-sjefen eier driftsavtalen."
+        },
+        "transfer_basis": {
+          "help": "Hvis motparten (eller underdatabehandlerne) behandler personopplysningene utenfor EU/EØS, trenger overføringen et rettslig grunnlag etter GDPR kapittel V.",
+          "example": "En amerikansk skyleverandør som er sertifisert under EU–USA-rammeverket: beslutning om tilstrekkelig beskyttelsesnivå.",
+          "requirements": ["gdpr:44", "gdpr:46"]
         }
       }
     },
     "detail": {
       "intro": {
         "title": "Ha kontroll på en kontrakt",
-        "body": "Denne siden samler alt om kontrakten: vilkår, parter og datoer, versjoner og signerte kopier, og forpliktelsene den gir. Bruk fanen **Oppgaver** til forpliktelser og **Relatert** til å koble leverandøren, risikoene den medfører eller databehandleravtalen.",
+        "body": "Alt om kontrakten på ett sted: hva som trenger oppfølging, godkjenningen, partene (koblet til leverandørregisteret), datoer, versjoner med signerte kopier og databehandleravtalen. Forpliktelsene har en egen fane.",
         "steps": [
-          "Før den gjennom godkjenning med knappene øverst.",
-          "Legg til viktige datoer og forpliktelser, slik at de rette personene blir varslet.",
-          "Registrer hver nye versjon og knytt den signerte kopien til den."
+          "Ta det som står under «Trenger oppfølging» først.",
+          "Før kontrakten gjennom godkjenning med knappene i arbeidsflytkortet. Den som godkjenner, svarer på en kort gjennomgang av kravene.",
+          "Last opp den signerte kopien på versjonen, og marker kontrakten som aktiv."
         ]
       },
       "why": {
         "body": "En signert kontrakt er bare nyttig hvis forpliktelsene blir oppfylt. Når forpliktelser følges opp som oppgaver, hver versjon beholdes med signert kopi og kontrakten gjennomgås i tide, viser dere at leverandører overvåkes og at dere holder det dere har lovet kunder.",
-        "clauses": [
-          "iso9001:8.4",
-          "iso27001:A.5.19",
-          "iso27001:A.5.20",
-          "iso27001:A.5.31",
-          "iso27001:A.6.6",
-          "gdpr:28"
-        ]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20", "iso27001:A.6.6", "gdpr:28"]
       },
       "fields": {
         "key_dates": {
@@ -113,7 +114,7 @@
       },
       "why": {
         "body": "Å overvåke og gjennomgå leverandøravtaler i tide er et krav i seg selv, og det er slik dere fanger opp endringer i tjenester, priser og sikkerhetsforpliktelser før de binder dere for en ny periode.",
-        "clauses": ["iso9001:8.4", "iso27001:A.5.19", "iso27001:A.5.20"]
+        "clauses": ["iso9001:8.4.3", "iso27001:A.5.20"]
       },
       "empty": {
         "title": "Ingen frister i denne perioden",
@@ -242,13 +243,13 @@
       },
       {
         "target": "contracts-filters",
-        "title": "Finn de riktige kontraktene",
-        "body": "Filtrer på status, type, eier og sluttdato, og lagre kombinasjonen som en visning du kan gå tilbake til."
+        "title": "Finn det som trenger oppfølging",
+        "body": "Filtrer på status, type og hva som trenger oppfølging, for eksempel personopplysninger uten databehandleravtale. Lagre kombinasjonen som en visning."
       },
       {
         "target": "contracts-deadlines",
         "title": "Følg med på fristene",
-        "body": "Alle oppsigelsesfrister, sluttdatoer og gjennomganger i én liste, slik at ingenting fornyes ved et uhell."
+        "body": "Alle oppsigelsesfrister, sluttdatoer og gjennomganger i én liste, med eier og en knapp for å opprette oppgave. Legg dem til i kalenderen din."
       }
     ]
   },

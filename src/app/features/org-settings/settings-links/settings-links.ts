@@ -182,6 +182,11 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
     links: [{ path: '/management-review/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
   },
   {
+    module: 'contracts',
+    icon: 'contract',
+    links: [{ path: '/contracts/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
+  },
+  {
     module: 'recruitment',
     icon: 'userplus',
     links: [{ path: '/recruitment/settings', labelKey: 'settings.hub.moduleLinks.settings' }],

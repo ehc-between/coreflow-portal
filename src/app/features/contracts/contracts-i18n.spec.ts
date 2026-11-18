@@ -3,17 +3,22 @@ import guideNb from '../../../assets/guidance/nb/contracts.json';
 import en from '../../../assets/i18n/contracts/en.json';
 import nb from '../../../assets/i18n/contracts/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
-import { STATUS_FILTERS } from './contracts-list';
+import { ATTENTION_FILTERS, STATUS_FILTERS } from './contracts-list';
 import { CONTRACT_ERROR_CODES } from './data/contract-errors';
 import {
   CONTRACT_ACTIONS,
   CONTRACT_SORTS,
   CONTRACT_STATUSES,
   CONTRACT_TYPES,
+  CONTRACT_WARNINGS,
   DEADLINE_KINDS,
   DPA_CLAUSE_KEYS,
   DPA_STATES,
   PARTY_ROLES,
+  PERSONAL_DATA_ROLES,
+  REVIEW_ANSWERS,
+  REVIEW_ITEM_KEYS,
+  TRANSFER_BASES,
   VALUE_PERIODS,
 } from './data/contract.models';
 
@@ -44,6 +49,7 @@ const NOTIFY_KINDS = [
   'terminated',
   'expired',
   'versionAdded',
+  'reviewed',
 ];
 const TIMELINE_KINDS = [
   ...NOTIFY_KINDS,
@@ -89,10 +95,36 @@ describe('contracts i18n and guidance', () => {
     ['errors', CONTRACT_ERROR_CODES],
     ['notifications', NOTIFY_KINDS],
     ['timeline', TIMELINE_KINDS],
+    ['transferBases', TRANSFER_BASES],
+    ['reviewItems', REVIEW_ITEM_KEYS],
+    ['approve.answers', REVIEW_ANSWERS],
+    ['dpa.match', ['supplier', 'org_number', 'name']],
+    ['kpis', ['active', 'dpa_missing', 'notice_soon', 'review']],
   ])('translates every %s value', (prefix, values) => {
     for (const lang of [en, nb]) {
       for (const value of values) {
         expect(typeof lookup(lang, `${prefix}.${value}`), `${prefix}.${value}`).toBe('string');
+      }
+    }
+  });
+
+  it('labels, explains and filters every warning, and labels every GDPR role', () => {
+    for (const lang of [en, nb]) {
+      for (const w of CONTRACT_WARNINGS) {
+        for (const part of ['label', 'fix', 'filter']) {
+          expect(typeof lookup(lang, `warnings.${w}.${part}`), `${w}.${part}`).toBe('string');
+        }
+      }
+      for (const role of PERSONAL_DATA_ROLES) {
+        expect(typeof lookup(lang, `personalDataRoles.${role}.label`), role).toBe('string');
+        expect(typeof lookup(lang, `personalDataRoles.${role}.hint`), role).toBe('string');
+      }
+      for (const a of ATTENTION_FILTERS.filter((f) => f === '' || f === 'any')) {
+        expect(typeof lookup(lang, `filters.attentionOptions.${a || 'all'}`)).toBe('string');
+      }
+      for (const key of ['notice', 'reviewOverdue', 'deadlineOverdue', 'deadline']) {
+        expect(typeof lookup(lang, `next.${key}.title`), key).toBe('string');
+        expect(typeof lookup(lang, `next.${key}.why`), key).toBe('string');
       }
     }
   });
@@ -127,15 +159,16 @@ describe('contracts i18n and guidance', () => {
   });
 
   it('only references clauses the module declares or the shared structure', () => {
+    // The backend's clause declarations for contracts (A14).
     const declared = new Set([
-      'iso9001:8.2',
-      'iso9001:8.4',
-      'iso27001:A.5.19',
+      'iso9001:8.2.3',
+      'iso9001:8.4.3',
       'iso27001:A.5.20',
-      'iso27001:A.5.31',
       'iso27001:A.6.6',
       'gdpr:28',
-      'hs:7.5',
+      'nis2:21.2.d',
+      'iso42001:A.10.3',
+      'iso45001:8.1.4.3',
     ]);
     for (const guide of [guideEn, guideNb]) {
       for (const page of Object.values(guide.pages as Tree)) {

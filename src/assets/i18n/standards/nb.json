@@ -211,7 +211,8 @@
       "framework": "Standard",
       "article_refs": "Artikler",
       "requirements": "Krav",
-      "generic": "et felt på posten"
+      "generic": "et felt på posten",
+      "contract_type": "Kontrakttype"
     },
     "origin": {
       "manual": "Lagt til manuelt",

@@ -84,6 +84,7 @@ const KNOWN_FIELDS = new Set([
   'framework',
   'article_refs',
   'requirements',
+  'contract_type',
 ]);
 
 /** i18n key of a field's display name in "Fra feltet «…»". */

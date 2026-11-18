@@ -493,6 +493,12 @@
       "to_task": "Oppgave fra møtet",
       "to_deviation": "Avvik fra møtet",
       "to_risk": "Risiko fra møtet"
+    },
+    "contract": {
+      "to_risk": "Risiko fra kontrakten",
+      "to_deviation": "Avvik knyttet til kontrakten",
+      "to_task": "Oppgave på kontrakten",
+      "to_dpa": "Databehandleravtale for kontrakten"
     }
   },
   "frameworks": {

@@ -10,7 +10,9 @@ import {
   untracked,
   viewChildren,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Attachments } from '../attachments/attachments';
 import { SupportsRequirements } from '../requirement-links/supports-requirements';
@@ -148,7 +150,7 @@ let nextId = 0;
                 (keydown)="onTabKeydown($event)"
                 [attr.data-testid]="'tab-' + tab"
               >
-                {{ 'kit.detail.tab.' + tab | transloco }}
+                {{ tabLabelKey(tab) | transloco }}
                 @if (countFor(tab); as count) {
                   <span
                     class="ml-1 rounded-full bg-surface-2 px-1.5 py-px text-micro font-semibold text-fg-muted"
@@ -276,6 +278,11 @@ export class RecordDetailLayout {
   /** Offer "Create from this ⋯" next to the secondary actions (P4). */
   readonly createFlows = input(true);
   readonly tabs = input<readonly RecordTab[]>(DEFAULT_RECORD_TABS);
+  /**
+   * Module wording for a tab, e.g. `{ tasks: 'contracts.detail.obligationsTab' }`
+   * when the tasks slot holds the contract's obligations.
+   */
+  readonly tabLabels = input<Partial<Record<RecordTab, string>> | undefined>(undefined);
   /** Whether the user can edit the record (links, attachments). */
   readonly canEdit = input(false);
   readonly canComment = input(true);
@@ -304,8 +311,14 @@ export class RecordDetailLayout {
     return tabs.length > 0 ? tabs : DEFAULT_RECORD_TABS;
   });
 
+  /** The live `?tab=` (a link to the same record without it opens the first tab again). */
+  private readonly requestedTab = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('tab'))),
+    { initialValue: this.route.snapshot.queryParamMap.get('tab') },
+  );
+
   protected readonly active = linkedSignal<RecordTab>(() => {
-    const requested = this.route.snapshot.queryParamMap.get('tab');
+    const requested = this.requestedTab();
     const tabs = this.visibleTabs();
     return tabs.find((t) => t === requested) ?? tabs[0];
   });
@@ -339,6 +352,10 @@ export class RecordDetailLayout {
         ? this.connections.relatedCount()
         : explicit;
     return count && count > 0 ? count : null;
+  }
+
+  protected tabLabelKey(tab: RecordTab): string {
+    return this.tabLabels()?.[tab] ?? `kit.detail.tab.${tab}`;
   }
 
   protected tabId(tab: RecordTab): string {

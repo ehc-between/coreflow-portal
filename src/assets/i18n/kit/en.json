@@ -493,6 +493,12 @@
       "to_task": "Task from the meeting",
       "to_deviation": "Deviation raised in the meeting",
       "to_risk": "Risk raised in the meeting"
+    },
+    "contract": {
+      "to_risk": "Risk from this contract",
+      "to_deviation": "Deviation about this contract",
+      "to_task": "Task on this contract",
+      "to_dpa": "Data processing agreement for this contract"
     }
   },
   "frameworks": {

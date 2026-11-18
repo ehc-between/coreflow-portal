@@ -372,6 +372,7 @@ describe('SupportsRequirements', () => {
 describe('supports-requirements helpers', () => {
   it('labels known fields and falls back to a generic name', () => {
     expect(fieldLabelKey('control_refs')).toBe('standards.reqs.fields.control_refs');
+    expect(fieldLabelKey('contract_type')).toBe('standards.reqs.fields.contract_type');
     expect(fieldLabelKey('mystery')).toBe('standards.reqs.fields.generic');
     expect(fieldLabelKey(null)).toBe('standards.reqs.fields.generic');
   });
