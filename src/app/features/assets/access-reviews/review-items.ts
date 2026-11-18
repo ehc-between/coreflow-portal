@@ -1,11 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { blankToNull, decisionTone } from '../data/asset-display';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import {
+  blankToNull,
+  decisionBadge,
+  isFlaggedSubject,
+  subjectStatusBadge,
+} from '../data/asset-display';
 import {
   Decision,
   ReviewCounts,
@@ -29,7 +35,18 @@ export function countItems(items: readonly ReviewItem[]): ReviewCounts {
     unremediated: items.filter(
       (i) => (i.decision === 'revoke' || i.decision === 'modify') && !i.remediated_at,
     ).length,
+    decided: items.length - by('pending'),
+    flagged: items.filter((i) => isFlaggedSubject(i.subject_status)).length,
   };
+}
+
+/** Flagged accounts first (people who have left), then the rest in their order. */
+export function sortItems(items: readonly ReviewItem[]): readonly ReviewItem[] {
+  return [...items].sort((a, b) => {
+    const fa = isFlaggedSubject(a.subject_status) ? 0 : 1;
+    const fb = isFlaggedSubject(b.subject_status) ? 0 : 1;
+    return fa - fb || a.position - b.position;
+  });
 }
 
 export interface ItemChange {
@@ -38,53 +55,64 @@ export interface ItemChange {
 }
 
 /**
- * The accounts of an access review: who has access, which account and level, and
- * the reviewer's decision (keep, revoke or modify) with a note. Revoked or changed
- * access can be marked as done. Editable while the review is open and the caller
- * may work it; otherwise read-only.
+ * The accounts of an access review: who has access, which account and level, how the
+ * holder stands in People (left, leaving, no longer a member: flagged and sorted
+ * first, with "Fjern" suggested), and the reviewer's decision (keep, revoke or change)
+ * with a note. Revoked or changed access is ticked off once carried out, also after
+ * the review is completed. Editable while the review is open and the caller may work
+ * it; otherwise read-only.
  */
 @Component({
   selector: 'app-review-items',
-  imports: [TranslocoPipe, LocalDatePipe, Badge, Button, FieldHelp, Icon],
+  imports: [TranslocoPipe, LocalDatePipe, Button, EntityChip, FieldHelp, Icon, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-1">
-        <h2 class="font-display text-[15px] font-bold text-fg">
+      <div class="flex items-center gap-1.5">
+        <h2 class="font-display text-card font-bold text-fg">
           {{ 'assets.reviewItems.title' | transloco }}
         </h2>
         <app-field-help scope="assets" page="review" field="decision" />
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <label class="inline-flex items-center gap-1.5 text-[12.5px] text-fg-muted">
-          <input
-            type="checkbox"
-            [checked]="pendingOnly()"
-            (change)="pendingOnly.set($any($event.target).checked)"
-          />
-          {{ 'assets.reviewItems.pendingOnly' | transloco }}
-        </label>
+        @if (items().length) {
+          <label class="inline-flex items-center gap-1.5 text-meta text-fg-muted">
+            <input
+              type="checkbox"
+              [checked]="pendingOnly()"
+              (change)="pendingOnly.set($any($event.target).checked)"
+            />
+            {{ 'assets.reviewItems.pendingOnly' | transloco }}
+          </label>
+        }
         @if (editable()) {
-          @if (pendingCount()) {
+          @if (pendingCount() && unflaggedPending()) {
             <app-button variant="ghost" size="sm" [disabled]="busy()" (click)="keepAll.emit()">
-              {{ 'assets.reviewItems.keepAll' | transloco: { count: pendingCount() } }}
+              {{ 'assets.reviewItems.keepAll' | transloco: { count: unflaggedPending() } }}
             </app-button>
           }
           <app-button
-            variant="secondary"
             size="sm"
+            variant="secondary"
             [disabled]="busy()"
-            (click)="importMembers.emit()"
+            (click)="adding.set(!adding())"
           >
-            {{ 'assets.reviewItems.importMembers' | transloco }}
-          </app-button>
-          <app-button size="sm" [disabled]="busy()" (click)="adding.set(!adding())">
             <app-icon name="plus" [size]="14" />
             {{ 'assets.reviewItems.add' | transloco }}
           </app-button>
         }
       </div>
     </div>
+
+    @if (flaggedCount() && editable()) {
+      <p
+        class="mb-3 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-fg"
+        role="note"
+        data-testid="flagged-note"
+      >
+        {{ 'assets.reviewItems.flaggedNote' | transloco: { count: flaggedCount() } }}
+      </p>
+    }
 
     @if (adding()) {
       <form
@@ -93,34 +121,38 @@ export interface ItemChange {
         novalidate
         data-testid="add-item"
       >
-        <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
-          {{ 'assets.fields.subjectName' | transloco }}
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          <span
+            >{{ 'assets.fields.subjectName' | transloco }}
+            <span class="text-fail-ink" aria-hidden="true">*</span></span
+          >
           <input
             type="text"
             maxlength="255"
             required
-            class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] font-normal text-fg"
+            aria-required="true"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             [attr.aria-invalid]="newError() || null"
             [value]="newName()"
             (input)="newName.set($any($event.target).value)"
           />
         </label>
-        <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'assets.fields.account' | transloco }}
           <input
             type="text"
             maxlength="255"
-            class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] font-normal text-fg"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             [value]="newAccount()"
             (input)="newAccount.set($any($event.target).value)"
           />
         </label>
-        <label class="flex flex-col gap-1 text-[12px] font-semibold text-fg-muted">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'assets.fields.accessLevel' | transloco }}
           <input
             type="text"
             maxlength="255"
-            class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] font-normal text-fg"
+            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
             [placeholder]="'assets.reviewItems.accessLevelPlaceholder' | transloco"
             [value]="newLevel()"
             (input)="newLevel.set($any($event.target).value)"
@@ -135,7 +167,7 @@ export interface ItemChange {
           </app-button>
         </div>
         @if (newError()) {
-          <p class="text-[12px] text-fail sm:col-span-4" role="alert">
+          <p class="text-meta text-fail-ink sm:col-span-4" role="alert">
             {{ 'assets.reviewItems.nameRequired' | transloco }}
           </p>
         }
@@ -143,18 +175,53 @@ export interface ItemChange {
     }
 
     @if (visible().length === 0) {
-      <p class="py-4 text-[13px] text-fg-subtle">
-        {{
-          (items().length ? 'assets.reviewItems.noPending' : 'assets.reviewItems.none') | transloco
-        }}
-      </p>
+      <div class="py-4 text-ui text-fg-subtle">
+        <p>
+          {{
+            (items().length ? 'assets.reviewItems.noPending' : 'assets.reviewItems.none')
+              | transloco
+          }}
+        </p>
+        @if (!items().length && editable()) {
+          <div class="mt-3 flex flex-wrap gap-2">
+            <app-button
+              size="sm"
+              variant="secondary"
+              [disabled]="busy()"
+              (click)="importCsv.emit()"
+            >
+              {{ 'assets.reviewItems.importCsv' | transloco }}
+            </app-button>
+            <app-button
+              size="sm"
+              variant="ghost"
+              [disabled]="busy()"
+              (click)="importMembers.emit()"
+            >
+              {{ 'assets.reviewItems.importMembers' | transloco }}
+            </app-button>
+          </div>
+        }
+      </div>
     } @else {
       <ul class="flex flex-col divide-y divide-border" data-testid="review-items">
         @for (item of visible(); track item.id) {
-          <li class="flex flex-col gap-2 py-3 lg:flex-row lg:items-start lg:gap-4">
+          <li
+            class="flex flex-col gap-2 py-3 lg:flex-row lg:items-start lg:gap-4"
+            [attr.data-flagged]="flagged(item) || null"
+          >
             <div class="min-w-0 flex-1">
-              <p class="text-[13.5px] font-semibold text-fg">{{ item.subject_name }}</p>
-              <p class="flex flex-wrap gap-x-3 text-[12px] text-fg-subtle">
+              <p class="flex flex-wrap items-center gap-2 text-body font-semibold text-fg">
+                {{ item.subject_name }}
+                @if (item.subject_status && item.subject_status !== 'current') {
+                  <app-status-badge
+                    [meaning]="subjectBadge(item.subject_status).meaning"
+                    [value]="subjectBadge(item.subject_status).value"
+                    [labelKey]="'assets.subjectStatus.' + item.subject_status"
+                  />
+                }
+              </p>
+              <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-fg-subtle">
                 @if (item.account) {
                   <span>{{
                     'assets.reviewItems.accountLine' | transloco: { account: item.account }
@@ -164,6 +231,17 @@ export interface ItemChange {
                   <span>{{
                     'assets.reviewItems.levelLine' | transloco: { level: item.access_level }
                   }}</span>
+                }
+                @if (item.subject_employee; as e) {
+                  <app-entity-chip
+                    [ref]="{
+                      entity_type: 'employee',
+                      entity_id: e.id,
+                      code: e.code,
+                      title: e.name,
+                      url: e.url,
+                    }"
+                  />
                 }
                 @if (item.decided_at && item.decided_by?.name) {
                   <span>
@@ -178,6 +256,11 @@ export interface ItemChange {
                   </span>
                 }
               </p>
+              @if (item.suggested_decision === 'revoke' && item.decision === 'pending') {
+                <p class="mt-1 text-meta text-warn-ink">
+                  {{ 'assets.reviewItems.suggestRevoke' | transloco }}
+                </p>
+              }
             </div>
             <div class="flex flex-col gap-2 lg:w-[420px]">
               @if (editable()) {
@@ -192,12 +275,18 @@ export interface ItemChange {
                     <button
                       type="button"
                       role="radio"
-                      class="rounded-tile border px-3 py-1 text-[12.5px] font-semibold"
+                      class="min-h-8 rounded-tile border px-3 py-1 text-meta font-semibold"
                       [class.border-accent]="item.decision === choice"
                       [class.bg-accent-soft]="item.decision === choice"
                       [class.text-accent]="item.decision === choice"
                       [class.border-border]="item.decision !== choice"
                       [class.text-fg-muted]="item.decision !== choice"
+                      [class.ring-1]="
+                        item.decision === 'pending' && item.suggested_decision === choice
+                      "
+                      [class.ring-warn]="
+                        item.decision === 'pending' && item.suggested_decision === choice
+                      "
                       [attr.aria-checked]="item.decision === choice"
                       [disabled]="busy()"
                       (click)="decide(item, choice)"
@@ -207,7 +296,7 @@ export interface ItemChange {
                   }
                   <button
                     type="button"
-                    class="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg"
+                    class="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-muted hover:bg-surface-2 hover:text-fg"
                     [attr.aria-label]="
                       'assets.reviewItems.remove' | transloco: { name: item.subject_name }
                     "
@@ -224,7 +313,7 @@ export interface ItemChange {
                   [id]="'note-' + item.id"
                   type="text"
                   maxlength="5000"
-                  class="h-9 rounded-[8px] border border-border bg-bg px-2 text-[13px] text-fg"
+                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                   [placeholder]="
                     (item.decision === 'keep' || item.decision === 'pending'
                       ? 'assets.reviewItems.notePlaceholder'
@@ -234,8 +323,21 @@ export interface ItemChange {
                   [value]="item.note ?? ''"
                   (change)="saveNote(item, $any($event.target).value)"
                 />
-                @if (item.decision === 'revoke' || item.decision === 'modify') {
-                  <label class="inline-flex items-center gap-1.5 text-[12.5px] text-fg">
+              } @else {
+                <div class="flex flex-wrap items-center gap-2">
+                  <app-status-badge
+                    [meaning]="decisionBadge(item.decision).meaning"
+                    [value]="decisionBadge(item.decision).value"
+                    [labelKey]="'assets.decision.' + item.decision"
+                  />
+                </div>
+                @if (item.note) {
+                  <p class="text-meta text-fg-muted">{{ item.note }}</p>
+                }
+              }
+              @if (item.decision === 'revoke' || item.decision === 'modify') {
+                @if (editable() || remediable()) {
+                  <label class="inline-flex items-center gap-1.5 text-meta text-fg">
                     <input
                       type="checkbox"
                       [checked]="!!item.remediated_at"
@@ -247,22 +349,17 @@ export interface ItemChange {
                     {{ 'assets.reviewItems.remediated' | transloco }}
                   </label>
                 }
-              } @else {
-                <div class="flex flex-wrap items-center gap-2">
-                  <app-badge [tone]="tone(item.decision)">
-                    {{ 'assets.decision.' + item.decision | transloco }}
-                  </app-badge>
-                  @if (item.remediated_at) {
-                    <span class="text-[12px] text-fg-subtle">
-                      {{
-                        'assets.reviewItems.remediatedOn'
-                          | transloco: { date: (item.remediated_at | localDate) }
-                      }}
-                    </span>
-                  }
-                </div>
-                @if (item.note) {
-                  <p class="text-[12.5px] text-fg-muted">{{ item.note }}</p>
+                @if (item.remediated_at) {
+                  <span class="text-meta text-fg-subtle">
+                    {{
+                      'assets.reviewItems.remediatedOn'
+                        | transloco
+                          : {
+                              date: (item.remediated_at | localDate),
+                              name: item.remediated_by?.name ?? '',
+                            }
+                    }}
+                  </span>
                 }
               }
             </div>
@@ -274,16 +371,21 @@ export interface ItemChange {
 })
 export class ReviewItems {
   readonly items = input.required<readonly ReviewItem[]>();
+  /** Decisions can be recorded (review open, caller may work it). */
   readonly editable = input(false);
+  /** Revocations can be ticked off as carried out (also after completion). */
+  readonly remediable = input(false);
   readonly busy = input(false);
   readonly changed = output<ItemChange>();
   readonly added = output<ReviewItemInput>();
   readonly remove = output<ReviewItem>();
   readonly importMembers = output<void>();
+  readonly importCsv = output<void>();
   readonly keepAll = output<void>();
 
   protected readonly choices = REVIEW_CHOICES;
-  protected readonly tone = decisionTone;
+  protected readonly decisionBadge = decisionBadge;
+  protected readonly subjectBadge = subjectStatusBadge;
   protected readonly pendingOnly = signal(false);
   protected readonly adding = signal(false);
   protected readonly newName = signal('');
@@ -294,9 +396,25 @@ export class ReviewItems {
   protected readonly pendingCount = computed(
     () => this.items().filter((i) => i.decision === 'pending').length,
   );
-  protected readonly visible = computed(() =>
-    this.pendingOnly() ? this.items().filter((i) => i.decision === 'pending') : this.items(),
+  /** Undecided accounts that are not flagged: "Behold alle" never keeps a leaver's access. */
+  protected readonly unflaggedPending = computed(
+    () =>
+      this.items().filter((i) => i.decision === 'pending' && !isFlaggedSubject(i.subject_status))
+        .length,
   );
+  protected readonly flaggedCount = computed(
+    () =>
+      this.items().filter((i) => i.decision === 'pending' && isFlaggedSubject(i.subject_status))
+        .length,
+  );
+  protected readonly visible = computed(() => {
+    const items = sortItems(this.items());
+    return this.pendingOnly() ? items.filter((i) => i.decision === 'pending') : items;
+  });
+
+  protected flagged(item: ReviewItem): boolean {
+    return isFlaggedSubject(item.subject_status);
+  }
 
   protected decide(item: ReviewItem, decision: Decision): void {
     if (item.decision !== decision) {

@@ -30,21 +30,28 @@
     "choose": "Choose…",
     "yes": "Yes",
     "no": "No",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "noSupplier": "Not in the Suppliers register",
+    "unknown": "Unknown"
   },
   "list": {
     "title": "Asset inventory",
-    "subtitle": "The information, systems, equipment, services and premises you rely on, who owns them and how they must be protected.",
-    "searchPlaceholder": "Search by code, name, serial number or vendor",
+    "subtitle": "Everything the organisation depends on (information, systems, equipment, services and premises), who is responsible and how it is protected.",
+    "searchPlaceholder": "Search by code, name, serial number or supplier",
     "new": "Register asset",
     "ownedBy": "Owner: {{ name }}",
     "personalData": "Personal data",
-    "calibrationDue": "{{ status }} · {{ date }}"
+    "calibrationDue": "{{ status }} · {{ date }}",
+    "attentionMore": "{{ first }} +{{ count }}"
   },
   "summary": {
     "total": "Assets",
-    "calibrationOverdue": "Calibrations overdue",
-    "calibrationDueSoon": "Calibrations due within 30 days"
+    "calibrationOverdue": "Overdue calibration, in use",
+    "calibrationDueSoon": "Calibrations due within 30 days",
+    "needsAttention": "Need follow-up",
+    "reviewOverdue": "Review overdue",
+    "personalDataUnlinked": "Personal data not in the processing record",
+    "heldByLeaver": "Held by people who have left"
   },
   "filters": {
     "anyType": "Any type",
@@ -93,7 +100,15 @@
       "planned_start": "Planned start (soonest)",
       "-planned_start": "Planned start (latest)"
     },
-    "noMatch": "Nothing matches these filters."
+    "noMatch": "Nothing matches these filters.",
+    "attention": "Follow-up",
+    "anyAttention": "Any follow-up",
+    "needsAttention": "Needs follow-up",
+    "responsibility": "Responsibility",
+    "heldByMe": "Held by me",
+    "reviewOverdue": "Register review overdue",
+    "supplierSet": "Filtered on one supplier.",
+    "clear": "Clear"
   },
   "fields": {
     "code": "Code",
@@ -110,10 +125,10 @@
     "lifecycle": "Lifecycle",
     "status": "Status",
     "owner": "Owner",
-    "custodian": "Custodian (holder)",
+    "custodian": "Custodian (day-to-day responsibility)",
     "department": "Department",
     "location": "Location",
-    "vendor": "Vendor",
+    "vendor": "Supplier or manufacturer",
     "model": "Model",
     "serialNumber": "Serial number",
     "version": "Version",
@@ -145,7 +160,7 @@
     "scope": "Scope",
     "reviewer": "Reviewer",
     "dueOn": "Due date",
-    "frequencyMonths": "Repeat every (months)",
+    "frequencyMonths": "Repeats",
     "startedAt": "Started",
     "subjectName": "Person or account holder",
     "account": "Account",
@@ -162,14 +177,29 @@
     "implementedAt": "Implemented on",
     "reviewOutcome": "Review outcome",
     "reviewNotes": "Review notes",
-    "affectedAssets": "Affected assets"
+    "affectedAssets": "Affected assets",
+    "supplier": "Supplier",
+    "vendorOther": "Supplier not in the register",
+    "reviewInterval": "Review every",
+    "lastReviewed": "Last reviewed",
+    "lastReviewedAt": "Last reviewed",
+    "lastReviewedBy": "Reviewed by",
+    "processingActivities": "Processing activities",
+    "calibrationLab": "Calibration laboratory",
+    "asFound": "As found",
+    "asLeft": "As left",
+    "measurementUncertainty": "Measurement uncertainty",
+    "referenceStandard": "Reference standard used",
+    "method": "Method or procedure",
+    "environment": "Conditions",
+    "affectedRecords": "Affected processes, documents, suppliers and risks"
   },
   "assetType": {
     "information": "Information",
     "software": "Software or system",
     "hardware": "Hardware or equipment",
     "service": "Service",
-    "people": "Held by a person",
+    "people": "Equipment held by employees",
     "facility": "Premises or facility",
     "other": "Other"
   },
@@ -201,7 +231,8 @@
     "in_use": "In use",
     "maintenance": "In maintenance",
     "retired": "Retired",
-    "disposed": "Disposed of"
+    "disposed": "Disposed of",
+    "quarantined": "Out of use (quarantined)"
   },
   "calibrationStatus": {
     "ok": "Calibrated",
@@ -228,7 +259,7 @@
     "nameRequired": "Give the asset a name.",
     "categoryPlaceholder": "For example laptop, database, contract archive",
     "cia": "How much harm if it is disclosed, changed or unavailable",
-    "personalDataHint": "Tick this if the asset stores or processes information about identifiable people.",
+    "personalDataHint": "Tick this if the asset stores or processes information about identifiable people. After saving, add it to the record of processing activities.",
     "handlingPlaceholder": "For example: encrypt at rest, no copies on personal devices, shred paper copies",
     "suggestionApplied": "Suggestion applied. Check it before you save.",
     "suggestedControls": "Relevant controls",
@@ -245,7 +276,13 @@
     "create": "Register asset",
     "save": "Save changes",
     "created": "{{ code }} registered.",
-    "saved": "Changes saved."
+    "saved": "Changes saved.",
+    "securitySection": "Information security",
+    "securitySectionHint": "(optional for equipment and premises)",
+    "reviewIntervalDefault": "Every 12 months (default)",
+    "quarantinedHint": "Out of use: the asset may not be used until it is fixed or calibrated. A passed calibration puts it back in use.",
+    "nextCalibrationComputed": "Calculated from the last calibration plus the interval, and updated when you record a calibration.",
+    "nextCalibrationOverride": "Set a different date"
   },
   "detail": {
     "notFound": "This asset does not exist or you do not have access to it.",
@@ -261,11 +298,27 @@
     "noChanges": "No change requests concern this asset.",
     "reviews": "Access reviews",
     "planReview": "Plan an access review",
-    "noReviews": "No access reviews for this system yet.",
+    "noReviews": "No access reviews for this system yet. Plan one to check who has access.",
     "learn": "Learn more",
     "deleteTitle": "Delete this asset?",
     "deleteMessage": "{{ code }} {{ name }} is removed from the inventory. Its history is kept for audits.",
-    "deleted": "{{ code }} deleted."
+    "deleted": "{{ code }} deleted.",
+    "notFoundTitle": "Asset not found",
+    "notFilledIn": "Not filled in: {{ fields }}.",
+    "addDetails": "Add details",
+    "attentionTitle": "Needs follow-up ({{ count }})",
+    "doNotUseTitle": "Do not use for verification until it is calibrated.",
+    "doNotUseBody": "The calibration is overdue and the instrument is still marked as in use.",
+    "markOutOfUse": "Mark as out of use",
+    "quarantineReason": "Calibration overdue: taken out of use until calibrated.",
+    "quarantined": "{{ code }} is marked as out of use.",
+    "securityOptional": "Information security (optional)",
+    "securityOptionalHint": "Confidentiality, integrity and availability are rarely needed for measuring equipment or premises. Rate them under Edit if the asset holds or processes information.",
+    "processingLinked": "Linked to {{ count }} processing activities",
+    "processingNone": "Not linked to the record of processing activities",
+    "lastReview": "Last review",
+    "nextReview": "Next review",
+    "openRevocations": "Revocations still to carry out"
   },
   "calibration": {
     "title": "Calibration",
@@ -291,17 +344,35 @@
     "deleteMessage": "The record and its place in the calibration history are removed.",
     "saved": "Calibration saved.",
     "savedFailed": "Calibration saved. The owner has been told it failed.",
-    "deleted": "Calibration deleted."
+    "deleted": "Calibration deleted.",
+    "noLab": "Not in the Suppliers register",
+    "nextDueSource": "Calculated from the last calibration",
+    "traceTitle": "Traceability",
+    "traceHint": "(as found, as left, uncertainty, reference standard)",
+    "toDeviation": "Register a deviation",
+    "placeholders": {
+      "as_found": "For example: +0.8 °C at 100 °C",
+      "as_left": "For example: +0.1 °C at 100 °C",
+      "measurement_uncertainty": "For example: ±0.2 °C (k=2)",
+      "reference_standard": "For example: reference thermometer RT-12, traceable to national standards",
+      "method": "For example: comparison in a calibration bath, procedure KP-03",
+      "environment": "For example: 20 °C ± 2 °C, 45 % RH"
+    }
   },
   "calibrationPage": {
-    "title": "Calibration due",
+    "title": "Calibration",
     "subtitle": "Measuring equipment that is overdue or due for calibration soon.",
     "window": "Show calibrations due within",
     "within": "Within {{ days }} days",
     "last": "Last calibrated {{ date }}",
     "overdueBy": "{{ days }} days overdue",
     "dueToday": "Due today",
-    "dueIn": "Due in {{ days }} days"
+    "dueIn": "Due in {{ days }} days",
+    "searchPlaceholder": "Search by code, name or location",
+    "overdue": "Overdue",
+    "inUseOverdue": "Overdue and still in use",
+    "dueSoon": "Due within {{ days }} days",
+    "recordFor": "Record a calibration of {{ name }}"
   },
   "reviews": {
     "title": "Access reviews",
@@ -313,7 +384,13 @@
     "everyMonths": "Every {{ months }} months",
     "progress": "{{ done }} of {{ total }} decided",
     "changesFound": "{{ count }} to change",
-    "dueOn": "Due {{ date }}"
+    "dueOn": "Due {{ date }}",
+    "flagged": "{{ count }} flagged",
+    "kpiOpen": "Open reviews",
+    "kpiOverdue": "Overdue",
+    "kpiInProgress": "In progress",
+    "kpiMine": "Assigned to me",
+    "kpiCompleted": "Completed"
   },
   "reviewStatus": {
     "planned": "Planned",
@@ -340,14 +417,23 @@
     "scopePlaceholder": "For example: all user and administrator accounts, including service accounts",
     "reviewerRequired": "Choose who reviews the access.",
     "dueRequired": "Enter the due date.",
-    "frequencyHint": "Leave empty for a one-off review. When set, the next review is planned automatically on completion.",
+    "frequencyHint": "For a recurring review, the next one is planned automatically when this one is completed.",
     "frequencyInvalid": "Enter a number of months between 1 and 60.",
     "importMembers": "Start with every member of the organisation as an account",
     "importMembersHint": "Useful when everyone in the organisation has an account in the system. You can remove accounts afterwards.",
     "create": "Plan review",
     "save": "Save changes",
     "created": "{{ code }} planned. The reviewer has been given a task.",
-    "saved": "Changes saved."
+    "saved": "Changes saved.",
+    "systemAsset": "System",
+    "showAllAssets": "Show all assets (not just systems and services)",
+    "frequency": {
+      "1": "Monthly",
+      "3": "Quarterly",
+      "6": "Every six months",
+      "12": "Yearly",
+      "oneOff": "One-off"
+    }
   },
   "reviewDetail": {
     "notFound": "This access review does not exist or you do not have access to it.",
@@ -378,12 +464,20 @@
     "started": "{{ code }} started.",
     "completed": "{{ code }} completed.",
     "cancelled": "{{ code }} cancelled.",
-    "deleted": "{{ code }} deleted."
+    "deleted": "{{ code }} deleted.",
+    "notFoundTitle": "Access review not found",
+    "decided": "Decided",
+    "left": "{{ count }} left",
+    "flagged": "Flagged holders",
+    "toCarryOut": "Revocations carried out",
+    "revocationsTitle": "Revocations to carry out",
+    "revocationsOpen": "{{ count }} access changes are still to be carried out. Tick each account off below when it is done; its task closes at the same time.",
+    "revocationsDone": "Every revocation and change has been carried out."
   },
   "reviewItems": {
     "title": "Accounts and decisions",
     "pendingOnly": "Undecided only",
-    "keepAll": "Keep all undecided ({{ count }})",
+    "keepAll": "Keep all other undecided ({{ count }})",
     "importMembers": "Add organisation members",
     "imported": "Organisation members added.",
     "add": "Add account",
@@ -401,22 +495,36 @@
     "notePlaceholder": "Note (optional)",
     "noteChangePlaceholder": "What should change, and why",
     "remediated": "Done: the access has been changed",
-    "remediatedOn": "Changed {{ date }}"
+    "remediatedOn": "Carried out {{ date }} {{ name }}",
+    "importCsv": "Import account list",
+    "csvTitle": "Import an account list",
+    "csvMessage": "Paste the account list from the system, one account per line: name, account (e-mail or user name) and access level. A header row is optional, and comma, semicolon or tab all work. Accounts already in the review are skipped.",
+    "csvLabel": "Account list",
+    "csvPlaceholder": "name;account;access\nKari Nordmann;kari@example.no;Administrator",
+    "csvImport": "Import",
+    "csvImported": "{{ count }} accounts imported.",
+    "flaggedNote": "{{ count }} accounts belong to people who have left, are leaving or are no longer members. They are listed first, and Revoke is suggested for them.",
+    "suggestRevoke": "Suggested: revoke (the holder has left or is leaving)."
   },
   "changes": {
     "title": "Change requests",
     "subtitle": "Planned changes that are assessed, approved, carried out and reviewed in a controlled way.",
     "searchPlaceholder": "Search by code or title",
-    "new": "Raise change",
+    "new": "Raise a change",
     "openOnly": "Open",
     "plannedFor": "Planned {{ date }}",
     "riskBadge": "Risk: {{ level }}",
-    "awaitingApproval": "Awaiting approval"
+    "awaitingApproval": "Awaiting approval",
+    "kpiOpen": "Open changes",
+    "kpiAssessment": "Being assessed",
+    "kpiImplementing": "Being implemented",
+    "kpiReview": "Awaiting review",
+    "kpiEmergency": "Emergency changes"
   },
   "changeType": {
-    "standard": "Standard (pre-approved)",
-    "normal": "Normal",
-    "emergency": "Emergency"
+    "standard": "Standard – a routine change that is pre-approved",
+    "normal": "Normal – assessed and approved before it is made",
+    "emergency": "Emergency – made at once and approved afterwards"
   },
   "changeCategory": {
     "application": "Application",
@@ -473,10 +581,11 @@
     "assessmentApplied": "Assessment suggestion filled into the empty fields. Check it before you save.",
     "suggestedType": "Suggested change type: {{ type }}",
     "affectedAreas": "Areas affected: {{ areas }}",
-    "create": "Raise change",
+    "create": "Raise a change",
     "save": "Save changes",
     "created": "{{ code }} raised.",
-    "saved": "Changes saved."
+    "saved": "Changes saved.",
+    "relatedHint": "Search for the processes, documents, suppliers and risks the change affects. They are linked to the change when you save."
   },
   "changeStep": {
     "title": "Before the next step",
@@ -495,10 +604,21 @@
     "locked": "The approved content is frozen. Only the dates, owner and the implementation and review details can still be changed.",
     "planned": "Planned",
     "noAssets": "No assets linked.",
-    "assetsHint": "Link more assets, documents or risks under Related.",
+    "assetsHint": "Processes, documents, suppliers and risks the change affects are shown under Connections.",
     "deleteTitle": "Delete this change request?",
     "deleteMessage": "{{ code }} {{ title }} is removed. Its history is kept for audits.",
-    "deleted": "{{ code }} deleted."
+    "deleted": "{{ code }} deleted.",
+    "notFoundTitle": "Change request not found",
+    "requestedByLabel": "Requested by",
+    "followUpTitle": "Follow up the change",
+    "followUpBody": "A change is not finished until the documents, training and checks it affects are updated.",
+    "followUp": {
+      "document": "Update a document",
+      "training": "Assign training",
+      "task": "Create a task",
+      "deviation": "Register a deviation",
+      "risk": "Register a risk"
+    }
   },
   "ai": {
     "overview": "Inventory overview",
@@ -521,8 +641,14 @@
       "changesOverview": "Give me an overview of our open change requests: what is waiting for assessment or approval, what is being implemented and what is high risk.",
       "summariseChange": "Summarise this change request: what changes and why, the risk, where it is in the process and what the next step is.",
       "riskLevel": "How should I decide the risk level of this change? What makes a change low, medium, high or critical risk?",
-      "reviewAssessment": "Review the impact and risk assessment of this change. Is anything missing, and is the rollback plan good enough?"
-    }
+      "reviewAssessment": "Review the impact and risk assessment of this change. Is anything missing, and is the rollback plan good enough?",
+      "cia": "Help me rate the confidentiality, integrity and availability of this asset. What do low, medium and high mean here?"
+    },
+    "reviewAssessment": "Review the assessment",
+    "askClassification": "Ask about classification",
+    "askCia": "Ask about confidentiality, integrity and availability",
+    "askRiskLevel": "Ask about the risk level",
+    "askAssessment": "Ask about the impact assessment"
   },
   "errors": {
     "generic": "Something went wrong. Try again.",
@@ -552,7 +678,12 @@
     "system_required": "Choose the system to review.",
     "too_many_assets": "A change can list at most 50 assets. Link more under Related.",
     "too_many_items": "Too many accounts at once (500 at most).",
-    "workflow_unavailable": "The change workflow is not available. Ask an administrator to check the change request record type."
+    "workflow_unavailable": "The change workflow is not available. Ask an administrator to check the change request record type.",
+    "asset_closed": "This asset is retired or disposed of, so its review cannot be confirmed.",
+    "csv_empty": "The account list is empty. Paste at least one line.",
+    "invalid_related": "One of the chosen records cannot be linked. Remove it and try again.",
+    "invalid_review_interval": "The review interval must be between 1 and 60 months.",
+    "invalid_supplier": "Choose a supplier from the Suppliers register."
   },
   "notifications": {
     "assetCreated": "Asset registered: {{ code }} {{ title }}",
@@ -575,7 +706,8 @@
     "changeCreated": "Change request raised: {{ code }} {{ title }}",
     "changeUpdated": "Change request updated: {{ code }} {{ title }}",
     "changeOwnerChanged": "You are now the owner of change request {{ code }} {{ title }}",
-    "changeDeleted": "Change request deleted: {{ code }} {{ title }}"
+    "changeDeleted": "Change request deleted: {{ code }} {{ title }}",
+    "assetReviewed": "Asset review confirmed: {{ code }} {{ title }}"
   },
   "timeline": {
     "assetCreated": "Asset registered",
@@ -598,6 +730,104 @@
     "changeCreated": "Change request raised",
     "changeUpdated": "Change request updated",
     "changeOwnerChanged": "Owner changed",
-    "changeDeleted": "Change request deleted"
+    "changeDeleted": "Change request deleted",
+    "assetReviewed": "Register review confirmed"
+  },
+  "criticalityLabel": "Criticality: {{ level }}",
+  "calibrationLabel": "Calibration: {{ status }}",
+  "attention": {
+    "calibration_overdue_in_use": "Calibration overdue, still in use",
+    "calibration_impact_missing": "Failed calibration not assessed",
+    "review_overdue": "Review overdue",
+    "no_owner": "No owner",
+    "personal_data_unlinked": "Personal data not linked",
+    "held_by_leaver": "Held by someone who has left"
+  },
+  "attentionWhy": {
+    "calibration_overdue_in_use": "Do not use the instrument to check products or results until it has been calibrated. Calibrate it now or mark it as out of use.",
+    "calibration_impact_missing": "A failed calibration means earlier measurements may be wrong. Assess which products or results could be affected.",
+    "review_overdue": "The owner should confirm at least once a year that the entry is still right: owner, classification and location.",
+    "no_owner": "Every asset needs a named owner who answers for how it is protected.",
+    "personal_data_unlinked": "The asset stores personal data but is not part of any processing activity in the record of processing activities.",
+    "held_by_leaver": "The person holding the asset has left the organisation. Get the asset back and record who holds it now."
+  },
+  "attentionAction": {
+    "calibration_impact_missing": "Assess the impact",
+    "no_owner": "Choose an owner",
+    "personal_data_unlinked": "Add to the processing record",
+    "held_by_leaver": "Record the return"
+  },
+  "classificationOption": {
+    "public": "Public – may be shared with anyone",
+    "internal": "Internal – for people in the organisation",
+    "confidential": "Confidential – only those who need it",
+    "restricted": "Restricted – a few named people"
+  },
+  "calibrationResultOption": {
+    "pass": "Passed – within the required accuracy",
+    "adjusted": "Adjusted – brought back within the required accuracy",
+    "fail": "Failed – outside the required accuracy"
+  },
+  "reviewDue": {
+    "ok": "On time",
+    "due_soon": "Due soon",
+    "overdue": "Overdue",
+    "not_scheduled": "Not scheduled"
+  },
+  "subjectStatus": {
+    "current": "Current employee",
+    "leaving": "Leaving",
+    "left": "Has left",
+    "not_member": "No longer a member"
+  },
+  "review": {
+    "title": "Register review",
+    "confirm": "Confirm review",
+    "dialogTitle": "Confirm the review of {{ name }}",
+    "dialogMessage": "Confirm that the owner, classification, location and handling rules are still right. The next review is set {{ months }} months ahead.",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "For example: checked with the system owner, no changes",
+    "done": "Review confirmed. Next review {{ date }}.",
+    "lastBy": "{{ date }} by {{ name }}",
+    "everyMonths": "Every {{ months }} months",
+    "hint": "ISO 27001 A.5.9 expects the inventory to be kept up to date. Confirm the review when you have checked the entry."
+  },
+  "changeTypeShort": {
+    "standard": "Standard change",
+    "normal": "Normal change",
+    "emergency": "Emergency change"
+  },
+  "changeTypeHint": {
+    "standard": "Use it for routine changes with a known, low risk that follow a set procedure, such as a regular patch.",
+    "normal": "Most changes: describe it, assess the impact and risk, and get it approved first.",
+    "emergency": "Only to stop or prevent serious harm. Make the change, then document and approve it as soon as possible."
+  },
+  "related": {
+    "searchPlaceholder": "Search by name or code…",
+    "noResults": "Nothing found.",
+    "chosen": "Chosen records",
+    "remove": "Remove {{ name }}"
+  },
+  "next": {
+    "calibrationOverdue": {
+      "title": "Calibrate overdue measuring equipment ({{ count }})",
+      "why": "Still in use, so measurements may be wrong. First: {{ code }} {{ name }}."
+    },
+    "heldByLeaver": {
+      "title": "Get equipment back from people who have left ({{ count }})",
+      "why": "Assets must be returned when employment ends (ISO 27001 A.5.11). First: {{ code }} {{ name }}."
+    },
+    "personalDataUnlinked": {
+      "title": "Add assets with personal data to the processing record ({{ count }})",
+      "why": "Every system with personal data belongs in the record of processing activities (GDPR Art. 30). First: {{ code }} {{ name }}."
+    },
+    "reviewOverdue": {
+      "title": "Confirm overdue asset reviews ({{ count }})",
+      "why": "The inventory must be kept up to date (ISO 27001 A.5.9). First: {{ code }} {{ name }}."
+    },
+    "accessReviewOverdue": {
+      "title": "Finish overdue access reviews ({{ count }})",
+      "why": "Access rights must be reviewed on time (ISO 27001 A.5.18). First: {{ code }} {{ name }}."
+    }
   }
 }

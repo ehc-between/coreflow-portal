@@ -146,6 +146,24 @@ describe('assets components', () => {
     ]);
   });
 
+  it('flags holders who have left, lists them first and keeps them out of "keep all"', async () => {
+    const { fixture, root } = await setup();
+    fixture.componentInstance.items.set([
+      item('1'),
+      item('2', { subject_status: 'left', suggested_decision: 'revoke', position: 1 }),
+    ]);
+    await fixture.whenStable();
+    const rows = root.querySelectorAll('[data-testid="review-items"] > li');
+    expect(rows[0].getAttribute('data-flagged')).toBe('true');
+    expect(rows[0].textContent).toContain('Has left');
+    expect(rows[0].textContent).toContain('Suggested: revoke');
+    expect(root.querySelector('[data-testid="flagged-note"]')?.textContent).toContain('1 accounts');
+    const keepAll = [...root.querySelectorAll<HTMLButtonElement>('app-review-items button')].find(
+      (b) => b.textContent?.includes('Keep all'),
+    );
+    expect(keepAll?.textContent).toContain('(1)');
+  });
+
   it('is read-only when the review cannot be worked', async () => {
     const { fixture, root } = await setup();
     fixture.componentInstance.editable.set(false);

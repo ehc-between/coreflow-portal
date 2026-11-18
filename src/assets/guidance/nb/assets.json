@@ -17,8 +17,8 @@
           "iso27001:A.5.10",
           "iso27001:A.5.11",
           "iso27001:A.5.12",
-          "iso27001:A.5.13",
-          "iso27001:A.7.14"
+          "iso27001:A.7.14",
+          "iso9001:7.1.5"
         ]
       },
       "empty": {
@@ -39,16 +39,17 @@
       },
       "why": {
         "body": "Klassifiseringen kobler hver eiendel til riktig beskyttelse: hvem som kan se den, hvordan den lagres og sendes, og hvordan den destrueres. Kalibrert måleutstyr trengs når dere bruker målinger til å vise at produkter og tjenester oppfyller kravene.",
-        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.13", "iso9001:7.1.5"]
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.12", "iso27001:A.5.10"]
       },
       "fields": {
         "asset_type": {
-          "help": "Hva slags eiendel det er. «Hos en person» er for ting som er utlevert til noen, for eksempel en bærbar PC, telefon eller et adgangskort.",
+          "help": "Hva slags eiendel det er. «Utstyr hos ansatte» er for ting som er utlevert til noen, for eksempel en bærbar PC, telefon eller et adgangskort.",
           "example": "Et skybasert regnskapssystem er programvare; regnskapsdataene i det er informasjon."
         },
         "classification": {
           "help": "Hvor sensitiv eiendelen er. Åpen kan deles fritt; strengt fortrolig er bare for noen få navngitte personer.",
-          "example": "Lønnsdata er vanligvis strengt fortrolig; prislisten er åpen."
+          "example": "Lønnsdata er vanligvis strengt fortrolig; prislisten er åpen.",
+          "requirements": ["iso27001:A.5.12"]
         },
         "criticality": {
           "help": "Hvor viktig eiendelen er for å holde virksomheten i gang.",
@@ -56,19 +57,23 @@
         },
         "cia": {
           "help": "Vurder skaden hvis eiendelen blir kjent for uvedkommende (konfidensialitet), endres eller ødelegges (integritet), eller blir utilgjengelig (tilgjengelighet).",
-          "example": "Et åpent nettsted har lav konfidensialitet, men høy tilgjengelighet."
+          "example": "Et åpent nettsted har lav konfidensialitet, men høy tilgjengelighet.",
+          "requirements": ["iso27001:A.5.12"]
         },
         "handling_rules": {
           "help": "Praktiske regler for bruk, lagring, sending og destruksjon av eiendelen, tilpasset klassifiseringen.",
-          "example": "Krypteres ved lagring, deles bare gjennom dokumentsystemet, papirkopier makuleres."
+          "example": "Krypteres ved lagring, deles bare gjennom dokumentsystemet, papirkopier makuleres.",
+          "requirements": ["iso27001:A.5.10", "iso27001:A.5.13"]
         },
         "owner": {
           "help": "Personen som har ansvaret for eiendelen: vedkommende bestemmer hvem som får tilgang, og sørger for at den beskyttes.",
-          "example": "Økonomisjefen eier regnskapssystemet."
+          "example": "Økonomisjefen eier regnskapssystemet.",
+          "requirements": ["iso27001:A.5.9"]
         },
         "custodian": {
-          "help": "Personen som har eller tar vare på eiendelen til daglig, hvis det ikke er eieren.",
-          "example": "En ansatt som har fått utlevert en bærbar PC."
+          "help": "Personen som har eiendelen til daglig eller tar vare på den, for eksempel den ansatte med PC-en. Eieren svarer for eiendelen; forvalteren tar vare på den.",
+          "example": "Eier: IT-sjefen. Forvalter: den ansatte som bruker PC-en.",
+          "requirements": ["iso27001:A.5.11"]
         },
         "lifecycle_status": {
           "help": "Hvor eiendelen er i livsløpet. Tatt ut av bruk betyr at den ikke brukes lenger; avhendet betyr at den er borte.",
@@ -76,15 +81,32 @@
         },
         "review_date": {
           "help": "Når eieren neste gang skal kontrollere at opplysningene og klassifiseringen fortsatt stemmer. Det sendes en påminnelse.",
-          "example": "Én gang i året for de fleste eiendeler."
+          "example": "Én gang i året for de fleste eiendeler.",
+          "requirements": ["iso27001:A.5.9"]
         },
         "disposal_method": {
           "help": "Hvordan eiendelen ble avhendet, slik at dere kan vise at informasjonen ble fjernet på en sikker måte.",
-          "example": "Disker slettet med sertifisert programvare; sertifikat vedlagt."
+          "example": "Disker slettet med sertifisert programvare; sertifikat vedlagt.",
+          "requirements": ["iso27001:A.7.14"]
         },
         "requires_calibration": {
           "help": "Kryss av for instrumenter dere stoler på målingene fra, slik at de kalibreres etter en plan og dere får påminnelser.",
-          "example": "Termometre på kjølelager, vekter, momentnøkler."
+          "example": "Termometre på kjølelager, vekter, momentnøkler.",
+          "requirements": ["iso9001:7.1.5.1"]
+        },
+        "supplier": {
+          "help": "Leverandøren som leverer eller drifter eiendelen, fra leverandørregisteret. Eiendelen vises da også på leverandørsiden.",
+          "example": "CRM-systemet leveres av CRM-leverandøren, den bærbare PC-en av PC-leverandøren.",
+          "requirements": ["iso27001:A.5.19"]
+        },
+        "calibration_interval": {
+          "help": "Hvor ofte instrumentet skal kalibreres. Neste frist regnes ut fra hver kalibrering.",
+          "example": "Termometre til matkontroll: hver 12. måned.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "accuracy": {
+          "help": "Nøyaktigheten målingene trenger. En kalibrering utenfor dette er ikke godkjent.",
+          "example": "±0,5 °C"
         }
       }
     },
@@ -99,17 +121,54 @@
         ]
       },
       "why": {
-        "body": "Et register er bare nyttig hvis det holdes oppdatert. Eierne bør gå gjennom eiendelene sine jevnlig, og måleutstyr må kalibreres, beskyttes mot justeringer som gjør kalibreringen ugyldig, og vurderes når det viser seg å være utenfor toleransen.",
-        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso9001:7.1.5"]
+        "body": "Et register er bare nyttig hvis det holdes oppdatert. Eierne bør gå gjennom eiendelene sine jevnlig, holde klassifisering og håndteringsregler riktige og sørge for at eiendeler leveres tilbake når noen slutter.",
+        "clauses": ["iso27001:A.5.9", "iso27001:A.5.11", "iso27001:A.5.12"]
       },
       "fields": {
         "calibration_result": {
           "help": "Godkjent: innenfor toleransen. Justert: utenfor toleransen og deretter justert. Ikke godkjent: utenfor toleransen og ikke brukbart.",
-          "example": "En vekt som viste 2 g for mye og ble justert, er «Justert»."
+          "example": "En vekt som viste 2 g for mye og ble justert, er «Justert».",
+          "requirements": ["iso9001:7.1.5.2"]
         },
         "impact_assessment": {
           "help": "Når et instrument viser feil, vurder om tidligere målinger ble påvirket, og hva dere gjorde med det.",
-          "example": "Parti 120–124 ble veid med vekten; kontrollerte prøver var innenfor grensene."
+          "example": "Parti 120–124 ble veid med vekten; kontrollerte prøver var innenfor grensene.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "calibration_lab": {
+          "help": "Laboratoriet eller firmaet som kalibrerte instrumentet, fra leverandørregisteret, slik at akkrediteringen kan følges opp der.",
+          "requirements": ["iso9001:7.1.5.2"]
+        }
+      }
+    },
+    "detailInstrument": {
+      "intro": {
+        "title": "Hold instrumentet egnet til måling",
+        "body": "Registrer hver kalibrering med resultat og sertifikat. Er kalibreringen forfalt, skal instrumentet ikke brukes til kontroll før det er kalibrert, og en feilet kalibrering må vurderes.",
+        "steps": [
+          "Registrer kalibreringen med laboratorium og sertifikat.",
+          "Merk instrumentet som ute av bruk når kalibreringen er forfalt.",
+          "Vurder konsekvensen av en feilet kalibrering, og registrer avvik hvis produkter er berørt."
+        ]
+      },
+      "why": {
+        "body": "Når dere bruker målinger til å vise at produkter eller tjenester oppfyller kravene, må instrumentene kalibreres med faste mellomrom mot sporbare normaler, beskyttes mot justeringer og vurderes når de viser seg å være utenfor toleransen.",
+        "clauses": ["iso9001:7.1.5"]
+      },
+      "fields": {
+        "calibration_result": {
+          "help": "Godkjent: innenfor toleransen. Justert: utenfor toleransen og deretter justert. Ikke godkjent: utenfor toleransen og ikke brukbart.",
+          "example": "En vekt som viste 2 g for mye og ble justert, er «Justert».",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "impact_assessment": {
+          "help": "Når et instrument viser feil, vurder om tidligere målinger ble påvirket, og hva dere gjorde med det.",
+          "example": "Parti 120–124 ble veid med vekten; kontrollerte prøver var innenfor grensene.",
+          "requirements": ["iso9001:7.1.5.2"]
+        },
+        "calibration_lab": {
+          "help": "Laboratoriet eller firmaet som kalibrerte instrumentet, fra leverandørregisteret, slik at akkrediteringen kan følges opp der.",
+          "requirements": ["iso9001:7.1.5.2"]
         }
       }
     },
@@ -136,11 +195,11 @@
     "reviews": {
       "intro": {
         "title": "Kontroller at tilgangen fortsatt trengs",
-        "body": "En **tilgangsgjennomgang** går gjennom alle kontoer i et system og avgjør om hver skal **beholdes**, **fjernes** eller **endres**. Kontrolløren signerer en **bekreftelse** når den er ferdig.",
+        "body": "En **tilgangsgjennomgang** går gjennom alle kontoer i et system og avgjør om hver skal **beholdes**, **fjernes** eller **endres**. Den ansvarlige signerer en **bekreftelse** når den er ferdig.",
         "steps": [
-          "Planlegg en gjennomgang for hvert viktig system, med kontrollør og frist.",
+          "Planlegg en gjennomgang for hvert viktig system, med en ansvarlig og en frist.",
           "Angi et intervall, så planlegges neste gjennomgang automatisk.",
-          "Kontrolløren får en oppgave og går gjennom kontoene."
+          "Den ansvarlige får en oppgave og går gjennom kontoene."
         ]
       },
       "why": {
@@ -156,9 +215,9 @@
     "reviewForm": {
       "intro": {
         "title": "Planlegg gjennomgangen",
-        "body": "Velg systemet, hvem som gjennomgår det og innen når. Kontrolløren får en oppgave og påminnelser.",
+        "body": "Velg systemet, hvem som gjennomgår det og innen når. Den ansvarlige får en oppgave og påminnelser.",
         "steps": [
-          "Velg en kontrollør som vet hvem som trenger tilgang: vanligvis systemeieren eller en leder.",
+          "Velg en ansvarlig som vet hvem som trenger tilgang: vanligvis systemeieren eller en leder.",
           "Beskriv omfanget, for eksempel hvilke kontotyper som er med.",
           "Angi et intervall for jevnlige gjennomganger."
         ]
@@ -170,19 +229,22 @@
       "fields": {
         "system": {
           "help": "Systemet der tilgangen skal gjennomgås: velg et fra registeret, eller skriv et navn hvis det ikke er registrert.",
-          "example": "CRM-systemet, filserveren, nettbanken."
+          "example": "CRM-systemet, filserveren, nettbanken.",
+          "requirements": ["iso27001:A.5.18"]
         },
         "scope": {
-          "help": "Hva gjennomgangen omfatter, slik at kontrolløren vet hva som skal være med.",
+          "help": "Hva gjennomgangen omfatter, slik at den ansvarlige vet hva som skal være med.",
           "example": "Alle bruker- og administratorkontoer, også delte kontoer og tjenestekontoer."
         },
         "reviewer": {
           "help": "Personen som avgjør for hver konto. Vedkommende får en oppgave i Mitt arbeid.",
-          "example": "Økonomisjefen for regnskapssystemet."
+          "example": "Økonomisjefen for regnskapssystemet.",
+          "requirements": ["iso27001:A.5.18"]
         },
         "frequency_months": {
           "help": "Hvor ofte gjennomgangen gjentas. Når den fullføres, planlegges neste med kontoene som ble beholdt.",
-          "example": "6 for systemer med sensitive data, 12 for resten."
+          "example": "6 for systemer med sensitive data, 12 for resten.",
+          "requirements": ["iso27001:A.5.18"]
         }
       }
     },
@@ -197,13 +259,14 @@
         ]
       },
       "why": {
-        "body": "Bekreftelsen er beviset deres på at tilgangen ble kontrollert av en ansvarlig person. Fjernet tilgang må faktisk tas bort, og derfor blir hver av dem en oppgave.",
-        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15"]
+        "body": "Bekreftelsen dokumenterer at tilgangen ble kontrollert av en ansvarlig person. Fjernet tilgang må faktisk tas bort, og derfor blir hver av dem en oppgave.",
+        "clauses": ["iso27001:A.5.18", "iso27001:A.5.15", "iso27001:A.8.2"]
       },
       "fields": {
         "decision": {
           "help": "Behold: tilgangen trengs fortsatt. Fjern: ta den bort. Endre: reduser eller juster den.",
-          "example": "En tidligere prosjektdeltaker som fortsatt har skrivetilgang: Fjern."
+          "example": "En tidligere prosjektdeltaker som fortsatt har skrivetilgang: Fjern.",
+          "requirements": ["iso27001:A.5.18", "iso27001:A.5.15"]
         }
       }
     },
@@ -244,7 +307,8 @@
       "fields": {
         "change_type": {
           "help": "Standard: lav risiko, rutine og forhåndsgodkjent. Normal: vurderes og godkjennes hver gang. Hasteendring: haster, godkjennes raskt og evalueres etterpå.",
-          "example": "Å legge til en bruker er standard; å bytte brannmur er normal."
+          "example": "Å legge til en bruker er standard; å bytte brannmur er normal.",
+          "requirements": ["iso27001:A.8.32"]
         },
         "description": {
           "help": "Hva som skal endres, hvor og for hvem.",
@@ -260,11 +324,13 @@
         },
         "risk_level": {
           "help": "Den samlede risikoen ved endringen: hvor sannsynlig det er at noe går galt, og hvor ille det blir.",
-          "example": "Høy hvis en feil stopper faktureringen i flere dager."
+          "example": "Høy hvis en feil stopper faktureringen i flere dager.",
+          "requirements": ["iso27001:A.8.32"]
         },
         "impact_assessment": {
           "help": "Hvem og hva som berøres: brukere, kunder, andre systemer, prosesser og dokumenter.",
-          "example": "Økonomi kan ikke logge inn i to timer; bankintegrasjonen må testes på nytt."
+          "example": "Økonomi kan ikke logge inn i to timer; bankintegrasjonen må testes på nytt.",
+          "requirements": ["iso27001:A.8.32", "iso9001:6.3"]
         },
         "risk_assessment": {
           "help": "Hva som kan gå galt, og hvordan dere reduserer risikoen.",
@@ -284,7 +350,13 @@
         },
         "review_outcome": {
           "help": "Resultatet av kontrollen etter endringen: oppnådde den formålet uten uønskede virkninger?",
-          "example": "Delvis vellykket: virker, men én rapport må lages på nytt."
+          "example": "Delvis vellykket: virker, men én rapport må lages på nytt.",
+          "requirements": ["iso9001:8.5.6"]
+        },
+        "affected_records": {
+          "help": "Prosessene, dokumentene, leverandørene og risikoene endringen berører. De kobles til endringen, så du ser hva som må oppdateres etterpå.",
+          "example": "Nytt lønnssystem: lønnsprosessen, lønnsrutinen og lønnsleverandøren.",
+          "requirements": ["iso9001:6.3", "iso9001:8.5.6"]
         }
       }
     },
@@ -299,8 +371,8 @@
         ]
       },
       "why": {
-        "body": "Det som gjør en endring kontrollert, er at den som melder og den som godkjenner er forskjellige personer, og at resultatet kontrolleres etterpå. Historikken for hvert steg er beviset deres ved revisjoner.",
-        "clauses": ["iso27001:A.8.32", "iso27001:A.5.3", "iso9001:6.3", "iso9001:8.5.6"]
+        "body": "Det som gjør en endring kontrollert, er at den som melder og den som godkjenner er forskjellige personer, og at resultatet kontrolleres etterpå. Historikken for hvert steg er dokumentasjonen deres ved revisjoner.",
+        "clauses": ["iso27001:A.8.32", "iso9001:6.3", "iso9001:8.5.6"]
       }
     }
   },
@@ -428,7 +500,7 @@
         {
           "question": "Når er en tilgangsgjennomgang virkelig ferdig?",
           "options": [
-            "Når kontrolløren har avgjort alle kontoer",
+            "Når den ansvarlige har avgjort alle kontoer",
             "Når bekreftelsen er signert og fjernet tilgang er tatt bort",
             "Når fristen er passert"
           ],
@@ -535,7 +607,7 @@
       {
         "target": "assets-review-new",
         "title": "Planlegg en gjennomgang",
-        "body": "Velg et system, en kontrollør og en frist. Et intervall planlegger neste gjennomgang automatisk."
+        "body": "Velg et system, en ansvarlig og en frist. Et intervall planlegger neste gjennomgang automatisk."
       }
     ],
     "changes": [
@@ -553,6 +625,23 @@
         "target": "assets-change-new",
         "title": "Meld en endring",
         "body": "Beskriv endringen og hvorfor. Den går deretter gjennom vurdering, godkjenning, gjennomføring og evaluering."
+      }
+    ],
+    "calibration": [
+      {
+        "target": "assets-calibration-summary",
+        "title": "Forfalt først",
+        "body": "Hvor mange instrumenter som har forfalt, hvor mange av dem som fortsatt er i bruk, og hvor mange som forfaller snart."
+      },
+      {
+        "target": "assets-calibration-window",
+        "title": "Velg periode",
+        "body": "Vis kalibreringer som forfaller innen 30, 60, 90 eller 365 dager."
+      },
+      {
+        "target": "assets-sections",
+        "title": "Registrer en kalibrering",
+        "body": "Bruk «Registrer kalibrering» på en rad for å gå rett til skjemaet på instrumentsiden."
       }
     ]
   },
@@ -574,7 +663,7 @@
     },
     "access-review": {
       "term": "Tilgangsgjennomgang",
-      "definition": "En jevnlig kontroll, signert av en kontrollør, av at hver konto i et system fortsatt trenger tilgangen sin.",
+      "definition": "En jevnlig kontroll, signert av den ansvarlige, av at hver konto i et system fortsatt trenger tilgangen sin.",
       "clauses": ["iso27001:A.5.18"]
     },
     "change-request": {

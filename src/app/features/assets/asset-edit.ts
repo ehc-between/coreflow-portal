@@ -8,15 +8,17 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuideIntro } from '../../shared/guidance/guide-intro';
 import { Alert } from '../../shared/ui/alert/alert';
-import { Icon } from '../../shared/ui/icon/icon';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { changedFields } from './data/asset-display';
 import { assetErrorKey } from './data/asset-errors';
 import { AssetDetail } from './data/asset.models';
@@ -27,30 +29,35 @@ import { AssetOptionsService } from './shared/asset-select';
 /** Edit an asset (`/assets/:id/edit`); only changed fields are sent, with a reason. */
 @Component({
   selector: 'app-asset-edit',
-  imports: [RouterLink, TranslocoPipe, Alert, AssetForm, GuideIntro, Icon],
+  imports: [TranslocoPipe, Alert, AssetForm, ErrorState, HelpStrip, LoadingState, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="['/assets', id()]"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'assets.common.backToAsset' | transloco }}
-      </a>
+    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'assets.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="6" />
         }
         @case ('error') {
-          <app-alert>{{ 'assets.detail.notFound' | transloco }}</app-alert>
+          <app-error-state
+            titleKey="assets.detail.notFoundTitle"
+            bodyKey="assets.detail.notFound"
+            (retry)="reload()"
+          />
         }
         @default {
           @if (asset(); as a) {
-            <h1 class="mb-1 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-              {{ 'assets.form.editTitle' | transloco: { code: a.code, name: a.name } }}
-            </h1>
-            <div class="mt-3 mb-4"><app-guide-intro scope="assets" page="form" /></div>
+            <app-page-header
+              titleKey="assets.form.editTitle"
+              [titleParams]="{ code: a.code, name: a.name }"
+              [breadcrumbs]="[
+                { labelKey: 'modules.names.assets', link: '/assets' },
+                { label: a.name, link: ['/assets', a.id] },
+                { labelKey: 'assets.common.edit' },
+              ]"
+              [backLink]="['/assets', a.id]"
+              backLabelKey="assets.common.backToAsset"
+            />
+            <app-help-strip scope="assets" page="form" [subject]="a.name" />
             @if (error(); as key) {
               <div class="mb-4">
                 <app-alert>{{ key | transloco }}</app-alert>
@@ -85,31 +92,25 @@ export class AssetEdit {
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
-    providePageContext(() => ({
-      module: 'assets',
-      entityType: 'asset',
-      entityId: this.id(),
-      view: 'edit',
-      title: this.asset()?.name ?? null,
-    }));
+    providePageContext(() => {
+      const a = this.asset();
+      return {
+        module: 'assets',
+        entityType: 'asset',
+        entityId: this.id(),
+        view: 'edit',
+        title: a ? `${a.code} ${a.name}` : null,
+      };
+    });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
-      untracked(() => {
-        this.request.unsubscribe();
-        if (!orgId) {
-          return;
-        }
-        this.state.set('loading');
-        this.request = this.api.get(orgId, id).subscribe({
-          next: (a) => {
-            this.asset.set(a);
-            this.state.set('ready');
-          },
-          error: () => this.state.set('error'),
-        });
-      });
+      untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
   }
 
   protected save(current: AssetDetail, value: AssetFormValue): void {
@@ -142,5 +143,20 @@ export class AssetEdit {
 
   protected back(): void {
     void this.router.navigate(['/assets', this.id()]);
+  }
+
+  private load(orgId: string | null, id: string): void {
+    this.request.unsubscribe();
+    if (!orgId) {
+      return;
+    }
+    this.state.set('loading');
+    this.request = this.api.get(orgId, id).subscribe({
+      next: (a) => {
+        this.asset.set(a);
+        this.state.set('ready');
+      },
+      error: () => this.state.set('error'),
+    });
   }
 }
