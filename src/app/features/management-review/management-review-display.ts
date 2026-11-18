@@ -17,7 +17,7 @@ export const MR_BASE = '/management-review';
 /** h1 of the module root = nav label = first breadcrumb (`modules.names.<key>`). */
 export const MR_NAME_KEY = 'modules.names.management_review';
 /** The gear in every page header: the module's settings (review interval, reminder). */
-export const MR_SETTINGS_LINK = '/management-review/settings';
+export const MR_SETTINGS_LINK = '/settings/modules/management-review';
 
 export const MR_PERMISSIONS = {
   read: 'management_review:read',

@@ -172,7 +172,7 @@ export function moreFiltersCount(filters: RiskFilters): number {
       descriptionKey="risk.risks.subtitle"
       scope="risk"
       page="risks"
-      settingsLink="/risk/matrices"
+      settingsLink="/settings/modules/risk"
       [breadcrumbs]="[
         { labelKey: 'modules.names.risk', link: '/risk' },
         { labelKey: 'risk.risks.title' },

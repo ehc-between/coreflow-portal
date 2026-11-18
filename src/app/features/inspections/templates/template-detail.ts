@@ -34,12 +34,7 @@ import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ClauseRefs } from '../components/clause-refs';
 import { QuestionPreview } from '../components/question-preview';
-import {
-  INSPECTIONS_SETTINGS_LINK,
-  categoryKey,
-  severityKey,
-  templateStatusKey,
-} from '../data/inspection-display';
+import { categoryKey, severityKey, templateStatusKey } from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { InspectionReferences } from '../data/inspection-references';
 import {
@@ -77,7 +72,7 @@ export const TEMPLATE_FIELD_LABELS: Readonly<Record<string, string>> = {
 type PendingAction = 'publish' | 'archive';
 
 /**
- * A checklist template (`/inspections/templates/:id`): the header says what it is
+ * A checklist template (`/settings/modules/inspections/templates/:id`): the header says what it is
  * (code · version · category · status) with one primary action (plan an inspection,
  * or publish a draft); the questions show by section with their pass rules and the
  * clauses they cover; the aside shows the requirements it documents (narrowed to its
@@ -121,15 +116,18 @@ type PendingAction = 'publish' | 'archive';
         [entityId]="t.id"
         [title]="t.title"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.inspections', link: '/inspections' },
-          { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.inspections' },
+          {
+            labelKey: 'inspections.templates.title',
+            link: '/settings/modules/inspections/templates',
+          },
           { label: t.title },
         ]"
-        [settingsLink]="settingsLink"
         [tabs]="tabs"
         [canEdit]="canDesign()"
         [fieldLabels]="fieldLabels"
-        backLink="/inspections/templates"
+        backLink="/settings/modules/inspections/templates"
         backLabelKey="inspections.templates.backToTemplates"
       >
         <ng-container ngProjectAs="[meta]">
@@ -173,7 +171,7 @@ type PendingAction = 'publish' | 'archive';
 
         <ng-container ngProjectAs="[secondary]">
           @if (canDesign() && t.status !== 'archived') {
-            <a [routerLink]="['/inspections/templates', t.id, 'edit']">
+            <a [routerLink]="['/settings/modules/inspections/templates', t.id, 'edit']">
               <app-button variant="secondary" data-testid="edit-template">
                 {{ 'inspections.actions.edit' | transloco }}
               </app-button>
@@ -386,7 +384,7 @@ type PendingAction = 'publish' | 'archive';
           titleKey="inspections.templates.notFoundTitle"
           bodyKey="inspections.templates.notFound"
           ctaKey="inspections.templates.backToTemplates"
-          ctaLink="/inspections/templates"
+          ctaLink="/settings/modules/inspections/templates"
         />
       </div>
     } @else {
@@ -409,7 +407,6 @@ export class TemplateDetailPage {
   protected readonly entityType = TEMPLATE_ENTITY_TYPE;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = TEMPLATE_FIELD_LABELS;
-  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly statusKey = templateStatusKey;
   protected readonly severityKey = severityKey;
   protected readonly categoryLabel = categoryKey;
@@ -517,7 +514,7 @@ export class TemplateDetailPage {
       next: (copy) => {
         this.busy.set(false);
         this.notifications.success('inspections.notices.duplicated');
-        void this.router.navigate(['/inspections/templates', copy.id, 'edit']);
+        void this.router.navigate(['/settings/modules/inspections/templates', copy.id, 'edit']);
       },
       error: (e: unknown) => {
         this.busy.set(false);
@@ -539,7 +536,7 @@ export class TemplateDetailPage {
         this.confirmDelete.set(false);
         this.references.ensureTemplates(true);
         this.notifications.success('inspections.notices.templateDeleted');
-        void this.router.navigate(['/inspections/templates']);
+        void this.router.navigate(['/settings/modules/inspections/templates']);
       },
       error: (e: unknown) => {
         this.busy.set(false);

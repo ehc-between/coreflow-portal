@@ -21,23 +21,18 @@ import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { ClauseRefs } from '../components/clause-refs';
 import { QuestionPreview } from '../components/question-preview';
-import {
-  INSPECTIONS_NAV,
-  INSPECTIONS_SETTINGS_LINK,
-  categoryKey,
-  severityKey,
-} from '../data/inspection-display';
+import { categoryKey, severityKey } from '../data/inspection-display';
 import { inspectionErrorKey } from '../data/inspection-errors';
 import { INSPECTIONS_MODULE, Lang, LibraryDetail, LibraryItem } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 /**
- * The built-in checklist library (`/inspections/templates/library`, "Malbibliotek"):
+ * The built-in checklist library (`/settings/modules/inspections/templates/library`, "Malbibliotek"):
  * ready-made checklists in the user's language (vernerunde, brannvern, miljørunde,
  * 5S, informasjonssikkerhet), each with the standards and clauses it covers and when
  * its findings become deviations. Preview the questions; designers
@@ -55,7 +50,7 @@ import { InspectionsApi } from '../data/inspections-api';
     ErrorState,
     HelpStrip,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     PageHeader,
     SlideOver,
     ClauseRefs,
@@ -68,9 +63,8 @@ import { InspectionsApi } from '../data/inspections-api';
         titleKey="inspections.library.title"
         descriptionKey="inspections.library.subtitle"
         [breadcrumbs]="breadcrumbs"
-        [settingsLink]="settingsLink"
       />
-      <app-module-nav class="mb-4 block" labelKey="modules.names.inspections" [items]="nav" />
+      <app-module-config-nav module="inspections" />
       <app-help-strip scope="inspections" page="library" lesson="inspection-basics" />
 
       @if (failed()) {
@@ -190,11 +184,10 @@ export class TemplateLibrary {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
 
-  protected readonly nav = INSPECTIONS_NAV;
-  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly breadcrumbs = [
-    { labelKey: 'modules.names.inspections', link: '/inspections' },
-    { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
+    { labelKey: 'nav.settings', link: '/settings' },
+    { labelKey: 'modules.names.inspections' },
+    { labelKey: 'inspections.templates.title', link: '/settings/modules/inspections/templates' },
     { labelKey: 'inspections.library.title' },
   ];
   protected readonly categoryLabel = categoryKey;
@@ -270,7 +263,7 @@ export class TemplateLibrary {
       next: (template) => {
         this.importing.set(null);
         this.notifications.success('inspections.notices.imported', { title: template.title });
-        void this.router.navigate(['/inspections/templates', template.id, 'edit']);
+        void this.router.navigate(['/settings/modules/inspections/templates', template.id, 'edit']);
       },
       error: (e: unknown) => {
         this.importing.set(null);

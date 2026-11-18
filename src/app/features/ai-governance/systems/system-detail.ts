@@ -165,7 +165,7 @@ export const SYSTEM_FIELD_LABELS: Readonly<Record<string, string>> = {
           { labelKey: 'aiGovernance.systems.title', link: '/ai-governance/systems' },
           { label: s.code },
         ]"
-        settingsLink="/ai-governance/settings"
+        settingsLink="/settings/modules/ai-governance"
         [tabs]="tabs"
         [canEdit]="store.canWrite()"
         [includeAudit]="store.canReadAudit()"

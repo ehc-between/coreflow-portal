@@ -10,4 +10,4 @@ export const FEEDBACK_NAV: readonly ModuleNavItem[] = [
 ];
 
 /** The gear in the page header: the module settings (response times, privacy notice). */
-export const FEEDBACK_SETTINGS_LINK = '/feedback/settings';
+export const FEEDBACK_SETTINGS_LINK = '/settings/modules/feedback';

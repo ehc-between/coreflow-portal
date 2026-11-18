@@ -534,8 +534,9 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
         [entityId]="matrixId"
         [title]="original()?.name"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
-          { labelKey: 'risk.matrices.title', link: '/risk/matrices' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.risk' },
+          { labelKey: 'risk.matrices.title', link: '/settings/modules/risk/matrices' },
           { label: original()?.name ?? '' },
         ]"
         [tabs]="tabs"
@@ -543,7 +544,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
         [canEdit]="perms.canManage()"
         [includeAudit]="perms.canReadAudit()"
         [fieldLabels]="fieldLabels"
-        backLink="/risk/matrices"
+        backLink="/settings/modules/risk/matrices"
         backLabelKey="risk.matrices.back"
       >
         <ng-container ngProjectAs="[meta]">
@@ -567,8 +568,9 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
         <app-page-header
           titleKey="risk.matrices.newTitle"
           [breadcrumbs]="[
-            { labelKey: 'modules.names.risk', link: '/risk' },
-            { labelKey: 'risk.matrices.title', link: '/risk/matrices' },
+            { labelKey: 'nav.settings', link: '/settings' },
+            { labelKey: 'modules.names.risk' },
+            { labelKey: 'risk.matrices.title', link: '/settings/modules/risk/matrices' },
             { labelKey: 'risk.matrices.newTitle' },
           ]"
         />
@@ -726,7 +728,7 @@ export class MatrixEditorPage {
   }
 
   protected cancel(): void {
-    void this.router.navigate(['/risk/matrices']);
+    void this.router.navigate(['/settings/modules/risk/matrices']);
   }
 
   /** The template with as many levels on this axis (for example descriptions). */
@@ -890,7 +892,7 @@ export class MatrixEditorPage {
           this.draft.set(matrixToDraft(matrix, this.t));
           this.changeReason.set('');
         } else {
-          void this.router.navigate(['/risk/matrices', matrix.id]);
+          void this.router.navigate(['/settings/modules/risk/matrices', matrix.id]);
         }
       },
       error: (e: unknown) => {
@@ -927,7 +929,7 @@ export class MatrixEditorPage {
     this.api.deleteMatrix(orgId, id).subscribe({
       next: () => {
         this.toasts.success('risk.notices.matrixDeleted');
-        void this.router.navigate(['/risk/matrices']);
+        void this.router.navigate(['/settings/modules/risk/matrices']);
       },
       error: (e: unknown) => this.errorKey.set(riskErrorKey(e)),
     });

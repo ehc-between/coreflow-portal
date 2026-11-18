@@ -42,7 +42,6 @@ import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
-import { DEVIATIONS_ROOT_CRUMB } from '../deviation-display';
 import { CLAUSE_FRAMEWORKS } from '../deviation-enums';
 import {
   FIELD_TYPE_OPTIONS,
@@ -65,6 +64,7 @@ import {
   toFieldDef,
   validateType,
 } from './type-schema';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 /**
  * Create / edit a deviation type. Top section captures identity (name, key,
@@ -102,7 +102,7 @@ import {
         [titleKey]="isEdit() ? 'deviations.types.editTitle' : 'deviations.types.new'"
         descriptionKey="deviations.types.editor.intro"
         [breadcrumbs]="breadcrumbs()"
-        backLink="/deviations/types"
+        backLink="/settings/modules/deviations/types"
       />
       <app-help-strip scope="deviations" page="types" lesson="designing-your-process" />
 
@@ -656,7 +656,7 @@ import {
                 <app-button type="submit" [loading]="saving()">
                   {{ 'deviations.types.editor.save' | transloco }}
                 </app-button>
-                <a routerLink="/deviations/types">
+                <a routerLink="/settings/modules/deviations/types">
                   <app-button type="button" variant="ghost">
                     {{ 'deviations.types.editor.cancel' | transloco }}
                   </app-button>
@@ -743,8 +743,8 @@ export class DeviationTypeEditor {
   private defaultClausesTouched = false;
   protected readonly clauseFrameworks = CLAUSE_FRAMEWORKS;
   protected readonly breadcrumbs = computed(() => [
-    DEVIATIONS_ROOT_CRUMB,
-    { labelKey: 'deviations.types.title', link: '/deviations/types' },
+    ...moduleConfigCrumbs('deviations'),
+    { labelKey: 'deviations.types.title', link: '/settings/modules/deviations/types' },
     { labelKey: this.isEdit() ? 'deviations.types.editTitle' : 'deviations.types.new' },
   ]);
 
@@ -1032,7 +1032,7 @@ export class DeviationTypeEditor {
         this.notifications.success(
           id ? 'deviations.types.editor.savedToast' : 'deviations.types.editor.createdToast',
         );
-        void this.router.navigateByUrl('/deviations/types');
+        void this.router.navigateByUrl('/settings/modules/deviations/types');
       },
       error: (error: unknown) => {
         this.saving.set(false);

@@ -268,7 +268,7 @@ export class RequisitionsList {
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   private readonly params = inject(ActivatedRoute).snapshot.queryParamMap;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav(this.perms);
+  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
   protected readonly breadcrumbs = [
     RECRUITMENT_CRUMB,

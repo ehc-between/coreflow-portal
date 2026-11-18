@@ -25,16 +25,15 @@ import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { supplierErrorKey } from '../data/supplier-errors';
 import { EVALUATION_KINDS, EvaluationKind, Questionnaire } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { questionnaireLang } from '../detail/start-evaluation-dialog';
-import { suppliersNav } from '../shared/suppliers-nav';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 /**
- * Questionnaire templates (`/suppliers/questionnaires`): the built-in set for every
+ * Questionnaire templates (`/settings/modules/suppliers/questionnaires`): the built-in set for every
  * evaluation kind (in the UI language) and the org's own templates, each question
  * with the clauses it checks. With `suppliers:manage` you can create, copy a built-in
  * one, edit and delete your own.
@@ -53,7 +52,7 @@ import { suppliersNav } from '../shared/suppliers-nav';
     HelpStrip,
     Icon,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     PageHeader,
     WhyItMatters,
   ],
@@ -64,7 +63,8 @@ import { suppliersNav } from '../shared/suppliers-nav';
         titleKey="suppliers.questionnaires.title"
         descriptionKey="suppliers.questionnaires.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.suppliers', link: '/suppliers' },
+          { labelKey: 'nav.settings', link: '/settings' },
+          { labelKey: 'modules.names.suppliers' },
           { labelKey: 'suppliers.questionnaires.title' },
         ]"
       >
@@ -75,7 +75,7 @@ import { suppliersNav } from '../shared/suppliers-nav';
           </app-button>
         }
       </app-page-header>
-      <app-module-nav labelKey="modules.names.suppliers" [items]="nav" />
+      <app-module-config-nav module="suppliers" />
       <app-help-strip scope="suppliers" page="questionnaires" />
 
       <div
@@ -172,7 +172,11 @@ import { suppliersNav } from '../shared/suppliers-nav';
                         </app-button>
                       } @else {
                         <a
-                          [routerLink]="['/suppliers/questionnaires', t.id, 'edit']"
+                          [routerLink]="[
+                            '/settings/modules/suppliers/questionnaires',
+                            t.id,
+                            'edit',
+                          ]"
                           class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
                         >
                           {{ 'suppliers.common.edit' | transloco }}
@@ -216,7 +220,6 @@ export class QuestionnairesList {
   private readonly router = inject(Router);
 
   protected readonly kinds = EVALUATION_KINDS;
-  protected readonly nav = suppliersNav();
   protected readonly kind = signal<EvaluationKind | ''>('');
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly items = signal<readonly Questionnaire[]>([]);
@@ -248,11 +251,13 @@ export class QuestionnairesList {
   }
 
   protected create(): void {
-    void this.router.navigate(['/suppliers/questionnaires/new']);
+    void this.router.navigate(['/settings/modules/suppliers/questionnaires/new']);
   }
 
   protected copy(t: Questionnaire): void {
-    void this.router.navigate(['/suppliers/questionnaires/new'], { queryParams: { from: t.id } });
+    void this.router.navigate(['/settings/modules/suppliers/questionnaires/new'], {
+      queryParams: { from: t.id },
+    });
   }
 
   protected remove(): void {

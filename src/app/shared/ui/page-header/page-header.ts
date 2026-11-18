@@ -31,7 +31,7 @@ export interface Breadcrumb {
  *   actions on the right: [secondary] (≤ 2) · [primary] (one) · "Mer ⋯" ([overflow]) · ⚙
  *
  *   <app-page-header titleKey="modules.names.risk" descriptionKey="risk.list.description"
- *       [breadcrumbs]="[{ labelKey: 'modules.names.risk' }]" settingsLink="/risk/matrices">
+ *       [breadcrumbs]="[{ labelKey: 'modules.names.risk' }]" settingsLink="/settings/modules/risk">
  *     <app-button primary (click)="create()">Ny risiko</app-button>
  *     <app-button secondary variant="secondary">Eksporter</app-button>
  *     <button appMenuItem overflow [danger]="true">Slett</button>

@@ -652,11 +652,6 @@
         "target": "documents-type-new",
         "title": "Ny type",
         "body": "Lag en dokumenttype med automatisk nummerering og standardverdier."
-      },
-      {
-        "target": "documents-nav-templates",
-        "title": "Maler",
-        "body": "Gi hver type en mal med riktig struktur."
       }
     ],
     "typeForm": [

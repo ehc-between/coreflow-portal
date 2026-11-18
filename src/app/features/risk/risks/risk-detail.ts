@@ -168,7 +168,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
           { labelKey: 'risk.risks.title', link: '/risk/risks' },
           { label: r.code },
         ]"
-        settingsLink="/risk/matrices"
+        settingsLink="/settings/modules/risk"
         [tabs]="tabs"
         [canEdit]="r.can_edit"
         [includeAudit]="perms.canReadAudit()"
@@ -180,7 +180,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
           <span class="font-mono" data-testid="risk-code">{{ r.code }}</span>
           <span aria-hidden="true">·</span>
           <a
-            [routerLink]="['/risk/registers', r.register.id]"
+            [routerLink]="['/settings/modules/risk/registers', r.register.id]"
             class="hover:text-fg hover:underline"
           >
             {{ r.register.name }}

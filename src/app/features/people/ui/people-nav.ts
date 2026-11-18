@@ -21,4 +21,4 @@ export const PEOPLE_NAV: readonly ModuleNavItem[] = [
 export const PEOPLE_ROOT = { labelKey: 'modules.names.people', link: '/people' } as const;
 
 /** Gear link of every People page: the organisation's checklist templates. */
-export const PEOPLE_SETTINGS_LINK = '/people/settings';
+export const PEOPLE_SETTINGS_LINK = '/settings/modules/people';

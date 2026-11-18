@@ -167,7 +167,7 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
           { labelKey: 'aiGovernance.assessments.title', link: '/ai-governance/assessments' },
           { label: a.code },
         ]"
-        settingsLink="/ai-governance/settings"
+        settingsLink="/settings/modules/ai-governance"
         [tabs]="tabs"
         [canEdit]="store.canWrite()"
         [includeAudit]="store.canReadAudit()"

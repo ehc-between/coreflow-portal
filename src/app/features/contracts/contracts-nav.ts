@@ -14,4 +14,4 @@ export const CONTRACTS_CRUMB: Breadcrumb = {
 };
 
 /** The gear on the module's page headers (shown to holders of `contracts:manage`). */
-export const CONTRACTS_SETTINGS_LINK = '/contracts/settings';
+export const CONTRACTS_SETTINGS_LINK = '/settings/modules/contracts';

@@ -16,7 +16,7 @@ import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LevelPicker } from '../../../shared/guidance/level-picker';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
@@ -63,7 +63,7 @@ export function sortSummary(
     RouterLink,
     TranslocoPipe,
     FieldHelp,
-    GuideIntro,
+    HelpStrip,
     LevelPicker,
     TeachingEmpty,
     WhyItMatters,
@@ -93,7 +93,7 @@ export function sortSummary(
       </div>
 
       <div class="mb-5 flex flex-col gap-3">
-        <app-guide-intro scope="platform" page="guidance-settings" />
+        <app-help-strip scope="platform" page="guidance-settings" />
         <app-why-it-matters scope="platform" page="guidance-settings" />
       </div>
 

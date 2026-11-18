@@ -106,7 +106,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
   };
 }
 
-/** Create (`/documents/retention/new`) or view and edit (`/documents/retention/:id`) a rule. */
+/** Create (`/settings/modules/documents/retention/new`) or view and edit (`/settings/modules/documents/retention/:id`) a rule. */
 @Component({
   selector: 'app-retention-form',
   imports: [
@@ -289,7 +289,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
               >
                 {{ 'documents.control.common.save' | transloco }}
               </app-button>
-              <a routerLink="/documents/retention">
+              <a routerLink="/settings/modules/documents/retention">
                 <app-button type="button" variant="ghost">
                   {{ 'documents.control.common.cancel' | transloco }}
                 </app-button>
@@ -309,7 +309,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
           [canEdit]="perms.canManage()"
           [includeAudit]="perms.canReadAudit()"
           [fieldLabels]="fieldLabels"
-          backLink="/documents/retention"
+          backLink="/settings/modules/documents/retention"
           backLabelKey="documents.control.retention.back"
         >
           <div header>
@@ -364,7 +364,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
     } @else {
       <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
-          routerLink="/documents/retention"
+          routerLink="/settings/modules/documents/retention"
           class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
         >
           <app-icon name="back" [size]="16" />
@@ -462,7 +462,7 @@ export class RetentionFormPage {
         if (id) {
           this.apply(r);
         } else {
-          void this.router.navigate(['/documents/retention', r.id]);
+          void this.router.navigate(['/settings/modules/documents/retention', r.id]);
         }
       },
       error: (e: unknown) => {
@@ -484,7 +484,7 @@ export class RetentionFormPage {
         this.saving.set(false);
         this.deleteOpen.set(false);
         this.toasts.success('documents.control.common.deletedToast');
-        void this.router.navigateByUrl('/documents/retention');
+        void this.router.navigateByUrl('/settings/modules/documents/retention');
       },
       error: (e: unknown) => {
         this.saving.set(false);

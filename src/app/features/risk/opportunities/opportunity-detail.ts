@@ -92,7 +92,7 @@ const TABS: readonly RecordTab[] = [
           { labelKey: 'risk.opportunities.title', link: '/risk/opportunities' },
           { label: o.code },
         ]"
-        settingsLink="/risk/registers"
+        settingsLink="/settings/modules/risk"
         [tabs]="tabs"
         [counts]="{ tasks: o.actions?.open ?? 0 }"
         [canEdit]="o.can_edit"
@@ -105,9 +105,11 @@ const TABS: readonly RecordTab[] = [
           <span class="font-mono">{{ o.code }}</span>
           @if (o.register; as reg) {
             <span aria-hidden="true">·</span>
-            <a [routerLink]="['/risk/registers', reg.id]" class="hover:text-fg hover:underline">{{
-              reg.name
-            }}</a>
+            <a
+              [routerLink]="['/settings/modules/risk/registers', reg.id]"
+              class="hover:text-fg hover:underline"
+              >{{ reg.name }}</a
+            >
           }
           <app-status-badge
             meaning="lifecycle"

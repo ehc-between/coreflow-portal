@@ -146,7 +146,7 @@ export function registerQuery(
         { labelKey: 'modules.names.documents', link: '/documents' },
         { labelKey: 'documents.control.register.title' },
       ]"
-      settingsLink="/documents/types"
+      settingsLink="/settings/modules/documents"
       scope="documents"
       page="register"
       searchPlaceholderKey="documents.control.register.searchPlaceholder"

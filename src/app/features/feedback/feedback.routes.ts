@@ -3,6 +3,7 @@ import { Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { PERM_MANAGE, PERM_WRITE } from './data/feedback.models';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/feedback' };
 const toSurveys = { redirectTo: '/feedback/surveys' };
@@ -46,11 +47,8 @@ export default [
       },
       // The statistics are a band on the register now (U23); old links keep working.
       { path: 'insights', pathMatch: 'full', redirectTo: insightsRedirect },
-      {
-        path: 'settings',
-        loadComponent: () =>
-          import('./settings/feedback-settings').then((m) => m.FeedbackSettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/feedback.
+      moduleConfigRedirect('settings', 'feedback', ''),
       {
         path: 'surveys',
         loadComponent: () => import('./surveys/surveys-list').then((m) => m.SurveysList),

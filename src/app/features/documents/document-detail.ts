@@ -124,7 +124,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
           { labelKey: 'modules.names.documents', link: '/documents' },
           { label: doc.doc_code || doc.title },
         ]"
-        settingsLink="/documents/types"
+        settingsLink="/settings/modules/documents"
         [tabs]="tabs"
         [canEdit]="canEdit()"
         [canComment]="false"

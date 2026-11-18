@@ -116,7 +116,7 @@
         "steps": [
           "Velg læringsnivået som passer deg. Du kan endre det når som helst.",
           "Start med leksjonen «Kom i gang med CoreFlow».",
-          "Bruk «Lær meg» på en hvilken som helst side når du vil ha en personlig forklaring."
+          "Trykk på **?** øverst på en side når du vil vite hvordan siden fungerer, ta en omvisning eller få siden forklart."
         ]
       },
       "why": {
@@ -436,7 +436,7 @@
         },
         {
           "heading": "Hjelp der du trenger den",
-          "body": "Se etter introduksjonen øverst på siden, notatet «Hvorfor dette er viktig» med henvisninger til krav, **?** ved siden av felt og prikkede begreper du kan holde musepekeren over for å se en definisjon. «Lær meg» åpner assistenten som en personlig lærer."
+          "body": "Øverst på hver side står én setning om hva siden er til, og knappen **?**. Bak den finner du introduksjonen, «Hvorfor dette er viktig», omvisningen, leksjonen og «Forklar denne siden», som åpner assistenten som en personlig lærer. Ved feltene finner du også et lite **?**, og prikkede begreper kan du holde musepekeren over for å se en definisjon."
         }
       ]
     },

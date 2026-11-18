@@ -17,7 +17,7 @@
   "levels": {
     "beginner": {
       "name": "Beginner",
-      "description": "Explanations, guided steps and examples are shown everywhere."
+      "description": "Plain words and only what matters: one sentence about each page, with the help behind the \"?\"."
     },
     "standard": {
       "name": "Standard",
@@ -146,18 +146,11 @@
   "centre": {
     "title": "Learning centre",
     "subtitle": "Choose how much guidance you see, take short lessons and look up compliance terms.",
-    "progressTitle": "Your progress",
-    "kpiCompleted": "Lessons completed",
-    "kpiInProgress": "Lessons in progress",
-    "kpiQuizzes": "Quizzes passed",
-    "ofTotal": "{{ done }} of {{ total }}",
     "lessonsTitle": "Lessons",
     "searchLessons": "Search lessons",
     "filterStatus": "Filter by status",
     "allStatuses": "All statuses",
     "sort": "Sort by",
-    "sortStatus": "Status",
-    "sortTitle": "Title",
     "hasQuiz": "with quiz",
     "noLessons": "No lessons are available yet.",
     "noMatches": "No lessons match your filters.",
@@ -165,7 +158,15 @@
     "levelCurrent": "You currently see the {{ level }} level.",
     "backToCentre": "Back to the learning centre",
     "filterArea": "Area",
-    "allAreas": "All areas"
+    "allAreas": "All areas",
+    "startTitle": "Start here",
+    "startSubtitle": "Five short lessons that give you what you need to get going, picked for the areas your organisation uses.",
+    "startProgress": "{{ done }} of {{ total }} completed",
+    "summary": "Completed: {{ done }} of {{ total }} · Quizzes passed: {{ quizzes }}",
+    "showAll": "Show all lessons ({{ count }})",
+    "hideAll": "Hide the lessons",
+    "showGlossary": "Show the glossary ({{ count }} terms)",
+    "hideGlossary": "Hide the glossary"
   },
   "settings": {
     "title": "Learning mode",
