@@ -616,6 +616,9 @@
     },
     "ai_assessment": {
       "to_risk": "Risk from this assessment"
+    },
+    "audit_plan": {
+      "to_audit_pack": "Audit pack for the audit"
     }
   },
   "frameworks": {

@@ -18,17 +18,28 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { internalLink } from '../../../core/search/internal-link';
-import { AskAbout } from '../../../shared/ask/ask-about';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { ReportsAsk } from '../components/ask-button';
 import { ColumnPicker } from '../components/column-picker';
 import { RegisterFilters, supportedFilters } from '../components/register-filters';
-import { ReportsLessonButton } from '../components/reports-lesson-button';
+import { ReportsNav } from '../components/reports-nav';
 import { blobErrorKey, fileStem, reportErrorKey, saveBlob } from '../data/report-errors';
-import { cellText, labelOr, localized, moduleLabelKey } from '../data/report-display';
+import {
+  clauseText,
+  columnCell,
+  groupRegisters,
+  labelOr,
+  localized,
+  moduleLabelKey,
+} from '../data/report-display';
 import {
   EXPORT_FORMATS,
   ExportFormat,
@@ -36,6 +47,7 @@ import {
   REPORTS_PERMISSIONS,
   REPORT_LANGS,
   Register,
+  RegisterColumn,
   RegisterPreview,
   ReportFilters,
   ReportLang,
@@ -52,54 +64,52 @@ type Preview =
   | { readonly status: 'ready'; readonly value: RegisterPreview };
 
 /**
- * `/reports/registers`: pick a register (tasks, deviations, CAPA actions, the
- * master document list, the Statement of Applicability, the evidence index,
- * readiness — plus any a module registers), filter it, choose columns, preview
- * the first rows and export it as CSV, XLSX or PDF. "Save as report" carries
- * the choices to a new saved report. The register is kept in `?register=`.
+ * `/reports/registers`: pick a register — the platform's own (tasks, deviations,
+ * corrective actions, documents, the Statement of Applicability, the evidence index,
+ * requirement coverage) and every module's (risks, legal requirements, objectives,
+ * training, suppliers, assets, audits, management reviews, processing records, AI
+ * systems, …) — filter it, choose columns, preview it in plain words and export it
+ * as CSV, Excel or PDF. Each register says which requirements it is evidence for.
+ * "Lagre som rapport" carries the choices to a new saved report. The register is
+ * kept in `?register=`.
  */
 @Component({
   selector: 'app-registers-page',
   imports: [
     RouterLink,
     TranslocoPipe,
-    AskAbout,
-    GuideIntro,
     TeachingEmpty,
     WhyItMatters,
     Button,
     Card,
+    ErrorState,
+    HelpStrip,
+    Icon,
+    LoadingState,
+    PageHeader,
+    ReportsAsk,
     ColumnPicker,
     RegisterFilters,
-    ReportsLessonButton,
+    ReportsNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8">
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[24px] font-bold tracking-[-0.03em] text-fg sm:text-[26px]">
-            {{ 'reports.registers.title' | transloco }}
-          </h1>
-          <p class="mt-1 text-[13.5px] text-fg-muted">
-            {{ 'reports.registers.subtitle' | transloco }}
-          </p>
-        </div>
-        <app-reports-lesson-button lesson="exporting-registers" />
-      </header>
-
-      <app-guide-intro class="mb-4 block" scope="reports" page="registers" />
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="reports.registers.title"
+        descriptionKey="reports.registers.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.reports', link: '/reports' },
+          { labelKey: 'reports.nav.registers' },
+        ]"
+      />
+      <app-reports-nav />
+      <app-help-strip scope="reports" page="registers" lesson="exporting-registers" />
 
       @if (loadError(); as key) {
-        <app-card>
-          <p class="py-6 text-center text-[13.5px] text-fg-muted" role="alert">
-            {{ key | transloco }}
-          </p>
-        </app-card>
+        <app-error-state [bodyKey]="key" (retry)="reloadRegisters()" />
       } @else if (!loaded()) {
-        <p class="py-10 text-center text-[13.5px] text-fg-muted" role="status">
-          {{ 'reports.common.loading' | transloco }}
-        </p>
+        <app-loading-state [rows]="5" />
       } @else if (registers().length === 0) {
         <app-card>
           <app-teaching-empty scope="reports" page="registers" [showAction]="false" />
@@ -107,59 +117,78 @@ type Preview =
       } @else {
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start">
           <nav
-            class="lg:w-[250px] lg:flex-none"
+            class="lg:w-[260px] lg:flex-none"
             [attr.aria-label]="'reports.registers.pick' | transloco"
           >
-            <label for="reg-select" class="sr-only">{{
-              'reports.registers.pick' | transloco
-            }}</label>
+            <label
+              for="reg-select"
+              class="mb-1 block text-ui font-semibold text-fg-muted lg:sr-only"
+              >{{ 'reports.registers.pick' | transloco }}</label
+            >
             <select
               id="reg-select"
-              class="h-10 w-full rounded-[10px] border border-border bg-bg px-3 text-[13.5px] text-fg lg:hidden"
+              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg lg:hidden"
               (change)="pick($any($event.target).value)"
             >
-              @for (reg of registers(); track reg.key) {
-                <option [value]="reg.key" [selected]="reg.key === active()?.key">
-                  {{ name(reg) }}
-                </option>
+              @for (group of groups(); track group.module) {
+                <optgroup [label]="group.name">
+                  @for (reg of group.registers; track reg.key) {
+                    <option [value]="reg.key" [selected]="reg.key === active()?.key">
+                      {{ name(reg) }}
+                    </option>
+                  }
+                </optgroup>
               }
             </select>
-            <ul class="hidden flex-col gap-1 lg:flex">
-              @for (reg of registers(); track reg.key) {
-                <li>
-                  <button
-                    type="button"
-                    class="w-full rounded-[10px] px-3 py-2 text-left text-[13px]"
-                    [class]="
-                      reg.key === active()?.key
-                        ? 'bg-accent-soft font-semibold text-accent'
-                        : 'text-fg hover:bg-surface-2'
-                    "
-                    [attr.aria-current]="reg.key === active()?.key ? 'true' : null"
-                    (click)="pick(reg.key)"
-                  >
-                    {{ name(reg) }}
-                    <span class="block text-[11.5px] font-normal text-fg-subtle">{{
-                      moduleName(reg.module)
-                    }}</span>
-                  </button>
-                </li>
+            <div class="hidden flex-col gap-3 lg:flex" data-testid="register-list">
+              @for (group of groups(); track group.module) {
+                <div>
+                  <p class="mb-1 px-3 text-meta font-semibold text-fg-subtle">{{ group.name }}</p>
+                  <ul class="flex flex-col gap-0.5">
+                    @for (reg of group.registers; track reg.key) {
+                      <li>
+                        <button
+                          type="button"
+                          class="w-full rounded-tile px-3 py-1.5 text-left text-ui"
+                          [class]="
+                            reg.key === active()?.key
+                              ? 'bg-accent-soft font-semibold text-accent'
+                              : 'text-fg hover:bg-surface-2'
+                          "
+                          [attr.aria-current]="reg.key === active()?.key ? 'true' : null"
+                          (click)="pick(reg.key)"
+                        >
+                          {{ name(reg) }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
               }
-            </ul>
+            </div>
           </nav>
 
           @if (active(); as reg) {
             <div class="min-w-0 flex-1">
               <app-card class="mb-4 block">
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="text-[15px] font-semibold text-fg">{{ name(reg) }}</h2>
-                  <div class="flex items-center gap-2">
-                    <label for="reg-lang" class="text-[12.5px] font-semibold text-fg-muted">
+                <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h2 class="text-section font-semibold text-fg">{{ name(reg) }}</h2>
+                    <p class="text-meta text-fg-muted">{{ moduleName(reg.module) }}</p>
+                    @if (clauses().length) {
+                      <p class="mt-1 text-meta text-fg-muted" data-testid="register-clauses">
+                        {{ 'reports.registers.evidenceFor' | transloco }}
+                        <span class="text-fg">{{ clauses().join(', ') }}</span>
+                      </p>
+                    }
+                  </div>
+                  <div class="w-full sm:w-auto">
+                    <label for="reg-lang" class="mb-1 block text-meta font-semibold text-fg-muted">
                       {{ 'reports.registers.language' | transloco }}
                     </label>
                     <select
                       id="reg-lang"
-                      class="h-9 rounded-[10px] border border-border bg-bg px-2 text-[13px] text-fg"
+                      class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:w-auto"
                       (change)="lang.set($any($event.target).value)"
                     >
                       @for (l of langs; track l) {
@@ -182,7 +211,7 @@ type Preview =
                   (selectedChange)="columns.set($event)"
                 />
                 <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                  <span class="text-[12.5px] font-semibold text-fg-muted">{{
+                  <span class="text-ui font-semibold text-fg-muted">{{
                     'reports.registers.export' | transloco
                   }}</span>
                   @for (format of formats(); track format) {
@@ -198,10 +227,12 @@ type Preview =
                   }
                   @if (canWrite()) {
                     <a
-                      class="ml-auto text-[13px] font-semibold text-accent hover:underline"
+                      class="ml-auto inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       routerLink="/reports/definitions/new"
                       [queryParams]="saveParams()"
+                      data-testid="save-as-report"
                     >
+                      <app-icon name="history" [size]="14" />
                       {{ 'reports.registers.saveAsReport' | transloco }}
                     </a>
                   }
@@ -211,75 +242,86 @@ type Preview =
               <app-card [padded]="false">
                 @switch (preview().status) {
                   @case ('loading') {
-                    <p class="p-6 text-center text-[13px] text-fg-muted" role="status">
-                      {{ 'reports.common.loading' | transloco }}
-                    </p>
+                    <div class="p-4"><app-loading-state [rows]="4" /></div>
                   }
                   @case ('needsStandard') {
-                    <p class="p-6 text-center text-[13px] text-fg-muted">
+                    <p class="p-6 text-center text-ui text-fg-muted">
                       {{ 'reports.registers.needsStandard' | transloco }}
                     </p>
                   }
                   @case ('error') {
-                    <p class="p-6 text-center text-[13px] text-fg-muted" role="alert">
-                      {{ previewError() | transloco }}
-                    </p>
+                    <div class="p-4">
+                      <app-error-state [bodyKey]="previewError()" (retry)="reloadPreview()" />
+                    </div>
                   }
                   @case ('ready') {
                     @if (previewData(); as data) {
                       <div
-                        class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2.5"
+                        class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2"
                       >
-                        <p class="text-[12.5px] text-fg-muted" aria-live="polite">
+                        <p
+                          class="text-meta text-fg-muted"
+                          aria-live="polite"
+                          data-testid="preview-count"
+                        >
                           {{
-                            'reports.registers.previewCount'
-                              | transloco: { shown: data.rows.length, total: data.total }
+                            (data.total > data.rows.length
+                              ? 'reports.registers.previewCount'
+                              : 'reports.registers.previewAll'
+                            ) | transloco: { shown: data.rows.length, total: data.total }
                           }}
                         </p>
-                        <app-ask-about
+                        <app-reports-ask
                           [prompt]="
                             'reports.registers.askAbout' | transloco: { register: name(reg) }
                           "
+                          [field]="name(reg)"
                         />
                       </div>
                       @if (data.rows.length === 0) {
-                        <p class="p-6 text-center text-[13px] text-fg-muted">
+                        <p class="p-6 text-center text-ui text-fg-muted">
                           {{ 'reports.registers.noRows' | transloco }}
                         </p>
                       } @else {
+                        @if (shownColumns().length > 3) {
+                          <p class="px-4 pt-2 text-meta text-fg-subtle md:hidden">
+                            {{ 'reports.registers.scrollHint' | transloco }}
+                          </p>
+                        }
                         <div class="overflow-x-auto">
-                          <table class="w-full text-left text-[12.5px]">
+                          <table class="w-full text-left text-meta" data-testid="preview-table">
                             <caption class="sr-only">
                               {{
                                 name(reg)
                               }}
                             </caption>
-                            <thead
-                              class="bg-surface-2 text-[11.5px] tracking-[0.04em] text-fg-subtle uppercase"
-                            >
+                            <thead class="bg-surface-2 text-meta text-fg-muted">
                               <tr>
                                 @for (col of shownColumns(); track col.key) {
                                   <th scope="col" class="px-3 py-2 font-semibold whitespace-nowrap">
-                                    {{ colLabel(col.label, col.key) }}
+                                    {{ colLabel(col) }}
                                   </th>
                                 }
                               </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
-                              @for (row of data.rows; track $index) {
+                              @for (row of data.rows; track $index; let i = $index) {
                                 <tr class="hover:bg-surface-2/60">
                                   @for (col of shownColumns(); track col.key; let first = $first) {
-                                    <td class="max-w-[320px] truncate px-3 py-1.5 text-fg">
+                                    <td
+                                      class="max-w-[320px] truncate px-3 py-1.5 text-fg"
+                                      [title]="cell(col, row, i)"
+                                    >
                                       @if (first && rowLink(row); as target) {
                                         <a
                                           [routerLink]="target.path"
                                           [queryParams]="target.queryParams"
-                                          class="hover:text-accent hover:underline"
+                                          class="font-semibold text-accent hover:underline"
                                         >
-                                          {{ cell(row[col.key]) }}
+                                          {{ cell(col, row, i) }}
                                         </a>
                                       } @else {
-                                        {{ cell(row[col.key]) }}
+                                        {{ cell(col, row, i) }}
                                       }
                                     </td>
                                   }
@@ -289,7 +331,7 @@ type Preview =
                           </table>
                         </div>
                         @if (data.truncated || data.total > data.rows.length) {
-                          <p class="border-t border-border px-4 py-2 text-[12px] text-fg-subtle">
+                          <p class="border-t border-border px-4 py-2 text-meta text-fg-subtle">
                             {{ 'reports.registers.previewTruncated' | transloco }}
                           </p>
                         }
@@ -325,9 +367,19 @@ export class RegistersPage {
   protected readonly preview = signal<Preview>({ status: 'idle' });
   protected readonly exporting = signal<ExportFormat | null>(null);
 
+  protected readonly groups = computed(() =>
+    groupRegisters(this.registers(), (m) => this.moduleName(m)),
+  );
+
   protected readonly active = computed<Register | null>(() => {
     const list = this.registers();
     return list.find((r) => r.key === this.register()) ?? list[0] ?? null;
+  });
+
+  /** "Felles ISO-krav · 7.5" for each clause the register is evidence for. */
+  protected readonly clauses = computed(() => {
+    const lang = this.language.active();
+    return (this.active()?.clauses ?? []).map((c) => clauseText(c, lang));
   });
 
   /** Filters and columns reset whenever the register changes. */
@@ -364,7 +416,7 @@ export class RegistersPage {
   });
   protected readonly previewError = computed(() => {
     const p = this.preview();
-    return p.status === 'error' ? p.messageKey : '';
+    return p.status === 'error' ? p.messageKey : 'ui.error.body';
   });
 
   protected readonly shownColumns = computed(() => {
@@ -391,12 +443,18 @@ export class RegistersPage {
   private previewSub = new Subscription();
 
   constructor() {
-    providePageContext(() => ({
-      module: REPORTS_MODULE,
-      entityType: null,
-      view: 'list',
-      title: this.active() ? this.name(this.active()!) : null,
-    }));
+    providePageContext(() => {
+      const reg = this.active();
+      return {
+        module: REPORTS_MODULE,
+        entityType: null,
+        view: 'list',
+        title: reg
+          ? this.language.translate('reports.registers.contextTitle', { register: this.name(reg) })
+          : this.language.translate('reports.registers.title'),
+        requirements: reg?.clauses?.map((c) => c.ref) ?? null,
+      };
+    });
     inject(DestroyRef).onDestroy(() => {
       this.listSub.unsubscribe();
       this.previewSub.unsubscribe();
@@ -418,16 +476,22 @@ export class RegistersPage {
     return localized(reg.label, this.language.active(), reg.key);
   }
 
-  protected colLabel(label: Readonly<Partial<Record<string, string>>>, key: string): string {
-    return localized(label, this.lang(), key);
+  protected colLabel(col: RegisterColumn): string {
+    return localized(col.label, this.lang(), col.key);
   }
 
   protected moduleName(module: string): string {
     return labelOr((k) => this.language.translate(k), moduleLabelKey(module), module);
   }
 
-  protected cell(value: unknown): string {
-    return cellText(value, this.language.active());
+  /** The cell as the export shows it (the backend's display text, else value words). */
+  protected cell(
+    col: RegisterColumn,
+    row: Readonly<Record<string, unknown>>,
+    index: number,
+  ): string {
+    const display = this.previewData()?.display?.[index]?.[col.key];
+    return columnCell(col, row[col.key], display, this.lang());
   }
 
   protected rowLink(row: Readonly<Record<string, unknown>>) {
@@ -441,6 +505,19 @@ export class RegistersPage {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  protected reloadRegisters(): void {
+    this.loadRegisters(this.selectedOrg.currentOrgId());
+  }
+
+  protected reloadPreview(): void {
+    this.loadPreview(
+      this.selectedOrg.currentOrgId(),
+      this.active(),
+      this.effectiveFilters(),
+      this.lang(),
+    );
   }
 
   protected export(format: ExportFormat): void {
@@ -460,7 +537,8 @@ export class RegistersPage {
       .subscribe({
         next: (blob) => {
           this.exporting.set(null);
-          saveBlob(blob, `${fileStem(this.name(reg), reg.key)}.${format}`);
+          const label = localized(reg.label, this.lang(), reg.key);
+          saveBlob(blob, `${fileStem(label, reg.key)}.${format}`);
           this.notifications.success('reports.registers.exported');
         },
         error: (error: unknown) => {

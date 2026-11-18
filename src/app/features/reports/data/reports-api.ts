@@ -7,6 +7,8 @@ import {
   AuditPack,
   AuditPackList,
   AuditPackListQuery,
+  AuditPackOptions,
+  BuiltinLayouts,
   CalendarQuery,
   CalendarResponse,
   ComplianceResponse,
@@ -25,8 +27,12 @@ import {
   RegisterQuery,
   ReportDefinition,
   ReportFilters,
+  ReportRunList,
+  ReportSchedule,
   ScheduleRequest,
   ScheduleResponse,
+  TrendsQuery,
+  TrendsResponse,
   UpdateDefinitionRequest,
   WidgetCatalog,
   WidgetConfig,
@@ -54,9 +60,9 @@ export function filterParams(filters: ReportFilters): Record<string, string | un
  * Reports, dashboards, calendar and audit packs (M23), under
  * `v1/orgs/{org}/reports`. Goes through ApiService (base URL, bearer, errors).
  *
- * Permissions: `reports:read` for the dashboards, calendar, registers and saved
- * reports (plus each register's own read permission), `reports:write` to save
- * reports, `reports:manage` for role dashboards, `reports:audit_pack` for packs.
+ * Permissions: `reports:read` for the overview, calendar, trends, registers and
+ * saved reports (plus each register's own read permission), `reports:write` to
+ * save reports, `reports:manage` for role overviews, `reports:audit_pack` for packs.
  */
 @Injectable({ providedIn: 'root' })
 export class ReportsApi {
@@ -66,11 +72,23 @@ export class ReportsApi {
     return `v1/orgs/${encodeURIComponent(orgId)}/reports`;
   }
 
-  // --- compliance and calendar ------------------------------------------------------
+  // --- overview, trends and calendar --------------------------------------------------
 
   compliance(orgId: string, framework: FrameworkKey | null = null): Observable<ComplianceResponse> {
     return this.api.get<ComplianceResponse>(`${this.base(orgId)}/compliance`, {
       params: { framework: framework ?? undefined },
+    });
+  }
+
+  /** Monthly history of the key numbers (12 months by default); each series needs its own read. */
+  trends(orgId: string, query: TrendsQuery = {}): Observable<TrendsResponse> {
+    return this.api.get<TrendsResponse>(`${this.base(orgId)}/trends`, {
+      params: {
+        months: query.months,
+        keys: csv(query.keys),
+        framework: query.framework ?? undefined,
+      },
+      ...quiet(),
     });
   }
 
@@ -98,10 +116,11 @@ export class ReportsApi {
       modules: csv(query.modules),
       framework: query.framework ?? undefined,
       include_overdue: query.include_overdue ? true : undefined,
+      owner: query.owner || undefined,
     };
   }
 
-  // --- dashboards ---------------------------------------------------------------------
+  // --- role overviews (dashboards) --------------------------------------------------------
 
   widgets(orgId: string): Observable<WidgetCatalog> {
     return this.api.get<WidgetCatalog>(`${this.base(orgId)}/widgets`);
@@ -116,6 +135,11 @@ export class ReportsApi {
 
   dashboards(orgId: string): Observable<DashboardConfigList> {
     return this.api.get<DashboardConfigList>(`${this.base(orgId)}/dashboards`);
+  }
+
+  /** The layouts used while nothing is saved (`reports:manage`). */
+  builtinDashboards(orgId: string): Observable<BuiltinLayouts> {
+    return this.api.get<BuiltinLayouts>(`${this.base(orgId)}/dashboards/builtin`, quiet());
   }
 
   saveDashboard(
@@ -206,6 +230,7 @@ export class ReportsApi {
     return this.api.delete<void>(`${this.base(orgId)}/definitions/${id}`, quiet());
   }
 
+  /** Run a saved report: the backend records the run and closes its open reminder task. */
   exportDefinition(orgId: string, id: string, format?: ExportFormat): Observable<Blob> {
     return this.api.getBlob(`${this.base(orgId)}/definitions/${id}/export`, {
       params: { format },
@@ -225,6 +250,34 @@ export class ReportsApi {
     );
   }
 
+  /** The active schedule (the recurring reminder task), or null. */
+  getSchedule(orgId: string, id: string): Observable<ReportSchedule | null> {
+    return this.api.get<ReportSchedule | null>(
+      `${this.base(orgId)}/definitions/${id}/schedule`,
+      quiet(),
+    );
+  }
+
+  /** Runs (exports) of a saved report, newest first. */
+  listRuns(
+    orgId: string,
+    id: string,
+    query: { readonly limit?: number; readonly offset?: number } = {},
+  ): Observable<ReportRunList> {
+    return this.api.get<ReportRunList>(`${this.base(orgId)}/definitions/${id}/runs`, {
+      params: { limit: query.limit, offset: query.offset },
+      ...quiet(),
+    });
+  }
+
+  /** The file a run produced (when it was kept). */
+  downloadRun(orgId: string, id: string, runId: string): Observable<Blob> {
+    return this.api.getBlob(
+      `${this.base(orgId)}/definitions/${id}/runs/${runId}/download`,
+      quiet(),
+    );
+  }
+
   // --- audit packs ----------------------------------------------------------------------
 
   listAuditPacks(orgId: string, query: AuditPackListQuery = {}): Observable<AuditPackList> {
@@ -232,9 +285,24 @@ export class ReportsApi {
       params: {
         standard_key: query.standard_key || undefined,
         framework: query.framework ?? undefined,
+        audit_plan_id: query.audit_plan_id || undefined,
         limit: query.limit,
         offset: query.offset,
       },
+    });
+  }
+
+  /** Registers to pre-tick for the chosen standards and / or audit. */
+  auditPackOptions(
+    orgId: string,
+    query: { readonly standard_keys?: readonly string[]; readonly audit_plan_id?: string | null },
+  ): Observable<AuditPackOptions> {
+    return this.api.get<AuditPackOptions>(`${this.base(orgId)}/audit-packs/options`, {
+      params: {
+        standard_keys: csv(query.standard_keys),
+        audit_plan_id: query.audit_plan_id || undefined,
+      },
+      ...quiet(),
     });
   }
 

@@ -561,7 +561,8 @@
         "matrices": "Risikomatriser",
         "settings": "Innstillinger",
         "retention": "Oppbevaringsregler",
-        "significanceMethod": "Vurderingsmetode for miljøaspekter"
+        "significanceMethod": "Vurderingsmetode for miljøaspekter",
+        "roleOverviews": "Rolleoversikter"
       },
       "membersSection": "Medlemmer, avdelinger og invitasjoner"
     },

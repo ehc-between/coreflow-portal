@@ -616,6 +616,9 @@
     },
     "ai_assessment": {
       "to_risk": "Risiko fra denne vurderingen"
+    },
+    "audit_plan": {
+      "to_audit_pack": "Revisjonspakke for revisjonen"
     }
   },
   "frameworks": {

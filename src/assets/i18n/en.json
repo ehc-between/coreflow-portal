@@ -561,7 +561,8 @@
         "matrices": "Risk matrices",
         "settings": "Settings",
         "retention": "Retention rules",
-        "significanceMethod": "Significance method"
+        "significanceMethod": "Significance method",
+        "roleOverviews": "Role overviews"
       },
       "membersSection": "Members, departments and invitations"
     },

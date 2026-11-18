@@ -42,6 +42,12 @@ function setup() {
       of({ ...CONFIG, scope, role_key: scope === 'default' ? null : scope, widgets }),
     ),
     resetDashboard: vi.fn(() => of(undefined)),
+    builtinDashboards: vi.fn(() =>
+      of({
+        default: [{ key: 'tasks.overdue', framework: null, size: 'md' }],
+        roles: { dpo: [{ key: 'reports.upcoming', framework: 'gdpr', size: 'sm' }] },
+      }),
+    ),
   };
   const toasts = { success: vi.fn(), error: vi.fn() };
   TestBed.configureTestingModule({
@@ -84,6 +90,23 @@ function setup() {
 }
 
 describe('DashboardDesigner', () => {
+  it('starts a role without a saved layout from its built-in layout', async () => {
+    const { fixture, rows, el } = setup();
+    await fixture.whenStable();
+    const scope = el.querySelector('#dash-scope') as HTMLSelectElement;
+    scope.value = 'dpo';
+    scope.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(rows().length).toBe(1);
+    expect(rows()[0].querySelector('select')!.value).toBe('sm');
+    expect(el.querySelector('[data-testid="designer-status"]')?.textContent).toContain(
+      'reports.designer.usingRoleBuiltin',
+    );
+    // The saved auditor layout is marked in the scope list.
+    const options = Array.from(scope.options).map((o) => o.textContent?.trim());
+    expect(options.some((o) => o?.includes('reports.designer.customisedOption'))).toBe(true);
+  });
+
   it('starts from the built-in layout for the organisation default and saves it', async () => {
     const { fixture, api, toasts, rows, button } = setup();
     await fixture.whenStable();

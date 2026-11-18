@@ -7,16 +7,16 @@ const toDefinitions = { redirectTo: '/reports/definitions' };
 
 /**
  * `/reports` (M23, scope `reports`; app.routes wraps it in the `reports` module
- * gate and `reports:read`): the compliance dashboard per framework, the
- * organisation calendar, register exports, saved reports, audit packs and the
- * role dashboard designer. The backend links records as
- * `/reports/definitions/{id}` and `/reports/audit-packs/{id}`.
+ * gate and `reports:read`): the reporting overview (key numbers, trends and the
+ * role overview), the organisation calendar, register exports, saved reports with
+ * their run history, audit packs and the role-overview designer. Each page renders
+ * its own header and the Reports sub-navigation (`app-reports-nav`). The backend
+ * links records as `/reports/definitions/{id}` and `/reports/audit-packs/{id}`.
  */
 export default [
   {
     path: '',
     providers: [provideTranslocoScope('reports')],
-    loadComponent: () => import('./reports-shell').then((m) => m.ReportsShell),
     children: [
       {
         path: '',
