@@ -768,5 +768,6 @@
   "surveyLanguages": {
     "nb": "Norsk (bokmål)",
     "en": "Engelsk"
-  }
+  },
+  "statusPair": "Løst betyr at kunden har fått svar eller hjelp. Lukket betyr at saken er ferdig og bare kan leses, til noen åpner den igjen."
 }

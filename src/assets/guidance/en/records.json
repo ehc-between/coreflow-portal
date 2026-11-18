@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Shape your records around how you work",
-        "body": "A **record type** decides what people fill in when they register something (a nonconformity, a complaint, an incident). A **workflow** decides the steps it goes through: who may move it on, what must be filled in first, who approves and how quickly.",
+        "body": "A **record type** decides what people fill in when they register something (a [[nonconformity|nonconformity]], a complaint, an incident). A **workflow** decides the steps it goes through: who may move it on, what must be filled in first, who approves and how quickly.",
         "steps": [
           "Start from a template, or describe your process and let the assistant draft one.",
           "Adjust the fields, then choose or design the workflow.",

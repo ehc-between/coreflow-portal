@@ -3,11 +3,11 @@
     "overview": {
       "intro": {
         "title": "Om Rapporter",
-        "body": "Her ser du tallene ledelsen og revisorene spør om først: **forfalte frister** i alle områder, **åpne avvik og funn**, og hvordan tallene har **utviklet seg** måned for måned. Kravdekningen per standard finner du under **Standarder og krav**. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
+        "body": "Her ser du tallene ledelsen og revisorene spør om først: **forfalte frister** i alle områder, **åpne [[nonconformity|avvik]] og [[audit-finding|funn]]**, og hvordan tallene har **utviklet seg** måned for måned. [[requirement-coverage|Kravdekningen]] per standard finner du under **Standarder og krav**. Alt følger tilgangen din: du ser bare tall for poster du kan lese.",
         "steps": [
           "Velg en standard øverst for å se bare tallene for den, eller behold «Alle standarder».",
           "Begynn med de forfalte fristene. Velg «Lag oppgave» for å fordele oppfølgingen.",
-          "Bruk «Skriv teksten» for å få en kort status til ledelsens gjennomgang, og les den gjennom før du deler den."
+          "Bruk «Skriv teksten» for å få en kort status til [[management-review|ledelsens gjennomgang]], og les den gjennom før du deler den."
         ]
       },
       "why": {
@@ -18,7 +18,7 @@
     "calendar": {
       "intro": {
         "title": "Alle frister på ett sted",
-        "body": "Organisasjonskalenderen viser alle åpne frister du har tilgang til, fra alle områder: oppgaver, dokumentgjennomganger, avvik og tiltak, revisjoner, kontraktsfornyelser, leverandørvurderinger, utløp av opplæring og mer. Fargen viser hva fristen trenger.",
+        "body": "Organisasjonskalenderen viser alle åpne frister du har tilgang til, fra alle områder: oppgaver, dokumentgjennomganger, [[nonconformity|avvik]] og tiltak, revisjoner, kontraktsfornyelser, leverandørvurderinger, utløp av opplæring og mer. Fargen viser hva fristen trenger.",
         "steps": [
           "Bla mellom månedene, eller bytt til listevisning.",
           "Velg «Mine frister» for å se det du selv er ansvarlig for, eller et område for å planlegge én del av systemet.",
@@ -37,7 +37,7 @@
     "registers": {
       "intro": {
         "title": "Last ned registrene revisoren ber om",
-        "body": "Et register er en liste over poster av én type: risikoer, lovkrav, avvik, korrigerende tiltak, dokumenter, opplæring, leverandører, eiendeler, revisjoner, behandlingsprotokollen, KI-systemer og mer. Hvert register viser hvilke krav det er dokumentasjon for.",
+        "body": "Et register er en liste over poster av én type: risikoer, lovkrav, [[nonconformity|avvik]], [[corrective-action|korrigerende tiltak]], dokumenter, opplæring, leverandører, [[asset|eiendeler]], revisjoner, [[ropa|behandlingsprotokollen]], KI-systemer og mer. Hvert register viser hvilke krav det er dokumentasjon for.",
         "steps": [
           "Velg et register.",
           "Snevre inn med filtre og kolonner. Forhåndsvisningen viser nøyaktig det filen vil inneholde.",
@@ -126,10 +126,10 @@
     "auditPacks": {
       "intro": {
         "title": "Alt revisoren ber om, i én fil",
-        "body": "En revisjonspakke er en zip-fil for én eller flere standarder: en innholdsfortegnelse, anvendelseserklæringen (SoA), dokumentasjonsoversikten, kravdekningen, godkjente policyer og registrene en revisor forventer, som risikovurderingen, internrevisjoner, ledelsens gjennomgang, kompetanse og leverandører. En sjekksum per fil viser senere at pakken er uendret.",
+        "body": "En revisjonspakke er en zip-fil for én eller flere standarder: en innholdsfortegnelse, [[statement-of-applicability|anvendelseserklæringen (SoA)]], dokumentasjonsoversikten, [[requirement-coverage|kravdekningen]], godkjente [[policy|policyer]] og registrene en revisor forventer, som risikovurderingen, [[internal-audit|internrevisjoner]], [[management-review|ledelsens gjennomgang]], kompetanse og leverandører. En sjekksum per fil viser senere at pakken er uendret.",
         "steps": [
           "Velg «Lag revisjonspakke», og velg standardene. Koble gjerne pakken til revisjonen den er for.",
-          "Sjekk registrene som er krysset av, og om policyer skal være med.",
+          "Sjekk registrene som er krysset av, og om [[policy|policyer]] skal være med.",
           "Last ned zip-filen og send den til revisoren, eller behold den som et øyeblikksbilde."
         ]
       },
@@ -161,7 +161,7 @@
     "auditPackDetail": {
       "intro": {
         "title": "Hva pakken inneholder",
-        "body": "Her ser du kravdekningen per standard da pakken ble laget, hvilken revisjon den er for, og hver fil i zip-filen. Sjekksummen identifiserer akkurat denne pakken. Beregn den på nytt for den nedlastede filen for å vise at ingenting er endret."
+        "body": "Her ser du [[requirement-coverage|kravdekningen]] per standard da pakken ble laget, hvilken revisjon den er for, og hver fil i zip-filen. Sjekksummen identifiserer akkurat denne pakken. Beregn den på nytt for den nedlastede filen for å vise at ingenting er endret."
       },
       "why": {
         "body": "Dokumentert informasjon skal beskyttes mot utilsiktede endringer (punkt 7.5.3). Sjekksummen og den lagrede kopien lar deg vise nøyaktig hva revisoren fikk.",

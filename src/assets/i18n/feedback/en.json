@@ -768,5 +768,6 @@
   "surveyLanguages": {
     "nb": "Norwegian (Bokmål)",
     "en": "English"
-  }
+  },
+  "statusPair": "Resolved means the customer has had an answer or help. Closed means the case is finished and read-only until someone reopens it."
 }

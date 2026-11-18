@@ -10,6 +10,7 @@ import {
   BulkLinksRequest,
   BulkLinksResponse,
   CatalogueClause,
+  ClauseTitle,
   ClauseDetail,
   ClauseLinkRequest,
   ClauseLinkResponse,
@@ -214,6 +215,18 @@ export class StandardsApi {
         limit: options.limit,
         lang: this.lang(),
       },
+    });
+  }
+
+  /**
+   * Plain titles of clause refs (`hs:7.2`, `iso27001:A.6.3`, up to 50), for beginner
+   * screens that would otherwise show a bare number (simplify U39). Refs the catalogue
+   * does not know come back with `found: false`; unparseable refs are left out.
+   */
+  clauseTitles(orgId: string, refs: readonly string[]): Observable<ClauseTitle[]> {
+    return this.api.get<ClauseTitle[]>(`${this.base(orgId)}/requirement-catalogue/titles`, {
+      ...INLINE_ERRORS,
+      params: { refs: refs.join(','), lang: this.lang() },
     });
   }
 

@@ -7,7 +7,7 @@
         "steps": [
           "Registrer tilbakemeldingen så snart den kommer, med kundens egne ord.",
           "Bekreft mottaket, vurder saken og logg hva kunden fikk vite.",
-          "Koble en berettiget klage til et avvik, slik at årsaken blir rettet."
+          "Koble en berettiget klage til et [[nonconformity|avvik]], slik at årsaken blir rettet."
         ]
       },
       "why": {
@@ -73,7 +73,7 @@
     "detail": {
       "intro": {
         "title": "Behandle en tilbakemelding",
-        "body": "Ta saken ett steg om gangen med knappen øverst. For en klage: vurder den, logg hva kunden fikk vite, og koble et avvik når noe i deres egne prosesser gikk galt.",
+        "body": "Ta saken ett steg om gangen med knappen øverst. For en klage: vurder den, logg hva kunden fikk vite, og koble et [[nonconformity|avvik]] når noe i deres egne prosesser gikk galt.",
         "steps": [
           "Bekreft mottaket, så kunden vet at dere har saken.",
           "Vurder klagen og logg svaret til kunden.",
@@ -115,7 +115,7 @@
     "surveys": {
       "intro": {
         "title": "Spør kundene hvordan dere gjør det",
-        "body": "En tilfredshetsundersøkelse er noen få spørsmål som dere deler som en lenke. Kundene svarer uten å logge inn, og resultatene viser gjennomsnittlig score, netto anbefalingsscore (NPS) og hva folk skriver.",
+        "body": "En tilfredshetsundersøkelse er noen få spørsmål som dere deler som en lenke. Kundene svarer uten å logge inn, og resultatene viser gjennomsnittlig score, netto anbefalingsscore ([[nps|NPS]]) og hva folk skriver.",
         "steps": [
           "Opprett en undersøkelse og legg til noen spørsmål (start med forslagene).",
           "Publiser den og del den offentlige lenken.",
@@ -185,7 +185,7 @@
     "insights": {
       "intro": {
         "title": "Kundetilfredshet i korte trekk",
-        "body": "Tallene kombinerer tilbakemeldingsregisteret og undersøkelsene for den valgte perioden. Klikk på en flis eller en stolpe for å se registreringene bak, og ta med tallene til ledelsens gjennomgang.",
+        "body": "Tallene kombinerer tilbakemeldingsregisteret og undersøkelsene for den valgte perioden. Klikk på en flis eller en stolpe for å se registreringene bak, og ta med tallene til [[management-review|ledelsens gjennomgang]].",
         "steps": [
           "Velg periode.",
           "Se først på åpne og forfalte klager, deretter på hvordan klagene håndteres.",

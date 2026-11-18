@@ -3,7 +3,7 @@
     "assistant": {
       "intro": {
         "title": "Din assistent for etterlevelse",
-        "body": "Spør CoreFlow vet hvilken side du er på, så du kan si «dette avviket» eller «dette dokumentet». Den søker i alt du har tilgang til, og lenker til postene den bruker.",
+        "body": "Spør CoreFlow vet hvilken side du er på, så du kan si «dette [[nonconformity|avviket]]» eller «dette dokumentet». Den søker i alt du har tilgang til, og lenker til postene den bruker.",
         "steps": [
           "Åpne assistenten med gnistknappen, den flytende knappen eller Ctrl+J (⌘J på Mac).",
           "Spør med vanlige ord, for eksempel «Hva krever punkt 7.5?».",
@@ -34,7 +34,7 @@
     "palette": {
       "intro": {
         "title": "Finn hva som helst raskt",
-        "body": "Trykk Ctrl+K (⌘K på Mac) og begynn å skrive. CoreFlow søker i dokumenter, avvik, tiltak og kravene i standardene dine, og viser bare poster du har tilgang til.",
+        "body": "Trykk Ctrl+K (⌘K på Mac) og begynn å skrive. CoreFlow søker i dokumenter, [[nonconformity|avvik]], tiltak og kravene i standardene dine, og viser bare poster du har tilgang til.",
         "steps": [
           "Skriv minst to bokstaver av en tittel, en kode eller et ord fra teksten.",
           "Bruk piltastene for å flytte deg og Enter for å åpne et treff.",

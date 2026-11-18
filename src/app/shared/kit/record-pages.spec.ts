@@ -97,7 +97,7 @@ describe('RecordDetailLayout', () => {
       'Activity',
       'Comments',
       'Attachments',
-      'Revisions',
+      'History',
       'Tasks',
     ]);
     expect(el.querySelector('h1')?.textContent?.trim()).toBe('Details');

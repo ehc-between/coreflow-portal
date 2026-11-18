@@ -7,7 +7,7 @@
         "steps": [
           "Registrer en leverandør og kryss av for hva den gjør for dere: personopplysninger, systemtilgang, sky eller KI. Det avgjør hvilke vurderinger den trenger.",
           "Start en **førstegangsvurdering**. Når den er avgjort, er leverandøren godkjent, godkjent med vilkår eller avvist.",
-          "Klikk på **Trenger oppfølging** for å se hva som mangler: godkjenninger, revurderingsdatoer, databehandleravtaler eller sertifikater."
+          "Klikk på **Trenger oppfølging** for å se hva som mangler: godkjenninger, revurderingsdatoer, [[dpa|databehandleravtaler]] eller sertifikater."
         ]
       },
       "why": {
@@ -33,7 +33,7 @@
         "body": "Gi leverandøren et navn, en kategori og en kritikalitet, og velg hvem som er ansvarlig for forholdet. Risikoprofilen avgjør hvilke vurderinger dere trenger.",
         "steps": [
           "Sett kritikaliteten ved å spørre: hva skjer med oss hvis denne leverandøren svikter?",
-          "Kryss av for risikoflaggene som gjelder. Personopplysninger betyr at dere trolig trenger en databehandleravtale.",
+          "Kryss av for risikoflaggene som gjelder. Personopplysninger betyr at dere trolig trenger en [[dpa|databehandleravtale]].",
           "La revurderingsintervallet stå tomt for å bruke standarden for kritikaliteten."
         ]
       },
@@ -98,7 +98,7 @@
         "steps": [
           "Gå gjennom **Trenger oppfølging** øverst: ved hver mangel står knappen som retter den.",
           "Fullfør de **påkrevde vurderingene**. En avgjort vurdering dokumenterer kravene spørsmålene sjekker.",
-          "Hold **Avtaler og databehandling** komplett: kontrakten, databehandleravtalen og systemene leverandøren drifter."
+          "Hold **Avtaler og databehandling** komplett: kontrakten, [[dpa|databehandleravtalen]] og systemene leverandøren drifter."
         ]
       },
       "why": {
@@ -132,7 +132,7 @@
         "body": "Svar på hvert spørsmål, legg til en kommentar eller dokumentasjon der det hjelper, og send inn. Poengsum og anbefaling beregnes ut fra svarene, men en person med godkjenningsrett tar beslutningen.",
         "steps": [
           "Svar på alle påkrevde spørsmål. Bruk **Ikke relevant** bare når spørsmålet virkelig ikke gjelder.",
-          "Et **nei** på et kritisk spørsmål er et kritisk avvik, uansett total poengsum.",
+          "Et **nei** på et kritisk spørsmål er et kritisk [[nonconformity|avvik]], uansett total poengsum.",
           "Skriv en kort oppsummering og send til beslutning."
         ]
       },

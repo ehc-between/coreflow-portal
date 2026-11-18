@@ -5,10 +5,10 @@
         "title": "Health and safety (HSE)",
         "body": "This is where you plan risky work safely, keep track of protective equipment, document how workers take part and follow up safety rounds. Incidents and near misses are reported in **Deviations** and show up here; health and safety risks live in **Risk**. Keep your chemicals register (safety data sheets) as controlled documents in **Documents**.",
         "steps": [
-          "Before a risky job, write a **safe job analysis** (SJA) with the people who do it, and have it approved.",
-          "Register **PPE**, who it is issued to and when it must be inspected.",
-          "Record **worker participation**: safety committee meetings, toolbox talks and suggestions, with the decisions as tasks.",
-          "Carry out regular **safety rounds** with a checklist; each finding can become a deviation."
+          "Before a risky job, write a **safe job analysis** ([[sja|SJA]]) with the people who do it, and have it approved.",
+          "Register **[[ppe|PPE]]**, who it is issued to and when it must be inspected.",
+          "Record **[[participation|worker participation]]**: safety committee meetings, toolbox talks and suggestions, with the decisions as tasks.",
+          "Carry out regular **safety rounds** with a checklist; each [[audit-finding|finding]] can become a [[nonconformity|deviation]]."
         ]
       },
       "why": {
@@ -19,7 +19,7 @@
     "sja": {
       "intro": {
         "title": "Safe job analysis (SJA)",
-        "body": "An SJA is done **before** a job that is risky, unusual or new: work at height, hot work, lifting, confined spaces or work on live equipment. The people doing the job break it into steps, name what can go wrong and agree how to prevent it.",
+        "body": "An [[sja|SJA]] is done **before** a job that is risky, unusual or new: work at height, hot work, lifting, confined spaces or work on live equipment. The people doing the job break it into steps, name what can go wrong and agree how to prevent it.",
         "steps": [
           "Create the analysis and describe the job, the place and the period.",
           "Break the job into steps, with the hazards and controls for each.",
@@ -40,11 +40,11 @@
     "sja-detail": {
       "intro": {
         "title": "Read and approve a safe job analysis",
-        "body": "Check that every step has realistic hazards and controls, that the residual risk is acceptable and that the PPE and emergency measures are clear. Approval locks the analysis; to change it later, **revise** it, which sends it back through approval.",
+        "body": "Check that every step has realistic hazards and controls, that the [[residual-risk|residual risk]] is acceptable and that the [[ppe|PPE]] and emergency measures are clear. Approval locks the analysis; to change it later, **revise** it, which sends it back through approval.",
         "steps": [
           "The owner sends it for approval when every step has a hazard and a control.",
           "The approver approves it or sends it back with a reason. Someone other than the owner should approve.",
-          "Each participant confirms they went through it, and **Create from this** raises a deviation, risk or task linked to it."
+          "Each participant confirms they went through it, and **Create from this** raises a [[nonconformity|deviation]], risk or task linked to it."
         ]
       },
       "why": {
@@ -59,7 +59,7 @@
         "steps": [
           "Describe the job, where it happens and who takes part.",
           "Add the steps in the order they are done, or ask the assistant for a first draft.",
-          "Tag each control with its place in the hierarchy, rate the risk before and after, pick the PPE and write down what to do if something goes wrong."
+          "Tag each control with its place in the hierarchy, rate the risk before and after, pick the [[ppe|PPE]] and write down what to do if something goes wrong."
         ]
       },
       "why": {
@@ -120,7 +120,7 @@
         "steps": [
           "Add the item with its category, standard, supplier and inspection interval.",
           "Issue it to a person and return it when it comes back. Items overdue for inspection can not be issued.",
-          "Record each inspection. A failed one takes the item out of service and can become a deviation."
+          "Record each inspection. A failed one takes the item out of service and can become a [[nonconformity|deviation]]."
         ]
       },
       "why": {
@@ -283,10 +283,10 @@
     "safety-rounds": {
       "intro": {
         "title": "Safety rounds",
-        "body": "A safety round is a planned walk-around of a work area with a checklist. Carry it out in **Inspections**, so each finding is recorded and can become a deviation. Planned rounds remind the right person when the next one is due.",
+        "body": "A safety round is a planned walk-around of a work area with a checklist. Carry it out in **Inspections**, so each [[audit-finding|finding]] is recorded and can become a [[nonconformity|deviation]]. Planned rounds remind the right person when the next one is due.",
         "steps": [
           "Click **Carry out a safety round** and work through the checklist on site.",
-          "Record findings with a photo; serious ones become deviations.",
+          "Record [[audit-finding|findings]] with a photo; serious ones become [[nonconformity|deviations]].",
           "Plan recurring rounds, for example monthly with the safety representative."
         ]
       },

@@ -3,12 +3,12 @@
     "overview": {
       "intro": {
         "title": "Kontekst er fundamentet i alle ISO-standarder",
-        "body": "Før organisasjonen kan styre kvalitet, informasjonssikkerhet, miljø eller KI, må den vite **hvem den er, hva som påvirker den og hva den styrer**. Alle ISO-standarder for styringssystemer starter på samme sted: punkt 4 og 5 i den felles strukturen.",
+        "body": "Før organisasjonen kan styre kvalitet, informasjonssikkerhet, miljø eller KI, må den vite **hvem den er, hva som påvirker den og hva den styrer**. Alle ISO-standarder for [[management-system|styringssystemer]] starter på samme sted: punkt 4 og 5 i den felles strukturen.",
         "steps": [
-          "Analyser interne og eksterne forhold med en SWOT- eller PESTEL-analyse.",
-          "Registrer interessentene som betyr noe, og hva de trenger fra organisasjonen.",
-          "Skriv en omfangserklæring for hvert styringssystem: hva som er med, hva som er utenfor og hvorfor.",
-          "Fastsett policyene ledelsen står bak, og gjør det tydelig hvem som har ansvar for hva."
+          "Analyser interne og eksterne forhold med en [[swot|SWOT]]- eller [[pestel|PESTEL]]-analyse.",
+          "Registrer [[interested-party|interessentene]] som betyr noe, og hva de trenger fra organisasjonen.",
+          "Skriv en [[scope-statement|omfangserklæring]] for hvert [[management-system|styringssystem]]: hva som er med, hva som er utenfor og hvorfor.",
+          "Fastsett [[policy|policyene]] ledelsen står bak, og gjør det tydelig hvem som har ansvar for hva."
         ]
       },
       "why": {
@@ -19,9 +19,9 @@
     "analyses-list": {
       "intro": {
         "title": "Forstå interne og eksterne forhold",
-        "body": "En **kontekstanalyse** viser forholdene som påvirker evnen til å oppnå de tilsiktede resultatene av styringssystemet. Bruk **SWOT** for styrker, svakheter, muligheter og trusler, eller **PESTEL** for det politiske, økonomiske, sosiale, teknologiske, juridiske og miljømessige landskapet.",
+        "body": "En **[[context-analysis|kontekstanalyse]]** viser forholdene som påvirker evnen til å oppnå de tilsiktede resultatene av [[management-system|styringssystemet]]. Bruk **[[swot|SWOT|=]]** for styrker, svakheter, muligheter og trusler, eller **[[pestel|PESTEL|=]]** for det politiske, økonomiske, sosiale, teknologiske, juridiske og miljømessige landskapet.",
         "steps": [
-          "Start med én SWOT for hele virksomheten; legg til en PESTEL når omverdenen endrer seg raskt.",
+          "Start med én [[swot|SWOT]] for hele virksomheten; legg til en [[pestel|PESTEL]] når omverdenen endrer seg raskt.",
           "Hold faktorene korte og konkrete, og vurder betydningen.",
           "Send analysen til godkjenning, og gå gjennom den minst én gang i året."
         ]
@@ -39,7 +39,7 @@
     "analyses-detail": {
       "intro": {
         "title": "Om denne kontekstanalysen",
-        "body": "Interne faktorer (styrker og svakheter) er forhold organisasjonen styrer selv. Eksterne faktorer (muligheter og trusler, eller PESTEL-områdene) er forhold den må forholde seg til. Bruk **Følg opp** på en faktor for å lage risikoen, muligheten eller målet den fører til."
+        "body": "Interne faktorer (styrker og svakheter) er forhold organisasjonen styrer selv. Eksterne faktorer (muligheter og trusler, eller [[pestel|PESTEL]]-områdene) er forhold den må forholde seg til. Bruk **Følg opp** på en faktor for å lage risikoen, muligheten eller målet den fører til."
       },
       "why": {
         "body": "En godkjent analyse som gjennomgås jevnlig, er dokumentasjonen på at forholdene er bestemt, overvåket og gjennomgått slik punkt 4.1 krever.",
@@ -90,11 +90,11 @@
     "parties-list": {
       "intro": {
         "title": "Hvem har krav til organisasjonen?",
-        "body": "**Interessenter** er personer og organisasjoner som kan påvirke, bli påvirket av eller mene seg påvirket av beslutningene deres: kunder, ansatte, eiere, myndigheter, leverandører og naboer. Registrer hva de trenger og forventer, og om organisasjonen håndterer det.",
+        "body": "**[[interested-party|Interessenter]]** er personer og organisasjoner som kan påvirke, bli påvirket av eller mene seg påvirket av beslutningene deres: kunder, ansatte, eiere, myndigheter, leverandører og naboer. Registrer hva de trenger og forventer, og om organisasjonen håndterer det.",
         "steps": [
-          "List opp interessentene som er relevante for styringssystemene; hopp over dem som ikke er det.",
+          "List opp [[interested-party|interessentene]] som er relevante for [[management-system|styringssystemene]]; hopp over dem som ikke er det.",
           "Skriv behov og forventninger, og marker hvilke som er lovkrav eller forpliktelser.",
-          "Vurder innflytelse og interesse for å avgjøre hvor tett hver interessent skal følges opp."
+          "Vurder innflytelse og interesse for å avgjøre hvor tett hver [[interested-party|interessent]] skal følges opp."
         ]
       },
       "why": {
@@ -110,7 +110,7 @@
     "parties-detail": {
       "intro": {
         "title": "Om denne interessenten",
-        "body": "Prioriteten følger av innflytelse og interesse. Sørg for at behovene til interessenter med høy prioritet er håndtert, og koble interessenten til leverandørene, kontraktene eller forpliktelsene den gjelder."
+        "body": "Prioriteten følger av innflytelse og interesse. Sørg for at behovene til [[interested-party|interessenter]] med høy prioritet er håndtert, og koble [[interested-party|interessenten]] til leverandørene, kontraktene eller forpliktelsene den gjelder."
       },
       "why": {
         "body": "Det er når du viser hvordan hvert relevant krav håndteres og følges med på, at en liste med navn blir dokumentasjon for punkt 4.2.",
@@ -186,10 +186,10 @@
     "scopes-list": {
       "intro": {
         "title": "Fastsett grensene for hvert styringssystem",
-        "body": "En **omfangserklæring** sier hva et styringssystem omfatter: produktene og tjenestene, lokasjonene, prosessene og eventuelle krav som ikke gjelder, med begrunnelse. Organisasjonen trenger ett godkjent omfang per standard den følger.",
+        "body": "En **[[scope-statement|omfangserklæring]]** sier hva et [[management-system|styringssystem]] omfatter: produktene og tjenestene, lokasjonene, prosessene og eventuelle krav som ikke gjelder, med begrunnelse. Organisasjonen trenger ett godkjent omfang per standard den følger.",
         "steps": [
-          "Opprett én omfangserklæring per standard (ISO 9001, ISO/IEC 27001 og så videre).",
-          "Bygg den på kontekstanalysen og interessentene.",
+          "Opprett én [[scope-statement|omfangserklæring]] per standard (ISO 9001, ISO/IEC 27001 og så videre).",
+          "Bygg den på [[context-analysis|kontekstanalysen]] og [[interested-party|interessentene]].",
           "Godkjenn den. Når en ny versjon godkjennes, settes den forrige automatisk som utgått."
         ]
       },
@@ -206,7 +206,7 @@
     "scopes-detail": {
       "intro": {
         "title": "Om denne omfangserklæringen",
-        "body": "Bare ett omfang per standard er godkjent om gangen. Krav som ikke gjelder, må ha en begrunnelse en revisor godtar. Mens omfanget er godkjent, regnes de som ikke relevante i kravdekningen."
+        "body": "Bare ett omfang per standard er godkjent om gangen. Krav som ikke gjelder, må ha en begrunnelse en revisor godtar. Mens omfanget er godkjent, regnes de som ikke relevante i [[requirement-coverage|kravdekningen]]."
       },
       "why": {
         "body": "Et tydelig, godkjent omfang forteller alle, også sertifiseringsorganet, nøyaktig hva som sertifiseres.",
@@ -271,9 +271,9 @@
     "policies-list": {
       "intro": {
         "title": "Forpliktelsene ledelsen står bak",
-        "body": "En **policy** beskriver organisasjonens intensjoner og retning, godkjent av toppledelsen: kvalitet, informasjonssikkerhet, miljø, KI, personvern og HMS. Hver standard forventer sin egen policy, eller én samlet policy som dekker alle.",
+        "body": "En **[[policy|policy]]** beskriver organisasjonens intensjoner og retning, godkjent av [[top-management|toppledelsen]]: kvalitet, informasjonssikkerhet, miljø, KI, personvern og HMS. Hver standard forventer sin egen [[policy|policy]], eller én samlet [[policy|policy]] som dekker alle.",
         "steps": [
-          "Lag et utkast til policyen (assistenten kan hjelpe), og send den til godkjenning.",
+          "Lag et utkast til [[policy|policyen]] (assistenten kan hjelpe), og send den til godkjenning.",
           "Koble det styrte dokumentet som inneholder den godkjente teksten.",
           "Kommuniser den: be de ansatte lese og bekrefte den."
         ]
@@ -291,7 +291,7 @@
     "policies-detail": {
       "intro": {
         "title": "Om denne policyen",
-        "body": "Når policyen er godkjent, bruker du **Kommuniser** for å be de ansatte lese og bekrefte den. Her ser du hvem som har bekreftet. Sett mål ut fra policyen, og koble det styrte dokumentet med policyteksten."
+        "body": "Når [[policy|policyen]] er godkjent, bruker du **Kommuniser** for å be de ansatte lese og bekrefte den. Her ser du hvem som har bekreftet. Sett mål ut fra [[policy|policyen]], og koble det styrte dokumentet med policyteksten."
       },
       "why": {
         "body": "Revisorer sjekker at policyen er godkjent av toppledelsen, kommunisert og forstått, og gjennomgått for fortsatt egnethet.",
@@ -301,7 +301,7 @@
     "policies-form": {
       "intro": {
         "title": "Skriv policyen",
-        "body": "Hold den kort og tilpasset organisasjonen. En god policy sier hva ledelsen forplikter seg til, ikke hvordan arbeidet gjøres. Det beskriver prosedyrene."
+        "body": "Hold den kort og tilpasset organisasjonen. En god [[policy|policy]] sier hva ledelsen forplikter seg til, ikke hvordan arbeidet gjøres. Det beskriver prosedyrene."
       },
       "why": {
         "body": "Policyteksten må inneholde forpliktelsene standarden krever, for eksempel å oppfylle gjeldende krav og å forbedre kontinuerlig.",
@@ -342,11 +342,11 @@
     "responsibilities-list": {
       "intro": {
         "title": "Hvem gjør hva, og hvem bestemmer",
-        "body": "Registrer **roller, ansvar og myndighet** for styringssystemene og de viktigste prosessene. Hvert ansvar har en **RACI**: hvem som **utfører** arbeidet (R), hvem som er **ansvarlig** for resultatet (A), hvem som **rådføres** (C) og hvem som **informeres** (I).",
+        "body": "Registrer **roller, ansvar og myndighet** for [[management-system|styringssystemene]] og de viktigste prosessene. Hvert ansvar har en **[[raci|RACI|=]]**: hvem som **utfører** arbeidet (R), hvem som er **ansvarlig** for resultatet (A), hvem som **rådføres** (C) og hvem som **informeres** (I).",
         "steps": [
           "Legg til ett ansvar per prosess eller område.",
           "Tildel nøyaktig én A og minst én R.",
-          "Bruk RACI-matrisen for å finne hull og overbelastning."
+          "Bruk [[raci|RACI]]-matrisen for å finne hull og overbelastning."
         ]
       },
       "why": {
@@ -372,7 +372,7 @@
     "responsibilities-form": {
       "intro": {
         "title": "Beskriv ansvaret",
-        "body": "Velg prosessen ansvaret hører til, legg til personene, rollene eller avdelingene med RACI-bokstav, og skriv ned myndigheten: hva de kan bestemme eller godkjenne."
+        "body": "Velg prosessen ansvaret hører til, legg til personene, rollene eller avdelingene med [[raci|RACI]]-bokstav, og skriv ned myndigheten: hva de kan bestemme eller godkjenne."
       },
       "why": {
         "body": "Ansvar og myndighet må fordeles, kommuniseres og forstås.",

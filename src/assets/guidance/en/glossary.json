@@ -3,6 +3,7 @@
     "management-system": {
       "term": "Management system",
       "definition": "The set of policies, processes, roles and records an organisation uses to set objectives and achieve them.",
+      "beginner": "the way you keep things in order",
       "clauses": ["hs:4.4"]
     },
     "harmonised-structure": {
@@ -18,6 +19,7 @@
     "interested-party": {
       "term": "Interested party",
       "definition": "A person or organisation that can affect, be affected by, or believe itself affected by a decision or activity, such as customers, employees or regulators.",
+      "beginner": "the people and groups with expectations of you",
       "clauses": ["hs:4.2"]
     },
     "scope": {
@@ -28,11 +30,13 @@
     "top-management": {
       "term": "Top management",
       "definition": "The person or group who directs and controls the organisation at the highest level and is accountable for the management system.",
+      "beginner": "the managing director and the leadership team",
       "clauses": ["hs:5.1"]
     },
     "policy": {
       "term": "Policy",
       "definition": "The intentions and direction of an organisation, formally expressed by its top management.",
+      "beginner": "management's promise or rule",
       "clauses": ["hs:5.2"]
     },
     "objective": {
@@ -58,11 +62,13 @@
     "risk-treatment": {
       "term": "Risk treatment",
       "definition": "The process of modifying a risk: avoiding it, reducing it with controls, sharing it, or accepting it.",
+      "beginner": "what you do about the risk",
       "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
     },
     "residual-risk": {
       "term": "Residual risk",
       "definition": "The risk that remains after treatment. The risk owner must accept it.",
+      "beginner": "risk after actions",
       "clauses": ["iso27001:6.1.3"]
     },
     "risk-owner": {
@@ -73,11 +79,13 @@
     "control": {
       "term": "Control",
       "definition": "A measure that maintains or modifies risk, such as a procedure, a technical safeguard or a physical barrier.",
+      "beginner": "security measure",
       "clauses": ["iso27001:6.1.3"]
     },
     "statement-of-applicability": {
       "term": "Statement of Applicability (SoA)",
       "definition": "The document listing the ISO/IEC 27001 Annex A controls, whether each is applied, and the justification for including or excluding it.",
+      "beginner": "the list of security controls you use",
       "clauses": ["iso27001:6.1.3"]
     },
     "competence": {
@@ -88,6 +96,7 @@
     "awareness": {
       "term": "Awareness",
       "definition": "People knowing the policy, their contribution to the management system and the consequences of not following it.",
+      "beginner": "everyone knowing the rules",
       "clauses": ["hs:7.3", "iso27001:A.6.3"]
     },
     "ai-literacy": {
@@ -113,16 +122,19 @@
     "process": {
       "term": "Process",
       "definition": "A set of related activities that uses inputs to deliver an intended result.",
+      "beginner": "the way you work",
       "clauses": ["hs:4.4", "hs:8.1"]
     },
     "process-approach": {
       "term": "Process approach",
       "definition": "Managing activities as connected processes, with clear inputs, outputs, owners and measures, rather than as separate departments.",
+      "beginner": "seeing the work as linked processes",
       "clauses": ["iso9001:4.4"]
     },
     "pdca": {
       "term": "Plan-Do-Check-Act (PDCA)",
       "definition": "The improvement cycle behind every management system: plan, carry out, check the results, and act on what you learn.",
+      "beginner": "plan, do, check, act",
       "clauses": []
     },
     "monitoring": {
@@ -133,11 +145,13 @@
     "kpi": {
       "term": "Key performance indicator (KPI)",
       "definition": "A measurable value that shows how well a process or objective is performing.",
+      "beginner": "what you measure",
       "clauses": ["hs:9.1"]
     },
     "internal-audit": {
       "term": "Internal audit",
       "definition": "A systematic, independent check, carried out by or for the organisation, of whether the management system meets its requirements and works effectively.",
+      "beginner": "your own check of the system",
       "clauses": ["hs:9.2"]
     },
     "audit-criteria": {
@@ -148,16 +162,19 @@
     "audit-finding": {
       "term": "Audit finding",
       "definition": "The result of comparing audit evidence with the audit criteria: a conformity, a nonconformity or an opportunity for improvement.",
+      "beginner": "what the check found that needs fixing",
       "clauses": ["hs:9.2"]
     },
     "management-review": {
       "term": "Management review",
       "definition": "A planned review by top management of whether the management system is still suitable, adequate and effective.",
+      "beginner": "the yearly management meeting about the system",
       "clauses": ["hs:9.3"]
     },
     "nonconformity": {
       "term": "Nonconformity",
       "definition": "The non-fulfilment of a requirement, whether from a standard, the law, a customer or your own procedures.",
+      "beginner": "something that went wrong, or could have",
       "clauses": ["hs:10.2"]
     },
     "major-nonconformity": {
@@ -168,16 +185,19 @@
     "correction": {
       "term": "Correction",
       "definition": "Action to fix a detected nonconformity, such as reworking a product. It does not remove the cause.",
+      "beginner": "what you do straight away",
       "clauses": ["hs:10.2"]
     },
     "corrective-action": {
       "term": "Corrective action",
       "definition": "Action to remove the cause of a nonconformity and prevent it from happening again.",
+      "beginner": "actions so it does not happen again",
       "clauses": ["hs:10.2"]
     },
     "root-cause": {
       "term": "Root cause",
       "definition": "The underlying reason a problem occurred. Removing it prevents the problem from coming back.",
+      "beginner": "why it really happened",
       "clauses": ["hs:10.2"]
     },
     "continual-improvement": {
@@ -188,6 +208,7 @@
     "effectiveness": {
       "term": "Effectiveness",
       "definition": "The extent to which planned activities are carried out and planned results are achieved.",
+      "beginner": "a later check that the fix worked",
       "clauses": ["hs:10.2"]
     },
     "outsourced-process": {
@@ -213,6 +234,7 @@
     "asset": {
       "term": "Asset",
       "definition": "Anything of value to the organisation, such as information, software, equipment, services or people's knowledge.",
+      "beginner": "equipment, systems and information",
       "clauses": ["iso27001:A.5.9"]
     },
     "personal-data": {
@@ -228,26 +250,31 @@
     "processor": {
       "term": "Processor",
       "definition": "An organisation that processes personal data on behalf of a controller, under a data processing agreement.",
+      "beginner": "supplier that handles personal data for you",
       "clauses": ["gdpr:28"]
     },
     "lawful-basis": {
       "term": "Lawful basis",
       "definition": "One of the six legal grounds that allow personal data to be processed, such as consent, a contract or a legal obligation.",
+      "beginner": "why you are allowed to",
       "clauses": ["gdpr:6"]
     },
     "ropa": {
       "term": "Record of processing activities (ROPA)",
       "definition": "The register of how and why an organisation processes personal data, required by the GDPR.",
+      "beginner": "the overview of the personal data you use",
       "clauses": ["gdpr:30"]
     },
     "dpia": {
       "term": "Data protection impact assessment (DPIA)",
       "definition": "An assessment of the risks to people's rights before starting processing that is likely to result in a high risk.",
+      "beginner": "a risk check before something new with personal data",
       "clauses": ["gdpr:35"]
     },
     "personal-data-breach": {
       "term": "Personal data breach",
       "definition": "A security breach that leads to personal data being lost, destroyed, changed or disclosed without authorisation. It must usually be reported to the authority within 72 hours.",
+      "beginner": "personal data gone astray",
       "clauses": ["gdpr:33", "gdpr:34"]
     },
     "ai-system": {
@@ -263,6 +290,7 @@
     "deployer": {
       "term": "Deployer",
       "definition": "An organisation that uses an AI system under its authority in a professional activity.",
+      "beginner": "the organisation using the AI",
       "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
     },
     "human-oversight": {
@@ -278,6 +306,7 @@
     "environmental-aspect": {
       "term": "Environmental aspect",
       "definition": "An element of the organisation's activities, products or services that interacts with the environment, such as energy use or waste.",
+      "beginner": "what in your operations affects the environment",
       "clauses": ["iso14001:6.1.2"]
     },
     "hazard": {
@@ -293,6 +322,222 @@
     "certification-audit": {
       "term": "Certification audit",
       "definition": "An audit by an independent certification body that decides whether the organisation's management system can be certified against a standard.",
+      "clauses": []
+    },
+    "requirement-coverage": {
+      "term": "Requirement coverage",
+      "definition": "How much of a standard's requirements you can show that you meet, with evidence.",
+      "beginner": "how far you have come",
+      "clauses": []
+    },
+    "missing-evidence": {
+      "term": "Missing evidence",
+      "definition": "You have not yet shown, with a record or a document, that you do what the requirement asks.",
+      "beginner": "not shown in practice yet",
+      "clauses": []
+    },
+    "scope-statement": {
+      "term": "Scope statement",
+      "definition": "A short text on what the management system covers: sites, activities, products and services, and what is left out and why.",
+      "beginner": "the description of what the system covers",
+      "clauses": []
+    },
+    "context-analysis": {
+      "term": "Context analysis",
+      "definition": "A review of the conditions inside and around the organisation that affect what you can achieve, often as a SWOT or PESTEL.",
+      "beginner": "the review of strengths, weaknesses and threats",
+      "clauses": []
+    },
+    "annex-a": {
+      "term": "Annex A",
+      "definition": "The list of 93 security controls at the back of ISO 27001. You choose the ones that fit and explain the choice in the Statement of Applicability.",
+      "beginner": "the list of security controls in ISO 27001",
+      "clauses": []
+    },
+    "risk-appetite": {
+      "term": "Risk appetite",
+      "definition": "How much risk the organisation is willing to live with. Risks above the limit must be treated.",
+      "beginner": "the limit of what you accept",
+      "clauses": []
+    },
+    "inherent-risk": {
+      "term": "Inherent risk",
+      "definition": "How serious the risk is before you have done anything about it.",
+      "beginner": "risk before actions",
+      "clauses": []
+    },
+    "preventive-action": {
+      "term": "Preventive action",
+      "definition": "Action that removes the cause of a possible problem before it happens.",
+      "beginner": "actions so it never happens",
+      "clauses": []
+    },
+    "audit-programme": {
+      "term": "Audit programme",
+      "definition": "The plan for which internal audits you will carry out, when, and by whom.",
+      "beginner": "the plan for this year's checks",
+      "clauses": []
+    },
+    "turtle-diagram": {
+      "term": "Turtle diagram",
+      "definition": "A sheet describing one process: what goes in and out, who does it, what is needed and how you measure it.",
+      "beginner": "process sheet",
+      "clauses": []
+    },
+    "process-map": {
+      "term": "Process map",
+      "definition": "A map showing how the processes hand results and information to each other.",
+      "beginner": "map of how the work fits together",
+      "clauses": []
+    },
+    "data-subject-request": {
+      "term": "Data subject request",
+      "definition": "When a person asks to see, correct or delete the data you hold about them. You must answer within a month.",
+      "beginner": "when someone asks about their own data",
+      "clauses": []
+    },
+    "dpa": {
+      "term": "Data processing agreement (DPA)",
+      "definition": "The agreement with a supplier that handles personal data for you. GDPR Article 28 says what it must contain.",
+      "beginner": "the agreement with the supplier about personal data",
+      "clauses": []
+    },
+    "third-country": {
+      "term": "Third country",
+      "definition": "A country outside the EU and the EEA. Sending personal data there needs its own legal ground, for example the EU standard contract.",
+      "beginner": "country outside the EU/EEA",
+      "clauses": []
+    },
+    "tia": {
+      "term": "Transfer impact assessment (TIA)",
+      "definition": "An assessment of whether the laws of the receiving country protect the personal data well enough.",
+      "beginner": "assessment of the receiving country",
+      "clauses": []
+    },
+    "scc": {
+      "term": "Standard contractual clauses (SCC)",
+      "definition": "Ready-made contract terms from the European Commission that make it lawful to send personal data out of the EU/EEA.",
+      "beginner": "the EU standard contract",
+      "clauses": []
+    },
+    "participation": {
+      "term": "Worker participation",
+      "definition": "Employees and safety representatives taking part in planning and improving health and safety.",
+      "beginner": "input from employees and their safety representatives",
+      "clauses": []
+    },
+    "calibration": {
+      "term": "Calibration",
+      "definition": "Comparing a measuring instrument with a known standard, so you know the measurements are right.",
+      "beginner": "checking measuring equipment",
+      "clauses": []
+    },
+    "onboarding": {
+      "term": "Onboarding",
+      "definition": "What happens when someone joins: access, equipment, training and documents to read.",
+      "beginner": "getting a new employee started",
+      "clauses": []
+    },
+    "offboarding": {
+      "term": "Offboarding",
+      "definition": "What happens when someone leaves: access is closed and equipment is returned.",
+      "beginner": "when someone leaves",
+      "clauses": []
+    },
+    "compliance-evaluation": {
+      "term": "Compliance evaluation",
+      "definition": "A regular check that you actually follow the laws and requirements you have committed to.",
+      "beginner": "checking that you follow the rules",
+      "clauses": []
+    },
+    "swot": {
+      "term": "SWOT",
+      "definition": "A simple analysis with four boxes: strengths and weaknesses inside, opportunities and threats outside.",
+      "beginner": "strengths, weaknesses, opportunities and threats",
+      "clauses": []
+    },
+    "pestel": {
+      "term": "PESTEL",
+      "definition": "An analysis of conditions outside the organisation: political, economic, social, technological, environmental and legal.",
+      "beginner": "political, economic, social, technological, environmental and legal factors",
+      "clauses": []
+    },
+    "bia": {
+      "term": "Business impact analysis (BIA)",
+      "definition": "An analysis of how bad it gets if an activity stops, and how quickly it must be running again.",
+      "beginner": "analysis of what happens if something stops",
+      "clauses": []
+    },
+    "rto": {
+      "term": "Recovery time objective (RTO)",
+      "definition": "The longest time it may take before an activity or system is running again.",
+      "beginner": "how fast it must be back",
+      "clauses": []
+    },
+    "rpo": {
+      "term": "Recovery point objective (RPO)",
+      "definition": "How much data, measured in time, you can afford to lose. An RPO of 4 hours means a backup at least every four hours.",
+      "beginner": "how much data you can afford to lose",
+      "clauses": []
+    },
+    "mtpd": {
+      "term": "Maximum tolerable period of disruption (MTPD)",
+      "definition": "How long an activity can be down before the damage becomes unacceptable.",
+      "beginner": "how long you can live without it",
+      "clauses": []
+    },
+    "sja": {
+      "term": "Safe job analysis (SJA)",
+      "definition": "A review before risky work: you break the job into steps, find the hazards and agree how to avoid them.",
+      "beginner": "a check before risky work",
+      "clauses": []
+    },
+    "ppe": {
+      "term": "Personal protective equipment (PPE)",
+      "definition": "Equipment that protects the person wearing it, for example helmets, safety glasses, hearing protection and safety shoes.",
+      "beginner": "protective equipment",
+      "clauses": []
+    },
+    "raci": {
+      "term": "RACI",
+      "definition": "Who is Responsible, Accountable, Consulted and Informed for each task.",
+      "beginner": "who does, owns, is consulted and is informed",
+      "clauses": []
+    },
+    "nps": {
+      "term": "Net Promoter Score (NPS)",
+      "definition": "A number from -100 to 100 showing how willing customers are to recommend you to others.",
+      "beginner": "how likely customers are to recommend you",
+      "clauses": []
+    },
+    "ict": {
+      "term": "ICT",
+      "definition": "Information and communication technology: computer systems, networks, phones and cloud services.",
+      "beginner": "IT systems and networks",
+      "clauses": []
+    },
+    "fria": {
+      "term": "Fundamental rights impact assessment (FRIA)",
+      "definition": "An assessment, before a high-risk AI system is used, of how it can affect people's fundamental rights.",
+      "beginner": "assessment of how the AI affects people's rights",
+      "clauses": []
+    },
+    "nis2": {
+      "term": "NIS2",
+      "definition": "The EU directive on cybersecurity for important and essential entities.",
+      "beginner": "the EU cybersecurity rules",
+      "clauses": []
+    },
+    "amu": {
+      "term": "Working environment committee (AMU)",
+      "definition": "A committee with equal numbers from management and employees that works for a safe working environment.",
+      "beginner": "the working environment committee",
+      "clauses": []
+    },
+    "dsar": {
+      "term": "Data subject access request (DSAR)",
+      "definition": "A request from a person to see the data you hold about them.",
+      "beginner": "when someone asks about their own data",
       "clauses": []
     }
   }

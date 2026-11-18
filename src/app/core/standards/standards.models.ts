@@ -747,3 +747,22 @@ export interface CatalogueClause {
   /** The standard is enabled for the org (only enabled standards produce links). */
   readonly enabled: boolean;
 }
+
+/**
+ * A plain clause title (`GET requirement-catalogue/titles`, simplify U39): beginners see
+ * "Kompetanse" instead of "Felles ISO-krav · 7.2". When `found` is false all titles are
+ * empty and the portal shows `short · number`.
+ */
+export interface ClauseTitle {
+  /** Canonical `<framework>:<number>` (`hs:7.2`, `iso27001:A.6.3`). */
+  readonly clause_ref: string;
+  readonly framework: string;
+  readonly number: string;
+  /** "ISO 27001", "GDPR", "Felles ISO-krav". */
+  readonly short: string;
+  /** Title in the request language. */
+  readonly title: string;
+  readonly title_en: string;
+  readonly title_nb: string;
+  readonly found: boolean;
+}

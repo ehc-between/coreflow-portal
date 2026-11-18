@@ -68,6 +68,7 @@ import {
 import { FeedbackExportMenu } from '../export-menu';
 import { FEEDBACK_NAV, FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
+import { StatusLegend } from '../../../shared/ui/status-legend/status-legend';
 
 const PAGE_SIZE = 25;
 const DEFAULT_SORT: FeedbackSort = '-received_on';
@@ -146,6 +147,7 @@ const SELECT =
 @Component({
   selector: 'app-feedback-list',
   imports: [
+    StatusLegend,
     FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
@@ -241,6 +243,7 @@ const SELECT =
           </option>
         }
       </select>
+      <app-status-legend filters [text]="'feedback.statusPair' | transloco" />
       <label filters class="sr-only" for="cf-fb-kind">
         {{ 'feedback.filters.kind' | transloco }}
       </label>

@@ -58,10 +58,17 @@ export class GuidanceContentService {
     return this.readFile(scope)?.tours?.[key] ?? [];
   }
 
-  /** A glossary term: the scope's own glossary first, then the shared glossary. */
+  /**
+   * A glossary term: the scope's own glossary first, then the shared glossary. A scope entry
+   * without a beginner form borrows the shared one (simplify U39).
+   */
   readTerm(key: string, scope?: string | null): GlossaryEntry | null {
     const own = scope ? this.readFile(scope)?.glossary?.[key] : undefined;
-    return own ?? this.readFile(GLOSSARY_SCOPE)?.glossary?.[key] ?? null;
+    const shared = this.readFile(GLOSSARY_SCOPE)?.glossary?.[key];
+    if (own && !own.beginner && shared?.beginner) {
+      return { ...own, beginner: shared.beginner };
+    }
+    return own ?? shared ?? null;
   }
 
   page(scope: string, page: string): Signal<GuidancePage | null> {

@@ -1,0 +1,171 @@
+{
+  "$comment": "Simplify U39 jargon guard. Each entry is a glossary key (src/assets/guidance/<lang>/glossary.json) and the word forms that a beginner intro may only use inside a [[key|text]] term token. Patterns are matched case-insensitively as whole words (letters and digits around them break the match); abbreviations are matched case-sensitively. Order matters: longer phrases come first.",
+  "terms": [
+    {
+      "key": "management-system",
+      "nb": ["styringssystem(?:et|er|ene|ets|enes)?"],
+      "en": ["management systems?"]
+    },
+    {
+      "key": "requirement-coverage",
+      "nb": ["kravdekning(?:en)?"],
+      "en": ["requirements? coverage"]
+    },
+    {
+      "key": "missing-evidence",
+      "nb": ["mangler dokumentasjon"],
+      "en": ["missing evidence", "lacks? evidence"]
+    },
+    {
+      "key": "interested-party",
+      "nb": ["interessent(?:en|er|ene|enes|ers|s)?"],
+      "en": ["interested part(?:y|ies)"]
+    },
+    {
+      "key": "scope-statement",
+      "nb": ["omfangserklæring(?:en|er|ene)?"],
+      "en": ["scope statements?"]
+    },
+    {
+      "key": "context-analysis",
+      "nb": ["kontekstanalyse(?:n|r|ne)?"],
+      "en": ["context analys[ie]s"]
+    },
+    { "key": "policy", "nb": ["policy(?:en|er|ene|ens)?"], "en": ["polic(?:y|ies)"] },
+    { "key": "top-management", "nb": ["toppledelse(?:n|ns)?"], "en": ["top management"] },
+    {
+      "key": "statement-of-applicability",
+      "nb": ["anvendelseserklæring(?:en|er|ene|ens)?"],
+      "en": ["statements? of applicability"]
+    },
+    { "key": "annex-a", "nb": ["vedlegg A"], "en": ["Annex A"] },
+    { "key": "risk-appetite", "nb": ["risikoappetitt(?:en)?"], "en": ["risk appetite"] },
+    {
+      "key": "inherent-risk",
+      "nb": ["iboende risiko(?:en)?", "iboende"],
+      "en": ["inherent risks?", "inherent"]
+    },
+    { "key": "residual-risk", "nb": ["restrisiko(?:en|er|ene)?"], "en": ["residual risks?"] },
+    {
+      "key": "risk-treatment",
+      "nb": ["risikobehandling(?:en|er)?", "risikohåndtering(?:en)?"],
+      "en": ["risk treatment"]
+    },
+    {
+      "key": "nonconformity",
+      "nb": ["avvik(?:et|ene|ets)?"],
+      "en": ["nonconformit(?:y|ies)", "deviations?"]
+    },
+    { "key": "correction", "nb": ["strakstiltak(?:et|ene)?"], "en": ["immediate actions?"] },
+    {
+      "key": "corrective-action",
+      "nb": ["korrigerende tiltak(?:et|ene)?"],
+      "en": ["corrective actions?"]
+    },
+    {
+      "key": "preventive-action",
+      "nb": ["forebyggende tiltak(?:et|ene)?"],
+      "en": ["preventive actions?"]
+    },
+    { "key": "root-cause", "nb": ["rotårsak(?:en|er|ene)?"], "en": ["root causes?"] },
+    {
+      "key": "effectiveness",
+      "nb": ["effektivitetsvurdering(?:en|er|ene)?", "effektivitetskontroll(?:en|er)?"],
+      "en": ["effectiveness (?:check|review)s?"]
+    },
+    { "key": "audit-finding", "nb": ["funn(?:ene)?"], "en": ["findings?"] },
+    { "key": "internal-audit", "nb": ["internrevisjon(?:en|er|ene)?"], "en": ["internal audits?"] },
+    {
+      "key": "audit-programme",
+      "nb": ["revisjonsprogram(?:met|mer|mene)?"],
+      "en": ["audit programmes?"]
+    },
+    {
+      "key": "management-review",
+      "nb": ["ledelsens gjennomgang(?:er)?"],
+      "en": ["management reviews?"]
+    },
+    { "key": "process-approach", "nb": ["prosesstilnærming(?:en)?"], "en": ["process approach"] },
+    {
+      "key": "turtle-diagram",
+      "nb": ["skilpaddediagram(?:met|mer|mene)?"],
+      "en": ["turtle diagrams?"]
+    },
+    {
+      "key": "process-map",
+      "nb": ["samspillskart(?:et|ene)?"],
+      "en": ["process maps?", "interaction maps?"]
+    },
+    { "key": "kpi", "nb": ["nøkkeltall(?:et|ene)?"], "en": ["key performance indicators?"] },
+    {
+      "key": "ropa",
+      "nb": ["behandlingsprotokoll(?:en|er|ene)?"],
+      "en": ["records? of processing(?: activities)?"]
+    },
+    {
+      "key": "dpia",
+      "nb": ["personvernkonsekvensvurdering(?:en|er|ene)?"],
+      "en": ["data protection impact assessments?"]
+    },
+    {
+      "key": "data-subject-request",
+      "nb": ["henvendelse(?:r|n|ne)? fra (?:den |de )?registrerte?"],
+      "en": ["data subject requests?"]
+    },
+    {
+      "key": "personal-data-breach",
+      "nb": ["personvernbrudd(?:et|ene)?"],
+      "en": ["personal data breach(?:es)?"]
+    },
+    {
+      "key": "dpa",
+      "nb": ["databehandleravtale(?:n|r|ne)?"],
+      "en": ["data processing agreements?"]
+    },
+    { "key": "processor", "nb": ["databehandler(?:en|e|ne|s)?"], "en": ["processors?"] },
+    { "key": "third-country", "nb": ["tredjeland(?:et|ene)?"], "en": ["third countr(?:y|ies)"] },
+    { "key": "lawful-basis", "nb": ["behandlingsgrunnlag(?:et|ene)?"], "en": ["lawful bas[ie]s"] },
+    { "key": "deployer", "nb": ["idriftsetter(?:en|e|ne)?"], "en": ["deployers?"] },
+    { "key": "participation", "nb": ["medvirkning(?:en)?"], "en": ["worker participation"] },
+    {
+      "key": "environmental-aspect",
+      "nb": ["miljøaspekt(?:et|er|ene)?"],
+      "en": ["environmental aspects?"]
+    },
+    { "key": "asset", "nb": ["eiendel(?:en|er|ene)?"], "en": ["assets?"] },
+    { "key": "calibration", "nb": ["kalibrering(?:en|er)?"], "en": ["calibration"] },
+    { "key": "onboarding", "nb": ["onboarding(?:en)?"], "en": ["onboarding"] },
+    { "key": "offboarding", "nb": ["offboarding(?:en)?"], "en": ["offboarding"] },
+    { "key": "awareness", "nb": ["bevissthet(?:en)?"], "en": ["awareness"] },
+    {
+      "key": "compliance-evaluation",
+      "nb": ["samsvarsvurdering(?:en|er|ene)?"],
+      "en": ["compliance evaluations?", "evaluations? of compliance"]
+    }
+  ],
+  "abbreviations": [
+    { "key": "statement-of-applicability", "forms": ["SoA"] },
+    { "key": "swot", "forms": ["SWOT"] },
+    { "key": "pestel", "forms": ["PESTEL", "PESTLE"] },
+    { "key": "pdca", "forms": ["PDCA"] },
+    { "key": "kpi", "forms": ["KPI", "KPI-er", "KPI-ene", "KPIs"] },
+    { "key": "ropa", "forms": ["ROPA"] },
+    { "key": "dpia", "forms": ["DPIA", "DPIA-er", "DPIA-en", "DPIAs"] },
+    { "key": "dpa", "forms": ["DPA", "DPA-er", "DPAs"] },
+    { "key": "tia", "forms": ["TIA", "TIA-er", "TIAs"] },
+    { "key": "scc", "forms": ["SCC", "SCC-er", "SCCs"] },
+    { "key": "bia", "forms": ["BIA", "BIA-er", "BIA-en", "BIAs"] },
+    { "key": "rto", "forms": ["RTO"] },
+    { "key": "rpo", "forms": ["RPO"] },
+    { "key": "mtpd", "forms": ["MTPD"] },
+    { "key": "sja", "forms": ["SJA", "SJA-er", "SJA-en", "SJAs"] },
+    { "key": "ppe", "forms": ["PVU", "PPE"] },
+    { "key": "raci", "forms": ["RACI"] },
+    { "key": "nps", "forms": ["NPS"] },
+    { "key": "ict", "forms": ["IKT", "ICT"] },
+    { "key": "fria", "forms": ["FRIA", "FRIA-er", "FRIAs"] },
+    { "key": "nis2", "forms": ["NIS2"] },
+    { "key": "amu", "forms": ["AMU"] },
+    { "key": "dsar", "forms": ["DSR", "DSAR", "DSARs"] }
+  ]
+}

@@ -6,7 +6,7 @@
         "body": "Every record in CoreFlow has the same sections: the details, the records it is linked to, its activity, the discussion, its files and, for controlled records, its revision history.",
         "steps": [
           "Fill in the details first, then save.",
-          "Open **Related** to link the documents, deviations, risks or actions this record depends on.",
+          "Open **Related** to link the documents, [[nonconformity|deviations]], risks or actions this record depends on.",
           "Use **Comments** to discuss it; type @ to bring a colleague in.",
           "Check **Activity** to see who did what and when."
         ]
@@ -30,7 +30,7 @@
     "related": {
       "intro": {
         "title": "Related records",
-        "body": "Links show how records depend on each other. Each link has a type, so it reads like a sentence: this deviation **is caused by** that supplier, this action **mitigates** that risk.",
+        "body": "Links show how records depend on each other. Each link has a type, so it reads like a sentence: this [[nonconformity|deviation]] **is caused by** that supplier, this action **mitigates** that risk.",
         "steps": [
           "Select **Link a record**.",
           "Choose the relationship, then search for the record by code or title.",

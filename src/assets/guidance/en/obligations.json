@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Know which laws and requirements you must meet",
-        "body": "This register lists everything the organisation is bound by: laws and regulations, permits and licences, requirements in contracts, industry codes and voluntary commitments. Each **obligation** has an owner, concrete **duties** and a periodic **compliance evaluation** that checks you still meet it.",
+        "body": "This register lists everything the organisation is bound by: laws and regulations, permits and licences, requirements in contracts, industry codes and voluntary commitments. Each **obligation** has an owner, concrete **duties** and a periodic **[[compliance-evaluation|compliance evaluation]]** that checks you still meet it.",
         "steps": [
           "Add the obligations that apply to you. Start from the library of common laws, or with the ones that hurt most if missed.",
           "Write the concrete duties and link them to the clauses in your standards.",
-          "Plan a yearly evaluation, record the result with documentation and follow up any gaps with a deviation or a task."
+          "Plan a yearly evaluation, record the result with documentation and follow up any gaps with a [[nonconformity|deviation]] or a task."
         ]
       },
       "why": {
@@ -100,10 +100,10 @@
     "detail": {
       "intro": {
         "title": "Keeping an obligation under control",
-        "body": "The box at the top says what to do next. Below are the **duties** with their documentation and results, the **compliance evaluations** with evidence and follow-up, and changes coming up. Tasks are in the **Tasks** tab; linked records are under **Related**.",
+        "body": "The box at the top says what to do next. Below are the **duties** with their documentation and results, the **[[compliance-evaluation|compliance evaluations]]** with evidence and follow-up, and changes coming up. Tasks are in the **Tasks** tab; linked records are under **Related**.",
         "steps": [
-          "Record an evaluation when it is due: a result per duty, findings and documentation.",
-          "If something is missing, register a deviation or a follow-up task so it is closed.",
+          "Record an evaluation when it is due: a result per duty, [[audit-finding|findings]] and documentation.",
+          "If something is missing, register a [[nonconformity|deviation]] or a follow-up task so it is closed.",
           "Note coming changes and update the duties before they take effect."
         ]
       },

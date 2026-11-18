@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { TutorService } from '../../core/guidance/tutor.service';
+import { ClauseTitlesService } from '../../core/standards/clause-titles.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { parseClause } from '../requirement-links/clause-picker';
@@ -13,6 +15,12 @@ export interface TeachingClause {
   readonly label: string;
   /** Harmonised Structure clause (shared by every ISO management-system standard). */
   readonly shared: boolean;
+}
+
+/** A chip as shown: beginners read the plain title, with the number on hover (U39). */
+interface ChipView extends TeachingClause {
+  readonly text: string;
+  readonly hover: string;
 }
 
 /** Translate-function shape (`LanguageService.translate`). */
@@ -52,14 +60,11 @@ export function teachingClause(ref: string, t: Translate): TeachingClause {
           type="button"
           data-testid="clause-chip"
           class="rounded-sm font-medium text-accent underline decoration-dotted underline-offset-2 hover:decoration-solid focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          [attr.aria-label]="'guidance.why.explainClause' | transloco: { clause: chip.label }"
-          [title]="
-            (chip.shared ? 'standards.reqs.teach.sharedTooltip' : 'standards.reqs.teach.tooltip')
-              | transloco
-          "
+          [attr.aria-label]="'guidance.why.explainClause' | transloco: { clause: chip.text }"
+          [title]="chip.hover"
           (click)="tutor.explainClause(chip.ref)"
         >
-          {{ chip.label }}
+          {{ chip.text }}
         </button>
         @if (!last) {
           <span class="text-fg-subtle">,</span>
@@ -71,14 +76,28 @@ export function teachingClause(ref: string, t: Translate): TeachingClause {
 export class ClauseChips {
   protected readonly tutor = inject(TutorService);
   private readonly language = inject(LanguageService);
+  private readonly guidance = inject(GuidanceService);
+  private readonly titles = inject(ClauseTitlesService);
 
   readonly clauses = input<readonly string[]>([]);
   /** Prefix the links with "Les om:" (inside explanations). */
   readonly lead = input(false);
 
-  protected readonly chips = computed(() =>
-    this.clauses()
+  protected readonly chips = computed<ChipView[]>(() => {
+    const t: Translate = (key, params) => this.language.translate(key, params);
+    const beginner = this.guidance.isBeginner();
+    return this.clauses()
       .filter((ref) => !!ref)
-      .map((ref) => teachingClause(ref, (key, params) => this.language.translate(key, params))),
-  );
+      .map((ref) => {
+        const chip = teachingClause(ref, t);
+        const tooltip = t(
+          chip.shared ? 'standards.reqs.teach.sharedTooltip' : 'standards.reqs.teach.tooltip',
+        );
+        // Beginners: the requirement's plain title, the number on hover (simplify U39).
+        const title = beginner ? this.titles.read(ref)?.title : null;
+        return title
+          ? { ...chip, text: title, hover: `${chip.label}. ${tooltip}` }
+          : { ...chip, text: chip.label, hover: tooltip };
+      });
+  });
 }

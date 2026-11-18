@@ -3,12 +3,12 @@
     "overview": {
       "intro": {
         "title": "Audits keep your management system honest",
-        "body": "An audit checks, with evidence, whether what you **say** you do is what you **actually** do, and whether it works. This module covers the whole cycle: a yearly **programme**, individual **audits** with a team and a checklist, **findings** that are followed up, and **certifications** from external bodies.",
+        "body": "An audit checks, with evidence, whether what you **say** you do is what you **actually** do, and whether it works. This module covers the whole cycle: a yearly **programme**, individual **audits** with a team and a checklist, **[[audit-finding|findings]]** that are followed up, and **certifications** from external bodies.",
         "steps": [
-          "Start with an audit programme for the year, based on risk and earlier results.",
+          "Start with an [[audit-programme|audit programme]] for the year, based on risk and earlier results.",
           "Plan each audit: scope, criteria, dates and a competent, independent team.",
-          "Use the checklist during fieldwork, raise findings, then write and approve the report.",
-          "Follow up findings until the response is verified."
+          "Use the checklist during fieldwork, raise [[audit-finding|findings]], then write and approve the report.",
+          "Follow up [[audit-finding|findings]] until the response is verified."
         ]
       },
       "why": {
@@ -19,10 +19,10 @@
     "plans": {
       "intro": {
         "title": "Every audit, internal and external",
-        "body": "Each row is one audit with its scope, dates, lead auditor, checklist progress and findings. External audits by certification bodies, customers, suppliers or regulators are recorded here too, so all findings are followed up in one place.",
+        "body": "Each row is one audit with its scope, dates, lead auditor, checklist progress and [[audit-finding|findings]]. External audits by certification bodies, customers, suppliers or regulators are recorded here too, so all [[audit-finding|findings]] are followed up in one place.",
         "steps": [
           "Filter on **Open audits** to see what is planned or under way.",
-          "Open an audit to manage the team, the checklist, findings and the report.",
+          "Open an audit to manage the team, the checklist, [[audit-finding|findings]] and the report.",
           "Save the filters you use often as a view."
         ]
       },
@@ -39,7 +39,7 @@
     "programmes": {
       "intro": {
         "title": "Plan the year's audits",
-        "body": "An audit programme is the plan for all audits in a period, usually a year. It says which processes and areas are audited, how often, against which standards and why.",
+        "body": "An [[audit-programme|audit programme]] is the plan for all audits in a period, usually a year. It says which processes and areas are audited, how often, against which standards and why.",
         "steps": [
           "Create one programme per year and describe the objectives.",
           "Use the **risk basis** to explain why some areas are audited more often.",
@@ -59,11 +59,11 @@
     "findings": {
       "intro": {
         "title": "Findings from every audit",
-        "body": "A finding is what an audit concludes about a requirement: a **major** or **minor nonconformity**, an **observation** or an **opportunity for improvement**. Nonconformities need a response with a root cause and correction, which an auditor then verifies.",
+        "body": "A [[audit-finding|finding]] is what an audit concludes about a requirement: a **major** or **minor [[nonconformity|nonconformity]]**, an **observation** or an **opportunity for improvement**. [[nonconformity|Nonconformities]] need a response with a [[root-cause|root cause]] and correction, which an auditor then verifies.",
         "steps": [
-          "Use **Assigned to me** to see the findings you have to respond to.",
+          "Use **Assigned to me** to see the [[audit-finding|findings]] you have to respond to.",
           "Tick **Overdue only** to chase responses that are late.",
-          "Open a finding to write the response, add corrective actions or link a deviation."
+          "Open a [[audit-finding|finding]] to write the response, add [[corrective-action|corrective actions]] or link a [[nonconformity|deviation]]."
         ]
       },
       "why": {
@@ -99,7 +99,7 @@
     "auditors": {
       "intro": {
         "title": "Who may audit what",
-        "body": "The auditor register lists the people who may carry out internal audits, which standards they are qualified for, whether they can lead an audit, and how long their qualification is valid.",
+        "body": "The auditor register lists the people who may carry out [[internal-audit|internal audits]], which standards they are qualified for, whether they can lead an audit, and how long their qualification is valid.",
         "steps": [
           "Add each internal auditor with the standards they know.",
           "Tick **Qualified to lead audits** for those who can lead a team.",
@@ -209,7 +209,7 @@
     "planDetail": {
       "intro": {
         "title": "Running the audit",
-        "body": "Work from top to bottom: put the team together, prepare the checklist, then **start fieldwork**. Record answers and notes as you go, raise findings, and write the report. Someone other than the lead auditor approves it.",
+        "body": "Work from top to bottom: put the team together, prepare the checklist, then **start fieldwork**. Record answers and notes as you go, raise [[audit-finding|findings]], and write the report. Someone other than the lead auditor approves it.",
         "steps": [
           "Assign a lead auditor. CoreFlow checks competence and independence.",
           "Generate questions from the clauses, or let the assistant suggest some, and review them.",
@@ -252,7 +252,7 @@
         "body": "Describe what the programme should achieve and how you decided where to focus. Then add the audits and have the programme approved.",
         "steps": [
           "Set the year and the objectives.",
-          "Explain the risk basis: important processes, changes and earlier findings.",
+          "Explain the risk basis: important processes, changes and earlier [[audit-finding|findings]].",
           "Choose the standards the programme covers."
         ]
       },
@@ -281,9 +281,9 @@
     "findingForm": {
       "intro": {
         "title": "Writing a clear finding",
-        "body": "A good finding states the **requirement**, what you **observed** and the **evidence**, so that anyone can understand it without having been there.",
+        "body": "A good [[audit-finding|finding]] states the **requirement**, what you **observed** and the **evidence**, so that anyone can understand it without having been there.",
         "steps": [
-          "Choose the type: major or minor nonconformity, observation or opportunity for improvement.",
+          "Choose the type: major or minor [[nonconformity|nonconformity]], observation or opportunity for improvement.",
           "Describe the gap, then the objective evidence you saw.",
           "Assign the auditee who will respond and set a response date."
         ]
@@ -325,11 +325,11 @@
     "findingDetail": {
       "intro": {
         "title": "From finding to closure",
-        "body": "The auditee describes the **root cause**, the immediate **correction** and the **corrective action** that stops it happening again, then submits. An auditor, not the auditee, verifies the response and closes the finding.",
+        "body": "The auditee describes the **[[root-cause|root cause]]**, the immediate **correction** and the **[[corrective-action|corrective action]]** that stops it happening again, then submits. An auditor, not the auditee, verifies the response and closes the [[audit-finding|finding]].",
         "steps": [
           "Ask why until you reach a cause you can act on.",
-          "Add corrective actions as tasks with an owner and a due date.",
-          "Link a deviation if the issue is also handled in the deviation system."
+          "Add [[corrective-action|corrective actions]] as tasks with an owner and a due date.",
+          "Link a [[nonconformity|deviation]] if the issue is also handled in the [[nonconformity|deviation]] system."
         ]
       },
       "why": {
@@ -426,7 +426,7 @@
     "certificationDetail": {
       "intro": {
         "title": "The certification cycle",
-        "body": "A certificate usually runs for three years, with surveillance audits in between and a recertification audit before it expires. Plan each external audit from here so its findings are linked.",
+        "body": "A certificate usually runs for three years, with surveillance audits in between and a recertification audit before it expires. Plan each external audit from here so its [[audit-finding|findings]] are linked.",
         "steps": [
           "Plan the next external audit with **Plan an external audit**.",
           "Update the dates and status after each audit."

@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "One register for every agreement",
-        "body": "Every agreement the organisation has made, with its owner, parties and the dates that matter. The register warns you before a notice deadline passes and when a data processing agreement or a review is missing.",
+        "body": "Every agreement the organisation has made, with its owner, parties and the dates that matter. The register warns you before a notice deadline passes and when a [[dpa|data processing agreement]] or a review is missing.",
         "steps": [
           "Register a contract, or paste its text and let the assistant fill in the details.",
           "Add the key dates and the obligations it commits you to.",
@@ -76,7 +76,7 @@
     "detail": {
       "intro": {
         "title": "Keeping a contract under control",
-        "body": "Everything about the contract in one place: what needs attention, the approval, the parties (linked to the supplier register), dates, versions with signed copies and the data processing agreement. Obligations have their own tab.",
+        "body": "Everything about the contract in one place: what needs attention, the approval, the parties (linked to the supplier register), dates, versions with signed copies and the [[dpa|data processing agreement]]. Obligations have their own tab.",
         "steps": [
           "Deal with anything under \"Needs attention\" first.",
           "Move the contract through approval with the buttons in the workflow card. The approver answers a short requirements review.",

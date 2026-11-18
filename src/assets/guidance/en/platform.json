@@ -6,7 +6,7 @@
         "body": "The overview answers two questions: how far the organisation has come with each standard, and what you should do now. The suggestions are personal and change as the work gets done.",
         "steps": [
           "Start with **Do this now**: each suggestion says why it matters and has one button.",
-          "Under **How the organisation is doing** you see the requirement coverage per standard and the three most important gaps.",
+          "Under **How the organisation is doing** you see the [[requirement-coverage|requirement coverage]] per standard and the three most important gaps.",
           "Follow a **guided journey** if you are working towards a certification or want a clear order to do things in."
         ]
       },
@@ -37,7 +37,7 @@
     "documents": {
       "intro": {
         "title": "Controlled documents",
-        "body": "Policies, procedures and instructions live here. Every document has an owner, a version history and a review and approval workflow.",
+        "body": "[[policy|Policies]], procedures and instructions live here. Every document has an owner, a version history and a review and approval workflow.",
         "steps": [
           "Create a draft, or ask the assistant to draft one for you.",
           "Send it for review and approval. The approver must be someone other than the author.",
@@ -67,11 +67,11 @@
     "deviations": {
       "intro": {
         "title": "Deviations and improvements",
-        "body": "Register anything that did not go as planned: nonconformities, complaints, incidents and near misses. Each deviation is investigated, acted on and closed.",
+        "body": "Register anything that did not go as planned: [[nonconformity|nonconformities]], complaints, incidents and near misses. Each [[nonconformity|deviation]] is investigated, acted on and closed.",
         "steps": [
           "Describe what happened and when, in plain words.",
-          "Find the root cause, not just the symptom.",
-          "Plan corrective actions and check later that they worked."
+          "Find the [[root-cause|root cause]], not just the symptom.",
+          "Plan [[corrective-action|corrective actions]] and check later that they worked."
         ]
       },
       "why": {
@@ -129,7 +129,7 @@
         "title": "Learning mode for your organisation",
         "body": "Set the level of guidance new members see by default, and follow how members progress through the lessons.",
         "steps": [
-          "Choose a default level. Beginner suits organisations that are new to management systems.",
+          "Choose a default level. Beginner suits organisations that are new to [[management-system|management systems]].",
           "Members can still choose their own level from the account menu.",
           "Open a member to see which lessons they have completed."
         ]
@@ -230,7 +230,7 @@
         "body": "The table shows, module by module, what each access level allows. It is read-only.",
         "steps": [
           "Read across a row to compare access levels for one module.",
-          "Export the table when an auditor asks for your access policy."
+          "Export the table when an auditor asks for your access [[policy|policy]]."
         ]
       },
       "why": {

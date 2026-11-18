@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "Styr KI-en dere lager og bruker",
-        "body": "KI-styring betyr å vite **hvilke KI-systemer** dere har, **hvor stor risiko** de har etter KI-forordningen, og å sørge for at **pliktene som følger** blir gjennomført. ISO/IEC 42001 legger styringssystemet rundt: policy, roller, konsekvensvurderinger og overvåking.",
+        "body": "KI-styring betyr å vite **hvilke KI-systemer** dere har, **hvor stor risiko** de har etter KI-forordningen, og å sørge for at **pliktene som følger** blir gjennomført. ISO/IEC 42001 legger [[management-system|styringssystemet]] rundt: [[policy|policy]], roller, konsekvensvurderinger og overvåking.",
         "steps": [
           "Registrer alle KI-systemer i oversikten, også verktøy kjøpt fra leverandører.",
           "Klassifiser hvert system med veiviseren; hver forpliktelse blir en oppgave.",
@@ -41,7 +41,7 @@
         "body": "Et tydelig **tiltenkt formål** er det viktigste feltet: KI-forordningen klassifiserer systemer etter hva de brukes til, ikke etter teknologien.",
         "steps": [
           "Skriv hva systemet brukes til og hvem det påvirker.",
-          "Velg rollen deres: tilbyder hvis dere lager det, idriftsetter hvis dere bruker det.",
+          "Velg rollen deres: tilbyder hvis dere lager det, [[deployer|idriftsetter]] hvis dere bruker det.",
           "Velg en eier som holder registreringen og forpliktelsene oppdatert."
         ]
       },
@@ -172,7 +172,7 @@
     "documentation": {
       "intro": {
         "title": "Strukturert dokumentasjon",
-        "body": "Skriv styringsdokumentasjonen alle KI-systemer bør ha, og de ni punktene i den **tekniske filen etter vedlegg IV**. Filen kreves av tilbydere av høyrisikosystemer; idriftsettere henter den fra tilbyderen.",
+        "body": "Skriv styringsdokumentasjonen alle KI-systemer bør ha, og de ni punktene i den **tekniske filen etter vedlegg IV**. Filen kreves av tilbydere av høyrisikosystemer; [[deployer|idriftsettere]] henter den fra tilbyderen.",
         "steps": [
           "Start med den generelle beskrivelsen og utformingen av menneskelig tilsyn.",
           "Hold hver del kort og saklig. Ligger delen allerede i et styrt dokument, kobler du dokumentet i stedet for å skrive teksten på nytt.",
@@ -214,7 +214,7 @@
     "assessmentNew": {
       "intro": {
         "title": "Start en vurdering",
-        "body": "Velg KI-systemet og typen vurdering. En klassifisering åpner veiviseren; en konsekvensvurdering eller FRIA starter som et utkast du skriver del for del."
+        "body": "Velg KI-systemet og typen vurdering. En klassifisering åpner veiviseren; en konsekvensvurdering eller [[fria|FRIA]] starter som et utkast du skriver del for del."
       },
       "why": {
         "body": "En konsekvensvurdering ser på følgene for mennesker og samfunnet; en FRIA er KI-forordningens egen kontroll av grunnleggende rettigheter før et høyrisikosystem tas i bruk.",
@@ -291,7 +291,7 @@
     "settings": {
       "intro": {
         "title": "Innstillinger for KI-styring",
-        "body": "Koble til KI-policyen, velg hvem som er ansvarlig for KI-styring, og angi hvor lenge KI-kompetanse er gyldig og hvor ofte KI-systemer skal gjennomgås."
+        "body": "Koble til KI-[[policy|policyen]], velg hvem som er ansvarlig for KI-styring, og angi hvor lenge KI-kompetanse er gyldig og hvor ofte KI-systemer skal gjennomgås."
       },
       "why": {
         "body": "ISO/IEC 42001 krever en dokumentert KI-policy og definerte roller og ansvar for KI.",

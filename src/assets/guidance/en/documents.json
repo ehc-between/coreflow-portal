@@ -136,7 +136,7 @@
     "types": {
       "intro": {
         "title": "Kinds of documents",
-        "body": "A document type (procedure, work instruction, policy, form) gives new documents an automatic code and sensible defaults: how often they are reviewed, whether readers must acknowledge them, and how long they are kept.",
+        "body": "A document type (procedure, work instruction, [[policy|policy]], form) gives new documents an automatic code and sensible defaults: how often they are reviewed, whether readers must acknowledge them, and how long they are kept.",
         "steps": [
           "Create a type for each kind of document you keep.",
           "Give it a prefix such as **PR** so codes become PR-001, PR-002 and so on.",
@@ -322,7 +322,7 @@
     "list": {
       "intro": {
         "title": "Your controlled documents",
-        "body": "Every policy, procedure and instruction the organisation works by, with its status, owner and next review. Open a document to read it, approve it or see which requirements it documents.",
+        "body": "Every [[policy|policy]], procedure and instruction the organisation works by, with its status, owner and next review. Open a document to read it, approve it or see which requirements it documents.",
         "steps": [
           "Use **New document** to write one, start from a template or let KI draft it.",
           "Filter on **Not linked to requirements** to find documents that do not count for any standard yet.",

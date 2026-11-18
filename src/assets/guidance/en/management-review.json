@@ -3,10 +3,10 @@
     "list": {
       "intro": {
         "title": "Management review: top management checks that the system works",
-        "body": "A **management review** is a planned meeting where top management looks at how the management system is doing and decides what to change. CoreFlow fetches the figures from the other modules, records the meeting and turns decisions into tasks.",
+        "body": "A **[[management-review|management review]]** is a planned meeting where [[top-management|top management]] looks at how the [[management-system|management system]] is doing and decides what to change. CoreFlow fetches the figures from the other modules, records the meeting and turns decisions into tasks.",
         "steps": [
           "Plan a review for the period, normally once a year. The standards your organisation follows are chosen for you.",
-          "Go through the inputs, hold the meeting with top management and record the decisions.",
+          "Go through the inputs, hold the meeting with [[top-management|top management]] and record the decisions.",
           "Rate whether the system is suitable, adequate and effective, then send it for sign-off. The signed report is kept as evidence."
         ]
       },
@@ -46,7 +46,7 @@
         "body": "The review has four steps, shown as buttons above the content: **Inputs**, **Meeting**, **Outputs** and **Sign-off**. A step gets a tick when nothing is missing.",
         "steps": [
           "Inputs: open each row, look at the figures fetched from CoreFlow, write what you see and tick it as reviewed, or mark it not relevant with a reason.",
-          "Meeting: record who took part (mark top management), write and approve the minutes, and record decisions. Actions get a follow-up task.",
+          "Meeting: record who took part (mark [[top-management|top management]]), write and approve the minutes, and record decisions. Actions get a follow-up task.",
           "Outputs: write the conclusions and rate each 9.3 point. Sign-off lists anything still missing, with a link to it."
         ]
       },
@@ -124,7 +124,7 @@
         "body": "CoreFlow fills in the standards your organisation follows and the period since the last signed review. The meeting is created with the review, with the standard agenda.",
         "steps": [
           "Check the standards and the period. Each standard adds the inputs it requires.",
-          "Invite top management and the people who present the inputs.",
+          "Invite [[top-management|top management]] and the people who present the inputs.",
           "Save. The figures are fetched straight away."
         ]
       },
@@ -210,7 +210,7 @@
     "settings": {
       "intro": {
         "title": "How often the review is held",
-        "body": "The next management review is due one interval after the last signed one. From the reminder window, it shows on the home page and in My work."
+        "body": "The next [[management-review|management review]] is due one interval after the last signed one. From the reminder window, it shows on the home page and in My work."
       },
       "why": {
         "body": "ISO requires top management to review the management system at **planned intervals**. A fixed interval with a reminder makes sure the review is not forgotten.",

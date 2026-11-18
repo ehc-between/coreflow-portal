@@ -5,10 +5,10 @@
         "title": "Stay in business when something goes wrong",
         "body": "Business continuity is about knowing which activities matter most, how long you can live without them, and having tested plans to get them back. This page shows how ready you are.",
         "steps": [
-          "Start with a **business impact analysis** (BIA) for each critical activity: what happens if it stops, and how quickly it must be back.",
+          "Start with a **business impact analysis** ([[bia|BIA]]) for each critical activity: what happens if it stops, and how quickly it must be back.",
           "Write a **continuity plan** that covers those activities and meets their recovery targets.",
           "**Exercise** the plans regularly, record the lessons learned and follow them up.",
-          "Check that each **ICT service** can be recovered as fast as the activities need, and keep the **crisis contact list** up to date."
+          "Check that each **[[ict|ICT|=]] service** can be recovered as fast as the activities need, and keep the **crisis contact list** up to date."
         ]
       },
       "why": {
@@ -25,10 +25,10 @@
     "bias": {
       "intro": {
         "title": "Business impact analyses",
-        "body": "A **business impact analysis** (BIA) looks at one activity and asks: if it stops, how bad does it get over time, and how quickly must it be recovered? The answers become the recovery targets your plans must meet.",
+        "body": "A **business impact analysis** ([[bia|BIA]]) looks at one activity and asks: if it stops, how bad does it get over time, and how quickly must it be recovered? The answers become the recovery targets your plans must meet.",
         "steps": [
-          "Create a BIA per critical activity, for example *Payroll*, *Customer support* or *Production line 2*.",
-          "Rate the impacts and set the **MTPD**, **RTO** and **RPO**.",
+          "Create a [[bia|BIA]] per critical activity, for example *Payroll*, *Customer support* or *Production line 2*.",
+          "Rate the impacts and set the **[[mtpd|MTPD]]**, **[[rto|RTO]]** and **[[rpo|RPO]]**.",
           "Submit it for approval, then cover it with a continuity plan. Rows marked *No plan* still need one."
         ]
       },
@@ -47,9 +47,9 @@
         "title": "Analysing an activity",
         "body": "Describe the activity, rate how a disruption affects it, and decide the recovery targets. The assistant can suggest ratings and targets as a starting point.",
         "steps": [
-          "Rate each impact category for a disruption lasting up to the MTPD.",
-          "Set the MTPD first, then an RTO that is shorter, and an RPO for how much data you can lose.",
-          "List what the activity depends on: people, sites, ICT services, suppliers, equipment and information."
+          "Rate each impact category for a disruption lasting up to the [[mtpd|MTPD]].",
+          "Set the [[mtpd|MTPD]] first, then an [[rto|RTO]] that is shorter, and an [[rpo|RPO]] for how much data you can lose.",
+          "List what the activity depends on: people, sites, [[ict|ICT|=]] services, suppliers, equipment and information."
         ]
       },
       "why": {
@@ -138,7 +138,7 @@
         "steps": [
           "Choose the plan type and the impact analyses it covers.",
           "Let the assistant draft the content, then adapt it to your organisation.",
-          "Add steps per phase with an owner role and a target time that fits within the RTO."
+          "Add steps per phase with an owner role and a target time that fits within the [[rto|RTO]]."
         ]
       },
       "why": {
@@ -209,9 +209,9 @@
     "exercises": {
       "intro": {
         "title": "Exercises and tests",
-        "body": "Exercises prove that plans work and people know their roles. Tests prove that ICT services can be recovered in time. Every exercise ends with lessons learned and follow-up actions.",
+        "body": "Exercises prove that plans work and people know their roles. Tests prove that [[ict|ICT|=]] services can be recovered in time. Every exercise ends with lessons learned and follow-up actions.",
         "steps": [
-          "Plan an exercise for a plan or an ICT service, with a date and a scenario.",
+          "Plan an exercise for a plan or an [[ict|ICT|=]] service, with a date and a scenario.",
           "Hold it, then record the outcome, the recovery time achieved and the lessons learned.",
           "Turn the lessons into follow-up actions with an owner and a due date."
         ]
@@ -231,7 +231,7 @@
         "title": "Planning an exercise",
         "body": "Choose what you exercise, the type and the date. A good scenario is realistic and has injects that test the plan's weak points.",
         "steps": [
-          "Choose the plan and, for a recovery test, the ICT service.",
+          "Choose the plan and, for a recovery test, the [[ict|ICT|=]] service.",
           "Let the assistant draft a scenario with injects and success criteria.",
           "List the participants and the objectives."
         ]
@@ -293,9 +293,9 @@
     "ict": {
       "intro": {
         "title": "ICT readiness",
-        "body": "Each ICT service is compared with what the business needs: its **achievable** RTO and RPO against the **required** ones from the impact analyses that depend on it, and whether it has been tested recently.",
+        "body": "Each [[ict|ICT|=]] service is compared with what the business needs: its **achievable** [[rto|RTO]] and [[rpo|RPO]] against the **required** ones from the impact analyses that depend on it, and whether it has been tested recently.",
         "steps": [
-          "Register the ICT services your critical activities depend on.",
+          "Register the [[ict|ICT|=]] services your critical activities depend on.",
           "Record how fast each can be recovered and how much data could be lost.",
           "Link them as dependencies in the impact analyses, then test recovery on a cycle."
         ]
@@ -315,7 +315,7 @@
         "title": "Registering an ICT service",
         "body": "Describe the service and what it can achieve when it fails. Be honest: an unknown capability is better than an optimistic guess.",
         "steps": [
-          "Enter the achievable RTO and RPO, ideally from a real test.",
+          "Enter the achievable [[rto|RTO]] and [[rpo|RPO]], ideally from a real test.",
           "Describe the recovery and backup strategies.",
           "Set how often recovery is tested."
         ]
@@ -359,7 +359,7 @@
         "steps": [
           "Close the gaps listed under readiness.",
           "Plan a recovery test when the test is due.",
-          "Link the service to its asset or supplier under Related."
+          "Link the service to its [[asset|asset]] or supplier under Related."
         ]
       },
       "why": {

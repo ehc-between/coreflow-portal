@@ -3,7 +3,7 @@
     "myWork": {
       "intro": {
         "title": "Din personlige arbeidskø",
-        "body": "Mitt arbeid samler alt som venter på **deg** i denne organisasjonen: oppgaver, korrigerende tiltak, avvik du eier, dokumenter til godkjenning og dokumenter du skal lese og bekrefte.",
+        "body": "Mitt arbeid samler alt som venter på **deg** i denne organisasjonen: oppgaver, [[corrective-action|korrigerende tiltak]], [[nonconformity|avvik]] du eier, dokumenter til godkjenning og dokumenter du skal lese og bekrefte.",
         "steps": [
           "Start med fanen **Forfalt**, og ta deretter **Denne uka**.",
           "**Til gjennomgang** samler dokumenter, endringsforslag og rapporter som venter på godkjenningen din.",
@@ -27,7 +27,7 @@
         "steps": [
           "Bruk **Vis** for å bytte mellom dine egne oppgaver og alt du har tilgang til.",
           "Filtrer på status, søk på tittel og sorter etter frist eller prioritet.",
-          "Hver oppgave lenker til registreringen den tilhører, for eksempel et avvik eller et dokument."
+          "Hver oppgave lenker til registreringen den tilhører, for eksempel et [[nonconformity|avvik]] eller et dokument."
         ]
       },
       "why": {

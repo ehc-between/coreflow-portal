@@ -586,5 +586,9 @@
       "defaultClauses": "Typical requirements",
       "defaultClausesHint": "Offered as one-click links on deviations of this type. Leave empty to use the defaults of the standards."
     }
+  },
+  "statusPair": {
+    "list": "The phase shows how far the case has come: open, in progress or done. The status is the step in the workflow, for example investigation or verification.",
+    "actions": "Done means the action has been carried out. Verified means someone has checked later that it worked."
   }
 }

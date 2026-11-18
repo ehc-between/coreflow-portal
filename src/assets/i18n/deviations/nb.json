@@ -586,5 +586,9 @@
       "defaultClauses": "Typiske krav",
       "defaultClausesHint": "Tilbys som koblinger med ett klikk på avvik av denne typen. La stå tomt for å bruke standardenes forslag."
     }
+  },
+  "statusPair": {
+    "list": "Fasen viser hvor langt saken har kommet: åpen, under arbeid eller ferdig. Statusen er steget i arbeidsflyten, for eksempel utredning eller verifisering.",
+    "actions": "Fullført betyr at tiltaket er gjort. Verifisert betyr at noen senere har sjekket at det virket."
   }
 }

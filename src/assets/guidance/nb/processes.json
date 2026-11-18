@@ -7,7 +7,7 @@
         "steps": [
           "Begynn med de få prosessene som skaper verdi for kundene (kjerne), legg så til dem som styrer organisasjonen (ledelse) og dem som holder den i gang (støtte).",
           "Gi hver prosess en eier, et formål og et gjennomgangsintervall.",
-          "Tegn kartet og fyll ut «Prosessen på én side», og koble risikoer, nøkkeltall og prosedyrer.",
+          "Tegn kartet og fyll ut «Prosessen på én side», og koble risikoer, [[kpi|nøkkeltall]] og prosedyrer.",
           "Åpne **Samspillskart** for å se hvordan prosessene leverer til hverandre og til kundene."
         ]
       },
@@ -24,11 +24,11 @@
     "detail": {
       "intro": {
         "title": "Én prosess, hele bildet",
-        "body": "Her finner du alt om prosessen: hvor komplett den er, **kartet** over trinnene, **prosessen på én side** med koblede risikoer, nøkkeltall og prosedyrer, og det styrte **beskrivelsesdokumentet**. Oppgaver, koblinger, historikk og kommentarer ligger i fanene.",
+        "body": "Her finner du alt om prosessen: hvor komplett den er, **kartet** over trinnene, **prosessen på én side** med koblede risikoer, [[kpi|nøkkeltall]] og prosedyrer, og det styrte **beskrivelsesdokumentet**. Oppgaver, koblinger, historikk og kommentarer ligger i fanene.",
         "steps": [
           "Se på «Er prosessen komplett?» og fiks det som mangler.",
-          "Koble ekte poster til prosessen: risikoer, nøkkeltall, prosedyrer, utstyr og kurs.",
-          "Legg til samspillet med andre prosesser og med interessenter som kunder.",
+          "Koble ekte poster til prosessen: risikoer, [[kpi|nøkkeltall]], prosedyrer, utstyr og kurs.",
+          "Legg til samspillet med andre prosesser og med [[interested-party|interessenter]] som kunder.",
           "Registrer en gjennomgang når eieren har sjekket at prosessen fortsatt virker."
         ]
       },
@@ -66,7 +66,7 @@
         "steps": [
           "Gi prosessen navn etter det den oppnår, for eksempel *Behandle kundeklager*.",
           "Velg kategori og eier, og hvilke standarder prosessen støtter.",
-          "Fyll ut minst inndata, utdata og ett nøkkeltall. «Foreslå innhold» kan hjelpe med resten."
+          "Fyll ut minst inndata, utdata og ett [[kpi|nøkkeltall]]. «Foreslå innhold» kan hjelpe med resten."
         ]
       },
       "why": {
@@ -189,7 +189,7 @@
     "interactionMap": {
       "intro": {
         "title": "Hvordan prosessene henger sammen",
-        "body": "Samspillskartet viser hver prosess i sitt bånd (ledelse, kjerne, støtte), interessentene øverst og pilene mellom dem: hva som leveres til hvem. Hull og løse tråder er lette å se her.",
+        "body": "[[process-map|Samspillskartet]] viser hver prosess i sitt bånd (ledelse, kjerne, støtte), [[interested-party|interessentene]] øverst og pilene mellom dem: hva som leveres til hvem. Hull og løse tråder er lette å se her.",
         "steps": [
           "Hold pekeren over eller fokuser en boks for å fremheve samspillet.",
           "Legg til manglende samspill fra prosessens side med «Endre samspill».",

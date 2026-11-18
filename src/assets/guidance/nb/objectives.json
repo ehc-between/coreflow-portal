@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Målene viser hvor organisasjonen skal",
-        "body": "Et **mål** er et resultat organisasjonen forplikter seg til, for eksempel færre kundeklager eller raskere håndtering av sikkerhetshendelser. Hvert mål har en eier, et målbart resultat, en plan og en frist. **Nøkkeltall (KPI-er)** er tallene som viser om organisasjonen er på sporet.",
+        "body": "Et **mål** er et resultat organisasjonen forplikter seg til, for eksempel færre kundeklager eller raskere håndtering av sikkerhetshendelser. Hvert mål har en eier, et målbart resultat, en plan og en frist. **[[kpi|Nøkkeltall (KPI-er)]]** er tallene som viser om organisasjonen er på sporet.",
         "steps": [
           "Opprett de to eller tre målene som betyr mest i år, og gi hvert av dem en eier og en frist.",
-          "Koble hvert mål til policyen, risikoen eller muligheten det kommer fra.",
-          "Legg til en KPI på hvert mål, slik at fremdriften beregnes ut fra målte data."
+          "Koble hvert mål til [[policy|policyen]], risikoen eller muligheten det kommer fra.",
+          "Legg til en [[kpi|KPI]] på hvert mål, slik at fremdriften beregnes ut fra målte data."
         ]
       },
       "why": {
@@ -23,9 +23,9 @@
     "kpis": {
       "intro": {
         "title": "KPI-er viser om du er på sporet",
-        "body": "En **KPI** (nøkkeltall) er et tall du registrerer jevnlig, for eksempel antall klager per måned eller andelen ansatte som har fullført opplæringen. Hver KPI har en enhet, sier om høyere eller lavere verdi er bedre, og har en målverdi og eventuelt en varselgrense.",
+        "body": "En **[[kpi|KPI|=]]** ([[kpi|nøkkeltall]]) er et tall du registrerer jevnlig, for eksempel antall klager per måned eller andelen ansatte som har fullført opplæringen. Hver [[kpi|KPI]] har en enhet, sier om høyere eller lavere verdi er bedre, og har en målverdi og eventuelt en varselgrense.",
         "steps": [
-          "Koble hver KPI til målet den måler.",
+          "Koble hver [[kpi|KPI]] til målet den måler.",
           "Sett en målverdi, og en varselgrense som gir et tidlig signal før målet bommes.",
           "Velg hvor ofte den måles. Den som registrerer verdiene, får en gjentakende oppgave."
         ]
@@ -43,10 +43,10 @@
     "detail": {
       "intro": {
         "title": "Oppfølging av et mål",
-        "body": "Øverst på siden ser du neste steg. Fremdriften beregnes fra KPI-ene, så hold målingene oppdatert. Når fristen kommer, bruker du **Avslutt mål** og registrerer om målet ble nådd.",
+        "body": "Øverst på siden ser du neste steg. Fremdriften beregnes fra [[kpi|KPI-ene]], så hold målingene oppdatert. Når fristen kommer, bruker du **Avslutt mål** og registrerer om målet ble nådd.",
         "steps": [
           "Bruk **Oppgaver** til å fordele tiltakene i planen.",
-          "Policyen og risikoene målet kommer fra, legger du under **Utgangspunkt**. Andre poster kobler du under **Relatert**.",
+          "[[policy|Policyen]] og risikoene målet kommer fra, legger du under **Utgangspunkt**. Andre poster kobler du under **Relatert**.",
           "Hver endring lagres som en revisjon, med årsaken du oppgir."
         ]
       },
@@ -61,7 +61,7 @@
         "body": "Diagrammet viser hver registrerte periode mot målverdien (stiplet linje) og varselgrensen (prikket linje), slik de var da målingen ble gjort. Hvert punkt er merket **på sporet**, **i faresonen** eller **utenfor målverdien**.",
         "steps": [
           "Registrer en måling når perioden er over. Den åpne måleoppgaven blir da fullført.",
-          "Er KPI-en i faresonen eller utenfor målverdien, oppretter du et avvik eller en oppgave fra boksen øverst.",
+          "Er [[kpi|KPI]]-en i faresonen eller utenfor målverdien, oppretter du et [[nonconformity|avvik]] eller en oppgave fra boksen øverst.",
           "Korriger en verdi hvis den var feil. Korrigeringen tas vare på i historikken."
         ]
       },
@@ -75,7 +75,7 @@
         "title": "Slik skriver du et godt mål",
         "body": "Gjør målet **SMART**: spesifikt, målbart, oppnåelig, relevant og tidsbestemt. Beskriv planen slik at en annen person kunne gjennomført den.",
         "steps": [
-          "Velg styringssystemene målet hører til.",
+          "Velg [[management-system|styringssystemene]] målet hører til.",
           "Skriv et målbart resultat med et tall og en dato.",
           "Beskriv tiltakene, ressursene og hvordan resultatet skal vurderes."
         ]

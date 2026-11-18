@@ -6,7 +6,7 @@
         "body": "Oversikten svarer på to spørsmål: hvor langt organisasjonen har kommet med hver standard, og hva du bør gjøre nå. Forslagene er personlige og endrer seg etter hvert som arbeidet blir gjort.",
         "steps": [
           "Start med **Gjør dette nå**: hvert forslag forteller hvorfor det er viktig, og har én knapp.",
-          "Under **Slik står organisasjonen** ser du kravdekningen for hver standard og de tre viktigste hullene.",
+          "Under **Slik står organisasjonen** ser du [[requirement-coverage|kravdekningen]] for hver standard og de tre viktigste hullene.",
           "Følg en **veiledet reise** hvis organisasjonen jobber mot en sertifisering eller vil ha en tydelig rekkefølge å jobbe i."
         ]
       },
@@ -67,11 +67,11 @@
     "deviations": {
       "intro": {
         "title": "Avvik og forbedringer",
-        "body": "Registrer alt som ikke gikk som planlagt: avvik, klager, hendelser og nestenulykker. Hvert avvik blir undersøkt, fulgt opp med tiltak og lukket.",
+        "body": "Registrer alt som ikke gikk som planlagt: [[nonconformity|avvik]], klager, hendelser og nestenulykker. Hvert [[nonconformity|avvik]] blir undersøkt, fulgt opp med tiltak og lukket.",
         "steps": [
           "Beskriv hva som skjedde og når, med enkle ord.",
-          "Finn rotårsaken, ikke bare symptomet.",
-          "Planlegg korrigerende tiltak og sjekk senere at de virket."
+          "Finn [[root-cause|rotårsaken]], ikke bare symptomet.",
+          "Planlegg [[corrective-action|korrigerende tiltak]] og sjekk senere at de virket."
         ]
       },
       "why": {
@@ -129,7 +129,7 @@
         "title": "Læringsmodus for organisasjonen",
         "body": "Angi hvor mye veiledning nye medlemmer ser som standard, og følg hvordan medlemmene går gjennom leksjonene.",
         "steps": [
-          "Velg et standardnivå. Nybegynner passer for organisasjoner som er nye med styringssystemer.",
+          "Velg et standardnivå. Nybegynner passer for organisasjoner som er nye med [[management-system|styringssystemer]].",
           "Medlemmene kan fortsatt velge sitt eget nivå fra kontomenyen.",
           "Åpne et medlem for å se hvilke leksjoner vedkommende har fullført."
         ]

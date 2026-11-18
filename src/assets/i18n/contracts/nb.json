@@ -711,5 +711,6 @@
       "title": "Kommer snart på {{ code }} {{ title }}",
       "why": "Frist {{ date }}, om {{ days }} dager."
     }
-  }
+  },
+  "statusPair": "Godkjent betyr at innholdet er godkjent internt, men ikke signert ennå. Aktiv betyr at kontrakten er signert og gjelder nå."
 }

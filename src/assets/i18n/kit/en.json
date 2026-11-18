@@ -166,7 +166,7 @@
     "count": "{{ count }} comments"
   },
   "revisions": {
-    "title": "Revision history",
+    "title": "History",
     "empty": "No revisions recorded yet.",
     "emptyHint": "Each saved change to a controlled record creates a revision: who changed what, when and why. ISO standards call this keeping documented information under control.",
     "revision": "Revision {{ no }}",
@@ -248,7 +248,7 @@
       "activity": "Activity",
       "comments": "Comments",
       "attachments": "Attachments",
-      "revisions": "Revisions",
+      "revisions": "History",
       "tasks": "Tasks"
     }
   },

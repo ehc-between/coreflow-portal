@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Vit hvilke lover og krav dere må oppfylle",
-        "body": "Registeret viser alt organisasjonen er bundet av: lover og forskrifter, tillatelser og lisenser, krav i avtaler, bransjenormer og frivillige forpliktelser. Hver **forpliktelse** har en eier, konkrete **plikter** og en periodisk **samsvarsvurdering** som sjekker at dere fortsatt oppfyller den.",
+        "body": "Registeret viser alt organisasjonen er bundet av: lover og forskrifter, tillatelser og lisenser, krav i avtaler, bransjenormer og frivillige forpliktelser. Hver **forpliktelse** har en eier, konkrete **plikter** og en periodisk **[[compliance-evaluation|samsvarsvurdering]]** som sjekker at dere fortsatt oppfyller den.",
         "steps": [
           "Legg inn forpliktelsene som gjelder dere. Start fra biblioteket med vanlige lover, eller med dem som får størst konsekvenser om de brytes.",
           "Skriv de konkrete pliktene og koble dem til punktene i standardene.",
-          "Planlegg en årlig vurdering, registrer resultatet med dokumentasjon og følg opp mangler med et avvik eller en oppgave."
+          "Planlegg en årlig vurdering, registrer resultatet med dokumentasjon og følg opp mangler med et [[nonconformity|avvik]] eller en oppgave."
         ]
       },
       "why": {
@@ -100,10 +100,10 @@
     "detail": {
       "intro": {
         "title": "Ha kontroll på en forpliktelse",
-        "body": "Boksen øverst sier hva som bør gjøres nå. Under står **pliktene** med dokumentasjon og resultat, **samsvarsvurderingene** med dokumentasjon og oppfølging, og endringer som kommer. Oppgavene ligger i fanen **Oppgaver**, og koblede registreringer under **Relatert**.",
+        "body": "Boksen øverst sier hva som bør gjøres nå. Under står **pliktene** med dokumentasjon og resultat, **[[compliance-evaluation|samsvarsvurderingene]]** med dokumentasjon og oppfølging, og endringer som kommer. Oppgavene ligger i fanen **Oppgaver**, og koblede registreringer under **Relatert**.",
         "steps": [
-          "Registrer en vurdering når den forfaller: resultat per plikt, funn og dokumentasjon.",
-          "Hvis noe mangler, registrer et avvik eller en oppfølgingsoppgave så det blir lukket.",
+          "Registrer en vurdering når den forfaller: resultat per plikt, [[audit-finding|funn]] og dokumentasjon.",
+          "Hvis noe mangler, registrer et [[nonconformity|avvik]] eller en oppfølgingsoppgave så det blir lukket.",
           "Noter kommende endringer og oppdater pliktene før de trer i kraft."
         ]
       },

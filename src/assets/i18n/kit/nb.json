@@ -166,7 +166,7 @@
     "count": "{{ count }} kommentarer"
   },
   "revisions": {
-    "title": "Versjoner",
+    "title": "Historikk",
     "empty": "Ingen versjoner lagret ennå.",
     "emptyHint": "Hver lagrede endring av en styrt post gir en ny versjon: hvem som endret hva, når og hvorfor. ISO-standardene kaller dette å holde dokumentert informasjon under kontroll.",
     "revision": "Versjon {{ no }}",
@@ -248,7 +248,7 @@
       "activity": "Aktivitet",
       "comments": "Kommentarer",
       "attachments": "Vedlegg",
-      "revisions": "Versjoner",
+      "revisions": "Historikk",
       "tasks": "Oppgaver"
     }
   },

@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Planlagte kontroller som viser at ting fungerer",
-        "body": "En **inspeksjon** er en planlagt kontroll av en arbeidsplass, en maskin, en rutine eller et område, gjort med en **sjekkliste**. Alt som ikke er i orden, blir et **funn** som noen følger opp. Alvorlige funn blir **avvik**, slik at årsaken blir funnet og rettet.",
+        "body": "En **inspeksjon** er en planlagt kontroll av en arbeidsplass, en maskin, en rutine eller et område, gjort med en **sjekkliste**. Alt som ikke er i orden, blir et **[[audit-finding|funn]]** som noen følger opp. Alvorlige [[audit-finding|funn]] blir **[[nonconformity|avvik]]**, slik at årsaken blir funnet og rettet.",
         "steps": [
           "Start med inspeksjoner merket **Forfalt**, og deretter dem med nærmest frist.",
           "Åpne en inspeksjon og trykk **Start** eller **Fortsett** for å gjennomføre den på mobil eller nettbrett.",
@@ -23,11 +23,11 @@
     "findings": {
       "intro": {
         "title": "Alt inspeksjonene har funnet",
-        "body": "Et **funn** opprettes automatisk for hvert svar som ikke er godkjent, og inspektører kan legge til funn selv. Hvert funn har alvorlighet, eier og frist. Det lukkes med en beskrivelse av hva som ble gjort, og senere sjekker du at tiltaket virker.",
+        "body": "Et **[[audit-finding|funn]]** opprettes automatisk for hvert svar som ikke er godkjent, og inspektører kan legge til [[audit-finding|funn]] selv. Hvert [[audit-finding|funn]] har alvorlighet, eier og frist. Det lukkes med en beskrivelse av hva som ble gjort, og senere sjekker du at tiltaket virker.",
         "steps": [
           "Filtrer på **Åpent**, eller velg **Eies av meg** under Flere filtre, for å se hva som venter på deg.",
-          "Åpne et funn for å legge til oppfølgingsoppgaver, opprette avvik eller lukke det.",
-          "Funn med høy eller kritisk alvorlighet bør bli avvik, slik at årsaken blir funnet og rettet."
+          "Åpne et [[audit-finding|funn]] for å legge til oppfølgingsoppgaver, opprette [[nonconformity|avvik]] eller lukke det.",
+          "[[audit-finding|Funn]] med høy eller kritisk alvorlighet bør bli [[nonconformity|avvik]], slik at årsaken blir funnet og rettet."
         ]
       },
       "why": {
@@ -103,7 +103,7 @@
         "steps": [
           "Gi malen en tydelig tittel og kategori.",
           "Legg til spørsmål etter type, eller la assistenten lage dem og gå gjennom resultatet.",
-          "Bestem grensen for godkjent og om funn skal bli avvik automatisk, og lagre eller publiser."
+          "Bestem grensen for godkjent og om [[audit-finding|funn]] skal bli [[nonconformity|avvik]] automatisk, og lagre eller publiser."
         ]
       },
       "why": {
@@ -150,7 +150,7 @@
         "body": "Velg en aktiv sjekkliste, hva som skal kontrolleres og hvor, hvem som gjennomfører inspeksjonen og når fristen er. Inspektøren får påminnelse når fristen nærmer seg.",
         "steps": [
           "Velg sjekklisten; spørsmålene kopieres inn i inspeksjonen.",
-          "Koble gjerne eiendelen, prosessen, leverandøren eller risikoen som kontrolleres.",
+          "Koble gjerne [[asset|eiendelen]], prosessen, leverandøren eller risikoen som kontrolleres.",
           "Velg inspektør og eier, og sett en frist, så vises inspeksjonen i Mitt arbeid."
         ]
       },
@@ -187,11 +187,11 @@
     "detail": {
       "intro": {
         "title": "En inspeksjon og resultatene",
-        "body": "Se hva som kontrolleres, fremdriften eller resultatet, alle svar per seksjon med kravene de dekker, og funnene. Resultat og poengsum regnes ut når inspeksjonen fullføres.",
+        "body": "Se hva som kontrolleres, fremdriften eller resultatet, alle svar per seksjon med kravene de dekker, og [[audit-finding|funnene]]. Resultat og poengsum regnes ut når inspeksjonen fullføres.",
         "steps": [
           "Trykk **Start** eller **Fortsett** for å svare på sjekklisten.",
-          "Etter fullføring går du gjennom svarene som ikke ble godkjent, og funnene deres.",
-          "Gi funnene eier og oppgaver, opprett avvik for de alvorlige, og last ned rapporten ved behov."
+          "Etter fullføring går du gjennom svarene som ikke ble godkjent, og [[audit-finding|funnene]] deres.",
+          "Gi [[audit-finding|funnene]] eier og oppgaver, opprett [[nonconformity|avvik]] for de alvorlige, og last ned rapporten ved behov."
         ]
       },
       "why": {
@@ -223,7 +223,7 @@
     "run": {
       "intro": {
         "title": "Slik gjennomfører du en inspeksjon",
-        "body": "Svar på spørsmålene underveis. Svarene **lagres automatisk**, så du kan stoppe og fortsette senere. Når noe ikke er i orden, skriver du hva du så eller tar et bilde: det blir grunnlaget for funnet.",
+        "body": "Svar på spørsmålene underveis. Svarene **lagres automatisk**, så du kan stoppe og fortsette senere. Når noe ikke er i orden, skriver du hva du så eller tar et bilde: det blir grunnlaget for [[audit-finding|funnet]].",
         "steps": [
           "Under hvert spørsmål står det hva som ikke godkjennes.",
           "Merk et spørsmål som **Ikke relevant** bare når det virkelig ikke gjelder her.",

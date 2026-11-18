@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Know what you have and who looks after it",
-        "body": "The asset inventory lists everything the organisation depends on: **information**, **systems and software**, **equipment**, **services**, **premises** and things people carry, like laptops and access cards. Every asset has an **owner**, a **classification** and a place in its **lifecycle**.",
+        "body": "The [[asset|asset|=]] inventory lists everything the organisation depends on: **information**, **systems and software**, **equipment**, **services**, **premises** and things people carry, like laptops and access cards. Every [[asset|asset]] has an **owner**, a **classification** and a place in its **lifecycle**.",
         "steps": [
-          "Register your most important assets first: the systems and information you could not work without.",
-          "Give each asset an owner and a classification. The owner decides who gets access and how it is protected.",
-          "Mark measuring equipment that needs calibration, and keep the lifecycle up to date when things are retired or disposed of."
+          "Register your most important [[asset|assets]] first: the systems and information you could not work without.",
+          "Give each [[asset|asset]] an owner and a classification. The owner decides who gets access and how it is protected.",
+          "Mark measuring equipment that needs [[calibration|calibration]], and keep the lifecycle up to date when things are retired or disposed of."
         ]
       },
       "why": {
@@ -30,9 +30,9 @@
     "form": {
       "intro": {
         "title": "Describe the asset and how it must be protected",
-        "body": "Fill in what the asset is, who owns it and where it is. The **classification** and the three ratings (confidentiality, integrity and availability) say how much harm there would be if something went wrong, and so how strongly it must be protected.",
+        "body": "Fill in what the [[asset|asset]] is, who owns it and where it is. The **classification** and the three ratings (confidentiality, integrity and availability) say how much harm there would be if something went wrong, and so how strongly it must be protected.",
         "steps": [
-          "Name the asset and choose its type.",
+          "Name the [[asset|asset]] and choose its type.",
           "Choose a classification. If you are unsure, ask for a suggestion.",
           "Set an owner and, for things people carry, the custodian who holds it."
         ]
@@ -116,7 +116,7 @@
         "body": "Check that the classification and handling rules are still right, see the changes and access reviews that concern it, and record calibrations if it is measuring equipment.",
         "steps": [
           "Keep the owner, custodian and lifecycle up to date.",
-          "Raise a change request before you make a significant change to the asset.",
+          "Raise a change request before you make a significant change to the [[asset|asset]].",
           "Link documents, risks and suppliers under Related."
         ]
       },
@@ -144,11 +144,11 @@
     "detailInstrument": {
       "intro": {
         "title": "Keep this instrument fit for measuring",
-        "body": "Record each calibration with the result and the certificate. If the calibration is overdue, do not use the instrument for checks until it has been calibrated, and assess the impact if a calibration fails.",
+        "body": "Record each [[calibration|calibration]] with the result and the certificate. If the [[calibration|calibration]] is overdue, do not use the instrument for checks until it has been calibrated, and assess the impact if a [[calibration|calibration]] fails.",
         "steps": [
-          "Record the calibration with the laboratory and the certificate.",
-          "Mark the instrument as out of use when the calibration is overdue.",
-          "Assess the impact of a failed calibration, and register a deviation if products are affected."
+          "Record the [[calibration|calibration]] with the laboratory and the certificate.",
+          "Mark the instrument as out of use when the [[calibration|calibration]] is overdue.",
+          "Assess the impact of a failed [[calibration|calibration]], and register a [[nonconformity|deviation]] if products are affected."
         ]
       },
       "why": {
@@ -175,11 +175,11 @@
     "calibration": {
       "intro": {
         "title": "Keep measuring equipment calibrated",
-        "body": "This list shows instruments that are **overdue** or **due soon**. Open an instrument to record the calibration and attach the certificate.",
+        "body": "This list shows instruments that are **overdue** or **due soon**. Open an instrument to record the [[calibration|calibration]] and attach the certificate.",
         "steps": [
           "Plan calibrations before they fall due.",
-          "Record each calibration with the result and the certificate.",
-          "If a calibration fails, assess the impact on earlier measurements."
+          "Record each [[calibration|calibration]] with the result and the certificate.",
+          "If a [[calibration|calibration]] fails, assess the impact on earlier measurements."
         ]
       },
       "why": {
@@ -296,7 +296,7 @@
         "body": "Say what will change and why. The impact and risk assessment can be done now or in the assessment step. Once the change is approved, its content is frozen.",
         "steps": [
           "Give a clear title, a description and the reason.",
-          "List the affected assets.",
+          "List the affected [[asset|assets]].",
           "Assess impact and risk, and write the implementation and rollback plans."
         ]
       },

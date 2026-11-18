@@ -240,7 +240,7 @@
         "steps": [
           "Filtrer på kategori, avdeling eller stilling for å se ett område om gangen.",
           "Klikk på en celle for å åpne registreringen eller tildelingen bak den, eller på et navn for personens opplæringsoversikt.",
-          "Skriv ut eller eksporter matrisen til ledelsens gjennomgang og revisjoner."
+          "Skriv ut eller eksporter matrisen til [[management-review|ledelsens gjennomgang]] og revisjoner."
         ]
       },
       "why": {
