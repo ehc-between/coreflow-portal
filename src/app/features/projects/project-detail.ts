@@ -1,3 +1,4 @@
+import { LowerCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -162,6 +163,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
 @Component({
   selector: 'app-project-detail',
   imports: [
+    LowerCasePipe,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -385,7 +387,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
                     'projects.detail.closedNotice'
                       | transloco
                         : {
-                            status: (statusKey(p.status) | transloco),
+                            status: (statusKey(p.status) | transloco | lowercase),
                             date: (p.closed_at | localDay),
                             name: p.closed_by?.name ?? '',
                           }
@@ -523,7 +525,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
                           >
                             @if (purpose().affected.length || canLink()) {
                               <div class="flex flex-col gap-2">
-                                @if (purpose().affected.length) {
+                                @if (purpose().affected.length && !canLink()) {
                                   <div class="flex flex-wrap gap-1.5" data-testid="affected">
                                     @for (r of purpose().affected; track r.entity_id) {
                                       <app-entity-chip [ref]="r" />
@@ -550,7 +552,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
                           >
                             @if (purpose().objectives.length || canLink()) {
                               <div class="flex flex-col gap-2">
-                                @if (purpose().objectives.length) {
+                                @if (purpose().objectives.length && !canLink()) {
                                   <div class="flex flex-wrap gap-1.5" data-testid="objectives">
                                     @for (r of purpose().objectives; track r.entity_id) {
                                       <app-entity-chip [ref]="r" />

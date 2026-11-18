@@ -205,6 +205,37 @@ describe('ProjectDetailPage', () => {
     expect(el.querySelector('[data-testid="project-reopen"]')).toBeNull();
   });
 
+  it('lists affected records once: as picker chips when editable, read-only otherwise', async () => {
+    const process = {
+      entity_type: 'process',
+      entity_id: 'pr-1',
+      title: 'Sales and order handling',
+      code: 'PR-002',
+    };
+    const withLinks = async (project: ProjectDetail) => {
+      const ctx = await loaded(project);
+      const page = ctx.fixture.componentInstance as unknown as {
+        links: { set(v: readonly unknown[]): void };
+      };
+      page.links.set([{ link_type: 'relates_to', other: process }]);
+      await render(ctx.fixture);
+      return ctx.el;
+    };
+
+    const editable = await withLinks(makeProjectDetail());
+    expect(editable.querySelector('[data-testid="affected"]')).toBeNull();
+    expect(
+      editable.querySelector('[data-testid="detail-pick-affected-picked"]')?.textContent,
+    ).toContain('Sales and order handling');
+
+    TestBed.resetTestingModule();
+    const readOnly = await withLinks(makeProjectDetail({ can_edit: false }));
+    expect(readOnly.querySelector('[data-testid="detail-pick-affected-picked"]')).toBeNull();
+    expect(readOnly.querySelector('[data-testid="affected"]')?.textContent).toContain(
+      'Sales and order handling',
+    );
+  });
+
   it('explains up front why completing is blocked', async () => {
     const { el, fixture } = await loaded();
     el.querySelector<HTMLElement>('[data-testid="project-close"] button')!.click();
