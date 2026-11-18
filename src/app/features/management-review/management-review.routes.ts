@@ -3,6 +3,7 @@ import { CanDeactivateFn, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { LanguageService } from '../../core/i18n/language.service';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const writeGuard = (redirectTo: string) =>
   permissionGuard('management_review:write', { redirectTo });
@@ -76,10 +77,8 @@ export default [
         canActivate: [writeGuard('/management-review/meetings')],
         loadComponent: () => import('./meeting-editor').then((m) => m.MeetingEditor),
       },
-      {
-        path: 'settings',
-        loadComponent: () => import('./review-settings').then((m) => m.ReviewSettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/management-review.
+      moduleConfigRedirect('settings', 'management-review', ''),
     ],
   },
 ] satisfies Routes;

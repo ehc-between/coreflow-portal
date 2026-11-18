@@ -968,7 +968,7 @@ export function revisionFieldLabels(register: RegisterDef): Readonly<Record<stri
 export const PRIVACY_CRUMB = { labelKey: 'modules.names.privacy', link: '/privacy' } as const;
 
 /** The gear on the module's page headers (shown to holders of `privacy:manage`). */
-export const PRIVACY_SETTINGS_LINK = '/privacy/settings';
+export const PRIVACY_SETTINGS_LINK = '/settings/modules/privacy';
 
 /** The register's crumb (`Personvern › Behandlingsprotokoll`). */
 export function registerCrumb(register: RegisterDef) {

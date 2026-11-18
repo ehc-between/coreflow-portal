@@ -303,7 +303,7 @@ export class RecruitmentOverviewPage {
   private readonly api = inject(RecruitmentApi);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav(this.perms);
+  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
   protected readonly pipelineCounters = PIPELINE;
 

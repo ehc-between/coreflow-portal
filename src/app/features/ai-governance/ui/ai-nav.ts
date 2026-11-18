@@ -24,14 +24,9 @@ export const AI_GOV_NAV_ITEMS: readonly ModuleNavItem[] = [
     link: '/ai-governance/literacy',
     testId: 'ai-nav-literacy',
   },
-  {
-    labelKey: 'aiGovernance.nav.settings',
-    link: '/ai-governance/settings',
-    testId: 'ai-nav-settings',
-  },
 ];
 
-/** Sub-navigation of AI governance: overview, systems, assessments, literacy, settings. */
+/** Sub-navigation of AI governance: overview, systems, assessments, literacy (settings: the gear, U10). */
 @Component({
   selector: 'app-ai-nav',
   imports: [ModuleNav],

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const toList = { redirectTo: '/contracts' };
 
@@ -23,10 +24,8 @@ export default [
         path: 'deadlines',
         loadComponent: () => import('./contract-deadlines').then((m) => m.ContractDeadlines),
       },
-      {
-        path: 'settings',
-        loadComponent: () => import('./contract-settings').then((m) => m.ContractSettingsPage),
-      },
+      // U10: the module's configuration lives under /settings/modules/contracts.
+      moduleConfigRedirect('settings', 'contracts', ''),
       {
         path: 'new',
         canActivate: [permissionGuard('contracts:write', toList)],

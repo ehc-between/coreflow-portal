@@ -1,7 +1,9 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { hasAnyPermission } from '../../../core/auth/permission';
+import { MODULE_CONFIG_AREAS, moduleConfigLink } from '../../../core/modules/module-config';
 import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -19,9 +21,19 @@ export interface SettingsLink {
   readonly group?: SettingsGroup;
 }
 
-/** Hub sections, in display order. */
-export const SETTINGS_GROUPS = ['organisation', 'people', 'work', 'learning', 'trace'] as const;
+/** Hub sections, in display order. `advanced` is folded away under "Advanced" (U10). */
+export const SETTINGS_GROUPS = [
+  'organisation',
+  'people',
+  'work',
+  'learning',
+  'trace',
+  'advanced',
+] as const;
 export type SettingsGroup = (typeof SETTINGS_GROUPS)[number];
+
+/** Sections shown folded, under one "Advanced" toggle at the bottom of the hub. */
+export const ADVANCED_GROUPS: readonly SettingsGroup[] = ['advanced'];
 
 /**
  * The F1 organisation links (modules scope keys). Kept for the F1 i18n spec; the
@@ -147,9 +159,9 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     path: '/settings/record-types',
     labelKey: 'settings.hub.cards.recordTypes',
     hintKey: 'settings.hub.cards.recordTypesHint',
-    icon: 'template',
+    icon: 'procedures',
     permission: 'records:admin',
-    group: 'work',
+    group: 'advanced',
   },
   {
     path: '/settings/guidance',
@@ -173,7 +185,7 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     hintKey: 'settings.hub.cards.deletedHint',
     icon: 'trash',
     permission: 'org:manage',
-    group: 'trace',
+    group: 'advanced',
   },
   {
     path: '/settings/attachment-deletions',
@@ -181,7 +193,7 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     hintKey: 'settings.hub.cards.attachmentDeletionsHint',
     icon: 'trash',
     permission: 'audit:read',
-    group: 'trace',
+    group: 'advanced',
   },
 ];
 
@@ -206,98 +218,59 @@ export interface ModuleSettingsCard {
 }
 
 /**
- * Module configuration pages (types, templates, matrices, settings). Each module
- * also links here from the gear (`settingsLink`) in its page header. Area items
- * add their module's pages to this list.
+ * Module configuration pages (types, templates, matrices, settings), one card per
+ * module, from the U10 registry: they all live under `/settings/modules/<slug>`,
+ * and each module's gear (`settingsLink`) points there too. Role overviews are a
+ * reports page, not module configuration, and keep their own address.
  */
 export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
-  {
-    module: 'documents',
-    icon: 'documents',
-    links: [
-      { path: '/documents/types', labelKey: 'settings.hub.moduleLinks.types' },
-      { path: '/documents/templates', labelKey: 'settings.hub.moduleLinks.templates' },
-      { path: '/documents/retention', labelKey: 'settings.hub.moduleLinks.retention' },
-    ],
-  },
-  {
-    module: 'deviations',
-    icon: 'alert',
-    links: [
-      { path: '/deviations/types', labelKey: 'settings.hub.moduleLinks.types' },
-      { path: '/deviations/templates', labelKey: 'settings.hub.moduleLinks.templates' },
-      { path: '/deviations/intake/settings', labelKey: 'settings.hub.moduleLinks.intake' },
-    ],
-  },
-  {
-    module: 'inspections',
-    icon: 'checkcircle',
-    links: [{ path: '/inspections/templates', labelKey: 'settings.hub.moduleLinks.checklists' }],
-  },
-  {
-    module: 'risk',
-    icon: 'risk',
-    links: [{ path: '/risk/matrices', labelKey: 'settings.hub.moduleLinks.matrices' }],
-  },
-  {
-    module: 'management_review',
-    icon: 'calendar',
-    links: [{ path: '/management-review/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
-  {
-    module: 'contracts',
-    icon: 'contract',
-    links: [{ path: '/contracts/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
-  {
-    module: 'environment',
-    icon: 'leaf',
-    links: [
-      {
-        path: '/environment/scoring',
-        labelKey: 'settings.hub.moduleLinks.significanceMethod',
-      },
-    ],
-  },
-  {
-    module: 'suppliers',
-    icon: 'link',
-    links: [{ path: '/suppliers/questionnaires', labelKey: 'settings.hub.moduleLinks.templates' }],
-  },
-  {
-    module: 'recruitment',
-    icon: 'userplus',
-    links: [{ path: '/recruitment/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
-  {
-    module: 'feedback',
-    icon: 'smile',
-    links: [{ path: '/feedback/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
-  {
-    module: 'ai_governance',
-    icon: 'spark',
-    links: [{ path: '/ai-governance/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
+  ...MODULE_CONFIG_AREAS.map((area) => ({
+    module: area.module,
+    icon: area.icon,
+    links: area.pages.map((page) => ({
+      path: moduleConfigLink(area.slug, page.path),
+      labelKey: page.labelKey,
+    })),
+  })),
   {
     module: 'reports',
     icon: 'reports',
     links: [{ path: '/reports/dashboards', labelKey: 'settings.hub.moduleLinks.roleOverviews' }],
   },
-  {
-    module: 'privacy',
-    icon: 'shield',
-    links: [{ path: '/privacy/settings', labelKey: 'settings.hub.moduleLinks.settings' }],
-  },
 ];
 
-/** The settings hub: grouped organisation cards, then one card per enabled module. */
+/**
+ * The settings hub: grouped organisation cards, then one card per enabled module
+ * (its configuration pages), then the rarely needed pages folded under "Advanced".
+ */
 @Component({
   selector: 'app-settings-links',
-  imports: [RouterLink, TranslocoPipe, Icon],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @for (section of sections(); track section.group; let first = $first) {
+    <ng-template #cardGrid let-cards>
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        @for (card of cards; track card.labelKey) {
+          <li>
+            <a
+              [routerLink]="card.path"
+              [attr.data-testid]="'settings-card-' + card.labelKey"
+              class="flex h-full flex-col gap-1.5 rounded-card border border-border bg-surface p-4 shadow-card transition-colors hover:border-accent-border hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
+            >
+              <span class="flex items-center gap-2 text-card font-bold text-fg">
+                <span class="flex text-accent" aria-hidden="true">
+                  <app-icon [name]="card.icon" [size]="17" />
+                </span>
+                {{ card.labelKey | transloco }}
+              </span>
+              <span class="text-meta text-fg-muted">{{ card.hintKey | transloco }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </ng-template>
+
+    @for (section of mainSections(); track section.group; let first = $first) {
       <section
         [attr.aria-labelledby]="'settings-hub-' + section.group"
         [class.mt-8]="!first"
@@ -309,25 +282,7 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
         >
           {{ 'settings.hub.groups.' + section.group | transloco }}
         </h2>
-        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          @for (card of section.cards; track card.labelKey) {
-            <li>
-              <a
-                [routerLink]="card.path"
-                [attr.data-testid]="'settings-card-' + card.labelKey"
-                class="flex h-full flex-col gap-1.5 rounded-card border border-border bg-surface p-4 shadow-card transition-colors hover:border-accent-border hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-accent"
-              >
-                <span class="flex items-center gap-2 text-card font-bold text-fg">
-                  <span class="flex text-accent" aria-hidden="true">
-                    <app-icon [name]="card.icon" [size]="17" />
-                  </span>
-                  {{ card.labelKey | transloco }}
-                </span>
-                <span class="text-meta text-fg-muted">{{ card.hintKey | transloco }}</span>
-              </a>
-            </li>
-          }
-        </ul>
+        <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: section.cards }" />
       </section>
     }
 
@@ -371,6 +326,33 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
         </ul>
       </section>
     }
+
+    @if (advancedCards().length) {
+      <details
+        class="group mt-8 rounded-card border border-border bg-surface-2/40"
+        data-testid="settings-section-advanced"
+        [open]="advancedOpen()"
+      >
+        <summary
+          class="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 py-3 font-display text-section font-bold text-fg focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden"
+          data-testid="settings-advanced-toggle"
+        >
+          <span
+            class="flex text-fg-muted -rotate-90 transition-transform group-open:rotate-0"
+            aria-hidden="true"
+          >
+            <app-icon name="chevron" [size]="16" />
+          </span>
+          {{ 'settings.hub.groups.advanced' | transloco }}
+          <span class="ml-1 text-meta font-normal text-fg-muted">
+            {{ 'settings.hub.advancedHint' | transloco }}
+          </span>
+        </summary>
+        <div class="px-4 pb-4">
+          <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: advancedCards() }" />
+        </div>
+      </details>
+    }
   `,
 })
 export class SettingsLinks {
@@ -379,7 +361,22 @@ export class SettingsLinks {
 
   private readonly granted = computed(() => this.selectedOrg.currentOrg()?.permissions);
 
-  protected readonly sections = computed(() => hubSections(this.granted()));
+  private readonly sections = computed(() => hubSections(this.granted()));
+
+  protected readonly mainSections = computed(() =>
+    this.sections().filter((section) => !ADVANCED_GROUPS.includes(section.group)),
+  );
+
+  protected readonly advancedCards = computed(() =>
+    this.sections()
+      .filter((section) => ADVANCED_GROUPS.includes(section.group))
+      .flatMap((section) => section.cards),
+  );
+
+  /** Open the fold when it is all the caller may see (nothing else to scan past). */
+  protected readonly advancedOpen = computed(
+    () => this.mainSections().length === 0 && this.moduleCards().length === 0,
+  );
 
   protected readonly moduleCards = computed(() =>
     MODULE_SETTINGS_CARDS.filter(

@@ -22,7 +22,6 @@ import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { PrivacyApi } from './data/privacy-api';
 import {
@@ -33,14 +32,15 @@ import {
   SettingsField,
 } from './data/privacy.models';
 import { privacyError } from './data/privacy-errors';
-import { PRIVACY_CRUMB } from './data/privacy-registers';
-import { privacyNavItems, privacyPermissions } from './privacy-nav';
+import { privacyPermissions } from './privacy-nav';
+import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../core/modules/module-config';
 
 /** Long texts (address, representative) get a text area. */
 const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative']);
 
 /**
- * Privacy settings (`/privacy/settings`): who the controller is and how to reach the
+ * Privacy settings (`/settings/modules/privacy`): who the controller is and how to reach the
  * data protection officer (Art. 13(1)(a)-(b), 30(1)(a), 37). They head the exported
  * record of processing and the privacy notices, and the overview's "start here"
  * counts them as the first step. Read by every privacy reader; changed by
@@ -58,7 +58,7 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
     FormField,
     HelpStrip,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,7 +69,7 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
         descriptionKey="privacy.settings.subtitle"
         [breadcrumbs]="breadcrumbs"
       />
-      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-module-config-nav module="privacy" />
       <app-help-strip scope="privacy" page="settings" />
 
       @switch (state()) {
@@ -156,8 +156,10 @@ export class PrivacySettingsPage {
   private readonly notify = inject(NotificationService);
   private readonly perms = privacyPermissions();
 
-  protected readonly nav = privacyNavItems(this.perms);
-  protected readonly breadcrumbs: readonly Breadcrumb[] = [PRIVACY_CRUMB];
+  protected readonly breadcrumbs: readonly Breadcrumb[] = [
+    ...moduleConfigCrumbs('privacy'),
+    { labelKey: 'privacy.settings.title' },
+  ];
   protected readonly groups: readonly { key: string; fields: readonly SettingsField[] }[] = [
     { key: 'controller', fields: ['controller_name', 'controller_contact', 'representative'] },
     { key: 'dpo', fields: ['dpo_name', 'dpo_email', 'dpo_phone'] },

@@ -170,7 +170,7 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
           @if (metaTemplate(); as t) {
             <span aria-hidden="true">·</span>
             <a
-              [routerLink]="['/inspections/templates', t.id]"
+              [routerLink]="['/settings/modules/inspections/templates', t.id]"
               class="hover:text-accent hover:underline"
               >{{ t.title }}</a
             >
@@ -287,7 +287,7 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
               <app-field-item labelKey="inspections.fields.template">
                 @if (ins.template; as t) {
                   <a
-                    [routerLink]="['/inspections/templates', t.id]"
+                    [routerLink]="['/settings/modules/inspections/templates', t.id]"
                     class="text-accent hover:underline"
                     >{{ t.title }}</a
                   >

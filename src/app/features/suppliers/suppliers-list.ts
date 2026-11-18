@@ -187,7 +187,7 @@ interface Kpi {
       titleKey="modules.names.suppliers"
       descriptionKey="suppliers.list.subtitle"
       scope="suppliers"
-      settingsLink="/suppliers/questionnaires"
+      settingsLink="/settings/modules/suppliers"
       searchPlaceholderKey="suppliers.list.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"

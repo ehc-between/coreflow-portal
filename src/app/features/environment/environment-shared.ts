@@ -37,11 +37,12 @@ const NAV: readonly ModuleNavItem[] = [
   { labelKey: 'environment.nav.emissions', link: '/environment/emissions' },
 ];
 
-/** The module's sub-pages (`app-module-nav` under every header); scoring needs manage. */
-export function envNav(canManage: boolean): readonly ModuleNavItem[] {
-  return canManage
-    ? [...NAV, { labelKey: 'environment.nav.scoring', link: '/environment/scoring' }]
-    : NAV;
+/**
+ * The module's sub-pages (`app-module-nav` under every header). The significance
+ * method is configuration (U10): it sits behind the gear, not in the tabs.
+ */
+export function envNav(): readonly ModuleNavItem[] {
+  return NAV;
 }
 
 /** The module root as the first breadcrumb (= nav label = module h1). */
@@ -56,11 +57,11 @@ export const ENV_CRUMBS = {
   plans: { labelKey: 'environment.nav.plans', link: '/environment/emergency-plans' },
   metrics: { labelKey: 'environment.nav.metrics', link: '/environment/metrics' },
   emissions: { labelKey: 'environment.nav.emissions', link: '/environment/emissions' },
-  scoring: { labelKey: 'environment.nav.scoring', link: '/environment/scoring' },
+  scoring: { labelKey: 'environment.nav.scoring', link: '/settings/modules/environment' },
 } as const satisfies Record<string, Breadcrumb>;
 
 /** The gear in every page header: the significance method (managers only). */
-export const ENV_SETTINGS_LINK = '/environment/scoring';
+export const ENV_SETTINGS_LINK = '/settings/modules/environment';
 
 export interface EnvPermissions {
   readonly write: Signal<boolean>;
@@ -82,7 +83,7 @@ export function injectEnvPermissions(): EnvPermissions {
     manage,
     record: has(PERM_RECORD),
     has,
-    nav: computed(() => envNav(manage())),
+    nav: computed(() => envNav()),
     settingsLink: computed(() => (manage() ? ENV_SETTINGS_LINK : null)),
   };
 }

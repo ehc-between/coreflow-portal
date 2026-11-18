@@ -652,11 +652,6 @@
         "target": "documents-type-new",
         "title": "New type",
         "body": "Create a document type with automatic numbering and defaults."
-      },
-      {
-        "target": "documents-nav-templates",
-        "title": "Templates",
-        "body": "Give each type a template with the right structure."
       }
     ],
     "typeForm": [

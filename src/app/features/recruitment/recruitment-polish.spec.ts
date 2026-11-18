@@ -206,14 +206,13 @@ describe('recruitment rules (A12)', () => {
     ).toEqual({ headcount: 'recruitment.form.errors.headcount' });
   });
 
-  it('starts the module nav with the overview and shows settings to managers only', () => {
-    expect(recruitmentNavItems(false).map((i) => i.link)).toEqual([
+  it('starts the module nav with the overview and keeps settings out of the tabs (U10)', () => {
+    expect(recruitmentNavItems().map((i) => i.link)).toEqual([
       '/recruitment',
       '/recruitment/requisitions',
       '/recruitment/applications',
       '/recruitment/candidates',
     ]);
-    expect(recruitmentNavItems(true).at(-1)?.link).toBe('/recruitment/settings');
   });
 });
 

@@ -279,7 +279,7 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
                 <dd class="text-fg">
                   @if (r.retention_rule_id) {
                     <a
-                      [routerLink]="['/documents/retention', r.retention_rule_id]"
+                      [routerLink]="['/settings/modules/documents/retention', r.retention_rule_id]"
                       class="hover:underline"
                       >{{ r.retention_rule_name }}</a
                     >

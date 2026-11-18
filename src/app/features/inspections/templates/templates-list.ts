@@ -26,17 +26,11 @@ import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { RecordRow, RecordRowHeader } from '../../../shared/ui/record-row/record-row';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { FILTER_STYLES, pick } from '../components/filter-styles';
-import {
-  INSPECTIONS_NAV,
-  INSPECTIONS_SETTINGS_LINK,
-  categoryKey,
-  templateStatusKey,
-} from '../data/inspection-display';
+import { categoryKey, templateStatusKey } from '../data/inspection-display';
 import {
   INSPECTIONS_MODULE,
   SUPPORTED_FRAMEWORKS,
@@ -50,6 +44,7 @@ import {
   TemplateStatus,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
 
 const PAGE_SIZE = 25;
 
@@ -108,7 +103,7 @@ export function toTemplateQuery(
 }
 
 /**
- * Checklist templates (`/inspections/templates`, "Sjekklistemaler"): search, filters
+ * Checklist templates (`/settings/modules/inspections/templates`, "Sjekklistemaler"): search, filters
  * (status, category, standard), sort, saved views and paging. Each row shows the
  * category, question count, version, the standards it is for and the requirements
  * it documents. Designers (`inspections:templates`) build a new template or start
@@ -132,7 +127,7 @@ export function toTemplateQuery(
     HelpStrip,
     Icon,
     LoadingState,
-    ModuleNav,
+    ModuleConfigNav,
     Pager,
     RecordRow,
     RecordRowHeader,
@@ -146,7 +141,6 @@ export function toTemplateQuery(
       [breadcrumbs]="breadcrumbs"
       scope="inspections"
       page="templates"
-      [settingsLink]="settingsLink"
       searchPlaceholderKey="inspections.templates.searchPlaceholder"
       [query]="query()"
       [filters]="viewFilters()"
@@ -155,7 +149,11 @@ export function toTemplateQuery(
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
     >
-      <a secondary routerLink="/inspections/templates/library" data-testid="open-library">
+      <a
+        secondary
+        routerLink="/settings/modules/inspections/templates/library"
+        data-testid="open-library"
+      >
         <app-button variant="secondary">
           <app-icon name="documents" [size]="15" />
           {{ 'inspections.templates.library' | transloco }}
@@ -164,7 +162,7 @@ export function toTemplateQuery(
       <a
         primary
         *appHasPermission="'inspections:templates'"
-        routerLink="/inspections/templates/new"
+        routerLink="/settings/modules/inspections/templates/new"
         appTourStep="inspections-template-new"
         data-testid="new-template"
       >
@@ -174,7 +172,7 @@ export function toTemplateQuery(
         </app-button>
       </a>
 
-      <app-module-nav nav class="mb-4 block" labelKey="modules.names.inspections" [items]="nav" />
+      <app-module-config-nav nav module="inspections" />
       <app-help-strip
         help
         scope="inspections"
@@ -273,7 +271,7 @@ export function toTemplateQuery(
                 [code]="row.code"
                 [title]="row.title"
                 [subtitle]="subtitle(row)"
-                [link]="['/inspections/templates', row.id]"
+                [link]="['/settings/modules/inspections/templates', row.id]"
                 [date]="row.updated_at"
                 dateKind="updated"
               >
@@ -323,11 +321,10 @@ export class TemplatesList {
   private readonly language = inject(LanguageService);
 
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly nav = INSPECTIONS_NAV;
-  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly entityType = TEMPLATE_ENTITY_TYPE;
   protected readonly breadcrumbs = [
-    { labelKey: 'modules.names.inspections', link: '/inspections' },
+    { labelKey: 'nav.settings', link: '/settings' },
+    { labelKey: 'modules.names.inspections' },
     { labelKey: 'inspections.templates.title' },
   ];
   protected readonly statuses = TEMPLATE_STATUSES;
@@ -445,6 +442,6 @@ export class TemplatesList {
   }
 
   protected openLibrary(): void {
-    void this.router.navigate(['/inspections/templates/library']);
+    void this.router.navigate(['/settings/modules/inspections/templates/library']);
   }
 }

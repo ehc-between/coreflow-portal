@@ -689,7 +689,7 @@ export class DeviationNew {
   }
 
   protected goToTemplates(): void {
-    void this.router.navigateByUrl('/deviations/templates');
+    void this.router.navigateByUrl('/settings/modules/deviations/templates');
   }
 
   protected setRecordData(value: Record<string, unknown>): void {

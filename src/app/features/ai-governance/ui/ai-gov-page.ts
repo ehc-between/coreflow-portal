@@ -4,6 +4,8 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-header';
 import { AI_GOVERNANCE_SCOPE } from '../data/ai-governance-display';
 import { AiNav } from './ai-nav';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 /** Breadcrumb root of every AI governance page (= nav label = module h1). */
 export const AI_GOV_ROOT: Breadcrumb = {
@@ -20,7 +22,7 @@ export const AI_GOV_ROOT: Breadcrumb = {
  */
 @Component({
   selector: 'app-ai-gov-page',
-  imports: [PageHeader, HelpStrip, WhyItMatters, AiNav],
+  imports: [PageHeader, HelpStrip, WhyItMatters, AiNav, ModuleConfigNav],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -40,7 +42,9 @@ export const AI_GOV_ROOT: Breadcrumb = {
         <ng-container ngProjectAs="[primary]"><ng-content select="[primary]" /></ng-container>
         <ng-container ngProjectAs="[overflow]"><ng-content select="[overflow]" /></ng-container>
       </app-page-header>
-      @if (nav()) {
+      @if (config()) {
+        <app-module-config-nav module="ai_governance" />
+      } @else if (nav()) {
         <app-ai-nav class="mb-5" />
       }
       <app-help-strip [scope]="scope" [page]="page()" [tour]="tour()" [lesson]="lesson()" />
@@ -66,13 +70,15 @@ export class AiGovPage {
   /** Show the module sub-navigation (off on forms and sub-pages of a record). */
   readonly nav = input(true);
   readonly why = input(true);
-  readonly settingsLink = input<string | null>('/ai-governance/settings');
+  /** A configuration page (U10): Settings crumbs and the configuration nav, no module tabs. */
+  readonly config = input(false);
+  readonly settingsLink = input<string | null>('/settings/modules/ai-governance');
   readonly backLink = input<string | readonly unknown[] | null>(null);
   readonly backLabelKey = input<string | null>(null);
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly crumbs = computed<readonly Breadcrumb[]>(() => [
-    AI_GOV_ROOT,
+    ...(this.config() ? moduleConfigCrumbs('ai_governance') : [AI_GOV_ROOT]),
     ...this.breadcrumbs(),
   ]);
 }

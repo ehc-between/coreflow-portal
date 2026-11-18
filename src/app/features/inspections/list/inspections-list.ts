@@ -469,7 +469,7 @@ export function toInspectionQuery(
           />
           <p class="mt-3 text-center text-ui">
             <a
-              routerLink="/inspections/templates/library"
+              routerLink="/settings/modules/inspections/templates/library"
               class="font-semibold text-accent hover:underline"
             >
               {{ 'inspections.list.browseTemplates' | transloco }}

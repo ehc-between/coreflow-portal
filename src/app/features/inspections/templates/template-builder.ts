@@ -43,11 +43,7 @@ import {
   toEditable,
   toQuestionInput,
 } from '../data/answer-model';
-import {
-  INSPECTIONS_SETTINGS_LINK,
-  questionTypeKey,
-  severityKey,
-} from '../data/inspection-display';
+import { questionTypeKey, severityKey } from '../data/inspection-display';
 import { inspectionErrorKey, problemIndexesOf } from '../data/inspection-errors';
 import { InspectionReferences } from '../data/inspection-references';
 import {
@@ -137,7 +133,7 @@ export function toTemplateFields(
 }
 
 /**
- * The checklist template builder (`/inspections/templates/new`, `/:id/edit`): title,
+ * The checklist template builder (`/settings/modules/inspections/templates/new`, `/:id/edit`): title,
  * description, category, the standards it is for (only those the module supports,
  * and the org has switched on), the pass mark, and when findings become deviations
  * (from a chosen severity); then the questions as one-line summaries that open for
@@ -178,7 +174,6 @@ export function toTemplateFields(
       <app-page-header
         [titleKey]="id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle'"
         [breadcrumbs]="breadcrumbs()"
-        [settingsLink]="settingsLink"
       >
         <ng-container ngProjectAs="[meta]">
           @if (original(); as t) {
@@ -216,7 +211,7 @@ export function toTemplateFields(
             titleKey="inspections.templates.notFoundTitle"
             bodyKey="inspections.templates.notFound"
             ctaKey="inspections.templates.backToTemplates"
-            ctaLink="/inspections/templates"
+            ctaLink="/settings/modules/inspections/templates"
           />
         } @else {
           <app-loading-state [rows]="5" />
@@ -486,7 +481,13 @@ export function toTemplateFields(
           <div
             class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:-mx-8 sm:px-8"
           >
-            <a [routerLink]="id() ? ['/inspections/templates', id()] : '/inspections/templates'">
+            <a
+              [routerLink]="
+                id()
+                  ? ['/settings/modules/inspections/templates', id()]
+                  : '/settings/modules/inspections/templates'
+              "
+            >
               <app-button variant="secondary">{{
                 'inspections.actions.cancel' | transloco
               }}</app-button>
@@ -624,7 +625,6 @@ export class TemplateBuilder {
   protected readonly typeKey = questionTypeKey;
   protected readonly severityKey = severityKey;
   protected readonly generateAssist = ASSIST_GENERATE_CHECKLIST;
-  protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
   protected readonly sectionListId = 'tb-sections';
   protected readonly supportedFrameworks = SUPPORTED_FRAMEWORKS;
 
@@ -653,9 +653,10 @@ export class TemplateBuilder {
   protected readonly breadcrumbs = computed(() => {
     const t = this.original();
     return [
-      { labelKey: 'modules.names.inspections', link: '/inspections' },
-      { labelKey: 'inspections.templates.title', link: '/inspections/templates' },
-      ...(t ? [{ label: t.title, link: `/inspections/templates/${t.id}` }] : []),
+      { labelKey: 'nav.settings', link: '/settings' },
+      { labelKey: 'modules.names.inspections' },
+      { labelKey: 'inspections.templates.title', link: '/settings/modules/inspections/templates' },
+      ...(t ? [{ label: t.title, link: `/settings/modules/inspections/templates/${t.id}` }] : []),
       { labelKey: this.id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle' },
     ];
   });
@@ -872,7 +873,7 @@ export class TemplateBuilder {
     this.notifications.success(
       published ? 'inspections.notices.published' : 'inspections.notices.templateSaved',
     );
-    void this.router.navigate(['/inspections/templates', saved.id]);
+    void this.router.navigate(['/settings/modules/inspections/templates', saved.id]);
   }
 
   private fail(error: unknown): void {

@@ -27,11 +27,11 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Switch } from '../../../shared/ui/switch/switch';
-import { DEVIATIONS_ROOT_CRUMB, saveBlob } from '../deviation-display';
-import { DeviationsNavService } from '../ui/deviations-nav';
+import { saveBlob } from '../deviation-display';
+import { ModuleConfigNav } from '../../../shared/ui/module-config-nav/module-config-nav';
+import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 
 /** The absolute URL of the public form for a settings `public_path`. */
 export function publicUrl(origin: string, path: string): string {
@@ -104,6 +104,7 @@ ${body}
 @Component({
   selector: 'app-intake-settings',
   imports: [
+    ModuleConfigNav,
     FormsModule,
     TranslocoPipe,
     Alert,
@@ -115,7 +116,6 @@ ${body}
     FieldHelp,
     HelpStrip,
     LoadingState,
-    ModuleNav,
     PageHeader,
     QrCode,
   ],
@@ -126,9 +126,9 @@ ${body}
         titleKey="deviations.intake.settings.title"
         descriptionKey="deviations.intake.settings.subtitle"
         [breadcrumbs]="breadcrumbs"
-        backLink="/deviations/intake"
+        backLink="/settings"
       />
-      <app-module-nav [items]="nav.items()" labelKey="modules.names.deviations" />
+      <app-module-config-nav module="deviations" />
       <app-help-strip scope="deviations" page="intakeSettings" lesson="speaking-up" />
 
       <div class="max-w-[760px]">
@@ -331,10 +331,8 @@ export class IntakeSettingsPage {
   private readonly notifications = inject(NotificationService);
   private readonly document = inject(DOCUMENT);
   private readonly language = inject(LanguageService);
-  protected readonly nav = inject(DeviationsNavService);
   protected readonly breadcrumbs = [
-    DEVIATIONS_ROOT_CRUMB,
-    { labelKey: 'deviations.intake.inbox.title', link: '/deviations/intake' },
+    ...moduleConfigCrumbs('deviations'),
     { labelKey: 'deviations.intake.settings.title' },
   ];
 

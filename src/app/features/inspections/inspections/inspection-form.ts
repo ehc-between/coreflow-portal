@@ -197,7 +197,7 @@ export function defaultTitle(templateTitle: string | null, location: string): st
                     <app-alert tone="info" class="mt-2 block">
                       {{ 'inspections.form.noTemplates' | transloco }}
                       <a
-                        routerLink="/inspections/templates/library"
+                        routerLink="/settings/modules/inspections/templates/library"
                         class="font-semibold text-accent"
                       >
                         {{ 'inspections.list.browseTemplates' | transloco }}

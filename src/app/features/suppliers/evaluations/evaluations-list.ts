@@ -104,7 +104,7 @@ export function statusChipCount(
           { labelKey: 'modules.names.suppliers', link: '/suppliers' },
           { labelKey: 'suppliers.evaluationsPage.title' },
         ]"
-        settingsLink="/suppliers/questionnaires"
+        settingsLink="/settings/modules/suppliers"
       >
         <app-button secondary variant="ghost" (click)="askPriorities()">
           <app-icon name="spark" [size]="14" />
