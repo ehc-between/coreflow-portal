@@ -8,6 +8,7 @@ import nb from '../../../assets/i18n/nb.json';
 import { AiAvailability } from '../../core/ai/ai-availability';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { GuidanceService } from '../../core/guidance/guidance.service';
+import { LearningProgressService } from '../../core/guidance/learning-progress.service';
 import { TutorService } from '../../core/guidance/tutor.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { TourService } from '../guidance/tour.service';
@@ -355,7 +356,11 @@ describe('HelpStrip', () => {
           useValue: {
             readPage: () => page,
             readTour: () => [{ target: 'x', title: 't', body: 'b' }],
-            readLesson: () => ({ title: 'Risk basics', minutes: 5, sections: [] }),
+            readLesson: () => ({
+              title: 'Risk basics',
+              minutes: 5,
+              sections: [{ heading: 'H', body: 'B' }],
+            }),
             readLoaded: () => true,
             readFile: () => null,
           },
@@ -367,6 +372,10 @@ describe('HelpStrip', () => {
         { provide: TutorService, useValue: tutor },
         { provide: TourService, useValue: tours },
         { provide: AiAvailability, useValue: { unavailable: signal(false) } },
+        {
+          provide: LearningProgressService,
+          useValue: { ensureLoaded: vi.fn(), byKey: signal(new Map()), record: vi.fn() },
+        },
       ],
     );
     const fixture = TestBed.createComponent(StripHost);
@@ -375,10 +384,19 @@ describe('HelpStrip', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('opens on the first visit, renders markdown steps and offers the three actions', async () => {
+  it('shows one line and a "?" whose panel holds the intro, the steps and the three actions', async () => {
     const { fixture, el, tutor, tours } = setupStrip('standard');
     await fixture.whenStable();
     const toggle = el.querySelector<HTMLElement>('[data-testid="help-strip-toggle"]')!;
+    expect(el.querySelector('[data-testid="help-strip-lead"]')?.textContent?.trim()).toBe(
+      'What this page is for',
+    );
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(el.querySelector('ol li strong')).toBeNull();
+    expect(el.querySelector('[data-testid="help-strip-tour"]')).toBeNull();
+
+    toggle.click();
+    await fixture.whenStable();
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
     expect(el.querySelector('ol li strong')?.textContent).toBe('Tavle');
     expect(el.querySelector('[data-testid="help-strip-tour"]')?.textContent?.trim()).toBe('Tour');
@@ -390,30 +408,39 @@ describe('HelpStrip', () => {
     );
     el.querySelector<HTMLElement>('[data-testid="help-strip-explain"]')!.click();
     expect(tutor.teach).toHaveBeenCalledWith('risk.list', 'What this page is for');
-    el.querySelector<HTMLElement>('[data-testid="help-strip-tour"]')!.click();
-    expect(tours.start).toHaveBeenCalledWith('risk', 'register');
-    expect(localStorage.getItem('coreflow.help.risk.list')).toBe('seen');
+    await fixture.whenStable();
+    expect(el.querySelector('[data-testid="help-panel"]')).toBeNull();
 
     toggle.click();
     await fixture.whenStable();
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(localStorage.getItem('coreflow.help.risk.list')).toBe('closed');
+    el.querySelector<HTMLElement>('[data-testid="help-strip-tour"]')!.click();
+    expect(tours.start).toHaveBeenCalledWith('risk', 'register');
   });
 
-  it('stays collapsed after the first visit for non-beginners', async () => {
-    const { fixture, el } = setupStrip('standard', 'seen');
+  it('opens the lesson inside the panel, with a way back', async () => {
+    const { fixture, el } = setupStrip('standard');
     await fixture.whenStable();
-    expect(
-      el.querySelector('[data-testid="help-strip-toggle"]')?.getAttribute('aria-expanded'),
-    ).toBe('false');
+    el.querySelector<HTMLElement>('[data-testid="help-strip-toggle"]')!.click();
+    await fixture.whenStable();
+    el.querySelector<HTMLElement>('[data-testid="help-strip-lesson"]')!.click();
+    await fixture.whenStable();
+    expect(el.querySelector('app-lesson')).not.toBeNull();
+    el.querySelector<HTMLElement>('[data-testid="help-strip-back"]')!.click();
+    await fixture.whenStable();
+    expect(el.querySelector('app-lesson')).toBeNull();
+    expect(el.querySelector('[data-testid="help-panel"]')).not.toBeNull();
   });
 
-  it('stays open for beginners unless they closed it', async () => {
-    const { fixture, el } = setupStrip('beginner', 'seen');
+  it('gives beginners one plain sentence and a labelled button, never the whole intro', async () => {
+    const { fixture, el } = setupStrip('beginner');
     await fixture.whenStable();
-    expect(
-      el.querySelector('[data-testid="help-strip-toggle"]')?.getAttribute('aria-expanded'),
-    ).toBe('true');
+    expect(el.querySelector('[data-testid="help-strip-lead"]')?.textContent?.trim()).toBe(
+      'Body text',
+    );
+    expect(el.querySelector('[data-testid="help-strip-toggle"]')?.textContent).toContain(
+      'How this page works',
+    );
+    expect(el.querySelector('ol')).toBeNull();
   });
 });
 

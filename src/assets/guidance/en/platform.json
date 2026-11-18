@@ -116,7 +116,7 @@
         "steps": [
           "Pick the learning level that suits you. You can change it at any time.",
           "Start with the lesson \"Getting started with CoreFlow\".",
-          "Use \"Teach me\" on any page when you want a personal explanation."
+          "Press the **?** at the top of any page to see how it works, take a tour or have the page explained."
         ]
       },
       "why": {
@@ -430,7 +430,7 @@
         },
         {
           "heading": "Help where you need it",
-          "body": "Look for the page introduction at the top, the \"Why this matters\" note with clause references, the **?** next to fields and dotted terms you can hover for a definition. \"Teach me\" opens the assistant as a personal tutor."
+          "body": "At the top of every page there is one sentence about what the page is for, and the **?** button. Behind it you find the introduction, \"Why this matters\", the tour, the lesson and \"Explain this page\", which opens the assistant as a personal tutor. Fields have a small **?** too, and you can hover over dotted terms to see a definition."
         }
       ]
     },

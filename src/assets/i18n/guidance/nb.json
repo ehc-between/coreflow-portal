@@ -17,7 +17,7 @@
   "levels": {
     "beginner": {
       "name": "Nybegynner",
-      "description": "Forklaringer, veiledede steg og eksempler vises overalt."
+      "description": "Enkle ord og bare det viktigste: én setning om hver side, med hjelpen bak «?»."
     },
     "standard": {
       "name": "Standard",
@@ -146,18 +146,11 @@
   "centre": {
     "title": "Læringssenter",
     "subtitle": "Velg hvor mye veiledning du ser, ta korte leksjoner og slå opp begreper innen etterlevelse.",
-    "progressTitle": "Din fremdrift",
-    "kpiCompleted": "Fullførte leksjoner",
-    "kpiInProgress": "Påbegynte leksjoner",
-    "kpiQuizzes": "Beståtte quizer",
-    "ofTotal": "{{ done }} av {{ total }}",
     "lessonsTitle": "Leksjoner",
     "searchLessons": "Søk i leksjoner",
     "filterStatus": "Filtrer på status",
     "allStatuses": "Alle statuser",
     "sort": "Sorter etter",
-    "sortStatus": "Status",
-    "sortTitle": "Tittel",
     "hasQuiz": "med quiz",
     "noLessons": "Ingen leksjoner er tilgjengelige ennå.",
     "noMatches": "Ingen leksjoner passer med filtrene.",
@@ -165,7 +158,15 @@
     "levelCurrent": "Du ser nå nivået {{ level }}.",
     "backToCentre": "Tilbake til læringssenteret",
     "filterArea": "Område",
-    "allAreas": "Alle områder"
+    "allAreas": "Alle områder",
+    "startTitle": "Start her",
+    "startSubtitle": "Fem korte leksjoner som gir deg det du trenger for å komme i gang, valgt ut etter områdene organisasjonen din bruker.",
+    "startProgress": "{{ done }} av {{ total }} fullført",
+    "summary": "Fullført: {{ done }} av {{ total }} · Beståtte quizer: {{ quizzes }}",
+    "showAll": "Vis alle leksjoner ({{ count }})",
+    "hideAll": "Skjul leksjonene",
+    "showGlossary": "Vis ordlisten ({{ count }} begreper)",
+    "hideGlossary": "Skjul ordlisten"
   },
   "settings": {
     "title": "Læringsmodus",

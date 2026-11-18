@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { PageHelpRegistry } from '../../../core/guidance/page-help.registry';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Lesson, TasksGuidance } from '../../../core/tasks/tasks-guidance';
 import { MarkdownPipe } from '../../markdown/markdown.pipe';
@@ -29,7 +30,7 @@ export function quizScore(lesson: Lesson, answers: Readonly<Record<number, numbe
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (content(); as entry) {
+    @if (!registry.hasStrip() && content(); as entry) {
       <button
         type="button"
         class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[12.5px] font-semibold text-fg-muted hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
@@ -122,6 +123,8 @@ export function quizScore(lesson: Lesson, answers: Readonly<Record<number, numbe
 })
 export class TaskLesson {
   private readonly guidance = inject(TasksGuidance);
+  /** U38: with a help strip on the page the lesson sits behind its "?". */
+  protected readonly registry = inject(PageHelpRegistry);
 
   /** Lesson key in the tasks guidance file. */
   readonly lesson = input.required<string>();
