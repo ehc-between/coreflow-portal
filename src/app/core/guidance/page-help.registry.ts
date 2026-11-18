@@ -7,6 +7,12 @@ export interface PageWhyEntry {
   readonly frameworks: readonly string[] | null;
 }
 
+/** Lessons a page offered outside its help strip (e.g. a "Lær mer" card). */
+export interface PageLessonEntry {
+  readonly scope: string;
+  readonly lessons: readonly string[];
+}
+
 /**
  * Beginner mode v2 (U38): one help entry point per page. The page's `<app-help-strip>`
  * (the "?") registers here; teaching widgets that used to sit on the page
@@ -18,6 +24,7 @@ export interface PageWhyEntry {
 export class PageHelpRegistry {
   private readonly _strips = signal(0);
   private readonly _why = signal<ReadonlyMap<number, PageWhyEntry>>(new Map());
+  private readonly _lessons = signal<ReadonlyMap<number, PageLessonEntry>>(new Map());
   private nextId = 0;
 
   /** True while at least one help strip ("?") is on screen. */
@@ -32,6 +39,22 @@ export class PageHelpRegistry {
       if (!seen.has(key)) {
         seen.add(key);
         out.push(entry);
+      }
+    }
+    return out;
+  });
+
+  /** Extra lessons of the current page as `{ scope, key }`, without duplicates. */
+  readonly lessonEntries = computed(() => {
+    const seen = new Set<string>();
+    const out: { scope: string; key: string }[] = [];
+    for (const entry of this._lessons().values()) {
+      for (const key of entry.lessons) {
+        const id = `${entry.scope}.${key}`;
+        if (!seen.has(id)) {
+          seen.add(id);
+          out.push({ scope: entry.scope, key });
+        }
       }
     }
     return out;
@@ -54,6 +77,24 @@ export class PageHelpRegistry {
     const key = id ?? ++this.nextId;
     this._why.update((map) => new Map(map).set(key, entry));
     return key;
+  }
+
+  /** Register (or replace, with the returned id) extra lessons a page offers. */
+  setLessons(id: number | null, entry: PageLessonEntry): number {
+    const key = id ?? ++this.nextId;
+    this._lessons.update((map) => new Map(map).set(key, entry));
+    return key;
+  }
+
+  removeLessons(id: number | null): void {
+    if (id === null) {
+      return;
+    }
+    this._lessons.update((map) => {
+      const next = new Map(map);
+      next.delete(id);
+      return next;
+    });
   }
 
   removeWhy(id: number | null): void {
