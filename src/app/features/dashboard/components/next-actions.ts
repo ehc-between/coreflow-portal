@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
-import { actionView, splitUrl } from '../data/home-format';
+import { actionView, keyScope, splitUrl } from '../data/home-format';
 import { NextAction } from '../data/home.models';
 
 /** A dismissal the parent sends to the API: hide for `days`, or for good. */
@@ -97,11 +106,36 @@ export const SNOOZE_DAYS = 7;
 })
 export class NextActions {
   private readonly language = inject(LanguageService);
+  private readonly transloco = inject(TranslocoService);
+  /** Module scope files already requested (`<scope>/<lang>`). */
+  private readonly requested = new Set<string>();
 
   readonly actions = input.required<readonly NextAction[]>();
   readonly dismissed = output<DismissRequest>();
 
   protected readonly snoozeDays = SNOOZE_DAYS;
+
+  constructor() {
+    // Module actions carry their module's keys (`risk:next.…`): load those scope
+    // files so the texts translate (home and tasks are loaded by the route).
+    effect(() => {
+      const lang = this.language.active();
+      const scopes = new Set(
+        this.actions()
+          .flatMap((a) => [keyScope(a.title_key), keyScope(a.why_key)])
+          .filter((s): s is string => !!s && s !== 'home' && s !== 'tasks'),
+      );
+      untracked(() => {
+        for (const scope of scopes) {
+          const path = `${scope}/${lang}`;
+          if (!this.requested.has(path)) {
+            this.requested.add(path);
+            this.transloco.load(path).subscribe({ error: () => undefined });
+          }
+        }
+      });
+    });
+  }
 
   protected readonly rows = computed(() => {
     const t = (key: string, params?: Record<string, unknown>) =>

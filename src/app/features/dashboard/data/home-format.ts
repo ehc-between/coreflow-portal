@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { scopeAlias } from '../../../core/notifications/notification-text';
 import { Journey, JourneyPhase, JourneyStep, NextAction } from './home.models';
 
 /** A synchronous translator (`LanguageService.translate`). */
@@ -18,11 +19,19 @@ export const JOURNEY_FRAMEWORKS = [
 
 /**
  * A backend key in `scope:path` form (`home:next.gap.title`) as a Transloco key
- * (`home.next.gap.title`). Keys without a scope pass through unchanged.
+ * (`home.next.gap.title`). A module scope uses Transloco's alias
+ * (`management-review:nextActions.overdue.title` -> `managementReview.nextActions…`).
+ * Keys without a scope pass through unchanged.
  */
 export function scopedKey(key: string): string {
   const at = key.indexOf(':');
-  return at > 0 ? `${key.slice(0, at)}.${key.slice(at + 1)}` : key;
+  return at > 0 ? `${scopeAlias(key.slice(0, at))}.${key.slice(at + 1)}` : key;
+}
+
+/** The module scope (`management-review`) of a `scope:path` key, or null. */
+export function keyScope(key: string): string | null {
+  const at = key.indexOf(':');
+  return at > 0 ? key.slice(0, at) : null;
 }
 
 /** i18n key (scope `home`) of a framework's short label, e.g. "ISO 27001". */

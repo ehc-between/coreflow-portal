@@ -464,6 +464,13 @@
     "responsibility": {
       "to_task": "Oppgave for oppfølging",
       "to_deviation": "Avvik i ansvarsfordelingen"
+    },
+    "process": {
+      "to_deviation": "Avvik i prosessen",
+      "to_risk": "Risiko for prosessen",
+      "to_task": "Oppgave for prosessen",
+      "to_audit_plan": "Internrevisjon av prosessen",
+      "to_kpi": "Nøkkeltall for prosessen"
     }
   },
   "frameworks": {

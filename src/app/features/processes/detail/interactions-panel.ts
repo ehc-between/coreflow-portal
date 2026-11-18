@@ -9,162 +9,257 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Observable } from 'rxjs';
+import { SearchHit } from '../../../core/kit/kit.models';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { processErrorKey } from '../data/process-errors';
 import { ProcessReferences } from '../data/process-references';
 import { InteractionDirection, ProcessDetail } from '../data/process.models';
 import { ProcessesApi } from '../data/processes-api';
+import { RecordSearch } from '../shared/record-search';
+
+type InteractionKind = 'process' | 'party';
 
 /**
- * Interactions of a process with other processes: what it receives from upstream
- * processes (incoming) and provides to downstream ones (outgoing), each with a
- * label for what flows. Editors add (target, direction, label) and remove them.
- * Emits after every change so the page can reload the process and its turtle.
+ * Edits who the process receives from and delivers to: other processes
+ * (the interaction map) and interested parties from "Kontekst og ledelse"
+ * (customers, authorities, suppliers as external start and end points).
+ * Lists the current interactions with a remove button; the add form opens
+ * behind "Legg til samspill". Emits after every change so the page reloads
+ * the process and its turtle.
  */
 @Component({
   selector: 'app-interactions-panel',
-  imports: [RouterLink, TranslocoPipe, FieldHelp, Button, Card, Icon],
+  imports: [RouterLink, TranslocoPipe, FieldHelp, Button, FormField, Icon, RecordSearch],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block' },
   template: `
     @let p = process();
-    <app-card>
-      <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="text-[15px] font-bold text-fg">
-          {{ 'processes.interactions.title' | transloco }}
-        </h2>
-        <a routerLink="/processes/interaction-map" class="text-[12.5px] font-semibold text-accent">
-          {{ 'processes.interactions.openMap' | transloco }}
-        </a>
-      </div>
+    <div class="flex items-center gap-1.5">
+      <p class="text-ui text-fg-muted">{{ 'processes.interactions.intro' | transloco }}</p>
       <app-field-help scope="processes" page="detail" field="interactions" />
-      <ul class="mt-2 flex flex-col divide-y divide-border" data-testid="interactions">
-        @for (i of p.interactions; track i.id) {
-          <li class="flex items-center gap-2 py-2 text-[13px]">
-            <span
-              class="w-[110px] flex-none text-[12px] font-semibold"
-              [class.text-info]="i.direction === 'incoming'"
-              [class.text-pass]="i.direction === 'outgoing'"
+    </div>
+    <ul class="mt-3 flex flex-col divide-y divide-border" data-testid="interactions">
+      @for (i of p.interactions; track i.id) {
+        <li class="flex items-center gap-2 py-2 text-ui">
+          <span class="w-[96px] flex-none text-meta font-semibold text-fg-muted">
+            {{ 'processes.interactions.direction.' + i.direction | transloco }}
+          </span>
+          <span class="min-w-0 flex-1">
+            <a
+              [routerLink]="['/processes', i.process.id]"
+              class="font-semibold text-fg hover:text-accent"
             >
-              {{ 'processes.interactions.direction.' + i.direction | transloco }}
-            </span>
-            <span class="min-w-0 flex-1">
-              <a
-                [routerLink]="['/processes', i.process.id]"
-                class="font-semibold text-fg hover:text-accent"
-              >
-                {{ i.process.code }} · {{ i.process.title }}
-              </a>
-              @if (i.label) {
-                <span class="block text-[12.5px] text-fg-muted">{{ i.label }}</span>
-              }
-            </span>
-            @if (p.can_edit) {
-              <button
-                type="button"
-                class="flex h-8 w-8 flex-none items-center justify-center rounded-[8px] text-fg-subtle hover:text-fail"
-                [attr.aria-label]="
-                  'processes.interactions.remove' | transloco: { code: i.process.code }
-                "
-                [disabled]="busy()"
-                (click)="remove(i.id)"
-              >
-                <app-icon name="x" [size]="14" />
-              </button>
+              <span class="font-mono text-meta text-fg-muted">{{ i.process.code }}</span>
+              {{ i.process.title }}
+            </a>
+            @if (i.label) {
+              <span class="block text-meta text-fg-muted">{{ i.label }}</span>
             }
-          </li>
-        } @empty {
-          <li class="py-2 text-[13px] text-fg-muted">
-            {{ 'processes.interactions.empty' | transloco }}
-          </li>
-        }
-      </ul>
-
-      @if (p.can_edit) {
-        <form
-          class="mt-3 grid grid-cols-1 gap-2 rounded-[10px] bg-surface-2 p-3 md:grid-cols-[1fr_150px]"
-          (submit)="$event.preventDefault(); add()"
-        >
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-            {{ 'processes.interactions.target' | transloco }}
-            <select
-              class="cf-int"
-              [value]="target()"
-              (change)="target.set($any($event.target).value)"
-              data-testid="interaction-target"
+          </span>
+          @if (p.can_edit) {
+            <button
+              type="button"
+              class="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              [attr.aria-label]="
+                'processes.interactions.remove' | transloco: { code: i.process.code }
+              "
+              [disabled]="busy()"
+              (click)="remove(i.id, 'process')"
             >
-              <option value="">{{ 'processes.interactions.chooseTarget' | transloco }}</option>
-              @for (o of targets(); track o.id) {
-                <option [value]="o.id">{{ o.code }} · {{ o.title }}</option>
+              <app-icon name="x" [size]="14" />
+            </button>
+          }
+        </li>
+      }
+      @for (i of p.party_interactions ?? []; track i.id) {
+        <li class="flex items-center gap-2 py-2 text-ui" data-testid="party-interaction">
+          <span class="w-[96px] flex-none text-meta font-semibold text-fg-muted">
+            {{ 'processes.interactions.direction.' + i.direction | transloco }}
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="mr-1 text-micro font-semibold tracking-wide text-fg-subtle uppercase">{{
+              'processes.interactions.partyTag' | transloco
+            }}</span>
+            @if (i.party.url) {
+              <a [routerLink]="i.party.url" class="font-semibold text-fg hover:text-accent">{{
+                i.party.name
+              }}</a>
+            } @else {
+              <span class="font-semibold text-fg">{{ i.party.name }}</span>
+            }
+            @if (i.label) {
+              <span class="block text-meta text-fg-muted">{{ i.label }}</span>
+            }
+          </span>
+          @if (p.can_edit) {
+            <button
+              type="button"
+              class="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-fg-subtle hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              [attr.aria-label]="
+                'processes.interactions.removeParty' | transloco: { name: i.party.name }
+              "
+              [disabled]="busy()"
+              (click)="remove(i.id, 'party')"
+            >
+              <app-icon name="x" [size]="14" />
+            </button>
+          }
+        </li>
+      }
+      @if (p.interactions.length === 0 && !(p.party_interactions ?? []).length) {
+        <li class="py-2 text-ui text-fg-muted">{{ 'processes.interactions.empty' | transloco }}</li>
+      }
+    </ul>
+    <a
+      routerLink="/processes/interaction-map"
+      class="mt-2 inline-block text-ui font-semibold text-accent hover:underline"
+    >
+      {{ 'processes.interactions.openMap' | transloco }}
+    </a>
+
+    @if (p.can_edit) {
+      @if (!adding()) {
+        <div class="mt-4">
+          <app-button
+            variant="secondary"
+            size="sm"
+            (click)="adding.set(true)"
+            data-testid="interaction-open"
+          >
+            <app-icon name="plus" [size]="14" />
+            {{ 'processes.interactions.add' | transloco }}
+          </app-button>
+        </div>
+      } @else {
+        <form
+          class="mt-4 flex flex-col gap-3 rounded-tile bg-surface-2 p-3"
+          (submit)="$event.preventDefault(); add()"
+          data-testid="interaction-form"
+        >
+          <fieldset>
+            <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+              {{ 'processes.interactions.kindLabel' | transloco }}
+            </legend>
+            <div class="flex flex-wrap gap-3 text-ui text-fg">
+              @for (k of kinds; track k) {
+                <label class="inline-flex items-center gap-1.5">
+                  <input
+                    type="radio"
+                    name="cf-int-kind"
+                    class="h-4 w-4 accent-[var(--accent)]"
+                    [checked]="kind() === k"
+                    (change)="setKind(k)"
+                  />
+                  {{ 'processes.interactions.kind.' + k | transloco }}
+                </label>
               }
-            </select>
-          </label>
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-            {{ 'processes.interactions.directionLabel' | transloco }}
+            </div>
+          </fieldset>
+          <app-form-field
+            [label]="'processes.interactions.directionLabel' | transloco"
+            inputId="cf-int-direction"
+          >
             <select
-              class="cf-int"
+              id="cf-int-direction"
               [value]="direction()"
               (change)="direction.set($any($event.target).value)"
             >
-              <option value="outgoing">
-                {{ 'processes.interactions.direction.outgoing' | transloco }}
-              </option>
-              <option value="incoming">
+              <option value="incoming" [selected]="direction() === 'incoming'">
                 {{ 'processes.interactions.direction.incoming' | transloco }}
               </option>
+              <option value="outgoing" [selected]="direction() === 'outgoing'">
+                {{ 'processes.interactions.direction.outgoing' | transloco }}
+              </option>
             </select>
-          </label>
-          <label
-            class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted md:col-span-2"
+          </app-form-field>
+          @if (kind() === 'process') {
+            <app-form-field
+              [label]="'processes.interactions.target' | transloco"
+              inputId="cf-int-target"
+            >
+              <select
+                id="cf-int-target"
+                [value]="target()"
+                (change)="target.set($any($event.target).value)"
+                data-testid="interaction-target"
+              >
+                <option value="">{{ 'processes.interactions.chooseTarget' | transloco }}</option>
+                @for (o of targets(); track o.id) {
+                  <option [value]="o.id">{{ o.code }} · {{ o.title }}</option>
+                }
+              </select>
+            </app-form-field>
+          } @else if (party(); as chosen) {
+            <div>
+              <p class="mb-1.5 text-ui font-semibold text-fg-muted">
+                {{ 'processes.interactions.party' | transloco }}
+              </p>
+              <div
+                class="flex items-center gap-2 rounded-tile border border-border bg-surface px-3 py-2"
+              >
+                <span class="min-w-0 flex-1 truncate text-ui text-fg">{{ chosen.title }}</span>
+                <button
+                  type="button"
+                  class="flex h-7 w-7 items-center justify-center rounded-lg text-fg-subtle hover:text-fail"
+                  [attr.aria-label]="'processes.picker.clear' | transloco: { title: chosen.title }"
+                  (click)="party.set(null)"
+                >
+                  <app-icon name="x" [size]="14" />
+                </button>
+              </div>
+            </div>
+          } @else {
+            <app-process-record-search
+              [types]="partyTypes"
+              labelKey="processes.interactions.party"
+              placeholderKey="processes.interactions.partyPlaceholder"
+              [exclude]="linkedParties()"
+              (picked)="party.set($event)"
+            />
+            <p class="text-meta text-fg-subtle">
+              {{ 'processes.interactions.partyHint' | transloco }}
+              <a
+                routerLink="/context/interested-parties"
+                class="font-semibold text-accent hover:underline"
+                >{{ 'processes.interactions.partyRegister' | transloco }}</a
+              >
+            </p>
+          }
+          <app-form-field
+            [label]="'processes.interactions.label' | transloco"
+            inputId="cf-int-label"
           >
-            {{ 'processes.interactions.label' | transloco }}
             <input
-              class="cf-int"
+              id="cf-int-label"
               maxlength="255"
               [placeholder]="'processes.interactions.labelPlaceholder' | transloco"
               [value]="label()"
               (input)="label.set($any($event.target).value)"
             />
-          </label>
-          <div class="md:col-span-2">
+          </app-form-field>
+          <div class="flex flex-wrap justify-end gap-2">
+            <app-button variant="secondary" size="sm" (click)="reset()">
+              {{ 'common.cancel' | transloco }}
+            </app-button>
             <app-button
               type="submit"
               size="sm"
-              variant="secondary"
-              [disabled]="!target() || busy()"
+              [disabled]="!canSubmit() || busy()"
               data-testid="interaction-add"
             >
-              <app-icon name="plus" [size]="14" />
-              {{ 'processes.interactions.add' | transloco }}
+              {{ 'processes.interactions.save' | transloco }}
             </app-button>
           </div>
         </form>
       }
-    </app-card>
+    }
   `,
-  styles: [
-    `
-      .cf-int {
-        height: 36px;
-        border-radius: 9px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-size: 13px;
-        font-weight: 400;
-        padding: 0 10px;
-        outline: none;
-      }
-      .cf-int:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-    `,
-  ],
 })
 export class InteractionsPanel {
   private readonly api = inject(ProcessesApi);
@@ -175,52 +270,85 @@ export class InteractionsPanel {
   readonly process = input.required<ProcessDetail>();
   readonly changed = output<void>();
 
+  protected readonly kinds: readonly InteractionKind[] = ['process', 'party'];
+  protected readonly partyTypes = ['interested_party'];
   protected readonly busy = signal(false);
+  protected readonly adding = signal(false);
+  protected readonly kind = signal<InteractionKind>('process');
   protected readonly target = signal('');
-  protected readonly direction = signal<InteractionDirection>('outgoing');
+  protected readonly party = signal<SearchHit | null>(null);
+  protected readonly direction = signal<InteractionDirection>('incoming');
   protected readonly label = signal('');
 
   protected readonly targets = computed(() => {
     const id = this.process().id;
     return this.references.processes().filter((p) => p.id !== id);
   });
+  protected readonly linkedParties = computed(() =>
+    (this.process().party_interactions ?? []).map((i) => i.party.id),
+  );
+  protected readonly canSubmit = computed(() =>
+    this.kind() === 'process' ? !!this.target() : !!this.party(),
+  );
 
   constructor() {
     this.references.ensureProcesses();
   }
 
-  protected add(): void {
-    const orgId = this.selectedOrg.currentOrgId();
-    const target = this.target();
-    if (!orgId || !target || this.busy()) {
-      return;
-    }
-    this.busy.set(true);
-    this.api
-      .addInteraction(orgId, this.process().id, {
-        target_process_id: target,
-        direction: this.direction(),
-        label: this.label().trim() || null,
-      })
-      .subscribe({
-        next: () => {
-          this.busy.set(false);
-          this.target.set('');
-          this.label.set('');
-          this.notifications.success('processes.notices.interactionAdded');
-          this.changed.emit();
-        },
-        error: (error) => this.fail(error),
-      });
+  protected setKind(kind: InteractionKind): void {
+    this.kind.set(kind);
+    this.target.set('');
+    this.party.set(null);
   }
 
-  protected remove(interactionId: string): void {
+  protected reset(): void {
+    this.adding.set(false);
+    this.target.set('');
+    this.party.set(null);
+    this.label.set('');
+  }
+
+  protected add(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || !this.canSubmit() || this.busy()) {
+      return;
+    }
+    const id = this.process().id;
+    const label = this.label().trim() || null;
+    const direction = this.direction();
+    const party = this.party();
+    const call: Observable<unknown> =
+      this.kind() === 'party' && party
+        ? this.api.addPartyInteraction(orgId, id, { party_id: party.entity_id, direction, label })
+        : this.api.addInteraction(orgId, id, {
+            target_process_id: this.target(),
+            direction,
+            label,
+          });
+    this.busy.set(true);
+    call.subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.reset();
+        this.notifications.success('processes.notices.interactionAdded');
+        this.changed.emit();
+      },
+      error: (error) => this.fail(error),
+    });
+  }
+
+  protected remove(interactionId: string, kind: InteractionKind): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (!orgId || this.busy()) {
       return;
     }
+    const id = this.process().id;
     this.busy.set(true);
-    this.api.removeInteraction(orgId, this.process().id, interactionId).subscribe({
+    const call =
+      kind === 'party'
+        ? this.api.removePartyInteraction(orgId, id, interactionId)
+        : this.api.removeInteraction(orgId, id, interactionId);
+    call.subscribe({
       next: () => {
         this.busy.set(false);
         this.notifications.success('processes.notices.interactionRemoved');

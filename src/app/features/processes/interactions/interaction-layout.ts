@@ -1,19 +1,28 @@
-import {
-  InteractionMap,
-  InteractionMapNode,
-  PROCESS_CATEGORIES,
-  ProcessCategory,
-} from '../data/process.models';
+import { InteractionMap, PROCESS_CATEGORIES, ProcessCategory } from '../data/process.models';
 
 export const BAND_HEIGHT = 150;
 export const BOX_WIDTH = 180;
 export const BOX_HEIGHT = 64;
-export const GAP_X = 40;
+export const MIN_GAP_X = 40;
+export const MAX_GAP_X = 170;
 export const PADDING_X = 30;
 export const BAND_LABEL_HEIGHT = 26;
+/** Approximate width of one character of an 11 px edge label. */
+const LABEL_CHAR_WIDTH = 6.2;
+/** The drawing is at least as wide as the desktop card, so bands fill it without upscaling. */
+export const MIN_WIDTH = 1120;
 
-export interface PlacedProcess {
-  readonly node: InteractionMapNode;
+/** A band of the picture: interested parties on top, then the three process categories. */
+export type BandKey = 'parties' | ProcessCategory;
+
+/** One box: a process or an interested party. */
+export interface PlacedBox {
+  readonly id: string;
+  readonly kind: 'process' | 'party';
+  readonly code: string | null;
+  readonly title: string;
+  readonly status: string | null;
+  readonly url: string | null;
   readonly x: number;
   readonly y: number;
 }
@@ -24,12 +33,14 @@ export interface PlacedEdge {
   readonly label: string | null;
   readonly labelX: number;
   readonly labelY: number;
+  readonly anchor: 'start' | 'middle' | 'end';
   readonly sourceId: string;
   readonly targetId: string;
+  readonly party: boolean;
 }
 
 export interface Band {
-  readonly category: ProcessCategory;
+  readonly key: BandKey;
   readonly y: number;
 }
 
@@ -37,68 +48,137 @@ export interface InteractionLayout {
   readonly width: number;
   readonly height: number;
   readonly bands: readonly Band[];
-  readonly nodes: readonly PlacedProcess[];
+  readonly nodes: readonly PlacedBox[];
   readonly edges: readonly PlacedEdge[];
 }
 
+interface BoxIn {
+  readonly id: string;
+  readonly kind: 'process' | 'party';
+  readonly code: string | null;
+  readonly title: string;
+  readonly status: string | null;
+  readonly url: string | null;
+}
+
 /**
- * Lays out the process landscape: management processes in the top band, core
- * processes in the middle and support processes at the bottom (the classic ISO
- * 9001 process-model picture), each band ordered by code and centred, with curved
- * arrows for "what flows from one process to the next".
+ * Lays out the process landscape: interested parties (customers, authorities …)
+ * in a top band when there are any, then management, core and support processes
+ * (the classic ISO 9001 process-model picture). Each band is ordered by code and
+ * centred. The gap between boxes grows with the longest edge label, so labels
+ * are never squeezed between boxes. Edges are curved arrows; a party edge runs
+ * from the party into the process (incoming) or out to it (outgoing).
  */
 export function layoutInteractions(map: InteractionMap): InteractionLayout {
-  const byCategory = new Map<ProcessCategory, InteractionMapNode[]>(
-    PROCESS_CATEGORIES.map((c) => [c, []]),
-  );
+  const parties = map.parties ?? [];
+  const partyEdges = map.party_edges ?? [];
+  const bandKeys: BandKey[] = parties.length
+    ? ['parties', ...PROCESS_CATEGORIES]
+    : [...PROCESS_CATEGORIES];
+  const byBand = new Map<BandKey, BoxIn[]>(bandKeys.map((k) => [k, []]));
   for (const node of map.nodes) {
-    (byCategory.get(node.category) ?? byCategory.get('core')!).push(node);
+    const list = byBand.get(node.category) ?? byBand.get('core')!;
+    list.push({
+      id: node.id,
+      kind: 'process',
+      code: node.code,
+      title: node.title,
+      status: node.status,
+      url: node.url,
+    });
   }
-  const widest = Math.max(1, ...[...byCategory.values()].map((list) => list.length));
-  const width = Math.max(720, PADDING_X * 2 + widest * BOX_WIDTH + (widest - 1) * GAP_X);
+  for (const party of parties) {
+    byBand.get('parties')?.push({
+      id: party.id,
+      kind: 'party',
+      code: party.code ?? null,
+      title: party.name,
+      status: null,
+      url: party.url ?? null,
+    });
+  }
+  const longest = Math.max(
+    0,
+    ...map.edges.map((e) => (e.label ?? '').length),
+    ...partyEdges.map((e) => (e.label ?? '').length),
+  );
+  const gap = Math.min(MAX_GAP_X, Math.max(MIN_GAP_X, Math.round(longest * LABEL_CHAR_WIDTH + 20)));
+  const widest = Math.max(1, ...[...byBand.values()].map((list) => list.length));
+  const width = Math.max(MIN_WIDTH, PADDING_X * 2 + widest * BOX_WIDTH + (widest - 1) * gap);
 
   const bands: Band[] = [];
-  const nodes: PlacedProcess[] = [];
-  PROCESS_CATEGORIES.forEach((category, index) => {
+  const nodes: PlacedBox[] = [];
+  bandKeys.forEach((key, index) => {
     const y = index * BAND_HEIGHT;
-    bands.push({ category, y });
-    const list = [...(byCategory.get(category) ?? [])].sort((a, b) =>
-      a.code.localeCompare(b.code, undefined, { numeric: true }),
+    bands.push({ key, y });
+    const list = [...(byBand.get(key) ?? [])].sort((a, b) =>
+      (a.code ?? a.title).localeCompare(b.code ?? b.title, undefined, { numeric: true }),
     );
-    const rowWidth = list.length * BOX_WIDTH + Math.max(0, list.length - 1) * GAP_X;
+    const rowWidth = list.length * BOX_WIDTH + Math.max(0, list.length - 1) * gap;
     const startX = (width - rowWidth) / 2;
-    list.forEach((node, i) => {
+    list.forEach((box, i) => {
       nodes.push({
-        node,
-        x: startX + i * (BOX_WIDTH + GAP_X),
+        ...box,
+        x: startX + i * (BOX_WIDTH + gap),
         y: y + BAND_LABEL_HEIGHT + (BAND_HEIGHT - BAND_LABEL_HEIGHT - BOX_HEIGHT) / 2,
       });
     });
   });
 
-  const placed = new Map(nodes.map((p) => [p.node.id, p]));
+  const placed = new Map(nodes.map((p) => [`${p.kind}:${p.id}`, p]));
   const edges: PlacedEdge[] = [];
   for (const edge of map.edges) {
-    const source = placed.get(edge.source_process_id);
-    const target = placed.get(edge.target_process_id);
+    const source = placed.get(`process:${edge.source_process_id}`);
+    const target = placed.get(`process:${edge.target_process_id}`);
     if (!source || !target || source === target) {
       continue;
     }
     edges.push({
       id: edge.id,
       label: edge.label,
-      sourceId: source.node.id,
-      targetId: target.node.id,
+      sourceId: source.id,
+      targetId: target.id,
+      party: false,
       ...curve(source, target),
     });
   }
-  return { width, height: PROCESS_CATEGORIES.length * BAND_HEIGHT, bands, nodes, edges };
+  for (const edge of partyEdges) {
+    const party = placed.get(`party:${edge.party_id}`);
+    const process = placed.get(`process:${edge.process_id}`);
+    if (!party || !process) {
+      continue;
+    }
+    const [source, target] = edge.direction === 'incoming' ? [party, process] : [process, party];
+    edges.push({
+      id: edge.id,
+      label: edge.label,
+      sourceId: source.id,
+      targetId: target.id,
+      party: true,
+      ...curve(source, target),
+    });
+  }
+  return { width, height: bandKeys.length * BAND_HEIGHT, bands, nodes, edges: stackLabels(edges) };
+}
+
+/** Labels that land on the same spot (several arrows into one box) are stacked upwards. */
+function stackLabels(edges: readonly PlacedEdge[]): PlacedEdge[] {
+  const used = new Map<string, number>();
+  return edges.map((edge) => {
+    if (!edge.label) {
+      return edge;
+    }
+    const key = `${Math.round(edge.labelX / 24)}:${Math.round(edge.labelY / 12)}:${edge.anchor}`;
+    const n = used.get(key) ?? 0;
+    used.set(key, n + 1);
+    return n === 0 ? edge : { ...edge, labelY: edge.labelY - n * 13 };
+  });
 }
 
 function curve(
-  source: PlacedProcess,
-  target: PlacedProcess,
-): { path: string; labelX: number; labelY: number } {
+  source: PlacedBox,
+  target: PlacedBox,
+): { path: string; labelX: number; labelY: number; anchor: 'start' | 'middle' | 'end' } {
   if (source.y === target.y) {
     const forward = target.x > source.x;
     const sx = forward ? source.x + BOX_WIDTH : source.x;
@@ -113,6 +193,7 @@ function curve(
       path: `M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}`,
       labelX: cx,
       labelY: (sy + cy) / 2 + (forward ? -4 : 12),
+      anchor: 'middle',
     };
   }
   const down = target.y > source.y;
@@ -121,9 +202,20 @@ function curve(
   const sy = down ? source.y + BOX_HEIGHT : source.y;
   const ty = down ? target.y : target.y + BOX_HEIGHT;
   const my = (sy + ty) / 2;
+  // Edges that skip a band bow sideways, around the boxes in between.
+  const skips = Math.abs(target.y - source.y) > BAND_HEIGHT;
+  const side = (down ? -1 : 1) * BOX_WIDTH * 0.8;
+  const bend = down ? 70 : -70;
+  const path = skips
+    ? `M ${sx} ${sy} C ${sx + side} ${sy + bend}, ${tx + side} ${ty - bend}, ${tx} ${ty}`
+    : `M ${sx} ${sy} C ${sx} ${my}, ${tx} ${my}, ${tx} ${ty}`;
+  // The label sits just above the lower box, beside its arrow (never on a box).
+  const lowerX = down ? tx : sx;
+  const lowerTop = down ? ty : sy;
   return {
-    path: `M ${sx} ${sy} C ${sx} ${my}, ${tx} ${my}, ${tx} ${ty}`,
-    labelX: (sx + tx) / 2,
-    labelY: my,
+    path,
+    labelX: down ? lowerX - 6 : lowerX + 6,
+    labelY: lowerTop - 8,
+    anchor: down ? 'end' : 'start',
   };
 }

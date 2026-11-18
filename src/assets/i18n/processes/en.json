@@ -14,15 +14,18 @@
   },
   "list": {
     "title": "Processes",
-    "subtitle": "The process register: how the organisation turns inputs into results, who owns each process and how it is measured.",
-    "searchPlaceholder": "Search by code, title, purpose or scope",
+    "subtitle": "An overview of how the organisation works: which processes you have, who owns them and how you know they work.",
+    "searchPlaceholder": "Search processes",
     "interactionMap": "Interaction map",
     "new": "New process",
     "noMatches": "No processes match the search or filters.",
     "partOf": "Part of {{ code }}",
     "steps": "{{ count }} steps in the map",
     "stepsOne": "1 step in the map",
-    "noOwner": "No owner"
+    "noOwner": "No owner",
+    "noMap": "No map yet",
+    "noMatchesTitle": "No matches",
+    "clearFilters": "Clear the filters"
   },
   "filters": {
     "status": "Status",
@@ -33,7 +36,8 @@
     "anyOwner": "Any owner",
     "mine": "Owned by me",
     "reviewDue": "Review due",
-    "sort": "Sort"
+    "sort": "Sort",
+    "noOwner": "No owner"
   },
   "sort": {
     "code": "Code (A-Z)",
@@ -48,10 +52,6 @@
     "add": "Add",
     "addPlaceholder": "Type and press Enter",
     "addLabel": "Add to {{ label }}"
-  },
-  "lesson": {
-    "open": "Learn the process approach",
-    "title": "The process approach and PDCA"
   },
   "actions": {
     "close": "Close",
@@ -80,7 +80,8 @@
     "reviewInterval": "Review interval (months)",
     "nextReview": "Next review",
     "lastReviewed": "Last reviewed",
-    "changeReason": "Reason for the change"
+    "changeReason": "Reason for the change",
+    "frameworks": "Standards the process supports"
   },
   "form": {
     "newTitle": "New process",
@@ -92,18 +93,41 @@
     "noDepartment": "No department",
     "noParent": "None (top-level process)",
     "askPurpose": "Help me write a clear purpose statement for this process.",
-    "turtleHint": "The turtle diagram describes what goes in and out of the process, what it needs, how it is done and how it is measured.",
+    "turtleHint": "What goes into and out of the process, what it needs, how it is done and how it is measured.",
     "save": "Save changes",
     "create": "Create process",
     "sections": {
-      "register": "Process register",
-      "turtle": "Turtle diagram",
-      "review": "Review cycle"
+      "register": "Process basics",
+      "turtle": "Process on a page (turtle diagram)",
+      "review": "Review",
+      "basics": "Process basics"
     },
     "errors": {
       "titleRequired": "Give the process a title.",
       "interval": "The review interval must be a whole number of months between 1 and 60.",
-      "kpiName": "Every KPI needs a name (or remove the empty row)."
+      "kpiName": "Every KPI needs a name (or remove the empty row).",
+      "intro": "Could not save. Please fix this:"
+    },
+    "optional": "(optional)",
+    "draftHint": "New processes start as drafts. Activate the process from its page when it is ready to use.",
+    "askScope": "Help me describe where this process starts and ends, and what it includes.",
+    "askKpis": "Suggest two or three good KPIs for this process, with targets and how often to measure them.",
+    "linkOnPage": "Link risks, procedures, equipment, courses and suppliers as real records from the process page, under \"Process on a page\".",
+    "hints": {
+      "title": "Use what the process achieves, for example \"Handle customer complaints\".",
+      "category": "Management steers, core creates value for customers, support keeps the rest running.",
+      "owner": "The owner gets the review task and notifications about the process.",
+      "purpose": "Why the process exists and what result it should deliver.",
+      "scope": "Where the process starts and ends.",
+      "frameworks": "Pick the standards this process helps you meet. Suggested requirements then fit better.",
+      "inputs": "What the process needs to start.",
+      "outputs": "What the process delivers, and to whom.",
+      "resources": "Systems, equipment and premises.",
+      "competence": "Roles and skills needed.",
+      "methods": "Procedures and rules that are followed.",
+      "risks": "What can go wrong, and opportunities.",
+      "kpis": "How you can tell the process works. Link a KPI to get measured values.",
+      "review": "Fill in the interval. The next date is calculated automatically; set the date only to override it."
     }
   },
   "kpi": {
@@ -113,10 +137,27 @@
     "frequency": "Frequency",
     "add": "Add KPI",
     "remove": "Remove KPI {{ name }}",
-    "targetShort": "target {{ target }} {{ unit }}"
+    "targetShort": "target {{ target }} {{ unit }}",
+    "link": "Link to a KPI",
+    "unlink": "Remove the link",
+    "linkedTo": "Measured in {{ title }}",
+    "notLinked": "Not linked to a KPI",
+    "searchLabel": "Find the KPI in \"Objectives and KPIs\"",
+    "searchPlaceholder": "Search by code or name",
+    "aKpi": "a KPI",
+    "latestVsTarget": "Latest: {{ value }} {{ unit }} · target {{ target }}",
+    "noValues": "No measurements recorded yet",
+    "trend": "Trend over the latest measurements",
+    "result": {
+      "on_track": "On track",
+      "at_risk": "Watch",
+      "off_track": "Off track",
+      "no_target": "No target",
+      "none": "No data"
+    }
   },
   "ai": {
-    "draftTurtle": "Suggest turtle facts",
+    "draftTurtle": "Suggest content",
     "draftApplied": "Suggestions added. Review them before saving.",
     "summarise": "Summarise",
     "summarisePrompt": "Summarise this process: its purpose, owner, inputs and outputs, how it is measured, and anything that needs attention (review date, missing description document, unconnected map steps)."
@@ -125,14 +166,17 @@
     "created": "Process {{ code }} created.",
     "saved": "Process saved.",
     "mapSaved": "Process map saved (version {{ version }}).",
-    "reviewed": "Review recorded. The next review is scheduled.",
+    "reviewed": "The review is recorded. The next review is scheduled.",
     "statusChanged": "Status changed to {{ status }}.",
     "deleted": "Process {{ code }} deleted.",
     "documentCreated": "A draft description document was created. Open it to write, review and approve it.",
     "documentAttached": "Description document attached.",
     "documentDetached": "Description document detached.",
     "interactionAdded": "Interaction added.",
-    "interactionRemoved": "Interaction removed."
+    "interactionRemoved": "Interaction removed.",
+    "linked": "{{ title }} is linked to the process.",
+    "unlinked": "The link to {{ title }} is removed.",
+    "reviewedWithActions": "The review is recorded, and {{ count }} actions were added to \"My work\"."
   },
   "errors": {
     "code_taken": "Another process already uses this code.",
@@ -155,7 +199,10 @@
     "input_required": "Describe the process or choose a procedure first.",
     "forbidden": "You do not have permission to do this.",
     "invalid": "Some of the values are not valid. Check the form and try again.",
-    "generic": "Something went wrong. Try again."
+    "generic": "Something went wrong. Try again.",
+    "invalid_kpi": "The KPI no longer exists. Link the KPI row again.",
+    "invalid_review_check": "The checklist contains an unknown point. Reload the page.",
+    "unsupported_entity_type": "Interested parties are not available. Turn on the Context and leadership module."
   },
   "detail": {
     "back": "Back to processes",
@@ -170,12 +217,16 @@
     "editMap": "Edit map",
     "drawMap": "Draw the map",
     "viewMap": "Open map",
-    "noMap": "No map yet. A map shows the steps of the process, who does them and where decisions are made."
+    "noMap": "No map yet. A map shows the steps of the process, who does them and where decisions are made.",
+    "noMapShort": "No map yet",
+    "mapHint": "Select a step to see details. Open the map to change it.",
+    "notFoundTitle": "Process not found",
+    "notFoundBody": "The process does not exist, has been deleted or you do not have access to it."
   },
   "turtle": {
-    "title": "Turtle diagram",
-    "label": "Turtle diagram of the process",
-    "failed": "The turtle diagram could not be loaded.",
+    "title": "Process on a page (turtle diagram)",
+    "label": "Process on a page",
+    "failed": "The process on a page could not be loaded.",
     "none": "Nothing recorded yet",
     "owner": "Owner: {{ name }}",
     "upstream": "Receives from",
@@ -186,7 +237,18 @@
     "outputs": "Outputs",
     "methods": "How (methods and procedures)",
     "kpis": "How measured (KPIs)",
-    "risks": "Risks and opportunities"
+    "risks": "Risks and opportunities",
+    "titleLead": "Process on a page",
+    "titleTerm": "turtle diagram",
+    "intro": "Everything the process needs and delivers in one place. Link real records so the process connects to the rest of the management system.",
+    "link": "Link",
+    "linkTo": "Link a record to {{ leg }}",
+    "unlink": "Remove the link to {{ title }}",
+    "linkRisk": "Link a risk",
+    "createRisk": "Create a risk for this process",
+    "createKpi": "Create a KPI",
+    "noRisks": "No risks linked yet. Link one from the risk register or create a new one.",
+    "riskOwner": "Owner: {{ name }}"
   },
   "document": {
     "title": "Description document",
@@ -206,7 +268,8 @@
       "in_review": "In review",
       "approved": "Approved",
       "obsolete": "Obsolete"
-    }
+    },
+    "linkedNotApproved": "The document is not approved yet."
   },
   "interactions": {
     "title": "Interactions",
@@ -216,13 +279,28 @@
       "incoming": "Receives from"
     },
     "remove": "Remove the interaction with {{ code }}",
-    "empty": "No interactions recorded. Add the processes this one receives from or provides to.",
+    "empty": "No interactions recorded. Add the processes and interested parties this one receives from or delivers to.",
     "target": "Process",
     "chooseTarget": "Choose a process",
     "directionLabel": "Direction",
     "label": "What flows",
     "labelPlaceholder": "For example: approved purchase orders",
-    "add": "Add interaction"
+    "add": "Add an interaction",
+    "intro": "Who the process receives from and delivers to: other processes, and interested parties such as customers and authorities.",
+    "edit": "Edit interactions ({{ count }})",
+    "view": "See interactions ({{ count }})",
+    "partyTag": "Interested party",
+    "removeParty": "Remove the interaction with {{ name }}",
+    "kindLabel": "Interaction with",
+    "kind": {
+      "process": "Another process",
+      "party": "An interested party"
+    },
+    "party": "Interested party",
+    "partyPlaceholder": "Search for an interested party, for example \"customers\"",
+    "partyHint": "Interested parties come from",
+    "partyRegister": "Context and leadership: interested parties",
+    "save": "Save the interaction"
   },
   "review": {
     "title": "Periodic review",
@@ -231,13 +309,70 @@
     "monthsOne": "Every month",
     "record": "Record review",
     "recordTitle": "Record a process review",
-    "recordSubtitle": "Confirms the process is still suitable, effective and up to date, and schedules the next review.",
+    "recordSubtitle": "Check that the process is still suitable and effective. The points are prefilled from what CoreFlow knows.",
     "notes": "Review notes",
     "notesPlaceholder": "What did you check, and what changed?",
     "nextDate": "Next review date",
     "nextDateHint": "Leave empty to use the review interval.",
     "submit": "Record review",
-    "noOwnerHint": "Give the process an owner so a review task can be assigned."
+    "noOwnerHint": "Give the process an owner so a review task can be assigned.",
+    "interval": "Reviewed",
+    "everyMonth": "Every month",
+    "everyYear": "Every year",
+    "everyNYears": "Every {{ count }} years",
+    "everyNMonths": "Every {{ count }} months",
+    "never": "Never reviewed",
+    "lastOutcome": "Last outcome",
+    "outcomeLabel": "What is the conclusion?",
+    "outcome": {
+      "suitable": "Suitable and effective",
+      "needs_change": "Needs change",
+      "not_effective": "Not effective"
+    },
+    "outcomeHint": {
+      "suitable": "The process works as intended. No major changes are needed.",
+      "needs_change": "The process works, but something should improve. Add actions below.",
+      "not_effective": "The process does not deliver the intended result. Add actions and consider a deviation."
+    },
+    "checklist": "Checklist",
+    "checklistHint": "Confirm each point. The answers are suggested from the data, but you decide.",
+    "askChecklist": "Help me review this process: what should I look for in each point of the checklist?",
+    "checks": {
+      "purpose": "Purpose and scope are still right",
+      "kpis": "The KPIs meet their targets",
+      "risks": "Risks and opportunities are assessed",
+      "map": "The process map matches practice",
+      "description": "The description document is current and approved",
+      "deviations": "Deviations in the process are followed up",
+      "interactions": "Interactions with other processes and interested parties are right"
+    },
+    "data": {
+      "purpose": "Read the purpose and scope again.",
+      "kpis": "{{ measured }} of {{ total }} KPIs have measurements, {{ off_track }} are off track.",
+      "risks": "{{ total }} linked risks, {{ high }} at a high level.",
+      "map": "The map has {{ steps }} steps.",
+      "description": "Check the status and content of the document.",
+      "deviations": "{{ open }} open deviations linked to the process.",
+      "interactions": "{{ processes }} processes and {{ parties }} interested parties."
+    },
+    "answer": {
+      "yes": "Yes",
+      "no": "No",
+      "unset": "Not checked"
+    },
+    "checkNote": "What needs to be done?",
+    "kpis": "KPIs now",
+    "actions": "Actions",
+    "actionsHint": "Each action becomes a task on the process and shows up in \"My work\".",
+    "actionTitle": "What needs to be done",
+    "actionAssignee": "Responsible",
+    "actionOwner": "The process owner",
+    "actionDue": "Due date",
+    "addAction": "Add an action",
+    "removeAction": "Remove the action",
+    "nextDateSuggested": "Suggested from the interval: {{ date }}.",
+    "openDeviations": "{{ count }} open deviations are linked to the process.",
+    "seeRelated": "See connections"
   },
   "statusActions": {
     "active": "Activate",
@@ -257,16 +392,24 @@
   },
   "interactionMap": {
     "back": "Back to processes",
-    "title": "Process interaction map",
+    "title": "Interaction map",
     "includeRetired": "Show retired processes",
     "empty": "No processes yet. Add processes and their interactions to see the map.",
     "svgLabel": "Map of all processes and how they interact",
-    "legend": "Dashed boxes are draft processes. Arrows show what one process provides to another. Select a process to open it.",
+    "legend": "Dashed boxes are draft processes. Rounded blue boxes are interested parties. Arrows show what is delivered. Select a box to open it.",
     "table": "Interactions as a table",
     "noEdges": "No interactions recorded yet.",
     "from": "From",
     "flow": "What flows",
-    "to": "To"
+    "to": "To",
+    "description": "How the processes deliver to each other, and to customers and other interested parties.",
+    "view": {
+      "map": "Map",
+      "table": "Table"
+    },
+    "emptyTitle": "No processes yet",
+    "partiesBand": "CUSTOMERS AND INTERESTED PARTIES",
+    "noParties": "Tip: add interested parties such as customers and authorities as start and end points from the process page (\"Edit interactions\")."
   },
   "map": {
     "back": "Back to the process",
@@ -351,7 +494,8 @@
       "department": "Department",
       "noDepartment": "No department",
       "empty": "No swimlanes. Add one per role or department that takes part in the process.",
-      "defaultName": "Swimlane {{ n }}"
+      "defaultName": "Swimlane {{ n }}",
+      "rolesHint": "One lane per role or department. Roles are the same as under Settings › Members and roles, and departments come from the organisation setup."
     },
     "announce": {
       "added": "{{ type }} added.",
@@ -380,7 +524,8 @@
       "replace": "Replace",
       "emptyResult": "The assistant did not return any steps. Add more detail and try again.",
       "applied": "Draft map added. Review it and save when you are happy."
-    }
+    },
+    "fit": "Fit to screen"
   },
   "notifications": {
     "created": "Process created: {{ code }} {{ title }}",
@@ -407,5 +552,99 @@
     "interactionAdded": "Interaction added",
     "interactionRemoved": "Interaction removed",
     "deleted": "Process deleted"
+  },
+  "nav": {
+    "register": "Process register",
+    "interactionMap": "Interaction map"
+  },
+  "frameworks": {
+    "iso9001": "ISO 9001",
+    "iso27001": "ISO 27001",
+    "iso14001": "ISO 14001",
+    "iso45001": "ISO 45001",
+    "iso42001": "ISO 42001",
+    "gdpr": "GDPR",
+    "eu_ai_act": "EU AI Act",
+    "nis2": "NIS2"
+  },
+  "riskLevel": {
+    "very_low": "Very low",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "very_high": "Very high",
+    "critical": "Critical"
+  },
+  "health": {
+    "title": "Is the process complete?",
+    "intro": "Nine building blocks make a process audit-ready. You can fix what is missing from here.",
+    "summary": "{{ done }} of {{ total }} in place",
+    "short": "{{ done }} of {{ total }}",
+    "inPlace": "In place",
+    "missing": "Missing",
+    "items": {
+      "owner": "Has an owner",
+      "purpose": "Purpose is described",
+      "scope": "Scope is described",
+      "map": "Process map is drawn",
+      "description": "Approved description document",
+      "kpis": "A KPI with measurements",
+      "risks": "Linked to a risk",
+      "requirements": "Documents at least one requirement",
+      "review": "Reviewed on time"
+    },
+    "fix": {
+      "owner": "Choose an owner",
+      "purpose": "Write the purpose",
+      "scope": "Describe the scope",
+      "map": "Draw the map",
+      "description": "Add a description",
+      "kpis": "Link a KPI",
+      "risks": "Link a risk",
+      "requirements": "Link requirements",
+      "review": "Record a review"
+    }
+  },
+  "reviewHistory": {
+    "title": "Reviews",
+    "subtitle": "Every review with its conclusion, checklist and actions. Newest first.",
+    "open": "See earlier reviews",
+    "openCount": "See reviews ({{ count }})",
+    "by": "Reviewed by {{ name }}",
+    "checks": "{{ ok }} of {{ total }} points confirmed",
+    "actions": "Actions",
+    "emptyTitle": "No reviews yet",
+    "emptyBody": "When the process is reviewed, the conclusion and checklist are stored here."
+  },
+  "picker": {
+    "search": "Search",
+    "placeholder": "Type at least two characters",
+    "typeMore": "Type at least two characters to search.",
+    "noHits": "No matches.",
+    "linked": "Already linked",
+    "clear": "Remove {{ title }}",
+    "documentPlaceholder": "Search by document code or title"
+  },
+  "linkLeg": {
+    "title": "Link to {{ leg }}",
+    "search": "Find the record",
+    "subtitle": {
+      "inputs": "Suppliers and contracts that give the process what it needs.",
+      "outputs": "Customer feedback and surveys about what the process delivers.",
+      "resources": "Assets and ICT systems the process uses.",
+      "competence": "Positions, competences and courses the process requires.",
+      "methods": "Procedures, policies and external documents that govern the work.",
+      "kpis": "KPIs and objectives from \"Objectives and KPIs\".",
+      "risks": "Risks and opportunities from the risk register."
+    }
+  },
+  "tasks": {
+    "reviewTitle": "Review the process {{ code }}: {{ title }}"
+  },
+  "nextActions": {
+    "firstReview": "Do the first review of {{ code }} {{ title }}",
+    "firstReviewWhy": "The process is active but has never been reviewed. A review shows that it works.",
+    "noOwner": "Give {{ count }} processes an owner",
+    "noOwnerWhy": "A process without an owner is not followed up and gets no review task."
   }
 }

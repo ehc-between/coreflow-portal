@@ -37,7 +37,7 @@ describe('process form model', () => {
       department_id: null,
       review_interval_months: 12,
       next_review_at: '2027-03-01T00:00:00',
-      kpis: [{ name: 'Win rate', target: '30', unit: null, frequency: null }],
+      kpis: [{ name: 'Win rate', target: '30', unit: null, frequency: null, kpi_id: null }],
     });
   });
 

@@ -19,12 +19,12 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { GuideIntro } from '../../../shared/guidance/guide-intro';
-import { TourButton } from '../../../shared/guidance/tour-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
+import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -63,6 +63,7 @@ import {
   ProcessMap,
 } from '../data/process.models';
 import { ProcessesApi } from '../data/processes-api';
+import { DocumentSelect } from '../shared/document-select';
 import { NodeMove, ProcessMapCanvas } from './process-map-canvas';
 
 const HISTORY_LIMIT = 50;
@@ -86,12 +87,13 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
     AiAssistButton,
     AskAbout,
     FieldHelp,
-    GuideIntro,
-    TourButton,
     TourStepDirective,
+    HelpStrip,
+    PageHeader,
+    StatusBadge,
+    DocumentSelect,
     WhyItMatters,
     Alert,
-    Badge,
     Button,
     Card,
     ConfirmDialog,
@@ -104,43 +106,41 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
   template: `
     <div class="mx-auto max-w-[1400px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (process(); as p) {
-        <a
-          [routerLink]="['/processes', p.id]"
-          class="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-muted hover:text-fg"
+        <app-page-header
+          [titleKey]="'processes.map.title'"
+          [titleParams]="{ title: p.title }"
+          [breadcrumbs]="[
+            { labelKey: 'modules.names.processes', link: '/processes' },
+            { label: p.title, link: ['/processes', p.id] },
+            { labelKey: 'processes.detail.map' },
+          ]"
         >
-          <app-icon name="back" [size]="16" />
-          {{ 'processes.map.back' | transloco }}
-        </a>
-        <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="font-mono text-[12px] text-fg-subtle">{{ p.code }}</p>
-            <h1
-              class="font-display text-[22px] font-bold tracking-[-0.03em] text-fg sm:text-[24px]"
-            >
-              {{ 'processes.map.title' | transloco: { title: p.title } }}
-            </h1>
-            <p class="mt-1 text-[12.5px] text-fg-muted">
-              {{ 'processes.map.version' | transloco: { version: p.map_version } }}
-              @if (dirty()) {
-                <app-badge tone="warn" class="ml-2">{{
-                  'processes.map.unsaved' | transloco
-                }}</app-badge>
-              }
-            </p>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <app-tour-button scope="processes" tour="map" />
+          <ng-container ngProjectAs="[meta]">
+            <span class="font-mono">{{ p.code }}</span>
+            <span aria-hidden="true">·</span>
+            <span>{{ 'processes.map.version' | transloco: { version: p.map_version } }}</span>
+            @if (dirty()) {
+              <app-status-badge
+                meaning="lifecycle"
+                value="pending"
+                labelKey="processes.map.unsaved"
+              />
+            }
+          </ng-container>
+          <ng-container ngProjectAs="[secondary]">
+            @if (!mapEmpty()) {
+              <app-button
+                variant="secondary"
+                appTourStep="processes-map-generate"
+                (click)="generateOpen.set(true)"
+              >
+                <app-icon name="spark" [size]="15" />
+                {{ 'processes.map.generate.open' | transloco }}
+              </app-button>
+            }
+          </ng-container>
+          <ng-container ngProjectAs="[primary]">
             <app-button
-              variant="secondary"
-              size="sm"
-              appTourStep="processes-map-generate"
-              (click)="generateOpen.set(true)"
-            >
-              <app-icon name="spark" [size]="15" />
-              {{ 'processes.map.generate.open' | transloco }}
-            </app-button>
-            <app-button
-              size="sm"
               [disabled]="!dirty() || saving() || !canEdit()"
               [loading]="saving()"
               (click)="save()"
@@ -149,10 +149,10 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
               <app-icon name="check" [size]="15" />
               {{ 'processes.map.save' | transloco }}
             </app-button>
-          </div>
-        </header>
+          </ng-container>
+        </app-page-header>
 
-        <app-guide-intro class="mb-3" scope="processes" page="map" />
+        <app-help-strip scope="processes" page="map" tour="map" />
 
         @if (!canEdit()) {
           <app-alert tone="info" class="mb-3">{{ 'processes.map.readOnly' | transloco }}</app-alert>
@@ -167,7 +167,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
           @for (type of nodeTypes; track type) {
             <button
               type="button"
-              class="inline-flex h-9 items-center gap-1.5 rounded-[9px] border border-border bg-surface px-2.5 text-[12.5px] font-semibold text-fg hover:border-accent disabled:opacity-50"
+              class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-meta font-semibold text-fg hover:border-accent disabled:opacity-50"
               [disabled]="!canEdit() || !canAddStep()"
               (click)="addStep(type)"
               [attr.data-testid]="'add-' + type"
@@ -179,7 +179,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
           <span class="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden="true"></span>
           <button
             type="button"
-            class="inline-flex h-9 items-center gap-1.5 rounded-[9px] border border-border bg-surface px-2.5 text-[12.5px] font-semibold text-fg hover:border-accent disabled:opacity-50"
+            class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 text-meta font-semibold text-fg hover:border-accent disabled:opacity-50"
             [disabled]="!canEdit() || !canAddSwimlane()"
             (click)="addSwimlane()"
             data-testid="add-lane"
@@ -189,7 +189,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
           </button>
           <button
             type="button"
-            class="inline-flex h-9 items-center gap-1.5 rounded-[9px] border px-2.5 text-[12.5px] font-semibold disabled:opacity-50"
+            class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-meta font-semibold disabled:opacity-50"
             [class]="
               connectFrom()
                 ? 'border-accent bg-accent-soft text-accent'
@@ -225,20 +225,34 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
           <span class="ml-auto inline-flex items-center gap-1">
             <button
               type="button"
-              class="h-8 w-8 rounded-[8px] border border-border bg-surface text-[15px] font-bold text-fg disabled:opacity-40"
-              [disabled]="zoomIndex() === 0"
+              class="inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-meta font-semibold"
+              [class]="
+                fitted()
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-border bg-surface text-fg hover:border-accent'
+              "
+              [attr.aria-pressed]="fitted()"
+              (click)="fitted.set(!fitted())"
+              data-testid="map-fit"
+            >
+              {{ 'processes.map.fit' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="h-8 w-8 rounded-lg border border-border bg-surface text-card font-bold text-fg disabled:opacity-40"
+              [disabled]="fitted() || zoomIndex() === 0"
               [attr.aria-label]="'processes.map.zoomOut' | transloco"
               (click)="zoomIndex.set(zoomIndex() - 1)"
             >
               −
             </button>
-            <span class="w-12 text-center text-[12px] text-fg-muted" aria-live="polite">
-              {{ zoomPercent() }}%
+            <span class="w-12 text-center text-meta text-fg-muted" aria-live="polite">
+              {{ fitted() ? '–' : zoomPercent() + '%' }}
             </span>
             <button
               type="button"
-              class="h-8 w-8 rounded-[8px] border border-border bg-surface text-[15px] font-bold text-fg disabled:opacity-40"
-              [disabled]="zoomIndex() === zoomSteps.length - 1"
+              class="h-8 w-8 rounded-lg border border-border bg-surface text-card font-bold text-fg disabled:opacity-40"
+              [disabled]="fitted() || zoomIndex() === zoomSteps.length - 1"
               [attr.aria-label]="'processes.map.zoomIn' | transloco"
               (click)="zoomIndex.set(zoomIndex() + 1)"
             >
@@ -248,7 +262,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
         </div>
 
         @if (connectFrom()) {
-          <p class="mb-2 text-[12.5px] text-accent" role="status">
+          <p class="mb-2 text-meta text-accent" role="status">
             {{ 'processes.map.connectHint' | transloco }}
           </p>
         }
@@ -259,17 +273,22 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
             @if (map().nodes.length === 0 && map().lanes.length === 0) {
               <app-card>
                 <div class="py-8 text-center" data-testid="map-empty">
-                  <h2 class="font-display text-[16px] font-bold text-fg">
+                  <h2 class="font-display text-section font-bold text-fg">
                     {{ 'processes.map.empty.title' | transloco }}
                   </h2>
-                  <p class="mx-auto mt-1 max-w-md text-[13px] text-fg-muted">
+                  <p class="mx-auto mt-1 max-w-md text-ui text-fg-muted">
                     {{ 'processes.map.empty.body' | transloco }}
                   </p>
                   <div class="mt-4 flex flex-wrap justify-center gap-2">
                     <app-button size="sm" [disabled]="!canEdit()" (click)="startTemplate()">
                       {{ 'processes.map.empty.start' | transloco }}
                     </app-button>
-                    <app-button variant="secondary" size="sm" (click)="generateOpen.set(true)">
+                    <app-button
+                      variant="secondary"
+                      size="sm"
+                      appTourStep="processes-map-generate"
+                      (click)="generateOpen.set(true)"
+                    >
                       <app-icon name="spark" [size]="15" />
                       {{ 'processes.map.generate.open' | transloco }}
                     </app-button>
@@ -284,6 +303,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                 [connectFrom]="connectFrom()"
                 [highlightIds]="highlightIds()"
                 [zoom]="zoom()"
+                [fit]="fitted()"
                 maxHeight="70vh"
                 (nodeSelected)="onNodeSelected($event)"
                 (edgeSelected)="selectEdge($event)"
@@ -296,13 +316,10 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 
             @if (issues().length > 0) {
               <app-card class="mt-3">
-                <h2 class="mb-2 text-[13px] font-bold text-fg">
+                <h2 class="mb-2 text-ui font-bold text-fg">
                   {{ 'processes.map.issues.title' | transloco }}
                 </h2>
-                <ul
-                  class="flex flex-col gap-1 text-[12.5px] text-fg-muted"
-                  data-testid="map-issues"
-                >
+                <ul class="flex flex-col gap-1 text-meta text-fg-muted" data-testid="map-issues">
                   @for (issue of issues(); track issue.key) {
                     <li class="flex items-start gap-1.5">
                       <span class="mt-0.5 text-warn"><app-icon name="alert" [size]="13" /></span>
@@ -316,11 +333,15 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
               </app-card>
             }
 
-            <details class="mt-3 rounded-[12px] border border-border bg-surface px-4 py-3">
-              <summary class="cursor-pointer text-[13px] font-semibold text-fg">
+            <details
+              class="mt-3 rounded-card border border-border bg-surface px-4 py-3"
+              [open]="smallScreen"
+              data-testid="map-steps"
+            >
+              <summary class="cursor-pointer text-ui font-semibold text-fg">
                 {{ 'processes.map.textAlternative' | transloco }}
               </summary>
-              <ol class="mt-2 list-decimal pl-5 text-[13px] text-fg-muted">
+              <ol class="mt-2 list-decimal pl-5 text-ui text-fg-muted">
                 @for (n of stepsInOrder(); track n.id) {
                   <li>
                     <button
@@ -344,7 +365,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
             @if (selectedNode(); as node) {
               <app-card>
                 <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="text-[14px] font-bold text-fg">
+                  <h2 class="text-card font-bold text-fg">
                     {{ 'processes.map.step.title' | transloco }}
                   </h2>
                   <app-ask-about
@@ -353,7 +374,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                   />
                 </div>
                 <div class="flex flex-col gap-3" data-testid="step-panel">
-                  <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                  <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                     {{ 'processes.map.step.label' | transloco }}
                     <input
                       class="cf-input"
@@ -366,7 +387,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     />
                   </label>
                   <app-field-help scope="processes" page="map" field="stepType" />
-                  <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                  <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                     {{ 'processes.map.step.type' | transloco }}
                     <select
                       class="cf-input"
@@ -380,7 +401,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     </select>
                   </label>
                   @if (map().lanes.length > 0) {
-                    <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                    <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                       {{ 'processes.map.step.lane' | transloco }}
                       <select
                         class="cf-input"
@@ -394,7 +415,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                       </select>
                     </label>
                   }
-                  <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                  <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                     {{ 'processes.map.step.description' | transloco }}
                     <textarea
                       class="cf-input"
@@ -407,35 +428,27 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     ></textarea>
                   </label>
                   @if (references.canReadDocuments()) {
-                    <app-field-help scope="processes" page="map" field="procedure" />
-                    <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-                      {{ 'processes.map.step.procedure' | transloco }}
-                      <select
-                        class="cf-input"
-                        [ngModel]="node.document_id ?? ''"
-                        (ngModelChange)="
-                          commit(updateNodeFn(node.id, { document_id: $event || null }))
-                        "
+                    <div class="flex flex-col gap-1">
+                      <app-process-document-select
+                        [documents]="references.documents()"
+                        [value]="node.document_id ?? null"
                         [disabled]="!canEdit()"
+                        (valueChange)="commit(updateNodeFn(node.id, { document_id: $event }))"
                         data-testid="step-document"
-                      >
-                        <option value="">{{ 'processes.map.step.noProcedure' | transloco }}</option>
-                        @for (doc of references.documents(); track doc.id) {
-                          <option [value]="doc.id">{{ doc.doc_code }} · {{ doc.title }}</option>
-                        }
-                      </select>
-                    </label>
+                      />
+                      <app-field-help scope="processes" page="map" field="procedure" />
+                    </div>
                     @if (node.document_id) {
                       <a
                         [routerLink]="['/documents', node.document_id]"
-                        class="text-[12.5px] font-semibold text-accent hover:underline"
+                        class="text-meta font-semibold text-accent hover:underline"
                       >
                         {{ 'processes.map.step.openProcedure' | transloco }}
                       </a>
                     }
                   }
                   @if (node.type === 'subprocess') {
-                    <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                    <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                       {{ 'processes.map.step.subprocess' | transloco }}
                       <select
                         class="cf-input"
@@ -456,7 +469,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     @if (node.process_id) {
                       <a
                         [routerLink]="['/processes', node.process_id]"
-                        class="text-[12.5px] font-semibold text-accent hover:underline"
+                        class="text-meta font-semibold text-accent hover:underline"
                       >
                         {{ 'processes.map.step.openSubprocess' | transloco }}
                       </a>
@@ -483,16 +496,16 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
               </app-card>
             } @else if (selectedEdge(); as edge) {
               <app-card>
-                <h2 class="mb-3 text-[14px] font-bold text-fg">
+                <h2 class="mb-3 text-card font-bold text-fg">
                   {{ 'processes.map.connection.title' | transloco }}
                 </h2>
-                <p class="mb-3 text-[12.5px] text-fg-muted">
+                <p class="mb-3 text-meta text-fg-muted">
                   {{
                     'processes.map.connection.between'
                       | transloco: { from: nodeLabel(edge.source), to: nodeLabel(edge.target) }
                   }}
                 </p>
-                <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                   {{ 'processes.map.connection.label' | transloco }}
                   <input
                     class="cf-input"
@@ -516,7 +529,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
               </app-card>
             } @else {
               <app-card>
-                <p class="text-[12.5px] text-fg-muted">
+                <p class="text-meta text-fg-muted">
                   {{ 'processes.map.selectHint' | transloco }}
                 </p>
               </app-card>
@@ -524,13 +537,18 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 
             <app-card>
               <div class="mb-2 flex items-center justify-between gap-2">
-                <h2 class="text-[14px] font-bold text-fg">
+                <h2 class="text-card font-bold text-fg">
                   {{ 'processes.map.lanes.title' | transloco }}
                 </h2>
               </div>
-              <app-field-help scope="processes" page="map" field="lanes" />
+              <div class="flex items-start gap-1.5">
+                <p class="text-meta text-fg-muted">
+                  {{ 'processes.map.lanes.rolesHint' | transloco }}
+                </p>
+                <app-field-help scope="processes" page="map" field="lanes" />
+              </div>
               @for (lane of map().lanes; track lane.id; let i = $index; let last = $last) {
-                <div class="mt-2 rounded-[10px] border border-border p-2" data-testid="lane-row">
+                <div class="mt-2 rounded-lg border border-border p-2" data-testid="lane-row">
                   <div class="flex items-center gap-1">
                     <input
                       class="cf-input min-w-0 flex-1"
@@ -543,7 +561,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     />
                     <button
                       type="button"
-                      class="h-8 w-8 rounded-[8px] text-fg-muted hover:bg-surface-2 disabled:opacity-30"
+                      class="h-8 w-8 rounded-lg text-fg-muted hover:bg-surface-2 disabled:opacity-30"
                       [disabled]="!canEdit() || i === 0"
                       [attr.aria-label]="'processes.map.lanes.up' | transloco: { name: lane.label }"
                       (click)="commit(moveLaneFn(lane.id, -1))"
@@ -552,7 +570,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     </button>
                     <button
                       type="button"
-                      class="h-8 w-8 rounded-[8px] text-fg-muted hover:bg-surface-2 disabled:opacity-30"
+                      class="h-8 w-8 rounded-lg text-fg-muted hover:bg-surface-2 disabled:opacity-30"
                       [disabled]="!canEdit() || last"
                       [attr.aria-label]="
                         'processes.map.lanes.down' | transloco: { name: lane.label }
@@ -563,7 +581,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                     </button>
                     <button
                       type="button"
-                      class="flex h-8 w-8 items-center justify-center rounded-[8px] text-fg-subtle hover:text-fail disabled:opacity-30"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg text-fg-subtle hover:text-fail disabled:opacity-30"
                       [disabled]="!canEdit()"
                       [attr.aria-label]="
                         'processes.map.lanes.remove' | transloco: { name: lane.label }
@@ -605,7 +623,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
                   </div>
                 </div>
               } @empty {
-                <p class="mt-2 text-[12.5px] text-fg-muted">
+                <p class="mt-2 text-meta text-fg-muted">
                   {{ 'processes.map.lanes.empty' | transloco }}
                 </p>
               }
@@ -613,7 +631,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 
             @if (canEdit()) {
               <app-card>
-                <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+                <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                   {{ 'processes.fields.changeReason' | transloco }}
                   <input
                     class="cf-input"
@@ -631,7 +649,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
       } @else if (loadError(); as err) {
         <app-alert tone="error">{{ err | transloco }}</app-alert>
       } @else {
-        <p class="text-[14px] text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        <p class="text-card text-fg-muted">{{ 'common.loading' | transloco }}</p>
       }
     </div>
 
@@ -643,7 +661,7 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
       (closed)="generateOpen.set(false)"
     >
       <div class="flex flex-col gap-3">
-        <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'processes.map.generate.description' | transloco }}
           <textarea
             class="cf-input"
@@ -655,17 +673,14 @@ const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5] as const;
           ></textarea>
         </label>
         @if (references.canReadDocuments()) {
-          <label class="flex flex-col gap-1 text-[12.5px] font-semibold text-fg-muted">
-            {{ 'processes.map.generate.document' | transloco }}
-            <select class="cf-input" [(ngModel)]="generateDocumentId">
-              <option value="">{{ 'processes.map.generate.noDocument' | transloco }}</option>
-              @for (doc of references.documents(); track doc.id) {
-                <option [value]="doc.id">{{ doc.doc_code }} · {{ doc.title }}</option>
-              }
-            </select>
-          </label>
+          <app-process-document-select
+            labelKey="processes.map.generate.document"
+            [documents]="references.documents()"
+            [value]="generateDocumentId || null"
+            (valueChange)="generateDocumentId = $event ?? ''"
+          />
         }
-        <p class="text-[12px] text-fg-subtle">{{ 'processes.map.generate.note' | transloco }}</p>
+        <p class="text-meta text-fg-subtle">{{ 'processes.map.generate.note' | transloco }}</p>
         <div>
           <app-ai-assist-button
             assist="processes.generate_map"
@@ -740,6 +755,12 @@ export class ProcessMapEditor {
   protected readonly connectFrom = signal<string | null>(null);
   protected readonly saving = signal(false);
   protected readonly zoomIndex = signal(2);
+  /** Small screens start with the whole map fitted and the step list open. */
+  protected readonly smallScreen =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 639px)').matches
+      : false;
+  protected readonly fitted = signal(this.smallScreen);
   protected readonly generateOpen = signal(false);
   protected readonly pendingGenerated = signal<ProcessMap | null>(null);
   protected readonly announcement = signal('');
@@ -748,6 +769,9 @@ export class ProcessMapEditor {
   protected generateDocumentId = '';
 
   protected readonly canEdit = computed(() => this.process()?.can_edit ?? false);
+  protected readonly mapEmpty = computed(
+    () => this.map().nodes.length === 0 && this.map().lanes.length === 0,
+  );
   protected readonly dirty = computed(() => !sameMap(this.map(), this.baseline()));
   protected readonly zoom = computed(() => ZOOM_STEPS[this.zoomIndex()]);
   protected readonly zoomPercent = computed(() => Math.round(this.zoom() * 100));

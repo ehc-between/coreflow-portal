@@ -6,14 +6,18 @@ import { SKIP_ERROR_TOAST } from '../../../core/http/error.interceptor';
 import {
   CreateDescriptionDocumentRequest,
   CreateInteractionRequest,
+  CreatePartyInteractionRequest,
   CreateProcessRequest,
   Interaction,
   InteractionMap,
+  PartyInteraction,
   ProcessDetail,
   ProcessList,
   ProcessListQuery,
   ProcessMap,
   ProcessStatus,
+  ReviewList,
+  ReviewPrefill,
   ReviewRequest,
   Turtle,
   UpdateProcessRequest,
@@ -60,8 +64,9 @@ export class ProcessesApi {
     return this.api.post<ProcessDetail>(this.base(orgId), body, skipToast());
   }
 
+  /** Pages render their own not-found / error state, so no global toast. */
   get(orgId: string, id: string): Observable<ProcessDetail> {
-    return this.api.get<ProcessDetail>(`${this.base(orgId)}/${id}`);
+    return this.api.get<ProcessDetail>(`${this.base(orgId)}/${id}`, skipToast());
   }
 
   update(orgId: string, id: string, body: UpdateProcessRequest): Observable<ProcessDetail> {
@@ -103,7 +108,40 @@ export class ProcessesApi {
   }
 
   turtle(orgId: string, id: string): Observable<Turtle> {
-    return this.api.get<Turtle>(`${this.base(orgId)}/${id}/turtle`);
+    return this.api.get<Turtle>(`${this.base(orgId)}/${id}/turtle`, skipToast());
+  }
+
+  /** Stored periodic reviews, newest first. */
+  reviews(orgId: string, id: string, limit = 20, offset = 0): Observable<ReviewList> {
+    return this.api.get<ReviewList>(`${this.base(orgId)}/${id}/reviews`, {
+      params: { limit, offset },
+      ...skipToast(),
+    });
+  }
+
+  /** Live data per review checklist question, for the review form. */
+  reviewPrefill(orgId: string, id: string): Observable<ReviewPrefill> {
+    return this.api.get<ReviewPrefill>(`${this.base(orgId)}/${id}/review-prefill`, skipToast());
+  }
+
+  /** An interested party (Context) the process receives from or delivers to. */
+  addPartyInteraction(
+    orgId: string,
+    id: string,
+    body: CreatePartyInteractionRequest,
+  ): Observable<PartyInteraction> {
+    return this.api.post<PartyInteraction>(
+      `${this.base(orgId)}/${id}/party-interactions`,
+      body,
+      skipToast(),
+    );
+  }
+
+  removePartyInteraction(orgId: string, id: string, interactionId: string): Observable<void> {
+    return this.api.delete<void>(
+      `${this.base(orgId)}/${id}/party-interactions/${interactionId}`,
+      skipToast(),
+    );
   }
 
   interactionMap(orgId: string, includeRetired = false): Observable<InteractionMap> {

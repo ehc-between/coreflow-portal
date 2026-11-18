@@ -2,13 +2,13 @@
   "pages": {
     "list": {
       "intro": {
-        "title": "Prosessregisteret ditt",
-        "body": "En **prosess** er et sett aktiviteter som gjør inndata om til utdata for noen: en kunde, en annen prosess eller virksomheten selv. Registeret viser alle prosesser, hvem som eier dem, hva de er til for og hvordan de måles.",
+        "title": "Prosessene dine",
+        "body": "En **prosess** er arbeid som gjentas og gir et resultat, for eksempel *Salg* eller *Innkjøp*. Her ser du alle prosessene, hvem som eier dem, hvor komplette de er og når de skal gjennomgås.",
         "steps": [
-          "Begynn med de få prosessene som skaper verdi for kundene (kjerne), legg så til dem som styrer virksomheten (ledelse) og dem som holder den i gang (støtte).",
+          "Begynn med de få prosessene som skaper verdi for kundene (kjerne), legg så til dem som styrer organisasjonen (ledelse) og dem som holder den i gang (støtte).",
           "Gi hver prosess en eier, et formål og et gjennomgangsintervall.",
-          "Tegn kartet og fyll ut skilpaddediagrammet slik at alle ser hvordan arbeidet gjøres.",
-          "Åpne **Samspillskart** for å se hvordan prosessene leverer arbeid til hverandre."
+          "Tegn kartet og fyll ut «Prosessen på én side», og koble risikoer, nøkkeltall og prosedyrer.",
+          "Åpne **Samspillskart** for å se hvordan prosessene leverer til hverandre og til kundene."
         ]
       },
       "why": {
@@ -16,20 +16,20 @@
         "clauses": ["hs:4.4", "iso9001:4.4.1", "iso9001:4.4.2", "hs:8.1"]
       },
       "empty": {
-        "title": "Beskriv hvordan virksomheten arbeider",
-        "body": "De fleste virksomheter kan beskrive seg selv med 8 til 15 prosesser, for eksempel *Salg*, *Innkjøp*, *Produksjon eller tjenesteleveranse*, *Rekruttering* og *Ledelsens gjennomgåelse*. Begynn med en du kjenner godt: gi den en eier og et formål, og tegn så kartet.",
-        "cta": "Opprett den første prosessen"
+        "title": "Beskriv hvordan organisasjonen arbeider",
+        "body": "De fleste organisasjoner kan beskrive seg selv med 8 til 15 prosesser, for eksempel *Salg*, *Innkjøp*, *Produksjon eller tjenesteleveranse*, *Rekruttering* og *Ledelsens gjennomgang*. Begynn med en du kjenner godt: gi den en eier og et formål, og tegn så kartet.",
+        "cta": "Ny prosess"
       }
     },
     "detail": {
       "intro": {
         "title": "Én prosess, hele bildet",
-        "body": "Her finner du alt om prosessen: fakta fra registeret, **kartet** over trinnene, **skilpaddediagrammet**, det styrte **beskrivelsesdokumentet** og hvordan den samspiller med andre prosesser. Gjennomgangsoppgaven, relaterte poster, historikk og kommentarer ligger i fanene.",
+        "body": "Her finner du alt om prosessen: hvor komplett den er, **kartet** over trinnene, **prosessen på én side** med koblede risikoer, nøkkeltall og prosedyrer, og det styrte **beskrivelsesdokumentet**. Oppgaver, koblinger, historikk og kommentarer ligger i fanene.",
         "steps": [
-          "Sjekk at formål, eier og gjennomgangsintervall er satt.",
-          "Tegn eller oppdater kartet, og knytt trinn til prosedyrene som beskriver dem.",
-          "Opprett beskrivelsesdokumentet og send det til gjennomgang og godkjenning.",
-          "Registrer en gjennomgang når eieren har bekreftet at prosessen fortsatt fungerer som tenkt."
+          "Se på «Er prosessen komplett?» og fiks det som mangler.",
+          "Koble ekte poster til prosessen: risikoer, nøkkeltall, prosedyrer, utstyr og kurs.",
+          "Legg til samspillet med andre prosesser og med interessenter som kunder.",
+          "Registrer en gjennomgang når eieren har sjekket at prosessen fortsatt virker."
         ]
       },
       "why": {
@@ -39,30 +39,34 @@
       "fields": {
         "descriptionDocument": {
           "help": "Den skriftlige beskrivelsen av prosessen, holdt under dokumentstyring slik at den gjennomgås, godkjennes og versjoneres som andre styrte dokumenter.",
-          "example": "PR-003 Innkjøp: prosessbeskrivelse"
+          "example": "PR-003 Innkjøp: prosessbeskrivelse",
+          "requirements": ["hs:7.5", "iso9001:4.4.2"]
         },
         "interactions": {
-          "help": "Hvilke prosesser denne mottar arbeid eller informasjon fra, og hvilke den leverer til. Til sammen utgjør de samspillskartet.",
-          "example": "Salg leverer signerte ordrer til Produksjonsplanlegging."
+          "help": "Hvilke prosesser og interessenter denne mottar arbeid eller informasjon fra, og hvilke den leverer til. Til sammen utgjør de samspillskartet.",
+          "example": "Kunder sender forespørsler til Salg; Salg leverer bekreftede ordrer til Levering.",
+          "requirements": ["iso9001:4.4.1", "hs:4.2"]
         },
         "turtle": {
-          "help": "Skilpaddediagrammet oppsummerer prosessen på én side: inndata og utdata, med hva (ressurser), med hvem (kompetanse), hvordan (metoder og prosedyrer), hvordan det måles (KPI-er) og risikoene.",
-          "example": "Inndata: kundeordre. Utdata: levert produkt. KPI: levering til avtalt tid 95 %."
+          "help": "Prosessen på én side (skilpaddediagram): inndata og utdata, med hva (ressurser), med hvem (kompetanse), hvordan (metoder og prosedyrer), hvordan det måles (nøkkeltall) og risikoene. Koble ekte poster med «Koble» på hvert felt.",
+          "example": "Inndata: kundeordre. Utdata: levert produkt. Nøkkeltall: levering til avtalt tid 95 %.",
+          "requirements": ["iso9001:4.4.1", "hs:4.4"]
         },
         "review": {
-          "help": "En aktiv prosess med eier og dato for neste gjennomgang har alltid én åpen gjennomgangsoppgave for eieren. Når en gjennomgang registreres, fullføres oppgaven og neste planlegges.",
-          "example": "Hver 12. måned, eller etter en stor endring eller et alvorlig avvik."
+          "help": "En aktiv prosess med eier og neste dato har alltid én åpen gjennomgangsoppgave for eieren. Gjennomgangen lagres med konklusjon, sjekkliste og tiltak.",
+          "example": "Hvert år, eller etter en stor endring eller et alvorlig avvik.",
+          "requirements": ["iso9001:4.4.1", "hs:9.1"]
         }
       }
     },
     "form": {
       "intro": {
         "title": "Beskrive en prosess",
-        "body": "Hold det kort og konkret. En god prosessbeskrivelse svarer på: hva er den til for, hvor starter og slutter den, hvem eier den, hva går inn og ut, og hvordan vet vi at den fungerer?",
+        "body": "Hold det kort og konkret. En god prosessbeskrivelse svarer på: hva er den til for, hvor starter og slutter den, hvem eier den, hva går inn og ut, og hvordan vet vi at den virker?",
         "steps": [
           "Gi prosessen navn etter det den oppnår, for eksempel *Behandle kundeklager*.",
-          "Velg kategori: ledelse, kjerne eller støtte.",
-          "Fyll ut minst inndata, utdata og én KPI. Assistenten kan foreslå resten."
+          "Velg kategori og eier, og hvilke standarder prosessen støtter.",
+          "Fyll ut minst inndata, utdata og ett nøkkeltall. «Foreslå innhold» kan hjelpe med resten."
         ]
       },
       "why": {
@@ -79,12 +83,13 @@
           "example": "PR-004"
         },
         "category": {
-          "help": "**Ledelsesprosesser** styrer virksomheten, **kjerneprosesser** skaper verdi for kundene, **støtteprosesser** gir de andre det de trenger.",
+          "help": "**Ledelsesprosesser** styrer organisasjonen, **kjerneprosesser** skaper verdi for kundene, **støtteprosesser** gir de andre det de trenger.",
           "example": "Rekruttering er en støtteprosess."
         },
         "owner": {
           "help": "Personen som er ansvarlig for at prosessen fungerer som tenkt. Vedkommende får gjennomgangsoppgaven og varslene.",
-          "example": "Lederen for kundeservice"
+          "example": "Lederen for kundeservice",
+          "requirements": ["iso9001:4.4.1", "hs:5.3"]
         },
         "parent": {
           "help": "Bruk en overordnet prosess når denne er en del av en større, slik at registeret viser et hierarki.",
@@ -92,7 +97,8 @@
         },
         "purpose": {
           "help": "Hvorfor prosessen finnes og hvilket resultat den skal levere.",
-          "example": "Løse kundeklager raskt og rettferdig, og lære av dem for å unngå gjentakelser."
+          "example": "Løse kundeklager raskt og rettferdig, og lære av dem for å unngå gjentakelser.",
+          "requirements": ["hs:4.4", "iso9001:4.4.1"]
         },
         "scope": {
           "help": "Hvor prosessen starter og slutter, og hva som er med eller holdes utenfor.",
@@ -100,11 +106,13 @@
         },
         "inputs": {
           "help": "Det prosessen trenger for å starte eller bruker opp: informasjon, forespørsler, materialer.",
-          "example": "Kundeklage, ordrehistorikk"
+          "example": "Kundeklage, ordrehistorikk",
+          "requirements": ["iso9001:4.4.1"]
         },
         "outputs": {
           "help": "Det prosessen leverer, og til hvem.",
-          "example": "Svar til kunden, korrigerende tiltak"
+          "example": "Svar til kunden, korrigerende tiltak",
+          "requirements": ["iso9001:4.4.1"]
         },
         "resources": {
           "help": "Med hva: systemer, utstyr, lokaler og materialer prosessen er avhengig av.",
@@ -119,16 +127,19 @@
           "example": "Prosedyre for klagebehandling, regler for eskalering"
         },
         "risks": {
-          "help": "Hva som kan hindre prosessen i å levere, og muligheter til å gjøre det bedre. Knytt formelle risikovurderinger til i fanen for relaterte poster.",
-          "example": "Klager blir ikke registrert; mulighet: selvbetjeningsportal"
+          "help": "Hva som kan hindre prosessen i å levere, og muligheter til å gjøre det bedre. Koble formelle risikoer fra risikoregisteret på prosessiden.",
+          "example": "Klager blir ikke registrert; mulighet: selvbetjeningsportal",
+          "requirements": ["hs:6.1", "iso9001:4.4.1"]
         },
         "kpis": {
-          "help": "Hvordan du vet at prosessen fungerer: et navn, et mål, en enhet og hvor ofte det måles.",
-          "example": "Klager lukket innen 10 dager: 90 %, månedlig"
+          "help": "Hvordan du vet at prosessen virker: navn, mål, enhet og hvor ofte det måles. Koble raden til et nøkkeltall i «Mål og KPI-er» for å få målte verdier.",
+          "example": "Klager lukket innen 10 dager: 90 %, månedlig",
+          "requirements": ["hs:9.1", "iso9001:9.1.1"]
         },
         "reviewInterval": {
           "help": "Hvor ofte eieren gjennomgår prosessen. Neste dato beregnes fra forrige gjennomgang.",
-          "example": "12"
+          "example": "12",
+          "requirements": ["iso9001:4.4.1"]
         },
         "nextReview": {
           "help": "Når neste gjennomgang forfaller. La stå tomt for å starte fra i dag pluss intervallet.",
@@ -137,6 +148,10 @@
         "changeReason": {
           "help": "Hvorfor du endrer prosessen. Begrunnelsen lagres i revisjonshistorikken.",
           "example": "Nytt eskaleringstrinn etter revisjonsfunnet"
+        },
+        "frameworks": {
+          "help": "Standardene prosessen hjelper organisasjonen å oppfylle. De styrer hvilke krav CoreFlow foreslår at prosessen dokumenterer.",
+          "example": "Innkjøp: ISO 9001 og ISO 27001"
         }
       }
     },
@@ -161,8 +176,9 @@
           "example": "Beslutning: Er klagen berettiget?"
         },
         "procedure": {
-          "help": "Knytt et trinn til det styrte dokumentet som forklarer hvordan det gjøres.",
-          "example": "Arbeidsinstruks WI-012"
+          "help": "Knytt et trinn til det styrte dokumentet som forklarer hvordan det gjøres. Prosedyrer vises først.",
+          "example": "Arbeidsinstruks WI-012",
+          "requirements": ["hs:7.5", "hs:8.1"]
         },
         "lanes": {
           "help": "Én bane per rolle eller avdeling som deltar. Trinnene ligger i banen til den som utfører dem.",
@@ -173,11 +189,11 @@
     "interactionMap": {
       "intro": {
         "title": "Hvordan prosessene henger sammen",
-        "body": "Samspillskartet viser hver prosess i sitt bånd (ledelse, kjerne, støtte) og pilene mellom dem: hva én prosess leverer til en annen. Hull og løse tråder er lette å se her.",
+        "body": "Samspillskartet viser hver prosess i sitt bånd (ledelse, kjerne, støtte), interessentene øverst og pilene mellom dem: hva som leveres til hvem. Hull og løse tråder er lette å se her.",
         "steps": [
-          "Hold pekeren over eller fokuser en prosess for å fremheve samspillet.",
-          "Legg til manglende samspill fra prosessens side.",
-          "Bruk tabellen under kartet for en tekstversjon."
+          "Hold pekeren over eller fokuser en boks for å fremheve samspillet.",
+          "Legg til manglende samspill fra prosessens side med «Endre samspill».",
+          "Bytt til **Tabell** for en tekstversjon."
         ]
       },
       "why": {
@@ -193,7 +209,7 @@
       "sections": [
         {
           "heading": "Arbeid som et system av prosesser",
-          "body": "Alle resultater virksomheten leverer, kommer ut av en kjede av aktiviteter. **Prosesstilnærmingen** betyr å styre disse kjedene bevisst: du vet hvilke prosesser du har, hvordan de henger sammen, hvem som eier dem og hvor godt de fungerer. I stedet for å fikse enkeltproblemer forbedrer du prosessen som forårsaket dem."
+          "body": "Alle resultater organisasjonen leverer, kommer ut av en kjede av aktiviteter. **Prosesstilnærmingen** betyr å styre disse kjedene bevisst: du vet hvilke prosesser du har, hvordan de henger sammen, hvem som eier dem og hvor godt de fungerer. I stedet for å fikse enkeltproblemer forbedrer du prosessen som forårsaket dem."
         },
         {
           "heading": "Hva hver prosess trenger",
@@ -212,12 +228,12 @@
         {
           "question": "Hvilken av disse er en kjerneprosess for de fleste bedrifter?",
           "options": [
-            "Ledelsens gjennomgåelse",
+            "Ledelsens gjennomgang",
             "Levere produktet eller tjenesten til kundene",
             "Vedlikeholde IT-utstyr"
           ],
           "answer": 1,
-          "explanation": "Kjerneprosesser skaper verdi for kundene. Ledelsens gjennomgåelse er en ledelsesprosess, og IT-vedlikehold er en støtteprosess."
+          "explanation": "Kjerneprosesser skaper verdi for kundene. Ledelsens gjennomgang er en ledelsesprosess, og IT-vedlikehold er en støtteprosess."
         },
         {
           "question": "Hvilket PDCA-trinn er den periodiske prosessgjennomgangen?",
@@ -269,5 +285,23 @@
         "body": "Beskriv prosessen med egne ord eller velg en prosedyre, og få et ferdig utlagt utkast til kart som du kan bygge videre på."
       }
     ]
+  },
+  "glossary": {
+    "process": {
+      "term": "Prosess",
+      "definition": "Et sett aktiviteter som gjør inndata om til et resultat for noen: en kunde, en annen prosess eller organisasjonen selv."
+    },
+    "turtle": {
+      "term": "Skilpaddediagram",
+      "definition": "En énsidesvisning av en prosess: inndata og utdata, med hva, med hvem, hvordan, hvordan det måles og risikoene. Navnet kommer av formen: kroppen i midten og fire «bein»."
+    },
+    "processApproach": {
+      "term": "Prosesstilnærmingen",
+      "definition": "Å styre arbeidet som prosesser som henger sammen, med eier, mål og måling, i stedet for som enkeltoppgaver."
+    },
+    "swimlane": {
+      "term": "Svømmebane",
+      "definition": "Et bånd i prosesskartet for én rolle eller avdeling. Trinnene ligger i banen til den som gjør dem."
+    }
   }
 }
