@@ -29,6 +29,8 @@ import { OriginBadge } from './origin-badge';
 
 /** Items shown in the aside before "Show all". */
 export const PANEL_TOP = 5;
+/** Items shown by the compact panel of a record page (U29). */
+export const PANEL_TOP_COMPACT = 3;
 /** Suggestions shown in the aside before "Show all". */
 const PANEL_SUGGESTIONS = 3;
 
@@ -48,6 +50,10 @@ interface PanelRow {
  * suggests (accept / dismiss), "Link to…", "Show map" and "Show all" (the
  * Related tab). Shares its data with the Related tab through
  * {@link ConnectionsStore}.
+ *
+ * `compact` (record pages, U29): the first three connections, "Link to…" and
+ * "Show all" only. The record page offers the map and "Ask about the
+ * connections" in its "Mer ⋯" menu and the suggestions in "Hva mangler".
  */
 @Component({
   selector: 'app-connections-panel',
@@ -104,7 +110,7 @@ interface PanelRow {
           <p class="mt-2 text-meta text-fail-ink" role="alert">{{ key | transloco }}</p>
         }
 
-        @if (canEdit() && suggestions().length > 0) {
+        @if (canEdit() && suggestions().length > 0 && !compact()) {
           <div
             class="mt-3 rounded-tile border border-dashed border-accent-border bg-accent-soft/40 p-2.5"
             data-testid="connections-suggestions"
@@ -180,7 +186,9 @@ interface PanelRow {
           </ul>
         }
 
-        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3">
+        <div
+          class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 empty:hidden"
+        >
           @if (relatedTab() && total() > 0) {
             <button
               type="button"
@@ -191,16 +199,18 @@ interface PanelRow {
               {{ 'kit.connections.showAll' | transloco: { count: total() } }}
             </button>
           }
-          <button
-            type="button"
-            class="inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
-            (click)="mapOpen.set(true)"
-            data-testid="connections-map"
-          >
-            <app-icon name="grid" [size]="13" />
-            {{ 'kit.connections.showMap' | transloco }}
-          </button>
-          @if (aiAvailable()) {
+          @if (!compact()) {
+            <button
+              type="button"
+              class="inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
+              (click)="mapOpen.set(true)"
+              data-testid="connections-map"
+            >
+              <app-icon name="grid" [size]="13" />
+              {{ 'kit.connections.showMap' | transloco }}
+            </button>
+          }
+          @if (aiAvailable() && !compact()) {
             <button
               type="button"
               class="inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
@@ -225,12 +235,14 @@ interface PanelRow {
         (closed)="pickerOpen.set(false)"
       />
     }
-    <app-connection-map
-      [open]="mapOpen()"
-      [entityType]="entityType()"
-      [entityId]="entityId()"
-      (closed)="mapOpen.set(false)"
-    />
+    @if (!compact()) {
+      <app-connection-map
+        [open]="mapOpen()"
+        [entityType]="entityType()"
+        [entityId]="entityId()"
+        (closed)="mapOpen.set(false)"
+      />
+    }
   `,
 })
 export class ConnectionsPanel {
@@ -247,6 +259,8 @@ export class ConnectionsPanel {
   readonly canEdit = input(false);
   /** Whether a Related tab exists to "show all" in. */
   readonly relatedTab = input(true);
+  /** Record-page variant (U29): top three, no suggestions, map or ask here. */
+  readonly compact = input(false);
   /** "Show all" / "more suggestions": open the Related tab. */
   readonly showAll = output<void>();
 
@@ -286,13 +300,14 @@ export class ConnectionsPanel {
 
   /** The first {@link PANEL_TOP} connections, records before tasks, with group headings. */
   protected readonly rows = computed<readonly PanelRow[]>(() => {
+    const top = this.compact() ? PANEL_TOP_COMPACT : PANEL_TOP;
     const out: PanelRow[] = [];
     for (const group of this.store.groups()) {
-      if (out.length >= PANEL_TOP) {
+      if (out.length >= top) {
         break;
       }
       const label = this.entityTypes.label(group.entity_type, group.label_key);
-      group.items.slice(0, PANEL_TOP - out.length).forEach((item, index) =>
+      group.items.slice(0, top - out.length).forEach((item, index) =>
         out.push({
           groupKey: group.entity_type,
           groupLabel: label,

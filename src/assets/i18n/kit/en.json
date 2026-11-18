@@ -250,6 +250,15 @@
       "attachments": "Attachments",
       "revisions": "Revisions",
       "tasks": "Tasks"
+    },
+    "more": "More",
+    "findRequirements": "Suggest more requirements",
+    "missing": {
+      "title": "What's missing",
+      "requirements": "Confirm {{ count }} suggested requirements",
+      "requirementsOne": "Confirm 1 suggested requirement",
+      "links": "Review {{ count }} suggested links",
+      "linksOne": "Review 1 suggested link"
     }
   },
   "ai": {

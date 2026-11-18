@@ -294,6 +294,11 @@
     "changeStatus": "Status",
     "acceptedLocked": "Trekk tilbake aksepten for å endre status.",
     "reviewOverdue": "Gjennomgang forfalt",
+    "missing": {
+      "rating": "Vurder risikoen (sannsynlighet og konsekvens)",
+      "owner": "Velg en eier",
+      "strategy": "Velg hvordan risikoen skal håndteres"
+    },
     "review": "Registrer gjennomgang",
     "reviewTitle": "Registrer en periodisk gjennomgang",
     "reviewMessage": "Bekreft at risikoen, vurderingen og tiltakene fortsatt er riktige. Neste gjennomgang planlegges automatisk.",

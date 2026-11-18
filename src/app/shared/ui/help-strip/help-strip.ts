@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   computed,
+  effect,
   inject,
   input,
   signal,
@@ -17,6 +18,7 @@ import {
   firstSentence,
 } from '../../../core/guidance/page-help.registry';
 import { TutorService } from '../../../core/guidance/tutor.service';
+import { RecordPageContext } from '../../kit/record-page-context';
 import { LessonView } from '../../guidance/lesson';
 import { TourService } from '../../guidance/tour.service';
 import { WhyItMatters } from '../../guidance/why-it-matters';
@@ -41,52 +43,57 @@ import { SlideOver } from '../slide-over/slide-over';
  * Beginners see the first sentence of the intro and a labelled "Slik fungerer siden"
  * button; standard and expert users see the intro title and a compact "?". The line is
  * one row on desktop (at most two on phones), so the work starts in the first screen.
+ *
+ * On a record page (`app-record-detail-layout`, U29) the line is not shown at all: the
+ * layout puts the "?" in the page header and it opens this strip's panel.
  */
 @Component({
   selector: 'app-help-strip',
   imports: [TranslocoPipe, MarkdownPipe, Icon, SlideOver, LessonView, WhyItMatters],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'mb-4 block empty:hidden' },
+  host: { '[class]': "inRecordPage ? 'contents' : 'mb-4 block empty:hidden'" },
   template: `
     @if (visible()) {
-      <section
-        data-testid="help-strip"
-        class="flex items-center gap-3 rounded-card border border-info/25 bg-info-soft/60 px-3 py-1.5 sm:px-4"
-        [attr.aria-label]="'ui.help.label' | transloco"
-      >
-        <span
-          class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-info text-meta font-bold text-white"
-          aria-hidden="true"
-          >i</span
-        >
-        <p
-          data-testid="help-strip-lead"
-          class="line-clamp-2 min-w-0 flex-1 text-ui text-fg sm:line-clamp-1"
-          [class.font-semibold]="!beginner()"
-        >
-          {{ lead() || ('ui.help.title' | transloco) }}
-        </p>
-        <button
-          type="button"
-          data-testid="help-strip-toggle"
-          class="inline-flex h-8 flex-none items-center gap-1.5 rounded-tile border border-border bg-surface px-2.5 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          aria-haspopup="dialog"
-          [attr.aria-expanded]="panelOpen()"
-          [attr.aria-label]="beginner() ? null : ('ui.help.open' | transloco)"
-          [title]="'ui.help.open' | transloco"
-          (click)="openPanel()"
+      @if (!inRecordPage) {
+        <section
+          data-testid="help-strip"
+          class="flex items-center gap-3 rounded-card border border-info/25 bg-info-soft/60 px-3 py-1.5 sm:px-4"
+          [attr.aria-label]="'ui.help.label' | transloco"
         >
           <span
-            class="flex h-5 w-5 items-center justify-center rounded-full border border-current text-meta leading-none font-bold"
+            class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-info text-meta font-bold text-white"
             aria-hidden="true"
-            >?</span
+            >i</span
           >
-          @if (beginner()) {
-            <span class="hidden sm:inline">{{ 'ui.help.open' | transloco }}</span>
-            <span class="sr-only sm:hidden">{{ 'ui.help.open' | transloco }}</span>
-          }
-        </button>
-      </section>
+          <p
+            data-testid="help-strip-lead"
+            class="line-clamp-2 min-w-0 flex-1 text-ui text-fg sm:line-clamp-1"
+            [class.font-semibold]="!beginner()"
+          >
+            {{ lead() || ('ui.help.title' | transloco) }}
+          </p>
+          <button
+            type="button"
+            data-testid="help-strip-toggle"
+            class="inline-flex h-8 flex-none items-center gap-1.5 rounded-tile border border-border bg-surface px-2.5 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="panelOpen()"
+            [attr.aria-label]="beginner() ? null : ('ui.help.open' | transloco)"
+            [title]="'ui.help.open' | transloco"
+            (click)="openPanel()"
+          >
+            <span
+              class="flex h-5 w-5 items-center justify-center rounded-full border border-current text-meta leading-none font-bold"
+              aria-hidden="true"
+              >?</span
+            >
+            @if (beginner()) {
+              <span class="hidden sm:inline">{{ 'ui.help.open' | transloco }}</span>
+              <span class="sr-only sm:hidden">{{ 'ui.help.open' | transloco }}</span>
+            }
+          </button>
+        </section>
+      }
 
       <app-slide-over
         [open]="panelOpen()"
@@ -187,6 +194,9 @@ export class HelpStrip {
   private readonly tours = inject(TourService);
   private readonly availability = inject(AiAvailability);
   private readonly registry = inject(PageHelpRegistry);
+  private readonly recordPage = inject(RecordPageContext, { optional: true });
+  /** On a record page the layout's header "?" opens the panel (no line here). */
+  protected readonly inRecordPage = !!this.recordPage;
 
   /** Guidance scope (the module's portal path, e.g. `risk`). */
   readonly scope = input.required<string>();
@@ -247,6 +257,16 @@ export class HelpStrip {
 
   constructor() {
     inject(DestroyRef).onDestroy(this.registry.addStrip());
+    const page = this.recordPage;
+    if (page) {
+      const open = () => this.openPanel();
+      effect(() => page.help.set(this.visible() ? open : null));
+      inject(DestroyRef).onDestroy(() => {
+        if (page.help() === open) {
+          page.help.set(null);
+        }
+      });
+    }
   }
 
   protected openPanel(): void {
