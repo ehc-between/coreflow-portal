@@ -17,7 +17,7 @@
   "levels": {
     "beginner": {
       "name": "Beginner",
-      "description": "Explanations, guided steps and examples are shown everywhere."
+      "description": "Plain words and only what matters: one sentence about each page, with the help behind the \"?\"."
     },
     "standard": {
       "name": "Standard",
