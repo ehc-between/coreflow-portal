@@ -216,6 +216,7 @@ export function filtersFromParams(params: {
   template: `
     <app-record-list-page
       titleKey="modules.names.deviations"
+      outputsModule="deviations"
       descriptionKey="deviations.list.description"
       scope="deviations"
       page="list"

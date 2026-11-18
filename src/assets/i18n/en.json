@@ -48,7 +48,8 @@
     "feedback": "Customer feedback",
     "learning": "Learning centre",
     "customizeDone": "Done",
-    "showItem": "Show {{ name }} in the menu"
+    "showItem": "Show {{ name }} in the menu",
+    "library": "Documents and reports"
   },
   "topbar": {
     "searchPlaceholder": "Search, or ask CoreFlow…",
@@ -687,7 +688,9 @@
         "security": "Security rules",
         "securityHint": "Two-step sign-in, document approval and attachment types.",
         "auditLog": "Audit log",
-        "auditLogHint": "Who changed what, and when. Filter and export for audits."
+        "auditLogHint": "Who changed what, and when. Filter and export for audits.",
+        "branding": "Branding",
+        "brandingHint": "Logo, colour, footer and classification on documents CoreFlow makes."
       },
       "moduleLinks": {
         "types": "Types",
@@ -2420,7 +2423,8 @@
       "document_template": "Document template",
       "retention_rule": "Retention rule",
       "audit_certification": "Certification",
-      "audit_auditor_profile": "Auditor profile"
+      "audit_auditor_profile": "Auditor profile",
+      "generated_output": "Generated document"
     },
     "links": {
       "title": "Organisation",

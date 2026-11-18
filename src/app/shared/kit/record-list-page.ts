@@ -65,6 +65,7 @@ let nextId = 0;
         [descriptionKey]="descriptionKey()"
         [breadcrumbs]="breadcrumbs()"
         [settingsLink]="settingsLink()"
+        [outputsModule]="outputsModule()"
         titleTestId="list-title"
       >
         <ng-container ngProjectAs="[intro]">
@@ -252,6 +253,8 @@ export class RecordListPage {
   readonly breadcrumbs = input<readonly Breadcrumb[]>([]);
   /** Gear link to the module's settings (types, templates…). */
   readonly settingsLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** Module whose "Dokumenter og rapporter" the header links to (U11). */
+  readonly outputsModule = input<string | null | undefined>(null);
   /** How many filters inside "Flere filtre" are set (shown on the button). */
   readonly moreFiltersActive = input(0);
   /** Module scope (portal path), used for the saved-views key and guidance. */

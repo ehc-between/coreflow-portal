@@ -6,6 +6,7 @@ import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { moduleGuard } from './core/modules/module.service';
 import { orgDeepLinkGuard } from './core/org/org-deep-link.guard';
+import { REPORTS_REDIRECTS } from './features/library/library-redirects';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 /**
@@ -171,6 +172,15 @@ export const routes: Routes = [
         'obligations',
         () => import('./features/obligations/obligations.routes'),
       ),
+      // U11: "Dokumenter og rapporter" — every output, grouped by audience, plus the
+      // register exports, saved reports and audit packs moved from Reports. Open to
+      // members; each output is gated by its own module and permission.
+      {
+        path: 'library',
+        title: 'nav.library',
+        loadChildren: () => import('./features/library/library.routes'),
+      },
+      ...REPORTS_REDIRECTS,
       moduleRoute('reports', 'reports', () => import('./features/reports/reports.routes')),
       // Operations
       moduleRoute('processes', 'processes', () => import('./features/processes/processes.routes')),

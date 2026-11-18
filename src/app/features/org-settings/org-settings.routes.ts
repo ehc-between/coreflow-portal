@@ -66,6 +66,14 @@ const routes: Routes = [
       import('./attachment-deletions/attachment-deletions').then((m) => m.AttachmentDeletions),
   },
   {
+    // U11: Settings → Merkevare (the shared document chrome).
+    path: 'branding',
+    title: 'settings.hub.cards.branding',
+    canActivate: [orgManageGuard],
+    providers: [provideTranslocoScope('outputs')],
+    loadComponent: () => import('./branding/branding-page').then((m) => m.BrandingPage),
+  },
+  {
     path: 'guidance',
     loadChildren: () => import('../learning/settings/guidance-settings.routes'),
   },

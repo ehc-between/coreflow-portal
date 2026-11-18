@@ -48,7 +48,8 @@
     "feedback": "Kundetilbakemeldinger",
     "learning": "Læringssenter",
     "customizeDone": "Ferdig",
-    "showItem": "Vis {{ name }} i menyen"
+    "showItem": "Vis {{ name }} i menyen",
+    "library": "Dokumenter og rapporter"
   },
   "topbar": {
     "searchPlaceholder": "Søk, eller spør CoreFlow …",
@@ -687,7 +688,9 @@
         "security": "Sikkerhetsregler",
         "securityHint": "Totrinnsbekreftelse, godkjenning av dokumenter og filtyper for vedlegg.",
         "auditLog": "Revisjonslogg",
-        "auditLogHint": "Hvem som endret hva, og når. Filtrer og eksporter til revisjoner."
+        "auditLogHint": "Hvem som endret hva, og når. Filtrer og eksporter til revisjoner.",
+        "branding": "Merkevare",
+        "brandingHint": "Logo, farge, bunntekst og gradering på dokumenter CoreFlow lager."
       },
       "moduleLinks": {
         "types": "Typer",
@@ -2420,7 +2423,8 @@
       "document_template": "Dokumentmal",
       "retention_rule": "Oppbevaringsregel",
       "audit_certification": "Sertifisering",
-      "audit_auditor_profile": "Revisorprofil"
+      "audit_auditor_profile": "Revisorprofil",
+      "generated_output": "Laget dokument"
     },
     "links": {
       "title": "Organisasjon",
