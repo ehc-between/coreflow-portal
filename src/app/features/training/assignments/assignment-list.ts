@@ -11,7 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -70,6 +70,12 @@ export function matchesAssignment(a: Assignment, q: string): boolean {
     a.course.code.toLowerCase().includes(needle) ||
     a.user.name.toLowerCase().includes(needle)
   );
+}
+
+/** A `?status=` value as a status filter (unknown values fall back to open). */
+export function pickStatusFilter(value: string | null | undefined): StatusFilter {
+  const allowed: readonly string[] = ['open', 'overdue', ...ASSIGNMENT_STATUSES];
+  return value && allowed.includes(value) ? (value as StatusFilter) : 'open';
 }
 
 /** The API filters for a status filter value. */
@@ -377,6 +383,10 @@ export class AssignmentList {
   readonly course = input<string | undefined>(undefined);
   /** `?overdue=true` (from "do this now" on the home page). */
   readonly overdue = input<string | undefined>(undefined);
+  /** `?status=` (U24: the training tiles open the list they count). */
+  private readonly statusParam = signal(
+    inject(ActivatedRoute).snapshot.queryParamMap.get('status') ?? undefined,
+  );
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly chips = STATUS_CHIPS;
@@ -385,7 +395,7 @@ export class AssignmentList {
   protected readonly courseFilter = linkedSignal(() => this.course() ?? '');
   protected readonly scope = linkedSignal<Scope>(() => (this.access.canOversee() ? 'all' : 'mine'));
   protected readonly status = linkedSignal<StatusFilter>(() =>
-    this.overdue() === 'true' ? 'overdue' : 'open',
+    this.overdue() === 'true' ? 'overdue' : pickStatusFilter(this.statusParam()),
   );
   protected readonly sort = signal<AssignmentSort>('due_at');
   protected readonly groupBy = signal<GroupBy>('');

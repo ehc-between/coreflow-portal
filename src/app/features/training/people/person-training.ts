@@ -103,20 +103,24 @@ import { PrintChrome } from '../shared/print-chrome';
           data-testid="person-summary"
         >
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'training.person.required' | transloco"
             [value]="p.summary.required | localNumber"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'training.person.compliant' | transloco"
             [value]="p.summary.compliant | localNumber"
             [tone]="p.summary.compliant >= p.summary.required ? 'pass' : 'neutral'"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'training.person.overdue' | transloco"
             [value]="p.summary.overdue | localNumber"
             [tone]="p.summary.overdue ? 'warn' : 'neutral'"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'training.person.expiring' | transloco"
             [value]="p.summary.expiring | localNumber"
             [tone]="p.summary.expiring ? 'warn' : 'neutral'"

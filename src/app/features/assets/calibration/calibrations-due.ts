@@ -117,17 +117,20 @@ export function dueRows(items: readonly Asset[], q: string): readonly Asset[] {
       <ng-container ngProjectAs="[kpis]">
         @if (state() === 'ready' && items().length) {
           <app-kpi-tile
+            noLink="shownBelow"
             appTourStep="assets-calibration-summary"
             [label]="'assets.calibrationPage.overdue' | transloco"
             [value]="overdue()"
             [tone]="overdue() ? 'fail' : 'pass'"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'assets.calibrationPage.inUseOverdue' | transloco"
             [value]="inUseOverdue()"
             [tone]="inUseOverdue() ? 'fail' : 'neutral'"
           />
           <app-kpi-tile
+            noLink="shownBelow"
             [label]="'assets.calibrationPage.dueSoon' | transloco: { days: windowDays() }"
             [value]="dueSoon()"
             [tone]="dueSoon() ? 'warn' : 'neutral'"

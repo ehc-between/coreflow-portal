@@ -30,7 +30,8 @@
       "transfersUnsignedSafeguards": "Overføringer på standard personvernbestemmelser (SCC) uten signert avtale",
       "breachesActive": "Personvernbrudd under vurdering (72-timersfrist)",
       "retentionExecutionsDue": "Slettinger som er forfalt",
-      "breachesAwaitingClosure": "Varslede personvernbrudd som venter på lukking"
+      "breachesAwaitingClosure": "Varslede personvernbrudd som venter på lukking",
+      "attention": "Utvalg fra oversikten"
     },
     "breachesNow": "Personvernbrudd som krever handling",
     "noBreaches": "Ingen personvernbrudd med løpende 72-timersfrist. Registrer et personvernbrudd i det øyeblikket dere blir kjent med det.",
@@ -156,7 +157,8 @@
     "receivedOn": "Mottatt {{ date }}",
     "awareOn": "Kjent siden {{ date }}",
     "givenOn": "Gitt {{ date }}",
-    "noLegalBasis": "Behandlingsgrunnlag ikke satt"
+    "noLegalBasis": "Behandlingsgrunnlag ikke satt",
+    "clearAttention": "Vis alle"
   },
   "sorts": {
     "created_atDesc": "Nyeste først",

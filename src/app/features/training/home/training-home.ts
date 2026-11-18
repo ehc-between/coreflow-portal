@@ -300,11 +300,12 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
             {{ 'training.stats.label' | transloco }}
           </h2>
           <div
-            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 [&>*>div]:h-full"
+            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 [&>*>*]:h-full"
             data-testid="training-stats"
             [appTourStep]="'training-stats'"
           >
             <app-kpi-tile
+              link="/training/matrix"
               [title]="'training.stats.completionRateHelp' | transloco"
               [label]="'training.stats.completionRate' | transloco"
               [value]="'training.stats.pct' | transloco: { value: s.completion_rate }"
@@ -317,26 +318,36 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
               [tone]="s.completion_rate >= 90 ? 'pass' : 'warn'"
             />
             <app-kpi-tile
+              link="/training/assignments"
+              [queryParams]="{ status: 'open' }"
               [label]="'training.stats.open' | transloco"
               [value]="s.assignments_open | localNumber"
               tone="info"
             />
             <app-kpi-tile
+              link="/training/assignments"
+              [queryParams]="{ overdue: 'true' }"
               [label]="'training.stats.overdue' | transloco"
               [value]="s.assignments_overdue | localNumber"
               [tone]="s.assignments_overdue ? 'warn' : 'neutral'"
             />
             <app-kpi-tile
+              link="/training/records"
+              [queryParams]="{ validity: 'expiring' }"
               [label]="'training.stats.expiring' | transloco"
               [value]="s.expiring_30_days | localNumber"
               [tone]="s.expiring_30_days ? 'warn' : 'neutral'"
             />
             <app-kpi-tile
+              link="/training/records"
+              [queryParams]="{ validity: 'expired' }"
               [label]="'training.stats.expired' | transloco"
               [value]="s.expired | localNumber"
               [tone]="s.expired ? 'fail' : 'neutral'"
             />
             <app-kpi-tile
+              link="/training/courses"
+              [queryParams]="{ status: 'published' }"
               [label]="'training.stats.published' | transloco"
               [value]="s.courses_published | localNumber"
             />

@@ -259,10 +259,12 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
 
               <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.reviewDetail.accounts' | transloco"
                   [value]="r.counts.total"
                 />
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.reviewDetail.decided' | transloco"
                   [value]="r.counts.total - r.counts.pending"
                   [delta]="
@@ -273,21 +275,25 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                   [tone]="r.counts.pending ? 'warn' : r.counts.total ? 'pass' : 'neutral'"
                 />
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.reviewDetail.flagged' | transloco"
                   [value]="flagged()"
                   [tone]="flagged() ? 'warn' : 'neutral'"
                 />
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.decision.revoke' | transloco"
                   [value]="r.counts.revoke"
                   [tone]="r.counts.revoke ? 'fail' : 'neutral'"
                 />
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.decision.modify' | transloco"
                   [value]="r.counts.modify"
                   [tone]="r.counts.modify ? 'warn' : 'neutral'"
                 />
                 <app-kpi-tile
+                  noLink="shownBelow"
                   [label]="'assets.reviewDetail.toCarryOut' | transloco"
                   [value]="carriedOut() + ' / ' + (r.counts.revoke + r.counts.modify)"
                   [tone]="r.counts.unremediated ? 'warn' : 'neutral'"

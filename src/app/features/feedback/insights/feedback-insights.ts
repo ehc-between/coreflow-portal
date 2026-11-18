@@ -228,6 +228,7 @@ interface InsightTile {
                 } @else {
                   <div [attr.data-testid]="'tile-' + t.key">
                     <app-kpi-tile
+                      noLink="average"
                       [label]="'feedback.insights.tiles.' + t.key | transloco"
                       [value]="t.value"
                       [tone]="t.tone"

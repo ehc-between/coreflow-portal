@@ -39,6 +39,8 @@ import {
   SoaVersion,
   Treatment,
   TreatmentCreate,
+  TreatmentPlanItem,
+  TreatmentPlanQuery,
   TreatmentUpdate,
 } from './risk.models';
 
@@ -221,6 +223,26 @@ export class RiskApi {
   }
 
   // --- treatments -------------------------------------------------------------------
+
+  /** U24: the org-wide treatment plan behind the "Open treatments" tile. */
+  listAllTreatments(
+    orgId: string,
+    query: TreatmentPlanQuery = {},
+  ): Observable<ListResponse<TreatmentPlanItem>> {
+    return this.api.get<ListResponse<TreatmentPlanItem>>(`${this.base(orgId)}/treatments`, {
+      params: clean({
+        q: query.q?.trim(),
+        status: query.status,
+        owner: query.owner,
+        risk_id: query.risk_id,
+        overdue: query.overdue || undefined,
+        needs_effectiveness_check: query.needs_effectiveness_check || undefined,
+        sort: query.sort,
+        limit: query.limit,
+        offset: query.offset,
+      }),
+    });
+  }
 
   listTreatments(orgId: string, riskId: string): Observable<ListResponse<Treatment>> {
     return this.api.get<ListResponse<Treatment>>(`${this.base(orgId)}/risks/${riskId}/treatments`);

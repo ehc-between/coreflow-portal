@@ -42,6 +42,12 @@ export default [
         loadComponent: () => import('./risks/risk-form').then((m) => m.RiskFormPage),
       },
       {
+        // U24: the org-wide treatment plan behind the "Open treatments" tile.
+        path: 'treatments',
+        loadComponent: () =>
+          import('./risks/treatment-plan-list').then((m) => m.TreatmentPlanListPage),
+      },
+      {
         path: 'opportunities',
         loadComponent: () =>
           import('./opportunities/opportunity-list').then((m) => m.OpportunityListPage),
