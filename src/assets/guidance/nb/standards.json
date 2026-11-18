@@ -98,7 +98,7 @@
         },
         {
           "heading": "Dokumentasjon gjør et krav dekket",
-          "body": "Et krav er dekket når minst én bekreftet post dokumenterer det, eller når dere selv har satt det som dekket med et notat om hvorfor. Et delvis dekket krav teller halvt."
+          "body": "Mange krav har et sted i CoreFlow der **du fyller ut dette**, for eksempel et register eller en plan. Når det stedet er fullstendig utfylt, er kravet dekket. Er det bare delvis utfylt, er kravet delvis dekket. Krav uten et slikt sted er dekket når minst én bekreftet post dokumenterer dem. Dere kan også sette statusen selv, med et notat om hvorfor. Et delvis dekket krav teller halvt."
         },
         {
           "heading": "Fersk dokumentasjon teller fullt",

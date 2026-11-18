@@ -98,7 +98,7 @@
         },
         {
           "heading": "Evidence makes a requirement covered",
-          "body": "A requirement is covered when at least one confirmed record documents it, or when you set it as covered yourself with a note saying why. A partly covered requirement counts half."
+          "body": "Many requirements have a place in CoreFlow **where you fill this in**, for example a register or a plan. When that place is complete, the requirement is covered; when it is only partly filled in, the requirement is partly covered. Requirements without such a place are covered when at least one confirmed record documents it. You can also set the status yourself, with a note saying why. A partly covered requirement counts half."
         },
         {
           "heading": "Recent evidence counts in full",

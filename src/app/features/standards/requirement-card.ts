@@ -47,6 +47,7 @@ import {
 import { EntityChip } from '../../shared/kit/entity-chip';
 import { fieldLabelKey } from '../../shared/requirement-links/supports-requirements';
 import { RequirementLocations } from '../../shared/requirement-locations/requirement-locations';
+import { LocatedRequirementFields } from '../../core/locations/locations.models';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
@@ -315,7 +316,7 @@ export function evidenceByModule(evidence: RequirementEvidence | null): ModuleEv
         </dl>
       }
 
-      @if (req.weak_evidence) {
+      @if (weakNotice()) {
         <p
           class="mt-3 rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-meta text-warn-ink"
           data-testid="weak-evidence"
@@ -805,6 +806,17 @@ export class RequirementCard {
     readonly key: string;
     readonly params: Record<string, unknown>;
   } | null>(null);
+
+  /**
+   * "Only weak evidence, so partly covered" is true only when the links decide the
+   * status. A location ("where you fill this in") or a manual status wins over it
+   * (requirement-locations 4.1), so the notice is hidden then.
+   */
+  protected readonly weakNotice = computed(() => {
+    const req = this.requirement();
+    const basis = (req as Partial<LocatedRequirementFields>).basis ?? 'links';
+    return !!req.weak_evidence && basis === 'links';
+  });
 
   /** The API knows owner / due date / review (A03); older APIs omit `exclusion`. */
   protected readonly hasAuditorFields = computed(() => this.requirement().exclusion !== undefined);

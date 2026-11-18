@@ -346,4 +346,18 @@ describe('RequirementCard applicability', () => {
       'standards.soa.formHint',
     );
   });
+  it('explains weak evidence only when the links decide the status', async () => {
+    const weak = (basis?: string): RequirementDetail =>
+      ({ ...OVERRIDDEN, status: 'partial', weak_evidence: true, basis }) as RequirementDetail;
+    const notice = () => el.querySelector('[data-testid="weak-evidence"]');
+
+    await setup(weak(), false);
+    expect(notice()?.textContent).toContain('standards.quality.weakNotice');
+
+    for (const basis of ['links', 'location', 'location+links', 'manual']) {
+      fixture.componentRef.setInput('requirement', weak(basis));
+      await render();
+      expect(notice() !== null, basis).toBe(basis === 'links');
+    }
+  });
 });

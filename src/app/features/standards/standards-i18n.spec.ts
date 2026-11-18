@@ -102,7 +102,9 @@ describe('standards scope translations', () => {
 
   it('uses the nb glossary words (no "bevis", "påbegynt", "rammeverk" or "AI")', () => {
     const text = JSON.stringify([nb, guideNb]);
-    expect(text).not.toMatch(/\bbevis\b|påbegynt|rammeverk|beredskap/i);
+    // "Beredskap" as a translation of "readiness" is banned; compounds such as
+    // "Beredskapsplan" (emergency preparedness plan, ISO 14001/45001) are fine.
+    expect(text).not.toMatch(/\bbevis\b|påbegynt|rammeverk|\bberedskap(en)?\b/i);
     expect(text).not.toMatch(/\bAI\b/);
   });
 
