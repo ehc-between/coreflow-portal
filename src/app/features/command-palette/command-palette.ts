@@ -583,7 +583,7 @@ export class CommandPalette {
         this.ask.showWith(this.language.translate(`ask.howto.${row.entry.key}.question`));
         break;
       case 'nav':
-        void this.router.navigate(['/', row.item.path]);
+        void this.router.navigate(['/' + row.item.path]);
         break;
       case 'record':
         void this.router.navigate([row.link.path], {

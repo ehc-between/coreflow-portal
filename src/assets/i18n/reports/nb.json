@@ -572,7 +572,10 @@
     "sourceBuiltinRole": "Det innebygde oppsettet for {{ role }}",
     "customise": "Tilpass kortene",
     "loadFailed": "Kortene kunne ikke lastes.",
-    "unavailable": "Du har ikke tilgang til disse dataene, eller modulen er slått av.",
+    "unavailableModuleOff": "Modulen «{{ module }}» er slått av for organisasjonen.",
+    "unavailableNoAccess": "Du har ikke tilgang til disse dataene.",
+    "unavailableFailed": "Tallene kunne ikke hentes akkurat nå.",
+    "retry": "Prøv igjen",
     "empty": "Ingen kort er valgt for rollen din.",
     "open": "Åpne {{ title }}",
     "readiness": {

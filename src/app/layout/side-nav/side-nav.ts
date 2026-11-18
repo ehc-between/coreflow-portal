@@ -145,7 +145,7 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
 
     <ng-template #navLink let-item>
       <a
-        [routerLink]="['/', item.path]"
+        [routerLink]="'/' + item.path"
         routerLinkActive="!bg-accent-soft !text-accent"
         ariaCurrentWhenActive="page"
         class="flex min-h-9 items-center gap-2.5 rounded-tile px-2.5 py-2 text-ui font-semibold text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"

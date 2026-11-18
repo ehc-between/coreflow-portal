@@ -3,11 +3,12 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of, throwError } from 'rxjs';
+import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { DashboardResponse } from '../data/reports.models';
 import { ReportsApi } from '../data/reports-api';
 import { MetricView } from './metric-view';
-import { ReportWidgets } from './report-widgets';
+import { ReportWidgets, widgetUnavailableReason } from './report-widgets';
 
 const DASHBOARD: DashboardResponse = {
   source: 'org',
@@ -38,7 +39,10 @@ const DASHBOARD: DashboardResponse = {
   ],
 };
 
-function setup(response = of(DASHBOARD)) {
+function setup(
+  response = of(DASHBOARD),
+  options: { enabled?: boolean; permissions?: string[] } = {},
+) {
   const api = { dashboard: vi.fn(() => response) };
   TestBed.configureTestingModule({
     imports: [ReportWidgets, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
@@ -48,8 +52,12 @@ function setup(response = of(DASHBOARD)) {
       { provide: ReportsApi, useValue: api },
       {
         provide: SelectedOrgService,
-        useValue: { currentOrgId: signal('org-1'), currentOrg: signal(null) },
+        useValue: {
+          currentOrgId: signal('org-1'),
+          currentOrg: signal({ id: 'org-1', permissions: options.permissions ?? [] }),
+        },
       },
+      { provide: ModuleService, useValue: { isEnabled: () => options.enabled ?? true } },
     ],
   });
   const fixture = TestBed.createComponent(ReportWidgets);
@@ -66,9 +74,36 @@ describe('ReportWidgets', () => {
     const widgets = el.querySelectorAll('[data-testid="report-widget"]');
     expect(widgets.length).toBe(2);
     expect(widgets[0].textContent).toContain('7');
-    // A widget the caller cannot see says so instead of showing data.
-    expect(widgets[1].textContent).toContain('reports.widgets.unavailable');
+    // A widget the caller cannot read says so instead of showing data.
+    expect(widgets[1].textContent).toContain('reports.widgets.unavailableNoAccess');
     expect(el.textContent).toContain('reports.widgets.sourceOrg');
+  });
+
+  it('never calls an enabled, readable module switched off (D9)', async () => {
+    const { fixture, api, el } = setup(of(DASHBOARD), { permissions: ['standards:read'] });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const widget = el.querySelectorAll('[data-testid="report-widget"]')[1];
+    expect(widget.querySelector('[data-testid="widget-failed"]')).not.toBeNull();
+    expect(widget.textContent).not.toContain('unavailableModuleOff');
+    widget.querySelector<HTMLButtonElement>('[data-testid="widget-failed"] button')!.click();
+    expect(api.dashboard).toHaveBeenCalledTimes(2);
+  });
+
+  it('names the module when it really is switched off', async () => {
+    const { fixture, el } = setup(of(DASHBOARD), { enabled: false });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const widget = el.querySelectorAll('[data-testid="report-widget"]')[1];
+    expect(widget.querySelector('[data-testid="widget-module-off"]')).not.toBeNull();
+  });
+
+  it('tells the unavailable reasons apart', () => {
+    const on = () => true;
+    expect(widgetUnavailableReason('risk', () => false, ['risk:read'])).toBe('moduleOff');
+    expect(widgetUnavailableReason('risk', on, [])).toBe('noAccess');
+    expect(widgetUnavailableReason('risk', on, ['risk:read'])).toBe('failed');
+    expect(widgetUnavailableReason(null, on, [])).toBe('failed');
   });
 
   it('shows a neutral message when the dashboard fails to load', async () => {
