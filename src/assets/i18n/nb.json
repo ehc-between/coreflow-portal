@@ -2545,7 +2545,9 @@
       "lessonMinutes": "Leksjon · {{ minutes }} min",
       "explain": "Forklar denne siden",
       "open": "Slik fungerer siden",
-      "back": "Tilbake til hjelpen"
+      "back": "Tilbake til hjelpen",
+      "moreLessons": "Flere leksjoner",
+      "minutes": "{{ minutes }} min"
     },
     "recordRow": {
       "code": "Kode",

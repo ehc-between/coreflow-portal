@@ -2545,7 +2545,9 @@
       "lessonMinutes": "Lesson · {{ minutes }} min",
       "explain": "Explain this page",
       "open": "How this page works",
-      "back": "Back to the help"
+      "back": "Back to the help",
+      "moreLessons": "More lessons",
+      "minutes": "{{ minutes }} min"
     },
     "recordRow": {
       "code": "Code",

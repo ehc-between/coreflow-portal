@@ -1,6 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../../core/guidance/guidance-content.service';
+import { PageHelpRegistry } from '../../../core/guidance/page-help.registry';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { LessonView } from '../../../shared/guidance/lesson';
@@ -107,6 +118,9 @@ export class ContinuityTargetsLegend {
 /**
  * The aside "Lær mer" card of a detail page (docs/ux-guide.md: one link list, never
  * full lessons): collapsed by default; each lesson opens in a side panel.
+ *
+ * U38 (one help entry point per page): when the page has an `<app-help-strip>` (the
+ * "?"), the card renders nothing and its lessons are listed in the help panel instead.
  */
 @Component({
   selector: 'app-continuity-learn-more',
@@ -114,7 +128,7 @@ export class ContinuityTargetsLegend {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    @if (items().length) {
+    @if (!registry.hasStrip() && items().length) {
       <app-card>
         <details class="group" data-testid="learn-more">
           <summary
@@ -162,6 +176,7 @@ export class ContinuityTargetsLegend {
 })
 export class ContinuityLearnMore {
   private readonly content = inject(GuidanceContentService);
+  protected readonly registry = inject(PageHelpRegistry);
 
   /** Lesson keys in the continuity guidance file. */
   readonly lessons = input.required<readonly string[]>();
@@ -177,6 +192,15 @@ export class ContinuityLearnMore {
     const key = this.open();
     return this.items().find((i) => i.key === key)?.title ?? '';
   });
+
+  constructor() {
+    let id: number | null = null;
+    effect(() => {
+      const entry = { scope: 'continuity', lessons: this.lessons() };
+      untracked(() => (id = this.registry.setLessons(id, entry)));
+    });
+    inject(DestroyRef).onDestroy(() => this.registry.removeLessons(id));
+  }
 }
 
 /**
