@@ -58,6 +58,11 @@
   }
 
   <app-notifications />
-  <app-ask-panel />
-  <app-command-palette />
+  <!-- Loaded the first time they open, to keep the initial bundle small (X01). -->
+  @defer (when ask.open()) {
+    <app-ask-panel />
+  }
+  @defer (when palette.open()) {
+    <app-command-palette />
+  }
 </div>
