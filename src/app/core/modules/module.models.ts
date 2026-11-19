@@ -98,6 +98,10 @@ export interface OrgProfileUpdate {
   readonly certification_targets: readonly CertificationTarget[];
   readonly ai_act_role: AiActRole;
   readonly description: string | null;
+  /** Facts AI drafts use (form suggest); absent on older backends (kept when unset). */
+  readonly org_number?: string | null;
+  readonly address?: string | null;
+  readonly products_services?: string | null;
 }
 
 /** `GET /profile`: defaults with null timestamps before the first save. */
@@ -225,6 +229,9 @@ export function toProfileUpdate(profile: OrgProfileUpdate): OrgProfileUpdate {
     certification_targets: profile.certification_targets,
     ai_act_role: profile.ai_act_role,
     description: profile.description,
+    org_number: profile.org_number,
+    address: profile.address,
+    products_services: profile.products_services,
   };
 }
 

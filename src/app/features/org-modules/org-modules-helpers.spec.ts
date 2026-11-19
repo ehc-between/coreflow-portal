@@ -103,6 +103,9 @@ describe('profile form', () => {
       frameworks: ['iso9001', 'gdpr'],
       ai_act_role: 'deployer' as const,
       description: 'We make food.',
+      org_number: '912345678',
+      address: 'Storgata 1, 0155 Oslo',
+      products_services: 'Bread',
       sites: [{ name: 'Plant', country: 'NO', city: 'Oslo', kind: null }],
       certification_targets: [
         {
@@ -132,6 +135,9 @@ describe('profile form', () => {
       ],
       ai_act_role: 'deployer',
       description: 'We make food.',
+      org_number: '912345678',
+      address: 'Storgata 1, 0155 Oslo',
+      products_services: 'Bread',
     });
   });
 

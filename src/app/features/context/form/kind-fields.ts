@@ -10,6 +10,18 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../../shared/ask/form-suggest';
+import { longDefs } from '../../../shared/ask/form-suggest-map';
+import { LanguageService } from '../../../core/i18n/language.service';
+import {
+  CONTEXT_SUGGEST_FIELDS,
+  contextSuggestPatch,
+  contextSuggestValues,
+} from './context-suggest';
 import { EntityChip } from '../../../shared/kit/entity-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -30,11 +42,12 @@ import { partyPriority, priorityBadge } from '../context-kinds';
 import { FormRow } from '../ui/form-row';
 import { FrameworkPicker } from '../ui/framework-picker';
 import { PickedRecord, RecordSearch } from '../ui/record-search';
-import { applyAnalysisDraft, applySuggestedParty, suggestedParties } from './ai-apply';
+import { applySuggestedParty, suggestedParties } from './ai-apply';
 import { AnalysisItemsEditor, itemsOutside } from './analysis-items-editor';
 import { ContextDraft } from './context-draft';
 import { ExclusionsEditor } from './exclusions-editor';
 import { RaciEditor } from './raci-editor';
+import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-suggest';
 
 /**
  * The kind-specific part of the M01 form (everything except title, owner,
@@ -50,6 +63,7 @@ import { RaciEditor } from './raci-editor';
     TranslocoPipe,
     AskAbout,
     AiAssistButton,
+    FormSuggest,
     EntityChip,
     Button,
     Icon,
@@ -119,17 +133,14 @@ import { RaciEditor } from './raci-editor';
           ></textarea>
         </app-context-form-row>
         <div class="flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            assist="context.draft_analysis"
-            labelKey="context.ai.draftAnalysis"
-            [input]="{
-              method: draft().method,
-              framework: draft().framework || null,
-              notes: draft().summary || null,
-            }"
-            (result)="draftChange.emit(applyAnalysis($event))"
+          <app-form-suggest
+            variant="field"
+            suggestKey="context.analysis"
+            [fields]="rewriteFields().analysis"
+            [values]="recordValues()"
+            [only]="['summary']"
+            (applied)="draftChange.emit(applyRecord($event))"
           />
-          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-analysis-items-editor
           [method]="draft().method"
@@ -416,14 +427,14 @@ import { RaciEditor } from './raci-editor';
           ></textarea>
         </app-context-form-row>
         <div class="flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            assist="context.draft_scope"
-            labelKey="context.ai.draftScope"
-            [disabled]="!draft().framework"
-            [input]="{ framework: draft().framework, notes: notesForScope() }"
-            (text)="patch({ statement: $event })"
+          <app-form-suggest
+            variant="field"
+            suggestKey="context.scope"
+            [fields]="rewriteFields().scope"
+            [values]="recordValues()"
+            [only]="['statement']"
+            (applied)="draftChange.emit(applyRecord($event))"
           />
-          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-form-row
           labelKey="context.fields.boundaries"
@@ -548,11 +559,13 @@ import { RaciEditor } from './raci-editor';
           ></textarea>
         </app-context-form-row>
         <div class="flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            assist="context.draft_policy"
-            labelKey="context.ai.draftPolicy"
-            [input]="{ kind: draft().kind, notes: draft().title || null }"
-            (text)="patch({ statement: $event })"
+          <app-form-suggest
+            variant="field"
+            [suggestKey]="policySuggestKey"
+            [fields]="statementField"
+            [values]="policyValues()"
+            [only]="['statement']"
+            (applied)="patch(policyPatch($event))"
           />
           <app-ask-about
             [prompt]="'context.ai.prompts.policyContent' | transloco"
@@ -560,7 +573,6 @@ import { RaciEditor } from './raci-editor';
             [fieldLabel]="'context.fields.statement' | transloco"
             [requirements]="['hs:5.2']"
           />
-          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-framework-picker
           [value]="draft().frameworks"
@@ -689,21 +701,11 @@ import { RaciEditor } from './raci-editor';
             (input)="patch({ description: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <div class="flex items-start gap-1">
-          <div class="min-w-0 flex-1">
-            <app-context-raci-editor
-              [assignments]="draft().assignments"
-              [showWarnings]="submitted()"
-              (assignmentsChange)="patch({ assignments: $event })"
-            />
-          </div>
-          <app-ask-about
-            [prompt]="'context.ai.prompts.raci' | transloco"
-            field="assignments"
-            [fieldLabel]="'context.fields.assignments' | transloco"
-            [requirements]="['hs:5.3']"
-          />
-        </div>
+        <app-context-raci-editor
+          [assignments]="draft().assignments"
+          [showWarnings]="submitted()"
+          (assignmentsChange)="patch({ assignments: $event })"
+        />
         <app-context-form-row
           labelKey="context.fields.authorities"
           inputId="f-auth"
@@ -748,6 +750,32 @@ export class KindFields {
   protected readonly addressed = ADDRESSED_STATUSES;
   protected readonly policyKinds = POLICY_KINDS;
   protected readonly frameworkOrder = this.frameworks.ordered;
+  /** "Skriv om" on the policy statement (the whole form is suggested at the top). */
+  protected readonly policySuggestKey = POLICY_SUGGEST_KEY;
+  protected readonly statementField: readonly FormSuggestFieldDef[] = [
+    { name: 'statement', labelKey: 'context.fields.statement', long: true },
+  ];
+  protected readonly policyValues = computed(() => policySuggestValues(this.draft()));
+  protected readonly policyPatch = policyPatch;
+  /** "Skriv om" on the long texts of the other kinds (whole form: at the top). */
+  private readonly language = inject(LanguageService);
+  protected readonly rewriteFields = computed(() => {
+    const t = (key: string, params?: Record<string, unknown>): string =>
+      this.language.translate(key, params);
+    return {
+      analysis: longDefs(CONTEXT_SUGGEST_FIELDS.analysis, t, ['summary']),
+      scope: longDefs(CONTEXT_SUGGEST_FIELDS.scope, t, ['statement']),
+    };
+  });
+  protected readonly recordValues = computed(() => {
+    const kind = this.kind();
+    return kind === 'policy' ? {} : contextSuggestValues(kind, this.draft());
+  });
+  protected applyRecord(accepted: AcceptedSuggestion): ContextDraft {
+    const kind = this.kind();
+    const draft = this.draft();
+    return kind === 'policy' ? draft : { ...draft, ...contextSuggestPatch(kind, accepted, draft) };
+  }
 
   protected readonly suggestions = signal<readonly SuggestedParty[]>([]);
   protected readonly priority = computed(() =>
@@ -758,11 +786,6 @@ export class KindFields {
   protected readonly existingDocumentIds = computed(() =>
     this.existingDocuments().map((doc) => doc.entity_id),
   );
-  protected readonly notesForScope = computed(() => {
-    const d = this.draft();
-    return [d.title, d.products_services, d.sites].filter((s) => s.trim()).join('\n') || null;
-  });
-
   constructor() {
     this.frameworks.ensureLoaded();
   }
@@ -798,10 +821,6 @@ export class KindFields {
     const draft = { ...this.draft(), method };
     const outside = new Set(itemsOutside(method, draft.items).map((i) => i.id));
     this.draftChange.emit({ ...draft, items: draft.items.filter((i) => !outside.has(i.id)) });
-  }
-
-  protected applyAnalysis(result: unknown): ContextDraft {
-    return applyAnalysisDraft(this.draft(), result);
   }
 
   protected parseSuggestions(result: unknown): SuggestedParty[] {

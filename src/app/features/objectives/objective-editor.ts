@@ -14,6 +14,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, Subscription, catchError, forkJoin, of, switchMap } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
+import { AcceptedSuggestion, FormSuggest } from '../../shared/ask/form-suggest';
+import { suggestDefs, suggestPatch, suggestValues } from '../../shared/ask/form-suggest-map';
+import { OBJECTIVE_SUGGEST_FIELDS, OBJECTIVE_SUGGEST_KEY } from './objective-suggest';
 import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -225,6 +228,7 @@ let nextId = 0;
   selector: 'app-objective-editor',
   imports: [
     TranslocoPipe,
+    FormSuggest,
     AiAssistButton,
     AskAbout,
     FieldHelp,
@@ -263,6 +267,16 @@ let nextId = 0;
           @if (errorKey(); as key) {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
+          <app-form-suggest
+            [suggestKey]="suggestKey"
+            labelKey="ask.formSuggest.labels.objective"
+            [fields]="suggestFields()"
+            [values]="suggestValues()"
+            [context]="{ from: 'objectives' }"
+            [editing]="!!id()"
+            [titleOnly]="!!form().title.trim() && !form().target.trim() && !form().plan.trim()"
+            (applied)="applyFormSuggestion($event)"
+          />
 
           <!-- 1. What do you want to achieve -->
           <app-card>
@@ -826,6 +840,13 @@ export class ObjectiveEditor {
   protected readonly errorKey = signal<string | null>(null);
   protected readonly suggestions = signal<readonly SuggestedObjective[]>([]);
   protected readonly smartFocus = signal('');
+  protected readonly suggestKey = OBJECTIVE_SUGGEST_KEY;
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(OBJECTIVE_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(OBJECTIVE_SUGGEST_FIELDS, this.form()),
+  );
   protected readonly override = signal(false);
   protected readonly pendingKpis = signal<NonNullable<SuggestedObjective['kpis']>>([]);
   protected readonly createKpis = signal(true);
@@ -972,6 +993,12 @@ export class ObjectiveEditor {
     if (!on) {
       this.form.update((f) => ({ ...f, progress: '', progress_note: '' }));
     }
+  }
+
+  /** Accepted whole-form suggestions fill the form; nothing is saved until "Save". */
+  protected applyFormSuggestion(accepted: AcceptedSuggestion): void {
+    const change = suggestPatch(OBJECTIVE_SUGGEST_FIELDS, accepted) as Partial<ObjectiveFormValue>;
+    this.form.update((f) => ({ ...f, ...change }));
   }
 
   protected kpiNames(s: SuggestedObjective): string {

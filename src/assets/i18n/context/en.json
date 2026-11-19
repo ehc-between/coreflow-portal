@@ -902,5 +902,28 @@
     "openDocument": "Open the controlled document",
     "documentHint": "Approving publishes this as a revision in Documents.",
     "documentLabel": "Controlled document"
+  },
+  "formSuggest": {
+    "suggestPolicy": "Suggest policy",
+    "offers": {
+      "quality": "quality policy",
+      "information_security": "information security policy",
+      "environment": "environmental policy",
+      "ai": "AI policy",
+      "privacy": "privacy policy",
+      "health_safety": "health and safety policy",
+      "acceptable_use": "acceptable use policy",
+      "other": "policy"
+    },
+    "offerTitles": {
+      "quality": "Quality policy",
+      "information_security": "Information security policy",
+      "environment": "Environmental policy",
+      "ai": "AI policy",
+      "privacy": "Privacy policy",
+      "health_safety": "Health and safety policy",
+      "acceptable_use": "Acceptable use policy",
+      "other": "Policy"
+    }
   }
 }

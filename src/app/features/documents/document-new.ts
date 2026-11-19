@@ -45,7 +45,12 @@ import { DocumentControlApi } from './data/document-control-api';
 import { documentControlErrorKey } from './data/document-control-errors';
 import { DocumentTemplate, DocumentType } from './data/document-control.models';
 import { DocumentEditor } from './editor/document-editor';
-import { DocumentsAiDraft, DraftContext } from './shared/ai-draft-panel';
+import { DocumentsAiDraft, DraftContext, cleanDraftHtml } from './shared/ai-draft-panel';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../shared/ask/form-suggest';
 import { DocumentsPageGuide } from './shared/documents-page-guide';
 import { RecordPicker } from './shared/record-picker';
 
@@ -73,6 +78,7 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
 @Component({
   selector: 'app-document-new',
   imports: [
+    FormSuggest,
     ReactiveFormsModule,
     RouterLink,
     TranslocoPipe,
@@ -109,6 +115,17 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
       <app-documents-page-guide page="newDocument" lesson="first-document" [why]="true" />
 
       <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (!templateId()) {
+          <app-form-suggest
+            suggestKey="documents.document"
+            labelKey="ask.formSuggest.labels.document"
+            [fields]="suggestFields()"
+            [values]="{ title: titleValue(), type: typeKey() || null, content: content() }"
+            [context]="{ from: 'documents' }"
+            [titleOnly]="!!titleValue().trim() && !content().trim()"
+            (applied)="applySuggestion($event)"
+          />
+        }
         <app-card>
           <h2 class="mb-4 font-display text-card font-bold text-fg">
             {{ 'documents.page.new.about' | transloco }}
@@ -535,6 +552,32 @@ export class DocumentNew {
       next: (templates) => this.templates.set(templates),
       error: () => this.templates.set([]),
     });
+  }
+
+  protected readonly suggestFields = computed((): readonly FormSuggestFieldDef[] => [
+    { name: 'title', labelKey: 'documents.fields.title' },
+    {
+      name: 'type',
+      labelKey: 'documents.fields.type',
+      format: (value, field) => (typeof field.display === 'string' ? field.display : ''),
+    },
+    { name: 'content', labelKey: 'ask.formSuggest.fields.content', long: true },
+  ]);
+
+  /** Accepted whole-form suggestions fill the form; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const title = accepted['title']?.value;
+    if (typeof title === 'string') {
+      this.form.controls.title.setValue(title.slice(0, 255));
+    }
+    const type = accepted['type']?.value;
+    if (typeof type === 'string' && this.types().some((t) => t.key === type)) {
+      this.form.controls.type.setValue(type);
+    }
+    const content = accepted['content']?.value;
+    if (typeof content === 'string') {
+      this.applyDraft(cleanDraftHtml(content));
+    }
   }
 
   protected applyDraft(html: string): void {

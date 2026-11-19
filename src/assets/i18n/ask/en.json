@@ -232,5 +232,62 @@
       "question": "How do I learn how compliance and CoreFlow work?",
       "keywords": "learn lesson course beginner tour training guide"
     }
+  },
+  "formSuggest": {
+    "suggest": "Suggest",
+    "improve": "Improve with a suggestion",
+    "rewrite": "Rewrite",
+    "running": "Writing a suggestion from the company profile …",
+    "hint": "Fills in the whole form from the company profile. Nothing is saved until you save.",
+    "fromTitle": "Suggest the rest from the title",
+    "failed": "Could not make a suggestion. Try again.",
+    "missingRecord": "The organisation has no {{name}} yet. Suggest it?",
+    "suggestIt": "Suggest it",
+    "missingFacts": "Add {{facts}} to the company profile for a more precise suggestion.",
+    "openProfile": "Open the company profile",
+    "and": "and",
+    "reviewTitle": "Suggestion",
+    "reviewHint": "Choose what to use. The form is filled in; nothing is saved until you save.",
+    "nothing": "There was nothing to suggest.",
+    "unchanged": "(same as now)",
+    "discard": "Discard",
+    "applySelected": "Use selected",
+    "applyAll": "Use all",
+    "facts": {
+      "name": "the organisation name",
+      "org_number": "the organisation number",
+      "address": "the address",
+      "industry": "the industry",
+      "size": "the size",
+      "products_services": "products and services",
+      "description": "a short description",
+      "countries": "the countries",
+      "sites": "the sites"
+    },
+    "labels": {
+      "scope": "Suggest scope",
+      "analysis": "Suggest analysis",
+      "party": "Suggest interested party",
+      "responsibility": "Suggest responsibility",
+      "risk": "Suggest risk",
+      "objective": "Suggest objective",
+      "process": "Suggest process",
+      "document": "Suggest document",
+      "questionnaire": "Suggest questionnaire",
+      "ropa": "Suggest processing activity",
+      "dpia": "Suggest DPIA",
+      "aiSystem": "Suggest AI system",
+      "assessment": "Suggest assessment",
+      "contract": "Suggest from the contract",
+      "deviation": "Suggest from the description",
+      "auditPlan": "Suggest audit plan",
+      "minutes": "Suggest minutes"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "fields": {
+      "content": "Content",
+      "questions": "Questions"
+    }
   }
 }

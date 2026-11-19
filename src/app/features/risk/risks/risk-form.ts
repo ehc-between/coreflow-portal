@@ -19,7 +19,9 @@ import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { CreateFlowService, FlowContext } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import { suggestDefs, suggestPatch, suggestValues } from '../../../shared/ask/form-suggest-map';
+import { RISK_SUGGEST_FIELDS, RISK_SUGGEST_KEY } from './risk-suggest';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Term } from '../../../shared/guidance/term';
@@ -58,7 +60,6 @@ import {
   SourceType,
   Strategy,
   SubjectType,
-  ThreatSuggestion,
 } from '../data/risk.models';
 import { PersonSelect } from '../shared/person-select';
 import { RatingPicker, RatingValue } from '../shared/rating-picker';
@@ -260,15 +261,15 @@ export function applyRiskPrefill(
  *     catalogue, so they become requirement links), the residual rating (shown
  *     once a strategy is chosen) and the review cycle.
  * Opened from another record ("Risk from this deviation") it is prefilled and
- * linked back on save. "Suggest threats" fills threat, vulnerability and
- * consequence from a suggestion the user picks.
+ * linked back on save. "Foreslå risiko" at the top proposes the whole form from the
+ * title (reviewed field by field; nothing is saved until the user saves).
  */
 @Component({
   selector: 'app-risk-form',
   imports: [
     FormsModule,
     TranslocoPipe,
-    AiAssistButton,
+    FormSuggest,
     AskAbout,
     FieldHelp,
     Term,
@@ -335,6 +336,18 @@ export function applyRiskPrefill(
         </ol>
 
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <app-form-suggest
+            [suggestKey]="suggestKey"
+            labelKey="ask.formSuggest.labels.risk"
+            [fields]="suggestFields()"
+            [values]="suggestValues()"
+            [context]="{ from: 'risk', category: register()?.category ?? null }"
+            [editing]="!!id()"
+            [titleOnly]="
+              !!form().title.trim() && !form().description.trim() && !form().threat.trim()
+            "
+            (applied)="applySuggestion($event)"
+          />
           @switch (currentStep()) {
             @case ('describe') {
               <app-card>
@@ -411,60 +424,7 @@ export function applyRiskPrefill(
                   <h2 class="font-display text-section font-bold text-fg">
                     {{ 'risk.form.sections.context' | transloco }}
                   </h2>
-                  <app-ai-assist-button
-                    assist="risk.suggest_threats"
-                    labelKey="risk.ai.suggestThreats"
-                    [input]="threatInput()"
-                    [disabled]="!form().title.trim()"
-                    entityType="risk"
-                    [entityId]="id() ?? null"
-                    (result)="onThreats($event)"
-                  />
                 </div>
-                @if (threats().length) {
-                  <section
-                    class="mb-4 rounded-card border border-accent/30 bg-accent-soft p-3"
-                    aria-live="polite"
-                    [attr.aria-label]="'risk.ai.threatsTitle' | transloco"
-                  >
-                    <div class="mb-2 flex items-center justify-between">
-                      <h3 class="text-ui font-semibold text-fg">
-                        {{ 'risk.ai.threatsTitle' | transloco }}
-                      </h3>
-                      <button
-                        type="button"
-                        class="text-meta font-semibold text-fg-muted hover:text-fg"
-                        (click)="threats.set([])"
-                      >
-                        {{ 'risk.common.dismiss' | transloco }}
-                      </button>
-                    </div>
-                    <ul class="flex flex-col gap-2">
-                      @for (t of threats(); track $index) {
-                        <li
-                          class="flex flex-col gap-1 rounded-tile bg-surface p-2.5 text-ui sm:flex-row sm:items-start"
-                        >
-                          <div class="min-w-0 flex-1">
-                            <p class="font-semibold text-fg">{{ t.threat }}</p>
-                            @if (t.vulnerability) {
-                              <p class="text-fg-muted">
-                                {{ 'risk.fields.vulnerability' | transloco }}: {{ t.vulnerability }}
-                              </p>
-                            }
-                            @if (t.consequence) {
-                              <p class="text-fg-muted">
-                                {{ 'risk.fields.consequence' | transloco }}: {{ t.consequence }}
-                              </p>
-                            }
-                          </div>
-                          <app-button size="sm" variant="secondary" (click)="useThreat(t)">
-                            {{ 'risk.ai.use' | transloco }}
-                          </app-button>
-                        </li>
-                      }
-                    </ul>
-                  </section>
-                }
                 <div class="grid grid-cols-1 gap-4">
                   <app-risk-field
                     inputId="risk-source-type"
@@ -862,7 +822,6 @@ export class RiskFormPage {
   protected readonly saving = signal(false);
   protected readonly errorKey = signal<string | null>(null);
   protected readonly submitted = signal(false);
-  protected readonly threats = signal<readonly ThreatSuggestion[]>([]);
   /** A create-from-here flow (or `?fromRequirement=`) the form was opened with. */
   protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'risk' });
   private flowApplied: FlowContext | null = null;
@@ -887,7 +846,7 @@ export class RiskFormPage {
   protected readonly activeRegisters = computed(() =>
     this.registers().filter((r) => r.status === 'active' || r.id === this.form().register_id),
   );
-  private readonly register = computed(
+  protected readonly register = computed(
     () => this.registers().find((r) => r.id === this.form().register_id) ?? null,
   );
 
@@ -930,16 +889,13 @@ export class RiskFormPage {
     this.submitted() && !this.form().owner_user_id ? 'risk.errors.owner_required' : null,
   );
 
-  protected readonly threatInput = computed(() => {
-    const f = this.form();
-    return {
-      title: f.title,
-      description: f.description,
-      source_type: f.source_type,
-      source_ref: f.subject?.title ?? f.source_ref,
-      category: this.register()?.category ?? '',
-    };
-  });
+  protected readonly suggestKey = RISK_SUGGEST_KEY;
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(RISK_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(RISK_SUGGEST_FIELDS, this.form()),
+  );
 
   constructor() {
     providePageContext(() => ({
@@ -1050,19 +1006,9 @@ export class RiskFormPage {
     }));
   }
 
-  protected onThreats(result: unknown): void {
-    const threats = (result as { threats?: ThreatSuggestion[] } | null)?.threats ?? [];
-    this.threats.set(threats.filter((t) => t && typeof t.threat === 'string'));
-  }
-
-  protected useThreat(t: ThreatSuggestion): void {
-    this.form.update((f) => ({
-      ...f,
-      threat: t.threat,
-      vulnerability: t.vulnerability ?? f.vulnerability,
-      consequence_text: t.consequence ?? f.consequence_text,
-    }));
-    this.threats.set([]);
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const change = suggestPatch(RISK_SUGGEST_FIELDS, accepted) as Partial<RiskFormValue>;
+    this.form.update((f) => ({ ...f, ...change }));
   }
 
   protected goTo(step: RiskFormStep): void {

@@ -232,5 +232,62 @@
       "question": "Hvordan lærer jeg meg samsvarsarbeid og CoreFlow?",
       "keywords": "lære leksjon kurs nybegynner omvisning opplæring veiledning"
     }
+  },
+  "formSuggest": {
+    "suggest": "Foreslå",
+    "improve": "Forbedre med forslag",
+    "rewrite": "Skriv om",
+    "running": "Lager et forslag ut fra bedriftsprofilen …",
+    "hint": "Fyller ut hele skjemaet ut fra bedriftsprofilen. Ingenting lagres før du lagrer.",
+    "fromTitle": "Foreslå resten ut fra tittelen",
+    "failed": "Kunne ikke lage et forslag. Prøv igjen.",
+    "missingRecord": "Organisasjonen mangler en {{name}}. Foreslå den?",
+    "suggestIt": "Foreslå den",
+    "missingFacts": "Legg inn {{facts}} i bedriftsprofilen for et mer presist forslag.",
+    "openProfile": "Åpne bedriftsprofilen",
+    "and": "og",
+    "reviewTitle": "Forslag",
+    "reviewHint": "Velg hva du vil bruke. Skjemaet fylles ut; ingenting lagres før du lagrer.",
+    "nothing": "Det var ingenting å foreslå.",
+    "unchanged": "(som nå)",
+    "discard": "Forkast",
+    "applySelected": "Bruk valgte",
+    "applyAll": "Bruk alle",
+    "facts": {
+      "name": "organisasjonsnavnet",
+      "org_number": "organisasjonsnummeret",
+      "address": "adressen",
+      "industry": "bransjen",
+      "size": "størrelsen",
+      "products_services": "produkter og tjenester",
+      "description": "en kort beskrivelse",
+      "countries": "landene",
+      "sites": "lokasjonene"
+    },
+    "labels": {
+      "scope": "Foreslå omfang",
+      "analysis": "Foreslå analyse",
+      "party": "Foreslå interessent",
+      "responsibility": "Foreslå ansvarsområde",
+      "risk": "Foreslå risiko",
+      "objective": "Foreslå mål",
+      "process": "Foreslå prosess",
+      "document": "Foreslå dokument",
+      "questionnaire": "Foreslå spørreskjema",
+      "ropa": "Foreslå behandlingsaktivitet",
+      "dpia": "Foreslå DPIA",
+      "aiSystem": "Foreslå KI-system",
+      "assessment": "Foreslå vurdering",
+      "contract": "Foreslå ut fra kontrakten",
+      "deviation": "Foreslå ut fra beskrivelsen",
+      "auditPlan": "Foreslå revisjonsplan",
+      "minutes": "Foreslå referat"
+    },
+    "yes": "Ja",
+    "no": "Nei",
+    "fields": {
+      "content": "Innhold",
+      "questions": "Spørsmål"
+    }
   }
 }

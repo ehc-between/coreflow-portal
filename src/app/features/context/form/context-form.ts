@@ -17,6 +17,9 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { CreateFlowService, FlowContext } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import { FormSuggestOffer } from '../../../core/ai/form-suggest-api';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
@@ -53,6 +56,18 @@ import {
   updateBody,
 } from './context-draft';
 import { KindFields } from './kind-fields';
+import { suggestDefs } from '../../../shared/ask/form-suggest-map';
+import {
+  CONTEXT_SUGGEST_FIELDS,
+  contextSuggestPatch,
+  contextSuggestValues,
+} from './context-suggest';
+import {
+  POLICY_SUGGEST_KEY,
+  policyPatch,
+  policySuggestFields,
+  policySuggestValues,
+} from './policy-suggest';
 
 /** A new draft pre-filled from the URL (`?framework=` for scopes, `?kind=` for policies). */
 export function seededDraft(
@@ -99,6 +114,7 @@ export function seededDraft(
     FormRow,
     OwnerSelect,
     KindFields,
+    FormSuggest,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -127,6 +143,31 @@ export function seededDraft(
             </div>
           }
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+            @if (kind() === 'policy') {
+              <app-form-suggest
+                [suggestKey]="policySuggestKey"
+                labelKey="context.formSuggest.suggestPolicy"
+                offerKeyPrefix="context.formSuggest.offers."
+                [fields]="policyFields()"
+                [values]="policyValues()"
+                [context]="suggestContext()"
+                [editing]="editing()"
+                [titleOnly]="!!draft().title.trim() && !draft().statement.trim()"
+                (offerPicked)="startFromOffer($event)"
+                (applied)="applyPolicySuggestion($event)"
+              />
+            } @else if (recordSuggest(); as rs) {
+              <app-form-suggest
+                [suggestKey]="rs.key"
+                [labelKey]="rs.labelKey"
+                [fields]="rs.fields"
+                [values]="recordValues()"
+                [context]="suggestContext()"
+                [editing]="editing()"
+                [titleOnly]="recordTitleOnly()"
+                (applied)="applyRecordSuggestion($event)"
+              />
+            }
             <p class="text-meta text-fg-muted">
               <span class="text-fail-ink" aria-hidden="true">*</span>
               {{ 'context.form.requiredLegend' | transloco }}
@@ -420,6 +461,88 @@ export class ContextForm {
 
   protected patch(change: Partial<ContextDraft>): void {
     this.draft.update((d) => ({ ...d, ...change }));
+  }
+
+  // --- whole-form suggestion (policies) --------------------------------------------
+
+  private readonly language = inject(LanguageService);
+  protected readonly policySuggestKey = POLICY_SUGGEST_KEY;
+  protected readonly policyFields = computed(() =>
+    policySuggestFields((key, params) => this.language.translate(key, params)),
+  );
+  protected readonly policyValues = computed(() => policySuggestValues(this.draft()));
+  protected readonly suggestContext = computed(() => ({
+    from: 'context',
+    form: this.kind(),
+    created_from: this.flow()?.source?.title ?? null,
+    requirement: this.flow()?.requirementRef ?? null,
+  }));
+
+  // --- whole-form suggestion (scope, analysis, party, responsibility) --------------
+
+  protected readonly recordSuggest = computed(() => {
+    const kind = this.kind();
+    if (kind === 'policy') {
+      return null;
+    }
+    return {
+      kind,
+      key: `context.${kind}`,
+      labelKey: `ask.formSuggest.labels.${kind}`,
+      fields: suggestDefs(CONTEXT_SUGGEST_FIELDS[kind], (key, params) =>
+        this.language.translate(key, params),
+      ),
+    };
+  });
+  protected readonly recordValues = computed(() => {
+    const kind = this.kind();
+    return kind === 'policy' ? {} : contextSuggestValues(kind, this.draft());
+  });
+  /** Only the title is filled in: "Foreslå resten ut fra tittelen". */
+  protected readonly recordTitleOnly = computed(() => {
+    const kind = this.kind();
+    const draft = this.draft();
+    if (kind === 'policy' || !draft.title.trim()) {
+      return false;
+    }
+    return CONTEXT_SUGGEST_FIELDS[kind]
+      .filter((spec) => spec.type === 'long')
+      .every(
+        (spec) => !String((draft as unknown as Record<string, unknown>)[spec.name] ?? '').trim(),
+      );
+  });
+
+  protected applyRecordSuggestion(accepted: AcceptedSuggestion): void {
+    const kind = this.kind();
+    if (kind === 'policy') {
+      return;
+    }
+    this.patch(contextSuggestPatch(kind, accepted, this.draft()));
+  }
+
+  /** A missing policy was picked: start from its kind (and a title when empty). */
+  protected startFromOffer(offer: FormSuggestOffer): void {
+    const kind = offer.values['kind'];
+    const change: Partial<ContextDraft> = policyPatch({
+      kind: { name: 'kind', value: kind, rationale: null, changed: true, display: null },
+    });
+    if (!this.draft().title.trim()) {
+      this.patch({
+        ...change,
+        title: this.language.translate(`context.formSuggest.offerTitles.${offer.key}`),
+      });
+      return;
+    }
+    this.patch(change);
+  }
+
+  /** Accepted suggestions fill the form; nothing is saved until "Save". */
+  protected applyPolicySuggestion(accepted: AcceptedSuggestion): void {
+    const { review_interval_months: interval, ...change } = policyPatch(accepted);
+    this.patch(change);
+    if (interval !== undefined) {
+      this.setInterval(interval);
+    }
   }
 
   /** Choosing an interval fills in the next review date (unless one was typed). */

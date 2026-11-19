@@ -216,7 +216,11 @@
       "construction_site": "Construction site",
       "remote": "Remote work",
       "other": "Other"
-    }
+    },
+    "orgNumber": "Organisation number",
+    "address": "Address",
+    "productsServices": "Products and services",
+    "factsHint": "Used in suggestions, so texts get the right name, address and services."
   },
   "terminology": {
     "title": "Terminology",
