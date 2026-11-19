@@ -2,11 +2,19 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { policiesToDocuments } from '../context/context.routes';
 import { PolicyDocsBar } from './policy-docs-bar';
 
 const BASE = 'http://test/api';
@@ -69,5 +77,38 @@ describe('PolicyDocsBar (U16)', () => {
       .querySelector<HTMLButtonElement>('[data-testid="type-chip-clear"]')!
       .click();
     expect(cleared).toBe(true);
+  });
+});
+
+describe('policiesToDocuments (U16)', () => {
+  function run(permissions: string[], params: Record<string, string> = {}) {
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([]),
+        { provide: ModuleService, useValue: { isEnabled: () => true } },
+        {
+          provide: SelectedOrgService,
+          useValue: {
+            currentOrg: signal({ id: ORG, name: 'Org', roles: [], permissions }).asReadonly(),
+          },
+        },
+      ],
+    });
+    const route = { queryParamMap: convertToParamMap(params) } as ActivatedRouteSnapshot;
+    return TestBed.runInInjectionContext(() =>
+      policiesToDocuments(route, {} as RouterStateSnapshot),
+    );
+  }
+
+  it('lands on the documents list filtered to policies, keeping the status filter', () => {
+    const result = run(['documents:read'], { status: 'approved' });
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe(
+      '/documents?type=policy&status=approved',
+    );
+  });
+
+  it('keeps the context list when the user cannot read documents', () => {
+    expect(run(['context:read'])).toBe(true);
   });
 });

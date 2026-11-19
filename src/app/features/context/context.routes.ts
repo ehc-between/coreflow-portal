@@ -14,11 +14,15 @@ const toOverview = { redirectTo: '/context' };
  * the documents list filtered by type. Falls back to the context list when the
  * documents module is off or the user cannot read documents.
  */
-export const policiesToDocuments: CanActivateFn = () => {
+export const policiesToDocuments: CanActivateFn = (route) => {
   const modules = inject(ModuleService);
   const permissions = inject(SelectedOrgService).currentOrg()?.permissions ?? [];
   if (modules.isEnabled('documents') && permissions.includes('documents:read')) {
-    return inject(Router).createUrlTree(['/documents'], { queryParams: { type: 'policy' } });
+    // Keep the list filters of the link (e.g. `?status=approved` from an overview tile).
+    const status = route.queryParamMap.get('status');
+    return inject(Router).createUrlTree(['/documents'], {
+      queryParams: { type: 'policy', ...(status ? { status } : {}) },
+    });
   }
   return true;
 };
