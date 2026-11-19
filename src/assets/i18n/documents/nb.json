@@ -612,7 +612,11 @@
       "tooManyRequirements": "Velg høyst 30 krav.",
       "tooManyRelated": "Koble høyst 20 registreringer.",
       "invalidLinkType": "En av koblingene kunne ikke lagres. Fjern den og prøv igjen."
-    }
+    },
+    "customer": "Kunde",
+    "customerHint": "For kundespesifikke dokumenter, som en spesifikasjon, tegning eller kundemanual.",
+    "noCustomer": "Ingen kunde",
+    "changeCustomer": "Endre"
   },
   "proposals": {
     "reviewsDue": "{{count}} dokumenter skal til periodisk gjennomgang.",

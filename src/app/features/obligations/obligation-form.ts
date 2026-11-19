@@ -20,6 +20,7 @@ import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { ClausePicker } from '../../shared/requirement-links/clause-picker';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
+import { CustomerPicker, CustomersAvailability } from '../../shared/customers';
 import { RecurrencePicker } from '../../shared/tasks/recurrence-picker';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
@@ -85,6 +86,7 @@ export function jurisdictionChoice(value: string): string {
     Card,
     FormField,
     Icon,
+    CustomerPicker,
   ],
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -279,6 +281,23 @@ export function jurisdictionChoice(value: string): string {
               />
             </app-form-field>
           </div>
+          @if (customers.enabled()) {
+            <div>
+              <app-form-field
+                [label]="'obligations.fields.customer' | transloco"
+                inputId="cf-o-customer"
+              >
+                <app-customer-picker
+                  inputId="cf-o-customer"
+                  [value]="form().customer_id || null"
+                  [current]="form().customer"
+                  (valueChange)="set('customer_id', $event ?? '')"
+                  (refChange)="set('customer', $event)"
+                  data-testid="obligation-customer"
+                />
+              </app-form-field>
+            </div>
+          }
           <div>
             <div class="mb-1.5 flex items-center gap-1.5">
               <label for="cf-o-reference" class="text-ui font-semibold text-fg-muted">{{
@@ -698,6 +717,7 @@ export function jurisdictionChoice(value: string): string {
 })
 export class ObligationForm {
   private readonly assignees = inject(AssigneeOptionsService);
+  protected readonly customers = inject(CustomersAvailability);
   private readonly api = inject(ObligationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
 

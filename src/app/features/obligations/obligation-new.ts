@@ -19,6 +19,7 @@ import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Card } from '../../shared/ui/card/card';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { customerIdFromRoute } from '../../shared/customers';
 import { ObligationsApi } from './data/obligations-api';
 import { ENTITY_TYPE } from './data/obligation.models';
 import { obligationErrorKey } from './data/obligation-errors';
@@ -134,7 +135,8 @@ export class ObligationNew {
   protected readonly library = OBLIGATION_LIBRARY;
   protected readonly libraryKey = libraryKey;
   /** The create-from-here flow this form was opened with (`?flow=`), if any. */
-  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+  private readonly route = inject(ActivatedRoute);
+  protected readonly flow = this.flows.consume(this.route, {
     targetType: ENTITY_TYPE,
   });
 
@@ -151,6 +153,13 @@ export class ObligationNew {
       view: 'new',
       title: this.language.translate('obligations.form.newTitle'),
     }));
+    // The Kunde field from the customer card's "+ Ny" link (`?customer_id=`).
+    const customerId = customerIdFromRoute(this.route);
+    if (customerId) {
+      this.replace(
+        applySeed(this.draft(), { customer_id: customerId, obligation_type: 'contract' }),
+      );
+    }
     // Pre-fill once from the flow's values (they arrive async after a reload).
     let applied = false;
     effect(() => {

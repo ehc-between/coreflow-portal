@@ -192,7 +192,8 @@
     "referenceStandard": "Reference standard used",
     "method": "Method or procedure",
     "environment": "Conditions",
-    "affectedRecords": "Affected processes, documents, suppliers and risks"
+    "affectedRecords": "Affected processes, documents, suppliers and risks",
+    "customer": "Customer (customer property)"
   },
   "assetType": {
     "information": "Information",

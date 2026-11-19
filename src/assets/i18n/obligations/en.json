@@ -152,7 +152,8 @@
     "renewalDueOn": "Apply for renewal by",
     "evaluationRrule": "Evaluation frequency",
     "evaluationStart": "First evaluation due",
-    "evaluationLeadDays": "Show in My Work (days before)"
+    "evaluationLeadDays": "Show in My Work (days before)",
+    "customer": "Customer"
   },
   "form": {
     "newTitle": "New obligation",

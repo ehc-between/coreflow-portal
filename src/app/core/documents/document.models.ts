@@ -1,8 +1,13 @@
+import type { CustomerRef } from '../../shared/customers';
+
 /** Document lifecycle status as returned by the backend. */
 export type DocumentStatus = 'draft' | 'in_review' | 'approved' | 'obsolete';
 
 /** A row in the documents list. */
 export interface DocumentSummary {
+  /** Customer-specific document (customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly id: string;
   readonly type: string;
   readonly title: string;
@@ -47,6 +52,8 @@ export interface DocumentListQuery {
   readonly review_due?: boolean;
   /** Only documents with no confirmed requirement link. */
   readonly unlinked?: boolean;
+  /** Only the documents of one customer (`?customer_id=`). */
+  readonly customer_id?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -111,6 +118,8 @@ export interface DocumentControlUpdate {
   readonly review_interval_months?: number | null;
   readonly next_review_at?: string | null;
   readonly acknowledgement_required?: boolean;
+  /** Set (or with null clear) the customer of a customer-specific document. */
+  readonly customer_id?: string | null;
 }
 
 /** One person in the acknowledgement report. */
@@ -133,6 +142,9 @@ export interface DocumentAcknowledgements {
 
 /** Full document detail, including the current revision and revision history. */
 export interface DocumentDetail {
+  /** Customer-specific document (customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly id: string;
   readonly type: string;
   readonly title: string;
@@ -278,6 +290,8 @@ export interface CreateDocumentRequest {
   readonly requirement_refs?: readonly string[];
   /** Records to link the new document to. */
   readonly related?: readonly RelatedRecordInput[];
+  /** A customer-specific document: the customer (customer register). */
+  readonly customer_id?: string;
 }
 
 /** Lifecycle of an anchored comment. */

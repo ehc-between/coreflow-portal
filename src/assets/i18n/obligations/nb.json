@@ -152,7 +152,8 @@
     "renewalDueOn": "Søk om fornyelse innen",
     "evaluationRrule": "Hvor ofte samsvaret vurderes",
     "evaluationStart": "Første vurdering forfaller",
-    "evaluationLeadDays": "Vis i Mitt arbeid (dager før)"
+    "evaluationLeadDays": "Vis i Mitt arbeid (dager før)",
+    "customer": "Kunde"
   },
   "form": {
     "newTitle": "Ny forpliktelse",

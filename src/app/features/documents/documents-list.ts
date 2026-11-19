@@ -44,6 +44,7 @@ import { DocumentsPageGuide } from './shared/documents-page-guide';
 import { ReviewState, reviewLabelKey, reviewState } from './workflow/document-review';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { PolicyDocsBar } from './policy-docs-bar';
+import { CustomerFilter, customerIdFromRoute } from '../../shared/customers';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -80,6 +81,7 @@ interface Row {
 @Component({
   selector: 'app-documents-list',
   imports: [
+    CustomerFilter,
     FulfilsRequirements,
     TranslocoPipe,
     HasPermissionDirective,
@@ -134,6 +136,12 @@ interface Row {
       <app-documents-nav nav />
       <app-documents-page-guide help page="list" lesson="first-document" tour="list" />
 
+      <app-customer-filter
+        filters
+        [value]="customerId()"
+        (valueChange)="customerId.set($event); resetAndLoad()"
+        data-testid="filter-customer"
+      />
       <select
         filters
         [value]="status()"
@@ -303,6 +311,8 @@ export class DocumentsList {
   protected readonly unlinked = signal(false);
   /** U16: `?type=` (e.g. `policy`: the one list of policies). */
   protected readonly type = signal('');
+  /** The Kunde filter (`?customer_id=`, the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(null);
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canReadStandards = computed(() =>
@@ -328,7 +338,8 @@ export class DocumentsList {
       !!this.status() ||
       this.reviewDue() ||
       this.unlinked() ||
-      !!this.type(),
+      !!this.type() ||
+      !!this.customerId(),
   );
   /** The org has no documents at all: the teaching empty state replaces the list. */
   protected readonly registerEmpty = computed(
@@ -382,6 +393,7 @@ export class DocumentsList {
         this.reviewDue.set(this.route.snapshot.queryParamMap.get('review') === 'due');
         this.unlinked.set(this.route.snapshot.queryParamMap.get('requirements') === 'none');
         this.type.set(this.route.snapshot.queryParamMap.get('type') ?? '');
+        this.customerId.set(customerIdFromRoute(this.route));
         this.offset.set(0);
         this.searching.set(false);
         this.rows.set([]);
@@ -467,6 +479,7 @@ export class DocumentsList {
     this.reviewDue.set(false);
     this.unlinked.set(false);
     this.type.set('');
+    this.customerId.set(null);
     this.resetAndLoad();
   }
 
@@ -510,7 +523,7 @@ export class DocumentsList {
   }
 
   /** A filter changed: it applies to the full list, so clear any search. */
-  private resetAndLoad(): void {
+  protected resetAndLoad(): void {
     this.query.set('');
     this.searching.set(false);
     this.offset.set(0);
@@ -534,6 +547,7 @@ export class DocumentsList {
       .listPage(orgId, {
         status: this.status() || undefined,
         type: this.type() || undefined,
+        customer_id: this.customerId() || undefined,
         review_due: this.reviewDue() || undefined,
         unlinked: (this.canReadStandards() && this.unlinked()) || undefined,
         limit: this.pageSize,

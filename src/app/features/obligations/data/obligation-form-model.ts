@@ -15,6 +15,7 @@ import {
   ObligationUpdate,
   RequirementProposal,
 } from './obligation.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 /** One duty row of the form. `key` tracks the row; `id` is set for saved duties. */
 export interface DutyDraft {
@@ -40,6 +41,9 @@ export interface ObligationFormValue {
   readonly clause_refs: readonly string[];
   readonly jurisdiction: string;
   readonly issuer: string;
+  /** The customer that sets the requirement ('' = none) and its ref (for the picker). */
+  readonly customer_id: string;
+  readonly customer: CustomerRef | null;
   readonly reference: string;
   readonly source_url: string;
   readonly owner_user_id: string;
@@ -80,6 +84,8 @@ export function emptyObligationForm(): ObligationFormValue {
     clause_refs: [],
     jurisdiction: 'NO',
     issuer: '',
+    customer_id: '',
+    customer: null,
     reference: '',
     source_url: '',
     owner_user_id: '',
@@ -136,6 +142,8 @@ export function formFromObligation(o: Obligation): ObligationFormValue {
     clause_refs: [...(o.clause_refs ?? [])],
     jurisdiction: o.jurisdiction ?? '',
     issuer: o.issuer ?? '',
+    customer_id: o.customer_id ?? '',
+    customer: o.customer ?? null,
     reference: o.reference ?? '',
     source_url: o.source_url ?? '',
     owner_user_id: o.owner?.id ?? '',
@@ -207,6 +215,7 @@ function toFields(v: ObligationFormValue): Record<string, unknown> {
     clause_refs: [...v.clause_refs],
     jurisdiction: text(v.jurisdiction),
     issuer: text(v.issuer),
+    customer_id: v.customer_id || null,
     reference: text(v.reference),
     source_url: text(v.source_url),
     owner_user_id: v.owner_user_id || null,
@@ -377,6 +386,8 @@ export interface ObligationSeed {
   readonly frameworks?: readonly string[] | null;
   readonly clause_refs?: readonly string[] | null;
   readonly issuer?: string | null;
+  /** The customer the requirement comes from (create-from-customer, `?customer_id=`). */
+  readonly customer_id?: string | null;
   readonly reference?: string | null;
   readonly jurisdiction?: string | null;
   readonly source_url?: string | null;
@@ -402,6 +413,7 @@ export function seedFromPrefill(prefill: Readonly<Record<string, unknown>>): Obl
     frameworks: strings(prefill['frameworks']),
     clause_refs: strings(prefill['clause_refs']),
     issuer: str(prefill['issuer']),
+    customer_id: str(prefill['customer_id']),
     reference: str(prefill['reference']),
     jurisdiction: str(prefill['jurisdiction']),
     source_url: str(prefill['source_url']),
@@ -428,6 +440,9 @@ export function applySeed(v: ObligationFormValue, seed: ObligationSeed): Obligat
     description: keep(v.description, seed.description),
     applicability: keep(v.applicability, seed.applicability),
     issuer: keep(v.issuer, seed.issuer),
+    ...(!v.customer_id && seed.customer_id
+      ? { customer_id: seed.customer_id, customer: null }
+      : {}),
     reference: keep(v.reference, seed.reference),
     source_url: keep(v.source_url, seed.source_url),
     jurisdiction: seed.jurisdiction?.trim() || v.jurisdiction,
