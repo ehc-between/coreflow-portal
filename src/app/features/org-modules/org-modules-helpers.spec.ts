@@ -48,7 +48,7 @@ describe('setup steps', () => {
     expect(nextStep('profile')).toBe('frameworks');
     expect(nextStep('done')).toBe('done');
     expect(previousStep('profile')).toBe('profile');
-    expect(previousStep('tasks')).toBe('roles');
+    expect(previousStep('risks')).toBe('policies');
   });
 
   it('merges recommendations with the module list, recommended first', () => {

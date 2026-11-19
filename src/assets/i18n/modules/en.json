@@ -250,7 +250,10 @@
       "modules": "Modules",
       "roles": "Roles",
       "tasks": "First tasks",
-      "done": "Done"
+      "done": "Done",
+      "policies": "Policies",
+      "risks": "Risks",
+      "ropa": "Processing"
     },
     "profile": {
       "title": "Tell us about your organisation",
@@ -259,7 +262,8 @@
     "frameworks": {
       "title": "Which frameworks are in scope?",
       "body": "Pick the standards and regulations you work towards, now or soon.",
-      "hint": "Not sure? Start with the one you need first. You can add more at any time under Settings, Organisation profile."
+      "hint": "Not sure? Start with the one you need first. You can add more at any time under Settings, Organisation profile.",
+      "custom": "Or pick the standards yourself"
     },
     "modules": {
       "title": "Recommended modules",
@@ -318,7 +322,7 @@
     },
     "done": {
       "title": "Ready to go",
-      "body": "Finish to turn on the chosen modules. You can change them later under Settings, Modules.",
+      "body": "Finish setup to see the result and make your first document.",
       "summary": "These modules will be turned on: {{ modules }}.",
       "summaryNone": "No new modules will be turned on.",
       "finished": "Setup is complete.",
@@ -329,7 +333,13 @@
       "journeyTitle": "Next: follow a guided journey",
       "journeyBody": "A journey takes you step by step from the first scope statement to being ready for an audit. Each step says what to do and which requirements it covers.",
       "startJourney": "Start the journey for {{ standard }}",
-      "journeyFailed": "Could not start the journey. Try again from the standard's page."
+      "journeyFailed": "Could not start the journey. Try again from the standard's page.",
+      "created": "Added: {{ policies }} policies, {{ risks }} risks and {{ ropa }} processing activities.",
+      "firstDocTitle": "Make your first document",
+      "firstDocBody": "Under Documents and reports you make finished documents from what you have entered, as Word or PDF.",
+      "firstDocCta": "Make the document →",
+      "targetLabel": "When do you want to be ready for the audit?",
+      "targetHint": "The journey then shows whether you are on track."
     },
     "back": "Back",
     "next": "Continue",
@@ -338,6 +348,45 @@
     "errors": {
       "unknownModules": "One of the chosen modules no longer exists. Go back and check the list.",
       "recommendations": "The recommendations could not be loaded. Please try again."
+    },
+    "lookup": {
+      "label": "Organisation number",
+      "button": "Fetch from the Brønnøysund Register",
+      "hint": "Optional. We fetch industry, number of employees and country from the Central Coordinating Register for Legal Entities.",
+      "found": "Found {{ name }}. Industry, size and country are filled in. Check that they are right.",
+      "invalid": "An organisation number has 9 digits.",
+      "notFound": "No organisation has that number.",
+      "unavailable": "The register could not be reached. Fill in the fields yourself."
+    },
+    "policies": {
+      "title": "Add policies",
+      "body": "Ready-made policies in plain words. Tick the ones you want. You can edit the text and send them for approval afterwards."
+    },
+    "risks": {
+      "title": "Add risks",
+      "body": "Common risks for a business like yours. Tick the ones that apply to you. You assess and treat them afterwards."
+    },
+    "ropa": {
+      "title": "Add processing activities",
+      "body": "Typical ways a business processes personal data (the record of processing activities). Tick the ones you do."
+    },
+    "starters": {
+      "chosen": "Selected: {{ count }}",
+      "all": "Select all",
+      "none": "Select none",
+      "exists": "Already added",
+      "hint": "They are added as drafts that you own. Nothing is shared or approved yet.",
+      "created": "Added.",
+      "failed": "Some could not be added. You can add them later.",
+      "policies": {
+        "add": "Add {{ count }} policies →"
+      },
+      "risks": {
+        "add": "Add {{ count }} risks →"
+      },
+      "ropa": {
+        "add": "Add {{ count }} processing activities →"
+      }
     }
   },
   "banner": {
@@ -374,5 +423,35 @@
         }
       }
     }
+  },
+  "packages": {
+    "title": "Pick a package",
+    "moduleCount": "{{ count }} of {{ total }} areas",
+    "coverage": "You have {{ on }} of {{ total }} areas on.",
+    "enough": "That is enough for {{ package }}.",
+    "items": {
+      "internal_control": {
+        "name": "Internal control / HSE",
+        "description": "Health, safety and environment: deviations, risk, training and the HSE handbook."
+      },
+      "quality": {
+        "name": "Quality ISO 9001",
+        "description": "Documents, deviations, risk, internal audits and management review for ISO 9001."
+      },
+      "security_privacy": {
+        "name": "Information security + privacy",
+        "description": "ISO 27001 and GDPR: assets, risk, processing activities, audits and review."
+      },
+      "full": {
+        "name": "Full management system",
+        "description": "Every area switched on. Best when you already know CoreFlow."
+      }
+    },
+    "sectionTitle": "Packages",
+    "sectionBody": "Switch on a whole package at once. Nothing is switched off.",
+    "apply": "Switch on",
+    "covered": "On",
+    "appliedToast": "The package is switched on.",
+    "applyFailed": "The package could not be switched on. Try again."
   }
 }

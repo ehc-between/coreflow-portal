@@ -105,7 +105,10 @@
     "modules": "Moduler",
     "roles": "Roller",
     "tasks": "De første oppgavene",
-    "done": "Oppsummering"
+    "done": "Oppsummering",
+    "policies": "Policyer",
+    "risks": "Risikoer",
+    "ropa": "Behandlingsaktiviteter"
   },
   "setup": {
     "standards": "Velg standardene organisasjonen skal følge",
@@ -277,6 +280,19 @@
         "skip": "Hopp over steget",
         "undo": "Angre",
         "include": "Ta med igjen"
+      }
+    },
+    "target": {
+      "label": "Klar for revisjon innen",
+      "none": "Ingen måldato for revisjonen ennå.",
+      "set": "Måldato for revisjon",
+      "savedToast": "Måldatoen er lagret.",
+      "status": {
+        "on_track": "I rute",
+        "behind": "{{ weeks }} uker bak",
+        "overdue": "Måldatoen er passert",
+        "done": "Klar",
+        "behindOne": "1 uke bak"
       }
     }
   },
