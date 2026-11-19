@@ -79,7 +79,8 @@
       "evaluate": "Vesentlighet",
       "obligations": "Lover og forskrifter som gjelder",
       "control": "Styring og eierskap",
-      "preparedness": "Beredskap"
+      "preparedness": "Beredskap",
+      "evaluateHow": "Slik er vesentligheten vurdert"
     },
     "notices": {
       "controls": "Aspektet er vesentlig, men ingenting styrer det ennå. Koble en prosedyre, prosess eller et mål, eller beskriv driftskontrollene.",
@@ -134,7 +135,35 @@
     "noPlan": "Ingen beredskapsplan dekker dette aspektet.",
     "ownership": "Eierskap og gjennomgang",
     "deleteTitle": "Slette dette aspektet?",
-    "deleteMessage": "{{ code }} fjernes fra registeret og åpne oppgaver avbrytes. Historikken beholdes."
+    "deleteMessage": "{{ code }} fjernes fra registeret og åpne oppgaver avbrytes. Historikken beholdes.",
+    "reviewOverdue": "Gjennomgang forfalt",
+    "statusLine": {
+      "significant": "Vesentlig – aspektet må holdes under kontroll og følges opp.",
+      "notSignificant": "Ikke vesentlig – poengene er under grensen, så det holder å følge med på det.",
+      "unscored": "Ikke vurdert – gi aspektet poeng for å se om det er vesentlig.",
+      "retired": "Avsluttet – aspektet gjelder ikke lenger."
+    },
+    "lead": {
+      "activity": "Hva vi gjør",
+      "impact": "Hva det gjør med miljøet",
+      "controls": "Slik holder vi det under kontroll",
+      "obligations": "Lover og krav som gjelder"
+    },
+    "linkControlMore": "Koble en prosedyre eller prosess",
+    "details": {
+      "impactType": "Type påvirkning",
+      "condition": "Når det skjer",
+      "controlLevel": "Hvor mye vi styrer det",
+      "site": "Hvor"
+    },
+    "missing": {
+      "review": "Gjennomgangen er forfalt – merk som gjennomgått",
+      "controls": "Vesentlig, men ingenting styrer det – koble en prosedyre eller prosess",
+      "plan": "Kan skje i en nødsituasjon – lag en beredskapsplan",
+      "unscored": "Gi aspektet poeng",
+      "obligations": "Legg til lovene og kravene som gjelder",
+      "owner": "Velg en eier"
+    }
   },
   "plans": {
     "title": "Beredskapsplaner",
@@ -284,7 +313,35 @@
     "measurementCount": "Målinger",
     "retiredNotice": "Denne indikatoren er avsluttet. Målingene beholdes, men nye kan ikke registreres.",
     "deleteTitle": "Slette denne indikatoren?",
-    "deleteMessage": "{{ code }} og påminnelsene fjernes. Historikken beholdes."
+    "deleteMessage": "{{ code }} og påminnelsene fjernes. Historikken beholdes.",
+    "typeLine": "Indikator · {{ category }}",
+    "statusLine": {
+      "on_track": "Når målet – de siste 12 månedene er innenfor målet.",
+      "off_track": "Når ikke målet – de siste 12 månedene er utenfor målet.",
+      "no_target": "Uten mål – sett et mål for å se om utviklingen går riktig vei.",
+      "no_data": "For lite data – registrer flere verdier for å sammenligne med målet.",
+      "retired": "Avsluttet – verdiene beholdes, men nye kan ikke registreres."
+    },
+    "lead": {
+      "last12": "Siste 12 måneder",
+      "target": "Målet",
+      "thisYear": "Hittil i år",
+      "objectives": "Mål den måler"
+    },
+    "previousYearFull": "I fjor: {{ value }} {{ unit }}",
+    "details": {
+      "scope": "Utslippskategori",
+      "factor": "Utslippsfaktor",
+      "site": "Hvor"
+    },
+    "lastValue": "Siste verdi gjelder til",
+    "missing": {
+      "first": "Registrer den første verdien",
+      "target": "Sett et mål",
+      "objective": "Ikke koblet til et mål – lag et miljømål",
+      "owner": "Velg en eier",
+      "reminders": "Sett opp påminnelser om å registrere verdier"
+    }
   },
   "measurement": {
     "record": "Registrer verdi",
@@ -299,7 +356,8 @@
     "files": "Filer ({{ count }})",
     "delete": "Slett målingen",
     "deleteTitle": "Slette denne målingen?",
-    "deleteMessage": "Verdien fjernes fra utviklingen og utslippstallene."
+    "deleteMessage": "Verdien fjernes fra utviklingen og utslippstallene.",
+    "addFile": "Legg ved"
   },
   "emissions": {
     "title": "Klimagassutslipp",
@@ -676,7 +734,8 @@
     "actions": "Handlinger",
     "never": "Aldri",
     "unknown": "Ukjent",
-    "tonnes": "{{ value }} t CO₂e"
+    "tonnes": "{{ value }} t CO₂e",
+    "updated": "Sist endret"
   },
   "ask": {
     "label": "Spør om dette",
@@ -697,7 +756,11 @@
     "methodField": "Hvordan bør vi måle denne indikatoren pålitelig, og hva bør vi skrive ned om metoden?",
     "targetField": "Hva vil være et realistisk årlig mål for denne indikatoren, og hvordan setter jeg et utgangspunkt?",
     "emissionFactor": "Hvilken utslippsfaktor (kg CO₂e per {{ unit }}) bør jeg bruke for denne indikatoren, og hvor finner jeg en pålitelig kilde?",
-    "scoringMethod": "Hvordan bør vi sette opp metoden for å vurdere hvor vesentlige miljøaspektene er? Foreslå kriterier, skala og terskel."
+    "scoringMethod": "Hvordan bør vi sette opp metoden for å vurdere hvor vesentlige miljøaspektene er? Foreslå kriterier, skala og terskel.",
+    "explainSignificanceLabel": "Forklar vesentligheten",
+    "controlsLabel": "Foreslå driftskontroller",
+    "targetLabel": "Foreslå et mål",
+    "methodLabel": "Hvordan bør vi måle dette?"
   },
   "notices": {
     "created": "{{ code }} er opprettet.",

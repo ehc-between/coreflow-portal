@@ -551,6 +551,7 @@ let nextId = 0;
                     [relatedTab]="hasRelatedTab()"
                     [compact]="true"
                     [variant]="anatomy() ? 'section' : 'card'"
+                    [lastTypes]="connectionsLast()"
                     (showAll)="showRelated()"
                   />
                 }
@@ -615,6 +616,8 @@ export class RecordDetailLayout {
    * are in "Mer ⋯".
    */
   readonly connectionsPanel = input(true);
+  /** Entity types the connections part lists last (children such as measurements). */
+  readonly connectionsLast = input<readonly string[]>([]);
   /**
    * Use the detail-page anatomy (docs/ux-guide.md §2.7): `[record-lead]`
    * ("Hovedinformasjon") first, one "Oppfølging" card in the aside (what is
