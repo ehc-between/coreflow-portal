@@ -19,6 +19,12 @@ import {
   ScanResult,
 } from './customer.models';
 
+/** `GET /matches` body: `{groups, total}` (an array or `{items}` is also accepted). */
+interface MatchGroupsBody {
+  readonly groups?: readonly MatchGroup[];
+  readonly items?: readonly MatchGroup[];
+}
+
 /** Errors the page shows in place (no global toast). */
 const IN_PLACE = { context: new HttpContext().set(SKIP_ERROR_TOAST, true) };
 
@@ -117,13 +123,18 @@ export class CustomersApi {
     return this.api.delete<void>(`${customersPath(orgId)}/${id}/contacts/${contactId}`);
   }
 
+  /** Pending matches grouped per proposed customer. The API returns `{groups, total}`. */
   matches(orgId: string): Observable<readonly MatchGroup[]> {
     return this.api
       .get<
-        readonly MatchGroup[] | { readonly items: readonly MatchGroup[] }
+        readonly MatchGroup[] | MatchGroupsBody
       >(`${customersPath(orgId)}/matches`, { params: { status: 'pending' } })
       .pipe(
-        map((res) => (Array.isArray(res) ? res : ((res as { items?: MatchGroup[] }).items ?? []))),
+        map((res) =>
+          Array.isArray(res)
+            ? res
+            : ((res as MatchGroupsBody).groups ?? (res as MatchGroupsBody).items ?? []),
+        ),
       );
   }
 

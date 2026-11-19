@@ -265,6 +265,7 @@
   "sections": {
     "none": "None yet.",
     "openCount": "{{ count }} open",
+    "openCountOne": "1 open",
     "seeAll": "See all ({{ count }})",
     "claims": {
       "title": "Claims and complaints",

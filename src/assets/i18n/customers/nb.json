@@ -265,6 +265,7 @@
   "sections": {
     "none": "Ingen ennå.",
     "openCount": "{{ count }} åpne",
+    "openCountOne": "1 åpen",
     "seeAll": "Se alle ({{ count }})",
     "claims": {
       "title": "Reklamasjoner og klager",

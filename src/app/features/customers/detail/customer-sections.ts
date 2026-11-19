@@ -115,7 +115,7 @@ export function splitUrl(url: string): { path: string; query: Record<string, str
               <span
                 class="ml-1 rounded-full bg-warn-soft px-1.5 py-px text-micro font-semibold text-warn-ink"
               >
-                {{ 'customers.sections.openCount' | transloco: { count: open } }}
+                {{ pluralKey('customers.sections.openCount', open) | transloco: { count: open } }}
               </span>
             }
           </h2>
