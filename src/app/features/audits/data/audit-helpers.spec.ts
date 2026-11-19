@@ -6,12 +6,25 @@ import {
   expiresSoon,
   surveillanceSoon,
 } from '../certifications/certification-list';
-import { canRespond, isNonconformity, splitFindingActions } from '../findings/finding-detail';
+import {
+  canRespond,
+  findingMissing,
+  findingStatusTone,
+  isNonconformity,
+  splitFindingActions,
+} from '../findings/finding-detail';
 import { findingFormToInput, parseDraftFinding } from '../findings/finding-form';
 import { findingStatusParam, parseFindingStatusFilter } from '../findings/finding-list';
 import { setupSteps } from '../overview/audits-overview';
 import { nextEvidenceRefs, parseDraftQuestions } from '../plans/plan-checklist';
-import { planLesson, splitPlanActions } from '../plans/plan-detail';
+import {
+  planLesson,
+  planMissing,
+  planSectionOrder,
+  planStatusTone,
+  splitPlanActions,
+} from '../plans/plan-detail';
+import { programmeMissing, programmeProgress } from '../programmes/programme-detail';
 import {
   clauseOfRequirement,
   emptyPlanForm,
@@ -41,7 +54,7 @@ import {
 } from './audit-display';
 import { auditErrorKey, auditorCheckIssues } from './audit-errors';
 import { frameworkOptions } from './audit-frameworks';
-import { EntityRef, FindingDetail } from './audit.models';
+import { EntityRef, FindingDetail, PlanDetail, ProgrammeDetail } from './audit.models';
 
 function httpError(status: number, detail: unknown): HttpErrorResponse {
   return new HttpErrorResponse({ status, error: { detail } });
@@ -441,5 +454,94 @@ describe('audit errors', () => {
       ),
     ).toEqual(['competence_expired']);
     expect(auditorCheckIssues(httpError(409, { code: 'auditor_exists' }))).toEqual([]);
+  });
+});
+
+describe('audit detail pages: what is missing and where things stand', () => {
+  const show = vi.fn();
+  const edit = ['/edit'];
+
+  it('lists the plan to-dos that matter for the phase', () => {
+    const plan = {
+      kind: 'internal',
+      status: 'planned',
+      scope: '',
+      planned_start: null,
+      owner: null,
+      lead_auditor: null,
+      auditors: [],
+      checklist_total: 0,
+      findings_open: 0,
+    } as unknown as PlanDetail;
+    const keys = (p: PlanDetail, canEdit = true) =>
+      planMissing(p, { canEdit, canWrite: true, editLink: edit, show }).map((i) => i.key);
+    expect(keys(plan)).toEqual(['scope', 'dates', 'lead', 'checklist', 'owner']);
+    expect(keys(plan, false)).toEqual([]);
+    const closed = { ...plan, status: 'closed', findings_open: 2 } as PlanDetail;
+    const items = planMissing(closed, { canEdit: false, canWrite: true, editLink: edit, show });
+    expect(items.map((i) => i.key)).toEqual(['findings']);
+    expect(items[0].params).toEqual({ count: 2 });
+    items[0].action?.();
+    expect(show).toHaveBeenCalledWith('plan-findings');
+    expect(planStatusTone('closed')).toBe('pass');
+    expect(planStatusTone('cancelled')).toBe('neutral');
+    expect(planStatusTone('in_progress')).toBe('info');
+    expect(planSectionOrder('planned').team).toBe(1);
+    expect(planSectionOrder('closed').findings).toBe(1);
+  });
+
+  it('lists the finding to-dos and keeps open work amber, never red', () => {
+    const finding = {
+      finding_type: 'minor_nc',
+      status: 'in_progress',
+      description: 'x',
+      owner: null,
+      response_due_at: null,
+      root_cause: null,
+      actions: [],
+      deviations: [],
+    } as unknown as FindingDetail;
+    const opts = {
+      canEdit: true,
+      respondable: true,
+      verifiable: false,
+      canAddAction: true,
+      canCheckEffect: true,
+      editLink: edit,
+      show,
+    };
+    expect(findingMissing(finding, opts).map((i) => i.key)).toEqual([
+      'owner',
+      'due',
+      'response',
+      'actions',
+    ]);
+    const ofi = { ...finding, finding_type: 'ofi', decision: 'Do it' } as FindingDetail;
+    expect(findingMissing(ofi, opts).map((i) => i.key)).toEqual(['owner']);
+    expect(findingStatusTone('open')).toBe('warn');
+    expect(findingStatusTone('closed')).toBe('pass');
+  });
+
+  it('counts finished programme audits and lists what the programme needs', () => {
+    expect(programmeProgress({ closed: 1, planned: 2, cancelled: 1 })).toEqual({
+      done: 1,
+      open: 2,
+      total: 3,
+    });
+    const programme = {
+      id: 'p1',
+      status: 'draft',
+      plans: [],
+      objectives: null,
+      owner: { id: 'u', name: 'Ola' },
+    } as unknown as ProgrammeDetail;
+    const items = programmeMissing(programme, {
+      canEdit: true,
+      editLink: edit,
+      newAudit: ['/new'],
+      approve: () => undefined,
+    });
+    expect(items.map((i) => i.key)).toEqual(['audits', 'objectives']);
+    expect(items[0].queryParams).toEqual({ programme: 'p1' });
   });
 });

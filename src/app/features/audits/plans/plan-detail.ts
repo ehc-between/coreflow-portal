@@ -12,19 +12,28 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { Attachments } from '../../../shared/attachments/attachments';
-import { AskAbout } from '../../../shared/ask/ask-about';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
+import { LocalDatePipe, formatLocalDay } from '../../../shared/locale/locale-pipes';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
@@ -33,6 +42,7 @@ import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AuditAccess } from '../data/audit-access';
 import {
+  certificationStatusBadge,
   checklistProgress,
   findingStatusBadge,
   findingTypeBadge,
@@ -54,6 +64,8 @@ import { AuditClauseRefs } from '../shared/clause-refs';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { AuditRecordLink } from '../shared/record-link';
+import { showSection } from '../shared/show-section';
 import { PlanChecklist } from './plan-checklist';
 import { PlanReportPanel } from './plan-report-panel';
 import { PlanTeam } from './plan-team';
@@ -122,32 +134,142 @@ export function planLesson(status: PlanStatus): string {
   }
 }
 
+/** Tone of the status sentence: done is green, a cancelled audit is neutral, the rest is work under way. */
+export function planStatusTone(status: PlanStatus): StatusLineTone {
+  if (status === 'closed') {
+    return 'pass';
+  }
+  return status === 'cancelled' ? 'neutral' : 'info';
+}
+
 /**
- * `/audits/plans/:id`: one audit. What it covers (scope, criteria, clauses,
- * processes, documents, people), the team with competence and independence checks,
- * the checklist with evidence and findings, and the report with approval. One
- * "what to do now" button in the header; the rest sits in "Mer". External
- * (certification body) audits get their own simpler layout: upload the body's
- * report and register its findings.
+ * The order of the work sections (CSS `order`) by phase: team and checklist while
+ * preparing, checklist and findings during fieldwork, findings and report after.
+ */
+export function planSectionOrder(status: PlanStatus): {
+  readonly team: number;
+  readonly checklist: number;
+  readonly findings: number;
+  readonly report: number;
+} {
+  switch (status) {
+    case 'planned':
+      return { team: 1, checklist: 2, findings: 3, report: 4 };
+    case 'in_progress':
+      return { checklist: 1, findings: 2, team: 3, report: 4 };
+    default:
+      return { findings: 1, report: 2, checklist: 3, team: 4 };
+  }
+}
+
+/** Section ids on the plan page that "Oppfølging" lines point at. */
+export const PLAN_SECTIONS = {
+  team: 'plan-team',
+  checklist: 'plan-checklist',
+  findings: 'plan-findings',
+  report: 'plan-report',
+} as const;
+
+/**
+ * What an audit still needs ("Oppfølging", docs/ux-guide.md §2.7). `canEdit` is
+ * the right to change the plan now (not closed or cancelled); `canWrite` alone is
+ * enough to follow up open findings on a closed audit.
+ */
+export function planMissing(
+  p: PlanDetail,
+  opts: {
+    readonly canEdit: boolean;
+    readonly canWrite: boolean;
+    readonly editLink: readonly unknown[];
+    readonly show: (section: string) => void;
+  },
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  const preparing = p.status === 'planned' || p.status === 'in_progress';
+  if (opts.canEdit) {
+    if (!p.scope?.trim()) {
+      items.push({
+        key: 'scope',
+        labelKey: 'audits.planDetail.missing.scope',
+        link: opts.editLink,
+      });
+    }
+    if (!p.planned_start) {
+      items.push({
+        key: 'dates',
+        labelKey: 'audits.planDetail.missing.dates',
+        link: opts.editLink,
+      });
+    }
+    if (p.kind === 'internal' && preparing && !leadAuditorName(p)) {
+      items.push({
+        key: 'lead',
+        labelKey: 'audits.planDetail.missing.lead',
+        action: () => opts.show(PLAN_SECTIONS.team),
+      });
+    }
+    if (p.kind === 'internal' && preparing && !p.checklist_total) {
+      items.push({
+        key: 'checklist',
+        labelKey: 'audits.planDetail.missing.checklist',
+        action: () => opts.show(PLAN_SECTIONS.checklist),
+      });
+    }
+    if (p.status === 'reporting' && !p.report_summary?.trim()) {
+      items.push({
+        key: 'report',
+        labelKey: 'audits.planDetail.missing.report',
+        action: () => opts.show(PLAN_SECTIONS.report),
+      });
+    }
+    if (!p.owner) {
+      items.push({
+        key: 'owner',
+        labelKey: 'audits.planDetail.missing.owner',
+        link: opts.editLink,
+      });
+    }
+  }
+  if (opts.canWrite && p.status === 'closed' && p.findings_open > 0) {
+    items.push({
+      key: 'findings',
+      labelKey: 'audits.planDetail.missing.openFindings',
+      params: { count: p.findings_open },
+      action: () => opts.show(PLAN_SECTIONS.findings),
+    });
+  }
+  return items;
+}
+
+/**
+ * `/audits/plans/:id`: one audit, on the detail-page anatomy (docs/ux-guide.md
+ * §2.7). "Hovedinformasjon" says where the audit stands and what to do now, what
+ * is audited, against what, when and by whom, with the checklist and findings
+ * progress. Below: the other fields (empty ones hidden), the team with
+ * competence and independence checks, the checklist, the findings and the
+ * report. The "Oppfølging" card holds what is missing, the requirements, the
+ * connections (with the programme or certification the audit belongs to) and
+ * the owner. External (certification body) audits upload the body's report and
+ * register its findings; their own checklist is optional.
  */
 @Component({
   selector: 'app-audit-plan-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDayPipe,
+    LocalDatePipe,
     RecordDetailLayout,
-    WatchButton,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     Attachments,
-    AskAbout,
     WhyItMatters,
     EntityChip,
-    Alert,
     Button,
     Card,
     ConfirmDialog,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     MenuItem,
@@ -157,6 +279,7 @@ export function planLesson(status: PlanStatus): string {
     AuditsNav,
     AuditClauseRefs,
     AuditLoadState,
+    AuditRecordLink,
     PlanTeam,
     PlanChecklist,
     PlanReportPanel,
@@ -168,6 +291,7 @@ export function planLesson(status: PlanStatus): string {
       @let rb = risk(p.risk_level);
       @let acts = actions();
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="audit_plan"
         [entityId]="p.id"
         [title]="p.title"
@@ -181,6 +305,7 @@ export function planLesson(status: PlanStatus): string {
         [canEdit]="access.canWrite()"
         [includeAudit]="access.canReadAudit()"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
         backLink="/audits/plans"
         backLabelKey="audits.plans.back"
       >
@@ -188,37 +313,40 @@ export function planLesson(status: PlanStatus): string {
           <span class="font-mono" data-testid="plan-code">{{ p.code }}</span>
           <span aria-hidden="true">·</span>
           <span>{{ 'audits.kind.' + p.kind | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge [meaning]="sb.meaning" [value]="sb.value" [labelKey]="sb.labelKey" />
-          <app-status-badge [meaning]="rb.meaning" [value]="rb.value" [labelKey]="rb.labelKey" />
-          <app-ask-about
-            [prompt]="'audits.planDetail.askAbout' | transloco: { code: p.code }"
-            [requirements]="p.clause_refs"
-          />
-          <app-watch-button entityType="audit_plan" [entityId]="p.id" />
         </ng-container>
 
         @if (acts.primary; as a) {
-          <app-button primary size="sm" [disabled]="saving.busy()" (click)="transition(a)">
+          <app-button primary [disabled]="saving.busy()" (click)="transition(a)">
             {{ 'audits.planAction.' + a | transloco }}
           </app-button>
+        } @else if (canEdit()) {
+          <app-button primary (click)="edit()">{{ 'audits.common.edit' | transloco }}</app-button>
         }
-        @if (canEdit()) {
+        @if (acts.primary && canEdit()) {
           <a
             secondary
-            [routerLink]="['/audits/plans', p.id, 'edit']"
-            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            [routerLink]="editLink()"
+            class="inline-flex h-9 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             {{ 'audits.common.edit' | transloco }}
           </a>
         }
-        <a
-          secondary
-          [routerLink]="['/audits/plans', p.id, 'report']"
-          class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          <app-icon name="reports" [size]="14" />
-          {{ 'audits.planDetail.openReport' | transloco }}
-        </a>
+        @if (reportPhase()) {
+          <a
+            secondary
+            [routerLink]="['/audits/plans', p.id, 'report']"
+            class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <app-icon name="reports" [size]="14" />
+            {{ 'audits.planDetail.openReport' | transloco }}
+          </a>
+        } @else {
+          <button appMenuItem overflow type="button" (click)="openReport()">
+            {{ 'audits.planDetail.openReport' | transloco }}
+          </button>
+        }
         @for (a of acts.rest; track a) {
           <button appMenuItem overflow [disabled]="saving.busy()" (click)="transition(a)">
             {{ 'audits.planAction.' + a | transloco }}
@@ -230,156 +358,143 @@ export function planLesson(status: PlanStatus): string {
           </button>
         }
 
+        <button appMenuItem ask type="button" (click)="askAi()">
+          <app-icon name="spark" [size]="15" />
+          {{ 'audits.detail.ask.plan' | transloco }}
+        </button>
+
         <app-audits-nav nav />
         <app-help-strip help scope="audits" page="planDetail" [lesson]="lesson()" />
 
-        <div class="flex flex-col gap-5">
-          @if (p.status_reason) {
-            <app-alert tone="info">
-              {{ 'audits.planDetail.statusReason' | transloco: { reason: p.status_reason } }}
-            </app-alert>
-          }
-
-          <app-card data-testid="plan-next-step">
-            <p class="text-meta font-semibold tracking-wide text-fg-subtle uppercase">
-              {{ 'audits.planDetail.nowTitle' | transloco }}
-            </p>
-            <p class="mt-1 text-body text-fg">{{ nextStepKey() | transloco }}</p>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-4 font-display text-section font-bold text-fg">
-              {{ 'audits.planDetail.about' | transloco }}
-            </h2>
-            <app-field-list>
-              <app-field-item
-                labelKey="audits.fields.scope"
-                [value]="p.scope"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item labelKey="audits.fields.criteria" [wide]="true">
-                @if (p.criteria) {
-                  <p class="whitespace-pre-line">{{ p.criteria }}</p>
-                }
-                @if (p.criteria_documents?.length) {
-                  <div class="mt-1.5 flex flex-wrap gap-1.5">
-                    @for (d of p.criteria_documents; track d.entity_id) {
-                      <app-entity-chip [ref]="d" />
-                    }
-                  </div>
-                }
-              </app-field-item>
-              @if (p.objectives) {
-                <app-field-item
-                  labelKey="audits.fields.objectives"
-                  [value]="p.objectives"
-                  [wide]="true"
-                  [multiline]="true"
-                />
-              }
-              <app-field-item labelKey="audits.fields.clauseRefs" [wide]="true" empty="none">
-                @if (p.clause_refs.length) {
-                  <app-audit-clause-refs [refs]="p.clause_refs" />
-                }
-              </app-field-item>
-              <app-field-item labelKey="audits.fields.processes" [wide]="true" empty="none">
-                @if (p.processes?.length) {
-                  <div class="flex flex-wrap gap-1.5">
-                    @for (pr of p.processes; track pr.entity_id) {
-                      <app-entity-chip [ref]="pr" />
-                    }
-                  </div>
-                }
-              </app-field-item>
-              <app-field-item
-                labelKey="audits.fields.frameworks"
-                [value]="frameworkNames()"
-                empty="none"
-              />
-              <app-field-item
-                labelKey="audits.fields.departments"
-                [value]="departments()"
-                empty="none"
-              />
-              <app-field-item
-                labelKey="audits.fields.schedule"
-                [value]="
-                  'audits.planDetail.range'
-                    | transloco
-                      : {
-                          start:
-                            (p.planned_start | localDay) || ('common.empty.notSet' | transloco),
-                          end: (p.planned_end | localDay) || ('common.empty.notSet' | transloco),
-                        }
-                "
-              />
-              @if (p.actual_start) {
-                <app-field-item
-                  labelKey="audits.fields.actual"
-                  [value]="
-                    'audits.planDetail.range'
-                      | transloco
-                        : {
-                            start: (p.actual_start | localDay),
-                            end:
-                              (p.actual_end | localDay) ||
-                              ('audits.planDetail.ongoing' | transloco),
-                          }
+        <app-record-lead record-lead [fillLink]="canEdit() ? editLink() : null">
+          <app-record-status-line status [tone]="statusTone()">
+            {{ nextStepKey() | transloco }}
+            @if (p.status_reason) {
+              <span class="mt-0.5 block font-normal">
+                {{ 'audits.planDetail.statusReason' | transloco: { reason: p.status_reason } }}
+              </span>
+            }
+          </app-record-status-line>
+          <div
+            status
+            class="-mt-1 mb-5 flex flex-wrap empty:hidden items-center gap-x-5 gap-y-2 text-ui text-fg-muted"
+            data-testid="plan-progress"
+          >
+            @if (p.checklist_total) {
+              <span class="flex items-center gap-2">
+                <app-progress-bar
+                  class="block w-24"
+                  [value]="progress()"
+                  [label]="
+                    'audits.planDetail.progress.checklist'
+                      | transloco: { answered: p.checklist_answered, total: p.checklist_total }
                   "
                 />
-              }
-              <app-field-item labelKey="audits.fields.location" [value]="p.location" />
-              <app-field-item labelKey="audits.fields.owner" [value]="p.owner?.name" />
-              <app-field-item labelKey="audits.fields.leadAuditor" [value]="lead()" />
-              <app-field-item
-                labelKey="audits.fields.auditees"
-                [value]="names(p.auditees)"
-                empty="none"
-              />
-              <app-field-item
-                labelKey="audits.fields.distribution"
-                [value]="names(p.distribution)"
-                empty="none"
-              />
-              <app-field-item labelKey="audits.fields.programme">
-                @if (p.programme) {
-                  <a
-                    [routerLink]="['/audits/programmes', p.programme.id]"
-                    class="font-semibold text-accent hover:underline"
-                  >
-                    <span class="font-mono text-meta">{{ p.programme.code }}</span>
-                    {{ p.programme.title }}
-                  </a>
+                {{
+                  'audits.planDetail.progress.checklist'
+                    | transloco: { answered: p.checklist_answered, total: p.checklist_total }
+                }}
+              </span>
+            } @else if (p.kind === 'internal' && checklistEditable()) {
+              <span>{{ 'audits.planDetail.progress.noChecklist' | transloco }}</span>
+            }
+            @if (p.status !== 'planned' || p.findings_total) {
+              <button
+                type="button"
+                class="inline-flex min-h-6 items-center gap-1 font-semibold hover:underline"
+                [class]="p.findings_open ? 'text-warn-ink' : 'text-accent'"
+                (click)="show(sections.findings)"
+                data-testid="plan-progress-findings"
+              >
+                <app-icon name="flag" [size]="14" />
+                {{
+                  p.findings_total
+                    ? ('audits.planDetail.progress.findings'
+                      | transloco: { total: p.findings_total, open: p.findings_open })
+                    : ('audits.planDetail.progress.noFindings' | transloco)
+                }}
+              </button>
+            }
+          </div>
+
+          <app-field-item
+            size="lead"
+            [wide]="true"
+            labelKey="audits.planDetail.lead.scope"
+            [value]="p.scope"
+            [multiline]="true"
+          />
+          <app-field-item size="lead" [wide]="true" labelKey="audits.planDetail.lead.criteria">
+            @if (p.criteria) {
+              <p class="whitespace-pre-line">{{ p.criteria }}</p>
+            }
+            @if (p.clause_refs.length) {
+              <app-audit-clause-refs class="mt-2" [refs]="p.clause_refs" />
+            }
+            @if (p.criteria_documents?.length) {
+              <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
+                @for (d of p.criteria_documents; track d.entity_id) {
+                  <app-entity-chip [ref]="d" />
                 }
-              </app-field-item>
-              @if (p.kind === 'external') {
-                <app-field-item labelKey="audits.fields.partyName">
-                  @if (p.external_party_name || p.external_party_type) {
-                    {{ p.external_party_name }}
-                    @if (p.external_party_type) {
-                      <span class="text-fg-muted"
-                        >({{ 'audits.partyType.' + p.external_party_type | transloco }})</span
-                      >
-                    }
-                  }
-                </app-field-item>
-                <app-field-item labelKey="audits.fields.certification">
-                  @if (p.certification_id) {
-                    <a
-                      [routerLink]="['/audits/certifications', p.certification_id]"
-                      class="font-semibold text-accent hover:underline"
-                    >
-                      {{
-                        p.certification?.title ||
-                          ('audits.planDetail.openCertification' | transloco)
-                      }}
-                    </a>
-                  }
-                </app-field-item>
+              </div>
+            }
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            [labelKey]="
+              p.actual_start ? 'audits.planDetail.lead.actualWhen' : 'audits.planDetail.lead.when'
+            "
+            [value]="when()"
+          />
+          @if (p.kind === 'external') {
+            <app-field-item size="lead" labelKey="audits.planDetail.lead.auditor">
+              @if (p.external_party_name || p.external_party_type) {
+                {{ p.external_party_name }}
+                @if (p.external_party_type) {
+                  <span class="text-fg-muted"
+                    >({{ 'audits.partyType.' + p.external_party_type | transloco }})</span
+                  >
+                }
               }
-            </app-field-list>
-          </app-card>
+            </app-field-item>
+          } @else {
+            <app-field-item size="lead" labelKey="audits.fields.leadAuditor" [value]="lead()" />
+          }
+        </app-record-lead>
+
+        <div class="flex flex-col gap-6">
+          <app-record-details [columns]="3" [fillLink]="canEdit() ? editLink() : null">
+            <app-field-item
+              labelKey="audits.fields.objectives"
+              [value]="p.objectives"
+              [wide]="true"
+              [multiline]="true"
+            />
+            <app-field-item labelKey="audits.fields.processes" [wide]="true">
+              @if (p.processes?.length) {
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+                  @for (pr of p.processes; track pr.entity_id) {
+                    <app-entity-chip [ref]="pr" />
+                  }
+                </div>
+              }
+            </app-field-item>
+            <app-field-item labelKey="audits.fields.departments" [value]="departments()" />
+            <app-field-item labelKey="audits.fields.auditees" [value]="names(p.auditees)" />
+            <app-field-item labelKey="audits.fields.distribution" [value]="names(p.distribution)" />
+            <app-field-item labelKey="audits.fields.location" [value]="p.location" />
+            <app-field-item labelKey="audits.fields.frameworks" [value]="frameworkNames()" />
+            <app-field-item labelKey="audits.fields.risk">
+              <app-status-badge
+                [meaning]="rb.meaning"
+                [value]="rb.value"
+                [labelKey]="rb.labelKey"
+              />
+            </app-field-item>
+            @if (p.actual_start) {
+              <app-field-item labelKey="audits.fields.schedule" [value]="plannedRange()" />
+            }
+          </app-record-details>
 
           @if (p.kind === 'external') {
             <app-card data-testid="plan-external">
@@ -409,19 +524,71 @@ export function planLesson(status: PlanStatus): string {
             </app-card>
           }
 
-          <app-card>
-            <h2 class="mb-3 font-display text-section font-bold text-fg">
-              {{
-                (p.kind === 'external' ? 'audits.planDetail.ourTeam' : 'audits.planDetail.team')
-                  | transloco
-              }}
-            </h2>
-            <app-audit-plan-team [plan]="p" [editable]="teamEditable()" (changed)="reload()" />
-          </app-card>
+          @if (p.status !== 'planned' || p.findings_total) {
+            <app-card
+              [id]="sections.findings"
+              tabindex="-1"
+              class="outline-none"
+              [style.order]="order().findings"
+            >
+              <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-display text-section font-bold text-fg">
+                  {{ 'audits.planDetail.findings' | transloco: { count: p.findings_total } }}
+                </h2>
+                @if (answerable() && p.kind === 'internal') {
+                  <a
+                    [routerLink]="['/audits/plans', p.id, 'findings', 'new']"
+                    class="inline-flex min-h-6 items-center gap-1 text-ui font-semibold text-accent hover:underline"
+                  >
+                    <app-icon name="plus" [size]="13" />
+                    {{ 'audits.findings.new' | transloco }}
+                  </a>
+                }
+              </div>
+              @if (findings.value()?.items; as items) {
+                @if (items.length) {
+                  <ul class="divide-y divide-border">
+                    @for (f of items; track f.id) {
+                      @let tb = typeBadge(f.finding_type);
+                      @let fb = findingBadge(f.status);
+                      <li class="flex flex-wrap items-center gap-2 py-2">
+                        <a
+                          [routerLink]="['/audits/findings', f.id]"
+                          class="min-w-0 flex-1 basis-[220px] text-body font-semibold text-fg hover:text-accent"
+                        >
+                          <span class="font-mono text-meta font-normal text-fg-subtle">{{
+                            f.code
+                          }}</span>
+                          {{ f.title }}
+                        </a>
+                        <app-status-badge
+                          [meaning]="tb.meaning"
+                          [value]="tb.value"
+                          [labelKey]="tb.labelKey"
+                        />
+                        <app-status-badge
+                          [meaning]="fb.meaning"
+                          [value]="fb.value"
+                          [labelKey]="fb.labelKey"
+                        />
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="text-body text-fg-muted">
+                    {{ 'audits.planDetail.noFindings' | transloco }}
+                  </p>
+                }
+              }
+            </app-card>
+          }
 
           @if (p.kind === 'external') {
             <details
-              class="rounded-card border border-border bg-surface p-5"
+              [id]="sections.checklist"
+              tabindex="-1"
+              [style.order]="order().checklist"
+              class="rounded-card border border-border bg-surface p-5 outline-none"
               data-testid="plan-checklist-optional"
             >
               <summary class="cursor-pointer font-display text-section font-bold text-fg">
@@ -438,8 +605,13 @@ export function planLesson(status: PlanStatus): string {
                 (changed)="reload()"
               />
             </details>
-          } @else {
-            <app-card>
+          } @else if (p.checklist_total || checklistEditable() || answerable()) {
+            <app-card
+              [id]="sections.checklist"
+              tabindex="-1"
+              class="outline-none"
+              [style.order]="order().checklist"
+            >
               <h2 class="mb-3 font-display text-section font-bold text-fg">
                 {{ 'audits.planDetail.checklist' | transloco }}
               </h2>
@@ -453,104 +625,78 @@ export function planLesson(status: PlanStatus): string {
             </app-card>
           }
 
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-section font-bold text-fg">
-                {{ 'audits.planDetail.findings' | transloco: { count: p.findings_total } }}
-              </h2>
-              @if (answerable() && p.kind === 'internal') {
-                <a
-                  [routerLink]="['/audits/plans', p.id, 'findings', 'new']"
-                  class="inline-flex min-h-6 items-center gap-1 text-ui font-semibold text-accent hover:underline"
-                >
-                  <app-icon name="plus" [size]="13" />
-                  {{ 'audits.findings.new' | transloco }}
-                </a>
-              }
-            </div>
-            @if (findings.value()?.items; as items) {
-              @if (items.length) {
-                <ul class="divide-y divide-border">
-                  @for (f of items; track f.id) {
-                    @let tb = typeBadge(f.finding_type);
-                    @let fb = findingBadge(f.status);
-                    <li class="flex flex-wrap items-center gap-2 py-2">
-                      <a
-                        [routerLink]="['/audits/findings', f.id]"
-                        class="min-w-0 flex-1 basis-[220px] text-body font-semibold text-fg hover:text-accent"
-                      >
-                        <span class="font-mono text-meta font-normal text-fg-subtle">{{
-                          f.code
-                        }}</span>
-                        {{ f.title }}
-                      </a>
-                      <app-status-badge
-                        [meaning]="tb.meaning"
-                        [value]="tb.value"
-                        [labelKey]="tb.labelKey"
-                      />
-                      <app-status-badge
-                        [meaning]="fb.meaning"
-                        [value]="fb.value"
-                        [labelKey]="fb.labelKey"
-                      />
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <p class="text-body text-fg-muted">
-                  {{ 'audits.planDetail.noFindings' | transloco }}
-                </p>
-              }
-            }
+          <app-card
+            [id]="sections.team"
+            tabindex="-1"
+            class="outline-none"
+            [style.order]="order().team"
+          >
+            <h2 class="mb-3 font-display text-section font-bold text-fg">
+              {{
+                (p.kind === 'external' ? 'audits.planDetail.ourTeam' : 'audits.planDetail.team')
+                  | transloco
+              }}
+            </h2>
+            <app-audit-plan-team [plan]="p" [editable]="teamEditable()" (changed)="reload()" />
           </app-card>
 
-          <app-card>
-            <h2 class="mb-3 font-display text-section font-bold text-fg">
-              {{ 'audits.planDetail.report' | transloco }}
-            </h2>
-            <app-audit-plan-report-panel [plan]="p" (saved)="data.set($event)" />
-          </app-card>
+          @if (p.status !== 'planned' || p.report_summary) {
+            <app-card
+              [id]="sections.report"
+              tabindex="-1"
+              class="outline-none"
+              [style.order]="order().report"
+            >
+              <h2 class="mb-3 font-display text-section font-bold text-fg">
+                {{ 'audits.planDetail.report' | transloco }}
+              </h2>
+              <app-audit-plan-report-panel [plan]="p" (saved)="data.set($event)" />
+            </app-card>
+          }
         </div>
 
-        <app-card aside>
-          <h2 class="mb-3 font-display text-card font-bold text-fg">
-            {{ 'audits.planDetail.summary' | transloco }}
-          </h2>
-          @if (p.checklist_total) {
-            <app-progress-bar
-              [value]="progress()"
-              [label]="
-                'audits.checklist.progress'
-                  | transloco: { answered: p.checklist_answered, total: p.checklist_total }
-              "
-            />
-            <p class="mt-1 text-meta text-fg-muted">
-              {{
-                'audits.checklist.progress'
-                  | transloco: { answered: p.checklist_answered, total: p.checklist_total }
-              }}
-            </p>
-          }
-          <dl class="mt-3 flex flex-col gap-1.5 text-ui">
-            <div class="flex justify-between gap-2">
-              <dt class="text-fg-muted">{{ 'audits.planDetail.openFindings' | transloco }}</dt>
-              <dd class="font-semibold text-fg">{{ p.findings_open }} / {{ p.findings_total }}</dd>
-            </div>
-            <div class="flex justify-between gap-2">
-              <dt class="text-fg-muted">{{ 'audits.fields.plannedStart' | transloco }}</dt>
-              <dd class="text-fg">
-                {{ (p.planned_start | localDay) || ('common.empty.notSet' | transloco) }}
-              </dd>
-            </div>
-            <div class="flex justify-between gap-2">
-              <dt class="text-fg-muted">{{ 'audits.fields.leadAuditor' | transloco }}</dt>
-              <dd class="text-right text-fg">
-                {{ lead() || ('common.empty.notSet' | transloco) }}
-              </dd>
-            </div>
-          </dl>
-        </app-card>
+        @if (p.programme || p.certification_id) {
+          <div
+            follow-up-connections
+            class="mt-4 flex flex-col gap-3 border-t border-border pt-3"
+            data-testid="plan-belongs-to"
+          >
+            <h3 class="text-meta font-semibold text-fg-muted">
+              {{ 'audits.detail.belongsTo' | transloco }}
+            </h3>
+            @if (p.programme; as prog) {
+              <app-audit-record-link
+                icon="calendar"
+                [type]="'audits.detail.types.programme' | transloco"
+                [code]="prog.code"
+                [title]="prog.title"
+                [link]="['/audits/programmes', prog.id]"
+              />
+            }
+            @if (p.certification_id) {
+              <app-audit-record-link
+                icon="shield"
+                [type]="'audits.detail.types.certification' | transloco"
+                [code]="p.certification?.certificate_number"
+                [title]="
+                  p.certification?.title || ('audits.planDetail.openCertification' | transloco)
+                "
+                [status]="p.certification ? certBadge(p.certification.status) : null"
+                [link]="['/audits/certifications', p.certification_id]"
+              />
+            }
+          </div>
+        }
+
+        <app-record-meta follow-up-meta>
+          <app-field-item layout="inline" labelKey="audits.fields.owner" [value]="p.owner?.name" />
+          <app-field-item
+            layout="inline"
+            labelKey="audits.detail.meta.updated"
+            [value]="p.updated_at | localDate"
+          />
+        </app-record-meta>
+
         <div aside-learn>
           <app-why-it-matters scope="audits" page="planDetail" />
         </div>
@@ -590,14 +736,17 @@ export class PlanDetailPage {
   private readonly router = inject(Router);
   private readonly options = inject(AssigneeOptionsService);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
   protected readonly access = inject(AuditAccess);
 
   readonly id = input.required<string>();
 
   protected readonly tabs = TABS;
+  protected readonly sections = PLAN_SECTIONS;
   protected readonly fieldLabels = PLAN_FIELD_LABELS;
   protected readonly statusBadge = planStatusBadge;
   protected readonly risk = riskBadge;
+  protected readonly certBadge = certificationStatusBadge;
   protected readonly typeBadge = findingTypeBadge;
   protected readonly findingBadge = findingStatusBadge;
 
@@ -615,7 +764,20 @@ export class PlanDetailPage {
     splitPlanActions(this.data.value()?.available_actions ?? []),
   );
   protected readonly lesson = computed(() => planLesson(this.status() ?? 'planned'));
+  protected readonly statusTone = computed(() => planStatusTone(this.status() ?? 'planned'));
   protected readonly canEdit = computed(() => this.access.canWrite() && !this.locked());
+  /** The report matters from reporting on: then "Rapport" is a header button, before that in "Mer". */
+  protected readonly reportPhase = computed(() => {
+    const s = this.status();
+    return s === 'reporting' || s === 'report_review' || s === 'closed';
+  });
+  /** The work sections in the order that fits where the audit is now. */
+  protected readonly order = computed(() => planSectionOrder(this.status() ?? 'planned'));
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/audits/plans',
+    this.id(),
+    'edit',
+  ]);
   protected readonly teamEditable = computed(
     () => this.canEdit() && (this.status() === 'planned' || this.status() === 'in_progress'),
   );
@@ -633,13 +795,42 @@ export class PlanDetailPage {
     const p = this.data.value();
     return p ? leadAuditorName(p) : null;
   });
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const p = this.data.value();
+    if (!p) {
+      return [];
+    }
+    return planMissing(p, {
+      canEdit: this.canEdit(),
+      canWrite: this.access.canWrite(),
+      editLink: this.editLink(),
+      show: (section) => this.show(section),
+    });
+  });
   protected readonly nextStepKey = computed(() => {
     const p = this.data.value();
     if (!p) {
       return '';
     }
+    if (p.status === 'closed' && !p.findings_open) {
+      return 'audits.planDetail.closedDone';
+    }
     const kind = p.kind === 'external' ? 'external' : 'internal';
     return `audits.planDetail.next.${kind}.${p.status}`;
+  });
+  /** "2. jan. 2026 – 3. jan. 2026": the actual dates once the audit started, else the planned ones. */
+  protected readonly when = computed(() => {
+    const p = this.data.value();
+    if (!p) {
+      return '';
+    }
+    return p.actual_start
+      ? this.range(p.actual_start, p.actual_end, 'audits.planDetail.ongoing')
+      : this.range(p.planned_start, p.planned_end, 'common.empty.notSet');
+  });
+  protected readonly plannedRange = computed(() => {
+    const p = this.data.value();
+    return p ? this.range(p.planned_start, p.planned_end, 'common.empty.notSet') : '';
   });
   protected readonly frameworkNames = computed(() =>
     (this.data.value()?.frameworks ?? [])
@@ -685,6 +876,45 @@ export class PlanDetailPage {
       .map((u) => u.name)
       .filter((n): n is string => !!n)
       .join(', ');
+  }
+
+  private range(start: string | null, end: string | null, openKey: string): string {
+    if (!start && !end) {
+      return '';
+    }
+    const open = this.language.translate(openKey);
+    return this.language.translate('audits.planDetail.range', {
+      start: this.day(start) || this.language.translate('common.empty.notSet'),
+      end: this.day(end) || open,
+    });
+  }
+
+  private day(value: string | null): string {
+    return formatLocalDay(value, 'mediumDate', this.language.locale());
+  }
+
+  protected openReport(): void {
+    void this.router.navigate(['/audits/plans', this.id(), 'report']);
+  }
+
+  protected show(section: string): void {
+    showSection(this.router, section);
+  }
+
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
+  }
+
+  protected askAi(): void {
+    const p = this.data.value();
+    if (!p) {
+      return;
+    }
+    this.ask.askAbout(
+      this.language.translate('audits.planDetail.askAbout', { code: p.code }),
+      undefined,
+      { requirements: p.clause_refs },
+    );
   }
 
   reload(quiet = true): void {
