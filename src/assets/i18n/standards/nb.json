@@ -329,7 +329,8 @@
   },
   "workspace": {
     "onlyStale": "Gammel eller svak dokumentasjon",
-    "noStale": "Ingen krav har gammel eller svak dokumentasjon."
+    "noStale": "Ingen krav har gammel eller svak dokumentasjon.",
+    "soa": "Anvendelseserklæring"
   },
   "licensed": {
     "copyright": "Selve standardteksten er beskyttet av opphavsrett, så CoreFlow viser egne forklaringer. Last opp PDF-en dere har kjøpt for å se den offisielle teksten ved siden av.",
