@@ -7,7 +7,7 @@ item (A01-A26) follows it. Source decisions: `docs/polish-plan.md` §2.4 and §3
 Contents
 
 1. Principles
-2. Page anatomy (list, detail, form, overview, settings)
+2. Page anatomy (list, detail, form, overview, settings, detail-page anatomy)
 3. Shared components (`src/app/shared/ui`)
 4. Design tokens
 5. Tone map (status and severity colours)
@@ -115,6 +115,8 @@ aside             1 [aside-requirements]  Krav dette dokumenterer (requirementsP
 - Meta line: `<span class="font-mono">RSK-0001</span> · Type · <app-status-badge …>`.
 - Pages that still render their own h1 in `[header]` keep working; set `title` and move
   the h1 out when the area is polished.
+- New and reworked record pages use the **detail-page anatomy** (§2.7, `[anatomy]="true"`):
+  Hovedinformasjon first, empty fields hidden, one "Oppfølging" card, AI actions in "Spør KI".
 
 ### 2.4 Form page
 
@@ -143,6 +145,134 @@ aside             1 [aside-requirements]  Krav dette dokumenterer (requirementsP
 - Every module with configuration pages sets `settingsLink` on its page header (the gear),
   and adds its pages to `MODULE_SETTINGS_CARDS`.
 - `/account` stays personal (password, notifications, learning).
+
+### 2.7 Detail-page anatomy (record pages)
+
+The product owner on the old record pages: "hard to see what is connected to what and what
+the main information is". Every record page is built from the same five parts, in this
+order. The interested-party page (`features/context/detail/party-detail.ts`) is the pilot;
+move other record pages over as they are touched.
+
+| Before (IP-8, 1440 px)                       | After (1440 px)                            | After (390 px)                                   |
+| -------------------------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| ![before](ux/detail-anatomy/before-1440.png) | ![after](ux/detail-anatomy/after-1440.png) | ![after, phone](ux/detail-anatomy/after-390.png) |
+
+```
+1 Header        breadcrumbs; h1 = record title; ONE calm meta line: code · type · status badge
+                right: [✦ Spør KI ▾] [primary action] [Mer ⋯] [?]
+2 Hovedinformasjon   (card, first on every screen size)
+                status sentence ("Håndtert – behovene og forventningene deres er ivaretatt.")
+                the 2-4 fields that matter most for the record type, large
+                "Ikke fylt ut: Hva de trenger, Slik ivaretar vi dem · Fyll ut"
+3 Tabs          Detaljer · Relatert · Aktivitet · Mer ▾
+  Flere detaljer  secondary fields; empty ones hidden; "3 felt er ikke fylt ut · Fyll ut"
+4 Oppfølging    ONE card in the aside:
+                · what is missing (actionable lines, each a link or a button)
+                · Krav dette dokumenterer (compact chips, "Endre", "Bekreft 2 forslag →")
+                · Koblet til (counts > 0 only, top 3, "Koble til…", "Ingen koblinger ennå.")
+                · metadata block: Eier · Gjennomgås · Neste gjennomgang · Sist endret
+5 Phones        header → Hovedinformasjon → Oppfølging → tabs and details. Nothing is cut.
+```
+
+**Rules**
+
+1. **One primary action** (usually Rediger, or the next lifecycle step). A second action only
+   when it is the obvious next step (≤ 2 secondary); everything else and Slett in "Mer ⋯".
+2. **Assistant actions only in "Spør KI"** in the header (`[ask]` slot, `appMenuItem`
+   buttons). Never loose AI buttons between the tabs and the content. The kit adds
+   "Spør om koblingene" and "Foreslå flere krav" to the same menu.
+3. **The main information is chosen per record type**, not "the first fields of the form".
+   Ask: what does the user come to this record to see? Interested party: what they need and
+   expect, the requirements they set, how we meet them, handled or not. Risk: the risk
+   statement, level and treatment. Deviation: what happened, cause and the action. Put
+   those 2-4 fields in `app-record-lead` and nothing else.
+4. **A status sentence, not a bare badge**, when the record has a "how are we doing" state:
+   status word, a dash, then what it means in plain words. Tone: `pass` for done, `warn` for
+   open work (never `fail` for a to-do), `neutral` for "not relevant".
+5. **Empty fields are hidden in view mode.** A section names its empty fields in one line
+   with "Fyll ut" (the lead always lists them; details list them for beginners and count
+   them for others). Never show a column of "Ikke satt".
+6. **Labels are plain words** that answer a question: "Hva de trenger", "Slik ivaretar vi
+   dem", "Bindende krav: Ja – noen av kravene er lovkrav …", never "Noen av kravene er
+   lovkrav eller forpliktelser organisasjonen må oppfylle: Nei". A boolean that is "no" and
+   changes nothing is not shown.
+7. **One "Oppfølging" card**, not four boxes. Show a count only when it is above 0, never the
+   requirement count twice, one "Koble til…" action, and a one-line empty state.
+8. **Metadata is small and last.** Unset values are hidden, except "Neste gjennomgang",
+   which shows "Ikke planlagt · Planlegg" (a review date is a to-do, not optional data).
+9. The header meta line holds code · type · status (and "Gjennomgang forfalt" when overdue).
+   Nothing else: no owner, dates or counts there.
+
+**Component API** (`src/app/shared/kit`)
+
+| Piece                                       | Use                                                                                                                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app-record-detail-layout [anatomy]="true"` | Turns the anatomy on: `[record-lead]` slot first, the aside becomes the "Oppfølging" card, "Spør KI" menu. Legacy pages (no `anatomy`) keep the old aside.                                       |
+| `[ask]`                                     | `<button appMenuItem ask (click)="…">` items of the "Spør KI" menu.                                                                                                                              |
+| `[missing]` input                           | `RecordMissingItem[]` – the actionable lines at the top of the card (link or action). The kit adds "Se på N foreslåtte koblinger"; requirement suggestions go to the card's "Bekreft N forslag". |
+| `app-record-lead` (`record-lead`)           | The "Hovedinformasjon" card. Inputs: `fillLink` (edit page), `columns` (1/2), `titleKey`. Slot `[status]`.                                                                                       |
+| `app-record-status-line` (`status`)         | The status sentence. Input `tone`: `pass` · `warn` · `fail` · `info` · `neutral`.                                                                                                                |
+| `app-record-details`                        | The secondary fields in the Details tab. Inputs: `fillLink`, `columns` (1-3), `titleKey`; slot `[after]` for extra panels.                                                                       |
+| `app-record-meta` (`follow-up-meta`)        | The compact metadata block at the bottom of the card; holds `app-field-item layout="inline"`.                                                                                                    |
+| `[aside-requirements]`                      | Requirements panel (default `app-supports-requirements` with `requirementsPanel`).                                                                                                               |
+| `[follow-up-connections]`                   | Record-type extras under "Koblet til" (e.g. "Åpne lover og forskrifter →").                                                                                                                      |
+| `app-field-item`                            | New inputs: `size="lead"`, `layout="inline"`, `keepEmpty`, `emptyKey`, `emptyLink`, `emptyActionKey`. Inside a lead / details / meta section empty items hide themselves (`FieldGroup`).         |
+| `app-connections-panel variant="section"`   | The card's connections part (set by the layout).                                                                                                                                                 |
+
+```html
+<app-record-detail-layout
+  [anatomy]="true"
+  [entityType]="type"
+  [entityId]="r.id"
+  [title]="r.name"
+  [breadcrumbs]="crumbs()"
+  [canEdit]="r.can_edit"
+  [missing]="missing()"
+>
+  <ng-container ngProjectAs="[meta]">
+    <span class="font-mono">{{ r.code }}</span> · {{ typeLabel }} · <app-status-badge … />
+  </ng-container>
+  <app-button primary (click)="edit()">{{ 'x.actions.edit' | transloco }}</app-button>
+  <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">…</button>
+  <button appMenuItem ask (click)="askAi('summarise')"><app-icon name="spark" />…</button>
+
+  <app-record-lead record-lead [fillLink]="editLink()">
+    <app-record-status-line status tone="pass">{{ statusSentence }}</app-record-status-line>
+    <app-field-item size="lead" labelKey="x.lead.needs" [value]="r.needs" [multiline]="true" />
+    …
+  </app-record-lead>
+
+  <app-record-details [columns]="3" [fillLink]="editLink()">
+    <app-field-item labelKey="x.fields.category" [value]="…" />
+    …
+  </app-record-details>
+
+  <app-supports-requirements aside-requirements … />
+  <app-record-meta follow-up-meta>
+    <app-field-item layout="inline" labelKey="x.fields.owner" [value]="r.owner?.name" />
+    <app-field-item
+      layout="inline"
+      labelKey="x.fields.nextReview"
+      [keepEmpty]="true"
+      emptyKey="kit.detail.meta.notPlanned"
+      emptyActionKey="kit.detail.meta.plan"
+      [emptyLink]="editLink()"
+      >…</app-field-item
+    >
+  </app-record-meta>
+</app-record-detail-layout>
+```
+
+**Checklist for moving a record page over**
+
+- [ ] `[anatomy]="true"`; AI buttons moved into `[ask]`; no `[aside]` summary card left
+      (its fields go to `app-record-meta`).
+- [ ] 2-4 main fields in `app-record-lead`, a status sentence where the record has a state.
+- [ ] All other fields in `app-record-details`; confusing labels renamed (en + nb).
+- [ ] `missing` lists real to-dos with a link or action (empty main fields, owner, overdue
+      review).
+- [ ] Screenshots in nb at 1440 px and 390 px: the main information is readable without
+      scrolling, nothing shows "Ikke satt", the card shows no zero counts.
 
 ## 3. Shared components (`src/app/shared/ui`, exported from `index.ts`)
 

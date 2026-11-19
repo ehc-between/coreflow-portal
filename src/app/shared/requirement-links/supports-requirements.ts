@@ -809,7 +809,14 @@ export class SupportsRequirements {
           this.suggestions().length === 0 &&
           !this.suggestRequested();
         page.requirements.set(
-          this.canRead() ? { pending, suggestMore: offerMore ? suggestMore : null, review } : null,
+          this.canRead()
+            ? {
+                pending,
+                suggestMore: offerMore ? suggestMore : null,
+                review,
+                expanded: !this.compact(),
+              }
+            : null,
         );
       });
       inject(DestroyRef).onDestroy(() => page.requirements.set(null));

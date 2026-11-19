@@ -63,13 +63,22 @@ interface PanelRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
-      class="rounded-card border border-border bg-surface p-4 shadow-card"
+      [class]="
+        variant() === 'section'
+          ? 'block'
+          : 'rounded-card border border-border bg-surface p-4 shadow-card'
+      "
+      [attr.data-variant]="variant()"
       [attr.aria-labelledby]="headingId"
       data-testid="connections-panel"
       data-tour="kit-connections"
     >
       <div class="mb-1 flex items-center justify-between gap-2">
-        <h2 [id]="headingId" class="font-display text-card font-bold text-fg">
+        <h2
+          [id]="headingId"
+          class="font-display font-bold text-fg"
+          [class]="variant() === 'section' ? 'text-ui' : 'text-card'"
+        >
           {{ 'kit.connections.title' | transloco }}
         </h2>
         @if (canEdit()) {
@@ -102,9 +111,11 @@ interface PanelRow {
           {{ 'kit.connections.retry' | transloco }}
         </button>
       } @else {
-        <p class="text-meta text-fg-muted" data-testid="connections-summary">
-          {{ summary() }}
-        </p>
+        @if (summary()) {
+          <p class="text-meta text-fg-muted" data-testid="connections-summary">
+            {{ summary() }}
+          </p>
+        }
 
         @if (actionErrorKey(); as key) {
           <p class="mt-2 text-meta text-fail-ink" role="alert">{{ key | transloco }}</p>
@@ -165,8 +176,19 @@ interface PanelRow {
         }
 
         @if (rows().length === 0) {
-          <p class="mt-3 text-meta text-fg-muted" data-testid="connections-empty">
-            {{ (canEdit() ? 'kit.connections.emptyEdit' : 'kit.connections.empty') | transloco }}
+          <p
+            class="text-meta text-fg-muted"
+            [class.mt-3]="variant() !== 'section'"
+            data-testid="connections-empty"
+          >
+            {{
+              (variant() === 'section'
+                ? 'kit.connections.emptyShort'
+                : canEdit()
+                  ? 'kit.connections.emptyEdit'
+                  : 'kit.connections.empty'
+              ) | transloco
+            }}
           </p>
         } @else {
           <ul class="mt-3 flex flex-col gap-2.5" data-testid="connections-top">
@@ -187,7 +209,10 @@ interface PanelRow {
         }
 
         <div
-          class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 empty:hidden"
+          class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 empty:hidden"
+          [class.border-t]="variant() !== 'section'"
+          [class.border-border]="variant() !== 'section'"
+          [class.pt-3]="variant() !== 'section'"
         >
           @if (relatedTab() && total() > 0) {
             <button
@@ -261,6 +286,12 @@ export class ConnectionsPanel {
   readonly relatedTab = input(true);
   /** Record-page variant (U29): top three, no suggestions, map or ask here. */
   readonly compact = input(false);
+  /**
+   * `card` (own card) or `section` (a part of the record page's "Oppfølging" card,
+   * docs/ux-guide.md §2.7): no frame, only counts above zero, no requirement counts
+   * (the card lists the requirements right above) and a short empty state.
+   */
+  readonly variant = input<'card' | 'section'>('card');
   /** "Show all" / "more suggestions": open the Related tab. */
   readonly showAll = output<void>();
 
@@ -284,6 +315,11 @@ export class ConnectionsPanel {
     const parts: string[] = [];
     const t = (key: string, count: number) =>
       this.language.translate(`kit.connections.counts.${key}`, { count });
+    if (this.variant() === 'section') {
+      if (c.records > 0) parts.push(t(c.records === 1 ? 'recordsOne' : 'records', c.records));
+      if (c.tasks > 0) parts.push(t(c.tasks === 1 ? 'tasksOne' : 'tasks', c.tasks));
+      return parts.join(' · ');
+    }
     parts.push(t(c.records === 1 ? 'recordsOne' : 'records', c.records));
     if (this.store.full()) {
       parts.push(t(c.requirements === 1 ? 'requirementsOne' : 'requirements', c.requirements));

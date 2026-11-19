@@ -82,13 +82,16 @@ export class MenuItem {
     >
       @if (variant() === 'primary') {
         <app-icon [name]="icon()" [size]="17" />
+      } @else if (leadIcon()) {
+        <!-- A named menu with its own icon ("✦ Spør KI ▾") leads with the icon. -->
+        <app-icon [name]="icon()" [size]="15" />
       }
       @if (!iconOnly()) {
         <span>{{ label() || (labelKey() | transloco) }}</span>
       }
       @if (variant() !== 'primary') {
         <app-icon
-          [name]="variant() === 'tab' ? 'chevron' : icon()"
+          [name]="variant() === 'tab' || leadIcon() ? 'chevron' : icon()"
           [size]="variant() === 'ghost' ? 19 : variant() === 'tab' ? 14 : 16"
         />
       }
@@ -133,6 +136,11 @@ export class OverflowMenu {
   /** With `variant="tab"`: one of the menu's items is the open tab. */
   readonly active = input(false);
   readonly triggerTestId = input('overflow-trigger');
+
+  /** A default-variant menu with its own icon shows it first and a chevron last. */
+  protected readonly leadIcon = computed(
+    () => this.variant() === 'default' && this.icon() !== 'more' && !this.iconOnly(),
+  );
 
   protected readonly triggerClass = computed(() => {
     const variant = this.variant();

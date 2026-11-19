@@ -270,6 +270,30 @@
       "requirementsOne": "Confirm 1 suggested requirement",
       "links": "Review {{ count }} suggested links",
       "linksOne": "Review 1 suggested link"
+    },
+    "ask": {
+      "label": "Ask AI"
+    },
+    "lead": {
+      "title": "Key information"
+    },
+    "details": {
+      "title": "More details"
+    },
+    "empty": {
+      "count": "{{ count }} fields are not filled in",
+      "countOne": "1 field is not filled in",
+      "listed": "Not filled in: {{ fields }}",
+      "fill": "Fill in"
+    },
+    "followUp": {
+      "title": "Follow-up",
+      "confirm": "Confirm {{ count }} suggestions",
+      "confirmOne": "Confirm 1 suggestion"
+    },
+    "meta": {
+      "notPlanned": "Not planned",
+      "plan": "Plan"
     }
   },
   "ai": {
@@ -332,6 +356,7 @@
     "moreSuggestions": "See all {{ count }} suggestions",
     "empty": "Not connected to other records yet.",
     "emptyEdit": "Not connected to other records yet. Link the documents, risks or deviations this record depends on.",
+    "emptyShort": "No connections yet.",
     "showAll": "Show all ({{ count }})",
     "showMap": "Show map",
     "askAbout": "Ask about the connections",

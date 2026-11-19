@@ -270,6 +270,30 @@
       "requirementsOne": "Bekreft 1 foreslått krav",
       "links": "Se på {{ count }} foreslåtte koblinger",
       "linksOne": "Se på 1 foreslått kobling"
+    },
+    "ask": {
+      "label": "Spør KI"
+    },
+    "lead": {
+      "title": "Hovedinformasjon"
+    },
+    "details": {
+      "title": "Flere detaljer"
+    },
+    "empty": {
+      "count": "{{ count }} felt er ikke fylt ut",
+      "countOne": "1 felt er ikke fylt ut",
+      "listed": "Ikke fylt ut: {{ fields }}",
+      "fill": "Fyll ut"
+    },
+    "followUp": {
+      "title": "Oppfølging",
+      "confirm": "Bekreft {{ count }} forslag",
+      "confirmOne": "Bekreft 1 forslag"
+    },
+    "meta": {
+      "notPlanned": "Ikke planlagt",
+      "plan": "Planlegg"
     }
   },
   "ai": {
@@ -332,6 +356,7 @@
     "moreSuggestions": "Se alle {{ count }} forslag",
     "empty": "Ikke koblet til andre poster ennå.",
     "emptyEdit": "Ikke koblet til andre poster ennå. Koble til dokumentene, risikoene eller avvikene denne posten henger sammen med.",
+    "emptyShort": "Ingen koblinger ennå.",
     "showAll": "Vis alle ({{ count }})",
     "showMap": "Vis kart",
     "askAbout": "Spør om koblingene",

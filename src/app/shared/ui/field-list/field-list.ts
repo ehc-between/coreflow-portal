@@ -1,7 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  Injectable,
+  Signal,
   afterEveryRender,
   computed,
   inject,
@@ -9,10 +12,49 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { LanguageService } from '../../../core/i18n/language.service';
 
 /** How an empty value reads: "Ikke satt" (a field), "Ingen" (a collection) or "—" (dense tables). */
 export type EmptyWord = 'notSet' | 'none' | 'dash';
+
+/** One field of a {@link FieldGroup}: its label and whether it is empty now. */
+export interface FieldEntry {
+  readonly label: Signal<string>;
+  /** Empty and allowed to be hidden (not `keepEmpty`). */
+  readonly hideable: Signal<boolean>;
+}
+
+/**
+ * The fields of one section of a detail page (docs/ux-guide.md §2.7, "detail-page
+ * anatomy"). A section component (`app-record-lead`, `app-record-details`,
+ * `app-record-meta`) provides one with `hideEmpty` on: its `app-field-item`s
+ * register here, empty ones hide themselves in view mode, and the section shows
+ * one line instead ("3 felt er ikke fylt ut – Fyll ut").
+ */
+@Injectable()
+export class FieldGroup {
+  /** Hide empty fields (view mode). */
+  readonly hideEmpty = signal(true);
+  private readonly entries = signal<readonly FieldEntry[]>([]);
+
+  /** Labels of the hidden (empty) fields, in template order. */
+  readonly emptyLabels = computed(() =>
+    this.entries()
+      .filter((e) => e.hideable())
+      .map((e) => e.label()),
+  );
+
+  /** Fields with a value (or kept while empty). */
+  readonly shownCount = computed(
+    () => this.entries().length - this.entries().filter((e) => e.hideable()).length,
+  );
+
+  register(entry: FieldEntry): () => void {
+    this.entries.update((list) => [...list, entry]);
+    return () => this.entries.update((list) => list.filter((e) => e !== entry));
+  }
+}
 
 /**
  * Read-only fields of a detail page: label (small, muted) above the value.
@@ -41,30 +83,57 @@ export class FieldList {
 /**
  * One label + value. Shows `value`, else the projected content, else the empty word
  * (`empty`, default "Ikke satt"). `wide` spans the whole row (long text).
+ *
+ * Inside a {@link FieldGroup} with `hideEmpty` (the detail-page anatomy) an empty
+ * item hides itself, unless `keepEmpty`: then it shows `emptyKey` ("Ikke planlagt")
+ * and, with `emptyLink`, an action link (`emptyActionKey`, "Planlegg").
+ *
+ * `size="lead"` is the large look of the "Hovedinformasjon" section;
+ * `layout="inline"` puts label and value on one row (the compact metadata block).
  */
 @Component({
   selector: 'app-field-item',
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block min-w-0',
+    '[class.block]': '!collapsed() && layout() === "stacked"',
+    '[class.flex]': '!collapsed() && layout() === "inline"',
+    '[class.hidden]': 'collapsed()',
+    class: 'min-w-0',
+    '[class.items-baseline]': 'layout() === "inline"',
+    '[class.justify-between]': 'layout() === "inline"',
+    '[class.gap-3]': 'layout() === "inline"',
     '[class.sm:col-span-full]': 'wide()',
     'data-testid': 'field-item',
+    '[attr.data-empty]': 'isEmpty() || null',
   },
   template: `
-    <div class="text-meta font-semibold text-fg-muted">{{ labelResolved() }}</div>
-    <div class="mt-1 text-body break-words text-fg">
+    <div [class]="labelClass()">{{ labelResolved() }}</div>
+    <div class="break-words text-fg" [class]="valueClass()">
       @if (hasValue()) {
         <span [class.whitespace-pre-line]="multiline()">{{ value() }}</span>
       }
       <span #content [hidden]="hasValue()" class="contents"><ng-content /></span>
-      @if (!hasValue() && !hasContent()) {
-        <span class="text-fg-subtle" data-testid="field-item-empty">{{ emptyText() }}</span>
+      @if (isEmpty()) {
+        <span class="font-normal text-fg-subtle" data-testid="field-item-empty">{{
+          emptyText()
+        }}</span>
+        @if (emptyLink(); as link) {
+          <span aria-hidden="true" class="text-fg-subtle"> · </span>
+          <a
+            [routerLink]="link"
+            class="font-semibold text-accent hover:underline"
+            data-testid="field-item-empty-action"
+            >{{ emptyActionText() }}</a
+          >
+        }
       }
     </div>
   `,
 })
 export class FieldItem {
   private readonly language = inject(LanguageService);
+  private readonly group = inject(FieldGroup, { optional: true });
 
   readonly labelKey = input<string | null | undefined>(null);
   /** Literal label (wins over `labelKey`). */
@@ -74,6 +143,18 @@ export class FieldItem {
   readonly wide = input(false);
   /** Keep line breaks of a long text value. */
   readonly multiline = input(false);
+  /** `lead`: the large look of the "Hovedinformasjon" section. */
+  readonly size = input<'default' | 'lead'>('default');
+  /** `inline`: label and value on one row (compact metadata). */
+  readonly layout = input<'stacked' | 'inline'>('stacked');
+  /** Show this field even when empty inside a hide-empty group. */
+  readonly keepEmpty = input(false);
+  /** i18n key of the empty text (wins over `empty`), e.g. "Ikke planlagt". */
+  readonly emptyKey = input<string | null | undefined>(null);
+  /** Link of the empty field's action ("Planlegg"); shown only when empty. */
+  readonly emptyLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** i18n key of the empty field's action label (default "Fyll ut"). */
+  readonly emptyActionKey = input<string | null | undefined>(null);
 
   private readonly contentEl = viewChild.required<ElementRef<HTMLElement>>('content');
   protected readonly hasContent = signal(false);
@@ -82,6 +163,28 @@ export class FieldItem {
     const v = this.value();
     return v !== null && v !== undefined && String(v).trim() !== '';
   });
+
+  readonly isEmpty = computed(() => !this.hasValue() && !this.hasContent());
+
+  protected readonly collapsed = computed(
+    () => !!this.group?.hideEmpty() && this.isEmpty() && !this.keepEmpty(),
+  );
+
+  protected readonly labelClass = computed(() =>
+    this.size() === 'lead'
+      ? 'text-ui font-semibold text-fg'
+      : this.layout() === 'inline'
+        ? 'flex-none text-meta text-fg-muted'
+        : 'text-meta font-semibold text-fg-muted',
+  );
+
+  protected readonly valueClass = computed(() =>
+    this.size() === 'lead'
+      ? 'mt-1 text-card leading-relaxed'
+      : this.layout() === 'inline'
+        ? 'min-w-0 text-right text-meta font-semibold'
+        : 'mt-1 text-body',
+  );
 
   protected readonly labelResolved = computed(() => {
     const literal = this.labelText();
@@ -93,10 +196,21 @@ export class FieldItem {
   });
 
   protected readonly emptyText = computed(() =>
-    this.language.translate(`common.empty.${this.empty()}`),
+    this.language.translate(this.emptyKey() || `common.empty.${this.empty()}`),
+  );
+
+  protected readonly emptyActionText = computed(() =>
+    this.language.translate(this.emptyActionKey() || 'common.empty.fillIn'),
   );
 
   constructor() {
+    if (this.group) {
+      const unregister = this.group.register({
+        label: this.labelResolved,
+        hideable: computed(() => this.isEmpty() && !this.keepEmpty()),
+      });
+      inject(DestroyRef).onDestroy(unregister);
+    }
     afterEveryRender(() => {
       const el = this.contentEl().nativeElement;
       const has = Array.from(el.childNodes).some(

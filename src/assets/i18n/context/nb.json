@@ -416,6 +416,30 @@
       }
     }
   },
+  "partyDetail": {
+    "lead": {
+      "needs": "Hva de trenger",
+      "expectations": "Hva de forventer",
+      "requirements": "Krav de stiller",
+      "howAddressed": "Slik ivaretar vi dem"
+    },
+    "status": {
+      "addressed": "Håndtert – behovene og forventningene deres er ivaretatt.",
+      "partially": "Delvis håndtert – noen av forventningene er ikke ivaretatt ennå.",
+      "not_addressed": "Ikke håndtert ennå – bestem hvordan dere skal ivareta forventningene.",
+      "not_relevant": "Ikke relevant – ingenting må gjøres nå."
+    },
+    "priorityBasis": "Innflytelse {{ influence }}, interesse {{ interest }}.",
+    "binding": "Bindende krav",
+    "bindingYes": "Ja – noen av kravene er lovkrav eller andre forpliktelser vi må oppfylle.",
+    "frameworks": "Standarder",
+    "missing": {
+      "review": "Gjennomgå interessenten",
+      "needs": "Beskriv hva de trenger og forventer",
+      "howAddressed": "Beskriv hvordan dere ivaretar dem",
+      "owner": "Velg en eier"
+    }
+  },
   "scope": {
     "noExclusions": "Ingen krav er unntatt. Alle kravene i standarden gjelder.",
     "exclusionsHint": "Så lenge omfanget er godkjent, regnes disse kravene som ikke relevante i kravdekningen.",

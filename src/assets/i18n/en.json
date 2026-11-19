@@ -1335,7 +1335,8 @@
     "empty": {
       "notSet": "Not set",
       "none": "None",
-      "dash": "—"
+      "dash": "—",
+      "fillIn": "Fill in"
     },
     "close": "Close",
     "edit": "Edit",

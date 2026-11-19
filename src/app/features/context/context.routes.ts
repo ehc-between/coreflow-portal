@@ -46,7 +46,11 @@ function kindRoutes(kind: ContextKind): Routes {
     {
       path: `${KINDS[kind].segment}/:id`,
       data,
-      loadComponent: () => import('./detail/context-detail').then((m) => m.ContextDetail),
+      // The interested party pilots the detail-page anatomy (docs/ux-guide.md §2.7).
+      loadComponent: () =>
+        kind === 'party'
+          ? import('./detail/party-detail').then((m) => m.PartyDetail)
+          : import('./detail/context-detail').then((m) => m.ContextDetail),
     },
     {
       path: `${KINDS[kind].segment}/:id/edit`,
