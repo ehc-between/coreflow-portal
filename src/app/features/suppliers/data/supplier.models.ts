@@ -142,7 +142,8 @@ export type CertificateStandard = (typeof CERTIFICATE_STANDARDS)[number];
 export type CertificateStatus = 'valid' | 'expiring' | 'expired' | 'no_expiry';
 
 /** GDPR Art. 28 coverage from the linked contracts / processors. */
-export type DpaStatus = 'not_needed' | 'covered' | 'pending' | 'missing';
+export const DPA_STATUSES = ['covered', 'pending', 'missing', 'not_needed'] as const;
+export type DpaStatus = (typeof DPA_STATUSES)[number];
 
 /** Why the risk profile calls for an assessment kind. */
 export type RequiredReason = 'always' | 'personal_data' | 'system_access' | 'cloud' | 'ai';
@@ -190,6 +191,8 @@ export interface SupplierListItem {
   readonly last_score: number | null;
   /** "Trenger oppfølging" flags, most important first (absent on older backends). */
   readonly attention?: readonly AttentionCode[];
+  /** GDPR Art. 28 coverage from the linked DPA contract (U25; absent on older backends). */
+  readonly dpa_status?: DpaStatus;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -419,6 +422,8 @@ export interface SupplierListQuery {
   readonly attention?: boolean;
   /** Only suppliers with one of these flags. */
   readonly attention_code?: readonly AttentionCode[];
+  /** Only suppliers with one of these DPA coverage states (U25). */
+  readonly dpa_status?: readonly DpaStatus[];
   readonly sort?: SupplierSort;
   readonly limit?: number;
   readonly offset?: number;

@@ -77,6 +77,7 @@ export class SuppliersApi {
         provides_ai: query.provides_ai,
         attention: query.attention || undefined,
         attention_code: csv(query.attention_code),
+        dpa_status: csv(query.dpa_status),
         sort: query.sort,
         limit: query.limit,
         offset: query.offset,

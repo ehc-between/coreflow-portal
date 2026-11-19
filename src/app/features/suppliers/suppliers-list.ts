@@ -37,6 +37,7 @@ import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import {
   ATTENTION_BADGE,
   criticalityBadge,
+  dpaBadge,
   scoreParams,
   supplierStatusBadge,
 } from './data/supplier-display';
@@ -45,6 +46,8 @@ import {
   AttentionCode,
   CRITICALITIES,
   Criticality,
+  DPA_STATUSES,
+  DpaStatus,
   EVALUATION_DUE_FILTERS,
   EvaluationDueFilter,
   SUPPLIER_CATEGORIES,
@@ -76,6 +79,8 @@ export interface SupplierFilters {
   readonly category: SupplierCategory | '';
   readonly due: EvaluationDueFilter | '';
   readonly flag: SupplierFlag | '';
+  /** Data processing agreement coverage (U25). */
+  readonly dpa: DpaStatus | '';
   readonly owner: 'me' | '';
   readonly sort: SupplierSort;
 }
@@ -87,6 +92,7 @@ export const DEFAULT_FILTERS: SupplierFilters = {
   category: '',
   due: '',
   flag: '',
+  dpa: '',
   owner: '',
   sort: 'name',
 };
@@ -97,6 +103,7 @@ const MORE_FILTERS: readonly (keyof SupplierFilters)[] = [
   'category',
   'due',
   'flag',
+  'dpa',
   'owner',
 ];
 
@@ -116,6 +123,7 @@ export function filtersFromView(values: Readonly<Record<string, string>>): Suppl
     category: pick(values['category'], SUPPLIER_CATEGORIES),
     due: pick(values['due'], EVALUATION_DUE_FILTERS),
     flag: pick(values['flag'], SUPPLIER_FLAGS),
+    dpa: pick(values['dpa'] || values['dpa_status'], DPA_STATUSES),
     owner: values['owner'] === 'me' ? 'me' : '',
     sort: sort || 'name',
   };
@@ -138,6 +146,7 @@ export function toQuery(q: string, f: SupplierFilters, offset: number): Supplier
     ...(f.flag ? { [f.flag]: true } : {}),
     ...(f.attention === 'any' ? { attention: true } : {}),
     ...(f.attention && f.attention !== 'any' ? { attention_code: [f.attention] } : {}),
+    ...(f.dpa ? { dpa_status: [f.dpa] } : {}),
     sort: f.sort,
     limit: PAGE_SIZE,
     offset,
@@ -352,6 +361,23 @@ interface Kpi {
           </select>
         </label>
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
+          {{ 'suppliers.filters.dpa' | transloco }}
+          <select
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+            (change)="setFilter('dpa', $any($event.target).value)"
+            data-testid="filter-dpa"
+          >
+            <option value="" [selected]="!filters().dpa">
+              {{ 'suppliers.filters.anyDpa' | transloco }}
+            </option>
+            @for (d of dpaStatuses; track d) {
+              <option [value]="d" [selected]="filters().dpa === d">
+                {{ 'suppliers.agreements.dpaStatus.' + d | transloco }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'suppliers.fields.owner' | transloco }}
           <select
             class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
@@ -426,6 +452,16 @@ interface Kpi {
                       [value]="cr.value"
                       [labelKey]="'suppliers.criticality.' + row.criticality"
                     />
+                    @if (row.dpa_status && row.dpa_status !== 'not_needed') {
+                      @let dp = dpaBadge(row.dpa_status);
+                      <app-status-badge
+                        badges
+                        data-testid="row-dpa"
+                        [meaning]="dp.meaning"
+                        [value]="dp.value"
+                        [labelKey]="'suppliers.agreements.dpaStatus.' + row.dpa_status"
+                      />
+                    }
                     @if (row.attention?.length) {
                       <span
                         badges
@@ -497,6 +533,8 @@ export class SuppliersList {
   protected readonly flags = SUPPLIER_FLAGS;
   protected readonly sorts = SUPPLIER_SORTS;
   protected readonly attentionCodes = ATTENTION_CODES;
+  protected readonly dpaStatuses = DPA_STATUSES;
+  protected readonly dpaBadge = dpaBadge;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly statusBadge = supplierStatusBadge;
   protected readonly critBadge = criticalityBadge;
