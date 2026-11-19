@@ -473,7 +473,8 @@
       "to_deviation": "Avvik hos denne leverandøren",
       "to_processor": "Registrer som databehandler",
       "to_dpa": "Databehandleravtale",
-      "to_transfer": "Overføringsvurdering (data utenfor EU/EØS)"
+      "to_transfer": "Overføringsvurdering (data utenfor EU/EØS)",
+      "to_customer": "Registrer som kunde"
     },
     "dpia": {
       "to_risk": "Risiko fra DPIA-en",
@@ -709,6 +710,19 @@
     },
     "retention_schedule": {
       "to_task": "Gjentakende sletteoppgave"
+    },
+    "customer": {
+      "to_project": "Prosjekt for kunden",
+      "to_contract": "Kundekontrakt",
+      "to_dpa": "Databehandleravtale (vi behandler)",
+      "to_claim": "Reklamasjon eller klage",
+      "to_deviation": "Avvik eller hendelse som gjelder kunden",
+      "to_feedback": "Tilbakemelding fra kunden",
+      "to_audit": "Revisjon fra kunden",
+      "to_requirement": "Kundekrav",
+      "to_processing": "Behandlingsaktivitet for kunden",
+      "to_property": "Kundens eiendom",
+      "to_document": "Kundespesifikt dokument"
     }
   },
   "frameworks": {

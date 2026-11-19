@@ -97,6 +97,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     labelKey: 'nav.sections.operations',
     items: [
+      moduleItem('customers', 'customers', 'building'),
       moduleItem('processes', 'processes', 'procedures', {
         agentName: 'Pernille',
         agentRole: 'Procedure Author',

@@ -1,0 +1,338 @@
+{
+  "entity": "Kunde",
+  "alsoCustomer": "Også kunde: {{ code }}",
+  "alsoSupplier": "Også leverandør",
+  "alsoSupplierNamed": "Også leverandør: {{ name }}",
+  "status": {
+    "prospect": "Prospekt",
+    "active": "Aktiv",
+    "former": "Tidligere kunde"
+  },
+  "ref": {
+    "label": "Kunde",
+    "column": "Kunde",
+    "none": "Ingen kunde",
+    "placeholder": "Søk etter kunde",
+    "create": "Opprett kunden «{{ name }}»",
+    "created": "Kunden {{ name }} er opprettet.",
+    "createFailed": "Kunne ikke opprette kunden. Prøv igjen.",
+    "deleted": "(slettet)",
+    "filterAll": "Alle kunder",
+    "filterLabel": "Filtrer på kunde",
+    "noAccess": "Du har ikke tilgang til kunderegisteret.",
+    "noMatch": "Ingen kunder passer.",
+    "searching": "Søker …"
+  },
+  "actions": {
+    "new": "Ny kunde",
+    "edit": "Rediger",
+    "newClaim": "Ny reklamasjon",
+    "refetch": "Hent på nytt fra Brønnøysundregistrene",
+    "merge": "Slå sammen med …",
+    "delete": "Slett kunden"
+  },
+  "ai": {
+    "summarise": "Oppsummer kundestatus",
+    "followUp": "Hva bør vi følge opp hos kunden?",
+    "prompts": {
+      "summarise": "Oppsummer status for kunden {{ code }} {{ name }}: åpne reklamasjoner og klager, kontrakter og fornyelsesdatoer, prosjekter, tilfredshetstrend, kundekrav og siste kunderevisjon.",
+      "followUp": "Hva bør vi følge opp hos kunden {{ code }} {{ name }} de neste ukene? List opp de viktigste punktene først."
+    }
+  },
+  "common": {
+    "back": "Tilbake",
+    "backToRegister": "Tilbake til kunder",
+    "cancel": "Avbryt",
+    "close": "Lukk",
+    "nobody": "Ingen",
+    "save": "Lagre"
+  },
+  "contacts": {
+    "title": "Kontaktpersoner",
+    "add": "Legg til kontaktperson",
+    "edit": "Rediger {{ name }}",
+    "remove": "Fjern {{ name }}",
+    "newTitle": "Ny kontaktperson",
+    "editTitle": "Rediger kontaktperson",
+    "none": "Ingen kontaktpersoner ennå.",
+    "primary": "Hovedkontakt",
+    "nameRequired": "Fyll ut navnet.",
+    "fields": {
+      "name": "Navn",
+      "title": "Rolle eller stilling",
+      "email": "E-post",
+      "phone": "Telefon",
+      "primary": "Hovedkontakt hos kunden",
+      "notes": "Notater"
+    },
+    "removeTitle": "Fjerne kontaktpersonen?",
+    "removeMessage": "{{ name }} fjernes fra kunden.",
+    "removeConfirm": "Fjern",
+    "saved": "Kontaktpersonen er lagret.",
+    "removed": "Kontaktpersonen er fjernet."
+  },
+  "delete": {
+    "title": "Slette kunden?",
+    "message": "{{ name }} fjernes fra registeret. Poster som er koblet til kunden, beholder koblingen og viser den som slettet."
+  },
+  "detail": {
+    "notFoundTitle": "Fant ikke kunden",
+    "notFound": "Kunden finnes ikke, eller du har ikke tilgang til den.",
+    "overviewFailed": "Kunne ikke hente det som er koblet til kunden akkurat nå.",
+    "primaryContact": "Hovedkontakt",
+    "segmentIndustry": "Segment og bransje",
+    "registryChecked": "Sjekket i Brønnøysundregistrene",
+    "updated": "Sist endret"
+  },
+  "empty": {
+    "title": "Ingen kunder ennå",
+    "body": "Registrer kundene dere leverer til. Da kan prosjekter, kontrakter, reklamasjoner og tilbakemeldinger kobles til riktig kunde.",
+    "scanTitle": "Finn kundene i eksisterende data",
+    "scanBody": "CoreFlow kan lete gjennom kontrakter, tilbakemeldinger, avvik og andre poster etter kundenavn, opprette kundene og koble postene. Navn som ikke er sikre, havner på en liste du går gjennom.",
+    "orNew": "Eller registrer en kunde selv"
+  },
+  "errors": {
+    "customer_org_number_taken": "Dette org.nr. er allerede registrert som kunde.",
+    "invalid_orgnr": "Org.nr. må ha ni sifre.",
+    "orgnr_not_found": "Fant ingen virksomhet med dette org.nr.",
+    "registry_unavailable": "Fant ikke opplysninger akkurat nå – fyll ut selv.",
+    "invalid_status": "Velg en gyldig status.",
+    "invalid_user": "Velg et medlem av organisasjonen som kundeansvarlig.",
+    "name_required": "Kunne ikke lagre. Fyll ut navnet.",
+    "invalid_customer": "Kunden finnes ikke lenger. Velg en annen.",
+    "merge_into_self": "En kunde kan ikke slås sammen med seg selv.",
+    "match_not_pending": "Dette treffet er allerede avgjort.",
+    "forbidden": "Du har ikke tilgang til å gjøre dette.",
+    "invalid": "Kunne ikke lagre. Sjekk feltene og prøv igjen.",
+    "generic": "Noe gikk galt. Prøv igjen."
+  },
+  "fields": {
+    "name": "Navn",
+    "legalName": "Registrert navn",
+    "orgNumber": "Org.nr.",
+    "orgForm": "Organisasjonsform",
+    "country": "Land (kode)",
+    "address": "Adresse",
+    "postalCode": "Postnummer",
+    "city": "Poststed",
+    "industryCode": "Næringskode (NACE)",
+    "industry": "Bransje",
+    "segment": "Segment",
+    "status": "Status",
+    "owner": "Kundeansvarlig",
+    "website": "Nettsted",
+    "email": "E-post",
+    "phone": "Telefon",
+    "description": "Om kunden",
+    "customerSince": "Kunde siden"
+  },
+  "filters": {
+    "status": "Status",
+    "allStatuses": "Alle statuser",
+    "segment": "Segment",
+    "allSegments": "Alle segmenter",
+    "allOwners": "Alle kundeansvarlige",
+    "openClaims": "Har åpne reklamasjoner",
+    "sort": "Sorter etter"
+  },
+  "sorts": {
+    "name": "Navn",
+    "updated": "Sist endret",
+    "nextRenewal": "Neste fornyelse"
+  },
+  "form": {
+    "newTitle": "Ny kunde",
+    "editTitle": "Rediger kunde",
+    "editTitleNamed": "Rediger {{ name }}",
+    "nameRequired": "Fyll ut navnet.",
+    "openExisting": "Åpne {{ name }}",
+    "checksumWarning": "Dette ser ikke ut som et gyldig norsk org.nr. Sjekk sifrene.",
+    "sections": {
+      "company": "Virksomhet",
+      "relationship": "Kundeforhold",
+      "contact": "Kontaktopplysninger"
+    }
+  },
+  "list": {
+    "subtitle": "Kundene dere leverer til, og alt som er koblet til dem.",
+    "searchPlaceholder": "Søk på navn, org.nr., kode eller sted",
+    "orgNumber": "Org.nr. {{ number }}",
+    "renews": "fornyes om {{ count }} dager",
+    "renewsOne": "fornyes om 1 dag",
+    "openClaims": "{{ count }} åpne reklamasjoner",
+    "openClaimsOne": "1 åpen reklamasjon",
+    "pending": "{{ count }} kundetreff venter på gjennomgang",
+    "pendingOne": "1 kundetreff venter på gjennomgang",
+    "pendingReview": "Gå gjennom",
+    "resetFilters": "Fjern filtrene"
+  },
+  "lookup": {
+    "loading": "Slår opp org.nr. i Brønnøysundregistrene …",
+    "filled": "Hentet fra Brønnøysundregistrene. Sjekk opplysningene før du lagrer.",
+    "nothingToFill": "Funnet i Brønnøysundregistrene. Feltene var allerede fylt ut.",
+    "notFound": "Fant ingen virksomhet med dette org.nr. i Brønnøysundregistrene.",
+    "unavailable": "Fant ikke opplysninger akkurat nå – fyll ut selv.",
+    "exists": "Finnes allerede: {{ name }}.",
+    "open": "Åpne",
+    "alsoSupplier": "Også registrert som leverandør: {{ name }}."
+  },
+  "matches": {
+    "title": "Gjennomgå kundetreff",
+    "subtitle": "Kundenavn fra eksisterende poster som ikke kunne kobles sikkert. Bestem hvilken kunde hvert treff hører til.",
+    "proposed": "Foreslått kunde:",
+    "proposedNew": "Ny kunde: «{{ name }}»",
+    "foundIn": "Funnet i",
+    "hiddenRecord": "en post du ikke har tilgang til",
+    "reason": {
+      "same_core_name": "Samme navn, annen skrivemåte",
+      "similar_name": "Lignende navn",
+      "ambiguous": "Flere kunder kan passe"
+    },
+    "accept": "Koble til",
+    "create": "Opprett ny kunde",
+    "dismiss": "Ikke en kunde",
+    "other": "Koble til en annen kunde …",
+    "applySame": "Bruk samme valg for {{ count }} like treff",
+    "select": "Velg «{{ text }}»",
+    "bulk": {
+      "label": "Valgte treff",
+      "selected": "{{ count }} valgt",
+      "clear": "Fjern valget"
+    },
+    "done": {
+      "accept": "Koblet til ({{ count }}).",
+      "create": "Kunden er opprettet og koblet til.",
+      "dismiss": "Merket som ikke en kunde ({{ count }})."
+    },
+    "emptyTitle": "Ingenting å gå gjennom",
+    "emptyBody": "Alle kundenavn som er funnet så langt, er koblet eller avgjort."
+  },
+  "merge": {
+    "title": "Slå sammen med en annen kunde",
+    "message": "Alt som er koblet til {{ name }}, flyttes til kunden du velger, og {{ name }} slettes.",
+    "into": "Behold denne kunden",
+    "confirm": "Slå sammen",
+    "self": "Velg en annen kunde."
+  },
+  "missing": {
+    "owner": "Ingen kundeansvarlig · Velg",
+    "contact": "Ingen kontaktperson · Legg til",
+    "orgNumber": "Org.nr. mangler · Fyll ut",
+    "notice": "Kontrakt {{ code }} må sies opp innen {{ date }}",
+    "matches": "{{ count }} kundetreff venter · Gå gjennom",
+    "matchesOne": "1 kundetreff venter · Gå gjennom"
+  },
+  "notices": {
+    "created": "Kunden {{ code }} er registrert.",
+    "saved": "Kunden {{ code }} er lagret.",
+    "deleted": "Kunden {{ code }} er slettet.",
+    "merged": "Slått sammen med {{ code }}.",
+    "refetched": "Opplysningene er oppdatert fra Brønnøysundregistrene."
+  },
+  "registry": {
+    "bankrupt": "Konkurs",
+    "underLiquidation": "Under avvikling",
+    "deleted": "Slettet fra registeret"
+  },
+  "scan": {
+    "action": "Finn kunder i eksisterende data",
+    "again": "Let etter kunder på nytt",
+    "result": "Opprettet {{ created }} kunder og koblet {{ linked }} poster. {{ pending }} treff venter på gjennomgang.",
+    "review": "Gå gjennom dem"
+  },
+  "sentence": {
+    "status": {
+      "active": "Aktiv kunde",
+      "prospect": "Prospekt",
+      "former": "Tidligere kunde"
+    },
+    "rest": {
+      "active": "ingen åpne saker",
+      "prospect": "ikke kunde ennå",
+      "former": "ingen åpne saker"
+    },
+    "claims": "{{ count }} åpne reklamasjoner",
+    "claimsOne": "1 åpen reklamasjon",
+    "breaches": "{{ count }} åpne personvernbrudd",
+    "breachesOne": "1 åpent personvernbrudd",
+    "renewal": "kontrakt fornyes om {{ count }} dager",
+    "renewalOne": "kontrakt fornyes om 1 dag",
+    "noticeBy": "kontrakt må sies opp innen {{ date }}",
+    "requirements": "{{ count }} kundekrav er ikke oppfylt",
+    "requirementsOne": "1 kundekrav er ikke oppfylt",
+    "satisfactionDown": "tilfredsheten går ned"
+  },
+  "sections": {
+    "none": "Ingen ennå.",
+    "openCount": "{{ count }} åpne",
+    "seeAll": "Se alle ({{ count }})",
+    "claims": {
+      "title": "Reklamasjoner og klager",
+      "new": "Ny reklamasjon"
+    },
+    "deviations": {
+      "title": "Avvik og hendelser",
+      "new": "Nytt avvik"
+    },
+    "contracts": {
+      "title": "Kontrakter",
+      "new": "Ny kontrakt",
+      "renews": "fornyes om {{ count }} dager",
+      "renewsOne": "fornyes om 1 dag"
+    },
+    "projects": {
+      "title": "Prosjekter",
+      "new": "Nytt prosjekt"
+    },
+    "satisfaction": {
+      "title": "Tilfredshet",
+      "new": "Ny tilbakemelding",
+      "counts": "{{ complaints }} klager og {{ compliments }} ros siste 12 måneder",
+      "trend": {
+        "up": "Går opp",
+        "down": "Går ned",
+        "flat": "Stabil"
+      }
+    },
+    "requirements": {
+      "title": "Kundekrav",
+      "new": "Nytt kundekrav"
+    },
+    "audits": {
+      "title": "Revisjoner fra kunden",
+      "new": "Ny kunderevisjon",
+      "last": "Siste revisjon {{ date }}",
+      "next": "neste {{ date }}",
+      "findings": "{{ count }} åpne funn",
+      "findingsOne": "1 åpent funn"
+    },
+    "privacy": {
+      "title": "Personvern",
+      "new": "Ny behandlingsaktivitet"
+    },
+    "property": {
+      "title": "Kundens eiendom",
+      "new": "Registrer kundens eiendom"
+    },
+    "documents": {
+      "title": "Dokumenter",
+      "new": "Nytt dokument"
+    },
+    "work": {
+      "title": "Oppgaver",
+      "new": "Ny oppgave"
+    },
+    "other": {
+      "title": "Andre poster",
+      "new": "Ny post"
+    },
+    "badges": {
+      "dpa": "Databehandleravtale",
+      "nda": "Taushetserklæring",
+      "autoRenew": "Fornyes automatisk",
+      "processor": "Vi er databehandler",
+      "breach": "Brudd",
+      "notifyController": "Varsle kunden uten ugrunnet opphold"
+    }
+  }
+}

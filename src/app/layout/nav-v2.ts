@@ -170,6 +170,14 @@ export const REGISTER_ACTIONS: readonly RegisterAction[] = [
     module: 'documents',
   },
   {
+    key: 'customer',
+    path: 'customers/new',
+    labelKey: 'shell.registrer.customer',
+    icon: 'building',
+    permission: 'customers:write',
+    module: 'customers',
+  },
+  {
     key: 'supplier',
     path: 'suppliers/new',
     labelKey: 'shell.registrer.supplier',
@@ -198,6 +206,7 @@ export const REGISTER_GROUPS: readonly RegisterGroup[] = [
     labelKey: 'shell.groups.improvement',
     modules: ['deviations', 'inspections', 'audits', 'feedback'],
   },
+  { key: 'customers', labelKey: 'shell.groups.customers', modules: ['customers'] },
   {
     key: 'suppliersAssets',
     labelKey: 'shell.groups.suppliersAssets',

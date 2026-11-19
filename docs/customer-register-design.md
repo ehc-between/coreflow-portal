@@ -752,3 +752,34 @@ Name typeahead against Brønnøysund; sub-units (`underenheter`); customer porta
 external access; CRM features (pipeline, sales opportunities, invoicing); automatic
 periodic re-sync with Brønnøysund (manual "Hent på nytt" only); customer hierarchies
 (group / subsidiary).
+
+---
+
+## 12. ENG-B contract notes (portal, 2026-11-19)
+
+What the portal codes against where §2.4 / §5.1 left the shape open. ENG-A: match these
+or report the difference.
+
+- Lists: `GET /` → `{items, total}`; `GET /options` and `GET /segments` → plain arrays
+  (`{items}` is also accepted); `GET /summary` → `{total?, by_status?, pending_matches,
+  last_scan}`; `GET /matches` → `MatchGroup[]` (or `{items}`).
+- `GET /registry/{orgnr}` → flat customer fields `{org_number, name, legal_name,
+  org_form, address_line, postal_code, city, country, industry_code, industry_label,
+  website, registry, existing_customer: CustomerRef | null, also_supplier: {id, code,
+  name} | null}`. Errors: 404 → "not found" note, 422 → silent, anything else → "Fant
+  ikke opplysninger akkurat nå – fyll ut selv" (form stays usable).
+- `POST /` and `PATCH /{id}` accept `registry` (the lookup snapshot) besides the §1.1
+  fields. "Hent på nytt fra Brønnøysundregistrene" = lookup + `PATCH` of `legal_name`,
+  `org_form`, address, industry and `registry`.
+- `MatchOut` carries `entity: EntityRefDto | null` (the record to show and open).
+- Section item `extra.badge_key` values with portal labels (`customers.sections.badges.*`):
+  `dpa`, `nda`, `autoRenew`, `processor`, `breach`, `notifyController`.
+- Error codes with portal text: `customer_org_number_taken` (409, `detail.customer`),
+  `invalid_orgnr`, `orgnr_not_found`, `registry_unavailable`, `invalid_status`,
+  `invalid_user`, `name_required`, `invalid_customer`, `merge_into_self`,
+  `match_not_pending`.
+- Create-flow labels live in the **kit** scope (`kit.flows.customer.to_*`,
+  `kit.flows.supplier.to_customer`), where `create-from-here` reads them, not in the
+  global files (§3.2). "Registrer som kunde" on the supplier card is the backend flow
+  `supplier.to_customer` (prefill `name`, `legal_name`, `org_number`, `country`,
+  `website`) in the record's "Mer ⋯"; `/customers/new?from_supplier=<id>` also works.

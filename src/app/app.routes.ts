@@ -186,6 +186,7 @@ export const routes: Routes = [
       // Operations
       moduleRoute('processes', 'processes', () => import('./features/processes/processes.routes')),
       moduleRoute('documents', 'documents', () => import('./features/documents/documents.routes')),
+      moduleRoute('customers', 'customers', () => import('./features/customers/customers.routes')),
       moduleRoute('projects', 'projects', () => import('./features/projects/projects.routes')),
       moduleRoute('suppliers', 'suppliers', () => import('./features/suppliers/suppliers.routes')),
       moduleRoute('contracts', 'contracts', () => import('./features/contracts/contracts.routes')),
