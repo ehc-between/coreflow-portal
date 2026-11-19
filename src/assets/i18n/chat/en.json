@@ -1,0 +1,428 @@
+{
+  "title": "Messages",
+  "nav": {
+    "label": "Messages",
+    "unread": "Messages, {{count}} unread"
+  },
+  "kind": {
+    "dm": "Direct message",
+    "group": "Group",
+    "channel": "Channel"
+  },
+  "names": {
+    "unnamedGroup": "Group conversation",
+    "recordDiscussion": "Discussion about a record",
+    "unknownUser": "unknown",
+    "you": "you"
+  },
+  "presence": {
+    "online": "Online",
+    "away": "Away",
+    "offline": "Offline",
+    "withName": "{{name}}, {{status}}"
+  },
+  "page": {
+    "pickTitle": "Choose a conversation",
+    "pickBody": "Pick a conversation on the left, or start a new one. Chat is for day-to-day talk – decisions and findings still belong on the record itself.",
+    "back": "Back to conversations",
+    "liveOne": "New message from {{name}}",
+    "liveMany": "{{count}} new messages in {{name}}",
+    "notFoundTitle": "Conversation not available",
+    "notFoundBody": "It may have been removed, or you are no longer a member."
+  },
+  "connection": {
+    "reconnecting": "Reconnecting… new messages may arrive a little late.",
+    "offline": "You are offline. Messages can’t be sent until you are back online."
+  },
+  "list": {
+    "label": "Conversations",
+    "new": "New conversation",
+    "browse": "Find channels",
+    "filter": "Filter conversations",
+    "sections": {
+      "dms": "Direct messages",
+      "groups": "Groups",
+      "teams": "Team channels",
+      "channels": "Channels"
+    },
+    "unread": "{{count}} unread",
+    "mentions": "{{count}} mentions of you",
+    "muted": "Notifications off",
+    "archived": "Archived",
+    "you": "You: {{text}}",
+    "attachment": "Sent a file",
+    "deleted": "Message deleted",
+    "noMessages": "No messages yet",
+    "empty": {
+      "title": "No conversations yet",
+      "body": "Start a direct message with a colleague, create a group for a task, or find the channel for your team."
+    },
+    "noMatch": "No conversations match “{{q}}”.",
+    "loadError": "Could not load your conversations.",
+    "retry": "Try again"
+  },
+  "header": {
+    "members": "{{count}} members",
+    "membersButton": "Members",
+    "back": "Back to conversations",
+    "more": "Conversation options",
+    "notify": {
+      "label": "Notifications",
+      "all": "All messages",
+      "mentions": "Only mentions",
+      "none": "No notifications"
+    },
+    "rename": "Rename",
+    "renamePrompt": "New name",
+    "topic": "Edit topic",
+    "topicPrompt": "Topic",
+    "leave": "Leave conversation",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "openInChat": "Open in Messages",
+    "private": "Private",
+    "public": "Public",
+    "archivedBanner": "This conversation is archived. You can read it, but not post.",
+    "readOnly": "You can no longer post in this conversation.",
+    "joinHint": "You are reading this channel. Join to post and get notified.",
+    "join": "Join channel",
+    "about": "About"
+  },
+  "messages": {
+    "feedLabel": "Messages in {{name}}",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newDivider": "New messages",
+    "jumpLatest": "Jump to newest",
+    "loadingOlder": "Loading older messages…",
+    "beginning": "This is the start of the conversation.",
+    "emptyTitle": "Say hello",
+    "emptyBody": "Write the first message below. Type @ to mention someone, # to add a topic tag, and use “Link record” to point to a deviation, risk or document.",
+    "edited": "(edited)",
+    "deleted": "This message was deleted",
+    "sending": "Sending…",
+    "failed": "Not sent.",
+    "retry": "Try again",
+    "discard": "Remove",
+    "replies": "{{count}} replies",
+    "reply": "1 reply",
+    "lastReply": "last reply {{when}}",
+    "articleLabel": "{{name}}, {{time}}",
+    "loadError": "Could not load messages.",
+    "linkCopied": "Link copied.",
+    "actions": {
+      "react": "Add reaction",
+      "reply": "Reply in thread",
+      "copyLink": "Copy link",
+      "edit": "Edit",
+      "delete": "Delete",
+      "more": "More actions for this message"
+    },
+    "deleteConfirm": {
+      "title": "Delete message?",
+      "body": "The message is removed for everyone in the conversation, together with its files.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "system": {
+      "created": "{{actor}} created the conversation",
+      "member_added": "{{actor}} added {{users}}",
+      "member_removed": "{{actor}} removed {{users}}",
+      "renamed": "{{actor}} renamed the conversation to “{{name}}”",
+      "archived": "{{actor}} archived the conversation",
+      "unarchived": "{{actor}} restored the conversation",
+      "someone": "Someone"
+    },
+    "deleteErrors": {
+      "generic": "The message could not be deleted."
+    }
+  },
+  "attachments": {
+    "scanning": "Checking…",
+    "blocked": "Blocked",
+    "blockedHint": "This file was stopped by the virus check and can’t be opened.",
+    "removed": "File removed",
+    "open": "Open {{name}}",
+    "image": "Image: {{name}}",
+    "downloadError": "Could not open the file."
+  },
+  "record": {
+    "noAccess": "You don’t have access to this record",
+    "loading": "Loading record…"
+  },
+  "reactions": {
+    "label": "React with {{emoji}}, {{count}} people",
+    "labelOne": "React with {{emoji}}, 1 person",
+    "add": "Add reaction",
+    "picker": "Choose an emoji",
+    "recent": "Recently used",
+    "all": "Emoji",
+    "close": "Close"
+  },
+  "composer": {
+    "label": "Message to {{name}}",
+    "placeholder": "Write a message…",
+    "placeholderThread": "Reply in thread…",
+    "send": "Send",
+    "sendHint": "Enter sends · Shift+Enter adds a line",
+    "editing": "Editing message",
+    "cancelEdit": "Cancel",
+    "save": "Save",
+    "attach": "Attach files",
+    "linkRecord": "Link record",
+    "emoji": "Insert emoji",
+    "toolbar": "Formatting",
+    "format": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "code": "Code",
+      "list": "Bulleted list",
+      "link": "Insert link"
+    },
+    "linkPrompt": {
+      "title": "Insert link",
+      "label": "Web address (https://…)",
+      "confirm": "Insert",
+      "cancel": "Cancel"
+    },
+    "upload": {
+      "progress": "Uploading {{name}} – {{percent}} %",
+      "scanning": "Checking {{name}}",
+      "ready": "{{name}} ready",
+      "failed": "{{name}} could not be uploaded",
+      "remove": "Remove {{name}}",
+      "retry": "Try again"
+    },
+    "dropHint": "Drop files to attach them",
+    "tooLong": "The message is too long ({{count}} of {{max}} characters).",
+    "tooManyFiles": "You can attach up to {{max}} files.",
+    "tooManyLinks": "You can link up to {{max}} records.",
+    "suggest": {
+      "people": "People",
+      "teams": "Teams",
+      "tags": "Tags",
+      "newTag": "New tag #{{tag}}",
+      "teamDetail": "{{count}} members",
+      "none": "No matches"
+    },
+    "linkedRecords": "Linked records",
+    "removeRecord": "Remove link",
+    "warnings": {
+      "mentionNotMember": "{{names}} can’t see this conversation and was not notified.",
+      "addThem": "Add to conversation",
+      "dismiss": "Dismiss"
+    },
+    "errors": {
+      "generic": "The message could not be sent.",
+      "network": "No connection. Try again when you are back online.",
+      "conversation_archived": "This conversation is archived.",
+      "conversation_read_only": "You can no longer post in this conversation.",
+      "body_too_long": "The message is too long.",
+      "empty_message": "Write something or attach a file.",
+      "too_many_links": "Too many linked records.",
+      "entity_link_no_access": "You don’t have access to one of the linked records.",
+      "unsupported_entity_type": "One of the linked records can’t be linked.",
+      "invalid_mentions": "One of the mentioned people is not in the organisation.",
+      "invalid_attachments": "One of the files can’t be attached. Remove it and try again.",
+      "rate_limited": "You are sending a lot right now. Wait a moment and try again."
+    }
+  },
+  "picker": {
+    "title": "Link a record",
+    "search": "Search for a record",
+    "hint": "Only records you can open are shown. People in the conversation who can’t open a record just see that it is hidden.",
+    "empty": "No records match.",
+    "start": "Type to search deviations, risks, documents and more.",
+    "link": "Link"
+  },
+  "thread": {
+    "title": "Thread",
+    "close": "Close thread",
+    "follow": "Follow thread",
+    "unfollow": "Stop following",
+    "empty": "No replies yet.",
+    "loadError": "Could not load the thread."
+  },
+  "typing": {
+    "one": "{{name}} is typing…",
+    "two": "{{a}} and {{b}} are typing…",
+    "many": "Several people are typing…"
+  },
+  "create": {
+    "title": "New conversation",
+    "tabs": {
+      "dm": "Direct message",
+      "group": "Group",
+      "channel": "Channel"
+    },
+    "people": "People",
+    "peopleSearch": "Search by name",
+    "dmHint": "Choose one person to write to.",
+    "groupHint": "Add up to 49 people. Good for a task or a small team.",
+    "channelHint": "Channels are for a topic or a team. Public channels can be found and joined by everyone.",
+    "remove": "Remove {{name}}",
+    "name": "Name",
+    "nameOptional": "Name (optional)",
+    "channelName": "Channel name",
+    "topic": "Topic (optional)",
+    "visibility": {
+      "label": "Who can find it",
+      "public": "Public – anyone in the organisation can find and join it",
+      "private": "Private – only people who are added"
+    },
+    "subject": "About",
+    "submit": "Start conversation",
+    "cancel": "Cancel",
+    "noPeople": "No people found.",
+    "errors": {
+      "generic": "The conversation could not be created.",
+      "name_taken": "A channel with this name already exists.",
+      "invalid_members": "One of the people can’t use chat.",
+      "member_no_record_access": "Some of the people can’t open this record and can’t be added.",
+      "rate_limited": "You have created many conversations. Try again later."
+    }
+  },
+  "members": {
+    "title": "Members",
+    "add": "Add people",
+    "addSubmit": "Add",
+    "you": "(you)",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "actions": "Member actions",
+    "makeOwner": "Make owner",
+    "makeAdmin": "Make admin",
+    "makeMember": "Make member",
+    "remove": "Remove from conversation",
+    "departmentNote": "Members follow the department. Change who is in it under Settings → Departments.",
+    "removeConfirm": {
+      "title": "Remove {{name}}?",
+      "body": "{{name}} will no longer see new messages in this conversation.",
+      "confirm": "Remove"
+    },
+    "leaveConfirm": {
+      "title": "Leave the conversation?",
+      "body": "You will stop receiving its messages. You can be added again later.",
+      "confirm": "Leave"
+    },
+    "archiveConfirm": {
+      "title": "Archive the conversation?",
+      "body": "Members can still read it, but nobody can post. You can restore it later.",
+      "confirm": "Archive"
+    },
+    "errors": {
+      "generic": "The change could not be saved.",
+      "last_owner": "There must be at least one owner.",
+      "department_channel": "Team channel members follow the department.",
+      "member_no_record_access": "That person can’t open the record this conversation is about."
+    }
+  },
+  "search": {
+    "label": "Search messages",
+    "placeholder": "Search messages",
+    "clear": "Clear search",
+    "from": "From",
+    "fromAnyone": "Anyone",
+    "has": {
+      "label": "Contains",
+      "any": "Anything",
+      "file": "File",
+      "image": "Image",
+      "link": "Linked record"
+    },
+    "tag": "#{{tag}}",
+    "removeTag": "Remove the #{{tag}} filter",
+    "none": "No messages found.",
+    "noneBody": "Try other words or remove a filter.",
+    "error": "Search failed. Try again.",
+    "in": "in {{name}}",
+    "more": "Show more",
+    "results": "Search results"
+  },
+  "browse": {
+    "title": "Find channels",
+    "search": "Search channels",
+    "join": "Join",
+    "members": "{{count}} members",
+    "empty": {
+      "title": "No channels to join",
+      "body": "You are already in every public channel, or none exist yet. Create one with “New conversation”."
+    },
+    "error": "Could not load channels."
+  },
+  "discuss": {
+    "button": "Discuss",
+    "aria": "Discuss this record with colleagues",
+    "ariaCount": "Discuss this record, {{count}} discussions",
+    "title": "Discussions about {{title}}",
+    "titleFallback": "Discussions about this record",
+    "intro": "Talk with colleagues about this record. Everyone you add must be able to open it.",
+    "existing": "Discussions",
+    "startNew": "Start a new discussion",
+    "back": "All discussions",
+    "openFull": "Open in Messages →",
+    "submit": "Start discussion",
+    "loadError": "Could not load discussions.",
+    "noAccess": "You can’t open discussions for this record."
+  },
+  "notifications": {
+    "mentioned": "{{sender_name}} mentioned you in a conversation",
+    "direct": "New message from {{sender_name}}",
+    "added": "{{sender_name}} added you to a conversation"
+  },
+  "admin": {
+    "title": "Chat",
+    "intro": "Retention, legal hold and data requests for chat. Here you see conversation details, never message content.",
+    "error": "Something went wrong. Try again.",
+    "retention": {
+      "title": "Keep messages",
+      "always": "Always",
+      "days": "{{count}} days",
+      "custom": "Custom",
+      "customLabel": "Number of days (30–3650)",
+      "save": "Save",
+      "saved": "Retention saved.",
+      "hint": "Messages older than this are deleted every night. Conversations on legal hold are kept.",
+      "updatedBy": "Last changed by {{name}}",
+      "invalid": "Choose between 30 and 3650 days."
+    },
+    "conversations": {
+      "title": "Conversations",
+      "search": "Search conversations",
+      "name": "Conversation",
+      "kind": "Type",
+      "members": "Members",
+      "messages": "Messages",
+      "legalHold": "Legal hold",
+      "legalHoldFor": "Legal hold for {{name}}",
+      "archived": "Archived",
+      "empty": "No conversations."
+    },
+    "people": {
+      "title": "Data requests for one person",
+      "hint": "Export or delete everything a person has written in chat (GDPR).",
+      "search": "Find a person",
+      "export": "Export messages",
+      "erase": "Delete messages",
+      "exported": "The export has been downloaded.",
+      "erased": "{{count}} messages deleted.",
+      "eraseConfirm": {
+        "title": "Delete all messages from {{name}}?",
+        "body": "Everything {{name}} has written in chat in this organisation is deleted for everyone, with files and reactions. This can’t be undone.",
+        "typeName": "Type “{{name}}” to confirm",
+        "confirm": "Delete messages"
+      }
+    },
+    "orgExport": {
+      "title": "Export all chat",
+      "hint": "Downloads every message in the period as a file (at most 366 days).",
+      "after": "From",
+      "before": "To",
+      "submit": "Export",
+      "invalid": "Choose a period of at most 366 days."
+    }
+  }
+}

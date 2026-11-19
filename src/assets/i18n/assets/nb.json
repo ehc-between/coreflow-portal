@@ -192,7 +192,8 @@
     "referenceStandard": "Referanse (normal) som ble brukt",
     "method": "Metode eller prosedyre",
     "environment": "Forhold under kalibreringen",
-    "affectedRecords": "Berørte prosesser, dokumenter, leverandører og risikoer"
+    "affectedRecords": "Berørte prosesser, dokumenter, leverandører og risikoer",
+    "customer": "Kunde (kundens eiendom)"
   },
   "assetType": {
     "information": "Informasjon",

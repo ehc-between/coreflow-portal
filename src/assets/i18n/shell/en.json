@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "myWork": "My work",
+    "chat": "Messages",
     "standards": "Standards",
     "registers": "Registers",
     "library": "Documents and reports",
@@ -16,7 +17,8 @@
     "risk": "Risk",
     "task": "Task",
     "document": "Document",
-    "supplier": "Supplier"
+    "supplier": "Supplier",
+    "customer": "Customer"
   },
   "groups": {
     "governance": "Governance",
@@ -28,7 +30,8 @@
     "ai": "AI",
     "envHse": "Environment and health and safety",
     "continuity": "Preparedness",
-    "library": "Documents and reports"
+    "library": "Documents and reports",
+    "customers": "Customers"
   },
   "pins": {
     "heading": "Pinned",

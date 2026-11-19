@@ -22,6 +22,12 @@ import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import {
+  CustomerChip,
+  CustomerPicker,
+  CustomerRef,
+  CustomersAvailability,
+} from '../../shared/customers';
 import { DpiaRisk, LiaDraft } from './data/privacy.models';
 import { ISO_COUNTRY_CODES } from './data/privacy-countries';
 import { classifyCountry, countryStatusKey, suggestedMechanism } from './data/privacy-display';
@@ -106,6 +112,8 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
     RisksField,
     ScreeningField,
     TagInput,
+    CustomerPicker,
+    CustomerChip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -448,6 +456,45 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
                             }
                           </select>
                         }
+                        @case ('customer') {
+                          <app-customer-picker
+                            [inputId]="fid(f)"
+                            [value]="text(f.key) || null"
+                            [current]="customerRef(text(f.key))"
+                            (valueChange)="set(f.key, $event ?? '')"
+                            (refChange)="rememberCustomer($event)"
+                            [attr.data-testid]="'field-' + f.key"
+                          />
+                        }
+                        @case ('customers') {
+                          <div class="flex flex-col gap-2" [attr.data-testid]="'field-' + f.key">
+                            @if (listValue(f.key).length) {
+                              <ul class="flex flex-wrap gap-2">
+                                @for (cid of listValue(f.key); track cid) {
+                                  <li
+                                    class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-ui"
+                                  >
+                                    <app-customer-chip [ref]="customerRef(cid)" />
+                                    <button
+                                      type="button"
+                                      class="text-fg-muted hover:text-fg"
+                                      [attr.aria-label]="'privacy.form.removeCustomer' | transloco"
+                                      (click)="removeCustomer(f.key, cid)"
+                                    >
+                                      <span aria-hidden="true">✕</span>
+                                    </button>
+                                  </li>
+                                }
+                              </ul>
+                            }
+                            <app-customer-picker
+                              [inputId]="fid(f)"
+                              [value]="null"
+                              (valueChange)="addCustomer(f.key, $event)"
+                              (refChange)="rememberCustomer($event)"
+                            />
+                          </div>
+                        }
                         @case ('entity') {
                           <select
                             [id]="fid(f)"
@@ -625,6 +672,11 @@ export class PrivacyRegisterForm {
   readonly permissions = input<ReadonlySet<string>>(new Set());
   /** Start a new breach in "Registrer raskt" (three fields). */
   readonly quickStart = input(false);
+  /** Names of the customers the record links to (the Kunde fields). */
+  readonly customerRefs = input<readonly CustomerRef[]>([]);
+  private readonly customersOn = inject(CustomersAvailability);
+  /** Customers chosen in this form (their names, until the record is saved). */
+  private readonly chosenCustomers = signal<Readonly<Record<string, CustomerRef>>>({});
 
   readonly submitted = output<PrivacyFormSubmit>();
   readonly cancelled = output<void>();
@@ -655,6 +707,9 @@ export class PrivacyRegisterForm {
     const grouped = new Map<string, FieldDef[]>();
     for (const f of fieldsFor(this.register(), this.mode(), this.can())) {
       if (!isVisible(f, values) || (quick && !QUICK_BREACH_FIELDS.has(f.key))) {
+        continue;
+      }
+      if ((f.kind === 'customer' || f.kind === 'customers') && !this.customersOn.enabled()) {
         continue;
       }
       if (!grouped.has(f.section)) {
@@ -759,6 +814,38 @@ export class PrivacyRegisterForm {
   protected text(key: string): string {
     const v = this.form()[key];
     return v === null || v === undefined ? '' : String(v);
+  }
+
+  /** The customer ref of an id (from the record or chosen here); a placeholder otherwise. */
+  protected customerRef(id: string): CustomerRef | null {
+    if (!id) {
+      return null;
+    }
+    const chosen = this.chosenCustomers()[id];
+    if (chosen) {
+      return chosen;
+    }
+    return this.customerRefs().find((r) => r.id === id) ?? null;
+  }
+
+  protected rememberCustomer(ref: CustomerRef | null): void {
+    if (ref) {
+      this.chosenCustomers.update((m) => ({ ...m, [ref.id]: ref }));
+    }
+  }
+
+  protected addCustomer(key: string, id: string | null): void {
+    const list = this.listValue(key);
+    if (id && !list.includes(id)) {
+      this.set(key, [...list, id]);
+    }
+  }
+
+  protected removeCustomer(key: string, id: string): void {
+    this.set(
+      key,
+      this.listValue(key).filter((v) => v !== id),
+    );
   }
 
   protected listValue(key: string): readonly string[] {

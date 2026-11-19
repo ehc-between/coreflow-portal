@@ -112,6 +112,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
+        // Chat (docs/chat-design.md §4.3): DMs, groups, team and topic channels.
+        path: 'chat',
+        title: 'modules.names.chat',
+        canActivate: [moduleGuard('chat'), permissionGuard('chat:use')],
+        loadChildren: () => import('./features/chat/chat.routes'),
+      },
+      {
         // Platform tasks (F2): all tasks, recurring series and task detail (`/tasks/<id>`).
         path: 'tasks',
         title: 'modules.names.tasks',
@@ -186,6 +193,7 @@ export const routes: Routes = [
       // Operations
       moduleRoute('processes', 'processes', () => import('./features/processes/processes.routes')),
       moduleRoute('documents', 'documents', () => import('./features/documents/documents.routes')),
+      moduleRoute('customers', 'customers', () => import('./features/customers/customers.routes')),
       moduleRoute('projects', 'projects', () => import('./features/projects/projects.routes')),
       moduleRoute('suppliers', 'suppliers', () => import('./features/suppliers/suppliers.routes')),
       moduleRoute('contracts', 'contracts', () => import('./features/contracts/contracts.routes')),

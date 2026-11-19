@@ -473,7 +473,8 @@
       "to_deviation": "Deviation for this supplier",
       "to_processor": "Register as data processor",
       "to_dpa": "Data processing agreement",
-      "to_transfer": "Transfer assessment (data outside the EU/EEA)"
+      "to_transfer": "Transfer assessment (data outside the EU/EEA)",
+      "to_customer": "Register as a customer"
     },
     "dpia": {
       "to_risk": "Risk from this DPIA",
@@ -709,6 +710,19 @@
     },
     "retention_schedule": {
       "to_task": "Recurring deletion task"
+    },
+    "customer": {
+      "to_project": "Project for the customer",
+      "to_contract": "Customer contract",
+      "to_dpa": "Data processing agreement (we process)",
+      "to_claim": "Claim or complaint",
+      "to_deviation": "Deviation or incident affecting the customer",
+      "to_feedback": "Feedback from the customer",
+      "to_audit": "Audit by the customer",
+      "to_requirement": "Customer requirement",
+      "to_processing": "Processing activity for the customer",
+      "to_property": "Customer property",
+      "to_document": "Customer-specific document"
     }
   },
   "frameworks": {

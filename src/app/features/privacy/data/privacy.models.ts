@@ -1,3 +1,5 @@
+import type { CustomerRef } from '../../../shared/customers';
+
 /**
  * DTOs and vocabularies of the GDPR and privacy module (M15), mirroring
  * `app/modules/privacy/schemas.py` in coreflow-core. Date-times are naive UTC
@@ -165,6 +167,9 @@ export interface PrivacyRecord {
 export interface RopaEntry extends PrivacyRecord {
   readonly role: string;
   readonly controller_name: string | null;
+  /** Processing we perform as processor for this customer (customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly purposes: string | null;
   readonly data_subject_categories: readonly string[];
   readonly data_categories: readonly string[];
@@ -315,6 +320,9 @@ export interface DataBreach extends PrivacyRecord {
   readonly processor_id?: string | null;
   /** Affected systems and assets. */
   readonly asset_ids?: readonly string[];
+  /** Customers (controllers we process for) affected by the breach. */
+  readonly customer_ids?: readonly string[];
+  readonly customers?: readonly CustomerRef[];
   /** Notified, not closed yet. */
   readonly awaiting_closure?: boolean;
 }

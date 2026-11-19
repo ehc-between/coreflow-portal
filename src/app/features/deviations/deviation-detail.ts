@@ -79,6 +79,7 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { CustomerChip, CustomerPicker, CustomersAvailability } from '../../shared/customers';
 import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -208,6 +209,8 @@ interface ClauseChip {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
+    CustomerChip,
+    CustomerPicker,
     TourStepDirective,
     AiAssistButton,
     RecordDetailLayout,
@@ -467,6 +470,11 @@ interface ClauseChip {
               [value]="dev.description"
               [multiline]="true"
             />
+            @if (dev.customer) {
+              <app-field-item size="lead" labelKey="deviations.create.fields.customer">
+                <app-customer-chip [ref]="dev.customer" data-testid="deviation-customer-chip" />
+              </app-field-item>
+            }
             <app-field-item
               size="lead"
               labelKey="deviations.page.lead.immediateAction"
@@ -774,6 +782,21 @@ interface ClauseChip {
                           <option [value]="dept.id">{{ dept.name }}</option>
                         }
                       </select>
+                    </app-deviation-form-row>
+                  }
+                  @if (customers.enabled()) {
+                    <app-deviation-form-row
+                      labelKey="deviations.create.fields.customer"
+                      inputId="edit-customer"
+                      page="detail"
+                    >
+                      <app-customer-picker
+                        inputId="edit-customer"
+                        [value]="customerId()"
+                        [current]="dev.customer ?? null"
+                        (valueChange)="customerId.set($event ?? '')"
+                        data-testid="deviation-edit-customer"
+                      />
                     </app-deviation-form-row>
                   }
                 </div>
@@ -1204,6 +1227,7 @@ interface ClauseChip {
 export class DeviationDetail {
   private readonly api = inject(DeviationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
+  protected readonly customers = inject(CustomersAvailability);
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
@@ -1294,6 +1318,7 @@ export class DeviationDetail {
   protected readonly refs = signal<readonly string[]>([]);
   protected readonly tags = signal<readonly string[]>([]);
   protected readonly departmentId = signal('');
+  protected readonly customerId = signal('');
   protected readonly data = signal<Record<string, unknown>>({});
   protected readonly dataErrors = signal<Record<string, string>>({});
   protected readonly titleError = signal(false);
@@ -1727,6 +1752,7 @@ export class DeviationDetail {
     this.refs.set(form.refs);
     this.tags.set(form.tags);
     this.departmentId.set(form.departmentId);
+    this.customerId.set(form.customerId ?? '');
     this.data.set(form.data);
     this.dataErrors.set({});
     this.recordErrors.set({});
@@ -1809,6 +1835,7 @@ export class DeviationDetail {
       refs: this.refs(),
       tags: this.tags(),
       departmentId: this.departmentId(),
+      customerId: this.customerId(),
       data: this.data(),
     });
     if (Object.keys(patch).length === 0) {

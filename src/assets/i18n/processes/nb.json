@@ -25,7 +25,8 @@
     "noOwner": "Ingen eier",
     "noMap": "Ingen arbeidsflyt tegnet ennå",
     "noMatchesTitle": "Ingen treff",
-    "clearFilters": "Fjern filtrene"
+    "clearFilters": "Fjern filtrene",
+    "suggestMore": "Foreslå flere"
   },
   "filters": {
     "status": "Status",

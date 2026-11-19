@@ -1,3 +1,4 @@
+import type { CustomerRef } from '../../../shared/customers';
 import {
   EntityRef,
   MemberIn,
@@ -26,6 +27,9 @@ export interface ProjectFormValue {
   /** '' = the caller (create) / unchanged owner (edit cannot clear it). */
   readonly owner_user_id: string;
   readonly department_id: string;
+  /** The customer register record ('' = none) and its ref (shown by the picker). */
+  readonly customer_id: string;
+  readonly customer: CustomerRef | null;
   readonly start_date: string;
   readonly due_date: string;
   readonly security_relevant: boolean;
@@ -64,6 +68,8 @@ export function emptyProjectForm(patch: Partial<ProjectFormValue> = {}): Project
     health: '',
     owner_user_id: '',
     department_id: '',
+    customer_id: '',
+    customer: null,
     start_date: '',
     due_date: '',
     security_relevant: false,
@@ -88,6 +94,8 @@ export function formFromProject(p: ProjectDetail): ProjectFormValue {
     health: p.health ?? '',
     owner_user_id: p.owner?.id ?? '',
     department_id: p.department_id ?? '',
+    customer_id: p.customer_id ?? '',
+    customer: p.customer ?? null,
     start_date: p.start_date ?? '',
     due_date: p.due_date ?? '',
     security_relevant: p.security_relevant,
@@ -140,6 +148,7 @@ export function toCreateRequest(v: ProjectFormValue): ProjectCreate {
     health: v.health || null,
     ...(v.owner_user_id ? { owner_user_id: v.owner_user_id } : {}),
     department_id: v.department_id || null,
+    customer_id: v.customer_id || null,
     start_date: v.start_date || null,
     due_date: v.due_date || null,
     security_relevant: v.security_relevant,
@@ -170,6 +179,7 @@ export function toUpdateRequest(
     'priority',
     'health',
     'department_id',
+    'customer_id',
     'start_date',
     'due_date',
     'security_relevant',

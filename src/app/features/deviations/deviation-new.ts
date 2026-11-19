@@ -14,6 +14,7 @@ import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
 import { hasAnyPermission } from '../../core/auth/permission';
 import {
+  codedErrorDetail,
   invalidDataErrors,
   notifyDeviationSaveError,
   recordDataErrors,
@@ -42,6 +43,12 @@ import {
   FormSuggestFieldDef,
 } from '../../shared/ask/form-suggest';
 import { AskAbout } from '../../shared/ask/ask-about';
+import {
+  CustomerPicker,
+  CustomerRef,
+  CustomersAvailability,
+  customerIdFromRoute,
+} from '../../shared/customers';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { FlowBanner } from '../../shared/kit/flow-banner';
@@ -133,6 +140,7 @@ export function linksFromParams(params: {
     DeviationClassificationFields,
     DeviationEventFacts,
     DeviationFormRow,
+    CustomerPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -330,6 +338,26 @@ export function linksFromParams(params: {
                         }
                       </select>
                     </app-deviation-form-row>
+                    @if (customers.enabled()) {
+                      <app-deviation-form-row
+                        labelKey="deviations.create.fields.customer"
+                        inputId="dev-customer"
+                        [required]="customerRequired()"
+                        [errorKey]="
+                          customerError() ? 'deviations.apiErrors.customer_required' : null
+                        "
+                      >
+                        <app-customer-picker
+                          inputId="dev-customer"
+                          [value]="customerId()"
+                          [current]="customerRef()"
+                          [required]="customerRequired()"
+                          (valueChange)="setCustomer($event)"
+                          (refChange)="customerRef.set($event)"
+                          data-testid="deviation-customer"
+                        />
+                      </app-deviation-form-row>
+                    }
                   </div>
                 </div>
               </app-card>
@@ -524,6 +552,7 @@ export class DeviationNew {
   private readonly route = inject(ActivatedRoute);
   private readonly recordsApi = inject(RecordsApi);
   private readonly flows = inject(CreateFlowService);
+  protected readonly customers = inject(CustomersAvailability);
 
   /** "Create from here" / `?fromRequirement=`: prefill and link back on save. */
   protected readonly flow = this.flows.consume(this.route, { targetType: 'deviation' });
@@ -566,6 +595,14 @@ export class DeviationNew {
   protected readonly source = signal<Source>('internal');
   protected readonly refs = signal<readonly string[]>([]);
   protected readonly tags = signal<readonly string[]>([]);
+  /** The Kunde field (customer register): `?customer_id=` or the customer card's flow. */
+  protected readonly customerId = signal<string | null>(customerIdFromRoute(this.route));
+  protected readonly customerRef = signal<CustomerRef | null>(null);
+  protected readonly customerError = signal(false);
+  /** The claim template ("Reklamasjon / kundeklage") needs a customer. */
+  protected readonly customerRequired = computed(
+    () => this.customers.enabled() && this.selectedType()?.customer_field === 'required',
+  );
   // Who
   protected readonly ownerId = signal('');
   protected readonly departmentId = signal('');
@@ -642,6 +679,13 @@ export class DeviationNew {
         if (typeof source === 'string' && (SOURCE_OPTIONS as readonly string[]).includes(source)) {
           this.source.set(source as Source);
         }
+        const customerId = p['customer_id'];
+        if (typeof customerId === 'string' && customerId) {
+          const ref = p['customer'] as CustomerRef | undefined;
+          this.customerId.set(customerId);
+          this.customerRef.set(ref?.id === customerId ? ref : null);
+        }
+        this.preselectTemplate();
         if (flow.requirementRef) {
           const ref = flow.requirementRef.replace(/\.r\d+$/, '');
           const [clause] = clausesFromRefs([ref]);
@@ -651,6 +695,25 @@ export class DeviationNew {
         }
       });
     });
+  }
+
+  protected setCustomer(id: string | null): void {
+    this.customerId.set(id);
+    if (id) {
+      this.customerError.set(false);
+    }
+  }
+
+  /** The claim flow (`template_key` in the prefill) opens on the type installed from it. */
+  private preselectTemplate(): void {
+    const key = this.flow()?.prefill?.['template_key'];
+    if (typeof key !== 'string' || !key || this.selectedType()) {
+      return;
+    }
+    const match = this.types().find((t) => t.template_key === key);
+    if (match) {
+      this.selectType(match);
+    }
   }
 
   protected optionsFor(type: string): readonly DynamicFieldOption[] {
@@ -812,6 +875,12 @@ export class DeviationNew {
       return;
     }
     this.titleError.set(false);
+    if (this.customerRequired() && !this.customerId()) {
+      this.customerError.set(true);
+      this.notifications.error('deviations.apiErrors.customer_required');
+      document.getElementById('dev-customer')?.focus();
+      return;
+    }
 
     const clauses = clausesFromRefs(this.refs());
     const body: CreateDeviationRequest = {
@@ -825,6 +894,7 @@ export class DeviationNew {
       source: this.source(),
       owner_user_id: this.ownerId() || undefined,
       department_id: this.departmentId() || undefined,
+      ...(this.customerId() ? { customer_id: this.customerId() } : {}),
       due_at: this.dueAt() || undefined,
       occurred_at: localToUtc(this.occurred()) ?? undefined,
       detected_at: localToUtc(this.detected()) ?? undefined,
@@ -854,6 +924,9 @@ export class DeviationNew {
   }
 
   private handleError(error: unknown): void {
+    if (codedErrorDetail(error)?.code === 'customer_required') {
+      this.customerError.set(true);
+    }
     const recordFieldErrors = recordDataErrors(error);
     if (recordFieldErrors) {
       this.recordErrors.set(recordFieldErrors);
@@ -889,6 +962,7 @@ export class DeviationNew {
         if (match && !this.selectedType()) {
           this.selectType(match);
         }
+        this.preselectTemplate();
       },
       error: () => this.loadingTypes.set(false),
     });

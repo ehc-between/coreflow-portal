@@ -151,6 +151,10 @@
       "label": "Mentions",
       "hint": "When someone mentions you."
     },
+    "chat": {
+      "label": "Messages",
+      "hint": "Direct messages and being added to a conversation. Channel activity never notifies."
+    },
     "comments": {
       "label": "Comments",
       "hint": "New comments on records you follow."

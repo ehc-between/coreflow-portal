@@ -148,7 +148,8 @@
     "changeResources": "Ressurser og budsjett",
     "objectiveMet": "Ble målet nådd?",
     "objectiveEvidence": "Hva viser at målet ble nådd",
-    "closeoutApprovedBy": "Godkjent av"
+    "closeoutApprovedBy": "Godkjent av",
+    "customer": "Kunde"
   },
   "form": {
     "newTitle": "Nytt prosjekt",
@@ -553,7 +554,8 @@
     "invalid_revision": "Den versjonen av dokumentet finnes ikke.",
     "invalid_objective_met": "Svar ja, delvis eller nei på om målet ble nådd.",
     "invalid_project": "Prosjektet finnes ikke.",
-    "unsupported_entity_type": "Denne typen post kan ikke kobles her."
+    "unsupported_entity_type": "Denne typen post kan ikke kobles her.",
+    "invalid_customer": "Velg en kunde fra kunderegisteret."
   },
   "notifications": {
     "created": "Nytt prosjekt til deg: {{ code }} {{ title }}",

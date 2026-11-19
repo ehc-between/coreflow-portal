@@ -2292,6 +2292,7 @@
   "modules": {
     "names": {
       "tasks": "Oppgaver",
+      "chat": "Meldinger",
       "context": "Kontekst og ledelse",
       "processes": "Prosesser",
       "deviations": "Avvik",
@@ -2319,10 +2320,12 @@
       "standards": "Standarder og krav",
       "guidance": "Veiledning og opplæring",
       "records": "Registertyper og arbeidsflyter",
-      "platform": "Plattform og innstillinger"
+      "platform": "Plattform og innstillinger",
+      "customers": "Kunder"
     },
     "descriptions": {
       "tasks": "Tildel, følg opp og gjenta arbeid på tvers av alle moduler.",
+      "chat": "Direktemeldinger, gruppesamtaler og kanaler for team og temaer.",
       "context": "SWOT, interessenter, omfang, policyer og ansvar.",
       "processes": "Prosessregister og visuelle prosesskart.",
       "deviations": "Avvik, hendelser, korrigerende tiltak og forbedringer.",
@@ -2349,10 +2352,12 @@
       "documents": "Styrte dokumenter med gjennomgang, godkjenning og bekreftelse.",
       "standards": "Standardkatalog, hva som gjelder, og dokumentasjon per krav.",
       "guidance": "Leksjoner, omvisninger og quizer som lærer bort hver modul og dokumenterer kompetanse.",
-      "records": "Lag egne registertyper, skjemaer og godkjenningsflyter."
+      "records": "Lag egne registertyper, skjemaer og godkjenningsflyter.",
+      "customers": "Kunderegister: kontaktpersoner, kontrakter, reklamasjoner, prosjekter og tilfredshet per kunde."
     },
     "reasons": {
       "tasks": "Oppgaver sørger for at hver kontroll, gjennomgang og oppfølging er tildelt og blir gjort i tide.",
+      "chat": "Meldinger holder hverdagsspørsmålene nær arbeidet: diskuter et avvik eller en risiko med de involverte, uten lange e-posttråder.",
       "context": "Alle ISO-styringssystemer starter med kapittel 4 og 5: kontekst, interessenter, omfang og lederskap.",
       "processes": "Prosesstilnærmingen (ISO 9001 4.4) krever at organisasjonen definerer og styrer nøkkelprosessene.",
       "deviations": "Alle standardene organisasjonen har valgt, krever at avvik og hendelser håndteres (punkt 10.2).",
@@ -2377,10 +2382,13 @@
       "feedback": "ISO 9001 9.1.2 krever at organisasjonen overvåker kundetilfredsheten.",
       "reports": "Rapporter og revisjonspakker gjør det raskt å vise dokumentasjon til revisorer.",
       "documents": "Dokumentert informasjon må styres (kapittel 7.5) i alle ISO-standarder.",
-      "standards": "Standarder og krav viser hvordan hvert krav i standardene organisasjonen følger, er oppfylt."
+      "standards": "Standarder og krav viser hvordan hvert krav i standardene organisasjonen følger, er oppfylt.",
+      "customers": "ISO 9001 8.2 og 9.1.2 krever at dere kommuniserer med kundene, gjennomgår kravene deres og overvåker tilfredsheten."
     },
     "entities": {
       "document": "Dokument",
+      "chat_conversation": "Samtale",
+      "chat_message": "Melding",
       "deviation": "Avvik",
       "deviation_action": "Avvikstiltak",
       "standard": "Standard",
@@ -2459,7 +2467,9 @@
       "retention_rule": "Oppbevaringsregel",
       "audit_certification": "Sertifisering",
       "audit_auditor_profile": "Revisorprofil",
-      "generated_output": "Laget dokument"
+      "generated_output": "Laget dokument",
+      "customer": "Kunde",
+      "customer_contact": "Kontaktperson"
     },
     "links": {
       "title": "Organisasjon",

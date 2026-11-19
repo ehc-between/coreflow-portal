@@ -53,6 +53,7 @@ function listParams(filters: DeviationFilters) {
     clause: filters.clause,
     owner_user_id: filters.owner_user_id,
     department_id: filters.department_id,
+    customer_id: filters.customer_id,
     source: filters.source,
     due_before: filters.due_before,
     due_after: filters.due_after,

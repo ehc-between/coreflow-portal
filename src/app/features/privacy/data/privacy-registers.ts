@@ -60,7 +60,9 @@ export type RegisterKey = (typeof REGISTER_KEYS)[number];
  *   contract, document, asset, employee), stored as ids and shown as record chips;
  * - `country` / `countries`: ISO 3166-1 alpha-2 codes, named in the UI language;
  * - `owner`: an org member; `department`;
- * - `screening`: the DPIA screening checklist; `risks`: the DPIA risk table.
+ * - `screening`: the DPIA screening checklist; `risks`: the DPIA risk table;
+ * - `customer` / `customers`: one / several customers of the customer register (hidden
+ *   while the customers module is off).
  */
 export type FieldKind =
   | 'text'
@@ -82,7 +84,9 @@ export type FieldKind =
   | 'owner'
   | 'department'
   | 'screening'
-  | 'risks';
+  | 'risks'
+  | 'customer'
+  | 'customers';
 
 /** Records of other modules a privacy record links to (`entity` / `entities` fields). */
 export const LINKED_ENTITIES = ['supplier', 'contract', 'document', 'asset', 'employee'] as const;
@@ -169,6 +173,8 @@ export interface RegisterDef {
   readonly filters: readonly FilterDef[];
   /** Clause references shown with the register (`gdpr:30`, `iso27001:A.5.34`). */
   readonly clauses: readonly string[];
+  /** The list has a Kunde filter (`?customer_id=`, the customer card's "Se alle"). */
+  readonly customerFilter?: boolean;
   /** The server export of the register (`GET /exports/<kind>`), if it has one. */
   readonly exportKind?: ExportKind;
   /** The lesson offered in the help strip of the register's pages. */
@@ -240,6 +246,13 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         section: 'basics',
         maxLength: 255,
         art30: true,
+        showIf: equals('role', 'processor'),
+      },
+      // Processing we perform as processor for a customer (the controller).
+      {
+        key: 'customer_id',
+        kind: 'customer',
+        section: 'basics',
         showIf: equals('role', 'processor'),
       },
       description,
@@ -318,6 +331,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       reviewDue,
     ],
     facts: [],
+    customerFilter: true,
     filters: [
       { param: 'role', options: ROPA_ROLES, optionSet: 'ropaRole' },
       { param: 'legal_basis', options: LEGAL_BASES, optionSet: 'legalBasis' },
@@ -495,6 +509,8 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       },
       { key: 'ropa_entry_ids', kind: 'refs', ref: 'ropa', section: 'impact', wide: true },
       { key: 'processor_id', kind: 'ref', ref: 'processor', section: 'impact' },
+      // Customers (controllers we process for) affected: tell them without undue delay.
+      { key: 'customer_ids', kind: 'customers', section: 'impact', wide: true },
       { key: 'asset_ids', kind: 'entities', entity: 'asset', section: 'impact', wide: true },
       { key: 'data_categories', kind: 'tags', section: 'impact' },
       { key: 'special_categories', kind: 'boolean', section: 'impact' },
@@ -585,6 +601,7 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
       { key: 'notification_deadline', kind: 'datetime' },
       { key: 'closed_at', kind: 'datetime' },
     ],
+    customerFilter: true,
     filters: [{ param: 'risk_level', options: BREACH_RISKS, optionSet: 'breachRisk' }],
     clauses: ['gdpr:33', 'gdpr:34', 'iso27001:A.5.34'],
     exportKind: 'breaches',

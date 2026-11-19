@@ -28,6 +28,8 @@ export const CONTRACT_ERROR_CODES = [
   'invalid_review_item',
   'invalid_review_answer',
   'invalid_supplier',
+  'invalid_customer',
+  'party_supplier_and_customer',
   'not_a_dpa',
   'link_exists',
 ] as const;

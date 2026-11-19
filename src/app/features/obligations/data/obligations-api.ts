@@ -43,6 +43,7 @@ export function obligationListParams(query: ObligationListQuery): QueryParams {
     without_schedule: query.without_schedule,
     renewal_due: query.renewal_due,
     clause_ref: query.clause_ref || undefined,
+    customer_id: query.customer_id || undefined,
     sort: query.sort,
     limit: query.limit,
     offset: query.offset,

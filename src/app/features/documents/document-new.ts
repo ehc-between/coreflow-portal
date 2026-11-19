@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -31,6 +32,7 @@ import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { EntityChipRef } from '../../shared/kit/entity-chip';
 import { FlowBanner } from '../../shared/kit/flow-banner';
+import { CustomerPicker, CustomersAvailability, customerIdFromRoute } from '../../shared/customers';
 import { ClausePicker, toRefs } from '../../shared/requirement-links/clause-picker';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
@@ -95,6 +97,7 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
     DocumentAccessEditor,
     DocumentsAiDraft,
     DocumentsPageGuide,
+    CustomerPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -244,6 +247,24 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
           </h2>
           <p class="mt-1 mb-4 text-ui text-fg-muted">{{ 'documents.link.intro' | transloco }}</p>
           <div class="flex flex-col gap-4">
+            @if (customers.enabled()) {
+              <div>
+                <app-form-field
+                  [label]="'documents.link.customer' | transloco"
+                  inputId="doc-customer"
+                >
+                  <app-customer-picker
+                    inputId="doc-customer"
+                    [value]="customerId()"
+                    (valueChange)="customerId.set($event)"
+                    data-testid="doc-customer"
+                  />
+                </app-form-field>
+                <p class="mt-1 text-meta text-fg-subtle">
+                  {{ 'documents.link.customerHint' | transloco }}
+                </p>
+              </div>
+            }
             @if (canReadStandards()) {
               <div>
                 <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
@@ -396,6 +417,9 @@ export class DocumentNew {
 
   /** A "Lag ny fra denne" / "fra kravet" flow this form was opened with. */
   protected readonly flow = this.flows.consume(this.route, { targetType: 'document' });
+  protected readonly customers = inject(CustomersAvailability);
+  /** A customer-specific document: from the customer card (flow or `?customer_id=`). */
+  protected readonly customerId = signal<string | null>(customerIdFromRoute(this.route));
   /** The requirement a requirement flow documents (linked by the flow on save). */
   protected readonly flowRequirement = computed(() => {
     const req = this.flow()?.prefill.requirement;
@@ -469,6 +493,10 @@ export class DocumentNew {
         const title = ctx.prefill.title;
         if (typeof title === 'string' && !this.form.controls.title.value) {
           this.form.controls.title.setValue(title);
+        }
+        const customer = ctx.prefill['customer_id'];
+        if (typeof customer === 'string' && customer && !this.customerId()) {
+          this.customerId.set(customer);
         }
         const description = ctx.prefill.description;
         if (typeof description === 'string' && description.trim() && !this.content()) {
@@ -620,7 +648,18 @@ export class DocumentNew {
           ...links,
         })
         .subscribe({
-          next: (document) => this.created(document, ['/documents', document.id, 'edit']),
+          next: (document) => {
+            // The template endpoint takes no customer: set it on the new draft.
+            const customer = this.customerId();
+            if (!customer) {
+              this.created(document, ['/documents', document.id, 'edit']);
+              return;
+            }
+            this.api
+              .updateControl(orgId, document.id, { customer_id: customer })
+              .pipe(catchError(() => of(document)))
+              .subscribe((doc) => this.created(doc, ['/documents', document.id, 'edit']));
+          },
           error: (e: unknown) => {
             this.saving.set(false);
             this.errorKey.set(documentControlErrorKey(e));
@@ -639,6 +678,7 @@ export class DocumentNew {
         visibility,
         access: visibility === 'restricted' && access.length ? access : undefined,
         ...links,
+        ...(this.customerId() ? { customer_id: this.customerId()! } : {}),
       })
       .subscribe({
         next: (document) => this.created(document, ['/documents', document.id]),

@@ -4,6 +4,7 @@
  * timestamps are naive UTC ISO strings.
  */
 import { EntityRefDto } from '../../../core/entities/entity.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 export const PERM_READ = 'feedback:read';
 export const PERM_WRITE = 'feedback:write';
@@ -169,6 +170,9 @@ export interface FeedbackListItem {
   readonly tags: readonly string[];
   readonly customer_name: string | null;
   readonly customer_organisation: string | null;
+  /** The customer (customer register); name / e-mail / phone are the contact person. */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly satisfaction_score: number | null;
   readonly received_on: string;
   readonly response_due_on: string | null;
@@ -230,6 +234,7 @@ export interface FeedbackCreate extends ComplaintAssessment {
   readonly tags?: readonly string[];
   readonly customer_name?: string | null;
   readonly customer_organisation?: string | null;
+  readonly customer_id?: string | null;
   readonly customer_email?: string | null;
   readonly customer_phone?: string | null;
   readonly product_or_service?: string | null;
@@ -263,6 +268,7 @@ export interface FeedbackListQuery {
   readonly survey_id?: string;
   readonly severity?: readonly FeedbackSeverity[];
   readonly department_id?: string;
+  readonly customer_id?: string;
   readonly category?: string;
   readonly justified?: boolean;
   readonly overdue?: boolean;
@@ -424,6 +430,9 @@ export interface SurveyListItem {
   readonly closes_on: string | null;
   readonly owner: UserRef | null;
   readonly language?: SurveyLanguage | null;
+  /** The one customer the survey is sent to (optional; customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly url: string;
   readonly created_at: string;
   readonly updated_at: string;
@@ -464,6 +473,7 @@ export interface SurveyCreate {
   readonly low_score_threshold?: number | null;
   readonly owner_user_id?: string | null;
   readonly language?: SurveyLanguage | null;
+  readonly customer_id?: string | null;
 }
 
 export interface SurveyUpdate extends Partial<SurveyCreate> {

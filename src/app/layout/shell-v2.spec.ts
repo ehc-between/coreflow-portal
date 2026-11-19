@@ -24,6 +24,7 @@ import {
 } from './nav-v2';
 import { RegistrerService } from '../shared/registrer/registrer.service';
 import { SideNavV2 } from './side-nav-v2/side-nav-v2';
+import { ChatStore } from '../core/chat/chat-store';
 
 type Tree = Record<string, unknown>;
 
@@ -83,6 +84,8 @@ function render(opts: {
       provideZonelessChangeDetection(),
       provideRouter(opts.routes ?? []),
       { provide: ModuleService, useValue: { isEnabled: () => true } },
+      // Chat badge: the store itself is covered by core/chat specs.
+      { provide: ChatStore, useValue: { available: signal(false), unreadBadge: signal(0) } },
       {
         provide: SelectedOrgService,
         useValue: {
@@ -203,7 +206,7 @@ describe('Shell v2 navigation data', () => {
 });
 
 describe('SideNavV2', () => {
-  it('gives the admin seven entries: Registrer plus six destinations, and no pins', () => {
+  it('gives the admin eight entries: Registrer plus seven destinations (incl. Meldinger), and no pins', () => {
     const { destinations, pins, registrer } = render({
       roles: ['admin'],
       permissions: ADMIN_PERMISSIONS,
@@ -212,15 +215,16 @@ describe('SideNavV2', () => {
     expect(destinations.map((a) => a.dataset['testid'])).toEqual([
       'nav-v2-home',
       'nav-v2-myWork',
+      'nav-v2-chat',
       'nav-v2-standards',
       'nav-v2-registers',
       'nav-v2-library',
       'nav-v2-settings',
     ]);
-    expect(1 + destinations.length).toBe(7);
+    expect(1 + destinations.length).toBe(8);
     expect(pins).toHaveLength(0);
     // Until the /library hub ships, "Dokumenter og rapporter" opens Documents.
-    expect(destinations[4].getAttribute('href')).toBe('/documents');
+    expect(destinations[5].getAttribute('href')).toBe('/documents');
   });
 
   it('opens /library once that route exists', () => {

@@ -24,6 +24,7 @@ import { InboxService } from '../../core/notifications/inbox.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { ADMIN_SECTION, LEARNING_NAV_ITEM, NAV_ITEMS, NavItem, SETTINGS_NAV_ITEM } from '../nav';
 import { SideNav } from './side-nav';
+import { ChatStore } from '../../core/chat/chat-store';
 
 /**
  * Nav smoke test (U01): click every sidebar link, for several roles, against the real
@@ -135,6 +136,7 @@ function configure(persona: Persona) {
         },
       },
       { provide: ModuleService, useValue: { isEnabled: () => true } },
+      { provide: ChatStore, useValue: { available: signal(false), unreadBadge: signal(0) } },
       {
         provide: InboxService,
         useValue: {

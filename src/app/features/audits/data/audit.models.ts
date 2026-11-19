@@ -8,6 +8,7 @@
  */
 import { EntityRefDto } from '../../../core/entities/entity.models';
 import { Task } from '../../../core/tasks/task.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 export const FRAMEWORKS = [
   'iso9001',
@@ -292,6 +293,9 @@ export interface Plan {
   readonly kind: PlanKind;
   readonly external_party_type: ExternalPartyType | null;
   readonly external_party_name: string | null;
+  /** The customer that audits us (customer register; external audits by a customer). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly programme: RecordRef | null;
   readonly certification_id: string | null;
   readonly certification?: CertificationRef | null;
@@ -359,6 +363,8 @@ export interface PlanQuery extends PageQuery {
   readonly clause?: string;
   /** `true`: only audits whose report is approved ("Signert"). */
   readonly signed?: boolean;
+  /** Audits by one customer (`?customer_id=`, the customer card's "Se alle"). */
+  readonly customer_id?: string;
   readonly start_from?: string;
   readonly start_to?: string;
   readonly sort?: PlanSort;
@@ -371,6 +377,7 @@ export interface PlanInput {
   readonly certification_id?: string | null;
   readonly external_party_type?: ExternalPartyType | null;
   readonly external_party_name?: string | null;
+  readonly customer_id?: string | null;
   readonly scope?: string | null;
   readonly criteria?: string | null;
   readonly objectives?: string | null;

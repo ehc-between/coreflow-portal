@@ -19,6 +19,7 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
+import { customerIdFromRoute } from '../../shared/customers';
 import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Card } from '../../shared/ui/card/card';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
@@ -182,7 +183,8 @@ export class ContractNew {
   private readonly flows = inject(CreateFlowService);
 
   /** The create-from-here flow this form was opened with (supplier → contract, contract → DPA). */
-  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+  private readonly route = inject(ActivatedRoute);
+  protected readonly flow = this.flows.consume(this.route, {
     targetType: 'contract',
   });
 
@@ -191,7 +193,11 @@ export class ContractNew {
     { labelKey: 'contracts.form.newTitle' },
   ];
   protected readonly minChars = MIN_EXTRACT_CHARS;
-  protected readonly seed = signal<ContractFormValue>(emptyContractForm());
+  /** `?customer_id=` (the customer card's "+ Ny") pre-fills the Kunde field. */
+  protected readonly seed = signal<ContractFormValue>({
+    ...emptyContractForm(),
+    customer_id: customerIdFromRoute(this.route) ?? '',
+  });
   protected readonly draft = signal<ContractFormValue>(this.seed());
   protected readonly saving = signal(false);
   protected readonly extractOpen = signal(false);

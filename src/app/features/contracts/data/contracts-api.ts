@@ -44,6 +44,7 @@ export function contractListParams(query: ContractListQuery): QueryParams {
       ? query.personal_data_role.join(',')
       : undefined,
     supplier_id: query.supplier_id || undefined,
+    customer_id: query.customer_id || undefined,
     warning: query.warning?.length ? query.warning.join(',') : undefined,
     dpa_missing: query.dpa_missing || undefined,
     sort: query.sort,

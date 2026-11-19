@@ -8,6 +8,7 @@ export const FEEDBACK_ERROR_CODES = [
   'field_required',
   'invalid_owner',
   'invalid_department',
+  'invalid_customer',
   'invalid_kind',
   'invalid_channel',
   'invalid_severity',

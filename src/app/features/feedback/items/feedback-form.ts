@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
 import { EntityRefDto } from '../../../core/entities/entity.models';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
+import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../../shared/customers';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { Button } from '../../../shared/ui/button/button';
@@ -58,7 +59,16 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
  */
 @Component({
   selector: 'app-feedback-form',
-  imports: [TranslocoPipe, AskAbout, FieldHelp, Button, Card, FormField, FeedbackSubjectPicker],
+  imports: [
+    TranslocoPipe,
+    AskAbout,
+    FieldHelp,
+    Button,
+    Card,
+    FormField,
+    FeedbackSubjectPicker,
+    CustomerPicker,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
@@ -325,6 +335,23 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
           {{ 'feedback.form.customerHint' | transloco }}
         </p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          @if (customers.enabled()) {
+            <div class="sm:col-span-2">
+              <app-form-field
+                [label]="'feedback.fields.customer' | transloco"
+                inputId="cf-fb-customer"
+              >
+                <app-customer-picker
+                  inputId="cf-fb-customer"
+                  [value]="form().customer_id || null"
+                  [current]="form().customer"
+                  (valueChange)="set('customer_id', $event ?? '')"
+                  (refChange)="set('customer', $event)"
+                  data-testid="feedback-customer"
+                />
+              </app-form-field>
+            </div>
+          }
           <app-form-field
             [label]="'feedback.fields.customerName' | transloco"
             inputId="cf-fb-cname"
@@ -338,19 +365,22 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
               (input)="set('customer_name', $any($event.target).value)"
             />
           </app-form-field>
-          <app-form-field
-            [label]="'feedback.fields.customerOrganisation' | transloco"
-            inputId="cf-fb-corg"
-          >
-            <input
-              id="cf-fb-corg"
-              type="text"
-              maxlength="255"
-              autocomplete="off"
-              [value]="form().customer_organisation"
-              (input)="set('customer_organisation', $any($event.target).value)"
-            />
-          </app-form-field>
+          <!-- The free-text organisation gives way to the Kunde field; kept for old records. -->
+          @if (!customers.enabled() || (!form().customer_id && form().customer_organisation)) {
+            <app-form-field
+              [label]="'feedback.fields.customerOrganisation' | transloco"
+              inputId="cf-fb-corg"
+            >
+              <input
+                id="cf-fb-corg"
+                type="text"
+                maxlength="255"
+                autocomplete="off"
+                [value]="form().customer_organisation"
+                (input)="set('customer_organisation', $any($event.target).value)"
+              />
+            </app-form-field>
+          }
           <div>
             <app-form-field
               [label]="'feedback.fields.customerEmail' | transloco"
@@ -585,6 +615,7 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
 })
 export class FeedbackForm {
   private readonly assignees = inject(AssigneeOptionsService);
+  protected readonly customers = inject(CustomersAvailability);
   private readonly api = inject(FeedbackApi);
   private readonly selectedOrg = inject(SelectedOrgService);
 
@@ -718,6 +749,17 @@ export class FeedbackForm {
         (r) => !(r.entity_type === ref.entity_type && r.entity_id === ref.entity_id),
       ),
     );
+  }
+
+  /** Prefill the Kunde field (create-from-customer, `?customer_id=`) unless already set. */
+  patchCustomer(id: string | null, ref: CustomerRef | null = null): void {
+    const current = this.form();
+    if (!id || current.customer_id) {
+      return;
+    }
+    const next: FeedbackFormValue = { ...current, customer_id: id, customer: ref };
+    this.form.set(next);
+    this.changed.emit(next);
   }
 
   /** Fill fields that are still empty (values from a create-from-here flow). */

@@ -51,7 +51,7 @@ export function navWorkspace(
 
 /** One of the fixed destinations (Registrer is the button above them). */
 export interface NavDestination {
-  readonly key: 'home' | 'myWork' | 'standards' | 'registers' | 'library' | 'settings';
+  readonly key: 'home' | 'myWork' | 'chat' | 'standards' | 'registers' | 'library' | 'settings';
   readonly path: string;
   readonly labelKey: string;
   readonly icon: string;
@@ -73,6 +73,16 @@ export const NAV_DESTINATIONS: readonly NavDestination[] = [
     workspaces: ALL,
   },
   { key: 'myWork', path: 'my-work', labelKey: 'shell.nav.myWork', icon: 'inbox', workspaces: ALL },
+  {
+    // Chat (docs/chat-design.md §4.5): for every workspace, with an unread badge.
+    key: 'chat',
+    path: 'chat',
+    labelKey: 'shell.nav.chat',
+    icon: 'comment',
+    module: 'chat',
+    permission: 'chat:use',
+    workspaces: ALL,
+  },
   {
     key: 'standards',
     path: 'standards',
@@ -170,6 +180,14 @@ export const REGISTER_ACTIONS: readonly RegisterAction[] = [
     module: 'documents',
   },
   {
+    key: 'customer',
+    path: 'customers/new',
+    labelKey: 'shell.registrer.customer',
+    icon: 'building',
+    permission: 'customers:write',
+    module: 'customers',
+  },
+  {
     key: 'supplier',
     path: 'suppliers/new',
     labelKey: 'shell.registrer.supplier',
@@ -198,6 +216,7 @@ export const REGISTER_GROUPS: readonly RegisterGroup[] = [
     labelKey: 'shell.groups.improvement',
     modules: ['deviations', 'inspections', 'audits', 'feedback'],
   },
+  { key: 'customers', labelKey: 'shell.groups.customers', modules: ['customers'] },
   {
     key: 'suppliersAssets',
     labelKey: 'shell.groups.suppliersAssets',

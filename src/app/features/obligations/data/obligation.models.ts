@@ -7,6 +7,7 @@
 
 import { EntityRefDto } from '../../../core/entities/entity.models';
 import { AssigneeIn, TaskPriority } from '../../../core/tasks/task.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 export const PERM_READ = 'obligations:read';
 export const PERM_WRITE = 'obligations:write';
@@ -137,6 +138,9 @@ export interface ObligationListItem {
   readonly compliance_status: ComplianceStatus;
   readonly jurisdiction: string | null;
   readonly issuer: string | null;
+  /** Customer-specific requirement: the customer (customer register) that sets it. */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly reference: string | null;
   /** Explicit tags plus the frameworks of `clause_refs`. */
   readonly frameworks: readonly string[];
@@ -249,6 +253,7 @@ export interface ObligationFields {
   readonly renewal_lead_days?: number | null;
   readonly jurisdiction?: string | null;
   readonly issuer?: string | null;
+  readonly customer_id?: string | null;
   readonly reference?: string | null;
   readonly source_url?: string | null;
   readonly owner_user_id?: string | null;
@@ -280,6 +285,8 @@ export interface ObligationListQuery {
   readonly without_schedule?: boolean;
   readonly renewal_due?: boolean;
   readonly clause_ref?: string;
+  /** Requirements of one customer (`?customer_id=`, the customer card's "Se alle"). */
+  readonly customer_id?: string;
   readonly sort?: ObligationSort;
   readonly limit?: number;
   readonly offset?: number;

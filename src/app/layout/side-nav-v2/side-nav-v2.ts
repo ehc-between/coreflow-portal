@@ -29,6 +29,7 @@ import {
 } from '../nav-v2';
 import { NavDrawerService } from '../nav-drawer.service';
 import { OrgSwitcher } from '../org-switcher/org-switcher';
+import { ChatNavBadge } from '../../shared/chat/chat-nav-badge';
 
 /** A rendered nav link. */
 interface NavLink {
@@ -55,7 +56,7 @@ interface NavLink {
  */
 @Component({
   selector: 'app-side-nav-v2',
-  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, Icon, Avatar, OrgSwitcher],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, Icon, Avatar, OrgSwitcher, ChatNavBadge],
   viewProviders: [provideSharedScope('shell')],
   host: { class: 'flex min-h-0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -154,6 +155,9 @@ interface NavLink {
       >
         <span class="flex"><app-icon [name]="link.icon" [size]="18" /></span>
         <span class="flex-1 text-left">{{ link.label ?? (link.labelKey | transloco) }}</span>
+        @if (link.key === 'chat') {
+          <app-chat-nav-badge />
+        }
       </a>
     </ng-template>
   `,

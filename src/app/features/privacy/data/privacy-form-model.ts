@@ -53,7 +53,17 @@ export function isVisible(field: FieldDef, values: FormValues): boolean {
 }
 
 /** Kinds whose value is a list. */
-const LIST_KINDS = new Set(['tags', 'multi', 'refs', 'entities', 'countries']);
+const LIST_KINDS = new Set(['tags', 'multi', 'refs', 'entities', 'countries', 'customers']);
+
+/**
+ * Processing for a customer is processing as processor (the customer is the
+ * controller): a ROPA entry opened for a customer starts with the processor role.
+ */
+export function withCustomerRole(register: RegisterDef, values: FormValues): FormValues {
+  return register.key === 'ropa' && values['customer_id'] && values['role'] !== 'processor'
+    ? { ...values, role: 'processor' }
+    : values;
+}
 
 function emptyValue(field: FieldDef): unknown {
   switch (field.kind) {
@@ -62,6 +72,7 @@ function emptyValue(field: FieldDef): unknown {
     case 'refs':
     case 'entities':
     case 'countries':
+    case 'customers':
     case 'risks':
       return [];
     case 'boolean':
@@ -117,6 +128,7 @@ export function valuesFromRecord(register: RegisterDef, record: PrivacyRecord): 
       case 'refs':
       case 'entities':
       case 'countries':
+      case 'customers':
         out[f.key] = Array.isArray(raw) ? [...raw] : [];
         break;
       case 'risks':
@@ -161,6 +173,7 @@ export function wireValue(field: FieldDef, value: unknown): unknown {
     case 'refs':
     case 'entities':
     case 'countries':
+    case 'customers':
       return Array.isArray(value) ? value : [];
     case 'risks':
       return (Array.isArray(value) ? (value as DpiaRisk[]) : [])

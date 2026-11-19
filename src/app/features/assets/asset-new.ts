@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, of } from 'rxjs';
@@ -17,6 +17,7 @@ import { CreateAssetRequest } from './data/asset.models';
 import { AssetsApi } from './data/assets-api';
 import { AssetForm, AssetFormValue } from './asset-form';
 import { AssetOptionsService } from './shared/asset-select';
+import { customerIdFromRoute } from '../../shared/customers';
 
 /** The create body of a form value: an unset owner is left out so the backend defaults it to the caller. */
 export function createAssetBody(value: AssetFormValue): CreateAssetRequest {
@@ -55,7 +56,12 @@ export function createAssetBody(value: AssetFormValue): CreateAssetRequest {
           <app-alert>{{ key | transloco }}</app-alert>
         </div>
       }
-      <app-asset-form [busy]="busy()" (submitted)="save($event)" (cancelled)="back()" />
+      <app-asset-form
+        [busy]="busy()"
+        [customerId]="customerId()"
+        (submitted)="save($event)"
+        (cancelled)="back()"
+      />
       <div class="mt-8"><app-why-it-matters scope="assets" page="form" /></div>
     </div>
   `,
@@ -70,7 +76,13 @@ export class AssetNew {
   private readonly flows = inject(CreateFlowService);
 
   /** The requirement (or flow) this form was opened from, if any. */
-  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'asset' });
+  private readonly route = inject(ActivatedRoute);
+  protected readonly flow = this.flows.consume(this.route, { targetType: 'asset' });
+  /** Customer property: from the customer card's flow or `?customer_id=`. */
+  protected readonly customerId = computed(() => {
+    const id = this.flow()?.prefill?.['customer_id'];
+    return typeof id === 'string' && id ? id : customerIdFromRoute(this.route);
+  });
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
 
