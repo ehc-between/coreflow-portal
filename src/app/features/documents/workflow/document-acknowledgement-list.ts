@@ -89,8 +89,9 @@ export function acknowledgementCsv(
  * requirement on or off. While it is on and an approved revision exists they see
  * an x-of-y progress bar, who still has to confirm (searchable, the first few
  * shown, the email when names collide), who has confirmed, a CSV export, and
- * "Send påminnelse": distribution campaigns carry the reminders, so it opens a
- * new campaign for this document.
+ * "Påminn" (U27): one click reminds everyone still missing (the open campaign of
+ * the revision, or a new one giving each of them a My Work item). Counts are
+ * against the people asked to confirm when the revision was distributed.
  */
 @Component({
   selector: 'app-document-acknowledgement-list',
@@ -138,7 +139,7 @@ export function acknowledgementCsv(
           } @else if (report(); as r) {
             <div class="flex items-center justify-between gap-2 text-meta">
               <span class="font-semibold text-fg" data-testid="ack-progress">{{
-                'documents.ack.progress'
+                'documents.readConfirm.progress'
                   | transloco: { done: r.acknowledged.length, total: total() }
               }}</span>
               <span class="text-fg-muted">{{
@@ -149,30 +150,37 @@ export function acknowledgementCsv(
               class="mt-1.5 block"
               [value]="percent()"
               [label]="
-                'documents.ack.progress'
+                'documents.readConfirm.progress'
                   | transloco: { done: r.acknowledged.length, total: total() }
               "
             />
 
             <div class="mt-3 flex flex-wrap gap-2">
-              @if (r.pending.length > 0) {
-                <a
-                  *appHasPermission="'documents:distribute'"
-                  [routerLink]="['/documents/campaigns/new']"
-                  [queryParams]="{ document: document().id }"
+              @if (r.pending.length > 0 && document().status !== 'obsolete') {
+                <app-button
+                  size="sm"
+                  variant="secondary"
+                  [loading]="reminding()"
+                  (click)="remind()"
                   data-testid="ack-remind"
                 >
-                  <app-button size="sm" variant="secondary">
-                    <app-icon name="bell" [size]="14" />
-                    {{ 'documents.readConfirm.remind' | transloco }}
-                  </app-button>
-                </a>
+                  <app-icon name="bell" [size]="14" />
+                  {{ 'documents.readConfirm.remind' | transloco }}
+                </app-button>
               }
               <app-button size="sm" variant="ghost" (click)="exportCsv()" data-testid="ack-export">
                 <app-icon name="download" [size]="14" />
                 {{ 'documents.readConfirm.export' | transloco }}
               </app-button>
             </div>
+            <a
+              *appHasPermission="'documents:approve'"
+              routerLink="/documents/read-confirm"
+              class="mt-2 inline-block text-meta font-semibold text-accent hover:underline"
+              data-testid="ack-matrix-link"
+            >
+              {{ 'documents.readConfirm.matrix.link' | transloco }}
+            </a>
 
             @if (total() >= searchFrom) {
               <label class="mt-3 block">
@@ -278,6 +286,7 @@ export class DocumentAcknowledgementList {
   protected readonly loading = signal(false);
   protected readonly failed = signal(false);
   protected readonly saving = signal(false);
+  protected readonly reminding = signal(false);
   protected readonly query = signal('');
   protected readonly showAll = signal(false);
 
@@ -346,6 +355,25 @@ export class DocumentAcknowledgementList {
           this.notifications.error(documentErrorKey(error, 'updateControl'));
         },
       });
+  }
+
+  /** U27 "Påminn": one click reminds everyone still missing (a My Work item each). */
+  protected remind(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    if (!orgId || this.reminding()) {
+      return;
+    }
+    this.reminding.set(true);
+    this.api.remindAcknowledgements(orgId, this.document().id).subscribe({
+      next: ({ reminded }) => {
+        this.reminding.set(false);
+        this.notifications.success('documents.readConfirm.remindedToast', { count: reminded });
+      },
+      error: (error: unknown) => {
+        this.reminding.set(false);
+        this.notifications.error(documentErrorKey(error, 'updateControl'));
+      },
+    });
   }
 
   protected exportCsv(): void {

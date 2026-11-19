@@ -9,6 +9,8 @@ import {
   AccessGrantInput,
   AccessSubjects,
   AcknowledgementEntry,
+  AcknowledgementMatrix,
+  ApproveOptions,
   Comment,
   CommentStatus,
   CreateCommentRequest,
@@ -160,9 +162,13 @@ export class DocumentsApi {
    * Approve the in-review revision (`documents:approve`). 409 with code
    * `self_approval` (approver authored it) or `not_in_review`.
    */
-  approve(orgId: string, documentId: string, note?: string | null): Observable<DocumentDetail> {
-    const trimmed = note?.trim();
-    return this.workflow(orgId, documentId, 'approve', trimmed ? { note: trimmed } : null);
+  approve(
+    orgId: string,
+    documentId: string,
+    note?: string | null,
+    options?: ApproveOptions,
+  ): Observable<DocumentDetail> {
+    return this.workflow(orgId, documentId, 'approve', approveBody(note, options));
   }
 
   /** Retire a document with a recorded reason (`documents:approve`). */
@@ -217,6 +223,23 @@ export class DocumentsApi {
     return this.api
       .get<AcknowledgementsResponse>(`v1/orgs/${orgId}/documents/${documentId}/acknowledgements`)
       .pipe(map(toAcknowledgements));
+  }
+
+  /** U27 "Påminn": remind everyone still missing a confirmation (owner or approver). */
+  remindAcknowledgements(orgId: string, documentId: string): Observable<{ reminded: number }> {
+    return this.api.post<{ reminded: number }>(
+      `v1/orgs/${orgId}/documents/${documentId}/acknowledgements/remind`,
+      null,
+      IN_PLACE,
+    );
+  }
+
+  /** U27: people x documents requiring "read and understood" (`documents:approve`). */
+  acknowledgementMatrix(orgId: string, type?: string | null): Observable<AcknowledgementMatrix> {
+    return this.api.get<AcknowledgementMatrix>(
+      `v1/orgs/${orgId}/documents/acknowledgement-matrix`,
+      type ? { params: { type } } : undefined,
+    );
   }
 
   /** POST a document-control transition; errors are shown in place by the caller. */
@@ -435,6 +458,7 @@ interface RawAcknowledgementEntry {
 
 interface AcknowledgementsResponse {
   readonly revision?: string | null;
+  readonly scope?: 'audience' | 'readers';
   readonly acknowledged?: readonly RawAcknowledgementEntry[];
   readonly pending?: readonly RawAcknowledgementEntry[];
   readonly not_acknowledged?: readonly RawAcknowledgementEntry[];
@@ -453,7 +477,32 @@ function toEntry(raw: RawAcknowledgementEntry): AcknowledgementEntry {
 export function toAcknowledgements(response: AcknowledgementsResponse): DocumentAcknowledgements {
   return {
     revision: response.revision ?? null,
+    ...(response.scope ? { scope: response.scope } : {}),
     acknowledged: (response.acknowledged ?? []).map(toEntry),
     pending: (response.pending ?? response.not_acknowledged ?? []).map(toEntry),
   };
+}
+
+/** The approve body: the note plus the U27 publishing answers (null when empty). */
+export function approveBody(
+  note?: string | null,
+  options?: ApproveOptions,
+): Record<string, unknown> | null {
+  const body: Record<string, unknown> = {};
+  const trimmed = note?.trim();
+  if (trimmed) {
+    body['note'] = trimmed;
+  }
+  if (options?.readers?.length) {
+    body['readers'] = options.readers.map((r) =>
+      r.type === 'all' ? { type: 'all' } : { type: r.type, value: r.value },
+    );
+    if (options.readBy) {
+      body['read_by'] = options.readBy;
+    }
+  }
+  if (options?.reviewIntervalMonths) {
+    body['review_interval_months'] = options.reviewIntervalMonths;
+  }
+  return Object.keys(body).length ? body : null;
 }

@@ -533,6 +533,37 @@
       "date": "Confirmed",
       "done": "Confirmed",
       "pending": "Not yet"
+    },
+    "progress": "{{done}} of {{total}} have confirmed",
+    "remindedToast": "Reminder sent. People reminded: {{count}}.",
+    "publish": {
+      "who": "Who must read and confirm it?",
+      "modes": {
+        "none": "Nobody (just publish)",
+        "all": "Everyone who can read it",
+        "custom": "Choose people, roles or departments"
+      },
+      "readBy": "Confirm by (optional)",
+      "review": "When is it reviewed again?",
+      "months": "{{count}} months from now",
+      "toast": "Approved. Everyone asked has a task in My work to read and confirm it."
+    },
+    "matrix": {
+      "link": "Who has read what (all documents)",
+      "title": "Who has read what",
+      "description": "Each column is a document that must be read and confirmed. Open a document to remind the people missing.",
+      "type": "Document type",
+      "types": {
+        "all": "All documents",
+        "policy": "Policies"
+      },
+      "missingOnly": "Only people missing a confirmation",
+      "person": "Person",
+      "personProgress": "{{done}} of {{total}} confirmed",
+      "missing": "Missing",
+      "notAsked": "Not asked",
+      "empty": "No approved document asks for \"Read and understood\" yet.",
+      "export": "Export"
     }
   },
   "link": {

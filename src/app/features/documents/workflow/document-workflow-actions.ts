@@ -9,7 +9,11 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
-import { DocumentApprovers, DocumentDetail } from '../../../core/documents/document.models';
+import {
+  ApproveOptions,
+  DocumentApprovers,
+  DocumentDetail,
+} from '../../../core/documents/document.models';
 import { documentErrorKey, errorCodeOf } from '../../../core/documents/document-errors';
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -19,9 +23,17 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { AudienceEditor } from '../campaigns/audience-editor';
+import { AudienceEntry } from '../data/document-control.models';
 
 /** Which workflow dialog is open. */
 export type WorkflowDialog = 'submit' | 'approve' | 'requestChanges' | 'obsolete';
+/** U27 "Hvem må lese og bekrefte?": nobody, everyone who can read it, or chosen people. */
+export const READER_MODES = ['none', 'all', 'custom'] as const;
+export type ReaderMode = (typeof READER_MODES)[number];
+/** U27 "Når gjennomgås den på nytt?": the default and the offered intervals (months). */
+export const DEFAULT_REVIEW_MONTHS = 12;
+export const REVIEW_CHOICES: readonly number[] = [6, 12, 24, 36];
 
 let nextId = 0;
 
@@ -42,7 +54,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-document-workflow-actions',
-  imports: [TranslocoPipe, Button, Icon, ConfirmDialog, PromptDialog, FormField],
+  imports: [TranslocoPipe, Button, Icon, ConfirmDialog, PromptDialog, FormField, AudienceEditor],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap items-center gap-2 empty:hidden' },
   template: `
@@ -128,20 +140,89 @@ let nextId = 0;
       </div>
     </app-confirm-dialog>
 
-    <app-prompt-dialog
+    <app-confirm-dialog
       [open]="dialog() === 'approve'"
       [title]="'documents.workflow.approveTitle' | transloco"
       [message]="'documents.approval.approveBody' | transloco: { rev: reviewedRev() }"
-      [label]="'documents.approval.noteLabel' | transloco"
-      [placeholder]="'documents.approval.notePlaceholder' | transloco"
-      [required]="true"
-      [maxLength]="2000"
       [confirmLabel]="'documents.approve' | transloco"
       [cancelLabel]="'common.cancel' | transloco"
+      confirmVariant="primary"
       [busy]="busy() === 'approve'"
-      (confirmed)="approve($event)"
+      [confirmDisabled]="!approveValid()"
+      [initialFocus]="'#' + ids.note"
+      (confirmed)="approve(approveNote())"
       (cancelled)="close()"
-    />
+    >
+      <div class="mt-3 flex flex-col gap-3">
+        <app-form-field
+          [inputId]="ids.note"
+          [label]="'documents.approval.noteLabel' | transloco"
+          [required]="true"
+        >
+          <textarea
+            [id]="ids.note"
+            rows="2"
+            maxlength="2000"
+            aria-required="true"
+            [value]="approveNote()"
+            [placeholder]="'documents.approval.notePlaceholder' | transloco"
+            (input)="approveNote.set($any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          [inputId]="ids.readers"
+          [label]="'documents.readConfirm.publish.who' | transloco"
+        >
+          <select
+            [id]="ids.readers"
+            (change)="readersMode.set($any($event.target).value)"
+            data-testid="approve-readers"
+          >
+            @for (mode of readerModes; track mode) {
+              <option [value]="mode" [selected]="mode === readersMode()">
+                {{ 'documents.readConfirm.publish.modes.' + mode | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        @if (readersMode() === 'custom') {
+          <app-audience-editor
+            [value]="customAudience()"
+            (valueChange)="customAudience.set($event)"
+          />
+        }
+        @if (readersMode() !== 'none') {
+          <app-form-field
+            [inputId]="ids.readBy"
+            [label]="'documents.readConfirm.publish.readBy' | transloco"
+          >
+            <input
+              type="date"
+              [id]="ids.readBy"
+              [value]="readBy()"
+              (change)="readBy.set($any($event.target).value)"
+              data-testid="approve-read-by"
+            />
+          </app-form-field>
+        }
+        <app-form-field
+          [inputId]="ids.review"
+          [label]="'documents.readConfirm.publish.review' | transloco"
+        >
+          <select
+            [id]="ids.review"
+            (change)="reviewMonths.set(+$any($event.target).value)"
+            data-testid="approve-review"
+          >
+            @for (months of reviewChoices(); track months) {
+              <option [value]="months" [selected]="months === reviewMonths()">
+                {{ 'documents.readConfirm.publish.months' | transloco: { count: months } }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+      </div>
+    </app-confirm-dialog>
 
     <app-prompt-dialog
       [open]="dialog() === 'requestChanges'"
@@ -186,7 +267,32 @@ export class DocumentWorkflowActions {
   /** The document changed under us (e.g. no longer in review): re-fetch it. */
   readonly reloadRequested = output<void>();
 
-  protected readonly ids = { approver: `doc-approver-${++nextId}` };
+  protected readonly ids = {
+    approver: `doc-approver-${++nextId}`,
+    note: `doc-approve-note-${nextId}`,
+    readers: `doc-approve-readers-${nextId}`,
+    readBy: `doc-approve-read-by-${nextId}`,
+    review: `doc-approve-review-${nextId}`,
+  };
+
+  // U27: the publishing questions ("who must read and confirm", "when is it reviewed").
+  protected readonly readerModes = READER_MODES;
+  protected readonly approveNote = signal('');
+  protected readonly readersMode = signal<ReaderMode>('none');
+  protected readonly customAudience = signal<readonly AudienceEntry[]>([]);
+  protected readonly readBy = signal('');
+  protected readonly reviewMonths = signal(DEFAULT_REVIEW_MONTHS);
+  protected readonly reviewChoices = computed(() => {
+    const current = this.reviewMonths();
+    return REVIEW_CHOICES.includes(current)
+      ? REVIEW_CHOICES
+      : [...REVIEW_CHOICES, current].sort((a, b) => a - b);
+  });
+  protected readonly approveValid = computed(
+    () =>
+      !!this.approveNote().trim() &&
+      (this.readersMode() !== 'custom' || this.customAudience().length > 0),
+  );
   protected readonly dialog = signal<WorkflowDialog | null>(null);
   protected readonly busy = signal<WorkflowDialog | null>(null);
 
@@ -235,6 +341,14 @@ export class DocumentWorkflowActions {
     if (dialog === 'submit') {
       this.loadApprovers();
     }
+    if (dialog === 'approve') {
+      const doc = this.document();
+      this.approveNote.set('');
+      this.readersMode.set(doc.acknowledgement?.required ? 'all' : 'none');
+      this.customAudience.set([]);
+      this.readBy.set('');
+      this.reviewMonths.set(doc.review_interval_months || DEFAULT_REVIEW_MONTHS);
+    }
   }
 
   protected close(): void {
@@ -251,10 +365,21 @@ export class DocumentWorkflowActions {
   }
 
   protected approve(note: string): void {
+    if (!this.approveValid()) {
+      return;
+    }
+    const mode = this.readersMode();
+    const readers: readonly AudienceEntry[] =
+      mode === 'all' ? [{ type: 'all' }] : mode === 'custom' ? this.customAudience() : [];
+    const options: ApproveOptions = {
+      readers,
+      readBy: this.readBy() || null,
+      reviewIntervalMonths: this.reviewMonths(),
+    };
     this.run(
       'approve',
-      (orgId, id) => this.api.approve(orgId, id, note),
-      'documents.approvedToast',
+      (orgId, id) => this.api.approve(orgId, id, note, options),
+      readers.length ? 'documents.readConfirm.publish.toast' : 'documents.approvedToast',
     );
   }
 
