@@ -61,8 +61,11 @@ export const PLAN_OPEN_STATUSES: readonly PlanStatus[] = [
   'reporting',
   'report_review',
 ];
-/** Plan list status filter: every open status (`unresolved`), everything, or one status. */
-export const PLAN_STATUS_FILTERS = ['unresolved', 'all', ...PLAN_STATUSES] as const;
+/**
+ * Plan list status filter: every open status (`unresolved`), everything, `signed` (the
+ * report is approved, U18) or one status.
+ */
+export const PLAN_STATUS_FILTERS = ['unresolved', 'all', 'signed', ...PLAN_STATUSES] as const;
 export type PlanStatusFilter = (typeof PLAN_STATUS_FILTERS)[number];
 export const PLAN_ACTIONS = [
   'start',
@@ -354,6 +357,8 @@ export interface PlanQuery extends PageQuery {
   readonly auditor?: string;
   readonly process_id?: string;
   readonly clause?: string;
+  /** `true`: only audits whose report is approved ("Signert"). */
+  readonly signed?: boolean;
   readonly start_from?: string;
   readonly start_to?: string;
   readonly sort?: PlanSort;
