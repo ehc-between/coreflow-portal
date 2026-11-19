@@ -192,13 +192,29 @@ describe('SupplierDetailPage', () => {
     expect(kinds).toContain('security');
   });
 
-  it('lists what needs follow-up with the action that closes it', async () => {
+  it('lists what needs follow-up in one card, each line with the step that closes it', async () => {
     const { root } = await setup();
-    const card = root.querySelector('[data-testid="attention-card"]')!;
-    expect(card.textContent).toContain('Needs follow-up (2)');
-    expect(card.querySelector('[data-code="dpa_missing"]')?.textContent).toContain('Create DPA');
-    expect(card.querySelector('[data-code="not_approved"]')?.textContent).toContain(
-      'Start initial evaluation',
+    const lines = [...root.querySelectorAll('[data-testid="record-missing-item"]')].map((li) =>
+      li.textContent?.trim(),
+    );
+    expect(lines[0]).toContain('Not approved – start the initial evaluation');
+    expect(lines[1]).toContain('No data processing agreement – create one');
+    // The required security assessment is in progress: finish it, not start another.
+    expect(lines[2]).toContain('Finish the security assessment – it is in progress');
+    expect(lines.join(' ')).not.toContain('Required: start the initial evaluation');
+  });
+
+  it('puts the main information first: status sentence, criticality and the DPA status', async () => {
+    const { root } = await setup();
+    const lead = root.querySelector('[data-testid="record-lead"]')!;
+    expect(lead.querySelector('[data-testid="record-status-line"]')?.textContent).toContain(
+      'Under evaluation – an evaluation is in progress.',
+    );
+    expect(lead.textContent).toContain('How critical they are');
+    expect(lead.querySelector('[data-testid="lead-dpa"]')?.textContent).toContain('No DPA');
+    // Empty fields are named once, not shown as "Not set".
+    expect(lead.querySelector('[data-testid="empty-fields"]')?.textContent).toContain(
+      'What they deliver',
     );
   });
 
