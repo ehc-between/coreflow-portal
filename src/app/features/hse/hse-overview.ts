@@ -223,7 +223,11 @@ export function overviewSections(o: HseOverview): Section[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <app-page-header titleKey="modules.names.hse" descriptionKey="hse.overview.subtitle">
+      <app-page-header
+        titleKey="modules.names.hse"
+        descriptionKey="hse.overview.subtitle"
+        outputsModule="hse"
+      >
         @if (canReport()) {
           <app-button
             primary

@@ -40,6 +40,8 @@
     "updated": "Last changed",
     "byOn": "{{ name }}, {{ date }}",
     "summaryTitle": "Summary",
+    "documentsTitle": "Documents and reports",
+    "documentsHint": "Print or share this record as a finished document.",
     "saved": "{{ code }} was saved.",
     "deleted": "{{ code }} was deleted.",
     "willLink": "The new record will be linked to the record you came from.",
