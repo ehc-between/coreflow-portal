@@ -31,7 +31,7 @@ import {
 import { contractErrorKey } from './data/contract-errors';
 
 /**
- * The data processing agreement card in the contract's aside (GDPR Art. 28).
+ * The data processing agreement section on the contract's Details tab (GDPR Art. 28).
  *
  * - Not needed (no personal data, or an NDA): one quiet line.
  * - On a DPA: which contracts it covers ("Covers: CT-0001"), its sub-processors and
@@ -57,7 +57,7 @@ import { contractErrorKey } from './data/contract-errors';
     } @else {
       <app-card>
         <h2
-          class="mb-2 flex flex-wrap items-center justify-between gap-2 text-ui font-semibold text-fg-subtle"
+          class="mb-2 flex flex-wrap items-center justify-between gap-2 font-display text-card font-bold text-fg"
         >
           {{ (isDpa() ? 'contracts.dpa.thisIsDpa' : 'contracts.dpa.title') | transloco }}
           @if (!isDpa()) {

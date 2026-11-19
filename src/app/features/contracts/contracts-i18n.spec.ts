@@ -89,6 +89,7 @@ describe('contracts i18n and guidance', () => {
     ['actionDialog.messages', CONTRACT_ACTIONS],
     ['notices.actions', CONTRACT_ACTIONS],
     ['workflow.hint', CONTRACT_STATUSES],
+    ['detail.todo', [...CONTRACT_WARNINGS, 'counterparty']],
     ['dpa.status', DPA_STATES],
     ['dpa.explain', DPA_STATES],
     ['dpaClauses', DPA_CLAUSE_KEYS],

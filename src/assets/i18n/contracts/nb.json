@@ -308,21 +308,59 @@
     "submittedBy": "Sendt inn av {{ name }} {{ date }}."
   },
   "detail": {
-    "summary": "Sammendrag",
-    "nextDeadline": "Neste frist",
     "noDeadline": "Ingen kommende frist.",
-    "openObligations": "Åpne forpliktelser: {{ count }}",
+    "openObligations": "{{ count }} åpne forpliktelser",
     "noticeDays": "{{ days }} dagers oppsigelse",
     "autoRenew": "Fornyes automatisk",
     "autoRenewTerm": "Fornyes automatisk med {{ months }} måneder om gangen",
     "noAutoRenew": "Fornyes ikke automatisk",
-    "closedNotice": "Status: {{ status }}. Kontrakten er avsluttet, beholdes som dokumentasjon og kan ikke lenger endres.",
     "deleteTitle": "Slette denne kontrakten?",
     "deleteMessage": "{{ code }} fjernes fra registeret, og åpne forpliktelser kanselleres. Den blir stående i revisjonsloggen.",
-    "ask": "Spør",
     "obligationsTab": "Forpliktelser",
     "startEvaluation": "Start leverandørvurdering",
-    "notApprovedYet": "Ikke godkjent ennå"
+    "notApprovedYet": "Ikke godkjent ennå",
+    "askSummarise": "Oppsummer kontrakten",
+    "nextStep": "Neste steg",
+    "from": "Fra {{ date }}",
+    "until": "Til {{ date }}",
+    "noticeBy": "Si opp senest {{ date }} ({{ days }} dagers oppsigelse)",
+    "noticeByDate": "Si opp senest {{ date }}",
+    "confidentialYes": "Ja",
+    "lead": {
+      "with": "Hvem avtalen er med",
+      "term": "Hvor lenge den gjelder",
+      "about": "Hva avtalen gjelder",
+      "nextDeadline": "Neste frist"
+    },
+    "labels": {
+      "signedDate": "Signert dato",
+      "governingLaw": "Gjeldende lov",
+      "flags": "Merk også",
+      "updated": "Sist endret"
+    },
+    "statusLine": {
+      "draft": "Utkast – kontrakten er ikke sendt til godkjenning ennå.",
+      "in_review": "Venter på godkjenning – noen som godkjenner kontrakter, må se på den.",
+      "approved": "Godkjent – signer den, last opp den signerte kopien og marker den som aktiv.",
+      "activeUntil": "Aktiv – gjelder til {{ date }}.",
+      "activeRenews": "Aktiv – gjelder til {{ date }} og fornyes automatisk.",
+      "activeOpen": "Aktiv – ingen sluttdato er registrert.",
+      "terminatedOn": "Sagt opp {{ date }} – beholdes som dokumentasjon og kan ikke lenger endres.",
+      "terminated": "Sagt opp – beholdes som dokumentasjon og kan ikke lenger endres.",
+      "expired": "Utløpt – beholdes som dokumentasjon og kan ikke lenger endres.",
+      "unknown": "Ukjent status."
+    },
+    "todo": {
+      "counterparty": "Legg til hvem avtalen er med",
+      "dpa_missing": "Koble til eller opprett databehandleravtalen",
+      "dpa_incomplete": "Fullfør databehandleravtalen",
+      "signed_copy_missing": "Last opp den signerte kopien",
+      "review_overdue": "Gå gjennom kontrakten – gjennomgangen er forfalt",
+      "review_date_missing": "Sett dato for neste gjennomgang",
+      "notice_soon": "Bestem om dere skal fornye eller si opp før {{ date }}",
+      "end_date_missing": "Registrer sluttdatoen",
+      "notice_period_missing": "Registrer oppsigelsestiden"
+    }
   },
   "dpa": {
     "title": "Databehandleravtale",
