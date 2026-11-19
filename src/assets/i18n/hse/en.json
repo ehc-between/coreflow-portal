@@ -363,6 +363,31 @@
       "controlsPrompt": "Which controls would work for these hazards? Order them by the hierarchy of controls.",
       "askResidual": "Ask about residual risk",
       "residualPrompt": "How do I judge the residual risk after the controls, and when is it acceptable to start the work?"
+    },
+    "statusLine": {
+      "draft": "Draft – the analysis is not approved yet. Work must not start before it is approved.",
+      "in_review": "Awaiting approval – work can start once the analysis is approved.",
+      "approved": "Approved – the work can be done with the controls in the analysis.",
+      "completed": "Completed – the job is done.",
+      "cancelled": "Cancelled – the analysis is not in use."
+    },
+    "lead": {
+      "job": "What will be done",
+      "whereWhen": "Where and when",
+      "risk": "Risk before and after controls",
+      "before": "Before: {{ level }}",
+      "after": "After: {{ level }}",
+      "signed": "Reviewed by the people doing the job"
+    },
+    "missing": {
+      "steps": "Split the job into steps with hazards and controls",
+      "incomplete": "Add a hazard and a control to step {{ steps }}",
+      "participants": "Add the people who will do the job",
+      "emergency": "Describe what to do if something goes wrong",
+      "owner": "Choose an owner",
+      "signOff": "{{ count }} participants have not signed",
+      "signOffOne": "1 participant has not signed",
+      "ppe": "PPE missing from the register ({{ count }})"
     }
   },
   "ppe": {
@@ -499,6 +524,28 @@
       "summarisePrompt": "Summarise PPE item {{ code }}: its status, holder, inspection history and what is due next.",
       "askStandard": "Ask which standard applies",
       "standardPrompt": "Which European standard (EN) applies to this kind of personal protective equipment, and what does it mean for inspection?"
+    },
+    "statusLine": {
+      "in_stock": "In stock – ready to be issued.",
+      "issued": "Issued – in use.",
+      "issuedTo": "Issued – in use by {{ name }}.",
+      "out_of_service": "Out of service – do not use until it has been inspected and passed.",
+      "inspectionOverdue": "Inspection overdue – do not use or issue the equipment until it passes a new inspection.",
+      "expired": "Expired – take the equipment out of use and replace it.",
+      "retired": "Retired – the equipment is out of use."
+    },
+    "lead": {
+      "holder": "Who has it",
+      "location": "Where it is kept",
+      "nextInspection": "Next inspection",
+      "lastInspection": "Last inspection"
+    },
+    "missing": {
+      "expired": "Replace the equipment – it has expired",
+      "inspect": "Record an inspection",
+      "deviation": "Raise a deviation for the failed inspection",
+      "plan": "Set an inspection interval or the next inspection date",
+      "owner": "Choose an owner"
     }
   },
   "consultation": {
@@ -597,6 +644,37 @@
       "summarisePrompt": "Summarise participation meeting {{ code }}: the topics, what was decided and how the follow-up tasks are going.",
       "askTopics": "Ask what to cover",
       "topicsPrompt": "Which topics should a working environment committee or safety meeting cover this time of year?"
+    },
+    "statusLine": {
+      "planned": "Planned – set a date for the meeting.",
+      "plannedOn": "Planned – the meeting is on {{ date }}.",
+      "passed": "Planned, but the date has passed – record the meeting as held, or cancel it.",
+      "held": "Held – with a safety or union representative present.",
+      "heldOn": "Held on {{ date }} – with a safety or union representative present.",
+      "heldNoRep": "Held without a safety representative – workers’ representatives must take part where there are any.",
+      "heldNoRepOn": "Held on {{ date }} without a safety representative – workers’ representatives must take part where there are any.",
+      "cancelled": "Cancelled – the meeting was not held."
+    },
+    "lead": {
+      "topics": "What the meeting will cover",
+      "whenWhere": "When and where",
+      "who": "Who takes part",
+      "whoHeld": "Who took part",
+      "decisions": "What was decided",
+      "tasks": "Tasks from the meeting",
+      "whoMore": "{{ names }} and {{ count }} more",
+      "reps": "representatives: {{ names }}"
+    },
+    "missing": {
+      "hold": "Record the meeting as held",
+      "date": "Set a date for the meeting",
+      "topics": "Write what the meeting will cover",
+      "reps": "Invite safety or union representatives",
+      "outcome": "Write down what was decided",
+      "tasks": "Turn the decisions into tasks",
+      "overdue": "{{ count }} tasks from the meeting are overdue",
+      "overdueOne": "1 task from the meeting is overdue",
+      "owner": "Choose an organiser"
     }
   },
   "rounds": {

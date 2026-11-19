@@ -17,30 +17,39 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
 import { OutputsPanel } from '../../../shared/outputs';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { Term } from '../../../shared/guidance/term';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
+import { LocalDatePipe, LocalDayPipe, formatLocalDate } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { HseApi } from '../data/hse-api';
 import { hseErrorKey } from '../data/hse-errors';
 import { Consultation, ConsultationHoldAction, UserRef } from '../data/hse.models';
+import { consultationMissing, consultationStatusSentence } from '../hse-anatomy';
 import {
   consultationStatusValue,
   dayEndToWire,
@@ -52,9 +61,7 @@ import { HsePeoplePicker, NO_PEOPLE, PeopleValue, peopleCount } from '../shared/
 import {
   HSE_CRUMBS,
   HSE_MODULE,
-  HSE_NAV,
   HSE_ROOT_CRUMB,
-  HseAskButton,
   HseDirectorySelect,
   HseField,
   departmentName,
@@ -105,13 +112,15 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
 }
 
 /**
- * `/hse/consultations/:id`: a worker consultation ("medvirkningsmøte"). Follows
- * the route id. Header: code, kind and status; "Mark as held" as primary while
- * planned, Edit, "Lag ny fra denne" (task, deviation, risk), cancel and delete
- * under "Mer". Body: when, where and who (members and worker representatives),
- * the topics, and once held the summary, the decisions and their follow-up
- * tasks (open / overdue / done). The "mark as held" panel records who took part
- * and turns each decision into a task with an owner and a due date.
+ * `/hse/consultations/:id`: a worker consultation ("medvirkningsmøte"), on the
+ * detail-page anatomy (docs/ux-guide.md §2.7). Follows the route id. Header:
+ * code, kind and status; "Mark as held" as primary while planned, Edit, "Spør
+ * KI", cancel and delete under "Mer". "Hovedinformasjon": where the meeting
+ * stands, then (planned) what it will discuss, when and where, and who takes
+ * part, or (held) what was decided, how the tasks are going, who took part and
+ * the summary. One "Oppfølging" card: record it as held, turn decisions into
+ * tasks, invite worker representatives. The "mark as held" panel records who
+ * took part and turns each decision into a task with an owner and a due date.
  */
 @Component({
   selector: 'app-consultation-detail',
@@ -123,25 +132,23 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
     LocalDayPipe,
     MarkdownPipe,
     Button,
-    Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     SlideOver,
     StatusBadge,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     EntityTasks,
     SupportsRequirements,
-    Term,
-    WatchButton,
     WhyItMatters,
-    HseAskButton,
     HseDirectorySelect,
     HseField,
     HsePeoplePicker,
@@ -173,6 +180,7 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
       @case ('ready') {
         @if (record(); as c) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="worker_consultation"
             [entityId]="c.id"
             [title]="c.title"
@@ -180,6 +188,7 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
             [tabs]="tabs"
             [counts]="{ tasks: c.actions?.total ?? 0 }"
             [canEdit]="perms.write()"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ c.code }}</span>
@@ -232,7 +241,17 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
               </button>
             }
 
-            <app-module-nav nav class="mb-4 block" [items]="nav" labelKey="modules.names.hse" />
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'hse.common.summarise' | transloco }}
+            </button>
+            @if (c.status === 'planned') {
+              <button appMenuItem ask type="button" (click)="askAi('topics')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'hse.consultation.ai.askTopics' | transloco }}
+              </button>
+            }
+
             <app-help-strip
               help
               scope="hse"
@@ -241,35 +260,91 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
               [subject]="c.title"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (c.status === 'held' && !c.worker_representative_present) {
-                <p
-                  class="flex gap-2 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink"
-                  role="status"
+            <app-record-lead record-lead [fillLink]="perms.write() ? editLink() : null">
+              @let line = statusLine();
+              <app-record-status-line
+                status
+                [tone]="line.tone"
+                [attr.data-testid]="
+                  c.status === 'planned' && line.tone === 'warn' ? 'wc-unrecorded' : null
+                "
+              >
+                {{ line.key | transloco: line.params }}
+              </app-record-status-line>
+              @if (c.status === 'held') {
+                <app-field-item
+                  size="lead"
+                  labelKey="hse.consultation.lead.decisions"
+                  [wide]="true"
+                  data-testid="wc-outcome"
                 >
-                  <app-icon name="alert" [size]="15" class="mt-0.5 flex-none" />
-                  <span>{{ 'hse.consultation.detail.noRepWarning' | transloco }}</span>
-                </p>
-              }
-              @if (c.status === 'planned' && scheduledPassed()) {
-                <p
-                  class="flex gap-2 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink"
-                  role="status"
-                  data-testid="wc-unrecorded"
+                  @if (c.decisions) {
+                    <div class="cf-prose" [innerHTML]="c.decisions | appMarkdown"></div>
+                  }
+                </app-field-item>
+                <app-field-item size="lead" labelKey="hse.consultation.lead.tasks">
+                  @if (c.actions?.total) {
+                    <a
+                      [routerLink]="['/hse/consultations', c.id]"
+                      [queryParams]="{ tab: 'tasks' }"
+                      class="hover:text-accent hover:underline"
+                      data-testid="wc-action-counts"
+                      >{{
+                        'hse.consultation.detail.actionCounts'
+                          | transloco
+                            : {
+                                open: c.actions.open,
+                                overdue: c.actions.overdue,
+                                done: c.actions.done,
+                              }
+                      }}</a
+                    >
+                  }
+                </app-field-item>
+                <app-field-item size="lead" labelKey="hse.consultation.lead.whoHeld">
+                  @if (whoText(); as who) {
+                    {{ who }}
+                  }
+                </app-field-item>
+                <app-field-item
+                  size="lead"
+                  labelKey="hse.consultation.fields.summary"
+                  [wide]="true"
                 >
-                  <app-icon name="clock" [size]="15" class="mt-0.5 flex-none" />
-                  <span>{{ 'hse.consultation.detail.unrecorded' | transloco }}</span>
-                </p>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'hse.consultation.detail.aboutTitle' | transloco }}
-                </h2>
-                <app-field-list>
-                  <app-field-item labelKey="hse.consultation.fields.scheduled_at">
+                  @if (c.summary) {
+                    <div class="cf-prose" [innerHTML]="c.summary | appMarkdown"></div>
+                  }
+                </app-field-item>
+              } @else {
+                <app-field-item size="lead" labelKey="hse.consultation.lead.topics" [wide]="true">
+                  @if (c.topics) {
+                    <div class="cf-prose" [innerHTML]="c.topics | appMarkdown"></div>
+                  }
+                </app-field-item>
+                <app-field-item size="lead" labelKey="hse.consultation.lead.whenWhere">
+                  @if (c.scheduled_at || c.location) {
                     @if (c.scheduled_at) {
-                      {{ c.scheduled_at | localDate }}
+                      <span class="block">{{ c.scheduled_at | localDate }}</span>
+                    }
+                    @if (c.location) {
+                      <span class="block text-ui font-normal text-fg-muted">{{ c.location }}</span>
+                    }
+                  }
+                </app-field-item>
+                <app-field-item size="lead" labelKey="hse.consultation.lead.who">
+                  @if (whoText(); as who) {
+                    {{ who }}
+                  }
+                </app-field-item>
+              }
+            </app-record-lead>
+
+            <div class="flex flex-col gap-6">
+              <app-record-details [columns]="2" [fillLink]="perms.write() ? editLink() : null">
+                @if (c.status === 'held') {
+                  <app-field-item labelKey="hse.consultation.fields.topics" [wide]="true">
+                    @if (c.topics) {
+                      <div class="cf-prose" [innerHTML]="c.topics | appMarkdown"></div>
                     }
                   </app-field-item>
                   <app-field-item labelKey="hse.consultation.fields.held_at">
@@ -281,117 +356,34 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
                     labelKey="hse.consultation.fields.location"
                     [value]="c.location"
                   />
-                  <app-field-item
-                    labelKey="hse.consultation.fields.owner"
-                    [value]="c.owner?.name"
-                  />
-                  <app-field-item labelKey="hse.common.department" [value]="department()" />
-                  <app-field-item labelKey="hse.consultation.detail.repPresent">
-                    <app-term key="worker-representative" scope="hse">{{
-                      (c.worker_representative_present ? 'hse.common.yes' : 'hse.common.no')
-                        | transloco
-                    }}</app-term>
-                  </app-field-item>
+                }
+                @if (participantNames().length > 4) {
                   <app-field-item
                     labelKey="hse.consultation.fields.participants"
-                    empty="none"
                     [wide]="true"
-                  >
-                    @if (participantNames().length) {
-                      {{ participantNames().join(', ') }}
-                    }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="hse.consultation.fields.worker_representatives"
-                    empty="none"
-                    [wide]="true"
-                  >
-                    @if (repNames().length) {
-                      {{ repNames().join(', ') }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.consultation.fields.topics" [wide]="true">
-                    @if (c.topics) {
-                      <div class="cf-prose" [innerHTML]="c.topics | appMarkdown"></div>
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
+                    [value]="participantNames().join(', ')"
+                  />
+                }
+                <app-field-item labelKey="hse.common.department" [value]="department()" />
+              </app-record-details>
 
-              @if (c.status === 'held') {
-                <app-card data-testid="wc-outcome">
-                  <h2 class="mb-2 font-display text-card font-bold text-fg">
-                    {{ 'hse.consultation.fields.summary' | transloco }}
-                  </h2>
-                  @if (c.summary) {
-                    <div
-                      class="cf-prose text-ui text-fg"
-                      [innerHTML]="c.summary | appMarkdown"
-                    ></div>
-                  } @else {
-                    <p class="text-ui text-fg-muted">{{ 'hse.common.notSet' | transloco }}</p>
-                  }
-                  <h2 class="mt-5 mb-2 font-display text-card font-bold text-fg">
-                    {{ 'hse.consultation.fields.decisions' | transloco }}
-                  </h2>
-                  @if (c.decisions) {
-                    <div
-                      class="cf-prose text-ui text-fg"
-                      [innerHTML]="c.decisions | appMarkdown"
-                    ></div>
-                  } @else {
-                    <p class="text-ui text-fg-muted">{{ 'hse.common.notSet' | transloco }}</p>
-                  }
-                  <div class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2.5">
-                    <h3 class="text-ui font-semibold text-fg">
-                      {{ 'hse.consultation.detail.followUp' | transloco }}
-                    </h3>
-                    @if (c.actions?.total) {
-                      <p class="mt-0.5 text-meta text-fg-muted" data-testid="wc-action-counts">
-                        {{
-                          'hse.consultation.detail.actionCounts'
-                            | transloco
-                              : {
-                                  open: c.actions.open,
-                                  overdue: c.actions.overdue,
-                                  done: c.actions.done,
-                                }
-                        }}
-                      </p>
-                    } @else {
-                      <p class="mt-0.5 text-meta text-fg-muted">
-                        {{ 'hse.consultation.detail.noActions' | transloco }}
-                      </p>
-                    }
-                  </div>
-                </app-card>
-              }
-
-              <div
-                class="flex flex-wrap gap-2"
-                role="group"
-                [attr.aria-label]="'hse.common.askGroup' | transloco"
-              >
-                <app-hse-ask-button
-                  labelKey="hse.common.summarise"
-                  promptKey="hse.consultation.ai.summarisePrompt"
-                  [params]="{ code: c.code }"
-                  [requirements]="confirmedRefs()"
-                />
-              </div>
+              <section data-testid="consultation-documents">
+                <h2 class="font-display text-card font-bold text-fg">
+                  {{ 'hse.common.documentsTitle' | transloco }}
+                </h2>
+                <p class="mt-0.5 mb-3 text-ui text-fg-muted">
+                  {{ 'hse.common.documentsHint' | transloco }}
+                </p>
+                <app-outputs-panel entityType="worker_consultation" [entityId]="c.id" />
+              </section>
             </div>
 
-            <section class="mt-6" data-testid="consultation-documents">
-              <h2 class="font-display text-card font-bold text-fg">
-                {{ 'hse.common.documentsTitle' | transloco }}
-              </h2>
-              <p class="mt-0.5 mb-3 text-ui text-fg-muted">
-                {{ 'hse.common.documentsHint' | transloco }}
-              </p>
-              <app-outputs-panel entityType="worker_consultation" [entityId]="c.id" />
-            </section>
-
             <div tasks>
+              @if (c.status === 'held' && !c.actions?.total) {
+                <p class="mb-3 text-ui text-fg-muted">
+                  {{ 'hse.consultation.detail.noActions' | transloco }}
+                </p>
+              }
               <app-entity-tasks
                 entityType="worker_consultation"
                 [entityId]="c.id"
@@ -409,32 +401,28 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
               (linksChange)="onLinks($event)"
             />
 
-            <div aside>
-              <app-card>
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'hse.common.summaryTitle' | transloco }}
-                  </h2>
-                  <app-watch-button entityType="worker_consultation" [entityId]="c.id" />
-                </div>
-                <app-field-list [columns]="1">
-                  <app-field-item labelKey="hse.common.createdBy">
-                    {{
-                      'hse.common.byOn'
-                        | transloco
-                          : {
-                              name: c.created_by?.name || ('hse.common.unknown' | transloco),
-                              date: (c.created_at | localDay),
-                            }
-                    }}
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="hse.common.updated"
-                    [value]="c.updated_at | localDate"
-                  />
-                </app-field-list>
-              </app-card>
-            </div>
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="hse.consultation.fields.owner"
+                [value]="c.owner?.name"
+              />
+              <app-field-item layout="inline" labelKey="hse.common.createdBy">
+                {{
+                  'hse.common.byOn'
+                    | transloco
+                      : {
+                          name: c.created_by?.name || ('hse.common.unknown' | transloco),
+                          date: (c.created_at | localDay),
+                        }
+                }}
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="hse.common.updated"
+                [value]="c.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters scope="hse" page="consultation-detail" />
@@ -655,12 +643,13 @@ export class ConsultationDetail {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   private readonly directory = inject(AssigneeOptionsService);
+  private readonly ask = inject(AskPanelService);
+  private readonly language = inject(LanguageService);
 
   /** Route param (component input binding): follows navigation between records. */
   readonly id = input.required<string>();
 
   protected readonly perms = injectHsePermissions();
-  protected readonly nav = HSE_NAV;
   protected readonly tabs = TABS;
   protected readonly frameworks: readonly string[] = ['iso45001'];
   protected readonly statusValue = consultationStatusValue;
@@ -700,10 +689,51 @@ export class ConsultationDetail {
     const c = this.record();
     return c ? peopleNames(c.representative_users, c.worker_representatives) : [];
   });
-  /** A planned consultation whose date has passed: it should be recorded as held. */
-  protected readonly scheduledPassed = computed(() => {
-    const at = this.record()?.scheduled_at;
-    return !!at && new Date(/[zZ]$/.test(at) ? at : `${at}Z`).getTime() < Date.now();
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/hse/consultations',
+    this.id(),
+    'edit',
+  ]);
+  protected readonly statusLine = computed(() => {
+    const c = this.record();
+    return c
+      ? consultationStatusSentence(c, (value) =>
+          formatLocalDate(value, 'mediumDate', this.language.locale()),
+        )
+      : { key: 'hse.consultation.statusLine.planned', tone: 'neutral' as const, params: undefined };
+  });
+  /** "Ola, Kari og 3 til · verneombud: Per": who takes (or took) part, in one line. */
+  protected readonly whoText = computed(() => {
+    const people = this.participantNames();
+    const reps = this.repNames();
+    const parts: string[] = [];
+    if (people.length) {
+      parts.push(
+        people.length > 4
+          ? this.language.translate('hse.consultation.lead.whoMore', {
+              names: people.slice(0, 3).join(', '),
+              count: people.length - 3,
+            })
+          : people.join(', '),
+      );
+    }
+    if (reps.length) {
+      parts.push(this.language.translate('hse.consultation.lead.reps', { names: reps.join(', ') }));
+    }
+    return parts.join(' · ');
+  });
+
+  /** What the consultation still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const c = this.record();
+    if (!c) {
+      return [];
+    }
+    return consultationMissing(c, {
+      editLink: this.editLink(),
+      canWrite: this.perms.write(),
+      hold: () => this.openHold(c),
+    });
   });
 
   private request = new Subscription();
@@ -748,6 +778,20 @@ export class ConsultationDetail {
 
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.id());
+  }
+
+  protected askAi(kind: 'summarise' | 'topics'): void {
+    const c = this.record();
+    if (!c) {
+      return;
+    }
+    const key =
+      kind === 'topics'
+        ? 'hse.consultation.ai.topicsPrompt'
+        : 'hse.consultation.ai.summarisePrompt';
+    this.ask.askAbout(this.language.translate(key, { code: c.code }), undefined, {
+      requirements: this.confirmedRefs(),
+    });
   }
 
   protected onLinks(links: readonly RequirementLink[]): void {
