@@ -3,18 +3,15 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  Injector,
   afterNextRender,
   computed,
   inject,
   input,
   signal,
-  untracked,
   viewChild,
 } from '@angular/core';
 import { IsActiveMatchOptions, Router, RouterLink, isActive } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { GuidanceService } from '../../../core/guidance/guidance.service';
 
 /** One sub-page of a module. `count` shows a small number after the label. */
 export interface ModuleNavItem {
@@ -108,7 +105,6 @@ const SUBSET: IsActiveMatchOptions = { ...EXACT, paths: 'subset' };
 })
 export class ModuleNav {
   private readonly router = inject(Router);
-  private readonly injector = inject(Injector);
 
   readonly items = input.required<readonly ModuleNavItem[]>();
   /** i18n key of the nav's accessible name (usually the module name). */
@@ -118,23 +114,14 @@ export class ModuleNav {
   protected readonly fadeStart = signal(false);
   protected readonly fadeEnd = signal(false);
 
-  /** Whether empty tabs are hidden: only for beginners, and only if a tab says it is empty. */
-  private readonly hideEmpty = computed(() => {
-    if (!this.items().some((item) => item.empty)) {
-      return false;
-    }
-    // Resolved lazily so modules that never mark tabs empty do not load guidance.
-    const guidance = untracked(() => this.injector.get(GuidanceService, null));
-    return guidance?.isBeginner() ?? false;
-  });
-
-  /** Every tab, in order: all of them are shown (no "Mer" menu). */
-  protected readonly visible = computed(() => {
-    const hideEmpty = this.hideEmpty();
-    return this.items()
-      .map((item) => ({ item, active: this.isCurrent(item) }))
-      .filter((entry) => !hideEmpty || !entry.item.empty || entry.active);
-  });
+  /**
+   * Every tab, in order: all of them are always shown — no "Mer" menu, and empty
+   * registers are NOT hidden (not even for beginners): a new organisation needs
+   * exactly those pages to get started.
+   */
+  protected readonly visible = computed(() =>
+    this.items().map((item) => ({ item, active: this.isCurrent(item) })),
+  );
 
   constructor() {
     const destroyRef = inject(DestroyRef);
