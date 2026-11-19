@@ -67,7 +67,8 @@ import { ReactionBar } from './reaction-bar';
         "
         [attr.data-message-id]="m.id"
         data-testid="chat-message"
-        style="content-visibility: auto; contain-intrinsic-size: auto 56px"
+        style="contain-intrinsic-size: auto 56px"
+        [style.content-visibility]="reactions()?.pickerOpen() ? 'visible' : 'auto'"
       >
         <div class="w-9 flex-none">
           @if (head()) {

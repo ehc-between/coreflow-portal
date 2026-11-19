@@ -25,6 +25,7 @@ import { chatMatcher } from './chat.routes';
 import { Composer } from './composer';
 import { MessageBody } from './message-body';
 import { MessageItem } from './message-item';
+import { pickerPosition } from './reaction-bar';
 
 const ORG = 'org-1';
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -236,5 +237,23 @@ describe('Composer', () => {
       }),
     );
     expect(api.callsOf('send').length).toBe(0);
+  });
+});
+
+describe('pickerPosition', () => {
+  const viewport = { width: 1000, height: 800 };
+
+  it('opens above the bar when there is room, kept inside the viewport', () => {
+    expect(pickerPosition({ left: 900, top: 500, bottom: 530 }, viewport)).toEqual({
+      left: 1000 - 288 - 8,
+      top: 500 - 330 - 4,
+    });
+  });
+
+  it('opens below the bar near the top of the screen', () => {
+    expect(pickerPosition({ left: 40, top: 100, bottom: 130 }, viewport)).toEqual({
+      left: 40,
+      top: 134,
+    });
   });
 });

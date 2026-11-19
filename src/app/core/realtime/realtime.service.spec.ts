@@ -73,7 +73,7 @@ describe('RealtimeService', () => {
     expect(service.state()).toBe('connecting');
     hub.last.open();
     expect(service.state()).toBe('authenticating');
-    expect(hub.last.frames()[0]).toEqual({ type: 'auth', payload: { token: 'tok-1' } });
+    expect(hub.last.frames()[0]).toEqual({ type: 'auth', token: 'tok-1' });
     hub.last.authOk();
     expect(service.state()).toBe('open');
     expect(service.isOpen()).toBe(true);
@@ -100,7 +100,9 @@ describe('RealtimeService', () => {
     service.reconnected.subscribe(reconnected);
     token.set('tok-2');
     TestBed.tick();
-    expect(hub.last.framesOf('auth').map((f) => f.payload['token'])).toEqual(['tok-1', 'tok-2']);
+    expect(hub.last.framesOf('auth').map((f) => (f as unknown as { token: string }).token)).toEqual(
+      ['tok-1', 'tok-2'],
+    );
     hub.last.authOk();
     expect(hub.sockets.length).toBe(1);
     expect(reconnected).not.toHaveBeenCalled();

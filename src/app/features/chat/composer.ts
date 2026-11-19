@@ -98,7 +98,7 @@ let nextId = 0;
   template: `
     @let c = conversation();
     <div
-      class="relative rounded-card border bg-surface shadow-sm transition-colors motion-reduce:transition-none"
+      class="@container relative rounded-card border bg-surface shadow-sm transition-colors motion-reduce:transition-none"
       [class]="
         dragging()
           ? 'border-accent ring-2 ring-accent/30'
@@ -291,7 +291,7 @@ let nextId = 0;
           @for (tool of tools; track tool.key) {
             <button
               type="button"
-              class="hidden h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-50 sm:flex"
+              class="hidden h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-50 @lg:flex"
               [attr.aria-label]="'chat.composer.format.' + tool.key | transloco"
               [title]="'chat.composer.format.' + tool.key | transloco"
               [disabled]="disabled()"
@@ -328,8 +328,8 @@ let nextId = 0;
             (click)="pickerOpen.set(true)"
           >
             <app-icon name="link" [size]="16" />
-            <span class="hidden sm:inline">{{ 'chat.composer.linkRecord' | transloco }}</span>
-            <span class="sr-only sm:hidden">{{ 'chat.composer.linkRecord' | transloco }}</span>
+            <span class="hidden @md:inline">{{ 'chat.composer.linkRecord' | transloco }}</span>
+            <span class="sr-only @md:hidden">{{ 'chat.composer.linkRecord' | transloco }}</span>
           </button>
           <span class="relative">
             <button
@@ -363,14 +363,14 @@ let nextId = 0;
         }
         <button
           type="button"
-          class="flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-lg bg-accent px-3 text-meta font-semibold text-white hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          class="flex h-9 min-w-9 flex-none items-center justify-center gap-1.5 rounded-lg bg-accent px-3 text-meta font-semibold text-white hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
           [disabled]="!canSend()"
           [attr.aria-label]="(editing() ? 'chat.composer.save' : 'chat.composer.send') | transloco"
           data-testid="chat-send"
           (click)="submit()"
         >
           <app-icon [name]="editing() ? 'check' : 'send'" [size]="16" />
-          <span class="hidden sm:inline">{{
+          <span class="hidden @xs:inline">{{
             (editing() ? 'chat.composer.save' : 'chat.composer.send') | transloco
           }}</span>
         </button>

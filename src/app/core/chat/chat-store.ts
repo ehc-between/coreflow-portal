@@ -721,6 +721,9 @@ export class ChatStore {
     options: { parentId?: string | null; attachments?: readonly OutgoingAttachment[] } = {},
   ): Observable<SendMessageResponse> {
     const me = this.auth.user();
+    // The others drop my indicator when the message lands: the next keystroke
+    // must signal again at once instead of waiting out the 3 s throttle.
+    this.lastTypingSent.delete(`${conversationId}:${options.parentId ?? ''}`);
     const pending: ChatMessage = {
       id: `local-${newClientId()}`,
       conversation_id: conversationId,

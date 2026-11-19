@@ -223,7 +223,7 @@ export class RealtimeService {
   private sendAuth(): void {
     const token = this.auth.accessToken();
     if (token && this.socket) {
-      this.socket.send(JSON.stringify({ type: 'auth', payload: { token } }));
+      this.socket.send(JSON.stringify({ type: 'auth', token }));
     }
   }
 

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ChatApi } from '../../core/chat/chat-api';
 import { ChatStore } from '../../core/chat/chat-store';
@@ -50,14 +57,17 @@ import { EmojiPicker } from './emoji-picker';
         class="inline-flex h-7 w-9 items-center justify-center rounded-full border border-dashed border-border text-fg-subtle hover:border-border-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="'chat.reactions.add' | transloco"
         [attr.aria-expanded]="pickerOpen()"
-        (click)="pickerOpen.set(!pickerOpen())"
+        (click)="pickerOpen() ? pickerOpen.set(false) : openPicker()"
       >
         <app-icon name="smile" [size]="15" />
       </button>
     }
     @if (pickerOpen()) {
+      <!-- Fixed, not absolute: the message feed scrolls and would clip the picker. -->
       <app-chat-emoji-picker
-        class="absolute bottom-full left-0 z-30 mb-1"
+        class="fixed z-50"
+        [style.left.px]="pickerPos().left"
+        [style.top.px]="pickerPos().top"
         (picked)="react($event)"
         (closed)="pickerOpen.set(false)"
       />
@@ -72,12 +82,18 @@ export class ReactionBar {
   readonly meId = input<string | null>(null);
   readonly canReact = input(true);
 
-  protected readonly pickerOpen = signal(false);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  /** Public so the message can lift its paint containment (content-visibility) while open. */
+  readonly pickerOpen = signal(false);
+  protected readonly pickerPos = signal({ left: 0, top: 0 });
   protected readonly names = signal<Readonly<Record<string, string>>>({});
   private namesLoaded = false;
 
   /** Open the picker from outside (the message's "Reager" action). */
   openPicker(): void {
+    this.pickerPos.set(
+      pickerPosition((this.host.nativeElement as HTMLElement).getBoundingClientRect()),
+    );
     this.pickerOpen.set(true);
   }
 
@@ -110,4 +126,21 @@ export class ReactionBar {
       },
     });
   }
+}
+
+const PICKER_WIDTH = 288;
+const PICKER_HEIGHT = 330;
+
+/** Viewport position of the picker: above the bar when it fits, else below; kept on screen. */
+export function pickerPosition(
+  anchor: Pick<DOMRect, 'left' | 'top' | 'bottom'>,
+  viewport = { width: globalThis.innerWidth ?? 1024, height: globalThis.innerHeight ?? 768 },
+): { left: number; top: number } {
+  const left = Math.max(8, Math.min(anchor.left, viewport.width - PICKER_WIDTH - 8));
+  const above = anchor.top - PICKER_HEIGHT - 4;
+  const top =
+    above >= 8
+      ? above
+      : Math.max(8, Math.min(anchor.bottom + 4, viewport.height - PICKER_HEIGHT - 8));
+  return { left, top };
 }

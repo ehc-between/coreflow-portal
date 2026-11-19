@@ -168,14 +168,13 @@ let nextId = 0;
         <ng-container ngProjectAs="[lead]"><ng-content select="[header]" /></ng-container>
         <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
         <ng-container ngProjectAs="[secondary]">
-          @if (anatomy()) {
-            <!-- §4.7 (chat): a quiet "Diskuter" left of "Spør KI"; hides itself without chat. -->
-            <app-discuss-button
-              [entityType]="entityType()"
-              [entityId]="entityId()"
-              [title]="title()"
-            />
-          }
+          <!-- §4.7 (chat): a quiet "Diskuter" on every record page (left of "Spør KI");
+               it hides itself without chat or chat:use. -->
+          <app-discuss-button
+            [entityType]="entityType()"
+            [entityId]="entityId()"
+            [title]="title()"
+          />
           @if (aiAvailable()) {
             <!-- §2.7: every assistant action of the page in one "Spør KI" menu. -->
             <app-overflow-menu
