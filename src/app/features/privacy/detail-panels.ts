@@ -6,6 +6,7 @@ import {
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -158,9 +159,10 @@ export class DsrPanel {
 }
 
 /**
- * The 72-hour clock of a breach, the two notification decisions (what is still open,
- * and what to do), and the AI draft assessment. A notified breach says it is waiting
- * to be closed instead of showing a clock that no longer runs.
+ * The 72-hour clock of a breach while it is open (a notified breach says it is
+ * waiting to be closed instead of showing a clock that no longer runs), the link to
+ * record the notification decisions, and the assistant's draft assessment (started
+ * from the page's "Spør KI" menu through {@link draftAssessment}).
  */
 @Component({
   selector: 'app-privacy-breach-panel',
@@ -178,126 +180,119 @@ export class DsrPanel {
   template: `
     @let b = breach();
     @let c = clock();
-    <app-card>
-      <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
-        <app-icon name="clock" [size]="16" />
-        {{ 'privacy.breach.clockTitle' | transloco }}
-      </h2>
-      <div class="flex flex-wrap items-center gap-3" data-testid="breach-clock">
-        <span class="font-display text-section font-bold text-fg">
-          {{ b.notification_deadline | localDate }}
-        </span>
-        @if (b.status === 'notified') {
-          <app-status-badge
-            meaning="lifecycle"
-            value="pending"
-            labelKey="privacy.breach.awaitingClosure"
-          />
-        } @else {
-          <app-status-badge
-            [meaning]="c.meaning"
-            [value]="c.value"
-            [labelKey]="c.key"
-            [labelParams]="c.params"
-          />
+    @if (b.status !== 'closed' || draft()) {
+      <app-card>
+        @if (b.status !== 'closed') {
+          <h2 class="mb-3 flex items-center gap-2 font-display text-card font-bold text-fg">
+            <app-icon name="clock" [size]="16" />
+            {{ 'privacy.breach.clockTitle' | transloco }}
+          </h2>
+          <div class="flex flex-wrap items-center gap-3" data-testid="breach-clock">
+            <span class="font-display text-section font-bold text-fg">
+              {{ b.notification_deadline | localDate }}
+            </span>
+            @if (b.status === 'notified') {
+              <app-status-badge
+                meaning="lifecycle"
+                value="pending"
+                labelKey="privacy.breach.awaitingClosure"
+              />
+            } @else {
+              <app-status-badge
+                [meaning]="c.meaning"
+                [value]="c.value"
+                [labelKey]="c.key"
+                [labelParams]="c.params"
+              />
+            }
+          </div>
+          <p class="mt-2 text-ui text-fg-muted">
+            {{ 'privacy.breach.clockExplain' | transloco: { aware: (b.aware_at | localDate) } }}
+          </p>
+          @if (canWrite()) {
+            <a
+              [routerLink]="['/privacy', 'breaches', b.id, 'edit']"
+              class="mt-3 inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+              data-testid="breach-decide"
+            >
+              {{ 'privacy.breach.recordDecisions' | transloco }}
+            </a>
+          }
         }
-      </div>
-      <p class="mt-2 text-ui text-fg-muted">
-        {{ 'privacy.breach.clockExplain' | transloco: { aware: (b.aware_at | localDate) } }}
-      </p>
-
-      <dl class="mt-4 grid grid-cols-1 gap-3 text-ui sm:grid-cols-2">
-        <div class="rounded-tile border border-border p-3">
-          <dt class="font-semibold text-fg">{{ 'privacy.breach.authorityTitle' | transloco }}</dt>
-          <dd class="mt-1 text-fg-muted" data-testid="authority-decision">
-            {{ authorityKey() | transloco: { date: (b.authority_notified_at | localDate) } }}
-            @if (b.authority_reference) {
-              <span class="block">{{
-                'privacy.breach.reference' | transloco: { ref: b.authority_reference }
-              }}</span>
-            }
-          </dd>
-        </div>
-        <div class="rounded-tile border border-border p-3">
-          <dt class="font-semibold text-fg">{{ 'privacy.breach.subjectsTitle' | transloco }}</dt>
-          <dd class="mt-1 text-fg-muted" data-testid="subjects-decision">
-            {{ subjectsKey() | transloco: { date: (b.subjects_notified_at | localDate) } }}
-            @if (b.subjects_exemption) {
-              <span class="block">{{
-                'privacy.options.subjectsExemption.' + b.subjects_exemption | transloco
-              }}</span>
-            }
-          </dd>
-        </div>
-      </dl>
-      @if (canWrite() && b.status !== 'closed') {
-        <a
-          [routerLink]="['/privacy', 'breaches', b.id, 'edit']"
-          class="mt-3 inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
-          data-testid="breach-decide"
-        >
-          {{ 'privacy.breach.recordDecisions' | transloco }}
-        </a>
-      }
-
-      @if (canWrite()) {
-        <div class="mt-4 border-t border-border pt-4">
-          <p class="mb-2 text-ui text-fg-muted">{{ 'privacy.ai.breachHint' | transloco }}</p>
-          <app-ai-assist-button
-            assist="privacy.draft_breach_assessment"
-            entityType="data_breach"
-            [entityId]="b.id"
-            labelKey="privacy.ai.draftBreach"
-            (text)="draft.set($event)"
-          />
-          @if (draft(); as text) {
+        @if (draft(); as text) {
+          <div
+            [class.mt-4]="b.status !== 'closed'"
+            [class.border-t]="b.status !== 'closed'"
+            [class.border-border]="b.status !== 'closed'"
+            [class.pt-4]="b.status !== 'closed'"
+          >
+            <h3 class="mb-2 flex items-center gap-1.5 text-ui font-semibold text-fg">
+              <app-icon name="spark" [size]="14" />
+              {{ 'privacy.ai.draftBreach' | transloco }}
+            </h3>
             <div
-              class="mt-3 max-h-[420px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
+              class="max-h-[420px] overflow-y-auto rounded-tile bg-surface-2 p-3 text-ui text-fg"
               [innerHTML]="text | appMarkdown"
               aria-live="polite"
               data-testid="breach-assessment"
             ></div>
             <p class="mt-1 text-meta text-fg-subtle">{{ 'privacy.ai.disclaimer' | transloco }}</p>
-          }
-        </div>
-      }
-    </app-card>
+          </div>
+        }
+      </app-card>
+    }
+    @if (canWrite()) {
+      <app-ai-assist-button
+        #assist
+        [quiet]="true"
+        assist="privacy.draft_breach_assessment"
+        entityType="data_breach"
+        [entityId]="b.id"
+        labelKey="privacy.ai.draftBreach"
+        (text)="draft.set($event)"
+      />
+    }
   `,
 })
 export class BreachPanel {
   readonly breach = input.required<DataBreach>();
   readonly canWrite = input(false);
 
+  private readonly assist = viewChild<AiAssistButton>('assist');
   protected readonly draft = signal<string | null>(null);
   protected readonly clock = computed(() => clockFact(this.breach()));
 
-  protected readonly authorityKey = computed(() => {
-    const b = this.breach();
-    if (b.authority_notified_at) {
-      return 'privacy.breach.authorityNotified';
-    }
-    if (b.authority_notification_required === false) {
-      return 'privacy.breach.authorityNotRequired';
-    }
-    if (b.authority_notification_required === true) {
-      return 'privacy.breach.authorityPending';
-    }
-    return 'privacy.breach.undecided';
-  });
+  /** Run the assistant's draft risk assessment ("Spør KI" menu). */
+  draftAssessment(): void {
+    this.assist()?.run();
+  }
+}
 
-  protected readonly subjectsKey = computed(() => {
-    const b = this.breach();
-    if (b.subjects_notified_at) {
-      return 'privacy.breach.subjectsNotified';
-    }
-    if (b.subjects_notification_required === false) {
-      return 'privacy.breach.subjectsNotRequired';
-    }
-    if (b.subjects_notification_required === true) {
-      return 'privacy.breach.subjectsPending';
-    }
-    return 'privacy.breach.undecided';
-  });
+/** "Datatilsynet: Varslet 12. okt." / "De berørte: …": the two notification decisions. */
+export function breachAuthorityKey(b: DataBreach): string {
+  if (b.authority_notified_at) {
+    return 'privacy.breach.authorityNotified';
+  }
+  if (b.authority_notification_required === false) {
+    return 'privacy.breach.authorityNotRequired';
+  }
+  if (b.authority_notification_required === true) {
+    return 'privacy.breach.authorityPending';
+  }
+  return 'privacy.breach.undecided';
+}
+
+export function breachSubjectsKey(b: DataBreach): string {
+  if (b.subjects_notified_at) {
+    return 'privacy.breach.subjectsNotified';
+  }
+  if (b.subjects_notification_required === false) {
+    return 'privacy.breach.subjectsNotRequired';
+  }
+  if (b.subjects_notification_required === true) {
+    return 'privacy.breach.subjectsPending';
+  }
+  return 'privacy.breach.undecided';
 }
 
 /** The three stages of a DPIA, and where this one is. */

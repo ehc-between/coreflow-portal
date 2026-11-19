@@ -139,7 +139,6 @@
     "recordedBy": "Registrert av",
     "acknowledged": "Dokument",
     "notes": "Notater",
-    "passMarkLong": "Krav for å bestå (% riktige svar)",
     "learningObjectives": "Læringsmål",
     "effectivenessCriteria": "Kriterier for effekt",
     "clauseRefs": "Krav kurset dokumenterer",
@@ -232,12 +231,10 @@
     "failed": "Ikke bestått"
   },
   "detail": {
-    "version": "Versjon {{ version }}",
     "learn": "Ta kurset",
     "assign": "Tildel",
     "publish": "Publiser",
     "archive": "Arkiver",
-    "months": "{{ count }} måneder",
     "noExpiry": "Utløper ikke",
     "minutes": "{{ count }} min",
     "lessons": "Leksjoner ({{ count }})",
@@ -247,10 +244,6 @@
     "assignments": "Åpne tildelinger",
     "allAssignments": "Se alle",
     "noAssignments": "Ingen har en åpen tildeling for dette kurset.",
-    "progress": "Fremdrift",
-    "countAssigned": "Tildelt",
-    "countOverdue": "Forfalt",
-    "countCompleted": "Fullført",
     "publishTitle": "Publisere kurset?",
     "publishMessage": "Publiserte kurs kan tas og tildeles, og tildelingsreglene begynner å opprette tildelinger.",
     "archiveTitle": "Arkivere kurset?",
@@ -260,14 +253,42 @@
     "publishedToast": "Kurset er publisert",
     "archivedToast": "Kurset er arkivert",
     "deletedToast": "Kurset er slettet",
-    "howToComplete": "Slik fullføres kurset",
-    "monthsOne": "1 måned",
     "lessonsOne": "Leksjoner (1)",
     "questionsOne": "1 spørsmål",
-    "notPublished": "Ikke publisert ennå",
-    "publishedAt": "{{ date }}",
     "publishedBy": "{{ date }} av {{ name }}",
-    "publishMessageNoQuiz": "Kurset har ingen kunnskapstest, så deltakerne fullfører ved å åpne alle leksjonene. Legg til quizspørsmål først hvis du trenger dokumentasjon på at de har forstått innholdet. Publiserte kurs kan tas og tildeles, og reglene begynner å opprette tildelinger."
+    "publishMessageNoQuiz": "Kurset har ingen kunnskapstest, så deltakerne fullfører ved å åpne alle leksjonene. Legg til quizspørsmål først hvis du trenger dokumentasjon på at de har forstått innholdet. Publiserte kurs kan tas og tildeles, og reglene begynner å opprette tildelinger.",
+    "lead": {
+      "about": "Hva kurset handler om",
+      "howToComplete": "Slik fullføres det",
+      "objectives": "Hva deltakerne skal lære",
+      "document": "Dokumentet som skal leses",
+      "participants": "Deltakere"
+    },
+    "countOpen": "skal ta det",
+    "countLate": "har passert fristen",
+    "countDone": "har fullført",
+    "validFor": "Hvor lenge det gjelder",
+    "validity": "{{ count }} måneder, så må det tas på nytt",
+    "validityOne": "1 måned, så må det tas på nytt",
+    "timeNeeded": "Tar omtrent",
+    "relatedDocument": "Bygger på dokument",
+    "updated": "Sist endret",
+    "statusLine": {
+      "published": "Publisert – kurset kan tas og tildeles.",
+      "publishedExternal": "Publisert – opplæringen kan tildeles og registreres når noen har deltatt.",
+      "draft": "Utkast – kurset er ikke publisert ennå, så ingen kan ta det.",
+      "archived": "Arkivert – kurset kan ikke lenger tas eller tildeles. Registreringene beholdes."
+    },
+    "missing": {
+      "aiDraft": "Gå gjennom KI-utkastet før du publiserer",
+      "lessons": "Legg til minst én leksjon",
+      "document": "Velg dokumentet som skal leses",
+      "publish": "Publiser kurset, så det kan tas og tildeles",
+      "rules": "Bestem hvem som må ta kurset",
+      "overdue": "{{ count }} personer har passert fristen",
+      "overdueOne": "1 person har passert fristen",
+      "owner": "Velg en eier"
+    }
   },
   "rules": {
     "title": "Hvem må ta kurset",
@@ -349,16 +370,37 @@
     "cancelled": "Tildelingen er avbrutt",
     "changeDue": "Ny frist",
     "dueSaved": "Fristen er lagret",
-    "notStarted": "Ikke startet",
-    "noAttempts": "Ingen forsøk ennå",
     "remind": "Send påminnelse",
     "reminded": "Påminnelse sendt til {{ person }}",
     "remindedRecently": "Det er allerede sendt en påminnelse de siste 20 timene.",
-    "whyTitle": "Hvorfor dette er tildelt",
     "ruleText": "Regelen «{{ target }}» tildeler kurset, med {{ days }} dager til frist.",
     "ruleDeleted": "Det ble tildelt av en regel som senere er fjernet ({{ target }}).",
     "openRules": "Se reglene for kurset",
-    "saveDue": "Lagre fristen"
+    "saveDue": "Lagre fristen",
+    "type": "Tildeling",
+    "lead": {
+      "person": "Hvem",
+      "course": "Kurs",
+      "why": "Hvorfor det er tildelt"
+    },
+    "changeDueShort": "Endre",
+    "attempts": "Forsøk på testen",
+    "progressTitle": "Fremdrift",
+    "noProgress": "{{ person }} har ikke startet ennå.",
+    "statusLine": {
+      "assigned": "Ikke startet – kurset er ikke tatt ennå.",
+      "assignedDue": "Ikke startet – kurset må være fullført innen {{ date }}.",
+      "inProgress": "Pågår – startet, men ikke fullført ennå.",
+      "inProgressDue": "Pågår – må være fullført innen {{ date }}.",
+      "overdue": "Forfalt – fristen var {{ date }}, og kurset er ikke fullført.",
+      "completed": "Fullført – opplæringsregistreringen dokumenterer det.",
+      "completedOn": "Fullført {{ date }} – opplæringsregistreringen dokumenterer det.",
+      "cancelled": "Avbrutt – personen trenger ikke lenger ta kurset."
+    },
+    "missing": {
+      "remind": "Send en påminnelse",
+      "due": "Sett en frist"
+    }
   },
   "records": {
     "title": "Gjennomført opplæring",
@@ -711,7 +753,8 @@
     "deleted": "Vurderingen er slettet",
     "deleteTitle": "Slette vurderingen?",
     "deleteMessage": "Vurderingen fjernes fra kurset. Revisjonsloggen beholder historikken.",
-    "followUpPlaceholder": "For eksempel: oppdater leksjon 2 og kjør kurset på nytt for lageret"
+    "followUpPlaceholder": "For eksempel: oppdater leksjon 2 og kjør kurset på nytt for lageret",
+    "summarising": "Oppsummerer …"
   },
   "evaluationMethod": {
     "survey": "Spørreundersøkelse",
@@ -821,5 +864,12 @@
     "summary": "{{ done }} av {{ required }} har bekreftet gjeldende revisjon.",
     "summaryRev": "{{ done }} av {{ required }} har bekreftet revisjon {{ rev }}.",
     "pending": "{{ count }} har ikke bekreftet ennå:"
+  },
+  "reasonLong": {
+    "manual": "Tildelt manuelt.",
+    "rule": "Tildelt av en tildelingsregel.",
+    "new_hire": "Tildelt nyansatte.",
+    "retraining": "Fornyelse: den forrige opplæringen er i ferd med å utløpe.",
+    "new_revision": "En ny revisjon av dokumentet må leses."
   }
 }

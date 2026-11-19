@@ -14,6 +14,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { hasAnyPermission } from '../../core/auth/permission';
 import { LanguageService } from '../../core/i18n/language.service';
+import { roleLabel } from '../../core/org/roles';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { localize } from '../../core/records/localized';
@@ -419,7 +420,8 @@ export class WorkflowPanel {
     const roles = approval.approver_role_key
       ? [approval.approver_role_key]
       : approval.eligible_roles;
-    return roles.join(', ');
+    // Role names ("Kvalitetsleder"), never raw keys ("quality_manager").
+    return roles.map((key) => roleLabel((k) => this.language.translate(k), key, [])).join(', ');
   }
 
   protected canWithdraw(approval: Approval): boolean {

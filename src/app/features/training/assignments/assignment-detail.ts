@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -19,18 +21,34 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { roleNameKey } from '../../../core/org/roles';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
+import {
+  LocalDatePipe,
+  LocalDayPipe,
+  formatLocalDate,
+  formatLocalDay,
+} from '../../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
@@ -47,6 +65,7 @@ import {
   trainingErrorCode,
   trainingErrorKey,
 } from '../data/training-display';
+import { assignmentMissing, assignmentStatusSentence } from '../data/training-anatomy';
 import { Assignment } from '../data/training.models';
 
 const TABS: readonly RecordTab[] = ['details', 'tasks', 'related', 'activity', 'comments'];
@@ -57,7 +76,14 @@ export function remindedRecently(a: Pick<Assignment, 'reminded_at'>, now = new D
   return days !== null && days > -20 / 24;
 }
 
-/** `/training/assignments/:id`: one person's assignment to a course. */
+/**
+ * `/training/assignments/:id`: one person's assignment to a course, on the
+ * detail-page anatomy (docs/ux-guide.md §2.7). "Hovedinformasjon" says where it
+ * stands (status sentence), who, which course (linked), the due date (changed in
+ * place) and why it was assigned; the Details tab shows the progress; the
+ * "Oppfølging" card lists what to do (remind, set a due date), the requirements,
+ * the connections and when / by whom it was assigned.
+ */
 @Component({
   selector: 'app-assignment-detail',
   imports: [
@@ -68,26 +94,31 @@ export function remindedRecently(a: Pick<Assignment, 'reminded_at'>, now = new D
     LocalDayPipe,
     Alert,
     Button,
-    Card,
     ConfirmDialog,
+    EntityChip,
     EntityTasks,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
+    Icon,
     LoadingState,
     MenuItem,
     ModuleNav,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
-    WatchButton,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (assignment(); as a) {
       @let badge = badgeOf(a);
+      @let sentence = statusSentence();
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="training_assignment"
         [entityId]="a.id"
         [title]="
@@ -103,18 +134,18 @@ export function remindedRecently(a: Pick<Assignment, 'reminded_at'>, now = new D
         [requirementsPanel]="true"
         [canEdit]="a.can_manage"
         [includeAudit]="access.canSeeAudit()"
+        [missing]="missing()"
       >
         <ng-container ngProjectAs="[meta]">
           <span class="font-mono">{{ a.course.code }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ 'training.assignmentDetail.type' | transloco }}</span>
           <span aria-hidden="true">·</span>
           <app-status-badge
             [meaning]="badge.meaning"
             [value]="badge.value"
             [labelKey]="badge.labelKey"
           />
-          <span aria-hidden="true">·</span>
-          <span>{{ 'training.reason.' + a.reason | transloco }}</span>
-          <app-watch-button entityType="training_assignment" [entityId]="a.id" />
         </ng-container>
 
         @if (open(a) && a.course.kind !== 'external' && isMine(a)) {
@@ -143,144 +174,166 @@ export function remindedRecently(a: Pick<Assignment, 'reminded_at'>, now = new D
           </app-button>
         }
         @if (open(a) && a.can_manage) {
-          <button appMenuItem overflow type="button" [danger]="true" (click)="cancelOpen.set(true)">
-            {{ 'training.assignmentDetail.cancel' | transloco }}
+          <ng-container ngProjectAs="[overflow]">
+            <button appMenuItem overflow type="button" (click)="openDue()">
+              {{ 'training.assignmentDetail.changeDue' | transloco }}
+            </button>
+            <button
+              appMenuItem
+              overflow
+              type="button"
+              [danger]="true"
+              (click)="cancelOpen.set(true)"
+            >
+              {{ 'training.assignmentDetail.cancel' | transloco }}
+            </button>
+          </ng-container>
+        }
+
+        @if (open(a) && a.can_manage) {
+          <button appMenuItem ask type="button" (click)="askAi()">
+            <app-icon name="spark" [size]="15" />
+            {{ 'training.ask.dueDate' | transloco }}
           </button>
         }
 
         <app-module-nav nav [items]="access.navItems()" labelKey="training.nav.label" />
         <app-help-strip help scope="training" page="assignment" />
 
+        <app-record-lead record-lead>
+          <app-record-status-line status [tone]="sentence.tone">
+            {{ sentence.key | transloco: sentence.params }}
+          </app-record-status-line>
+          <app-field-item size="lead" labelKey="training.assignmentDetail.lead.person">
+            <a
+              [routerLink]="['/training/people', a.user.id]"
+              class="inline-flex items-center gap-2 font-semibold text-fg hover:text-accent hover:underline"
+              data-testid="assignment-person"
+            >
+              <app-icon name="people" [size]="16" class="text-fg-muted" />
+              {{ a.user.name }}
+            </a>
+          </app-field-item>
+          <app-field-item size="lead" labelKey="training.assignmentDetail.lead.course">
+            <app-entity-chip [ref]="courseRef()" data-testid="assignment-course" />
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="training.fields.due"
+            [keepEmpty]="true"
+            emptyKey="training.common.noDue"
+          >
+            @if (a.due_at) {
+              <span
+                [class.font-semibold]="a.overdue && open(a)"
+                [class.text-warn-ink]="a.overdue && open(a)"
+              >
+                {{ a.due_at | localDay }}
+                @if (a.overdue && open(a)) {
+                  · {{ 'training.assignmentStatus.overdue' | transloco }}
+                }
+              </span>
+            }
+            @if (open(a) && a.can_manage && !dueOpen()) {
+              <button
+                type="button"
+                class="ml-2 text-meta font-semibold text-accent hover:underline"
+                (click)="openDue()"
+                data-testid="assignment-change-due"
+              >
+                {{ 'training.assignmentDetail.changeDueShort' | transloco }}
+              </button>
+            }
+          </app-field-item>
+          <app-field-item size="lead" labelKey="training.assignmentDetail.lead.why">
+            <span data-testid="assignment-rule">{{ whyText() }}</span>
+            @if (a.rule && !a.rule.deleted) {
+              <a
+                [routerLink]="['/training/courses', a.course.id]"
+                fragment="course-rules"
+                class="ml-1 text-meta font-semibold text-accent hover:underline"
+                >{{ 'training.assignmentDetail.openRules' | transloco }}</a
+              >
+            }
+          </app-field-item>
+        </app-record-lead>
+
         <div class="flex flex-col gap-6">
           @if (error(); as key) {
             <app-alert>{{ key | transloco }}</app-alert>
           }
-          <app-field-list [columns]="3">
-            <app-field-item labelKey="training.fields.course">
-              <a
-                [routerLink]="['/training/courses', a.course.id]"
-                class="font-medium text-accent hover:underline"
-              >
-                {{ a.course.code }} · {{ a.course.title }}
-              </a>
-            </app-field-item>
-            <app-field-item labelKey="training.fields.person">
-              <a
-                [routerLink]="['/training/people', a.user.id]"
-                class="font-medium text-accent hover:underline"
-                >{{ a.user.name }}</a
-              >
-            </app-field-item>
-            <app-field-item labelKey="training.fields.due">
-              @if (a.due_at) {
-                <span
-                  [class.font-semibold]="a.overdue && open(a)"
-                  [class.text-warn-ink]="a.overdue && open(a)"
-                >
-                  {{ a.due_at | localDay }}
-                  @if (a.overdue && open(a)) {
-                    · {{ 'training.assignmentStatus.overdue' | transloco }}
-                  }
-                </span>
-              } @else {
-                <span class="text-fg-subtle">{{ 'training.common.noDue' | transloco }}</span>
-              }
-            </app-field-item>
-            <app-field-item labelKey="training.fields.assignedBy" [value]="assignedByText()" />
-            <app-field-item
-              labelKey="training.fields.assignedAt"
-              [value]="a.created_at | localDate"
-            />
-            <app-field-item labelKey="training.fields.started">
-              @if (a.started_at) {
-                {{ a.started_at | localDate }}
-              } @else {
-                <span class="text-fg-subtle">{{
-                  'training.assignmentDetail.notStarted' | transloco
-                }}</span>
-              }
-            </app-field-item>
-            <app-field-item labelKey="training.fields.attempts" [value]="a.attempts" />
-            <app-field-item labelKey="training.fields.lastScore">
-              @if (a.last_score !== null) {
-                {{ 'training.stats.pct' | transloco: { value: a.last_score } }}
-              } @else {
-                <span class="text-fg-subtle">{{
-                  'training.assignmentDetail.noAttempts' | transloco
-                }}</span>
-              }
-            </app-field-item>
-            @if (a.reminded_at) {
-              <app-field-item
-                labelKey="training.fields.remindedAt"
-                [value]="a.reminded_at | localDate"
-              />
-            }
-            @if (a.completed_at) {
-              <app-field-item
-                labelKey="training.fields.completed"
-                [value]="a.completed_at | localDate"
-              />
-            }
-            @if (a.cancelled_at) {
-              <app-field-item
-                labelKey="training.fields.cancelled"
-                [value]="a.cancelled_at | localDate"
-              />
-            }
-          </app-field-list>
 
-          @if (a.rule; as rule) {
-            <div
-              class="rounded-tile border border-border bg-surface px-4 py-3 text-ui"
-              data-testid="assignment-rule"
+          @if (dueOpen() && open(a) && a.can_manage) {
+            <form
+              id="assignment-due-form"
+              class="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4"
+              (submit)="$event.preventDefault(); saveDue()"
             >
-              <p class="font-semibold text-fg">
-                {{ 'training.assignmentDetail.whyTitle' | transloco }}
-              </p>
-              <p class="mt-0.5 text-fg-muted">
-                {{
-                  (rule.deleted
-                    ? 'training.assignmentDetail.ruleDeleted'
-                    : 'training.assignmentDetail.ruleText'
-                  ) | transloco: { target: ruleTarget(), days: rule.due_days }
-                }}
-                @if (!rule.deleted) {
-                  <a
-                    [routerLink]="['/training/courses', a.course.id]"
-                    class="ml-1 font-semibold text-accent hover:underline"
-                    >{{ 'training.assignmentDetail.openRules' | transloco }}</a
-                  >
-                }
-              </p>
-            </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="assignment-due" class="text-ui font-semibold text-fg-muted">
+                  {{ 'training.assignmentDetail.changeDue' | transloco }}
+                </label>
+                <input
+                  id="assignment-due"
+                  name="due"
+                  type="date"
+                  class="h-10 w-full min-w-0 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+                  [(ngModel)]="dueDate"
+                />
+              </div>
+              <app-button type="submit" variant="primary" [loading]="busy()">
+                {{ 'training.assignmentDetail.saveDue' | transloco }}
+              </app-button>
+              <app-button type="button" variant="ghost" (click)="dueOpen.set(false)">
+                {{ 'training.common.cancel' | transloco }}
+              </app-button>
+            </form>
           }
 
-          @if (open(a) && a.can_manage) {
-            <app-card>
-              <form
-                class="flex flex-wrap items-end gap-3"
-                (submit)="$event.preventDefault(); saveDue()"
-              >
-                <div class="flex flex-col gap-1.5">
-                  <label for="assignment-due" class="text-ui font-semibold text-fg-muted">
-                    {{ 'training.assignmentDetail.changeDue' | transloco }}
-                  </label>
-                  <input
-                    id="assignment-due"
-                    name="due"
-                    type="date"
-                    class="h-10 w-full min-w-0 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                    [(ngModel)]="dueDate"
-                  />
-                </div>
-                <app-button type="submit" variant="secondary" [loading]="busy()">
-                  {{ 'training.assignmentDetail.saveDue' | transloco }}
-                </app-button>
-              </form>
-            </app-card>
+          @if (hasProgress()) {
+            <app-record-details [columns]="3" titleKey="training.assignmentDetail.progressTitle">
+              @if (a.started_at) {
+                <app-field-item
+                  labelKey="training.fields.started"
+                  [value]="a.started_at | localDate"
+                />
+              }
+              @if (a.attempts) {
+                <app-field-item
+                  labelKey="training.assignmentDetail.attempts"
+                  [value]="a.attempts"
+                />
+              }
+              @if (a.last_score !== null) {
+                <app-field-item
+                  labelKey="training.fields.lastScore"
+                  [value]="'training.stats.pct' | transloco: { value: a.last_score }"
+                />
+              }
+              @if (a.completed_at) {
+                <app-field-item
+                  labelKey="training.fields.completed"
+                  [value]="a.completed_at | localDate"
+                />
+              }
+              @if (a.cancelled_at) {
+                <app-field-item
+                  labelKey="training.fields.cancelled"
+                  [value]="a.cancelled_at | localDate"
+                />
+              }
+              @if (a.reminded_at) {
+                <app-field-item
+                  labelKey="training.fields.remindedAt"
+                  [value]="a.reminded_at | localDate"
+                />
+              }
+            </app-record-details>
+          } @else {
+            <p class="text-ui text-fg-muted" data-testid="assignment-no-progress">
+              {{ 'training.assignmentDetail.noProgress' | transloco: { person: a.user.name } }}
+            </p>
           }
-          <app-why-it-matters scope="training" page="assignment" />
         </div>
 
         <app-entity-tasks
@@ -290,6 +343,23 @@ export function remindedRecently(a: Pick<Assignment, 'reminded_at'>, now = new D
           [canCreate]="access.canWriteTasks() && a.can_manage"
           [entityLabel]="a.course.code + ' · ' + a.user.name"
         />
+
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="training.fields.assignedAt"
+            [value]="a.created_at | localDate: 'mediumDate'"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="training.fields.assignedBy"
+            [value]="a.assigned_by?.name"
+          />
+        </app-record-meta>
+
+        <div aside-learn>
+          <app-why-it-matters scope="training" page="assignment" />
+        </div>
       </app-record-detail-layout>
 
       <app-confirm-dialog
@@ -323,6 +393,8 @@ export class AssignmentDetail {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly auth = inject(AuthService);
+  private readonly injector = inject(Injector);
+  private readonly ask = inject(AskPanelService);
   protected readonly router = inject(Router);
   protected readonly access = inject(TrainingAccess);
 
@@ -338,7 +410,71 @@ export class AssignmentDetail {
   protected readonly reminding = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly cancelOpen = signal(false);
+  /** The due-date editor is open. */
+  protected readonly dueOpen = signal(false);
   protected dueDate = '';
+
+  protected readonly statusSentence = computed(() => {
+    const a = this.assignment();
+    const locale = this.language.locale();
+    return a
+      ? assignmentStatusSentence(a, {
+          day: (v) => formatLocalDay(v, 'mediumDate', locale),
+          date: (v) => formatLocalDate(v, 'mediumDate', locale),
+        })
+      : { key: '', tone: 'neutral' as const };
+  });
+
+  /** The course as a linked chip (type · code · title · status). */
+  protected readonly courseRef = computed<EntityChipRef>(() => {
+    const c = this.assignment()?.course;
+    return {
+      entity_type: 'course',
+      entity_id: c?.id ?? '',
+      code: c?.code,
+      title: c?.title ?? '',
+      url: c ? `/training/courses/${c.id}` : null,
+      status: c?.status,
+    };
+  });
+
+  /** Why it was assigned: the rule ("Avdeling: Drift"), a person, or the event that did. */
+  protected readonly whyText = computed(() => {
+    const a = this.assignment();
+    if (!a) {
+      return '';
+    }
+    if (a.rule) {
+      return this.language.translate(
+        a.rule.deleted
+          ? 'training.assignmentDetail.ruleDeleted'
+          : 'training.assignmentDetail.ruleText',
+        { target: this.ruleTarget(), days: a.rule.due_days },
+      );
+    }
+    if (a.reason === 'manual' && a.assigned_by) {
+      return this.language.translate('training.reasonText.manualBy', { name: a.assigned_by.name });
+    }
+    return this.language.translate(`training.reasonLong.${a.reason}`);
+  });
+
+  protected readonly hasProgress = computed(() => {
+    const a = this.assignment();
+    return (
+      !!a && !!(a.started_at || a.attempts || a.completed_at || a.cancelled_at || a.reminded_at)
+    );
+  });
+
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const a = this.assignment();
+    if (!a) {
+      return [];
+    }
+    return assignmentMissing(a, {
+      remind: !this.isMine(a) && !remindedRecently(a) ? () => this.remind() : null,
+      setDue: () => this.openDue(),
+    });
+  });
 
   /** "Avdeling: Drift" / "Tilgangsrolle i CoreFlow: Revisor" for the rule. */
   protected readonly ruleTarget = computed(() => {
@@ -352,21 +488,6 @@ export class AssignmentDetail {
         ? this.language.translate(roleNameKey(rule.target_value))
         : rule.target_label;
     return value ? `${kind}: ${value}` : kind;
-  });
-
-  /** Who assigned it: a person, or the rule / new-hire / renewal that did. */
-  protected readonly assignedByText = computed(() => {
-    const a = this.assignment();
-    if (!a) {
-      return '';
-    }
-    if (a.assigned_by) {
-      return a.assigned_by.name;
-    }
-    if (a.reason === 'rule' && a.rule) {
-      return this.language.translate('training.reasonText.rule', { target: this.ruleTarget() });
-    }
-    return this.language.translate(`training.reason.${a.reason}`);
   });
 
   private sub = new Subscription();
@@ -392,6 +513,18 @@ export class AssignmentDetail {
 
   protected isMine(a: Assignment): boolean {
     return a.user.id === this.auth.user()?.id;
+  }
+
+  protected openDue(): void {
+    this.dueDate = toDateInput(this.assignment()?.due_at ?? null);
+    this.dueOpen.set(true);
+    afterNextRender(() => document.getElementById('assignment-due')?.focus(), {
+      injector: this.injector,
+    });
+  }
+
+  protected askAi(): void {
+    this.ask.askAbout(this.language.translate('training.ask.dueDate'));
   }
 
   protected reload(): void {
@@ -435,6 +568,7 @@ export class AssignmentDetail {
       next: (updated) => {
         this.busy.set(false);
         this.set(updated);
+        this.dueOpen.set(false);
         this.notifications.success('training.assignmentDetail.dueSaved');
       },
       error: (err: unknown) => {

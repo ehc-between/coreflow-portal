@@ -44,7 +44,7 @@ export function hitRef(hit: SearchHit): EntityRef {
   imports: [TranslocoPipe, EntityChip, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (picked().length) {
+    @if (showPicked() && picked().length) {
       <ul class="mb-2 flex flex-wrap gap-1.5" [attr.data-testid]="testId() + '-picked'">
         @for (r of picked(); track r.entity_type + r.entity_id) {
           <li
@@ -141,6 +141,8 @@ export class ProjectRecordPicker {
   /** Entity types to search (global search `types`). */
   readonly types = input.required<readonly string[]>();
   readonly picked = input<readonly EntityRef[]>([]);
+  /** Show the picked records as removable chips (off where the page lists them itself). */
+  readonly showPicked = input(true);
   readonly label = input('');
   readonly placeholder = input('');
   readonly disabled = input(false);

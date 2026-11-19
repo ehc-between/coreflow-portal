@@ -201,7 +201,50 @@
     "conditionsDue": "Revurderes innen {{ date }}",
     "conditionsOverdue": "Forfalt siden {{ date }}",
     "conditionsTask": "Oppfølgingsoppgave: {{ status }}",
-    "openDecision": "Åpne beslutningen"
+    "openDecision": "Åpne beslutningen",
+    "lead": {
+      "status": {
+        "prospective": "Potensiell – registrert, men ikke vurdert. Ikke ta leverandøren i bruk ennå.",
+        "under_evaluation": "Under vurdering – en vurdering pågår.",
+        "approved": "Godkjent – leverandøren oppfylte kravene deres ved siste vurdering.",
+        "conditional": "Godkjent med vilkår – vilkårene må følges opp innen seks måneder.",
+        "suspended": "Suspendert – ikke legg inn nye bestillinger før problemene er løst.",
+        "rejected": "Avvist – leverandøren oppfylte ikke kravene deres.",
+        "inactive": "Inaktiv – leverandøren brukes ikke lenger."
+      },
+      "whatTheyDeliver": "Hva de leverer",
+      "criticality": "Hvor kritisk de er",
+      "criticalityHint": "Vurderes på nytt hver {{ months }}. måned",
+      "approval": "Godkjenning",
+      "approvedOn": "Godkjent {{ date }} av {{ name }}",
+      "lastEvaluated": "Sist vurdert {{ date }}",
+      "lastEvaluatedScore": "Sist vurdert {{ date }} · {{ score }} / 100",
+      "whatTheyDo": "Hva de gjør for dere"
+    },
+    "meta": {
+      "interval": "Revurderes",
+      "intervalOwn": "Hver {{ months }}. måned (satt for denne leverandøren)",
+      "intervalDefault": "Hver {{ months }}. måned",
+      "updated": "Sist endret"
+    },
+    "todo": {
+      "attention": {
+        "not_approved": "Ikke godkjent – start {{ kind }}",
+        "evaluation_overdue": "Revurderingen er forfalt – start {{ kind }}",
+        "weak_performance": "Svake resultater – start {{ kind }}",
+        "dpa_missing": "Mangler databehandleravtale – opprett den",
+        "dpa_pending": "Databehandleravtalen er ikke signert – følg den opp",
+        "transfer_assessment_missing": "Mangler overføringsvurdering – registrer den",
+        "certificate_expired": "Et sertifikat er utløpt – oppdater det",
+        "certificate_expiring": "Et sertifikat utløper snart – oppdater det",
+        "no_next_evaluation": "Mangler dato for neste revurdering – sett en dato"
+      },
+      "open": "Fullfør {{ kind }} – den pågår",
+      "required": "Påkrevd: start {{ kind }}",
+      "conditions": "Følg opp vilkårene fra godkjenningen",
+      "conditionsOverdue": "Vilkårene skulle vært fulgt opp {{ date }}",
+      "owner": "Velg en leverandøransvarlig"
+    }
   },
   "statusDialog": {
     "title": "Endre leverandørstatus",
@@ -233,7 +276,8 @@
     "noneTitle": "Ingen vurderinger ennå",
     "kindRecommended": "{{ kind }} (anbefalt)",
     "showAllKinds": "Vis alle typer",
-    "overdueSince": "Forfalt siden {{ date }}"
+    "overdueSince": "Forfalt siden {{ date }}",
+    "history": "Alle vurderinger"
   },
   "evaluationKind": {
     "initial": "Førstegangsvurdering",
@@ -321,7 +365,38 @@
     "scoreMeaning": "Poengsummen er den vektede andelen poeng (0–100). Med {{ pass }} eller mer, og ingen kritiske spørsmål ikke bestått, anbefales godkjenning.",
     "raiseDeviation": "Registrer avvik",
     "raiseDeviationHint": "Et ikke bestått kritisk spørsmål eller en avvisning er et avvik. Registrer det slik at det blir fulgt opp.",
-    "evidenceFor": "Denne avgjorte vurderingen dokumenterer:"
+    "evidenceFor": "Denne avgjorte vurderingen dokumenterer:",
+    "editDetails": "Endre tittel, vurderer og frist",
+    "writeSummary": "Skriv oppsummeringen",
+    "lead": {
+      "status": {
+        "draft": "Utkast – svar på spørsmålene og send vurderingen til beslutning.",
+        "submitted": "Venter på beslutning – en person med godkjenningsrett avgjør vurderingen.",
+        "completed": "Avgjort {{ date }} av {{ name }}.",
+        "cancelled": "Avbrutt – vurderingen kan ikke lenger besvares eller avgjøres.",
+        "decided": {
+          "approved": "Godkjent – avgjort {{ date }} av {{ name }}.",
+          "conditional": "Godkjent med vilkår – avgjort {{ date }} av {{ name }}. Vilkårene må følges opp.",
+          "rejected": "Avvist – avgjort {{ date }} av {{ name }}."
+        }
+      },
+      "supplier": "Leverandør",
+      "result": "Resultat",
+      "noScore": "Ingen poengsum ennå",
+      "passMark": "Bestått ved {{ pass }} eller mer",
+      "recommends": "Poengsummen anbefaler:",
+      "answeredOf": "{{ answered }} av {{ total }} spørsmål",
+      "whatDecisionDoes": "Hva beslutningen gjør",
+      "evidence": "Dokumenterer"
+    },
+    "todo": {
+      "unanswered": "{{ count }} spørsmål er ikke besvart",
+      "unansweredOne": "1 spørsmål er ikke besvart",
+      "evaluator": "Velg hvem som skal vurdere",
+      "due": "Sett en frist",
+      "overdue": "Fristen gikk ut {{ date }} – sett en ny",
+      "deviation": "Kritiske spørsmål ble ikke bestått – registrer avvik"
+    }
   },
   "decide": {
     "title": "Avgjør vurderingen",

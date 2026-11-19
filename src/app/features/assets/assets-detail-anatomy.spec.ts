@@ -3,8 +3,7 @@ import en from '../../../assets/i18n/assets/en.json';
 import nb from '../../../assets/i18n/assets/nb.json';
 import { reviewMissing, reviewStatusLine } from './access-reviews/access-review-detail';
 import { assetMissing, assetStatusLine } from './asset-detail';
-import { changeMissing, changeStatusLine } from './changes/change-detail';
-import { AccessReviewDetail, AssetDetail, ChangeDetail } from './data/asset.models';
+import { AccessReviewDetail, AssetDetail } from './data/asset.models';
 
 function asset(over: Partial<AssetDetail> = {}): AssetDetail {
   return {
@@ -27,22 +26,6 @@ function review(over: Partial<AccessReviewDetail> = {}): AccessReviewDetail {
     counts: { total: 5, pending: 2, keep: 3, revoke: 0, modify: 0, unremediated: 0 },
     ...over,
   } as unknown as AccessReviewDetail;
-}
-
-function change(over: Partial<ChangeDetail> = {}): ChangeDetail {
-  return {
-    status: 'assessment',
-    closed: false,
-    pending_approval: false,
-    review_outcome: null,
-    owner: { id: 'u1', name: 'Kari' },
-    description: 'x',
-    reason: 'y',
-    impact_assessment: 'z',
-    risk_level: 'low',
-    implementation_plan: 'p',
-    ...over,
-  } as unknown as ChangeDetail;
 }
 
 function lookup(tree: unknown, key: string): unknown {
@@ -132,33 +115,7 @@ describe('access review detail anatomy helpers', () => {
   });
 });
 
-describe('change detail anatomy helpers', () => {
-  it('puts a pending approval first and never calls a failed change a success', () => {
-    expect(changeStatusLine(change({ pending_approval: true })).key).toContain('pendingApproval');
-    expect(changeStatusLine(change({ status: 'closed', closed: true })).tone).toBe('pass');
-    expect(
-      changeStatusLine(change({ status: 'closed', closed: true, review_outcome: 'failed' })).key,
-    ).toContain('closedFailed');
-    expect(changeStatusLine(change({ status: 'custom_state' })).key).toContain('other');
-  });
-
-  it('lists the approval, the next step, the owner and the failed-change follow-ups', () => {
-    const run = () => undefined;
-    const handlers = { step: run, approval: run, flow: () => run };
-    const keys = changeMissing(
-      change({ pending_approval: true, impact_assessment: null, owner: null }),
-      ['/edit'],
-      handlers,
-    ).map((m) => m.key);
-    expect(keys).toEqual(['approval', 'step', 'owner']);
-    const failed = changeMissing(
-      change({ status: 'closed', closed: true, review_outcome: 'rolled_back' }),
-      null,
-      handlers,
-    ).map((m) => m.key);
-    expect(failed).toEqual(['change_request.to_deviation', 'change_request.to_risk']);
-  });
-
+describe('assets detail i18n', () => {
   it('has every status sentence and missing line in en and nb', () => {
     const keys = [
       ...['reviewed', 'notReviewed', 'reviewOverdue', 'calibrated', 'calibrationOverdueInUse'].map(
@@ -167,11 +124,6 @@ describe('change detail anatomy helpers', () => {
       ...['planned', 'deciding', 'ready', 'completed', 'completedOpen', 'completedOpenOne'].map(
         (k) => `assets.reviewDetail.statusLine.${k}`,
       ),
-      ...['pendingApproval', 'closedFailed', 'other', 'rejected', 'cancelled'].map(
-        (k) => `assets.changeDetail.statusLine.${k}`,
-      ),
-      'assets.changeDetail.missing.approval',
-      'assets.changeDetail.missing.stepOne',
       'assets.reviewDetail.missing.decisionsOne',
       'assets.detail.missing.held_by_leaver',
     ];

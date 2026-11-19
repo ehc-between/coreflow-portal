@@ -659,14 +659,18 @@
   },
   "changeDetail": {
     "notFound": "This change request does not exist or you do not have access to it.",
+    "requestedBy": "Requested by {{ name }}",
     "locked": "The approved content is frozen. Only the dates, owner and the implementation and review details can still be changed.",
     "planned": "Planned",
+    "noAssets": "No assets linked.",
+    "assetsHint": "Processes, documents, suppliers and risks the change affects are shown under “Connected to” in Follow-up.",
     "deleteTitle": "Delete this change request?",
     "deleteMessage": "{{ code }} {{ title }} is removed. Its history is kept for audits.",
     "deleted": "{{ code }} deleted.",
     "notFoundTitle": "Change request not found",
     "requestedByLabel": "Requested by",
     "followUpTitle": "Follow up the change",
+    "followUpBody": "A change is not finished until the documents, training and checks it affects are updated.",
     "followUp": {
       "document": "Update a document",
       "training": "Assign training",
@@ -674,36 +678,44 @@
       "deviation": "Register a deviation",
       "risk": "Register a risk"
     },
-    "created": "Registered",
-    "statusLine": {
-      "pendingApproval": "Awaiting approval – the change may not be made until it is approved.",
-      "draft": "Draft – describe the change and why, then send it for assessment.",
-      "assessment": "Being assessed – impact and risk are assessed before the change is approved.",
-      "approved": "Approved – ready to be carried out.",
-      "implementing": "Being carried out – record when it is done.",
-      "review": "Evaluation – check that the change worked as planned.",
-      "closed": "Closed – the change is carried out and evaluated.",
-      "closedFailed": "Closed, but the change did not work – follow up with a deviation.",
-      "rejected": "Rejected – the change will not be made.",
-      "cancelled": "Cancelled – the change will not be made.",
-      "other": "{{ state }}."
-    },
     "lead": {
+      "sentence": "{{ status }} – {{ meaning }}.",
       "what": "What changes",
-      "why": "Why it is needed",
-      "risk": "Risk and impact",
-      "assets": "Assets affected"
+      "why": "Why",
+      "risk": "Risk",
+      "when": "Planned",
+      "outcome": "Did it work?",
+      "implementedOn": "Carried out {{ date }}",
+      "updated": "Last changed",
+      "meaning": {
+        "draft": "the request has not been sent for assessment yet",
+        "assessment": "the consequences and risk are being assessed",
+        "approved": "ready to be carried out",
+        "implementing": "the change is being made now",
+        "review": "check whether the change worked",
+        "rejected": "the change will not be made",
+        "cancelled": "the change was stopped",
+        "other": "follow the workflow below",
+        "pending": "waiting for approval",
+        "closed": {
+          "successful": "the change worked as planned",
+          "partially_successful": "the change partly worked",
+          "failed": "the change did not work",
+          "rolled_back": "the change was rolled back",
+          "none": "the change is closed"
+        }
+      }
     },
-    "plain": {
-      "implementationPlan": "How it will be done",
-      "rollbackPlan": "How to undo it if it fails",
-      "riskAssessment": "What could go wrong"
+    "fields": {
+      "impact": "What the change affects",
+      "risk": "What could go wrong",
+      "plan": "How it is carried out",
+      "rollback": "How we go back if something goes wrong"
     },
     "missing": {
-      "step": "Fill in {{ count }} fields the next step needs",
-      "stepOne": "Fill in the field the next step needs",
+      "step": "Fields to fill in before the next step: {{ count }}",
       "owner": "Choose an owner",
-      "approval": "Approve or reject the change in the workflow"
+      "rollback": "Write down how to go back (high risk)"
     }
   },
   "ai": {

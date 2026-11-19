@@ -377,7 +377,44 @@
     "annexOptional": "Vedlegg IV er valgfritt for dere",
     "risks": "KI-risikoer",
     "risksHint": "Registrer risikoene systemet medfører i Risiko-modulen (ISO/IEC 42001 6.1.2). Koblede risikoer vises under Koblinger.",
-    "createRisk": "Opprett KI-risiko"
+    "createRisk": "Opprett KI-risiko",
+    "reviewOverdue": "Gjennomgang forfalt",
+    "updated": "Sist endret",
+    "obligationsHint": "Det KI-forordningen krever av dere for dette systemet. Merk hver plikt som oppfylt når den er på plass, med dokumentasjon.",
+    "providerToggle": "Tilbyderens plikter ({{ count }})",
+    "statusLine": {
+      "unclassified": "Ikke klassifisert – finn ut hvilken risikoklasse systemet har og hvilke plikter som gjelder.",
+      "prohibited": "Forbudt praksis – systemet kan ikke brukes slik det er beskrevet.",
+      "none": "{{ risk }} – ingen plikter dere må følge opp.",
+      "done": "{{ risk }} – alle {{ total }} pliktene er oppfylt.",
+      "open": "{{ risk }} – {{ met }} av {{ total }} plikter er oppfylt."
+    },
+    "lead": {
+      "purpose": "Hva systemet brukes til",
+      "riskMeaning": "Hva risikoklassen betyr for dere",
+      "provider": "Hvor det kommer fra",
+      "overseers": "Hvem som har tilsyn med det"
+    },
+    "plain": {
+      "dataCategories": "Data det bruker",
+      "personalData": "Personopplysninger",
+      "personalDataYes": "Ja – systemet behandler personopplysninger.",
+      "dpia": "Personvernkonsekvensvurdering",
+      "kind": "Type system"
+    },
+    "missing": {
+      "classify": "Klassifiser systemet",
+      "review": "Gjennomgangen er forfalt",
+      "obligations": "{{ count }} plikter er ikke oppfylt ennå",
+      "obligationsOne": "1 plikt er ikke oppfylt ennå",
+      "fria": "Gjennomfør FRIA (påkrevd før bruk)",
+      "purpose": "Beskriv hva systemet brukes til",
+      "owner": "Velg en eier",
+      "overseers": "Pek ut hvem som har tilsyn med systemet",
+      "literacy": "{{ count }} med tilsynsansvar mangler KI-kompetanse",
+      "ropa": "Koble til behandlingsaktiviteten",
+      "dpia": "Opprett den anbefalte DPIA-en"
+    }
   },
   "wizard": {
     "title": "Klassifiser: {{ name }}",
@@ -581,7 +618,37 @@
     "reviewFlag": {
       "reclassified": "KI-systemet er klassifisert på nytt etter at denne vurderingen ble gjort. Gå gjennom den.",
       "system_changed": "KI-systemet er endret etter at denne vurderingen ble gjort (formål, rolle, modeller eller data). Gå gjennom den."
-    }
+    },
+    "reviewOverdue": "Gjennomgang forfalt",
+    "restTitle": "Resten av vurderingen",
+    "notPlanned": "Ikke planlagt",
+    "plan": "Planlegg",
+    "lead": {
+      "system": "KI-systemet den gjelder",
+      "outcome": "Resultat",
+      "conclusion": "Konklusjon",
+      "affected": "Hvem som berøres",
+      "mitigations": "Slik reduserer vi konsekvensene",
+      "risks": "Risikoer for skade",
+      "oversight": "Slik har mennesker tilsyn"
+    },
+    "statusLine": {
+      "approved": "Godkjent – vurderingen er ferdig og gjelder til neste gjennomgang.",
+      "completed": "Fullført – venter på godkjenning.",
+      "draftWizard": "Utkast – fullfør svarene i veiviseren.",
+      "draftMissing": "Utkast – {{ done }} av {{ total }} påkrevde deler er skrevet.",
+      "draftReady": "Utkast – alle påkrevde deler er skrevet. Den kan fullføres."
+    },
+    "todo": {
+      "flag": {
+        "reclassified": "Systemet er klassifisert på nytt – gå gjennom vurderingen",
+        "system_changed": "Systemet er endret – gå gjennom vurderingen"
+      },
+      "review": "Gjennomgangen er forfalt – gå gjennom vurderingen",
+      "section": "Skriv «{{ section }}»",
+      "owner": "Velg en eier"
+    },
+    "outcomeDetail": "Hvorfor, og pliktene som følger"
   },
   "sections": {
     "impact": {

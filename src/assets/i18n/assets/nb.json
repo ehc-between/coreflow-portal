@@ -659,14 +659,18 @@
   },
   "changeDetail": {
     "notFound": "Denne endringsforespørselen finnes ikke, eller du har ikke tilgang til den.",
+    "requestedBy": "Meldt av {{ name }}",
     "locked": "Det godkjente innholdet er låst. Bare datoene, eieren og opplysningene om gjennomføring og evaluering kan fortsatt endres.",
     "planned": "Planlagt",
+    "noAssets": "Ingen eiendeler er koblet til.",
+    "assetsHint": "Prosesser, dokumenter, leverandører og risikoer som endringen berører, vises under «Koblet til» i Oppfølging.",
     "deleteTitle": "Slette denne endringsforespørselen?",
     "deleteMessage": "{{ code }} {{ title }} fjernes. Historikken beholdes for revisjoner.",
     "deleted": "{{ code }} er slettet.",
     "notFoundTitle": "Fant ikke endringsforespørselen",
     "requestedByLabel": "Meldt av",
     "followUpTitle": "Følg opp endringen",
+    "followUpBody": "En endring er ikke ferdig før dokumentene, opplæringen og kontrollene den berører, er oppdatert.",
     "followUp": {
       "document": "Oppdater et dokument",
       "training": "Tildel opplæring",
@@ -674,36 +678,44 @@
       "deviation": "Registrer avvik",
       "risk": "Registrer risiko"
     },
-    "created": "Registrert",
-    "statusLine": {
-      "pendingApproval": "Venter på godkjenning – endringen kan ikke gjøres før den er godkjent.",
-      "draft": "Utkast – beskriv endringen og hvorfor, og send den til vurdering.",
-      "assessment": "Til vurdering – konsekvens og risiko vurderes før endringen godkjennes.",
-      "approved": "Godkjent – klar til å gjennomføres.",
-      "implementing": "Gjennomføres – registrer når den er ferdig.",
-      "review": "Evaluering – sjekk at endringen virket som planlagt.",
-      "closed": "Lukket – endringen er gjennomført og evaluert.",
-      "closedFailed": "Lukket, men endringen virket ikke – følg opp med et avvik.",
-      "rejected": "Avvist – endringen blir ikke gjort.",
-      "cancelled": "Kansellert – endringen blir ikke gjort.",
-      "other": "{{ state }}."
-    },
     "lead": {
+      "sentence": "{{ status }} – {{ meaning }}.",
       "what": "Hva som endres",
-      "why": "Hvorfor det trengs",
-      "risk": "Risiko og konsekvens",
-      "assets": "Berørte eiendeler"
+      "why": "Hvorfor",
+      "risk": "Risiko",
+      "when": "Planlagt",
+      "outcome": "Virket endringen?",
+      "implementedOn": "Gjennomført {{ date }}",
+      "updated": "Sist endret",
+      "meaning": {
+        "draft": "forespørselen er ikke sendt til vurdering ennå",
+        "assessment": "konsekvensene og risikoen vurderes",
+        "approved": "klar til å gjennomføres",
+        "implementing": "endringen gjøres nå",
+        "review": "sjekk om endringen virket",
+        "rejected": "endringen blir ikke gjort",
+        "cancelled": "endringen ble stoppet",
+        "other": "følg arbeidsflyten nedenfor",
+        "pending": "venter på godkjenning",
+        "closed": {
+          "successful": "endringen virket som planlagt",
+          "partially_successful": "endringen virket delvis",
+          "failed": "endringen virket ikke",
+          "rolled_back": "endringen ble tilbakeført",
+          "none": "endringen er avsluttet"
+        }
+      }
     },
-    "plain": {
-      "implementationPlan": "Slik gjøres den",
-      "rollbackPlan": "Slik rulles den tilbake hvis noe går galt",
-      "riskAssessment": "Hva som kan gå galt"
+    "fields": {
+      "impact": "Hva endringen påvirker",
+      "risk": "Hva som kan gå galt",
+      "plan": "Slik gjennomføres den",
+      "rollback": "Slik går vi tilbake hvis noe går galt"
     },
     "missing": {
-      "step": "Fyll ut {{ count }} felt som neste steg krever",
-      "stepOne": "Fyll ut feltet som neste steg krever",
+      "step": "Felt som må fylles ut før neste steg: {{ count }}",
       "owner": "Velg en eier",
-      "approval": "Godkjenn eller avvis endringen i arbeidsflyten"
+      "rollback": "Skriv ned hvordan vi går tilbake (høy risiko)"
     }
   },
   "ai": {

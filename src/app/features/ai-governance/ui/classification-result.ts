@@ -69,7 +69,7 @@ import { AiObligationList } from './obligation-list';
           <p class="text-ui text-fg-muted" data-testid="result-undecided">
             {{ 'aiGovernance.result.undecided' | transloco }}
           </p>
-        } @else {
+        } @else if (summary()) {
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-ui font-semibold text-fg-muted">{{
               'aiGovernance.result.riskClass' | transloco
@@ -96,6 +96,8 @@ import { AiObligationList } from './obligation-list';
           <p class="text-body text-fg">
             {{ explainKey() | transloco }}
           </p>
+        }
+        @if (decided()) {
           @if (r.risk_class === 'prohibited') {
             <p
               class="rounded-tile bg-fail-soft px-3 py-2 text-ui font-semibold text-fail-ink"
@@ -163,6 +165,8 @@ export class AiClassificationResult {
   readonly showChange = input(false);
   /** The system is a built-in platform feature (CoreFlow is the provider). */
   readonly builtin = input(false);
+  /** Show the risk class line and its explanation (off where the page shows them already). */
+  readonly summary = input(true);
 
   protected readonly risk = riskValue;
   protected readonly riskKey = riskKey;
