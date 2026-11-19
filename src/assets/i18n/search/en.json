@@ -11,7 +11,15 @@
     "searching": "Searching…",
     "error": "Search isn't available right now. You can still jump to a page below.",
     "noResults": "No records match \"{{query}}\".",
-    "count": "{{count}}"
+    "count": "{{count}}",
+    "places": "Pages and registers",
+    "openPage": "Open page",
+    "kinds": {
+      "page": "Page",
+      "register": "Register",
+      "settings": "Settings",
+      "output": "Document or report"
+    }
   },
   "launcher": {
     "label": "Open Ask CoreFlow",

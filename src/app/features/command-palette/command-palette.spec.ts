@@ -17,6 +17,23 @@ import {
   looksLikeQuestion,
 } from './command-palette';
 import { CommandPaletteService } from './command-palette.service';
+import { PlaceIndexService, vocabularyPlaces } from './place-index';
+
+const PLACES = vocabularyPlaces([
+  {
+    key: 'risk.risks',
+    module: 'risk',
+    module_enabled: true,
+    label: 'Risks and opportunities: risk register',
+    route: '/risk/risks',
+    query: { view: 'open' },
+    url: '/risk/risks?view=open',
+    description: '',
+    kind: 'register',
+    rule_kinds: [],
+    states: [],
+  },
+]);
 
 const DOC_ID = '6a4a1d8e-6a51-4c0e-a4f5-2b0f61b9a8a2';
 
@@ -82,6 +99,7 @@ function setup(search: (orgId: string, q: string) => Observable<SearchResponse>)
       { provide: AskPanelService, useValue: ask },
       { provide: SearchApi, useValue: searchApi },
       { provide: SelectedOrgService, useValue: { currentOrgId: () => 'org-1' } },
+      { provide: PlaceIndexService, useValue: { places: () => PLACES, ensure: vi.fn() } },
     ],
   });
 
@@ -99,6 +117,7 @@ interface Internal {
   highlighted: () => { kind: string } | null;
   onKeydown: (event: KeyboardEvent) => void;
   navRows: () => unknown[];
+  placeRows: () => { kind: string; place: { url: string } }[];
   recordGroups: () => {
     entityType: string;
     label: string;
@@ -132,16 +151,29 @@ describe('CommandPalette', () => {
     expect(cmp.rows().some((r) => r.kind === 'ask')).toBe(false);
   });
 
-  it('filters both sections by label and ends with an ask row for free text', () => {
+  it('answers a search term with places first and ends with an ask row', () => {
     const { fixture } = setup(() => of({ items: [], counts: {} }));
     const cmp = fixture.componentInstance as unknown as Internal;
     cmp.query.set('risk');
+    expect(cmp.placeRows().map((r) => r.place.url)).toEqual(['/risk/risks?view=open']);
     expect(cmp.actionRows().length).toBe(1);
-    expect(cmp.navRows().length).toBe(1);
+    // "Gå til" is the empty-query list; once typed, the place hits answer instead.
+    expect(cmp.navRows().length).toBe(0);
     expect(cmp.rows().at(-1)?.kind).toBe('ask');
-    // A search term highlights the first row, not the ask row.
+    // A search term highlights the first place, not the ask row.
     TestBed.tick();
-    expect(cmp.highlighted()?.kind).toBe('action');
+    expect(cmp.highlighted()?.kind).toBe('place');
+  });
+
+  it('opening a place navigates to its path with the query params', () => {
+    const { fixture, palette } = setup(() => of({ items: [], counts: {} }));
+    palette.show();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const cmp = fixture.componentInstance as unknown as Internal;
+    cmp.query.set('risiko register risk');
+    cmp.run(cmp.placeRows()[0]);
+    expect(navigate).toHaveBeenCalledWith(['/risk/risks'], { queryParams: { view: 'open' } });
+    expect(palette.open()).toBe(false);
   });
 
   it('a question highlights "Ask CoreFlow", so Enter asks', () => {
@@ -177,15 +209,17 @@ describe('CommandPalette', () => {
     expect(palette.open()).toBe(false);
   });
 
-  it('matches how-to topics and asks the assistant for the steps', () => {
+  it('matches how-to topics and opens their page without asking the assistant', () => {
     const { fixture, palette, ask } = setup(() => of({ items: [], counts: {} }));
     palette.show();
     TestBed.tick();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const cmp = fixture.componentInstance as unknown as Internal;
     cmp.query.set('how do I approve a document');
     expect(cmp.howtoRows()[0]?.entry.key).toBe('approveDocument');
     cmp.run(cmp.howtoRows()[0]);
-    expect(ask.showWith).toHaveBeenCalledWith(askEn.howto.approveDocument.question);
+    expect(navigate).toHaveBeenCalledWith('/review');
+    expect(ask.showWith).not.toHaveBeenCalled();
   });
 
   it('tells questions from search terms', () => {
@@ -226,6 +260,26 @@ describe('CommandPalette', () => {
     expect(cmp.rows()[0].kind).toBe('record');
     expect(cmp.rows().at(-1)?.kind).toBe('ask');
     expect(fixture.nativeElement.textContent).toContain('Calibration procedure');
+  });
+
+  it('ranks requirements below every record type and shows at most three', async () => {
+    vi.useFakeTimers();
+    const requirement = RESPONSE.items[1];
+    const many: SearchResponse = {
+      items: [
+        ...[1, 2, 3, 4, 5].map((i) => ({ ...requirement, entity_id: `r${i}`, rank: 1 })),
+        RESPONSE.items[0],
+      ],
+      counts: { standard_requirement: 5, document: 1 },
+    };
+    const { fixture, palette } = setup(() => of(many));
+    palette.show();
+    const cmp = fixture.componentInstance as unknown as Internal;
+    await typeAndSettle(fixture, cmp, 'monitoring');
+    const groups = cmp.recordGroups();
+    expect(groups.map((g) => g.entityType)).toEqual(['document', 'standard_requirement']);
+    expect(groups[1].rows.length).toBe(3);
+    expect(groups[1].total).toBe(5);
   });
 
   it('opening a record navigates to its path with the query params', async () => {
