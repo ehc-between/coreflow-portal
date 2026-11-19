@@ -139,7 +139,6 @@
     "recordedBy": "Recorded by",
     "acknowledged": "Document",
     "notes": "Notes",
-    "passMarkLong": "Required to pass (% correct answers)",
     "learningObjectives": "Learning objectives",
     "effectivenessCriteria": "Effectiveness criteria",
     "clauseRefs": "Requirements this course documents",
@@ -232,12 +231,10 @@
     "failed": "Not passed"
   },
   "detail": {
-    "version": "Version {{ version }}",
     "learn": "Take the course",
     "assign": "Assign",
     "publish": "Publish",
     "archive": "Archive",
-    "months": "{{ count }} months",
     "noExpiry": "Does not expire",
     "minutes": "{{ count }} min",
     "lessons": "Lessons ({{ count }})",
@@ -247,10 +244,6 @@
     "assignments": "Open assignments",
     "allAssignments": "See all",
     "noAssignments": "Nobody has an open assignment for this course.",
-    "progress": "Progress",
-    "countAssigned": "Assigned",
-    "countOverdue": "Overdue",
-    "countCompleted": "Completed",
     "publishTitle": "Publish this course?",
     "publishMessage": "Published courses can be taken and assigned, and the assignment rules start creating assignments.",
     "archiveTitle": "Archive this course?",
@@ -260,14 +253,42 @@
     "publishedToast": "Course published",
     "archivedToast": "Course archived",
     "deletedToast": "Course deleted",
-    "howToComplete": "How the course is completed",
-    "monthsOne": "1 month",
     "lessonsOne": "Lessons (1)",
     "questionsOne": "1 question",
-    "notPublished": "Not published yet",
-    "publishedAt": "{{ date }}",
     "publishedBy": "{{ date }} by {{ name }}",
-    "publishMessageNoQuiz": "This course has no knowledge test, so learners complete it by opening every lesson. Add quiz questions first if you need proof of understanding. Published courses can be taken and assigned, and the rules start creating assignments."
+    "publishMessageNoQuiz": "This course has no knowledge test, so learners complete it by opening every lesson. Add quiz questions first if you need proof of understanding. Published courses can be taken and assigned, and the rules start creating assignments.",
+    "lead": {
+      "about": "What the course is about",
+      "howToComplete": "How to complete it",
+      "objectives": "What participants will learn",
+      "document": "The document to read",
+      "participants": "Participants"
+    },
+    "countOpen": "still to take it",
+    "countLate": "past the due date",
+    "countDone": "have completed it",
+    "validFor": "How long it is valid",
+    "validity": "{{ count }} months, then it must be taken again",
+    "validityOne": "1 month, then it must be taken again",
+    "timeNeeded": "Takes about",
+    "relatedDocument": "Based on document",
+    "updated": "Last changed",
+    "statusLine": {
+      "published": "Published – the course can be taken and assigned.",
+      "publishedExternal": "Published – the training can be assigned and is recorded when someone has attended.",
+      "draft": "Draft – the course is not published yet, so nobody can take it.",
+      "archived": "Archived – the course can no longer be taken or assigned. Records are kept."
+    },
+    "missing": {
+      "aiDraft": "Review the AI draft before you publish",
+      "lessons": "Add at least one lesson",
+      "document": "Choose the document to read",
+      "publish": "Publish the course so it can be taken and assigned",
+      "rules": "Decide who must take the course",
+      "overdue": "{{ count }} people are past the due date",
+      "overdueOne": "1 person is past the due date",
+      "owner": "Choose an owner"
+    }
   },
   "rules": {
     "title": "Who must take the course",
@@ -349,16 +370,37 @@
     "cancelled": "Assignment cancelled",
     "changeDue": "New due date",
     "dueSaved": "Due date saved",
-    "notStarted": "Not started",
-    "noAttempts": "No attempts yet",
     "remind": "Send reminder",
     "reminded": "Reminder sent to {{ person }}",
     "remindedRecently": "A reminder was already sent in the last 20 hours.",
-    "whyTitle": "Why this was assigned",
     "ruleText": "The rule “{{ target }}” assigns the course, with {{ days }} days to complete it.",
     "ruleDeleted": "It was assigned by a rule that has since been removed ({{ target }}).",
     "openRules": "See the course's rules",
-    "saveDue": "Save due date"
+    "saveDue": "Save due date",
+    "type": "Assignment",
+    "lead": {
+      "person": "Who",
+      "course": "Course",
+      "why": "Why it was assigned"
+    },
+    "changeDueShort": "Change",
+    "attempts": "Test attempts",
+    "progressTitle": "Progress",
+    "noProgress": "{{ person }} has not started yet.",
+    "statusLine": {
+      "assigned": "Not started – the course has not been taken yet.",
+      "assignedDue": "Not started – the course must be completed by {{ date }}.",
+      "inProgress": "In progress – started, but not completed yet.",
+      "inProgressDue": "In progress – must be completed by {{ date }}.",
+      "overdue": "Overdue – the due date was {{ date }}, and the course is not completed.",
+      "completed": "Completed – the training record documents it.",
+      "completedOn": "Completed {{ date }} – the training record documents it.",
+      "cancelled": "Cancelled – this person no longer needs to take the course."
+    },
+    "missing": {
+      "remind": "Send a reminder",
+      "due": "Set a due date"
+    }
   },
   "records": {
     "title": "Training records",
@@ -711,7 +753,8 @@
     "deleted": "The evaluation is deleted",
     "deleteTitle": "Delete the evaluation?",
     "deleteMessage": "The evaluation is removed from the course. The audit log keeps the history.",
-    "followUpPlaceholder": "For example: update lesson 2 and run the course again for the warehouse"
+    "followUpPlaceholder": "For example: update lesson 2 and run the course again for the warehouse",
+    "summarising": "Summarising …"
   },
   "evaluationMethod": {
     "survey": "Survey",
@@ -821,5 +864,12 @@
     "summary": "{{ done }} of {{ required }} have confirmed the current revision.",
     "summaryRev": "{{ done }} of {{ required }} have confirmed revision {{ rev }}.",
     "pending": "{{ count }} have not confirmed yet:"
+  },
+  "reasonLong": {
+    "manual": "Assigned manually.",
+    "rule": "Assigned by an assignment rule.",
+    "new_hire": "Assigned to new employees.",
+    "retraining": "Renewal: the previous training is about to expire.",
+    "new_revision": "A new revision of the document must be read."
   }
 }
