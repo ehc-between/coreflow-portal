@@ -20,9 +20,18 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
 import { TasksApi } from '../../../core/tasks/tasks-api';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
@@ -31,12 +40,13 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
-import { FeedbackAskButton } from '../ask-button';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { FeedbackApi } from '../data/feedback-api';
 import {
   exportFileName,
@@ -56,6 +66,7 @@ import {
   SurveyAction,
   SurveyResults,
 } from '../data/feedback.models';
+import { SURVEY_STATUS_TONE, SurveyTodo, surveyTodos } from '../feedback-anatomy';
 import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackThemes } from '../themes-panel';
 import { AnswerScope, SurveyAnswers } from './survey-answers';
@@ -123,11 +134,15 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
 }
 
 /**
- * One survey (`/feedback/surveys/:id`): its questions, the public link to share,
- * publish / close / reopen (one primary step), results with NPS and answer
- * distributions, the answers as a table ("Svar", the default once there are answers), an AI theme analysis whose
- * recommendations can become tasks, an export of the results, and the shared
- * record kit (requirements, connections, tasks, activity, revisions).
+ * One survey (`/feedback/surveys/:id`) in the detail-page anatomy (docs/ux-guide.md
+ * §2.7): one calm meta line (code · type · status), publish / close / reopen as the
+ * one primary step, the rest (new link, export, delete) under "Mer", assistant
+ * actions in "Spør KI"; "Hovedinformasjon" with a status sentence, the answers so
+ * far (score, NPS), the link to share, the answer period and how low scores are
+ * followed up; the answers as a table ("Svar", the default once there are answers)
+ * or the results, themes, questions and the remaining set-up; one "Oppfølging"
+ * card with what is missing, requirements, connections, the follow-up cases from
+ * low scores and the metadata.
  */
 @Component({
   selector: 'app-survey-detail',
@@ -136,9 +151,12 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
     TranslocoPipe,
     LocalDayPipe,
     LocalDatePipe,
-    WatchButton,
     WhyItMatters,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     EntityTasks,
     Badge,
@@ -146,12 +164,12 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
     Card,
     ConfirmDialog,
     ErrorState,
+    FieldItem,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
     StatusBadge,
-    FeedbackAskButton,
     FeedbackThemes,
     SurveyResultsView,
     SurveyAnswers,
@@ -178,6 +196,7 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
       @default {
         @if (survey(); as s) {
           <app-record-detail-layout
+            [anatomy]="true"
             [entityType]="entityType"
             [entityId]="s.id"
             [title]="s.title"
@@ -191,69 +210,63 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
             [counts]="{ tasks: s.open_tasks ?? 0 }"
             [canEdit]="s.can_edit"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
           >
-            <ng-container meta>
-              <span class="font-mono font-semibold">{{ s.code }}</span>
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono">{{ s.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'feedback.surveyDetail.summary' | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 meaning="lifecycle"
                 [value]="s.status"
                 [labelKey]="statusKey(s.status)"
                 data-testid="survey-status"
               />
-              @if (s.status === 'open') {
-                <app-badge [tone]="s.accepting_responses ? 'pass' : 'warn'">{{
-                  (s.accepting_responses
-                    ? 'feedback.surveyDetail.accepting'
-                    : 'feedback.surveyDetail.notAccepting'
-                  ) | transloco
+              @if (s.status === 'open' && !s.accepting_responses) {
+                <app-badge tone="warn">{{
+                  'feedback.surveyDetail.notAccepting' | transloco
                 }}</app-badge>
               }
-              <span>{{
-                (s.anonymous ? 'feedback.surveys.anonymous' : 'feedback.surveys.named') | transloco
-              }}</span>
-              <span>{{ 'feedback.surveyLanguages.' + (s.language || 'nb') | transloco }}</span>
             </ng-container>
 
-            @if (primary(); as a) {
-              @if (canManage()) {
-                <app-button
-                  primary
-                  [variant]="a === 'publish' ? 'primary' : 'secondary'"
-                  [disabled]="acting()"
-                  (click)="pendingAction.set(a)"
-                  [attr.data-testid]="'survey-action-' + a"
-                >
-                  {{ 'feedback.surveyActions.' + a | transloco }}
-                </app-button>
-              }
+            @if (managedPrimary(); as a) {
+              <app-button
+                primary
+                [variant]="a === 'publish' ? 'primary' : 'secondary'"
+                [disabled]="acting()"
+                (click)="pendingAction.set(a)"
+                [attr.data-testid]="'survey-action-' + a"
+              >
+                {{ 'feedback.surveyActions.' + a | transloco }}
+              </app-button>
             }
             @if (s.can_edit) {
-              <a
-                secondary
-                [routerLink]="['/feedback/surveys', s.id, 'edit']"
-                class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                data-testid="survey-edit"
-              >
+              <app-button secondary variant="secondary" (click)="edit()" data-testid="survey-edit">
                 {{ 'feedback.common.edit' | transloco }}
-              </a>
+              </app-button>
             }
-            <app-feedback-ask-button
-              secondary
-              promptKey="feedback.ask.surveyResults"
-              [requirements]="confirmedRefs()"
-            />
-            @if (canManage()) {
-              @for (a of otherActions(); track a) {
-                <button
-                  appMenuItem
-                  overflow
-                  type="button"
-                  (click)="pendingAction.set(a)"
-                  [attr.data-testid]="'survey-action-' + a"
-                >
-                  {{ 'feedback.surveyActions.' + a | transloco }}
-                </button>
-              }
+            @for (a of otherActions(); track a) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                (click)="pendingAction.set(a)"
+                [attr.data-testid]="'survey-action-' + a"
+              >
+                {{ 'feedback.surveyActions.' + a | transloco }}
+              </button>
+            }
+            @if (canManage() && s.status !== 'draft') {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                (click)="regenerating.set(true)"
+                data-testid="survey-regenerate"
+              >
+                {{ 'feedback.share.regenerate' | transloco }}
+              </button>
             }
             @for (f of formats; track f) {
               <button
@@ -281,12 +294,120 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
               </button>
             }
 
+            @if (s.response_count > 0) {
+              <button appMenuItem ask type="button" (click)="askAi('surveyResults')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'feedback.surveyDetail.ai.results' | transloco }}
+              </button>
+            }
+            <button appMenuItem ask type="button" (click)="askAi('surveyQuestions')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'feedback.surveyDetail.ai.questions' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="feedback"
               page="surveyDetail"
               lesson="good-survey-questions"
             />
+
+            <app-record-lead record-lead [fillLink]="s.can_edit ? editLink() : null">
+              <app-record-status-line status [tone]="statusTone()" data-testid="survey-hint">
+                {{ statusSentenceKey() | transloco }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="feedback.surveyDetail.lead.responses">
+                @if (s.status !== 'draft') {
+                  <span class="flex flex-col gap-1" data-testid="survey-responses">
+                    @if (s.response_count > 0) {
+                      <button
+                        type="button"
+                        class="w-fit text-left font-semibold text-accent hover:underline"
+                        (click)="openAnswers({ kind: 'all' })"
+                        data-testid="summary-responses"
+                      >
+                        {{ 'feedback.surveys.responses' | transloco: { count: s.response_count } }}
+                      </button>
+                      <span class="text-ui text-fg-muted">
+                        @if (results()?.average_score ?? s.average_score; as avg) {
+                          {{ 'feedback.surveys.averageScore' | transloco: { score: avg } }}
+                        }
+                        @let nps = results()?.nps;
+                        @if (nps !== null && nps !== undefined) {
+                          · {{ 'feedback.results.npsValue' | transloco: { value: nps } }}
+                        }
+                      </span>
+                    } @else {
+                      <span class="text-fg-muted">{{ 'feedback.results.none' | transloco }}</span>
+                    }
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="feedback.surveyDetail.lead.link" [wide]="true">
+                @if (s.status !== 'draft') {
+                  <span class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <label for="cf-sv-link" class="sr-only">{{
+                      'feedback.share.linkLabel' | transloco
+                    }}</label>
+                    <input
+                      id="cf-sv-link"
+                      type="text"
+                      readonly
+                      class="h-10 min-w-0 rounded-tile border border-border bg-surface-2 px-3 font-mono text-meta font-normal sm:flex-1 text-fg"
+                      [value]="publicUrl()"
+                      (focus)="$any($event.target).select()"
+                      data-testid="survey-link"
+                    />
+                    <span class="flex flex-wrap gap-2">
+                      <app-button size="sm" variant="secondary" (click)="copyLink()">
+                        {{ 'feedback.share.copy' | transloco }}
+                      </app-button>
+                      <a
+                        [href]="publicUrl()"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex h-8 items-center rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
+                      >
+                        {{ 'feedback.share.open' | transloco }}
+                      </a>
+                    </span>
+                  </span>
+                  <span class="mt-1 block text-meta font-normal text-fg-muted">
+                    {{ 'feedback.share.intro' | transloco }}
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="feedback.surveyDetail.lead.period">
+                @if (s.opens_on && s.closes_on) {
+                  {{ s.opens_on | localDay }} – {{ s.closes_on | localDay }}
+                } @else if (s.opens_on) {
+                  {{
+                    'feedback.surveyDetail.lead.from' | transloco: { date: (s.opens_on | localDay) }
+                  }}
+                } @else if (s.closes_on) {
+                  {{
+                    'feedback.surveyDetail.lead.until'
+                      | transloco: { date: (s.closes_on | localDay) }
+                  }}
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="feedback.surveyDetail.lead.lowScores">
+                <span class="block" data-testid="survey-threshold">
+                  @if (s.low_score_threshold === null) {
+                    {{ 'feedback.surveyDetail.noThreshold' | transloco }}
+                  } @else {
+                    {{
+                      'feedback.surveyDetail.thresholdValue'
+                        | transloco
+                          : {
+                              value: s.low_score_threshold,
+                              five: onFive(s.low_score_threshold),
+                            }
+                    }}
+                  }
+                </span>
+              </app-field-item>
+            </app-record-lead>
 
             <div class="flex flex-col gap-6">
               <div
@@ -330,54 +451,26 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
 
               <div class="flex flex-col gap-6" [hidden]="view() !== 'overview'">
                 <app-card>
-                  <h2 class="mb-1 font-display text-card font-bold text-fg">
-                    {{ 'feedback.next.title' | transloco }}
+                  <h2 class="mb-3 font-display text-card font-bold text-fg">
+                    {{ 'feedback.results.title' | transloco }}
                   </h2>
-                  <p class="text-ui text-fg-muted" data-testid="survey-hint">
-                    {{ 'feedback.surveyWorkflow.hint.' + s.status | transloco }}
-                  </p>
+                  @if (results(); as r) {
+                    <app-survey-results [results]="r" (drill)="openAnswers($event)" />
+                  } @else if (resultsFailed()) {
+                    <app-error-state (retry)="reloadExtras()" />
+                  } @else {
+                    <app-loading-state [rows]="3" />
+                  }
                 </app-card>
 
-                @if (s.status !== 'draft') {
+                @if ((results()?.response_count ?? 0) > 0) {
                   <app-card>
-                    <h2 class="mb-2 font-display text-card font-bold text-fg">
-                      {{ 'feedback.share.title' | transloco }}
-                    </h2>
-                    <p class="mb-2 text-meta text-fg-muted">
-                      {{ 'feedback.share.intro' | transloco }}
-                    </p>
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <label for="cf-sv-link" class="sr-only">{{
-                        'feedback.share.linkLabel' | transloco
-                      }}</label>
-                      <input
-                        id="cf-sv-link"
-                        type="text"
-                        readonly
-                        class="h-10 min-w-0 flex-1 rounded-tile border border-border bg-surface-2 px-3 font-mono text-meta text-fg"
-                        [value]="publicUrl()"
-                        (focus)="$any($event.target).select()"
-                        data-testid="survey-link"
-                      />
-                      <div class="flex flex-wrap gap-2">
-                        <app-button size="sm" variant="secondary" (click)="copyLink()">
-                          {{ 'feedback.share.copy' | transloco }}
-                        </app-button>
-                        <a
-                          [href]="publicUrl()"
-                          target="_blank"
-                          rel="noopener"
-                          class="inline-flex h-8 items-center rounded-tile px-3 text-ui font-semibold text-accent hover:bg-accent-soft"
-                        >
-                          {{ 'feedback.share.open' | transloco }}
-                        </a>
-                        @if (canManage()) {
-                          <app-button size="sm" variant="ghost" (click)="regenerating.set(true)">
-                            {{ 'feedback.share.regenerate' | transloco }}
-                          </app-button>
-                        }
-                      </div>
-                    </div>
+                    <app-feedback-themes
+                      [entityType]="entityType"
+                      [entityId]="s.id"
+                      [canCreateTasks]="canCreateTasks()"
+                      (taskRequested)="createTask($event)"
+                    />
                   </app-card>
                 }
 
@@ -413,76 +506,27 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
                       }
                     </ol>
                   }
-                  <dl class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 text-ui sm:grid-cols-3">
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.surveyFields.opensOn' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{
-                          s.opens_on
-                            ? (s.opens_on | localDay)
-                            : ('feedback.common.none' | transloco)
-                        }}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.surveyFields.closesOn' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{
-                          s.closes_on
-                            ? (s.closes_on | localDay)
-                            : ('feedback.common.none' | transloco)
-                        }}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.surveyDetail.followUpRule' | transloco }}
-                      </dt>
-                      <dd class="text-fg" data-testid="survey-threshold">
-                        @if (s.low_score_threshold === null) {
-                          {{ 'feedback.surveyDetail.noThreshold' | transloco }}
-                        } @else {
-                          {{
-                            'feedback.surveyDetail.thresholdValue'
-                              | transloco
-                                : {
-                                    value: s.low_score_threshold,
-                                    five: onFive(s.low_score_threshold),
-                                  }
-                          }}
-                        }
-                      </dd>
-                    </div>
-                  </dl>
                 </app-card>
 
-                <app-card>
-                  <h2 class="mb-3 font-display text-card font-bold text-fg">
-                    {{ 'feedback.results.title' | transloco }}
-                  </h2>
-                  @if (results(); as r) {
-                    <app-survey-results [results]="r" (drill)="openAnswers($event)" />
-                  } @else if (resultsFailed()) {
-                    <app-error-state (retry)="reloadExtras()" />
-                  } @else {
-                    <app-loading-state [rows]="3" />
-                  }
-                </app-card>
-
-                @if ((results()?.response_count ?? 0) > 0) {
-                  <app-card>
-                    <app-feedback-themes
-                      [entityType]="entityType"
-                      [entityId]="s.id"
-                      [canCreateTasks]="canCreateTasks()"
-                      (taskRequested)="createTask($event)"
-                    />
-                  </app-card>
-                }
+                <app-record-details [columns]="3" [fillLink]="s.can_edit ? editLink() : null">
+                  <app-field-item
+                    labelKey="feedback.surveyDetail.fields.who"
+                    [value]="
+                      (s.anonymous ? 'feedback.surveys.anonymous' : 'feedback.surveys.named')
+                        | transloco
+                    "
+                  />
+                  <app-field-item
+                    labelKey="feedback.surveyDetail.fields.language"
+                    [value]="'feedback.surveyLanguages.' + (s.language || 'nb') | transloco"
+                  />
+                  <app-field-item
+                    labelKey="feedback.surveyFields.thankYouMessage"
+                    [wide]="true"
+                    [value]="s.thank_you_message"
+                    [multiline]="true"
+                  />
+                </app-record-details>
               </div>
             </div>
 
@@ -497,74 +541,49 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
               }
             </div>
 
-            <ng-container aside-requirements>
-              <app-supports-requirements
-                [entityType]="entityType"
-                [entityId]="s.id"
-                [canEdit]="s.can_edit"
-                (linksChange)="reqLinks.set($event)"
-              />
-            </ng-container>
+            <app-supports-requirements
+              aside-requirements
+              [entityType]="entityType"
+              [entityId]="s.id"
+              [canEdit]="s.can_edit"
+              (linksChange)="reqLinks.set($event)"
+            />
 
-            <ng-container aside>
-              <app-card>
-                <div class="mb-2 flex items-center justify-between gap-2">
-                  <h2 class="text-ui font-semibold text-fg-subtle">
-                    {{ 'feedback.surveyDetail.summary' | transloco }}
-                  </h2>
-                  <app-watch-button [entityType]="entityType" [entityId]="s.id" />
-                </div>
-                <dl class="flex flex-col gap-2 text-ui">
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.fields.owner' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ s.owner?.name ?? ('feedback.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.results.responses' | transloco }}
-                    </dt>
-                    <dd>
-                      <button
-                        type="button"
-                        class="font-semibold text-accent hover:underline"
-                        (click)="openAnswers({ kind: 'all' })"
-                        data-testid="summary-responses"
-                      >
-                        {{ s.response_count }}
-                      </button>
-                    </dd>
-                  </div>
-                  @if (s.published_at) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.surveyFields.publishedAt' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ s.published_at | localDate }}</dd>
-                    </div>
-                  }
-                  @if (s.closed_at) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.fields.closedAt' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ s.closed_at | localDate }}</dd>
-                    </div>
-                  }
-                </dl>
-                <a
-                  [routerLink]="['/feedback']"
-                  [queryParams]="{ survey: s.id }"
-                  class="mt-3 inline-block text-meta font-semibold text-accent hover:underline"
-                  data-testid="survey-follow-ups"
-                >
-                  {{ 'feedback.surveyDetail.followUps' | transloco: { count: s.follow_ups ?? 0 } }}
-                </a>
-              </app-card>
-            </ng-container>
+            @if (s.follow_ups) {
+              <a
+                follow-up-connections
+                [routerLink]="['/feedback']"
+                [queryParams]="{ survey: s.id }"
+                class="flex items-center gap-2 text-ui font-semibold text-accent hover:underline"
+                data-testid="survey-follow-ups"
+              >
+                <app-icon name="smile" [size]="15" class="flex-none text-fg-muted" />
+                {{ 'feedback.surveyDetail.followUpsLink' | transloco: { count: s.follow_ups } }}
+              </a>
+            }
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.fields.owner"
+                [value]="s.owner?.name"
+              />
+              <app-field-item layout="inline" labelKey="feedback.surveyFields.publishedAt">
+                @if (s.published_at) {
+                  {{ s.published_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="feedback.fields.closedAt">
+                @if (s.closed_at) {
+                  {{ s.closed_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.detail.fields.updated"
+                [value]="s.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <ng-container aside-learn>
               <app-why-it-matters scope="feedback" page="surveyDetail" />
@@ -623,6 +642,7 @@ export class SurveyDetail {
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
 
   readonly id = input.required<string>();
 
@@ -673,14 +693,48 @@ export class SurveyDetail {
     const s = this.survey();
     return s ? primarySurveyAction(s) : null;
   });
+  /** The primary step, for those who may take it. */
+  protected readonly managedPrimary = computed(() => (this.canManage() ? this.primary() : null));
   protected readonly otherActions = computed(() => {
     const s = this.survey();
     const main = this.primary();
-    return s ? s.allowed_actions.filter((a) => a !== main) : [];
+    return s && this.canManage() ? s.allowed_actions.filter((a) => a !== main) : [];
   });
   protected readonly publicUrl = computed(() => {
     const s = this.survey();
     return s ? publicSurveyUrl(this.document.location?.origin ?? '', s.public_path) : '';
+  });
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/feedback/surveys',
+    this.id(),
+    'edit',
+  ]);
+  protected readonly statusTone = computed(() => {
+    const s = this.survey();
+    if (s?.status === 'open' && !s.accepting_responses) {
+      return 'warn' as const;
+    }
+    return SURVEY_STATUS_TONE[s?.status ?? 'draft'] ?? 'neutral';
+  });
+  /** The status sentence: what the status means and what to do next. */
+  protected readonly statusSentenceKey = computed(() => {
+    const s = this.survey();
+    if (!s) {
+      return '';
+    }
+    return s.status === 'open' && !s.accepting_responses
+      ? 'feedback.surveyDetail.status.openNotAccepting'
+      : `feedback.surveyDetail.status.${s.status}`;
+  });
+  /** The "Oppfølging" lines (docs/ux-guide.md §2.7), each with its fix. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const s = this.survey();
+    if (!s || !s.can_edit) {
+      return [];
+    }
+    return surveyTodos(s)
+      .filter((todo) => todo.kind !== 'publish' || this.canManage())
+      .map((todo) => this.toMissing(todo));
   });
   protected readonly confirmedRefs = computed(() =>
     this.reqLinks()
@@ -728,6 +782,28 @@ export class SurveyDetail {
 
   protected onCounted(total: number): void {
     this.answerCount.set(total);
+  }
+
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
+  }
+
+  protected askAi(kind: 'surveyResults' | 'surveyQuestions'): void {
+    this.ask.askAbout(this.language.translate(`feedback.ask.${kind}`), undefined, {
+      requirements: this.confirmedRefs(),
+    });
+  }
+
+  private toMissing(todo: SurveyTodo): RecordMissingItem {
+    const base = { key: todo.key, labelKey: todo.labelKey };
+    switch (todo.kind) {
+      case 'publish':
+        return { ...base, action: () => this.pendingAction.set('publish') };
+      case 'copy':
+        return { ...base, action: () => this.copyLink() };
+      default:
+        return { ...base, link: this.editLink() };
+    }
   }
 
   protected copyLink(): void {

@@ -236,23 +236,48 @@
     }
   },
   "detail": {
-    "message": "Kundens melding",
-    "noDescription": "Ingen detaljer er registrert.",
-    "customer": "Kunde",
     "fromSurvey": "Kom fra en undersøkelse",
     "openSurvey": "Åpne undersøkelsen",
     "resolution": "Løsning",
-    "noResolution": "Ingen løsning er registrert ennå.",
     "informed": "Kunden har fått beskjed om utfallet.",
     "notInformed": "Kunden har ikke fått beskjed om utfallet ennå.",
-    "handling": "Behandling",
-    "openTasks": "Åpne oppfølgingsoppgaver: {{ count }}",
-    "closedNotice": "Denne tilbakemeldingen er lukket og kan bare leses. Gjenåpne den for å gjøre endringer.",
     "deleteTitle": "Slette tilbakemeldingen?",
     "deleteMessage": "{{ code }} og de åpne oppfølgingsoppgavene fjernes. Revisjonssporet beholdes.",
-    "receivedVia": "via {{ channel }}",
-    "noCustomer": "Ingen kundeopplysninger er registrert.",
-    "addCustomer": "Legg til kundeopplysninger"
+    "replyOverdue": "Svarfristen er passert",
+    "status": {
+      "new": "Ny – kunden har ikke fått beskjed om at dere har mottatt dette.",
+      "acknowledged": "Bekreftet mottatt – ingen har startet behandlingen ennå.",
+      "in_progress": "Under behandling – vurder saken, svar kunden og merk den som løst når den er ferdig.",
+      "resolved": "Løst – lukk saken når kunden har godtatt utfallet.",
+      "closed": "Lukket – saken er ferdig. Gjenåpne den hvis kunden tar kontakt igjen."
+    },
+    "lead": {
+      "message": "Hva kunden sa",
+      "customer": "Kunde",
+      "about": "Hva det gjelder",
+      "changeAbout": "Endre",
+      "resolution": "Slik ble det løst"
+    },
+    "missing": {
+      "overdue": "Svarfristen er passert – svar kunden",
+      "overdueReplied": "Svarfristen er passert – løs saken eller sett en ny frist",
+      "subjects": "Koble til hva tilbakemeldingen gjelder (leverandør, produkt, prosess …)",
+      "owner": "Velg hvem som er ansvarlig"
+    },
+    "ai": {
+      "summarise": "Oppsummer tilbakemeldingen",
+      "resolution": "Hva er en god løsning?",
+      "assessment": "Hjelp meg å vurdere klagen"
+    },
+    "fields": {
+      "channel": "Mottatt via",
+      "replyBy": "Svar innen",
+      "updated": "Sist endret"
+    },
+    "meta": {
+      "noDeadline": "Ingen frist",
+      "setDeadline": "Sett frist"
+    }
   },
   "deviations": {
     "title": "Koblede avvik",
@@ -395,7 +420,6 @@
     "thresholdOff": "La feltet stå tomt for ingen automatisk oppfølging."
   },
   "surveyDetail": {
-    "accepting": "Tar imot svar",
     "notAccepting": "Utenfor svarperioden",
     "questions": "Spørsmål",
     "noQuestions": "Ingen spørsmål ennå. Rediger undersøkelsen for å legge til.",
@@ -404,9 +428,36 @@
     "deleteTitle": "Slette undersøkelsen?",
     "deleteMessage": "{{ code }} og den offentlige lenken fjernes. Tilbakemeldinger som allerede er opprettet fra den, beholdes.",
     "requiredBadge": "påkrevd",
-    "followUpRule": "Automatisk oppfølging",
     "thresholdValue": "Ved score på {{ value }} eller lavere (omtrent {{ five }} av 5)",
-    "followUps": "Oppfølgingssaker fra lave scorer: {{ count }}"
+    "status": {
+      "draft": "Utkast – legg til spørsmålene og publiser for å få en lenke du kan dele.",
+      "open": "Åpen – del lenken med kundene. Lukk undersøkelsen når dere har nok svar.",
+      "openNotAccepting": "Åpen, men utenfor svarperioden – nye svar tas ikke imot nå.",
+      "closed": "Lukket – nye svar tas ikke imot. Gjenåpne den for å samle flere."
+    },
+    "lead": {
+      "responses": "Svar så langt",
+      "link": "Lenke å dele",
+      "period": "Svarperiode",
+      "from": "Fra {{ date }}",
+      "until": "Til {{ date }}",
+      "lowScores": "Lave score følges opp"
+    },
+    "missing": {
+      "questions": "Legg til spørsmålene",
+      "publish": "Publiser undersøkelsen for å få lenken",
+      "share": "Ingen svar ennå – kopier lenken og del den",
+      "owner": "Velg hvem som er ansvarlig"
+    },
+    "ai": {
+      "results": "Oppsummer resultatene",
+      "questions": "Forbedre spørsmålene"
+    },
+    "fields": {
+      "who": "Hvem som svarer",
+      "language": "Språk"
+    },
+    "followUpsLink": "Oppfølgingssaker fra lave score ({{ count }}) →"
   },
   "share": {
     "title": "Offentlig lenke",
@@ -542,7 +593,8 @@
     "button": "Spør om denne",
     "kind": "Hvordan skiller jeg en klage fra andre tilbakemeldinger, og hvorfor betyr det noe?",
     "severity": "Hvordan bør jeg vurdere konsekvensen av denne tilbakemeldingen?",
-    "assessment": "Hvordan avgjør jeg om denne klagen er berettiget, og hva bør jeg skrive om årsaken?"
+    "assessment": "Hvordan avgjør jeg om denne klagen er berettiget, og hva bør jeg skrive om årsaken?",
+    "surveyQuestions": "Se på spørsmålene i denne undersøkelsen. Er de tydelige og nøytrale, og forteller de oss hva vi bør forbedre? Foreslå bedre formuleringer der det hjelper."
   },
   "notices": {
     "created": "{{ code }} er registrert.",
