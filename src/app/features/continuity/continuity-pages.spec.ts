@@ -186,7 +186,7 @@ describe('ContinuityOverview', () => {
     s.http.expectOne(api('/overview')).flush(overview);
     await s.fixture.whenStable();
     const tiles = s.root.querySelector('[data-testid="overview-tiles"]')?.textContent ?? '';
-    expect(tiles).toContain('Impact analyses');
+    expect(tiles).toContain('If something stops (BIA)');
     expect(tiles).toContain('2 approved · 1 without a plan');
     expect(tiles).toContain('1 ready · 1 fall short');
     expect(tiles).toContain('3 shared · 1 in plans · 1 to verify');

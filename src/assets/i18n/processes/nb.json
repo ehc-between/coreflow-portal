@@ -16,14 +16,14 @@
     "title": "Prosesser",
     "subtitle": "Oversikt over hvordan organisasjonen jobber: hvilke prosesser dere har, hvem som eier dem og hvordan dere vet at de fungerer.",
     "searchPlaceholder": "Søk i prosesser",
-    "interactionMap": "Samspillskart",
+    "interactionMap": "Slik henger arbeidet sammen",
     "new": "Ny prosess",
     "noMatches": "Ingen prosesser passer til søket eller filtrene.",
     "partOf": "Del av {{ code }}",
-    "steps": "{{ count }} trinn i kartet",
-    "stepsOne": "1 trinn i kartet",
+    "steps": "{{ count }} steg i arbeidsflyten",
+    "stepsOne": "1 steg i arbeidsflyten",
     "noOwner": "Ingen eier",
-    "noMap": "Ingen kart ennå",
+    "noMap": "Ingen arbeidsflyt tegnet ennå",
     "noMatchesTitle": "Ingen treff",
     "clearFilters": "Fjern filtrene"
   },
@@ -98,7 +98,7 @@
     "create": "Opprett prosess",
     "sections": {
       "register": "Grunnleggende om prosessen",
-      "turtle": "Prosessen på én side (skilpaddediagram)",
+      "turtle": "Prosessark (inn, ut, hvem, med hva og hvordan vi måler)",
       "review": "Gjennomgang",
       "basics": "Grunnleggende om prosessen"
     },
@@ -224,21 +224,21 @@
     "notFoundBody": "Prosessen finnes ikke, er slettet eller du har ikke tilgang til den."
   },
   "turtle": {
-    "title": "Prosessen på én side (skilpaddediagram)",
-    "label": "Prosessen på én side",
-    "failed": "Prosessen på én side kunne ikke lastes.",
+    "title": "Prosessark (skilpaddediagram)",
+    "label": "Prosessark",
+    "failed": "Prosessarket kunne ikke lastes.",
     "none": "Ingenting registrert ennå",
     "owner": "Eier: {{ name }}",
     "upstream": "Mottar fra",
     "downstream": "Leverer til",
     "resources": "Med hva (ressurser)",
     "competence": "Med hvem (kompetanse)",
-    "inputs": "Inndata",
-    "outputs": "Utdata",
+    "inputs": "Inn (det prosessen mottar)",
+    "outputs": "Ut (det prosessen leverer)",
     "methods": "Hvordan (metoder og prosedyrer)",
     "kpis": "Hvordan det måles (KPI-er)",
     "risks": "Risikoer og muligheter",
-    "titleLead": "Prosessen på én side",
+    "titleLead": "Prosessark",
     "titleTerm": "skilpaddediagram",
     "intro": "Alt prosessen trenger og leverer på ett sted. Koble ekte poster, så henger prosessen sammen med resten av styringssystemet.",
     "link": "Koble",
@@ -273,7 +273,7 @@
   },
   "interactions": {
     "title": "Samspill",
-    "openMap": "Åpne samspillskartet",
+    "openMap": "Se hvordan arbeidet henger sammen",
     "direction": {
       "outgoing": "Leverer til",
       "incoming": "Mottar fra"
@@ -392,7 +392,7 @@
   },
   "interactionMap": {
     "back": "Tilbake til prosesser",
-    "title": "Samspillskart",
+    "title": "Slik henger arbeidet sammen",
     "includeRetired": "Vis utgåtte prosesser",
     "empty": "Ingen prosesser ennå. Legg til prosesser og samspillet mellom dem for å se kartet.",
     "svgLabel": "Kart over alle prosesser og hvordan de samspiller",
@@ -555,7 +555,7 @@
   },
   "nav": {
     "register": "Prosessregister",
-    "interactionMap": "Samspillskart"
+    "interactionMap": "Slik henger arbeidet sammen"
   },
   "frameworks": {
     "iso9001": "ISO 9001",
