@@ -25,7 +25,7 @@ export const PRIVACY_TAB_GROUPS: readonly {
   { key: 'incidents', registers: ['breach', 'dsr'] },
 ];
 
-/** The registers that have their own work tab; the rest sit under "Flere registre". */
+/** The registers that have their own work tab; the other registers follow as tabs. */
 const IN_TABS: ReadonlySet<RegisterKey> = new Set([
   'ropa',
   ...PRIVACY_TAB_GROUPS.flatMap((g) => g.registers),
@@ -35,7 +35,7 @@ const IN_TABS: ReadonlySet<RegisterKey> = new Set([
  * The sub-pages of the privacy area (`app-module-nav` under every page header), U32:
  * four work tabs (Oversikt · Behandlinger · Databehandlere og overføringer · Hendelser og
  * henvendelser), then every other register the user may read and "Dokumenter og
- * rapporter" under "Flere registre". Requests and consents need `privacy:requests`; the
+ * rapporter" as further tabs (never behind "Mer"). Requests and consents need `privacy:requests`; the
  * settings sit behind the gear in the page header.
  */
 export function privacyNavItems(perms: Signal<ReadonlySet<string>>): Signal<ModuleNavItem[]> {

@@ -49,45 +49,21 @@ async function setup(items: readonly ModuleNavItem[], url = '/m', beginner = fal
   await fixture.whenStable();
   const el = fixture.nativeElement as HTMLElement;
   const tabs = () =>
-    Array.from(el.querySelectorAll('nav > div:first-child ul a')).map((a) =>
-      a.getAttribute('data-testid'),
-    );
-  const menu = () =>
-    Array.from(el.querySelectorAll('[data-testid="module-nav-more-menu"] a')).map((a) =>
-      a.getAttribute('data-testid'),
-    );
+    Array.from(el.querySelectorAll('nav ul a')).map((a) => a.getAttribute('data-testid'));
   const more = () => el.querySelector<HTMLButtonElement>('[data-testid="module-nav-more"]');
-  return { fixture, el, tabs, menu, more };
+  return { fixture, el, tabs, more };
 }
 
 describe('ModuleNav (U30)', () => {
-  it('shows every tab and no "More" when there are four or fewer', async () => {
-    const { tabs, more } = await setup(six.slice(0, 4));
-    expect(tabs()).toEqual(['t1', 't2', 't3', 't4']);
+  it('shows every page as a tab and never renders a "More" menu', async () => {
+    const { tabs, more, el } = await setup(six);
+    expect(tabs()).toEqual(['t1', 't2', 't3', 't4', 't5', 't6']);
     expect(more()).toBeNull();
+    expect(el.querySelector('[data-testid="module-nav-more-menu"]')).toBeNull();
   });
 
-  it('shows four tabs and puts the rest under "More"', async () => {
-    const { tabs, menu, more, fixture } = await setup(six);
-    expect(tabs()).toEqual(['t1', 't2', 't3', 't4']);
-    expect(menu()).toEqual(['t5', 't6']);
-    expect(more()!.textContent).toContain('More');
-    expect(more()!.getAttribute('aria-expanded')).toBe('false');
-    more()!.click();
-    await fixture.whenStable();
-    expect(more()!.getAttribute('aria-expanded')).toBe('true');
-    expect(
-      (fixture.nativeElement as HTMLElement)
-        .querySelector('[data-testid="module-nav-more-menu"]')!
-        .hasAttribute('hidden'),
-    ).toBe(false);
-  });
-
-  it('names the current page on the "More" button when it is in the menu', async () => {
-    const { el, more } = await setup(six, '/m/e');
-    expect(more()!.textContent?.trim()).toBe('Requirements');
-    expect(more()!.className).toContain('border-accent');
-    expect(more()!.getAttribute('aria-label')).toBe('More sections, now showing Requirements');
+  it('marks a late tab as the current page', async () => {
+    const { el } = await setup(six, '/m/e');
     expect(el.querySelector('[data-testid="t5"]')!.getAttribute('aria-current')).toBe('page');
     expect(el.querySelector('[data-testid="t1"]')!.getAttribute('aria-current')).toBeNull();
   });

@@ -23,11 +23,7 @@ import { PrivacyNotices } from './privacy-notices';
         titleKey="privacy.documents.title"
         descriptionKey="privacy.documents.subtitle"
       />
-      <app-module-nav
-        labelKey="modules.names.privacy"
-        moreLabelKey="privacy.nav.more"
-        [items]="nav()"
-      />
+      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
 
       <app-outputs-panel
         module="privacy"
