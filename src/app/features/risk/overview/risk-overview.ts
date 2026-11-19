@@ -13,6 +13,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, forkJoin, of, throwError } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
@@ -43,6 +44,7 @@ import { RatingBadge } from '../shared/rating-badge';
 import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { SoaProgress } from '../shared/soa-progress';
+import { RiskQuickWizard } from './risk-quick-wizard';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -75,6 +77,7 @@ type LoadState = 'loading' | 'ready' | 'error';
     RatingBadge,
     RiskNav,
     SoaProgress,
+    RiskQuickWizard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -129,6 +132,16 @@ type LoadState = 'loading' | 'ready' | 'error';
               }
             </app-card>
           } @else {
+            @if (showWizard()) {
+              @if (heatmap(); as h) {
+                <app-risk-quick-wizard
+                  class="mb-5 block"
+                  [orgId]="perms.orgId() ?? ''"
+                  [matrix]="h.matrix"
+                  (created)="go('/risk/risks/' + $event.id)"
+                />
+              }
+            }
             @if (overview(); as o) {
               <section
                 class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4"
@@ -149,7 +162,12 @@ type LoadState = 'loading' | 'ready' | 'error';
                   [queryParams]="{ appetite: 'above' }"
                   [attr.title]="'risk.overview.appetiteHint' | transloco"
                   data-testid="kpi-appetite"
-                  [label]="'risk.overview.aboveAppetite' | transloco"
+                  [label]="
+                    (beginner()
+                      ? 'risk.overview.aboveAppetitePlain'
+                      : 'risk.overview.aboveAppetite'
+                    ) | transloco
+                  "
                   [value]="o.risks.above_appetite"
                   [tone]="o.risks.above_appetite > 0 ? 'fail' : 'neutral'"
                   [delta]="appetiteDelta()"
@@ -187,6 +205,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                   </h2>
                   <div
                     class="flex flex-wrap items-center gap-2"
+                    [class.hidden]="beginner()"
                     [appTourStep]="'risk-heatmap-basis'"
                   >
                     <label class="text-meta font-semibold text-fg-muted" for="risk-heatmap-basis">
@@ -340,45 +359,47 @@ type LoadState = 'loading' | 'ready' | 'error';
                     </a>
                   </app-card>
 
-                  <app-card>
-                    <div class="mb-3 flex items-center justify-between gap-2">
-                      <h2 class="font-display text-section font-bold text-fg">
-                        <app-term scope="risk" key="statement-of-applicability">{{
-                          'risk.overview.soaProgress' | transloco
-                        }}</app-term>
-                      </h2>
-                      <a
-                        routerLink="/standards/soa"
-                        class="text-meta font-semibold text-accent hover:underline"
-                        >{{ 'risk.overview.seeAll' | transloco }}</a
-                      >
-                    </div>
-                    @for (s of o.soa; track s.standard_key) {
-                      <a
-                        [routerLink]="['/standards', s.standard_key, 'soa']"
-                        class="mb-4 block rounded-tile p-1 last:mb-0 hover:bg-surface-2"
-                      >
-                        <p class="mb-2 text-ui font-semibold text-fg">
-                          {{ standardName(s.standard_label, s.standard_key) }}
+                  @if (!beginner()) {
+                    <app-card>
+                      <div class="mb-3 flex items-center justify-between gap-2">
+                        <h2 class="font-display text-section font-bold text-fg">
+                          <app-term scope="risk" key="statement-of-applicability">{{
+                            'risk.overview.soaProgress' | transloco
+                          }}</app-term>
+                        </h2>
+                        <a
+                          routerLink="/standards/soa"
+                          class="text-meta font-semibold text-accent hover:underline"
+                          >{{ 'risk.overview.seeAll' | transloco }}</a
+                        >
+                      </div>
+                      @for (s of o.soa; track s.standard_key) {
+                        <a
+                          [routerLink]="['/standards', s.standard_key, 'soa']"
+                          class="mb-4 block rounded-tile p-1 last:mb-0 hover:bg-surface-2"
+                        >
+                          <p class="mb-2 text-ui font-semibold text-fg">
+                            {{ standardName(s.standard_label, s.standard_key) }}
+                          </p>
+                          <app-soa-progress
+                            [total]="s.total"
+                            [justified]="soaJustified(s)"
+                            [applicable]="s.applicable"
+                            [implemented]="s.implemented"
+                          />
+                        </a>
+                      } @empty {
+                        <p class="text-ui text-fg-muted">
+                          {{ 'risk.overview.noSoa' | transloco }}
                         </p>
-                        <app-soa-progress
-                          [total]="s.total"
-                          [justified]="soaJustified(s)"
-                          [applicable]="s.applicable"
-                          [implemented]="s.implemented"
-                        />
-                      </a>
-                    } @empty {
-                      <p class="text-ui text-fg-muted">
-                        {{ 'risk.overview.noSoa' | transloco }}
-                      </p>
-                      <a
-                        routerLink="/standards/soa"
-                        class="mt-2 inline-block text-ui font-semibold text-accent hover:underline"
-                        >{{ 'risk.overview.openSoa' | transloco }}</a
-                      >
-                    }
-                  </app-card>
+                        <a
+                          routerLink="/standards/soa"
+                          class="mt-2 inline-block text-ui font-semibold text-accent hover:underline"
+                          >{{ 'risk.overview.openSoa' | transloco }}</a
+                        >
+                      }
+                    </app-card>
+                  }
                 }
               </div>
             </div>
@@ -395,6 +416,8 @@ export class RiskOverviewPage {
   private readonly toasts = inject(NotificationService);
   private readonly language = inject(LanguageService);
   protected readonly perms = inject(RiskPermissions);
+  /** U34: beginners see plain words, no basis switch and no SoA card (it lives under Standards). */
+  protected readonly beginner = inject(GuidanceService).isBeginner;
 
   protected readonly bases = HEATMAP_BASES;
   protected readonly state = signal<LoadState>('loading');
@@ -410,6 +433,14 @@ export class RiskOverviewPage {
   private cellSub: Subscription | null = null;
 
   protected readonly current = currentRating;
+
+  /** "Hva kan gå galt?" for beginners, and for anyone while the register is empty. */
+  protected readonly showWizard = computed(
+    () =>
+      this.perms.canWrite() &&
+      !!this.heatmap() &&
+      (this.beginner() || (this.overview()?.risks.total ?? 0) === 0),
+  );
 
   protected readonly counts = computed(() => {
     const out: Record<string, number> = {};

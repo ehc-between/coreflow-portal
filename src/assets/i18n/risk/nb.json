@@ -55,7 +55,8 @@
     "noAppetite": "Ingen risikoappetitt satt",
     "acceptedAbove": "{{ count }} akseptert over den",
     "awaitingCheck": "{{ count }} fullførte tiltak venter på kontroll av effekt.",
-    "seeAll": "Se alle"
+    "seeAll": "Se alle",
+    "aboveAppetitePlain": "Høyere enn dere godtar"
   },
   "setup": {
     "done": "Risikostyring er satt opp med en 5x5-matrise og et risikoregister for virksomheten.",
@@ -822,5 +823,16 @@
       "title": "Begrunn {{ count }} kontroller i anvendelseserklæringen",
       "why": "Hver kontroll trenger en beslutning og en begrunnelse før erklæringen kan godkjennes."
     }
+  },
+  "quick": {
+    "title": "Hva kan gå galt?",
+    "intro": "Svar på tre spørsmål for å legge til en risiko. Resten kan du fylle ut senere.",
+    "what": "Hva kan gå galt?",
+    "whatPlaceholder": "F.eks. en viktig leverandør klarer ikke å levere",
+    "likely": "Hvor sannsynlig er det?",
+    "bad": "Hvor ille blir det hvis det skjer?",
+    "save": "Legg til risikoen",
+    "later": "Tiltak og eier legger du til på risikosiden.",
+    "saved": "Risikoen er lagt til."
   }
 }

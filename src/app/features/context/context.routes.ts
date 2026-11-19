@@ -54,6 +54,13 @@ export default [
           import('./overview/context-overview').then((m) => m.ContextOverviewPage),
       },
       {
+        // U34: the beginner's four-question interview (drafts analysis, parties, scope).
+        path: 'interview',
+        canActivate: [permissionGuard('context:write', toOverview)],
+        loadComponent: () =>
+          import('./interview/context-interview').then((m) => m.ContextInterviewPage),
+      },
+      {
         path: 'responsibilities/matrix',
         loadComponent: () => import('./raci/raci-matrix').then((m) => m.RaciMatrixPage),
       },
