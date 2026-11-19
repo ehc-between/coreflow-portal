@@ -112,6 +112,11 @@ export type VersionView = 'approved' | 'draft';
 export class DocumentVersionBanner {
   readonly document = input.required<DocumentDetail>();
   readonly view = input<VersionView>('approved');
+  /**
+   * Leave out the "draft, never approved" note (the page's status sentence
+   * already says it); the version switch still shows once something is approved.
+   */
+  readonly hideUnapprovedNote = input(false);
 
   readonly viewChange = output<VersionView>();
 
@@ -119,7 +124,10 @@ export class DocumentVersionBanner {
   protected readonly draft = computed(() => {
     const doc = this.document();
     const draft = doc.draft_revision ?? null;
-    return draft && draft.id !== doc.current_revision?.id ? draft : null;
+    if (!draft || draft.id === doc.current_revision?.id) {
+      return null;
+    }
+    return this.hideUnapprovedNote() && !doc.current_revision ? null : draft;
   });
 
   protected readonly approved = computed(() => this.document().current_revision);

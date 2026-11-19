@@ -717,8 +717,8 @@
       },
       {
         "target": "documents-fields",
-        "title": "For the auditor",
-        "body": "Owner, who approved it and when, when it took effect and the next review."
+        "title": "Main information",
+        "body": "Which version is in force, who approved it and what changed. The owner and the next review are under Follow-up."
       },
       {
         "target": "documents-requirements",

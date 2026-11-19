@@ -19,12 +19,22 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { StandardsApi } from '../../../core/standards/standards-api';
 import { AssigneeIn } from '../../../core/tasks/task.models';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
@@ -33,7 +43,7 @@ import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -42,18 +52,14 @@ import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { normaliseMap } from '../data/map-model';
-import {
-  categoryKey,
-  frameworkKey,
-  intervalText,
-  nodeTypeKey,
-  statusKey,
-} from '../data/process-display';
+import { frameworkKey, intervalText, nodeTypeKey, statusKey } from '../data/process-display';
 import { processErrorKey } from '../data/process-errors';
 import {
+  DocumentRef,
   HealthItem,
   LinkedRecord,
   MapNode,
+  ProcessRef,
   PROCESS_ENTITY_TYPE,
   PROCESS_MODULE,
   ProcessDetail,
@@ -66,7 +72,6 @@ import { ProcessesApi } from '../data/processes-api';
 import { ProcessMapCanvas } from '../map/process-map-canvas';
 import { TurtleDiagram, TurtleFlow } from '../turtle/turtle-diagram';
 import { DescriptionDocumentPanel } from './description-document-panel';
-import { HealthCard } from './health-card';
 import { InteractionsPanel } from './interactions-panel';
 import { LinkRecords } from './link-records';
 import { ReviewForm } from './review-form';
@@ -122,29 +127,92 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
   requirements: 'process-requirements',
 };
 
+/** Building blocks that are fixed on the edit page (the rest have their own place). */
+const EDIT_FIXES = new Set(['owner', 'purpose', 'scope']);
+
 /**
- * A process (`/processes/:id`). Header: title, code · category · status, one
- * primary action (record the review when active, activate otherwise), Edit and
- * Follow, and "Mer" for summary, status changes and delete. Details tab: how
- * complete the process is (with links to fix what is missing), the basic facts,
- * the map (fitted to the card), the process on one page (turtle diagram) with
- * linked risks, KPI results and every linked record, interactions with
- * processes and interested parties, and the description document. The aside
- * shows the requirements it documents, its connections and the review cycle
- * with the review history. Owners record reviews with a prefilled checklist
- * (`?review=1` opens it, as the home page's "do this now" link does).
+ * The status sentence of a process: the lifecycle state, a dash, and what it
+ * means (overdue review, or how many of the building blocks are in place).
+ */
+export function processStatusLine(p: ProcessDetail): {
+  key: string;
+  tone: StatusLineTone;
+  params: Record<string, unknown>;
+} {
+  if (p.status === 'retired') {
+    return { key: 'processes.detail.statusLine.retired', tone: 'neutral', params: {} };
+  }
+  if (p.status === 'draft') {
+    return { key: 'processes.detail.statusLine.draft', tone: 'warn', params: {} };
+  }
+  if (p.review_overdue) {
+    return { key: 'processes.detail.statusLine.overdue', tone: 'warn', params: {} };
+  }
+  const h = p.health;
+  if (h && h.done < h.total) {
+    return {
+      key: 'processes.detail.statusLine.partial',
+      tone: 'warn',
+      params: { done: h.done, total: h.total },
+    };
+  }
+  return { key: 'processes.detail.statusLine.active', tone: 'pass', params: {} };
+}
+
+/**
+ * What a process still needs ("Oppfølging", docs/ux-guide.md §2.7): its missing
+ * building blocks, each a link (edit page) or an action (map, link dialog,
+ * review form). A missing requirement is left to the card's requirements part.
+ */
+export function processMissing(
+  p: ProcessDetail,
+  editLink: readonly unknown[],
+  fix: (item: HealthItem) => void,
+): RecordMissingItem[] {
+  const items = (p.health?.items ?? []).filter((i) => !i.ok && i.key !== 'requirements');
+  const ordered = [
+    ...items.filter((i) => i.key === 'review'),
+    ...items.filter((i) => i.key !== 'review'),
+  ];
+  return ordered.map((item) => {
+    const labelKey =
+      item.key === 'review' && p.review_overdue
+        ? 'processes.detail.missing.reviewOverdue'
+        : `processes.detail.missing.${item.key}`;
+    return EDIT_FIXES.has(item.key) || item.fix === 'edit'
+      ? { key: item.key, labelKey, link: editLink }
+      : { key: item.key, labelKey, action: () => fix(item) };
+  });
+}
+
+/**
+ * A process (`/processes/:id`), built on the detail-page anatomy
+ * (docs/ux-guide.md §2.7). Header: title, code · kind of process · status, one
+ * primary action (record the review when active, activate otherwise), Edit,
+ * "Spør KI" (summary, explain) and "Mer" (status changes, review history,
+ * delete). "Hovedinformasjon": a status sentence, what the process is for,
+ * where it starts and stops, who owns it and its description document. Details
+ * tab: the other facts (part of / sub-processes as links), the process on one
+ * page (turtle diagram) with every linked record, the map and the description
+ * document panel. The "Oppfølging" card lists the missing building blocks, the
+ * requirements it documents, its connections and the review cycle. Owners
+ * record reviews with a prefilled checklist (`?review=1` opens it, as the home
+ * page's "do this now" link does).
  */
 @Component({
   selector: 'app-process-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    WatchButton,
-    AskAbout,
     FieldHelp,
     Term,
     WhyItMatters,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    EntityChip,
     LocalDayPipe,
     SupportsRequirements,
     EntityTasks,
@@ -154,7 +222,6 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
     EmptyState,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
@@ -165,7 +232,6 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
     ProcessMapCanvas,
     TurtleDiagram,
     DescriptionDocumentPanel,
-    HealthCard,
     InteractionsPanel,
     LinkRecords,
     ReviewForm,
@@ -175,6 +241,7 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
   template: `
     @if (process(); as p) {
       <app-record-detail-layout
+        [anatomy]="true"
         [entityType]="entityType"
         [entityId]="p.id"
         [title]="p.title"
@@ -185,13 +252,13 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
         [tabs]="tabs"
         [canEdit]="p.can_edit"
         [fieldLabels]="fieldLabels"
-        backLink="/processes"
-        backLabelKey="processes.detail.back"
+        [missing]="missing()"
       >
         <ng-container ngProjectAs="[meta]">
           <span class="font-mono" data-testid="process-code">{{ p.code }}</span>
           <span aria-hidden="true">·</span>
-          <span>{{ categoryKey(p.category) | transloco }}</span>
+          <span>{{ 'processes.detail.categoryOne.' + p.category | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge
             meaning="lifecycle"
             [value]="p.status"
@@ -222,21 +289,17 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
           </ng-container>
         }
 
-        <ng-container ngProjectAs="[secondary]">
-          @if (p.can_edit) {
-            <a [routerLink]="['/processes', p.id, 'edit']">
+        @if (p.can_edit) {
+          <ng-container ngProjectAs="[secondary]">
+            <a [routerLink]="editLink()" data-testid="edit">
               <app-button variant="secondary">{{
                 'processes.actions.edit' | transloco
               }}</app-button>
             </a>
-          }
-          <app-watch-button [entityType]="entityType" [entityId]="p.id" />
-        </ng-container>
+          </ng-container>
+        }
 
         <ng-container ngProjectAs="[overflow]">
-          <button appMenuItem type="button" (click)="summarise()" data-testid="summarise">
-            {{ 'processes.ai.summarise' | transloco }}
-          </button>
           @if (p.can_edit && p.status !== 'retired' && primaryAction() !== 'review') {
             <button
               appMenuItem
@@ -275,74 +338,135 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
           }
         </ng-container>
 
+        <button appMenuItem ask type="button" (click)="summarise()" data-testid="summarise">
+          <app-icon name="spark" [size]="15" />
+          {{ 'processes.ai.summarise' | transloco }}
+        </button>
+        <button appMenuItem ask type="button" (click)="explain()" data-testid="explain">
+          <app-icon name="spark" [size]="15" />
+          {{ 'processes.detail.explain' | transloco }}
+        </button>
+
         <app-help-strip help scope="processes" page="detail" lesson="process-approach" />
 
-        <div class="flex flex-col gap-5">
-          @if (p.health; as health) {
-            <app-process-health-card
-              [health]="health"
-              [canEdit]="p.can_edit"
-              (fix)="fixHealth($event)"
-            />
-          }
+        <app-record-lead record-lead [fillLink]="p.can_edit ? editLink() : null">
+          <app-record-status-line status [tone]="statusLine().tone">
+            {{ statusLine().key | transloco: statusLine().params }}
+          </app-record-status-line>
+          <app-field-item
+            size="lead"
+            labelKey="processes.detail.lead.purpose"
+            [value]="p.purpose"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="processes.detail.lead.scope"
+            [value]="p.scope"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="processes.detail.lead.owner"
+            [value]="p.owner?.name"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="processes.detail.lead.document"
+            [keepEmpty]="true"
+            emptyKey="processes.detail.lead.noDocument"
+          >
+            @if (p.description_document; as doc) {
+              @if (doc.accessible) {
+                <span class="flex flex-wrap items-center gap-2" data-testid="lead-document">
+                  <app-entity-chip [ref]="documentRef(doc)" [showType]="false" />
+                  @if (doc.status) {
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="doc.status"
+                      [labelKey]="'processes.document.status.' + doc.status"
+                    />
+                  }
+                </span>
+              } @else {
+                <span class="text-ui text-fg-muted">{{
+                  'processes.document.restricted' | transloco
+                }}</span>
+              }
+            }
+          </app-field-item>
+        </app-record-lead>
 
-          <app-card>
-            <div class="mb-3 flex items-center justify-between gap-2">
-              <h2 class="text-card font-bold text-fg">
-                {{ 'processes.detail.overview' | transloco }}
-              </h2>
-              <app-ask-about [prompt]="'processes.detail.askExplain' | transloco" field="purpose" />
-            </div>
-            <app-field-list>
-              <app-field-item
-                labelKey="processes.fields.purpose"
-                [value]="p.purpose"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item
-                labelKey="processes.fields.scope"
-                [value]="p.scope"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item
-                labelKey="processes.fields.owner"
-                [value]="p.owner?.name"
-                empty="none"
-              />
-              <app-field-item labelKey="processes.fields.department" [value]="p.department?.name" />
-              <app-field-item labelKey="processes.fields.parent">
-                @if (p.parent; as parent) {
-                  <a [routerLink]="['/processes', parent.id]" class="text-accent hover:underline">
-                    <span class="font-mono text-meta">{{ parent.code }}</span> {{ parent.title }}
-                  </a>
-                } @else {
-                  {{ 'processes.detail.topLevel' | transloco }}
-                }
+        <div class="flex flex-col gap-6">
+          <app-record-details [columns]="2" [fillLink]="p.can_edit ? editLink() : null">
+            <!-- Not fields to fill in: shown only when the process has them. -->
+            @if (p.parent; as parent) {
+              <app-field-item labelKey="processes.detail.partOf">
+                <app-entity-chip [ref]="processRef(parent)" [showType]="false" />
               </app-field-item>
-              <app-field-item labelKey="processes.detail.children" empty="none">
+            }
+            @if (p.children.length > 0) {
+              <app-field-item labelKey="processes.detail.children">
                 @for (child of p.children; track child.id) {
-                  <a
-                    [routerLink]="['/processes', child.id]"
-                    class="block text-accent hover:underline"
-                  >
-                    <span class="font-mono text-meta">{{ child.code }}</span> {{ child.title }}
-                  </a>
+                  <app-entity-chip class="block" [ref]="processRef(child)" [showType]="false" />
                 }
               </app-field-item>
-              <app-field-item labelKey="processes.fields.frameworks" [wide]="true" empty="none">
-                @for (f of p.frameworks ?? []; track f) {
-                  <span
-                    class="mr-1.5 mb-1 inline-flex rounded-full border border-border px-2.5 py-0.5 text-meta font-semibold text-fg-muted"
-                    >{{ frameworkKey(f) | transloco }}</span
+            }
+            <app-field-item labelKey="processes.fields.department" [value]="p.department?.name" />
+            <app-field-item labelKey="processes.detail.frameworks">
+              @for (f of p.frameworks ?? []; track f) {
+                <span
+                  class="mr-1.5 mb-1 inline-flex rounded-full border border-border px-2.5 py-0.5 text-meta font-semibold text-fg-muted"
+                  >{{ frameworkKey(f) | transloco }}</span
+                >
+              }
+            </app-field-item>
+          </app-record-details>
+
+          <app-card id="process-turtle">
+            <div class="mb-1 flex flex-wrap items-start justify-between gap-2">
+              <div class="flex items-center gap-1.5">
+                <h2 class="text-card font-bold text-fg">
+                  {{ 'processes.turtle.titleLead' | transloco }}
+                  <span class="font-normal text-fg-muted"
+                    >(<app-term key="turtle" scope="processes">{{
+                      'processes.turtle.titleTerm' | transloco
+                    }}</app-term
+                    >)</span
                   >
-                }
-              </app-field-item>
-            </app-field-list>
+                </h2>
+                <app-field-help scope="processes" page="detail" field="turtle" />
+              </div>
+              <app-button
+                variant="secondary"
+                size="sm"
+                (click)="interactionsOpen.set(true)"
+                data-testid="open-interactions"
+              >
+                {{
+                  (p.can_edit ? 'processes.interactions.edit' : 'processes.interactions.view')
+                    | transloco: { count: interactionCount() }
+                }}
+              </app-button>
+            </div>
+            <p class="mb-3 text-meta text-fg-muted">{{ 'processes.turtle.intro' | transloco }}</p>
+            @if (turtle(); as t) {
+              <app-turtle-diagram
+                [turtle]="t"
+                [canEdit]="p.can_edit"
+                [canCreate]="flowKeys()"
+                (link)="linkLeg.set($event)"
+                (unlink)="unlink($event)"
+                (createFlow)="startFlow($event)"
+              />
+            } @else if (turtleError()) {
+              <app-error-state bodyKey="processes.turtle.failed" (retry)="reloadTurtle()" />
+            } @else {
+              <app-loading-state [rows]="3" />
+            }
           </app-card>
 
-          <app-card>
+          <app-card id="process-map">
             <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h2 class="text-card font-bold text-fg">
@@ -427,53 +551,9 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
             }
           </app-card>
 
-          <app-card id="process-turtle">
-            <div class="mb-1 flex flex-wrap items-start justify-between gap-2">
-              <div class="flex items-center gap-1.5">
-                <h2 class="text-card font-bold text-fg">
-                  {{ 'processes.turtle.titleLead' | transloco }}
-                  <span class="font-normal text-fg-muted"
-                    >(<app-term key="turtle" scope="processes">{{
-                      'processes.turtle.titleTerm' | transloco
-                    }}</app-term
-                    >)</span
-                  >
-                </h2>
-                <app-field-help scope="processes" page="detail" field="turtle" />
-              </div>
-              <app-button
-                variant="secondary"
-                size="sm"
-                (click)="interactionsOpen.set(true)"
-                data-testid="open-interactions"
-              >
-                {{
-                  (p.can_edit ? 'processes.interactions.edit' : 'processes.interactions.view')
-                    | transloco: { count: interactionCount() }
-                }}
-              </app-button>
-            </div>
-            <p class="mb-3 text-meta text-fg-muted">{{ 'processes.turtle.intro' | transloco }}</p>
-            @if (turtle(); as t) {
-              <app-turtle-diagram
-                [turtle]="t"
-                [canEdit]="p.can_edit"
-                [canCreate]="flowKeys()"
-                (link)="linkLeg.set($event)"
-                (unlink)="unlink($event)"
-                (createFlow)="startFlow($event)"
-              />
-            } @else if (turtleError()) {
-              <app-error-state bodyKey="processes.turtle.failed" (retry)="reloadTurtle()" />
-            } @else {
-              <app-loading-state [rows]="3" />
-            }
-          </app-card>
-
           <div id="process-description">
             <app-description-document-panel [process]="p" (changed)="onChanged($event)" />
           </div>
-          <app-why-it-matters scope="processes" page="detail" />
         </div>
 
         <div tasks>
@@ -495,99 +575,73 @@ const FIX_ANCHORS: Readonly<Record<string, string>> = {
           />
         </div>
 
-        <ng-container ngProjectAs="[aside]">
-          <app-card data-testid="review-card">
-            <div class="mb-2 flex items-center gap-1.5">
-              <h2 class="text-card font-bold text-fg">
-                {{ 'processes.review.title' | transloco }}
-              </h2>
-              <app-field-help scope="processes" page="detail" field="review" />
-            </div>
-            <dl class="flex flex-col gap-2 text-ui">
-              <div class="flex justify-between gap-3">
-                <dt class="text-fg-muted">{{ 'processes.review.interval' | transloco }}</dt>
-                <dd class="text-right whitespace-nowrap text-fg">
-                  @if (interval(); as i) {
-                    {{ i.key | transloco: i.params }}
-                  } @else {
-                    {{ 'common.empty.notSet' | transloco }}
-                  }
-                </dd>
-              </div>
-              <div class="flex justify-between gap-3">
-                <dt class="text-fg-muted">{{ 'processes.fields.nextReview' | transloco }}</dt>
-                <dd
-                  class="text-right whitespace-nowrap"
-                  [class]="p.review_overdue ? 'font-semibold text-warn-ink' : 'text-fg'"
-                >
-                  @if (p.next_review_at) {
-                    {{ p.next_review_at | localDay }}
-                    @if (p.review_overdue) {
-                      · {{ 'common.status.overdue' | transloco }}
-                    }
-                  } @else {
-                    {{ 'common.empty.notSet' | transloco }}
-                  }
-                </dd>
-              </div>
-              <div class="flex justify-between gap-3">
-                <dt class="text-fg-muted">{{ 'processes.fields.lastReviewed' | transloco }}</dt>
-                <dd class="text-right">
-                  @if (p.last_reviewed_at) {
-                    <span class="text-fg">{{ p.last_reviewed_at | localDay }}</span>
-                    @if (p.last_reviewed_by?.name) {
-                      <span class="block text-meta text-fg-subtle">{{
-                        p.last_reviewed_by?.name
-                      }}</span>
-                    }
-                  } @else {
-                    <span
-                      [class]="
-                        p.status === 'active' ? 'font-semibold text-warn-ink' : 'text-fg-subtle'
-                      "
-                      data-testid="never-reviewed"
-                      >{{ 'processes.review.never' | transloco }}</span
-                    >
-                  }
-                </dd>
-              </div>
-              @if (p.last_review; as last) {
-                <div class="flex items-center justify-between gap-3">
-                  <dt class="text-fg-muted">{{ 'processes.review.lastOutcome' | transloco }}</dt>
-                  <dd>
-                    <app-status-badge
-                      meaning="compliance"
-                      [value]="outcome(last.outcome)"
-                      [labelKey]="'processes.review.outcome.' + last.outcome"
-                    />
-                  </dd>
-                </div>
-              }
-            </dl>
-            @if (p.status === 'active' && !p.owner) {
-              <p class="mt-2 text-meta text-warn-ink">
-                {{ 'processes.review.noOwnerHint' | transloco }}
-              </p>
+        <app-record-meta follow-up-meta data-testid="review-card">
+          <app-field-item layout="inline" labelKey="processes.review.interval">
+            @if (interval(); as i) {
+              {{ i.key | transloco: i.params }}
             }
-            <div class="mt-3 flex flex-wrap gap-2">
-              @if (p.can_edit && p.status !== 'retired' && primaryAction() !== 'review') {
-                <app-button size="sm" variant="secondary" (click)="reviewOpen.set(true)">
-                  {{ 'processes.review.record' | transloco }}
-                </app-button>
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="processes.fields.nextReview"
+            [keepEmpty]="true"
+            emptyKey="kit.detail.meta.notPlanned"
+            emptyActionKey="kit.detail.meta.plan"
+            [emptyLink]="p.can_edit ? editLink() : null"
+          >
+            @if (p.next_review_at) {
+              <span [class.text-warn-ink]="p.review_overdue">{{
+                p.next_review_at | localDay
+              }}</span>
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="processes.fields.lastReviewed"
+            [keepEmpty]="true"
+          >
+            @if (p.last_reviewed_at) {
+              {{ p.last_reviewed_at | localDay }}
+              @if (p.last_reviewed_by?.name) {
+                <span class="block font-normal text-fg-subtle">{{ p.last_reviewed_by?.name }}</span>
               }
-              @if ((p.review_count ?? 0) > 0) {
-                <button
-                  type="button"
-                  class="min-h-8 text-ui font-semibold text-accent hover:underline"
-                  (click)="historyOpen.set(true)"
-                  data-testid="open-history"
-                >
-                  {{ 'processes.reviewHistory.openCount' | transloco: { count: p.review_count } }}
-                </button>
-              }
-            </div>
-          </app-card>
-        </ng-container>
+            } @else {
+              <span
+                [class]="p.status === 'active' ? 'text-warn-ink' : 'font-normal text-fg-subtle'"
+                data-testid="never-reviewed"
+                >{{ 'processes.review.never' | transloco }}</span
+              >
+            }
+          </app-field-item>
+          <app-field-item layout="inline" labelKey="processes.review.lastOutcome">
+            @if (p.last_review; as last) {
+              <app-status-badge
+                meaning="compliance"
+                [value]="outcome(last.outcome)"
+                [labelKey]="'processes.review.outcome.' + last.outcome"
+              />
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="processes.detail.updated"
+            [value]="p.updated_at | localDay"
+          />
+          @if ((p.review_count ?? 0) > 0) {
+            <button
+              type="button"
+              class="mt-1 self-start text-meta font-semibold text-accent hover:underline"
+              (click)="historyOpen.set(true)"
+              data-testid="open-history"
+            >
+              {{ 'processes.reviewHistory.openCount' | transloco: { count: p.review_count } }}
+            </button>
+          }
+        </app-record-meta>
+
+        <div aside-learn>
+          <app-why-it-matters scope="processes" page="detail" />
+        </div>
       </app-record-detail-layout>
 
       <app-slide-over
@@ -685,7 +739,6 @@ export class ProcessDetailPage {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = PROCESS_FIELD_LABELS;
   protected readonly statusKey = statusKey;
-  protected readonly categoryKey = categoryKey;
   protected readonly frameworkKey = frameworkKey;
   protected readonly nodeTypeKey = nodeTypeKey;
 
@@ -758,6 +811,27 @@ export class ProcessDetailPage {
   protected readonly defaultAssignee = computed<AssigneeIn | null>(() => {
     const owner = this.process()?.owner;
     return owner ? { type: 'user', value: owner.id } : null;
+  });
+
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/processes',
+    this.id(),
+    'edit',
+  ]);
+
+  /** The sentence at the top of "Hovedinformasjon" (docs/ux-guide.md §2.7). */
+  protected readonly statusLine = computed(() => {
+    const p = this.process();
+    return p ? processStatusLine(p) : { key: '', tone: 'neutral' as StatusLineTone, params: {} };
+  });
+
+  /** "Oppfølging": the missing building blocks, each with where it is fixed. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const p = this.process();
+    if (!p || !p.can_edit) {
+      return [];
+    }
+    return processMissing(p, this.editLink(), (item) => this.fixHealth(item));
   });
 
   constructor() {
@@ -873,6 +947,32 @@ export class ProcessDetailPage {
 
   protected summarise(): void {
     this.askPanel.askAbout(this.language.translate('processes.ai.summarisePrompt'));
+  }
+
+  protected explain(): void {
+    this.askPanel.askAbout(this.language.translate('processes.detail.askExplain'));
+  }
+
+  protected processRef(p: ProcessRef): EntityChipRef {
+    return {
+      entity_type: PROCESS_ENTITY_TYPE,
+      entity_id: p.id,
+      title: p.title,
+      code: p.code,
+      status: p.status,
+      module: PROCESS_MODULE,
+      url: `/processes/${p.id}`,
+    };
+  }
+
+  protected documentRef(doc: DocumentRef): EntityChipRef {
+    return {
+      entity_type: 'document',
+      entity_id: doc.id,
+      title: doc.title ?? '',
+      code: doc.doc_code,
+      url: doc.url ?? `/documents/${doc.id}`,
+    };
   }
 
   protected startFlow(key: TurtleFlow): void {

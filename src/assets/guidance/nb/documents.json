@@ -717,8 +717,8 @@
       },
       {
         "target": "documents-fields",
-        "title": "For revisoren",
-        "body": "Eier, hvem som godkjente og når, når det ble gyldig og neste gjennomgang."
+        "title": "Hovedinformasjon",
+        "body": "Hvilken versjon som gjelder, hvem som godkjente den og hva som er endret. Eier og neste gjennomgang står under Oppfølging."
       },
       {
         "target": "documents-requirements",
