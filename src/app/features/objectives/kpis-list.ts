@@ -334,7 +334,7 @@ export function kpiTiles(
                     dateKind="next"
                     [overdue]="k.measurement_overdue"
                   >
-                    <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                    <span coverage class="block min-w-0">
                       <app-coverage-chip entityType="kpi" [entityId]="k.id" />
                     </span>
                     @let h = health(k);

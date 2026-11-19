@@ -284,7 +284,7 @@ const SELECT =
                 >
                   <app-coverage-chip
                     coverage
-                    class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                    class="max-w-full"
                     entityType="continuity_plan"
                     [entityId]="row.id"
                   />

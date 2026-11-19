@@ -473,7 +473,7 @@ export function filtersFromParams(params: {
                 dateKind="due"
                 [overdue]="overdue(row)"
               >
-                <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                <span coverage class="block min-w-0">
                   <app-coverage-chip entityType="deviation" [entityId]="row.id" />
                 </span>
                 <app-badge badges [tone]="statusLabels.tone(row)" data-testid="row-status">{{
