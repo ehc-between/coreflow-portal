@@ -47,6 +47,14 @@ const routes: Routes = [
     loadComponent: () => import('./audit-log/audit-log-page').then((m) => m.AuditLogPage),
   },
   {
+    // Chat administration: retention, legal hold, export and erasure (chat:admin).
+    path: 'chat',
+    title: 'modules.names.chat',
+    canActivate: [permissionGuard('chat:admin', { redirectTo: '/settings' })],
+    providers: [provideTranslocoScope('chat')],
+    loadComponent: () => import('../chat/admin/chat-admin-page').then((m) => m.ChatAdminPage),
+  },
+  {
     path: 'security',
     title: 'settings.security.title',
     canActivate: [orgManageGuard],

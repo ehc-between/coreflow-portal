@@ -208,6 +208,9 @@ const ENTITY_ROUTES: Readonly<Record<string, string>> = {
   deviation: '/deviations',
   document: '/documents',
   task: '/tasks',
+  // Chat notifications (`chat_message.*`, `chat_conversation.added`) carry
+  // `params.url` (`/chat/<id>?m=<message>`); this is the fallback.
+  chat_conversation: '/chat',
 };
 
 /**

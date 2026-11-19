@@ -2292,6 +2292,7 @@
   "modules": {
     "names": {
       "tasks": "Tasks",
+      "chat": "Messages",
       "context": "Context and leadership",
       "processes": "Processes",
       "deviations": "Deviations",
@@ -2323,6 +2324,7 @@
     },
     "descriptions": {
       "tasks": "Assign, track and repeat work across every module.",
+      "chat": "Direct messages, group chats and channels for teams and topics.",
       "context": "SWOT, interested parties, scope, policies and responsibilities.",
       "processes": "Process register and visual process maps.",
       "deviations": "Nonconformities, incidents, corrective actions and improvements.",
@@ -2353,6 +2355,7 @@
     },
     "reasons": {
       "tasks": "Tasks keep every control, review and follow-up assigned and on time.",
+      "chat": "Messages keep everyday questions next to the work: discuss a deviation or risk with the people involved, without email threads.",
       "context": "Every ISO management system starts with clauses 4 and 5: context, interested parties, scope and leadership.",
       "processes": "The process approach (ISO 9001 4.4) asks you to define and control your key processes.",
       "deviations": "Handling nonconformities and incidents (clause 10.2) is required by every standard you chose.",
@@ -2381,6 +2384,8 @@
     },
     "entities": {
       "document": "Document",
+      "chat_conversation": "Conversation",
+      "chat_message": "Message",
       "deviation": "Deviation",
       "deviation_action": "Deviation action",
       "standard": "Standard",
