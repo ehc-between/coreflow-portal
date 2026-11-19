@@ -8,6 +8,7 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
@@ -91,6 +92,7 @@ import {
               labelKey="deviations.assist.suggestRootCause"
               entityType="deviation"
               [entityId]="deviationId()"
+              [quiet]="quiet()"
               (result)="onSuggestion($event)"
             />
           </div>
@@ -373,6 +375,8 @@ export class RootCausePanel {
   private readonly language = inject(LanguageService);
 
   readonly deviationId = input.required<string>();
+  /** Suggested from the page's "Spør KI" menu ({@link suggest}): no button of its own. */
+  readonly quiet = input(false);
   readonly canEdit = input(false);
   /** The deviation's description, used as the default problem statement. */
   readonly problem = input('');
@@ -432,6 +436,18 @@ export class RootCausePanel {
         this.problem().slice(0, 4000),
       ),
     );
+  }
+
+  private readonly assist = viewChild(AiAssistButton);
+
+  /** Whether a suggestion can be asked for now (can edit, no worksheet open). */
+  readonly canSuggest = computed(() => this.canEdit() && !this.form());
+
+  /** Ask for a suggested root cause (the "Spør KI" menu). */
+  suggest(): void {
+    if (this.canSuggest()) {
+      this.assist()?.run();
+    }
   }
 
   protected onSuggestion(result: unknown): void {

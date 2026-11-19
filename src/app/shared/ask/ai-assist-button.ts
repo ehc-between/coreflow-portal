@@ -40,7 +40,7 @@ import { Icon } from '../ui/icon/icon';
   imports: [Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (!availability.unavailable()) {
+    @if (!availability.unavailable() && (!quiet() || running() || error())) {
       <span class="inline-flex flex-col items-start gap-1">
         <app-button
           [variant]="variant()"
@@ -82,6 +82,11 @@ export class AiAssistButton {
   readonly variant = input<ButtonVariant>('secondary');
   readonly size = input<ButtonSize>('sm');
   readonly disabled = input(false);
+  /**
+   * Started from elsewhere (a "Spør KI" menu item calls {@link run}): the button
+   * only shows while the assist runs (to stop it) or after an error.
+   */
+  readonly quiet = input(false);
 
   /** JSON assists: the parsed result. */
   readonly result = output<unknown>();
@@ -107,6 +112,13 @@ export class AiAssistButton {
   constructor() {
     loadSearchScope();
     inject(DestroyRef).onDestroy(() => this.stream?.cancel());
+  }
+
+  /** Start the assist (no-op while it runs), e.g. from a header menu item. */
+  run(): void {
+    if (!this.running()) {
+      this.start();
+    }
   }
 
   protected toggle(): void {
