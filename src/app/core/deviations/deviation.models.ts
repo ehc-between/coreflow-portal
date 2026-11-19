@@ -1,3 +1,4 @@
+import type { CustomerRef } from '../../shared/customers/customer.models';
 import { WorkflowInstance } from '../records/record.models';
 
 /** An ISO/management standard a deviation can relate to. */
@@ -185,6 +186,10 @@ export interface DeviationType {
   readonly record_type_id?: string | null;
   /** Canonical clause refs offered as one-click requirement links (A02). */
   readonly default_clauses?: readonly string[];
+  /** The built-in template the type was installed from (null: a custom type). */
+  readonly template_key?: string | null;
+  /** `required`: a deviation of this type needs a customer (the claim template). */
+  readonly customer_field?: 'required' | 'optional' | null;
 }
 
 /** Body for creating or updating a deviation type (admin form-builder). */
@@ -243,6 +248,9 @@ export interface DeviationListItem {
   readonly owner_user_id?: string;
   readonly owner_name?: string;
   readonly department_id?: string;
+  /** The customer the deviation concerns (customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly raised_at: string;
   readonly due_at?: string;
   readonly closed_at?: string;
@@ -470,6 +478,8 @@ export interface CreateDeviationRequest {
   readonly source: Source;
   readonly owner_user_id?: string;
   readonly department_id?: string;
+  /** The Kunde field (customer register). */
+  readonly customer_id?: string | null;
   readonly due_at?: string;
   readonly root_cause?: string;
   readonly root_cause_method?: RootCauseMethod;
@@ -518,6 +528,8 @@ export interface UpdateDeviationRequest {
   readonly owner_user_id?: string;
   /** `null` clears the department. */
   readonly department_id?: string | null;
+  /** `null` clears the customer. */
+  readonly customer_id?: string | null;
   readonly due_at?: string;
   readonly root_cause?: string;
   /** `null` clears the method. */
@@ -548,6 +560,7 @@ export interface DeviationFilters {
   readonly clause?: string;
   readonly owner_user_id?: string;
   readonly department_id?: string;
+  readonly customer_id?: string;
   readonly source?: Source;
   readonly due_before?: string;
   readonly due_after?: string;

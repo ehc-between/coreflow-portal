@@ -783,3 +783,36 @@ or report the difference.
   global files (§3.2). "Registrer som kunde" on the supplier card is the backend flow
   `supplier.to_customer` (prefill `name`, `legal_name`, `org_number`, `country`,
   `website`) in the record's "Mer ⋯"; `/customers/new?from_supplier=<id>` also works.
+
+---
+
+## 13. LANE-1 contract notes (projects, contracts, deviations, feedback; 2026-11-19)
+
+Additions and decisions on top of §4 (core `core/customers-l1`, portal `portal/customers-l1`):
+
+- Migration `cf211_customer_links_l1` (down `cf210_customers`): `customer_id` (FK
+  `fk_<table>_customer_id`, `ON DELETE SET NULL`, index `ix_<table>_customer_id`) on
+  `project`, `contract_party`, `deviation`, `customer_feedback`, `survey`,
+  `survey_response`.
+- Contracts: `ContractCreate.customer_id` / `ContractUpdate.customer_id` (null clears) set
+  the counterparty party (re-pointed, else the first external non-supplier party, else a
+  new party with the customer's name / org nr / primary contact; role `controller` on a
+  DPA where we process, else `customer`). `PartyIn` / `PartyUpdate.customer_id`; a party
+  with both a supplier and a customer is 422 `party_supplier_and_customer`. List items
+  and detail return `customer_id` + `customer`; `GET /contracts?customer_id=`.
+- Deviations: `DeviationType` gains `template_key` and `customer_field`
+  (`required` | `optional` | null). Create without a customer on a type whose template
+  says `"customer_field": "required"` is 422 `customer_required` (field `customer_id`)
+  while the customers module is on. Decision: the claim template keeps `customer_name`
+  as an optional advanced field "Kunde (fritekst)" instead of removing it, so old
+  records still show what was typed (the scan migrates it).
+- Feedback: `customer_id` + `customer` on items and surveys; `?customer_id=` on the
+  items list. The free-text organisation field is hidden in the form while the module
+  is on, unless an unlinked record already has one.
+- Portal: the Kunde picker sits in each form (contract basics, deviation "Klassifiser"
+  next to severity, feedback customer card, survey basics, project form); detail pages
+  show `app-customer-chip`; lists have `app-customer-filter` bound to `?customer_id=`
+  and add the customer name to the row subtitle (the shared row has no free column).
+  The claim flow preselects the type installed from `template_key`.
+- Not done in v1: a customer picker in the contract party editor on the detail page
+  (the contract-level Kunde field covers it).

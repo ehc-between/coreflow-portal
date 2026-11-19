@@ -191,7 +191,8 @@ describe('FeedbackList scoped by a handling row (U23 QA)', () => {
     req.flush({ items: [], total: 0 });
     for (const other of http.match(() => true)) {
       if (!other.cancelled) {
-        other.flush({ items: [], total: 0 });
+        // The Kunde filter asks which modules are on (an array).
+        other.flush(other.request.url.endsWith('/modules') ? [] : { items: [], total: 0 });
       }
     }
     await render(fixture);

@@ -9,6 +9,7 @@ import {
   SurveyCreate,
   SurveyUpdate,
 } from './feedback.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 export const MAX_QUESTIONS = 50;
 export const MAX_OPTIONS = 20;
@@ -43,6 +44,9 @@ export interface SurveyFormValue {
   /** '' or '0'..'100'. */
   readonly low_score_threshold: string;
   readonly owner_user_id: string;
+  /** The Kunde field (customer register, '' = none) and its ref (shown by the picker). */
+  readonly customer_id: string;
+  readonly customer: CustomerRef | null;
   /** The language respondents see the survey page in. */
   readonly language: SurveyLanguage;
   readonly questions: readonly QuestionDraft[];
@@ -107,6 +111,8 @@ export function emptySurveyForm(): SurveyFormValue {
     // A response at or below 40 / 100 (2 of 5) raises a follow-up by default.
     low_score_threshold: String(DEFAULT_THRESHOLD),
     owner_user_id: '',
+    customer_id: '',
+    customer: null,
     language: 'nb',
     questions: [],
   };
@@ -122,6 +128,8 @@ export function formFromSurvey(s: Survey): SurveyFormValue {
     closes_on: s.closes_on ?? '',
     low_score_threshold: s.low_score_threshold === null ? '' : String(s.low_score_threshold),
     owner_user_id: s.owner?.id ?? '',
+    customer_id: s.customer_id ?? '',
+    customer: s.customer ?? null,
     language:
       s.language && (SURVEY_LANGUAGES as readonly string[]).includes(s.language)
         ? s.language
@@ -206,6 +214,7 @@ export function toSurveyCreate(v: SurveyFormValue, includeQuestions = true): Sur
     closes_on: v.closes_on || null,
     low_score_threshold: v.low_score_threshold === '' ? null : Number(v.low_score_threshold),
     owner_user_id: v.owner_user_id || null,
+    customer_id: v.customer_id || null,
     language: v.language,
     ...(includeQuestions ? { questions: v.questions.map(toQuestionIn) } : {}),
   };

@@ -34,6 +34,7 @@ import {
   RecordMeta,
   RecordStatusLine,
 } from '../../shared/kit/record-sections';
+import { CustomerChip } from '../../shared/customers';
 import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { Button } from '../../shared/ui/button/button';
@@ -159,6 +160,7 @@ export function signingSteps(c: Contract): {
   imports: [
     RouterLink,
     TranslocoPipe,
+    CustomerChip,
     RecordDetailLayout,
     RecordDetails,
     RecordLead,
@@ -422,7 +424,12 @@ export function signingSteps(c: Contract): {
                   <ul class="flex flex-col gap-1">
                     @for (p of counterparties(); track p.id) {
                       <li class="[overflow-wrap:anywhere]">
-                        @if (p.supplier_id) {
+                        @if (p.customer) {
+                          <app-customer-chip
+                            [ref]="p.customer"
+                            data-testid="contract-customer-chip"
+                          />
+                        } @else if (p.supplier_id) {
                           <a
                             [routerLink]="p.supplier?.url || ['/suppliers', p.supplier_id]"
                             class="font-semibold text-accent hover:underline"

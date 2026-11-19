@@ -17,6 +17,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { ContractField } from './contract-field';
 import { ContractPartyName, PartyNameValue } from './contract-party-name';
+import { CustomerPicker, CustomersAvailability } from '../../shared/customers';
 import { ContractPersonPicker } from './contract-person-picker';
 import {
   CONTRACT_TYPES,
@@ -72,6 +73,7 @@ const SUPPLY_TYPES: readonly ContractType[] = [
     ContractField,
     ContractPartyName,
     ContractPersonPicker,
+    CustomerPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -112,6 +114,21 @@ const SUPPLY_TYPES: readonly ContractType[] = [
               }
             </select>
           </app-contract-field>
+          @if (customers.enabled()) {
+            <app-contract-field
+              [label]="'contracts.fields.customer' | transloco"
+              inputId="cf-c-customer"
+            >
+              <app-customer-picker
+                inputId="cf-c-customer"
+                [value]="form().customer_id || null"
+                [current]="form().customer"
+                (valueChange)="set('customer_id', $event ?? '')"
+                (refChange)="set('customer', $event)"
+                data-testid="contract-customer"
+              />
+            </app-contract-field>
+          }
           <app-contract-field
             [label]="'contracts.fields.owner' | transloco"
             inputId="cf-c-owner"
@@ -658,6 +675,7 @@ const SUPPLY_TYPES: readonly ContractType[] = [
 export class ContractForm {
   private readonly assignees = inject(AssigneeOptionsService);
   private readonly language = inject(LanguageService);
+  protected readonly customers = inject(CustomersAvailability);
 
   readonly value = input.required<ContractFormValue>();
   readonly mode = input<'create' | 'edit'>('create');

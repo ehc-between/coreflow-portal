@@ -41,6 +41,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { CustomerChip } from '../../../shared/customers';
 import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -134,7 +135,10 @@ export function customerFields(
     }
   };
   add('name', 'feedback.fields.customerName', f.customer_name);
-  add('organisation', 'feedback.fields.customerOrganisation', f.customer_organisation);
+  // The register's customer replaces the free-text organisation (shown as a chip).
+  if (!f.customer) {
+    add('organisation', 'feedback.fields.customerOrganisation', f.customer_organisation);
+  }
   add(
     'email',
     'feedback.fields.customerEmail',
@@ -161,6 +165,7 @@ export function customerFields(
   imports: [
     RouterLink,
     TranslocoPipe,
+    CustomerChip,
     LocalDayPipe,
     LocalDatePipe,
     WhyItMatters,
@@ -320,6 +325,13 @@ export function customerFields(
                 data-testid="feedback-description"
               />
               <app-field-item size="lead" labelKey="feedback.detail.lead.customer">
+                @if (f.customer) {
+                  <app-customer-chip
+                    class="mb-0.5 block"
+                    [ref]="f.customer"
+                    data-testid="feedback-customer-chip"
+                  />
+                }
                 @if (customer().length) {
                   <span class="flex flex-col gap-0.5" data-testid="feedback-customer">
                     @for (c of customer(); track c.key) {

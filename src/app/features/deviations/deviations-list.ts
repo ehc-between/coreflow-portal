@@ -25,6 +25,7 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { GuidanceService } from '../../core/guidance/guidance.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RegistrerService } from '../../shared/registrer/registrer.service';
+import { CustomerFilter } from '../../shared/customers';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
@@ -82,6 +83,7 @@ export const LIST_FILTER_KEYS = [
   'source',
   'standard',
   'department_id',
+  'customer_id',
   'tag',
   'clause',
   'due_after',
@@ -153,6 +155,7 @@ export function toDeviationFilters(
     source: v('source') as DeviationFilters['source'],
     standard: v('standard') as DeviationFilters['standard'],
     department_id: v('department_id'),
+    customer_id: v('customer_id'),
     tag: v('tag'),
     clause: v('clause'),
     due_after: v('due_after'),
@@ -204,6 +207,7 @@ export function filtersFromParams(params: {
 @Component({
   selector: 'app-deviations-list',
   imports: [
+    CustomerFilter,
     StatusLegend,
     FulfilsRequirements,
     TranslocoPipe,
@@ -290,6 +294,12 @@ export function filtersFromParams(params: {
         (valueChange)="setFilter('state', $event)"
       />
       <app-status-legend filters [text]="'deviations.statusPair.list' | transloco" />
+      <app-customer-filter
+        filters
+        [value]="filters()['customer_id'] ?? null"
+        (valueChange)="setFilter('customer_id', $event ?? '')"
+        data-testid="deviation-customer-filter"
+      />
       <app-deviation-filter
         filters
         [style.display]="wide() ? null : 'none'"
@@ -466,7 +476,7 @@ export function filtersFromParams(params: {
               <app-record-row
                 [code]="row.code"
                 [title]="row.title"
-                [subtitle]="row.type_name"
+                [subtitle]="rowSubtitle(row)"
                 [link]="['/deviations', row.id]"
                 [owner]="row.owner_name"
                 [date]="row.due_at"
@@ -684,6 +694,11 @@ export class DeviationsList {
     this.offset.set(0);
     this.syncUrl();
     this.load();
+  }
+
+  /** The type, plus the customer when the deviation has one. */
+  protected rowSubtitle(row: DeviationListItem): string {
+    return [row.type_name, row.customer?.name].filter(Boolean).join(' · ');
   }
 
   protected setFilter(key: string, value: string): void {

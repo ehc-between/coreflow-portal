@@ -8,13 +8,14 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, forkJoin, map, of } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { CustomerFilter, customerIdFromRoute } from '../../shared/customers';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
@@ -117,6 +118,7 @@ const KPIS: readonly Kpi[] = [
 @Component({
   selector: 'app-contracts-list',
   imports: [
+    CustomerFilter,
     StatusLegend,
     FulfilsRequirements,
     TranslocoPipe,
@@ -211,6 +213,12 @@ const KPIS: readonly Kpi[] = [
         </div>
       }
 
+      <app-customer-filter
+        filters
+        [value]="customerId()"
+        (valueChange)="setCustomer($event)"
+        data-testid="contract-customer-filter"
+      />
       <label filters class="sr-only" for="cf-contract-status">
         {{ 'contracts.filters.status' | transloco }}
       </label>
@@ -440,6 +448,7 @@ export class ContractsList {
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly nav = CONTRACTS_NAV;
   protected readonly settingsLink = CONTRACTS_SETTINGS_LINK;
@@ -459,6 +468,8 @@ export class ContractsList {
   protected readonly canManage = computed(() => this.permissions().includes(PERM_MANAGE));
 
   protected readonly q = signal('');
+  /** The Kunde filter (`?customer_id=`, e.g. from the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(customerIdFromRoute(this.route));
   protected readonly status = signal<string>('open');
   protected readonly type = signal<ContractType | ''>('');
   protected readonly attention = signal<string>('');
@@ -486,6 +497,7 @@ export class ContractsList {
   protected readonly isFiltered = computed(
     () =>
       !!this.q() ||
+      !!this.customerId() ||
       this.status() !== 'open' ||
       !!this.type() ||
       !!this.attention() ||
@@ -506,6 +518,7 @@ export class ContractsList {
     expiring: this.expiring(),
     role: this.role(),
     sort: this.sort(),
+    customer: this.customerId() ?? '',
   }));
 
   private readonly query = computed<ContractListQuery>(() => {
@@ -519,6 +532,7 @@ export class ContractsList {
       owner: this.owner() || undefined,
       expiring_within_days: expiring ? Number(expiring) : undefined,
       personal_data_role: role ? [role] : undefined,
+      customer_id: this.customerId() || undefined,
       sort: this.sort(),
     };
   });
@@ -671,6 +685,19 @@ export class ContractsList {
     this.owner.set('');
     this.expiring.set('');
     this.role.set('');
+    this.setCustomer(null);
+  }
+
+  /** Filter on one customer and keep `?customer_id=` in the address (shareable). */
+  protected setCustomer(id: string | null): void {
+    this.offset.set(0);
+    this.customerId.set(id);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { customer_id: id },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   protected applyView(view: SavedView): void {
@@ -683,6 +710,7 @@ export class ContractsList {
     this.setExpiring(f['expiring'] ?? '');
     this.setRole(f['role'] ?? '');
     this.setSort(f['sort'] ?? '-updated_at');
+    this.setCustomer(f['customer'] || null);
   }
 
   protected newContract(): void {

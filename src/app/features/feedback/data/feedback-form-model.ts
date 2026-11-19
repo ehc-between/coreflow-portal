@@ -1,4 +1,5 @@
 import { EntityRefDto } from '../../../core/entities/entity.models';
+import type { CustomerRef } from '../../../shared/customers';
 import { isoDay } from './feedback-display';
 import {
   FEEDBACK_CHANNELS,
@@ -42,6 +43,9 @@ export interface FeedbackFormValue {
   readonly tags: string;
   readonly customer_name: string;
   readonly customer_organisation: string;
+  /** The Kunde field (customer register, '' = none) and its ref (shown by the picker). */
+  readonly customer_id: string;
+  readonly customer: CustomerRef | null;
   readonly customer_email: string;
   readonly customer_phone: string;
   readonly product_or_service: string;
@@ -74,6 +78,8 @@ export function emptyFeedbackForm(today: Date = new Date()): FeedbackFormValue {
     tags: '',
     customer_name: '',
     customer_organisation: '',
+    customer_id: '',
+    customer: null,
     customer_email: '',
     customer_phone: '',
     product_or_service: '',
@@ -104,6 +110,8 @@ export function formFromFeedback(f: Feedback): FeedbackFormValue {
     tags: f.tags.join(', '),
     customer_name: f.customer_name ?? '',
     customer_organisation: f.customer_organisation ?? '',
+    customer_id: f.customer_id ?? '',
+    customer: f.customer ?? null,
     customer_email: f.customer_email ?? '',
     customer_phone: f.customer_phone ?? '',
     product_or_service: f.product_or_service ?? '',
@@ -193,6 +201,7 @@ export function toCreateRequest(v: FeedbackFormValue): FeedbackCreate {
     tags: parseTags(v.tags),
     customer_name: text(v.customer_name),
     customer_organisation: text(v.customer_organisation),
+    customer_id: v.customer_id || null,
     customer_email: text(v.customer_email),
     customer_phone: text(v.customer_phone),
     product_or_service: text(v.product_or_service),

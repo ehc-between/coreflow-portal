@@ -121,7 +121,9 @@ function flushSideRequests(http: ReturnType<typeof configureKit>['http']) {
       req.flush(
         req.request.url.endsWith('entity-types')
           ? { items: [], link_types: [] }
-          : { items: [], total: 0 },
+          : req.request.url.endsWith('/modules')
+            ? [] // the Kunde field asks which modules are on
+            : { items: [], total: 0 },
       );
     }
   }

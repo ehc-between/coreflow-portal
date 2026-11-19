@@ -40,6 +40,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { CustomerChip } from '../../../shared/customers';
 import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -149,6 +150,7 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
   imports: [
     RouterLink,
     TranslocoPipe,
+    CustomerChip,
     LocalDayPipe,
     LocalDatePipe,
     WhyItMatters,
@@ -568,6 +570,11 @@ export function primarySurveyAction(s: Pick<Survey, 'allowed_actions'>): SurveyA
                 labelKey="feedback.fields.owner"
                 [value]="s.owner?.name"
               />
+              @if (s.customer) {
+                <app-field-item layout="inline" labelKey="feedback.fields.customer">
+                  <app-customer-chip [ref]="s.customer" data-testid="survey-customer-chip" />
+                </app-field-item>
+              }
               <app-field-item layout="inline" labelKey="feedback.surveyFields.publishedAt">
                 @if (s.published_at) {
                   {{ s.published_at | localDay }}

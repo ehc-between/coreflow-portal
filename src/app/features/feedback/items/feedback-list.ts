@@ -16,6 +16,7 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { CustomerFilter } from '../../../shared/customers';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
@@ -176,6 +177,11 @@ export interface ListFiltersFromUrl {
   readonly replied: boolean;
 }
 
+/** A `?customer_id=` value that looks like an id, else ''. */
+export function customerIdParam(raw: string | null): string {
+  return raw && /^[0-9a-f-]{36}$/i.test(raw) ? raw : '';
+}
+
 export function filtersFromParams(params: ParamMap): ListFiltersFromUrl {
   const open = flag(params.get('open'));
   return {
@@ -242,6 +248,7 @@ interface BandTile {
 @Component({
   selector: 'app-feedback-list',
   imports: [
+    CustomerFilter,
     RouterLink,
     StatusLegend,
     FulfilsRequirements,
@@ -349,6 +356,12 @@ interface BandTile {
         }
       </div>
 
+      <app-customer-filter
+        filters
+        [value]="customerId() || null"
+        (valueChange)="setCustomer($event)"
+        data-testid="feedback-customer-filter"
+      />
       <label filters class="sr-only" for="cf-fb-status">
         {{ 'feedback.filters.status' | transloco }}
       </label>
@@ -831,6 +844,10 @@ export class FeedbackList {
   private lastParamsKey = filterParamsKey(this.route.snapshot.queryParamMap);
   /** `?survey=<id>`: only the follow-ups raised from one survey. */
   protected readonly surveyId = signal(this.route.snapshot.queryParamMap.get('survey') || '');
+  /** The Kunde filter (`?customer_id=`, e.g. from the customer card's "Se alle"). */
+  protected readonly customerId = signal(
+    customerIdParam(this.route.snapshot.queryParamMap.get('customer_id')),
+  );
   /** `?stats=1`: the statistics folded out under the band. */
   protected readonly showStats = signal(flag(this.route.snapshot.queryParamMap.get('stats')));
 
@@ -893,6 +910,7 @@ export class FeedbackList {
     justified: this.justified() === '' ? undefined : this.justified() === 'yes',
     department_id: this.department() || undefined,
     survey_id: this.surveyId() || undefined,
+    customer_id: this.customerId() || undefined,
     received_from: this.from() || undefined,
     received_to: this.to() || undefined,
     assessed: this.assessed() || undefined,
@@ -922,6 +940,7 @@ export class FeedbackList {
     () =>
       !!this.q() ||
       !!this.surveyId() ||
+      !!this.customerId() ||
       !!this.from() ||
       !!this.to() ||
       this.assessed() ||
@@ -932,7 +951,13 @@ export class FeedbackList {
   );
   /** URL-only scopes (a survey, a period, the stats' handling rows) are set. */
   protected readonly hasScope = computed(
-    () => !!this.surveyId() || !!this.from() || !!this.to() || this.assessed() || this.replied(),
+    () =>
+      !!this.surveyId() ||
+      !!this.customerId() ||
+      !!this.from() ||
+      !!this.to() ||
+      this.assessed() ||
+      this.replied(),
   );
 
   /** The teaching empty state: the register itself is empty (not just this filter). */
@@ -1081,6 +1106,7 @@ export class FeedbackList {
       this.applyFilters(filtersFromParams(params));
       this.q.set(params.get('q') ?? '');
       this.surveyId.set(params.get('survey') || '');
+      this.customerId.set(customerIdParam(params.get('customer_id')));
     });
 
     effect(() => {
@@ -1126,7 +1152,9 @@ export class FeedbackList {
     if (f.source && f.source !== 'manual' && !(f.source === 'survey' && f.channel === 'survey')) {
       parts.push(this.language.translate(`feedback.sources.${f.source}`));
     }
-    const customer = [f.customer_name, f.customer_organisation].filter(Boolean).join(', ');
+    const customer = [f.customer_name, f.customer?.name ?? f.customer_organisation]
+      .filter(Boolean)
+      .join(', ');
     if (customer) {
       parts.push(customer);
     }
@@ -1239,7 +1267,25 @@ export class FeedbackList {
         received_to: null,
         assessed: null,
         replied: null,
+        customer_id: null,
       });
+    }
+  }
+
+  /** Filter on one customer; kept in the address (`?customer_id=`) like the survey scope. */
+  protected setCustomer(id: string | null): void {
+    if (id) {
+      this.offset.set(0);
+      this.customerId.set(id);
+      const tree = this.router.createUrlTree([], {
+        relativeTo: this.route,
+        queryParams: { customer_id: id },
+        queryParamsHandling: 'merge',
+      });
+      this.lastParamsKey = filterParamsKey(tree.queryParamMap);
+      void this.router.navigateByUrl(tree);
+    } else {
+      this.clearScope({ customer_id: null });
     }
   }
 
@@ -1367,6 +1413,9 @@ export class FeedbackList {
     }
     if ('replied' in params) {
       this.replied.set(false);
+    }
+    if ('customer_id' in params) {
+      this.customerId.set('');
     }
     this.offset.set(0);
     const tree = this.router.createUrlTree([], {

@@ -148,7 +148,8 @@
     "changeResources": "Resources and budget",
     "objectiveMet": "Was the objective met?",
     "objectiveEvidence": "What shows the objective was met",
-    "closeoutApprovedBy": "Approved by"
+    "closeoutApprovedBy": "Approved by",
+    "customer": "Customer"
   },
   "form": {
     "newTitle": "New project",
@@ -553,7 +554,8 @@
     "invalid_revision": "That revision of the document does not exist.",
     "invalid_objective_met": "Answer yes, partly or no to whether the objective was met.",
     "invalid_project": "The project does not exist.",
-    "unsupported_entity_type": "This kind of record cannot be linked here."
+    "unsupported_entity_type": "This kind of record cannot be linked here.",
+    "invalid_customer": "Choose a customer from the customer register."
   },
   "notifications": {
     "created": "New project for you: {{ code }} {{ title }}",
