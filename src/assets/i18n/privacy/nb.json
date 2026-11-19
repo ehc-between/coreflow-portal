@@ -1254,8 +1254,8 @@
       "accepted": "«{{title}}» er sendt til godkjenning under Dokumenter.",
       "sourceChanged": "Kildedata endret – lag en ny versjon og godkjenn den som ny revisjon",
       "upToDate": "Stemmer med registrerte data",
-      "builtFrom": "Laget fra {{n}} behandlinger:",
-      "noActivities": "Ingen aktiv behandling har denne gruppen under registrerte ennå.",
+      "builtFrom": "Behandlinger den bygger på ({{n}}):",
+      "noActivities": "Ingen aktive behandlinger gjelder denne gruppen ennå.",
       "openRopa": "Åpne behandlingsprotokollen",
       "docStatus": {
         "draft": "Utkast",

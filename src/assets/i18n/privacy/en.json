@@ -1254,7 +1254,7 @@
       "accepted": "\"{{title}}\" is sent for approval under Documents.",
       "sourceChanged": "Source data changed – make a new version and approve it as a new revision",
       "upToDate": "Matches the registered data",
-      "builtFrom": "Built from {{n}} processing activities:",
+      "builtFrom": "Processing activities it is built from ({{n}}):",
       "noActivities": "No active processing activity names this group under data subjects yet.",
       "openRopa": "Open processing activities",
       "docStatus": {
