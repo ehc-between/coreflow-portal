@@ -448,7 +448,7 @@ export class ProcessesList {
     }
   }
 
-  /** "Kjerne · Del av PR-001 · 7 trinn i kartet" / "… · Ingen kart ennå". */
+  /** "Kjerne · Del av PR-001 · 7 steg i arbeidsflyten" / "… · Ingen arbeidsflyt tegnet ennå". */
   protected subtitle(row: ProcessOut): string {
     const t = (key: string, params?: Record<string, unknown>) =>
       this.language.translate(key, params);
