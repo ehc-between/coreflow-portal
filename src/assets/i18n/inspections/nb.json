@@ -229,7 +229,34 @@
     "inspectionCountLink": "{{ count }} inspeksjoner",
     "noInspections": "Ingen ennå",
     "covers": "Dekker:",
-    "askImproveLabel": "Spør hvordan spørsmålene kan bli bedre"
+    "askImproveLabel": "Spør hvordan spørsmålene kan bli bedre",
+    "typeLabel": "Sjekkliste",
+    "status": {
+      "active": "I bruk – versjon {{ version }} kan brukes til nye inspeksjoner.",
+      "draft": "Utkast – publiser malen før den kan brukes i inspeksjoner.",
+      "archived": "Arkivert – kan ikke lenger brukes til nye inspeksjoner."
+    },
+    "lead": {
+      "purpose": "Hva den brukes til",
+      "checks": "Hva den sjekker",
+      "questionsCount": "{{ count }} spørsmål",
+      "questionsInParts": "{{ count }} spørsmål i {{ parts }} deler",
+      "standards": "Standarder: {{ names }}",
+      "passes": "Når en inspeksjon er godkjent",
+      "passesAt": "Ved {{ value }} av poengene eller mer",
+      "passesAll": "Bare når alle svar er godkjent",
+      "deviations": "Avvik",
+      "deviationsAuto": "Funn med alvorlighet {{ severity }} eller høyere blir avvik automatisk (type: {{ type }}).",
+      "deviationsManual": "Opprettes for hånd når et funn trenger det."
+    },
+    "missing": {
+      "questions": "Legg til spørsmål",
+      "publish": "Publiser sjekklisten",
+      "description": "Beskriv hva den brukes til"
+    },
+    "usedIn": "Brukt i {{ count }} inspeksjoner",
+    "usedInOne": "Brukt i 1 inspeksjon",
+    "notUsedYet": "Ikke brukt i noen inspeksjon ennå."
   },
   "library": {
     "title": "Malbibliotek",
@@ -380,7 +407,47 @@
     "findingLink": "Funn {{ code }}",
     "askResults": "Spør om resultatene",
     "report": "Last ned rapport (PDF)",
-    "notFoundTitle": "Fant ikke inspeksjonen"
+    "notFoundTitle": "Fant ikke inspeksjonen",
+    "typeLabel": "Inspeksjon",
+    "status": {
+      "planned": "Planlagt – ikke startet ennå.",
+      "plannedDue": "Planlagt – skal gjennomføres innen {{ date }}.",
+      "overdue": "Forfalt – skulle vært gjennomført innen {{ date }}.",
+      "inProgress": "Pågår – {{ answered }} av {{ total }} spørsmål er besvart.",
+      "completed": "Fullført.",
+      "passedScore": "Godkjent – fikk {{ score }}, og grensen for godkjent er {{ threshold }}.",
+      "failedScore": "Ikke godkjent – fikk {{ score }}, men grensen for godkjent er {{ threshold }}.",
+      "passedAll": "Godkjent – alle svarene er godkjent.",
+      "failedAny": "Ikke godkjent – {{ count }} svar er ikke godkjent.",
+      "failedOne": "Ikke godkjent – 1 svar er ikke godkjent.",
+      "cancelled": "Avlyst – inspeksjonen blir ikke gjennomført.",
+      "cancelledReason": "Avlyst – {{ reason }}"
+    },
+    "lead": {
+      "checklist": "Sjekkliste",
+      "what": "Hva og hvor",
+      "doneBy": "Gjennomført av",
+      "summary": "Inspektørens oppsummering"
+    },
+    "doneBy": "{{ name }}, {{ date }}",
+    "missing": {
+      "overdue": "Start inspeksjonen – fristen har gått ut",
+      "inspector": "Velg hvem som skal gjennomføre den",
+      "unanswered": "{{ count }} spørsmål er ikke besvart",
+      "unansweredOne": "1 spørsmål er ikke besvart",
+      "deviation": "{{ code }} er alvorlig – opprett et avvik",
+      "openFindings": "{{ count }} funn er fortsatt åpne",
+      "openFindingOne": "{{ code }} er fortsatt åpent",
+      "owner": "Velg en eier"
+    },
+    "answersSummary": "{{ answered }} av {{ total }} besvart · {{ failed }} ikke godkjent",
+    "answersSummaryOk": "{{ answered }} av {{ total }} besvart",
+    "noPassMark": "Ingen – alle svar må være godkjent",
+    "autoDeviation": "Funn med alvorlighet {{ severity }} eller høyere blir avvik automatisk",
+    "recurring": "Gjentas",
+    "meta": {
+      "createdBy": "Planlagt av"
+    }
   },
   "run": {
     "back": "Tilbake til inspeksjonen",
@@ -502,7 +569,31 @@
       "xlsx": "Eksporter (Excel)",
       "csv": "Eksporter som CSV",
       "pdf": "Eksporter som PDF"
-    }
+    },
+    "typeLabel": "Inspeksjonsfunn",
+    "status": {
+      "open": "Åpent – må følges opp.",
+      "openDue": "Åpent – må følges opp innen {{ date }}.",
+      "overdue": "Forfalt – skulle vært fulgt opp innen {{ date }}.",
+      "closedChecked": "Lukket – tiltaket er kontrollert og virker.",
+      "closedUnchecked": "Lukket – men ingen har kontrollert at tiltaket virker ennå."
+    },
+    "lead": {
+      "what": "Hva ble funnet",
+      "howClosed": "Slik ble det rettet",
+      "deviation": "Følges opp som",
+      "owner": "Ansvarlig",
+      "source": "Kilde",
+      "registered": "Registrert"
+    },
+    "missing": {
+      "deviation": "Opprett et avvik – funnet er alvorlig",
+      "owner": "Velg hvem som er ansvarlig",
+      "due": "Sett en frist",
+      "cause": "Beskriv årsaken",
+      "effect": "Kontroller at tiltaket virker"
+    },
+    "askCauseLabel": "Spør om årsaken"
   },
   "schedules": {
     "title": "Faste inspeksjoner",
@@ -530,7 +621,10 @@
   "ai": {
     "summarise": "Oppsummer resultater",
     "summaryTitle": "Oppsummering fra assistenten",
-    "suggestActions": "Foreslå tiltak"
+    "suggestActions": "Foreslå tiltak",
+    "running": "Jobber med det …",
+    "failed": "Assistenten kunne ikke svare. Prøv igjen.",
+    "suggestTitle": "Forslag til tiltak"
   },
   "notices": {
     "planned": "Inspeksjon {{ code }} er planlagt.",

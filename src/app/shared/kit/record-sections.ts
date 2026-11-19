@@ -38,6 +38,16 @@ let nextId = 0;
             data-testid="empty-fields-fill"
             >{{ 'kit.detail.empty.fill' | transloco }}</a
           >
+        } @else if (fillAction(); as fill) {
+          <span aria-hidden="true"> · </span>
+          <button
+            type="button"
+            class="font-semibold whitespace-nowrap text-accent hover:underline"
+            data-testid="empty-fields-fill"
+            (click)="fill()"
+          >
+            {{ 'kit.detail.empty.fill' | transloco }}
+          </button>
         }
       </p>
     }
@@ -47,6 +57,8 @@ export class EmptyFieldsLine {
   readonly labels = input<readonly string[]>([]);
   readonly list = input(false);
   readonly fillLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** "Fyll ut" as a button (records edited in place, e.g. in a side panel). */
+  readonly fillAction = input<(() => void) | null | undefined>(null);
 }
 
 /**
@@ -90,6 +102,7 @@ export class EmptyFieldsLine {
           [labels]="group.emptyLabels()"
           [list]="true"
           [fillLink]="fillLink()"
+          [fillAction]="fillAction()"
         />
       }
     </section>
@@ -103,6 +116,8 @@ export class RecordLead {
   readonly columns = input<1 | 2>(2);
   /** Edit page ("Fyll ut"). */
   readonly fillLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** "Fyll ut" as a button when the record is edited in place (no edit page). */
+  readonly fillAction = input<(() => void) | null | undefined>(null);
 }
 
 /** Tone of a status sentence. */
@@ -181,6 +196,7 @@ export class RecordStatusLine {
           [labels]="group.emptyLabels()"
           [list]="beginner()"
           [fillLink]="fillLink()"
+          [fillAction]="fillAction()"
         />
       }
       <ng-content select="[after]" />
@@ -195,6 +211,8 @@ export class RecordDetails {
   readonly titleKey = input('kit.detail.details.title');
   readonly columns = input<1 | 2 | 3>(2);
   readonly fillLink = input<string | readonly unknown[] | null | undefined>(null);
+  /** "Fyll ut" as a button when the record is edited in place (no edit page). */
+  readonly fillAction = input<(() => void) | null | undefined>(null);
 }
 
 /**

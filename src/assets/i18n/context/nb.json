@@ -440,6 +440,64 @@
       "owner": "Velg en eier"
     }
   },
+  "leadDetail": {
+    "status": {
+      "scope": {
+        "draft": "Utkast – omfanget gjelder ikke før det er godkjent. Send det til godkjenning når det er klart.",
+        "in_review": "Til godkjenning – venter på at noen med myndighet godkjenner omfanget.",
+        "approved": "Godkjent – dette er det gjeldende omfanget for {{ framework }}.",
+        "retired": "Utgått – omfanget gjelder ikke lenger og kan bare leses."
+      },
+      "policy": {
+        "draft": "Utkast – policyen gjelder ikke før den er godkjent. Send den til godkjenning når den er klar.",
+        "in_review": "Til godkjenning – venter på at ledelsen godkjenner policyen.",
+        "approved": "Godkjent – dette er den gjeldende policyen. Sørg for at de ansatte har lest den.",
+        "retired": "Utgått – policyen gjelder ikke lenger og kan bare leses."
+      },
+      "responsibility": {
+        "ok": "Fullstendig – noen gjør arbeidet, og én står ansvarlig for resultatet.",
+        "archived": "Arkivert – ansvaret er ikke lenger i bruk."
+      }
+    },
+    "scope": {
+      "statement": "Hva omfanget dekker",
+      "productsServices": "Produkter og tjenester som er med",
+      "boundaries": "Grenser – hva som er med og hva som holdes utenfor",
+      "exclusions": "Krav som ikke gjelder",
+      "noExclusions": "Ingen – alle kravene i standarden gjelder.",
+      "framework": "Standard"
+    },
+    "policy": {
+      "statement": "Hva policyen sier",
+      "acknowledged": "Lest og bekreftet av de ansatte",
+      "kind": "Type policy",
+      "frameworks": "Standarder",
+      "available": "Kan deles med interessenter",
+      "links": "Henger sammen med"
+    },
+    "raci": {
+      "assignments": "Hvem gjør hva",
+      "description": "Hva ansvaret går ut på",
+      "authorities": "Hva de har myndighet til å bestemme",
+      "process": "Prosess",
+      "area": "Område"
+    },
+    "missing": {
+      "review": "Gjennomgå og merk som gjennomgått",
+      "soa": "Lag anvendelseserklæringen",
+      "scopeStatement": "Beskriv hva omfanget dekker",
+      "products": "Beskriv produktene og tjenestene som er med",
+      "processes": "Velg prosessene som er med",
+      "policyStatement": "Skriv policyteksten",
+      "document": "Koble policydokumentet",
+      "communicate": "Be de ansatte lese og bekrefte policyen",
+      "accountable": "Velg hvem som står ansvarlig (A)",
+      "responsible": "Velg hvem som gjør arbeidet (R)",
+      "raciDescription": "Beskriv hva ansvaret går ut på",
+      "owner": "Velg en eier",
+      "maintainer": "Velg hvem som vedlikeholder ansvaret"
+    }
+  },
   "scope": {
     "noExclusions": "Ingen krav er unntatt. Alle kravene i standarden gjelder.",
     "exclusionsHint": "Så lenge omfanget er godkjent, regnes disse kravene som ikke relevante i kravdekningen.",
