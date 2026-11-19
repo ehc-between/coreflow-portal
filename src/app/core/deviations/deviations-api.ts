@@ -57,6 +57,7 @@ function listParams(filters: DeviationFilters) {
     due_before: filters.due_before,
     due_after: filters.due_after,
     q: filters.q,
+    event_kind: filters.event_kind,
     active: filters.active || undefined,
     overdue: filters.overdue || undefined,
     closed: filters.closed || undefined,
@@ -394,6 +395,7 @@ export class DeviationsApi {
         due_before: filters.due_before,
         due_after: filters.due_after,
         q: filters.q,
+        event_kind: filters.event_kind,
       },
     });
   }

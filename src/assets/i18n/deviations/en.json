@@ -52,8 +52,8 @@
   },
   "rootCauses": {
     "title": "Root cause analysis",
-    "newFiveWhys": "5 Whys",
-    "newFishbone": "Fishbone",
+    "newFiveWhys": "Ask \"why?\" 5 times",
+    "newFishbone": "Sort causes (fishbone)",
     "aiDraftNote": "Drafted with AI help. Check every step before you save.",
     "problem": "Problem",
     "whys": "Why steps",
@@ -67,7 +67,7 @@
     "conclusion": "Conclusion (root cause)",
     "applyOnSave": "Also use the conclusion as the deviation's root cause",
     "save": "Save analysis",
-    "empty": "No analysis yet. Start a 5 Whys or a fishbone to find the root cause.",
+    "empty": "No analysis yet. Ask \"why?\" until you reach the cause, or sort possible causes into groups such as people, method and equipment (fishbone).",
     "applied": "Used as root cause",
     "byline": "{{ name }}, {{ date }}",
     "edit": "Edit",
@@ -81,7 +81,7 @@
     "removedToast": "Analysis removed.",
     "methods": {
       "five_whys": "5 Whys",
-      "fishbone": "Fishbone (Ishikawa)",
+      "fishbone": "Fishbone (causes sorted into groups)",
       "other": "Other analysis"
     },
     "categories": {
@@ -508,13 +508,16 @@
     "groups": {
       "work": "Work",
       "phase": "Phase",
-      "status": "Status"
+      "status": "Exact step",
+      "current": "Current choice"
     },
     "tagLabel": "Tag",
     "clauseLabel": "Clause",
     "clausePlaceholder": "E.g. 10.2",
     "dueFrom": "Due from",
-    "dueTo": "Due to"
+    "dueTo": "Due to",
+    "eventKind": "Event type (HSE)",
+    "allEventKinds": "All event types"
   },
   "events": {
     "rootCauseAdded": "Root cause analysis added",
@@ -588,7 +591,37 @@
     }
   },
   "statusPair": {
-    "list": "The phase shows how far the case has come: open, in progress or done. The status is the step in the workflow, for example investigation or verification.",
+    "list": "Open: reported, nobody has started. In progress: finding the cause and fixing it. Done: the actions are carried out and checked. Cancelled: it turned out not to be a deviation.",
     "actions": "Done means the action has been carried out. Verified means someone has checked later that it worked."
+  },
+  "eventKind": {
+    "near_miss": "Near miss",
+    "injury": "Injury",
+    "occupational_illness": "Work-related illness",
+    "dangerous_condition": "Dangerous condition",
+    "property_damage": "Property damage"
+  },
+  "plain": {
+    "why": {
+      "title": "Why did it happen?",
+      "hint": "Find the cause so it does not happen again (root cause). Ask \"why?\" until you reach something you can change."
+    },
+    "what": {
+      "title": "What are we doing about it?",
+      "hint": "Stop the damage now, then remove the cause. Give each action an owner and a date."
+    },
+    "effect": {
+      "title": "Did it work?",
+      "hint": "Some time after an action is done, check that the problem has not come back (effectiveness check). Record the answer on the action above.",
+      "summary": "{{ worked }} of {{ total }} actions have worked",
+      "empty": "Add an action under \"What are we doing about it?\" first. You check here whether it worked.",
+      "words": {
+        "notDone": "Not done yet",
+        "due": "Check by {{ date }}",
+        "unchecked": "Done, not checked yet",
+        "worked": "Yes, it worked",
+        "failed": "No, needs a new action"
+      }
+    }
   }
 }

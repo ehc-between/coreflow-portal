@@ -7,6 +7,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../core/ai/page-context';
@@ -26,6 +27,7 @@ import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { RegistrerService } from '../../shared/registrer/registrer.service';
 import { HseApi } from './data/hse-api';
 import { AttentionGroup, AttentionItem, HseOverview } from './data/hse.models';
 import { HSE_MODULE, HSE_NAV, injectHsePermissions } from './shared/hse-shared';
@@ -199,6 +201,7 @@ export function overviewSections(o: HseOverview): Section[] {
 @Component({
   selector: 'app-hse-overview',
   imports: [
+    NgTemplateOutlet,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -222,12 +225,15 @@ export function overviewSections(o: HseOverview): Section[] {
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header titleKey="modules.names.hse" descriptionKey="hse.overview.subtitle">
         @if (canReport()) {
-          <a primary routerLink="/deviations/new" tabindex="-1" appTourStep="hse-quick-actions">
-            <app-button data-testid="hse-report-incident">
-              <app-icon name="flag" [size]="15" />
-              {{ 'hse.overview.reportIncident' | transloco }}
-            </app-button>
-          </a>
+          <app-button
+            primary
+            appTourStep="hse-quick-actions"
+            data-testid="hse-report-incident"
+            (click)="reportIncident()"
+          >
+            <app-icon name="flag" [size]="15" />
+            {{ 'hse.overview.reportIncident' | transloco }}
+          </app-button>
         }
         @if (perms.write()) {
           <a secondary routerLink="/hse/sja/new" tabindex="-1">
@@ -341,18 +347,33 @@ export function overviewSections(o: HseOverview): Section[] {
                 </p>
                 <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                   @for (fig of incidentFigures(); track fig.key) {
-                    <li
-                      class="flex flex-col rounded-tile border border-border bg-surface-2 px-3 py-2"
-                      [attr.data-testid]="'incident-' + fig.key"
-                    >
-                      <span
-                        class="font-display text-section leading-none font-bold"
-                        [class]="fig.attention ? 'text-warn-ink' : 'text-fg'"
-                        >{{ fig.value === null ? '—' : (fig.value | localNumber) }}</span
-                      >
-                      <span class="mt-1 text-meta leading-snug text-fg-muted">{{
-                        'hse.overview.incidents.' + fig.key | transloco
-                      }}</span>
+                    <li [attr.data-testid]="'incident-' + fig.key">
+                      <ng-template #figure>
+                        <span
+                          class="font-display text-section leading-none font-bold"
+                          [class]="fig.attention ? 'text-warn-ink' : 'text-fg'"
+                          >{{ fig.value === null ? '—' : (fig.value | localNumber) }}</span
+                        >
+                        <span class="mt-1 text-meta leading-snug text-fg-muted">{{
+                          'hse.overview.incidents.' + fig.key | transloco
+                        }}</span>
+                      </ng-template>
+                      @if (fig.link; as figLink) {
+                        <a
+                          [routerLink]="figLink.path"
+                          [queryParams]="figLink.query"
+                          class="flex h-full flex-col rounded-tile border border-border bg-surface-2 px-3 py-2 hover:border-border-strong focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                          [attr.data-testid]="'incident-link-' + fig.key"
+                        >
+                          <ng-container [ngTemplateOutlet]="figure" />
+                        </a>
+                      } @else {
+                        <div
+                          class="flex h-full flex-col rounded-tile border border-border bg-surface-2 px-3 py-2"
+                        >
+                          <ng-container [ngTemplateOutlet]="figure" />
+                        </div>
+                      }
                     </li>
                   }
                 </ul>
@@ -591,7 +612,7 @@ export class HseOverviewPage {
   private readonly api = inject(HseApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
-
+  private readonly registrer = inject(RegistrerService);
   protected readonly perms = injectHsePermissions();
   protected readonly nav = HSE_NAV;
   protected readonly split = splitUrl;
@@ -618,17 +639,36 @@ export class HseOverviewPage {
     if (!inc?.available) {
       return [];
     }
+    // U33: counts open the filtered list (derived figures - lost days, days since - do not).
+    const base = splitUrl(inc.url);
+    const link = (url: string | undefined) => (url ? splitUrl(url) : null);
     return [
-      { key: 'open', value: inc.open ?? 0, attention: (inc.open ?? 0) > 0 },
-      { key: 'nearMisses', value: inc.near_misses_365 ?? 0, attention: false },
-      { key: 'injuries', value: inc.injuries_365 ?? 0, attention: (inc.injuries_365 ?? 0) > 0 },
+      {
+        key: 'open',
+        value: inc.open ?? 0,
+        attention: (inc.open ?? 0) > 0,
+        link: { path: base.path, query: { ...(base.query ?? {}), active: 'true' } },
+      },
+      {
+        key: 'nearMisses',
+        value: inc.near_misses_365 ?? 0,
+        attention: false,
+        link: link(inc.near_misses_url),
+      },
+      {
+        key: 'injuries',
+        value: inc.injuries_365 ?? 0,
+        attention: (inc.injuries_365 ?? 0) > 0,
+        link: link(inc.injuries_url),
+      },
       {
         key: 'lostTime',
         value: inc.lost_time_injuries_365 ?? 0,
         attention: (inc.lost_time_injuries_365 ?? 0) > 0,
+        link: null,
       },
-      { key: 'lostDays', value: inc.lost_days_365 ?? 0, attention: false },
-      { key: 'daysSince', value: inc.days_since_lost_time ?? null, attention: false },
+      { key: 'lostDays', value: inc.lost_days_365 ?? 0, attention: false, link: null },
+      { key: 'daysSince', value: inc.days_since_lost_time ?? null, attention: false, link: null },
     ];
   });
 
@@ -661,5 +701,10 @@ export class HseOverviewPage {
 
   protected reload(): void {
     this.reloads.update((n) => n + 1);
+  }
+
+  /** U33: the short HMS form (near miss, injury, dangerous condition …) from "Registrer". */
+  protected reportIncident(): void {
+    this.registrer.show({ type: 'near_miss' });
   }
 }

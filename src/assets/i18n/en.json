@@ -1625,7 +1625,7 @@
         "owner": "Owner",
         "due": "Due date",
         "status": "Status",
-        "effectiveness": "Effectiveness"
+        "effectiveness": "Did it work?"
       },
       "kind": {
         "containment": "Containment",
