@@ -5,7 +5,7 @@
     "courses": "Kurs",
     "assignments": "Tildelinger",
     "records": "Gjennomført opplæring",
-    "matrix": "Kompetansematrise",
+    "matrix": "Kursstatus per person",
     "plan": "Opplæringsplan"
   },
   "common": {
@@ -39,7 +39,7 @@
     "followOverdue": "Forfalte tildelinger",
     "followExpiring": "Kursbevis som utløper innen 30 dager",
     "followEvidence": "Registreringer uten dokumentasjon",
-    "followMatrix": "Åpne kompetansematrisen",
+    "followMatrix": "Åpne kursstatus per person",
     "learnTitle": "Læringssenteret",
     "learnBody": "Korte leksjoner om hvordan CoreFlow og standardene fungerer, med din fremdrift.",
     "learnLink": "Gå til læringssenteret"
@@ -56,7 +56,7 @@
     "effectiveness": "Effekt: {{ effective }} effektive, {{ partial }} delvis effektive, {{ not }} ikke effektive, {{ pending }} ikke vurdert",
     "feedback": "Gjennomsnittlig tilbakemelding {{ rating }} / 5",
     "completionOf": "{{ compliant }} av {{ required }} påkrevde",
-    "completionRateHelp": "Påkrevd opplæring på plass = gyldige gjennomføringer ÷ opplæring folk skal ha (samme tall som i kompetansematrisen). Et gyldig kursbevis teller uansett hvor lenge siden det ble tatt."
+    "completionRateHelp": "Påkrevd opplæring på plass = gyldige gjennomføringer ÷ opplæring folk skal ha (samme tall som i kursstatus per person). Et gyldig kursbevis teller uansett hvor lenge siden det ble tatt."
   },
   "courses": {
     "title": "Kurs",
@@ -428,8 +428,8 @@
     "qrLabel": "QR-kode som åpner den offentlige kontrollen av dette kursbeviset"
   },
   "matrix": {
-    "title": "Kompetansematrise",
-    "subtitle": "Hvem som har påkrevd opplæring på plass, per person og kurs.",
+    "title": "Kursstatus per person",
+    "subtitle": "Hvem som har tatt kursene de skal ha, per person og kurs. Kompetanse mot stillingens krav ser du i kompetansematrisen under Personer.",
     "summary": "{{ compliant }} av {{ required }} påkrevde opplæringer er på plass ({{ pct }} %).",
     "compliance": "Påkrevd opplæring på plass",
     "legend": "Tegnforklaring",
@@ -448,7 +448,8 @@
       "assigned": "tildelt, ikke gjennomført ennå",
       "overdue": "tildelt, fristen er passert",
       "missing": "påkrevd, ikke tildelt"
-    }
+    },
+    "competenceLink": "Kompetansematrise"
   },
   "player": {
     "progress": "Fremdrift i kurset",

@@ -26,6 +26,8 @@ import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
+import { LocalNumberPipe } from '../../../shared/locale/locale-pipes';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { Pager } from '../../../shared/ui/pager/pager';
@@ -42,6 +44,7 @@ import {
   CourseKind,
   CourseSort,
   CourseStatus,
+  TrainingStats,
 } from '../data/training.models';
 import { FilterOption, FilterSelect } from '../shared/filter-select';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
@@ -61,7 +64,9 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
     ErrorState,
     HelpStrip,
     Icon,
+    KpiTile,
     LoadingState,
+    LocalNumberPipe,
     ModuleNav,
     Pager,
     RecordListPage,
@@ -106,6 +111,47 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
       }
       <app-module-nav nav [items]="access.navItems()" labelKey="training.nav.label" />
       <app-help-strip help scope="training" page="courses" tour="courses" />
+
+      <!-- U35: the programme figures (for people who oversee training) are the register band. -->
+      @if (access.canOversee() && stats(); as s) {
+        <ng-container ngProjectAs="[kpis]">
+          <app-kpi-tile
+            link="/training/matrix"
+            data-testid="kpi-completion"
+            [title]="'training.stats.completionRateHelp' | transloco"
+            [label]="'training.stats.completionRate' | transloco"
+            [value]="'training.stats.pct' | transloco: { value: s.completion_rate }"
+            [delta]="
+              s.required !== undefined
+                ? ('training.stats.completionOf'
+                  | transloco: { compliant: s.compliant ?? 0, required: s.required })
+                : ''
+            "
+            [tone]="s.completion_rate >= 90 ? 'pass' : 'warn'"
+          />
+          <app-kpi-tile
+            link="/training/assignments"
+            [queryParams]="{ overdue: 'true' }"
+            [label]="'training.stats.overdue' | transloco"
+            [value]="s.assignments_overdue | localNumber"
+            [tone]="s.assignments_overdue ? 'warn' : 'neutral'"
+          />
+          <app-kpi-tile
+            link="/training/records"
+            [queryParams]="{ validity: 'expiring' }"
+            [label]="'training.stats.expiring' | transloco"
+            [value]="s.expiring_30_days | localNumber"
+            [tone]="s.expiring_30_days ? 'warn' : 'neutral'"
+          />
+          <app-kpi-tile
+            link="/training/records"
+            [queryParams]="{ validity: 'expired' }"
+            [label]="'training.stats.expired' | transloco"
+            [value]="s.expired | localNumber"
+            [tone]="s.expired ? 'fail' : 'neutral'"
+          />
+        </ng-container>
+      }
 
       <app-training-filter
         filters
@@ -197,6 +243,27 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
         [showAction]="access.canWrite()"
         (action)="router.navigate(['/training/courses/new'])"
       />
+      @if (access.canOversee() && stats(); as s) {
+        <p below class="mb-4 text-meta text-fg-muted" data-testid="training-effectiveness">
+          {{
+            'training.stats.effectiveness'
+              | transloco
+                : {
+                    effective: s.effectiveness.effective,
+                    partial: s.effectiveness.partially_effective,
+                    not: s.effectiveness.not_effective,
+                    pending: s.effectiveness.not_evaluated,
+                  }
+          }}
+          @if (s.average_feedback !== null) {
+            ·
+            {{
+              'training.stats.feedback'
+                | transloco: { rating: (s.average_feedback | localNumber: '1.1-1') }
+            }}
+          }
+        </p>
+      }
       <app-why-it-matters below scope="training" page="courses" />
     </app-record-list-page>
   `,
@@ -229,6 +296,8 @@ export class CourseList {
   protected readonly loaded = signal(false);
   protected readonly failed = signal(false);
   protected readonly statusBadge = courseBadge;
+  /** Programme figures for people who oversee training (U35: moved from Min opplæring). */
+  protected readonly stats = signal<TrainingStats | null>(null);
 
   protected readonly filters = computed(() => ({
     status: this.status(),
@@ -266,6 +335,7 @@ export class CourseList {
   );
 
   private sub: Subscription | null = null;
+  private statsSub: Subscription | null = null;
 
   constructor() {
     providePageContext(() => ({
@@ -274,7 +344,24 @@ export class CourseList {
       view: 'list',
       title: this.language.translate('training.courses.title'),
     }));
-    inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.sub?.unsubscribe();
+      this.statsSub?.unsubscribe();
+    });
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      const oversee = this.access.canOversee();
+      untracked(() => {
+        this.statsSub?.unsubscribe();
+        this.stats.set(null);
+        if (orgId && oversee) {
+          this.statsSub = this.api.stats(orgId).subscribe({
+            next: (st) => this.stats.set(st),
+            error: () => this.stats.set(null),
+          });
+        }
+      });
+    });
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       this.tick();

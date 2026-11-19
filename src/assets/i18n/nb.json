@@ -2013,7 +2013,7 @@
     },
     "hr_manager": {
       "name": "HR-leder",
-      "description": "Har ansvar for personer, kompetanse og onboarding; kan invitere brukere."
+      "description": "Har ansvar for personer, kompetanse og oppstart av nyansatte; kan invitere brukere."
     },
     "ai_officer": {
       "name": "KI-ansvarlig",

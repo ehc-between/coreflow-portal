@@ -51,6 +51,8 @@ export interface RecordProgressRequest {
 export interface MemberLearningSummary {
   readonly user_id: string;
   readonly name: string | null;
+  /** U35: lets the table name members who have no full name. */
+  readonly email?: string | null;
   readonly lessons_seen: number;
   readonly lessons_completed: number;
   readonly quizzes_passed: number;

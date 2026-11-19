@@ -254,6 +254,7 @@ export function sortSummary(
                               >
                                 {{
                                   row.name ||
+                                    row.email ||
                                     emailOf(row.user_id) ||
                                     ('guidance.settings.unnamed' | transloco)
                                 }}
@@ -327,7 +328,12 @@ export class GuidanceSettings {
   protected readonly sort = signal<SummarySort>('name');
   protected readonly rows = computed(() =>
     sortSummary(
-      this.summary().filter((r) => matchesQuery(r.name ?? '', this.query())),
+      this.summary().filter((r) =>
+        matchesQuery(
+          [r.name, r.email ?? this.emailOf(r.user_id)].filter(Boolean).join(' '),
+          this.query(),
+        ),
+      ),
       this.sort(),
     ),
   );

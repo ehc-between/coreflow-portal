@@ -271,14 +271,13 @@ export class TrainingAccess {
   readonly canReadSuppliers = computed(() => this.permissions().has('suppliers:read'));
 
   /**
-   * The module's sub-navigation (`app-module-nav`): everyone sees their own training,
-   * the catalogue, assignments, records and plan; the matrix is for people who
-   * oversee training.
+   * The module's sub-navigation (`app-module-nav`): the catalogue, assignments,
+   * records and plan; course status per person is for people who oversee training.
+   * U35: the learner's own training lives in My Work ("Min opplæring"), not here.
    */
   readonly navItems = computed<readonly ModuleNavItem[]>(() => {
     const items: ModuleNavItem[] = [
       { labelKey: 'training.nav.courses', link: '/training/courses', testId: 'nav-courses' },
-      { labelKey: 'training.nav.mine', link: '/training/mine', testId: 'nav-mine' },
       {
         labelKey: 'training.nav.assignments',
         link: '/training/assignments',

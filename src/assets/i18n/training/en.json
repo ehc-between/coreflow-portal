@@ -5,7 +5,7 @@
     "courses": "Courses",
     "assignments": "Assignments",
     "records": "Training records",
-    "matrix": "Training matrix",
+    "matrix": "Course status by person",
     "plan": "Training plan"
   },
   "common": {
@@ -39,7 +39,7 @@
     "followOverdue": "Overdue assignments",
     "followExpiring": "Certificates expiring within 30 days",
     "followEvidence": "Records without documentation",
-    "followMatrix": "Open the training matrix",
+    "followMatrix": "Open course status by person",
     "learnTitle": "Learning centre",
     "learnBody": "Short lessons on how CoreFlow and the standards work, with your progress.",
     "learnLink": "Go to the learning centre"
@@ -56,7 +56,7 @@
     "effectiveness": "Effectiveness: {{ effective }} effective, {{ partial }} partly effective, {{ not }} not effective, {{ pending }} not yet evaluated",
     "feedback": "Average feedback {{ rating }} / 5",
     "completionOf": "{{ compliant }} of {{ required }} required",
-    "completionRateHelp": "Required training in place = valid completions ÷ training people are required to have (the same figure as in the training matrix). A valid certificate counts, however long ago it was earned."
+    "completionRateHelp": "Required training in place = valid completions ÷ training people are required to have (the same figure as in course status by person). A valid certificate counts, however long ago it was earned."
   },
   "courses": {
     "title": "Courses",
@@ -428,8 +428,8 @@
     "qrLabel": "QR code that opens the public check of this certificate"
   },
   "matrix": {
-    "title": "Training matrix",
-    "subtitle": "Who has the required training in place, by person and course.",
+    "title": "Course status by person",
+    "subtitle": "Who has taken the courses they need, by person and course. Competence against what the position requires is in the competence matrix under People.",
     "summary": "{{ compliant }} of {{ required }} required trainings are in place ({{ pct }} %).",
     "compliance": "Required training in place",
     "legend": "Legend",
@@ -448,7 +448,8 @@
       "assigned": "assigned, not done yet",
       "overdue": "assigned, past the due date",
       "missing": "required, not assigned"
-    }
+    },
+    "competenceLink": "Competence matrix"
   },
   "player": {
     "progress": "Course progress",
