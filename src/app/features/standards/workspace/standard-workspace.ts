@@ -1170,6 +1170,17 @@ export class StandardWorkspace {
       untracked(() => this.load(orgId, key, true));
     });
 
+    // U19: `?filter=` reached in-app on an open standard (Oversikt → "Se alle krav")
+    // reuses this component, so the load-time preset does not run; apply it here.
+    effect(() => {
+      this.filter();
+      untracked(() => {
+        if (!this.loading() && this.standard()) {
+          this.applyUrlFilter();
+        }
+      });
+    });
+
     // Route → document: deep links, back / forward, legacy ?req= links.
     effect(() => {
       const raw = this.number() ?? null;

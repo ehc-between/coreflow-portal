@@ -805,6 +805,18 @@ describe('StandardWorkspace', () => {
       expect(el.querySelector('[data-testid="hub-matrix-xlsx"]')).not.toBeNull();
     });
 
+    it('"Se alle krav" from Oversikt (same component) turns on "Bare mangler"', async () => {
+      fixtureTab = undefined;
+      await setup();
+      http.match((r) => r.url === `${ROOT}/frameworks/gaps`);
+      http.match(`${ROOT}/standards/${KEY}/audit-prep`);
+      fixture.componentRef.setInput('filter', 'gaps');
+      await render();
+      await render();
+      const sections = Array.from(el.querySelectorAll('section[id^="sec-"]')).map((s) => s.id);
+      expect(sections).toEqual(['sec-4', 'sec-4_2', 'sec-A', 'sec-A_5', 'sec-A_5_1']);
+    });
+
     it('the reader opens on the first missing requirement', async () => {
       await setup();
       expect(current()).toBe(tocDomId('A.5.1'));
