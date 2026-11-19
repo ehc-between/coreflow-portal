@@ -133,11 +133,7 @@ export const OVERVIEW_LESSONS = [
         }
       </app-page-header>
 
-      <app-module-nav
-        labelKey="modules.names.privacy"
-        moreLabelKey="privacy.nav.more"
-        [items]="nav()"
-      />
+      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
       <app-help-strip scope="privacy" page="overview" tour="overview" lesson="gdpr-principles" />
 
       @switch (state()) {

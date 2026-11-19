@@ -376,12 +376,7 @@ const BREACH_DECISION_FIELDS = [
               </button>
             }
 
-            <app-module-nav
-              nav
-              labelKey="modules.names.privacy"
-              moreLabelKey="privacy.nav.more"
-              [items]="nav()"
-            />
+            <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
             <app-help-strip help scope="privacy" page="detail" [lesson]="def().lesson" />
 
             <app-record-lead record-lead [fillLink]="editLink()">

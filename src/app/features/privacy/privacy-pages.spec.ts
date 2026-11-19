@@ -212,7 +212,7 @@ describe('PrivacyOverview', () => {
     // Beginners see the work, not the stats strip or the register cards.
     expect(el.querySelector('[data-testid="privacy-stats"]')).toBeNull();
     expect(el.querySelector('[data-testid="register-card-ropa"]')).toBeNull();
-    // Four work tabs, then "Flere registre".
+    // The work tabs come first; the other registers follow as tabs (no "More" menu).
     const tabs = [
       ...el.querySelectorAll('[data-testid^="privacy-nav-"], [data-testid="nav-overview"]'),
     ]
@@ -224,9 +224,7 @@ describe('PrivacyOverview', () => {
       'privacy-nav-processors',
       'privacy-nav-incidents',
     ]);
-    expect(el.querySelector('[data-testid="module-nav-more"]')?.textContent).toContain(
-      'privacy.nav.more',
-    );
+    expect(el.querySelector('[data-testid="module-nav-more"]')).toBeNull();
   });
 });
 
