@@ -8,6 +8,7 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -16,22 +17,35 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalPercentPipe } from '../../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
+import {
+  LocalDatePipe,
+  LocalPercentPipe,
+  formatLocalDate,
+} from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
@@ -45,6 +59,7 @@ import {
   courseBadge,
   trainingErrorKey,
 } from '../data/training-display';
+import { courseMissing, courseStatusSentence } from '../data/training-anatomy';
 import { Assignment, CourseDetail } from '../data/training.models';
 import { AssignDialog } from '../shared/assign-dialog';
 import { AssignmentTable } from '../shared/assignment-table';
@@ -91,9 +106,13 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
 }
 
 /**
- * `/training/courses/:id`: a course with its facts, lessons, who must take it
- * (rules), open assignments, effectiveness and the shared record kit (tasks,
- * related items, activity, comments, attachments, revisions, requirements).
+ * `/training/courses/:id`, on the detail-page anatomy (docs/ux-guide.md §2.7):
+ * "Hovedinformasjon" says whether the course can be taken, what it is about, how it
+ * is completed, what participants learn (or which document they read) and how many
+ * have done it; the Details tab holds the other facts, the lessons, who must take it
+ * (rules), open assignments and effectiveness; one "Oppfølging" card lists what is
+ * missing, the requirements, the connections and the owner / version / dates.
+ * Assistant actions sit in "Spør KI".
  */
 @Component({
   selector: 'app-course-detail',
@@ -106,22 +125,23 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
     Alert,
     Badge,
     Button,
-    Card,
     ConfirmDialog,
     EntityChip,
     EntityTasks,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
+    Icon,
     LoadingState,
     MenuItem,
     ModuleNav,
     PromptDialog,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
-    WatchButton,
-    AskAbout,
     WhyItMatters,
     AssignDialog,
     AssignmentTable,
@@ -132,7 +152,9 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
   template: `
     @if (course(); as c) {
       @let badge = statusBadge(c.status);
+      @let sentence = statusSentence();
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="course"
         [entityId]="c.id"
         [title]="c.title"
@@ -146,6 +168,7 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
         [canEdit]="c.can_edit"
         [includeAudit]="access.canSeeAudit()"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
       >
         <ng-container ngProjectAs="[meta]">
           <span class="font-mono">{{ c.code }}</span>
@@ -157,11 +180,6 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
             [value]="badge.value"
             [labelKey]="badge.labelKey"
           />
-          <span>{{ 'training.detail.version' | transloco: { version: c.version } }}</span>
-          @if (c.source === 'ai') {
-            <app-badge tone="accent">{{ 'training.courses.aiDraft' | transloco }}</app-badge>
-          }
-          <app-watch-button entityType="course" [entityId]="c.id" />
         </ng-container>
 
         @if (c.status === 'published' && c.kind !== 'external') {
@@ -186,22 +204,31 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
           >
             {{ 'training.detail.assign' | transloco }}
           </app-button>
-        }
-        @if (c.can_edit && c.status !== 'archived') {
-          <button
-            appMenuItem
-            overflow
-            type="button"
-            (click)="router.navigate(['/training/courses', c.id, 'edit'])"
+        } @else if (c.can_edit && c.status === 'draft') {
+          <app-button
+            secondary
+            variant="secondary"
+            (click)="router.navigate(editLink())"
             data-testid="course-edit"
           >
             {{ 'training.common.edit' | transloco }}
-          </button>
+          </app-button>
         }
         @if (c.can_edit && c.status === 'published') {
-          <button appMenuItem overflow type="button" (click)="stateAction.set('archive')">
-            {{ 'training.detail.archive' | transloco }}
-          </button>
+          <ng-container ngProjectAs="[overflow]">
+            <button
+              appMenuItem
+              overflow
+              type="button"
+              (click)="router.navigate(editLink())"
+              data-testid="course-edit"
+            >
+              {{ 'training.common.edit' | transloco }}
+            </button>
+            <button appMenuItem overflow type="button" (click)="stateAction.set('archive')">
+              {{ 'training.detail.archive' | transloco }}
+            </button>
+          </ng-container>
         }
         @if (canDelete()) {
           <button
@@ -216,84 +243,50 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
           </button>
         }
 
+        @if (showEffectiveness()) {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            data-testid="course-ask-effect"
+            (click)="summariseEffect()"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'training.ai.summarise' | transloco }}
+          </button>
+        }
+        @if (completionRule() === 'quiz') {
+          <button appMenuItem ask type="button" (click)="askAi('training.ask.passMark')">
+            <app-icon name="spark" [size]="15" />
+            {{ 'training.ask.passMark' | transloco }}
+          </button>
+        }
+        <button appMenuItem ask type="button" (click)="askAi('training.ask.validity')">
+          <app-icon name="spark" [size]="15" />
+          {{ 'training.ask.validity' | transloco }}
+        </button>
+
         <app-module-nav nav [items]="access.navItems()" labelKey="training.nav.label" />
         <app-help-strip help scope="training" page="detail" lesson="competence-and-awareness" />
 
-        <div class="flex flex-col gap-6">
-          @if (error(); as key) {
-            <app-alert>{{ key | transloco }}</app-alert>
-          }
-
-          @if (c.description) {
-            <div class="cf-prose" [innerHTML]="c.description | appMarkdown"></div>
-          }
-
-          <div
-            class="rounded-tile border border-info/25 bg-info-soft/60 px-4 py-3 text-ui"
-            data-testid="course-completion"
-          >
-            <p class="font-semibold text-fg">{{ 'training.detail.howToComplete' | transloco }}</p>
-            <p class="mt-0.5 text-fg-muted">
-              {{
-                'training.completion.' + completionRule()
-                  | transloco: { pass: (c.pass_mark * 100 | localPercent) }
-              }}
-            </p>
-          </div>
-
-          <app-field-list [columns]="3">
-            <app-field-item
-              labelKey="training.fields.category"
-              [value]="'training.category.' + c.category | transloco"
-            />
-            <app-field-item labelKey="training.fields.owner" [value]="c.owner?.name" />
-            @if (completionRule() === 'quiz') {
-              <app-field-item labelKey="training.fields.passMarkLong">
-                <span class="inline-flex items-center gap-1">
-                  {{ c.pass_mark * 100 | localPercent }}
-                  <app-ask-about field="pass_mark" [prompt]="'training.ask.passMark' | transloco" />
-                </span>
-              </app-field-item>
+        <app-record-lead record-lead [fillLink]="fillLink()">
+          <app-record-status-line status [tone]="sentence.tone">
+            {{ sentence.key | transloco }}
+          </app-record-status-line>
+          <app-field-item size="lead" labelKey="training.detail.lead.about">
+            @if (c.description) {
+              <div class="cf-prose" [innerHTML]="c.description | appMarkdown"></div>
             }
-            <app-field-item labelKey="training.fields.validity">
-              <span class="inline-flex items-center gap-1">
-                @if (c.validity_months) {
-                  {{
-                    (c.validity_months === 1
-                      ? 'training.detail.monthsOne'
-                      : 'training.detail.months'
-                    ) | transloco: { count: c.validity_months }
-                  }}
-                } @else {
-                  {{ 'training.detail.noExpiry' | transloco }}
-                }
-                <app-ask-about
-                  field="validity_months"
-                  [prompt]="'training.ask.validity' | transloco"
-                />
-              </span>
-            </app-field-item>
-            <app-field-item
-              labelKey="training.fields.minutes"
-              [value]="
-                c.estimated_minutes
-                  ? ('training.detail.minutes' | transloco: { count: c.estimated_minutes })
-                  : null
-              "
-            />
-            <app-field-item labelKey="training.fields.published">
-              @if (c.published_at) {
-                {{
-                  (c.published_by ? 'training.detail.publishedBy' : 'training.detail.publishedAt')
-                    | transloco
-                      : { date: (c.published_at | localDate), name: c.published_by?.name ?? '' }
-                }}
-              } @else {
-                <span class="text-fg-subtle">{{ 'training.detail.notPublished' | transloco }}</span>
-              }
-            </app-field-item>
-            @if (c.document; as doc) {
-              <app-field-item labelKey="training.fields.document" [wide]="true">
+          </app-field-item>
+          <app-field-item size="lead" labelKey="training.detail.lead.howToComplete">
+            <span data-testid="course-completion">{{
+              'training.completion.' + completionRule()
+                | transloco: { pass: (c.pass_mark * 100 | localPercent) }
+            }}</span>
+          </app-field-item>
+          @if (c.kind === 'read_and_understood') {
+            <app-field-item size="lead" labelKey="training.detail.lead.document">
+              @if (c.document; as doc) {
                 <app-entity-chip
                   [ref]="{
                     entity_type: 'document',
@@ -303,9 +296,90 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
                     url: doc.url,
                   }"
                 />
+              }
+            </app-field-item>
+          } @else {
+            <app-field-item size="lead" labelKey="training.detail.lead.objectives">
+              @if (c.learning_objectives) {
+                <div class="cf-prose" [innerHTML]="c.learning_objectives | appMarkdown"></div>
+              }
+            </app-field-item>
+          }
+          @if (access.canOversee() && c.status !== 'draft') {
+            <app-field-item size="lead" labelKey="training.detail.lead.participants">
+              <a
+                [routerLink]="['/training/assignments']"
+                [queryParams]="{ course: c.id }"
+                class="flex flex-wrap gap-x-4 gap-y-1 hover:text-accent"
+                data-testid="course-counts"
+              >
+                <span
+                  ><span class="font-bold">{{ c.counts.assigned }}</span>
+                  {{ 'training.detail.countOpen' | transloco }}</span
+                >
+                @if (c.counts.overdue) {
+                  <span class="text-warn-ink"
+                    ><span class="font-bold">{{ c.counts.overdue }}</span>
+                    {{ 'training.detail.countLate' | transloco }}</span
+                  >
+                }
+                <span
+                  ><span class="font-bold">{{ c.counts.completed }}</span>
+                  {{ 'training.detail.countDone' | transloco }}</span
+                >
+              </a>
+            </app-field-item>
+          }
+        </app-record-lead>
+
+        <div class="flex flex-col gap-6">
+          @if (error(); as key) {
+            <app-alert>{{ key | transloco }}</app-alert>
+          }
+
+          <app-record-details [columns]="3" [fillLink]="fillLink()">
+            <app-field-item labelKey="training.detail.validFor">
+              @if (c.validity_months) {
+                {{
+                  (c.validity_months === 1
+                    ? 'training.detail.validityOne'
+                    : 'training.detail.validity'
+                  ) | transloco: { count: c.validity_months }
+                }}
+              } @else {
+                {{ 'training.detail.noExpiry' | transloco }}
+              }
+            </app-field-item>
+            @if (c.kind !== 'external') {
+              <app-field-item
+                labelKey="training.detail.timeNeeded"
+                [value]="
+                  c.estimated_minutes
+                    ? ('training.detail.minutes' | transloco: { count: c.estimated_minutes })
+                    : null
+                "
+              />
+            }
+            <app-field-item
+              labelKey="training.fields.category"
+              [value]="'training.category.' + c.category | transloco"
+            />
+            @if (c.kind !== 'read_and_understood') {
+              <app-field-item labelKey="training.detail.relatedDocument">
+                @if (c.document; as doc) {
+                  <app-entity-chip
+                    [ref]="{
+                      entity_type: 'document',
+                      entity_id: doc.id,
+                      code: doc.code,
+                      title: doc.title,
+                      url: doc.url,
+                    }"
+                  />
+                }
               </app-field-item>
             }
-            <app-field-item labelKey="training.fields.competences" [wide]="true" empty="none">
+            <app-field-item labelKey="training.fields.competences" [wide]="true">
               @if (c.competences?.length) {
                 <ul class="flex flex-wrap gap-1.5" data-testid="course-competences">
                   @for (comp of c.competences; track comp.id) {
@@ -324,20 +398,11 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
                 </ul>
               }
             </app-field-item>
-          </app-field-list>
-
-          @if (c.learning_objectives) {
-            <section>
-              <h2 class="mb-1.5 text-card font-semibold text-fg">
-                {{ 'training.fields.learningObjectives' | transloco }}
-              </h2>
-              <div class="cf-prose text-ui" [innerHTML]="c.learning_objectives | appMarkdown"></div>
-            </section>
-          }
+          </app-record-details>
 
           @if (c.kind !== 'external') {
-            <section>
-              <h2 class="mb-2 text-card font-semibold text-fg">
+            <section aria-labelledby="course-lessons-title">
+              <h2 id="course-lessons-title" class="mb-2 font-display text-card font-bold text-fg">
                 {{
                   (c.lessons.length === 1
                     ? 'training.detail.lessonsOne'
@@ -381,18 +446,20 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
           }
 
           @if (access.canOversee() || access.canWrite()) {
-            <app-training-course-rules
-              [courseId]="c.id"
-              [canManage]="access.canManage()"
-              [published]="c.status === 'published'"
-              (changed)="reload()"
-            />
+            <div id="course-rules" class="scroll-mt-6">
+              <app-training-course-rules
+                [courseId]="c.id"
+                [canManage]="access.canManage()"
+                [published]="c.status === 'published'"
+                (changed)="reload()"
+              />
+            </div>
           }
 
-          @if (access.canOversee()) {
-            <section>
+          @if (access.canOversee() && c.status !== 'draft') {
+            <section aria-labelledby="course-open-title">
               <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h2 class="text-card font-semibold text-fg">
+                <h2 id="course-open-title" class="font-display text-card font-bold text-fg">
                   {{ 'training.detail.assignments' | transloco }}
                 </h2>
                 <a
@@ -413,15 +480,14 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
             </section>
           }
 
-          @if ((access.canReport() || access.canManage()) && c.status !== 'draft') {
+          @if (showEffectiveness()) {
             <app-training-course-effectiveness
               [course]="c"
               [canManage]="access.canManage()"
               [showRecords]="access.canOversee()"
+              [assistInMenu]="true"
             />
           }
-
-          <app-why-it-matters scope="training" page="detail" />
         </div>
 
         <app-entity-tasks
@@ -432,39 +498,28 @@ export function publishMessageKey(course: Pick<CourseDetail, 'kind' | 'quiz_coun
           [entityLabel]="c.code + ' ' + c.title"
         />
 
-        <ng-container ngProjectAs="[aside]">
-          <app-card>
-            <h2 class="mb-2 text-meta font-semibold text-fg-muted">
-              {{ 'training.detail.progress' | transloco }}
-            </h2>
-            <dl class="grid grid-cols-3 gap-2 text-center" data-testid="course-counts">
-              <div class="flex flex-col-reverse">
-                <dt class="text-micro text-fg-muted">
-                  {{ 'training.detail.countAssigned' | transloco }}
-                </dt>
-                <dd class="text-section font-bold text-fg">{{ c.counts.assigned }}</dd>
-              </div>
-              <div class="flex flex-col-reverse">
-                <dt class="text-micro text-fg-muted">
-                  {{ 'training.detail.countOverdue' | transloco }}
-                </dt>
-                <dd
-                  class="text-section font-bold"
-                  [class.text-warn-ink]="c.counts.overdue"
-                  [class.text-fg]="!c.counts.overdue"
-                >
-                  {{ c.counts.overdue }}
-                </dd>
-              </div>
-              <div class="flex flex-col-reverse">
-                <dt class="text-micro text-fg-muted">
-                  {{ 'training.detail.countCompleted' | transloco }}
-                </dt>
-                <dd class="text-section font-bold text-pass-ink">{{ c.counts.completed }}</dd>
-              </div>
-            </dl>
-          </app-card>
-        </ng-container>
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="training.fields.owner"
+            [value]="c.owner?.name"
+          />
+          <app-field-item layout="inline" labelKey="training.fields.version" [value]="c.version" />
+          <app-field-item
+            layout="inline"
+            labelKey="training.fields.published"
+            [value]="publishedText()"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="training.detail.updated"
+            [value]="c.updated_at | localDate: 'mediumDate'"
+          />
+        </app-record-meta>
+
+        <div aside-learn>
+          <app-why-it-matters scope="training" page="detail" />
+        </div>
       </app-record-detail-layout>
 
       <app-training-assign-dialog
@@ -530,6 +585,7 @@ export class CourseDetailPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
   protected readonly router = inject(Router);
   protected readonly access = inject(TrainingAccess);
 
@@ -556,6 +612,50 @@ export class CourseDetailPage {
     const c = this.course();
     return c ? publishMessageKey(c) : 'training.detail.publishMessage';
   });
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/training/courses',
+    this.id(),
+    'edit',
+  ]);
+  /** "Fyll ut" links only for people who may edit (archived courses are read-only). */
+  protected readonly fillLink = computed(() => {
+    const c = this.course();
+    return c?.can_edit && c.status !== 'archived' ? this.editLink() : null;
+  });
+  protected readonly statusSentence = computed(() => {
+    const c = this.course();
+    return c ? courseStatusSentence(c) : { key: '', tone: 'neutral' as const };
+  });
+  /** "Virker opplæringen?" (and its "Oppsummer effekt" in "Spør KI"). */
+  protected readonly showEffectiveness = computed(() => {
+    const c = this.course();
+    return !!c && c.status !== 'draft' && (this.access.canReport() || this.access.canManage());
+  });
+  /** "19. okt. 2026 av Ola Hansen". */
+  protected readonly publishedText = computed(() => {
+    const c = this.course();
+    if (!c?.published_at) {
+      return null;
+    }
+    const date = formatLocalDate(c.published_at, 'mediumDate', this.language.locale());
+    return c.published_by
+      ? this.language.translate('training.detail.publishedBy', { date, name: c.published_by.name })
+      : date;
+  });
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const c = this.course();
+    if (!c) {
+      return [];
+    }
+    return courseMissing(c, {
+      editLink: this.editLink(),
+      publish: c.can_edit && c.status === 'draft' ? () => this.stateAction.set('publish') : null,
+      rules: this.access.canManage() ? () => this.scrollToRules() : null,
+      oversee: this.access.canOversee(),
+    });
+  });
+  private readonly effectiveness = viewChild(CourseEffectiveness);
+
   protected readonly canDelete = computed(() => {
     const c = this.course();
     return !!c && c.can_edit && (c.status === 'draft' || this.access.canManage());
@@ -583,6 +683,23 @@ export class CourseDetailPage {
       this.language.active();
       untracked(() => this.load(orgId, id));
     });
+  }
+
+  protected askAi(promptKey: string): void {
+    const c = this.course();
+    this.ask.askAbout(this.language.translate(promptKey), undefined, {
+      requirements: c?.clause_refs ?? [],
+    });
+  }
+
+  protected summariseEffect(): void {
+    this.effectiveness()?.summarise();
+  }
+
+  private scrollToRules(): void {
+    document
+      .getElementById('course-rules')
+      ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
 
   reload(): void {
