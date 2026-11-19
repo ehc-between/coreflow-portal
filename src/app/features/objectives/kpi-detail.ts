@@ -14,7 +14,10 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
+import { AiAssistApi } from '../../core/ai/ai-assist-api';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
+import { SseStream } from '../../core/ai/sse-client';
 import { codedErrorDetail } from '../../core/deviations/deviation-errors';
 import { LanguageService } from '../../core/i18n/language.service';
 import { CreateFlowService } from '../../core/kit/create-flow.service';
@@ -23,11 +26,21 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AssigneeIn } from '../../core/tasks/task.models';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { WatchButton } from '../../shared/activity/watch-button';
-import { AiAssistButton } from '../../shared/ask/ai-assist-button';
+import { Term } from '../../shared/guidance/term';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
@@ -37,11 +50,11 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
-import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
+import { KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
@@ -157,6 +170,87 @@ export function toneOfShare(share: number | null): KpiTone {
 }
 
 /**
+ * The status sentence of a KPI ("I faresonen – siste verdi …"). A KPI that is
+ * not measured or has no target is a to-do (warn), never red.
+ */
+export function kpiStatusLine(
+  k: KpiDetailDto,
+  params: { value: string; target: string; period: string },
+): { key: string; tone: StatusLineTone; params: Record<string, unknown> } {
+  const base = 'objectives.kpi.statusLine.';
+  if (k.status === 'retired') {
+    return { key: base + 'retired', tone: 'neutral', params: {} };
+  }
+  if (k.status === 'paused') {
+    return { key: base + 'paused', tone: 'neutral', params: {} };
+  }
+  switch (k.last_status) {
+    case 'on_track':
+      return { key: base + 'onTrack', tone: 'pass', params };
+    case 'at_risk':
+      return { key: base + 'atRisk', tone: 'warn', params };
+    case 'off_track':
+      return { key: base + 'offTrack', tone: 'warn', params };
+    case 'no_target':
+      return { key: base + 'noTarget', tone: 'warn', params };
+    default:
+      return { key: base + 'noData', tone: 'warn', params: {} };
+  }
+}
+
+/** What a KPI still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+export function kpiMissing(
+  k: KpiDetailDto,
+  opts: {
+    canRecord: boolean;
+    hasMeasurements: boolean;
+    flows: ReadonlySet<string>;
+    record: () => void;
+    flow: (key: string) => void;
+  },
+): RecordMissingItem[] {
+  const edit = ['/objectives/kpis', k.id, 'edit'];
+  const base = 'objectives.kpi.missing.';
+  const items: RecordMissingItem[] = [];
+  if (kpiNeedsAction(k)) {
+    for (const key of ['kpi.to_deviation', 'kpi.to_task']) {
+      if (opts.flows.has(key)) {
+        items.push({
+          key,
+          labelKey: base + (key === 'kpi.to_deviation' ? 'deviation' : 'task'),
+          action: () => opts.flow(key),
+        });
+      }
+    }
+    if (k.can_edit) {
+      items.push({
+        key: 'adjust',
+        labelKey: base + 'adjustTarget',
+        link: edit,
+        queryParams: { focus: 'target' },
+      });
+    }
+  }
+  if (opts.canRecord && k.measurement_overdue) {
+    items.push({ key: 'overdue', labelKey: base + 'overdue', action: opts.record });
+  } else if (opts.canRecord && !opts.hasMeasurements && k.status === 'active') {
+    items.push({ key: 'first', labelKey: base + 'first', action: opts.record });
+  }
+  if (k.can_edit && k.target_value === null) {
+    items.push({
+      key: 'target',
+      labelKey: base + 'target',
+      link: edit,
+      queryParams: { focus: 'target' },
+    });
+  }
+  if (k.can_edit && !k.objective) {
+    items.push({ key: 'objective', labelKey: base + 'objective', link: edit });
+  }
+  return items;
+}
+
+/**
  * `/objectives/kpis/:id`: a KPI on the shared detail frame. Its latest value
  * against the target value, what to do when it is off track (deviation, task,
  * adjust the target), the next measurement and its task, the trend chart, the
@@ -172,11 +266,14 @@ export function toneOfShare(share: number | null): KpiTone {
     LocalDayPipe,
     LocalNumberPipe,
     MarkdownPipe,
-    WatchButton,
-    AiAssistButton,
+    Term,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     EntityTasks,
     Alert,
     Button,
@@ -184,11 +281,9 @@ export function toneOfShare(share: number | null): KpiTone {
     ConfirmDialog,
     EmptyState,
     FieldItem,
-    FieldList,
     FormField,
     HelpStrip,
     Icon,
-    KpiTile,
     LoadingState,
     ErrorState,
     MenuItem,
@@ -225,6 +320,7 @@ export function toneOfShare(share: number | null): KpiTone {
         @if (kpi(); as k) {
           @let h = health(k.last_status);
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="kpi"
             [entityId]="k.id"
             [title]="k.name"
@@ -233,9 +329,14 @@ export function toneOfShare(share: number | null): KpiTone {
             [requirementsPanel]="true"
             [canEdit]="k.can_edit"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
           >
-            <ng-container meta>
+            <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ k.code }}</span>
+              <span aria-hidden="true">·</span>
+              <app-term key="kpi" [scope]="scope">{{
+                'modules.entities.kpi' | transloco
+              }}</app-term>
               <span aria-hidden="true">·</span>
               <app-status-badge
                 [meaning]="h.meaning"
@@ -256,12 +357,6 @@ export function toneOfShare(share: number | null): KpiTone {
                   labelKey="objectives.kpi.measurementOverdue"
                 />
               }
-              @if (k.objective; as obj) {
-                <span class="inline-flex items-center gap-1 text-meta text-fg-muted">
-                  {{ 'objectives.kpi.belongsTo' | transloco }}
-                  <app-entity-chip [ref]="objectiveRef()!" [showType]="false" />
-                </span>
-              }
             </ng-container>
 
             @if (canRecord()) {
@@ -275,10 +370,6 @@ export function toneOfShare(share: number | null): KpiTone {
                 {{ 'objectives.detail.edit' | transloco }}
               </app-button>
             }
-            <app-watch-button secondary entityType="kpi" [entityId]="k.id" />
-            <button appMenuItem overflow type="button" (click)="askAbout()">
-              {{ 'objectives.ai.summariseKpi' | transloco }}
-            </button>
             @if (k.can_delete) {
               <button
                 appMenuItem
@@ -291,246 +382,201 @@ export function toneOfShare(share: number | null): KpiTone {
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askAbout()" data-testid="kpi-ask">
+              <app-icon name="spark" [size]="15" />
+              {{ 'objectives.ai.summariseKpi' | transloco }}
+            </button>
+            @if (needsAction()) {
+              <button appMenuItem ask type="button" (click)="explain()" data-testid="kpi-explain">
+                <app-icon name="spark" [size]="15" />
+                {{ 'objectives.ai.explainDeviation' | transloco }}
+              </button>
+            }
+
             <app-help-strip help [scope]="scope" page="kpiDetail" lesson="good-kpis" />
 
-            <div class="flex flex-col gap-4">
-              @if (needsAction()) {
-                <section
-                  class="rounded-card border p-4"
-                  [class]="
-                    k.last_status === 'off_track'
-                      ? 'border-fail/30 bg-fail-soft'
-                      : 'border-warn/30 bg-warn-soft'
-                  "
-                  data-testid="kpi-attention"
-                  [attr.aria-label]="'objectives.attention.label' | transloco"
-                >
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'objectives.attention.' + k.last_status + '.title' | transloco }}
-                  </h2>
-                  <p class="mt-1 text-ui text-fg">
-                    {{ 'objectives.attention.body' | transloco: attentionParams() }}
-                  </p>
-                  <div class="mt-3 flex flex-wrap items-center gap-2">
-                    @if (flowEnabled('kpi.to_deviation')) {
-                      <app-button
-                        size="sm"
-                        (click)="startFlow('kpi.to_deviation')"
-                        data-testid="kpi-to-deviation"
-                      >
-                        {{ 'objectives.attention.deviation' | transloco }}
-                      </app-button>
-                    }
-                    @if (flowEnabled('kpi.to_task')) {
-                      <app-button
-                        size="sm"
-                        variant="secondary"
-                        (click)="startFlow('kpi.to_task')"
-                        data-testid="kpi-to-task"
-                      >
-                        {{ 'objectives.attention.task' | transloco }}
-                      </app-button>
-                    }
-                    @if (k.can_edit) {
-                      <app-button
-                        size="sm"
-                        variant="ghost"
-                        (click)="edit('target')"
-                        data-testid="kpi-adjust-target"
-                      >
-                        {{ 'objectives.attention.adjustTarget' | transloco }}
-                      </app-button>
-                    }
-                    <app-ai-assist-button
-                      [assist]="explainAssist"
-                      labelKey="objectives.ai.explainDeviation"
-                      entityType="kpi"
-                      [entityId]="k.id"
-                      [input]="{ kpi_id: k.id }"
-                      (text)="explanation.set($event)"
-                      (failed)="explanation.set(null)"
-                    />
-                  </div>
-                  @if (explanation(); as text) {
-                    <div
-                      class="mt-3 rounded-tile border border-border bg-surface p-3"
-                      data-testid="deviation-explanation"
-                      aria-live="polite"
-                    >
-                      <p class="mb-1 text-meta font-semibold text-fg-muted">
-                        {{ 'objectives.ai.explanationLabel' | transloco }}
-                      </p>
-                      <div
-                        class="cf-markdown text-body text-fg"
-                        [innerHTML]="text | appMarkdown"
-                      ></div>
-                    </div>
+            <app-record-lead record-lead [fillLink]="k.can_edit ? editLink() : null">
+              <app-record-status-line status [tone]="statusLine().tone">
+                {{ statusLine().key | transloco: statusLine().params }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="objectives.kpi.latest" data-testid="kpi-latest">
+                @if (k.last_value !== null) {
+                  <span class="text-[1.375rem] leading-tight font-bold">{{
+                    valueText(k.last_value)
+                  }}</span>
+                  @if (lastPeriod(); as period) {
+                    <span class="block text-meta font-normal text-fg-muted">{{ period }}</span>
                   }
-                </section>
-              }
-
-              <section
-                class="grid grid-cols-2 gap-3 lg:grid-cols-4"
-                [attr.aria-label]="'objectives.kpi.statsLabel' | transloco"
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="objectives.kpiFields.target">
+                @if (k.target_value !== null) {
+                  <span class="text-[1.375rem] leading-tight font-bold">{{
+                    valueText(k.target_value)
+                  }}</span>
+                  <span class="block text-meta font-normal text-fg-muted">
+                    {{ 'objectives.direction.' + k.direction | transloco }}
+                    @if (k.warning_value !== null) {
+                      ·
+                      {{
+                        'objectives.kpi.warningIs'
+                          | transloco: { value: valueText(k.warning_value) }
+                      }}
+                    }
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="objectives.kpiFields.objective">
+                @if (objectiveRef(); as ref) {
+                  <app-entity-chip [ref]="ref" data-testid="kpi-objective" />
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="objectives.kpi.nextHeading"
+                data-testid="kpi-next-measurement"
               >
-                <app-kpi-tile
-                  noLink="measurement"
-                  [label]="'objectives.kpi.latest' | transloco"
-                  [value]="valueText(k.last_value)"
-                  [tone]="toneOfLatest()"
-                  [delta]="targetText()"
-                  deltaTone="neutral"
-                />
-                <app-kpi-tile
-                  noLink="measurement"
-                  [label]="'objectives.kpi.change' | transloco"
-                  [value]="changeText()"
-                  [delta]="changeDelta()"
-                  [tone]="toneOfChange()"
-                />
-                <app-kpi-tile
-                  noLink="measurement"
-                  [label]="'objectives.kpi.trend' | transloco"
-                  [value]="trendLabel()"
-                  [tone]="toneOfTrend()"
-                />
-                <app-kpi-tile
-                  noLink="average"
-                  [label]="'objectives.kpi.onTrackShare' | transloco"
-                  [value]="onTrackText()"
-                  [tone]="toneOfOnTrack()"
-                  [delta]="onTrackDelta()"
-                  deltaTone="neutral"
-                />
-              </section>
-
-              <app-card data-testid="kpi-next-measurement">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <h2 class="font-display text-card font-bold text-fg">
-                      {{ 'objectives.kpi.nextHeading' | transloco }}
-                    </h2>
-                    @if (nextLabel(); as label) {
-                      <p class="mt-1 text-body text-fg">
-                        {{ 'objectives.kpi.nextPeriod' | transloco: { period: label } }}
-                        @if (k.next_due_date) {
-                          <span
-                            [class.text-warn-ink]="k.measurement_overdue"
-                            [class.font-semibold]="k.measurement_overdue"
-                          >
-                            ·
-                            {{
-                              'objectives.kpi.dueOn'
-                                | transloco: { date: (k.next_due_date | localDay) }
-                            }}
-                            @if (k.measurement_overdue) {
-                              · {{ 'objectives.common.overdue' | transloco }}
-                            }
-                          </span>
-                        }
-                      </p>
-                    } @else if (k.status !== 'active') {
-                      <p class="mt-1 text-body text-fg-muted">
-                        {{ 'objectives.kpi.notActive' | transloco }}
-                      </p>
-                    }
-                    <p class="mt-1 text-meta text-fg-muted">
-                      @if (k.measurement_task; as task) {
+                @if (nextLabel(); as label) {
+                  <span>
+                    {{ label }}
+                    @if (k.next_due_date) {
+                      <span
+                        class="block text-meta font-normal"
+                        [class.text-warn-ink]="k.measurement_overdue"
+                        [class.font-semibold]="k.measurement_overdue"
+                        [class.text-fg-muted]="!k.measurement_overdue"
+                      >
                         {{
-                          'objectives.kpi.taskFor'
-                            | transloco
-                              : { name: task.assignee?.name ?? ('common.empty.none' | transloco) }
+                          'objectives.kpi.dueOn' | transloco: { date: (k.next_due_date | localDay) }
                         }}
-                        <a
-                          [routerLink]="task.url"
-                          class="font-semibold text-accent hover:underline"
-                          >{{ task.title }}</a
-                        >
-                        @if (task.due_at) {
-                          ·
-                          {{
-                            'objectives.kpi.dueOn'
-                              | transloco: { date: (task.due_at | localDate: 'mediumDate') }
-                          }}
+                        @if (k.measurement_overdue) {
+                          · {{ 'objectives.common.overdue' | transloco }}
                         }
-                      } @else if (k.measurement_reminders) {
-                        {{ 'objectives.kpi.noTask' | transloco }}
-                      } @else {
-                        {{ 'objectives.kpi.remindersOff' | transloco }}
-                      }
-                    </p>
-                  </div>
-                  @if (canRecord()) {
-                    <app-button size="sm" variant="secondary" (click)="openRecord()">
-                      {{ 'objectives.kpi.recordNow' | transloco }}
-                    </app-button>
-                  }
+                      </span>
+                    }
+                  </span>
+                } @else if (k.status !== 'active') {
+                  <span class="text-ui font-normal text-fg-muted">{{
+                    'objectives.kpi.notActive' | transloco
+                  }}</span>
+                }
+                @if (k.status === 'active') {
+                  <span class="mt-1 block text-meta font-normal text-fg-muted">
+                    @if (k.measurement_task; as task) {
+                      {{
+                        'objectives.kpi.taskFor'
+                          | transloco
+                            : { name: task.assignee?.name ?? ('common.empty.none' | transloco) }
+                      }}
+                      <a
+                        [routerLink]="task.url"
+                        class="font-semibold text-accent hover:underline"
+                        >{{ task.title }}</a
+                      >
+                    } @else if (k.measurement_reminders) {
+                      {{ 'objectives.kpi.noTask' | transloco }}
+                    } @else {
+                      {{ 'objectives.kpi.remindersOff' | transloco }}
+                    }
+                  </span>
+                }
+              </app-field-item>
+              @if (explanation(); as text) {
+                <div
+                  class="rounded-tile border border-border bg-surface-2 p-3 sm:col-span-full"
+                  data-testid="deviation-explanation"
+                  aria-live="polite"
+                >
+                  <p class="mb-1 text-meta font-semibold text-fg-muted">
+                    {{ 'objectives.ai.explanationLabel' | transloco }}
+                  </p>
+                  <div class="cf-markdown text-body text-fg" [innerHTML]="text | appMarkdown"></div>
                 </div>
-              </app-card>
+              } @else if (explaining()) {
+                <p class="text-meta text-fg-muted sm:col-span-full" aria-live="polite">
+                  {{ 'objectives.kpi.explaining' | transloco }}
+                </p>
+              }
+            </app-record-lead>
 
+            <div class="flex flex-col gap-6">
               <app-card>
                 <h2 class="mb-2 font-display text-card font-bold text-fg">
                   {{ 'objectives.kpi.chartHeading' | transloco }}
                 </h2>
+                <dl
+                  class="mb-3 flex flex-wrap gap-x-6 gap-y-2 text-ui"
+                  [attr.aria-label]="'objectives.kpi.statsLabel' | transloco"
+                  data-testid="kpi-stats"
+                >
+                  <div>
+                    <dt class="text-meta text-fg-muted">
+                      {{ 'objectives.kpi.change' | transloco }}
+                    </dt>
+                    <dd class="font-semibold" [class]="toneText(toneOfChange())">
+                      {{ changeText() }}
+                      @if (changeDelta()) {
+                        <span class="font-normal text-fg-muted">({{ changeDelta() }})</span>
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-meta text-fg-muted">
+                      {{ 'objectives.kpi.trend' | transloco }}
+                    </dt>
+                    <dd class="font-semibold" [class]="toneText(toneOfTrend())">
+                      {{ trendLabel() }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-meta text-fg-muted">
+                      {{ 'objectives.kpi.onTrackShare' | transloco }}
+                    </dt>
+                    <dd class="font-semibold" [class]="toneText(toneOfOnTrack())">
+                      {{ onTrackText() }}
+                      @if (onTrackDelta()) {
+                        <span class="font-normal text-fg-muted">{{ onTrackDelta() }}</span>
+                      }
+                    </dd>
+                  </div>
+                </dl>
                 <app-kpi-chart [series]="series()" />
               </app-card>
 
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'objectives.kpi.definition' | transloco }}
-                </h2>
-                <app-field-list [columns]="3">
-                  <app-field-item
-                    labelKey="objectives.kpiFields.direction"
-                    [value]="'objectives.direction.' + k.direction | transloco"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.frequency"
-                    [value]="'objectives.frequency.' + k.frequency | transloco"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.startDate"
-                    [value]="k.start_date | localDay"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.baseline"
-                    [value]="valueOrNull(k.baseline_value)"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.target"
-                    [value]="valueOrNull(k.target_value)"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.warning"
-                    [value]="valueOrNull(k.warning_value)"
-                  />
-                  <app-field-item labelKey="objectives.kpiFields.owner" [value]="k.owner?.name" />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.evaluatedBy"
-                    [value]="k.evaluated_by?.name"
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.reviewForum"
-                    [value]="k.review_forum ?? null"
-                  />
-                  <app-field-item labelKey="objectives.fields.department" [value]="department()" />
-                  <app-field-item
-                    labelKey="objectives.fields.managementSystem"
-                    [value]="
-                      k.management_system ? (systemKey(k.management_system) | transloco) : null
-                    "
-                  />
-                  <app-field-item
-                    labelKey="objectives.kpiFields.dataSource"
-                    [value]="k.data_source"
-                  />
+              <app-record-details
+                [columns]="3"
+                titleKey="objectives.kpi.definition"
+                [fillLink]="k.can_edit ? editLink() : null"
+              >
+                <app-field-item labelKey="objectives.kpiFields.description" [wide]="true">
                   @if (k.description) {
-                    <app-field-item labelKey="objectives.kpiFields.description" [wide]="true">
-                      <div class="cf-markdown" [innerHTML]="k.description | appMarkdown"></div>
-                    </app-field-item>
+                    <div class="cf-markdown" [innerHTML]="k.description | appMarkdown"></div>
                   }
-                </app-field-list>
-              </app-card>
+                </app-field-item>
+                <app-field-item
+                  labelKey="objectives.kpiFields.dataSource"
+                  [value]="k.data_source"
+                />
+                <app-field-item
+                  labelKey="objectives.kpiFields.frequency"
+                  [value]="'objectives.frequency.' + k.frequency | transloco"
+                />
+                <app-field-item
+                  labelKey="objectives.kpiFields.baseline"
+                  [value]="valueOrNull(k.baseline_value)"
+                />
+                <app-field-item
+                  labelKey="objectives.kpiFields.startDate"
+                  [value]="k.start_date | localDay"
+                />
+                <app-field-item
+                  labelKey="objectives.fields.managementSystem"
+                  [value]="
+                    k.management_system ? (systemKey(k.management_system) | transloco) : null
+                  "
+                />
+                <app-field-item labelKey="objectives.fields.department" [value]="department()" />
+              </app-record-details>
 
               <app-card [padded]="false">
                 <h2 class="px-5 pt-4 pb-2 font-display text-card font-bold text-fg">
@@ -676,6 +722,32 @@ export function toneOfShare(share: number | null): KpiTone {
                 [entityLabel]="k.code + ' ' + k.name"
               />
             </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="objectives.kpiFields.owner"
+                [keepEmpty]="true"
+                emptyKey="objectives.common.noOwner"
+                [emptyLink]="k.can_edit ? editLink() : null"
+                [value]="k.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="objectives.kpiFields.evaluatedBy"
+                [value]="k.evaluated_by?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="objectives.kpi.reviewedIn"
+                [value]="k.review_forum ?? null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="objectives.detail.updated"
+                [value]="k.updated_at | localDate: 'mediumDate'"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters [scope]="scope" page="kpiDetail" />
@@ -890,7 +962,6 @@ export class KpiDetail {
   protected readonly fieldLabels = KPI_FIELD_LABELS;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly custom = CUSTOM;
-  protected readonly explainAssist = ASSIST_EXPLAIN_DEVIATION;
   protected readonly today = todayIso();
   protected readonly statusKey = kpiStatusKey;
   protected readonly statusTone = KPI_STATUS_TONE;
@@ -913,6 +984,39 @@ export class KpiDetail {
   protected readonly busy = signal(false);
   protected readonly expanded = signal<ReadonlySet<string>>(new Set());
   private readonly enabledFlows = signal<ReadonlySet<string>>(new Set());
+  protected readonly explaining = signal(false);
+  private explainStream: SseStream | null = null;
+  private readonly assist = inject(AiAssistApi);
+  private readonly ai = inject(AiAvailability);
+
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/objectives/kpis',
+    this.id(),
+    'edit',
+  ]);
+  /** "oktober 2026": the period of the latest value. */
+  protected readonly lastPeriod = computed(() => {
+    const end = this.kpi()?.last_period_end;
+    return end ? this.labelFor({ start: '', end }) : null;
+  });
+  protected readonly statusLine = computed(() => {
+    const k = this.kpi();
+    return k
+      ? kpiStatusLine(k, this.attentionParams())
+      : { key: '', tone: 'neutral' as StatusLineTone, params: {} };
+  });
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const k = this.kpi();
+    return k
+      ? kpiMissing(k, {
+          canRecord: this.canRecord(),
+          hasMeasurements: this.measurementTotal() > 0,
+          flows: this.enabledFlows(),
+          record: () => this.openRecord(),
+          flow: (key) => this.startFlow(key),
+        })
+      : [];
+  });
 
   protected readonly breadcrumbs = computed(() => [
     OBJECTIVES_ROOT_CRUMB,
@@ -968,24 +1072,6 @@ export class KpiDetail {
     return previewStatus(parseNumber(d.value), k.direction, k.target_value, k.warning_value);
   });
 
-  protected readonly toneOfLatest = computed<KpiTone>(() => {
-    const status = this.kpi()?.last_status;
-    return status === 'on_track'
-      ? 'pass'
-      : status === 'at_risk'
-        ? 'warn'
-        : status === 'off_track'
-          ? 'fail'
-          : 'neutral';
-  });
-  protected readonly targetText = computed(() => {
-    const k = this.kpi();
-    return k?.target_value != null
-      ? this.language.translate('objectives.kpi.targetIs', {
-          value: this.valueText(k.target_value),
-        })
-      : '';
-  });
   private readonly better = computed(() => {
     const change = this.series()?.stats.change ?? null;
     return changeIsBetter(change, this.kpi()?.direction ?? 'higher');
@@ -1100,6 +1186,7 @@ export class KpiDetail {
       this.request.unsubscribe();
       this.measurementsRequest.unsubscribe();
       this.flowsRequest.unsubscribe();
+      this.explainStream?.cancel();
     });
     this.options.ensureLoaded();
     providePageContext(() => ({
@@ -1168,18 +1255,62 @@ export class KpiDetail {
     this.expanded.update((s) => new Set([...s, id]));
   }
 
-  protected flowEnabled(key: string): boolean {
-    return this.enabledFlows().has(key);
+  /** Text colour of a stat's tone (the chart card's summary line). */
+  protected toneText(tone: KpiTone): string {
+    return tone === 'pass'
+      ? 'text-pass-ink'
+      : tone === 'fail'
+        ? 'text-fail-ink'
+        : tone === 'warn'
+          ? 'text-warn-ink'
+          : 'text-fg';
+  }
+
+  /** "Forklar avviket" (Spør KI): a suggested explanation, shown under the status. */
+  protected explain(): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const k = this.kpi();
+    if (!orgId || !k || this.explaining()) {
+      return;
+    }
+    let text = '';
+    this.explanation.set(null);
+    this.explaining.set(true);
+    this.explainStream = this.assist.run(
+      orgId,
+      ASSIST_EXPLAIN_DEVIATION,
+      { input: { kpi_id: k.id }, entity_type: 'kpi', entity_id: k.id },
+      (event) => {
+        switch (event.type) {
+          case 'delta':
+            text += event.text;
+            this.explanation.set(text);
+            break;
+          case 'done':
+            this.explaining.set(false);
+            this.explainStream = null;
+            break;
+          case 'error':
+            this.explaining.set(false);
+            this.explainStream = null;
+            this.notifications.error('search.assist.failed');
+            break;
+          case 'not-configured':
+            this.explaining.set(false);
+            this.explainStream = null;
+            this.ai.markUnavailable();
+            break;
+        }
+      },
+    );
   }
 
   protected startFlow(key: string): void {
     void this.flows.start(key, 'kpi', this.id());
   }
 
-  protected edit(focus?: string): void {
-    void this.router.navigate(['/objectives/kpis', this.id(), 'edit'], {
-      queryParams: focus ? { focus } : {},
-    });
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
   }
 
   protected askAbout(): void {

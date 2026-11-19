@@ -204,7 +204,9 @@ describe('ContractDetail', () => {
     expect(
       el.querySelector('[data-testid="dpa-status"] [data-tone]')?.getAttribute('data-tone'),
     ).toBe('fail');
-    expect(el.querySelector('[data-testid="warning-review_date_missing"]')).toBeTruthy();
+    // What is missing is in the one "Oppfølging" card, as things to do.
+    expect(el.querySelectorAll('[data-testid="record-missing-item"]').length).toBe(2);
+    expect(el.querySelector('[data-testid="contract-sentence"]')).toBeTruthy();
     // Renew is the one primary step; ending the contract sits in its own menu.
     expect(el.querySelector('[data-testid="action-renew"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="action-end-menu"]')).toBeTruthy();

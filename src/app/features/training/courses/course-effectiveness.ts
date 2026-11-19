@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -55,12 +64,15 @@ import {
           <app-field-help scope="training" page="detail" field="effectiveness" />
         </h2>
         <app-ai-assist-button
+          #assist
+          [class.hidden]="assistInMenu()"
           assist="training.summarise_effectiveness"
           labelKey="training.ai.summarise"
           entityType="course"
           [entityId]="c.id"
           [input]="{ course_id: c.id }"
-          (text)="summary.set($event)"
+          (text)="summary.set($event); running.set(false)"
+          (failed)="running.set(false)"
         />
       </div>
 
@@ -247,6 +259,11 @@ import {
         }
       }
 
+      @if (running() && !summary()) {
+        <p class="mt-4 border-t border-border pt-3 text-ui text-fg-muted" aria-live="polite">
+          {{ 'training.effect.summarising' | transloco }}
+        </p>
+      }
       @if (summary()) {
         <div
           class="cf-prose mt-4 border-t border-border pt-3"
@@ -277,6 +294,13 @@ export class CourseEffectiveness {
   readonly canManage = input(false);
   /** Whether the per-record counts may be shown (people who oversee training). */
   readonly showRecords = input(false);
+  /** The page offers "Oppsummer effekt" in its "Spør KI" menu (§2.7): no button here. */
+  readonly assistInMenu = input(false);
+
+  private readonly assist = viewChild<AiAssistButton>('assist');
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  /** A summary was asked for from the menu and has not started streaming yet. */
+  protected readonly running = signal(false);
 
   protected readonly today = todayInput();
   protected readonly methods = EVALUATION_METHODS;
@@ -290,6 +314,17 @@ export class CourseEffectiveness {
   protected readonly deleteTarget = signal<CourseEvaluation | null>(null);
   protected readonly added = signal<readonly CourseEvaluation[]>([]);
   protected readonly removed = signal<ReadonlySet<string>>(new Set());
+
+  /** Run "Oppsummer effekt" from the page's "Spør KI" menu; the answer shows in this card. */
+  summarise(): void {
+    const assist = this.assist();
+    if (!assist) {
+      return;
+    }
+    this.running.set(true);
+    assist.run();
+    this.host.nativeElement.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }
 
   protected evaluatedOn = todayInput();
   protected method: EvaluationMethod = 'survey';
