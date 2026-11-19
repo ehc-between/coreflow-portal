@@ -9,6 +9,7 @@ export const PROJECT_ERROR_CODES = [
   'invalid_category',
   'invalid_dates',
   'invalid_department',
+  'invalid_customer',
   'invalid_document',
   'invalid_fields',
   'invalid_filter',

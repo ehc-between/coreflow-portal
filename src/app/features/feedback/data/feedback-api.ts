@@ -59,6 +59,7 @@ export function feedbackFilterParams(query: FeedbackListQuery): QueryParams {
     owner: query.owner || undefined,
     survey_id: query.survey_id || undefined,
     department_id: query.department_id || undefined,
+    customer_id: query.customer_id || undefined,
     category: query.category?.trim() || undefined,
     justified: query.justified,
     overdue: query.overdue,

@@ -752,3 +752,67 @@ Name typeahead against Brønnøysund; sub-units (`underenheter`); customer porta
 external access; CRM features (pipeline, sales opportunities, invoicing); automatic
 periodic re-sync with Brønnøysund (manual "Hent på nytt" only); customer hierarchies
 (group / subsidiary).
+
+---
+
+## 12. ENG-B contract notes (portal, 2026-11-19)
+
+What the portal codes against where §2.4 / §5.1 left the shape open. ENG-A: match these
+or report the difference.
+
+- Lists: `GET /` → `{items, total}`; `GET /options` and `GET /segments` → plain arrays
+  (`{items}` is also accepted); `GET /summary` → `{total?, by_status?, pending_matches,
+  last_scan}`; `GET /matches` → `MatchGroup[]` (or `{items}`).
+- `GET /registry/{orgnr}` → flat customer fields `{org_number, name, legal_name,
+  org_form, address_line, postal_code, city, country, industry_code, industry_label,
+  website, registry, existing_customer: CustomerRef | null, also_supplier: {id, code,
+  name} | null}`. Errors: 404 → "not found" note, 422 → silent, anything else → "Fant
+  ikke opplysninger akkurat nå – fyll ut selv" (form stays usable).
+- `POST /` and `PATCH /{id}` accept `registry` (the lookup snapshot) besides the §1.1
+  fields. "Hent på nytt fra Brønnøysundregistrene" = lookup + `PATCH` of `legal_name`,
+  `org_form`, address, industry and `registry`.
+- `MatchOut` carries `entity: EntityRefDto | null` (the record to show and open).
+- Section item `extra.badge_key` values with portal labels (`customers.sections.badges.*`):
+  `dpa`, `nda`, `autoRenew`, `processor`, `breach`, `notifyController`.
+- Error codes with portal text: `customer_org_number_taken` (409, `detail.customer`),
+  `invalid_orgnr`, `orgnr_not_found`, `registry_unavailable`, `invalid_status`,
+  `invalid_user`, `name_required`, `invalid_customer`, `merge_into_self`,
+  `match_not_pending`.
+- Create-flow labels live in the **kit** scope (`kit.flows.customer.to_*`,
+  `kit.flows.supplier.to_customer`), where `create-from-here` reads them, not in the
+  global files (§3.2). "Registrer som kunde" on the supplier card is the backend flow
+  `supplier.to_customer` (prefill `name`, `legal_name`, `org_number`, `country`,
+  `website`) in the record's "Mer ⋯"; `/customers/new?from_supplier=<id>` also works.
+
+---
+
+## 13. LANE-1 contract notes (projects, contracts, deviations, feedback; 2026-11-19)
+
+Additions and decisions on top of §4 (core `core/customers-l1`, portal `portal/customers-l1`):
+
+- Migration `cf211_customer_links_l1` (down `cf210_customers`): `customer_id` (FK
+  `fk_<table>_customer_id`, `ON DELETE SET NULL`, index `ix_<table>_customer_id`) on
+  `project`, `contract_party`, `deviation`, `customer_feedback`, `survey`,
+  `survey_response`.
+- Contracts: `ContractCreate.customer_id` / `ContractUpdate.customer_id` (null clears) set
+  the counterparty party (re-pointed, else the first external non-supplier party, else a
+  new party with the customer's name / org nr / primary contact; role `controller` on a
+  DPA where we process, else `customer`). `PartyIn` / `PartyUpdate.customer_id`; a party
+  with both a supplier and a customer is 422 `party_supplier_and_customer`. List items
+  and detail return `customer_id` + `customer`; `GET /contracts?customer_id=`.
+- Deviations: `DeviationType` gains `template_key` and `customer_field`
+  (`required` | `optional` | null). Create without a customer on a type whose template
+  says `"customer_field": "required"` is 422 `customer_required` (field `customer_id`)
+  while the customers module is on. Decision: the claim template keeps `customer_name`
+  as an optional advanced field "Kunde (fritekst)" instead of removing it, so old
+  records still show what was typed (the scan migrates it).
+- Feedback: `customer_id` + `customer` on items and surveys; `?customer_id=` on the
+  items list. The free-text organisation field is hidden in the form while the module
+  is on, unless an unlinked record already has one.
+- Portal: the Kunde picker sits in each form (contract basics, deviation "Klassifiser"
+  next to severity, feedback customer card, survey basics, project form); detail pages
+  show `app-customer-chip`; lists have `app-customer-filter` bound to `?customer_id=`
+  and add the customer name to the row subtitle (the shared row has no free column).
+  The claim flow preselects the type installed from `template_key`.
+- Not done in v1: a customer picker in the contract party editor on the detail page
+  (the contract-level Kunde field covers it).

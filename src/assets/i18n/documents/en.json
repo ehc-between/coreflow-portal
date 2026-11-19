@@ -612,7 +612,11 @@
       "tooManyRequirements": "Pick at most 30 requirements.",
       "tooManyRelated": "Link at most 20 records.",
       "invalidLinkType": "One of the links could not be saved. Remove it and try again."
-    }
+    },
+    "customer": "Customer",
+    "customerHint": "For customer-specific documents, such as a specification, drawing or customer manual.",
+    "noCustomer": "No customer",
+    "changeCustomer": "Change"
   },
   "proposals": {
     "reviewsDue": "{{count}} documents are due for periodic review.",

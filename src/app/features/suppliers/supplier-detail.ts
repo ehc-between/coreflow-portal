@@ -36,6 +36,7 @@ import { CountryNamePipe } from '../../shared/locale/countries';
 import { LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
+import { AlsoCustomer } from '../../shared/customers/also-customer';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
@@ -139,6 +140,7 @@ export function lowerFirst(text: string): string {
   imports: [
     RouterLink,
     TranslocoPipe,
+    AlsoCustomer,
     CountryNamePipe,
     LocalDayPipe,
     MarkdownPipe,
@@ -544,6 +546,8 @@ export function lowerFirst(text: string): string {
                 [entityLabel]="s.code + ' ' + s.name"
               />
             </div>
+
+            <app-also-customer follow-up-connections [orgNumber]="s.registration_number" />
 
             <app-record-meta follow-up-meta>
               <app-field-item

@@ -66,6 +66,7 @@ import {
 } from './data/obligation-display';
 import { obligationErrorKey } from './data/obligation-errors';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { CustomerFilter, customerIdFromRoute } from '../../shared/customers';
 
 const PAGE_SIZE = 25;
 /** The "expiring soon" window of the summary tile. */
@@ -134,6 +135,7 @@ function flag(value: string | null): boolean {
     TourStepDirective,
     WhyItMatters,
     RecordListPage,
+    CustomerFilter,
     CoverageChip,
     Button,
     Card,
@@ -288,6 +290,12 @@ function flag(value: string | null): boolean {
         }
       </ng-container>
 
+      <app-customer-filter
+        filters
+        [value]="customerId()"
+        (valueChange)="setCustomer($event)"
+        data-testid="filter-customer"
+      />
       <label filters class="sr-only" for="cf-ob-status">
         {{ 'obligations.filters.status' | transloco }}
       </label>
@@ -590,6 +598,8 @@ export class ObligationsList {
   protected readonly starter = viewChild(StarterSetup);
 
   protected readonly q = signal('');
+  /** The Kunde filter (`?customer_id=`, e.g. the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(null);
   protected readonly status = signal<string>('current');
   protected readonly type = signal<ObligationType | ''>('');
   protected readonly compliance = signal<string>('');
@@ -613,6 +623,7 @@ export class ObligationsList {
   protected readonly tile = computed<TileFilter | null>(() => {
     const extra =
       !!this.q() ||
+      !!this.customerId() ||
       this.status() !== 'current' ||
       !!this.type() ||
       !!this.framework() ||
@@ -650,6 +661,7 @@ export class ObligationsList {
   protected readonly isFiltered = computed(
     () =>
       !!this.q() ||
+      !!this.customerId() ||
       this.status() !== 'current' ||
       !!this.type() ||
       !!this.compliance() ||
@@ -691,6 +703,7 @@ export class ObligationsList {
       without_schedule: this.withoutSchedule() ? true : undefined,
       renewal_due: this.renewal() ? true : undefined,
       expiring_within_days: expiring ? Number(expiring) : undefined,
+      customer_id: this.customerId() || undefined,
       sort: this.sort(),
       limit: PAGE_SIZE,
       offset: this.offset(),
@@ -731,6 +744,9 @@ export class ObligationsList {
     const parts = [this.language.translate(obligationTypeKey(o.obligation_type))];
     if (o.issuer) {
       parts.push(o.issuer);
+    }
+    if (o.customer && o.customer.name !== o.issuer) {
+      parts.push(o.customer.name);
     }
     if (o.duty_count) {
       parts.push(this.language.translate('obligations.list.duties', { count: o.duty_count }));
@@ -780,6 +796,11 @@ export class ObligationsList {
   protected setFramework(value: string): void {
     this.offset.set(0);
     this.framework.set((FRAMEWORKS as readonly string[]).includes(value) ? value : '');
+  }
+
+  protected setCustomer(value: string | null): void {
+    this.offset.set(0);
+    this.customerId.set(value);
   }
 
   protected setOwner(value: string): void {
@@ -837,6 +858,7 @@ export class ObligationsList {
 
   protected resetFilters(): void {
     this.q.set('');
+    this.customerId.set(null);
     this.applyFilters({});
   }
 
@@ -892,6 +914,7 @@ export class ObligationsList {
     if (p.keys.length === 0) {
       return;
     }
+    this.customerId.set(customerIdFromRoute(this.route));
     const compliance = p.get('compliance') ?? '';
     this.applyFilters({
       status: p.get('status') ?? 'current',

@@ -1,3 +1,4 @@
+import type { CustomerRef } from '../../../shared/customers';
 import {
   CONTRACT_TYPES,
   Contract,
@@ -61,6 +62,12 @@ export interface ContractFormValue {
   readonly parties: readonly PartyDraft[];
   /** Create-from-supplier flow: link the counterparty to this supplier. */
   readonly supplier_id: string;
+  /**
+   * The "Kunde" field (customer register, '' = none): the backend makes the
+   * counterparty party this customer (name, org. number, primary contact).
+   */
+  readonly customer_id: string;
+  readonly customer: CustomerRef | null;
 }
 
 export const MAX_PARTIES = 20;
@@ -106,6 +113,8 @@ export function emptyContractForm(ownerUserId = ''): ContractFormValue {
     governing_law: '',
     parties: [],
     supplier_id: '',
+    customer_id: '',
+    customer: null,
   };
 }
 
@@ -144,6 +153,8 @@ export function formFromContract(c: Contract): ContractFormValue {
     governing_law: c.governing_law ?? '',
     parties: [],
     supplier_id: '',
+    customer_id: c.customer_id ?? '',
+    customer: c.customer ?? null,
   };
 }
 
@@ -252,6 +263,7 @@ export function toCreateRequest(v: ContractFormValue): ContractCreate {
     ...fields(v),
     parties: v.parties.filter((p) => p.name.trim()).map(partyIn),
     ...(v.supplier_id ? { supplier_id: v.supplier_id } : {}),
+    ...(v.customer_id ? { customer_id: v.customer_id } : {}),
   };
   // Without an owner the backend defaults to the caller.
   return body.owner_user_id ? body : { ...body, owner_user_id: undefined };
@@ -278,6 +290,9 @@ export function toUpdateRequest(
     if (value !== before[key]) {
       changed[key] = value;
     }
+  }
+  if ((original.customer_id || null) !== (v.customer_id || null)) {
+    changed['customer_id'] = v.customer_id || null;
   }
   const reason = changeReason.trim();
   return { ...changed, ...(reason ? { change_reason: reason } : {}) } as ContractUpdate;
@@ -378,7 +393,25 @@ export function formFromPrefill(
     start_date: day(str(prefill['start_date'])) ?? base.start_date,
     parties: parties.length ? parties : base.parties,
     supplier_id: str(prefill['supplier_id']) || base.supplier_id,
+    ...customerFromPrefill(base, prefill),
   };
+}
+
+/** The Kunde field of a create-from-customer prefill (`customer_id` + its `customer` ref). */
+function customerFromPrefill(
+  base: ContractFormValue,
+  prefill: Readonly<Record<string, unknown>>,
+): Pick<ContractFormValue, 'customer_id' | 'customer'> {
+  const id = str(prefill['customer_id']);
+  if (!id) {
+    return { customer_id: base.customer_id, customer: base.customer };
+  }
+  const raw = prefill['customer'];
+  const ref =
+    raw && typeof raw === 'object' && str((raw as Record<string, unknown>)['id']) === id
+      ? (raw as CustomerRef)
+      : null;
+  return { customer_id: id, customer: ref };
 }
 
 /**

@@ -217,6 +217,9 @@ describe('FeedbackList as one register (U23)', () => {
             },
           ],
         });
+      } else if (req.request.url.endsWith('/modules')) {
+        // The Kunde filter asks which modules are on (an array).
+        req.flush([]);
       } else {
         req.flush({ items: [], total: 0 });
       }

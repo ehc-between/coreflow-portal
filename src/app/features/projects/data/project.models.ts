@@ -4,6 +4,8 @@
  * dates (`YYYY-MM-DD`); timestamps are naive UTC ISO strings.
  */
 
+import type { CustomerRef } from '../../../shared/customers';
+
 export const PERM_READ = 'projects:read';
 export const PERM_WRITE = 'projects:write';
 export const PERM_MANAGE = 'projects:manage';
@@ -127,6 +129,9 @@ export interface Project {
   readonly health: ProjectHealth | null;
   readonly owner: UserRef | null;
   readonly department_id: string | null;
+  /** The customer the project is delivered for (customer register). */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly start_date: string | null;
   readonly due_date: string | null;
   readonly security_relevant: boolean;
@@ -229,6 +234,7 @@ export interface ProjectListQuery {
   readonly member?: string;
   readonly kind?: ProjectKind;
   readonly department_id?: string;
+  readonly customer_id?: string;
   readonly overdue?: boolean;
   readonly sort?: ProjectSort;
   readonly limit?: number;
@@ -251,6 +257,7 @@ export interface ProjectCreate {
   readonly health?: ProjectHealth | null;
   readonly owner_user_id?: string | null;
   readonly department_id?: string | null;
+  readonly customer_id?: string | null;
   readonly start_date?: string | null;
   readonly due_date?: string | null;
   readonly security_relevant?: boolean;

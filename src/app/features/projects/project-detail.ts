@@ -48,6 +48,7 @@ import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { CustomerChip } from '../../shared/customers';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -335,6 +336,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
     ConfirmDialog,
     ErrorState,
     FieldItem,
+    CustomerChip,
     FieldList,
     HelpStrip,
     Icon,
@@ -602,6 +604,11 @@ export function purposeLinks(links: readonly LinkItem[]): {
                       </span>
                     }
                   }
+                </app-field-item>
+              }
+              @if (p.customer) {
+                <app-field-item size="lead" labelKey="projects.fields.customer">
+                  <app-customer-chip [ref]="p.customer" data-testid="project-customer-chip" />
                 </app-field-item>
               }
             </app-record-lead>

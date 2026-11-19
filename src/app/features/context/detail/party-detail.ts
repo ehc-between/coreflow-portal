@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -52,6 +52,8 @@ import { CONTEXT_ROOT_CRUMB } from '../context-nav';
 import { injectContextPermissions } from '../context-permissions';
 import { FIELD_LABELS, HeaderAction, lifecycleBody, placeActions } from './context-detail';
 import { PartyRegisters } from './party-registers';
+import { CustomersAvailability } from '../../../shared/customers';
+import { CustomersApi } from '../../customers/data/customers-api';
 
 /** Tone of the "Håndtert – …" sentence: done is green, open work is a to-do (never red). */
 const ADDRESSED_TONE: Readonly<Record<AddressedStatus, StatusLineTone>> = {
@@ -122,6 +124,7 @@ export function partyMissing(
     PromptDialog,
     StatusBadge,
     PartyRegisters,
+    RouterLink,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -266,6 +269,11 @@ export function partyMissing(
                 [value]="r.requirements"
                 [multiline]="true"
               />
+              @if (isCustomers()) {
+                <p class="-mt-2 mb-4 text-meta text-fg-muted" data-testid="party-customer-hint">
+                  {{ 'context.partyDetail.customers.requirementsHint' | transloco }}
+                </p>
+              }
               <app-field-item
                 size="lead"
                 labelKey="context.partyDetail.lead.howAddressed"
@@ -351,6 +359,24 @@ export function partyMissing(
               [party]="r"
               [canEdit]="r.can_edit"
             />
+            @if (isCustomers() && customers.canRead()) {
+              <a
+                follow-up-connections
+                routerLink="/customers"
+                [queryParams]="{ status: 'active' }"
+                class="inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                data-testid="party-customer-register"
+              >
+                <app-icon name="building" [size]="14" />
+                {{
+                  (activeCustomers() === null
+                    ? 'context.partyDetail.customers.register'
+                    : 'context.partyDetail.customers.registerCount'
+                  ) | transloco: { count: activeCustomers() }
+                }}
+                <span aria-hidden="true">→</span>
+              </a>
+            }
 
             <app-record-meta follow-up-meta>
               <app-field-item
@@ -424,6 +450,10 @@ export class PartyDetail {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
+  protected readonly customers = inject(CustomersAvailability);
+  private readonly customersApi = inject(CustomersApi);
+  /** Active customers in the register (the "Kunder" party points at it); null until known. */
+  protected readonly activeCustomers = signal<number | null>(null);
 
   /** Route param (component input binding). */
   readonly id = input.required<string>();
@@ -448,6 +478,10 @@ export class PartyDetail {
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly record = signal<InterestedParty | null>(null);
+  /** A customer party while the customer register is on: it points at the register. */
+  protected readonly isCustomers = computed(
+    () => this.record()?.category === 'customer' && this.customers.enabled(),
+  );
   protected readonly busy = signal<HeaderAction | 'delete' | null>(null);
   protected readonly reviewOpen = signal(false);
   protected readonly deleteOpen = signal(false);
@@ -525,6 +559,19 @@ export class PartyDetail {
       const orgId = this.selectedOrg.currentOrgId();
       const id = this.id();
       untracked(() => this.load(orgId, id));
+    });
+    // "Kunderegisteret: N aktive kunder": only for a customer party, once per org.
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      if (!orgId || !this.isCustomers() || !this.customers.canRead()) {
+        return;
+      }
+      untracked(() =>
+        this.customersApi.summary(orgId).subscribe({
+          next: (s) => this.activeCustomers.set(s.by_status?.active ?? null),
+          error: () => this.activeCustomers.set(null),
+        }),
+      );
     });
   }
 

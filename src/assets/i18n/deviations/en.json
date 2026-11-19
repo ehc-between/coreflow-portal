@@ -48,7 +48,9 @@
     "text_required": "Describe what happened first.",
     "deviation_required": "Open a deviation first.",
     "invalid_event_times": "Check the times: they cannot be in the future, and it cannot be detected before it happened.",
-    "invalid_reporting_value": "Check the reporting time: it must be a date and not in the future."
+    "invalid_reporting_value": "Check the reporting time: it must be a date and not in the future.",
+    "customer_required": "Choose the customer: this type of deviation needs one.",
+    "invalid_customer": "Choose a customer from the customer register."
   },
   "rootCauses": {
     "title": "Root cause analysis",
@@ -420,6 +422,9 @@
       "typeFields": "More about the {{ type }}",
       "who": "Responsibility",
       "whoHint": "Who follows it up, and by when."
+    },
+    "fields": {
+      "customer": "Customer"
     }
   },
   "detail": {

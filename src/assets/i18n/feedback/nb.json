@@ -177,7 +177,8 @@
     "createdBy": "Registrert av",
     "acknowledgedAt": "Bekreftet mottatt",
     "resolvedAt": "Løst",
-    "closedAt": "Lukket"
+    "closedAt": "Lukket",
+    "customer": "Kunde"
   },
   "form": {
     "newTitle": "Registrer kundetilbakemelding",
@@ -661,7 +662,8 @@
     "invalid_privacy_notice_url": "Bruk en fullstendig nettadresse som begynner med https://.",
     "feedback_exists": "Dette svaret er allerede en tilbakemelding.",
     "feedback_not_found": "Denne tilbakemeldingen finnes ikke lenger.",
-    "nothing_to_do": "Velg en ny status eller en eier først."
+    "nothing_to_do": "Velg en ny status eller en eier først.",
+    "invalid_customer": "Velg en kunde fra kunderegisteret."
   },
   "notifications": {
     "feedbackCreated": "Tilbakemelding registrert: {{ code }} {{ title }}",

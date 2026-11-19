@@ -59,6 +59,7 @@ import {
 import { AssetsApi } from './data/assets-api';
 import { assetsNav } from './shared/assets-nav';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { CustomerFilter } from '../../shared/customers';
 
 const PAGE_SIZE = 25;
 
@@ -80,6 +81,8 @@ export interface AssetFilters {
   readonly holder: 'me' | '';
   readonly review: 'overdue' | '';
   readonly supplier: string;
+  /** Customer property of one customer (`?customer_id=`). */
+  readonly customer: string;
   readonly sort: AssetSort;
 }
 
@@ -93,6 +96,7 @@ export const DEFAULT_ASSET_FILTERS: AssetFilters = {
   holder: '',
   review: '',
   supplier: '',
+  customer: '',
   sort: 'code',
 };
 
@@ -121,6 +125,7 @@ export function assetFiltersFromView(values: Readonly<Record<string, string>>): 
   const review =
     values['review'] === 'overdue' || values['review_overdue'] === 'true' ? 'overdue' : '';
   const supplier = values['supplier'] || values['supplier_id'] || '';
+  const customer = values['customer'] || values['customer_id'] || '';
   return {
     type: pick(values['type'], ASSET_TYPES),
     classification: pick(values['classification'], CLASSIFICATIONS),
@@ -131,6 +136,7 @@ export function assetFiltersFromView(values: Readonly<Record<string, string>>): 
     holder: values['holder'] === 'me' || values['custodian'] === 'me' ? 'me' : '',
     review,
     supplier: UUID.test(supplier) ? supplier : '',
+    customer: UUID.test(customer) ? customer : '',
     sort: pick(values['sort'], ASSET_SORTS) || 'code',
   };
 }
@@ -150,6 +156,7 @@ export function assetQuery(q: string, f: AssetFilters, offset: number): AssetLis
     owner: f.owner || undefined,
     custodian: f.holder || undefined,
     supplier_id: f.supplier || undefined,
+    customer_id: f.customer || undefined,
     review_overdue: f.review === 'overdue' ? true : undefined,
     attention: f.attention === 'any' ? 'any' : f.attention ? [f.attention] : undefined,
     ...(f.flag ? { [f.flag]: true } : {}),
@@ -190,6 +197,7 @@ interface Summary {
 @Component({
   selector: 'app-assets-list',
   imports: [
+    CustomerFilter,
     FulfilsRequirements,
     TranslocoPipe,
     Button,
@@ -264,6 +272,11 @@ interface Summary {
       </ng-container>
 
       <ng-container filters>
+        <app-customer-filter
+          [value]="filters().customer || null"
+          (valueChange)="setFilter('customer', $event ?? '')"
+          data-testid="asset-customer-filter"
+        />
         <label class="sr-only" for="ast-f-type">{{ 'assets.fields.assetType' | transloco }}</label>
         <select
           id="ast-f-type"

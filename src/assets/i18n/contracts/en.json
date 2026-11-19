@@ -138,7 +138,8 @@
     "involvesAiSystem": "Includes an AI system",
     "flags": "Also",
     "lastReviewed": "Last reviewed",
-    "approvalReview": "Requirements review"
+    "approvalReview": "Requirements review",
+    "customer": "Customer"
   },
   "form": {
     "newTitle": "New contract",
@@ -554,7 +555,9 @@
     "invalid_review_answer": "Choose yes, no or not relevant for each question.",
     "invalid_supplier": "That supplier does not exist in the supplier register.",
     "not_a_dpa": "Choose a data processing agreement.",
-    "link_exists": "That agreement is already linked."
+    "link_exists": "That agreement is already linked.",
+    "invalid_customer": "Choose a customer from the customer register.",
+    "party_supplier_and_customer": "A party is either a supplier or a customer, not both."
   },
   "notifications": {
     "ownerChanged": "You now own the contract {{ code }}: {{ title }}",

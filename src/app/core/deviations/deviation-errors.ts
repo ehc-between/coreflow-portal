@@ -68,6 +68,8 @@ export const M03_ERROR_CODES = [
   'deviation_required',
   'invalid_event_times',
   'invalid_reporting_value',
+  'customer_required',
+  'invalid_customer',
 ] as const;
 
 /** Translated generic text for a coded error the UI doesn't know yet. */

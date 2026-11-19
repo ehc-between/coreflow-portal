@@ -17,7 +17,8 @@
     "risk": "Risiko",
     "task": "Oppgave",
     "document": "Dokument",
-    "supplier": "Leverandør"
+    "supplier": "Leverandør",
+    "customer": "Kunde"
   },
   "groups": {
     "governance": "Styring",
@@ -29,7 +30,8 @@
     "ai": "KI",
     "envHse": "Miljø og HMS",
     "continuity": "Beredskap",
-    "library": "Dokumenter og rapporter"
+    "library": "Dokumenter og rapporter",
+    "customers": "Kunder"
   },
   "pins": {
     "heading": "Festet",

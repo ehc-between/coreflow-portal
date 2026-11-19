@@ -1,0 +1,339 @@
+{
+  "entity": "Customer",
+  "alsoCustomer": "Also a customer: {{ code }}",
+  "alsoSupplier": "Also a supplier",
+  "alsoSupplierNamed": "Also a supplier: {{ name }}",
+  "status": {
+    "prospect": "Prospect",
+    "active": "Active",
+    "former": "Former customer"
+  },
+  "ref": {
+    "label": "Customer",
+    "column": "Customer",
+    "none": "No customer",
+    "placeholder": "Search for a customer",
+    "create": "Create the customer “{{ name }}”",
+    "created": "Customer {{ name }} created.",
+    "createFailed": "Could not create the customer. Try again.",
+    "deleted": "(deleted)",
+    "filterAll": "All customers",
+    "filterLabel": "Filter by customer",
+    "noAccess": "You do not have access to the customer register.",
+    "noMatch": "No customers match.",
+    "searching": "Searching…"
+  },
+  "actions": {
+    "new": "New customer",
+    "edit": "Edit",
+    "newClaim": "New claim",
+    "refetch": "Fetch again from the Brønnøysund Register Centre",
+    "merge": "Merge with…",
+    "delete": "Delete customer"
+  },
+  "ai": {
+    "summarise": "Summarise customer status",
+    "followUp": "What should we follow up with this customer?",
+    "prompts": {
+      "summarise": "Summarise the status of customer {{ code }} {{ name }}: open claims and complaints, contracts and renewal dates, projects, satisfaction trend, customer requirements and the latest customer audit.",
+      "followUp": "What should we follow up with customer {{ code }} {{ name }} in the coming weeks? List the most important points first."
+    }
+  },
+  "common": {
+    "back": "Back",
+    "backToRegister": "Back to customers",
+    "cancel": "Cancel",
+    "close": "Close",
+    "nobody": "Nobody",
+    "save": "Save"
+  },
+  "contacts": {
+    "title": "Contact persons",
+    "add": "Add contact person",
+    "edit": "Edit {{ name }}",
+    "remove": "Remove {{ name }}",
+    "newTitle": "New contact person",
+    "editTitle": "Edit contact person",
+    "none": "No contact persons yet.",
+    "primary": "Main contact",
+    "nameRequired": "Fill in the name.",
+    "fields": {
+      "name": "Name",
+      "title": "Role or title",
+      "email": "Email",
+      "phone": "Phone",
+      "primary": "Main contact for the customer",
+      "notes": "Notes"
+    },
+    "removeTitle": "Remove contact person?",
+    "removeMessage": "{{ name }} is removed from the customer.",
+    "removeConfirm": "Remove",
+    "saved": "Contact person saved.",
+    "removed": "Contact person removed."
+  },
+  "delete": {
+    "title": "Delete customer?",
+    "message": "{{ name }} is removed from the register. Records linked to the customer keep the link and show it as deleted."
+  },
+  "detail": {
+    "notFoundTitle": "Customer not found",
+    "notFound": "The customer does not exist or you do not have access to it.",
+    "overviewFailed": "Could not load what is connected to the customer right now.",
+    "primaryContact": "Main contact",
+    "segmentIndustry": "Segment and industry",
+    "registryChecked": "Checked in the Brønnøysund Register Centre",
+    "updated": "Last changed"
+  },
+  "empty": {
+    "title": "No customers yet",
+    "body": "Register the customers you deliver to. Projects, contracts, claims and feedback can then be linked to the right customer.",
+    "scanTitle": "Find your customers in existing data",
+    "scanBody": "CoreFlow can look through contracts, feedback, deviations and other records for customer names, create the customers and link the records. Names that are not certain go to a list you review.",
+    "orNew": "Or register a customer yourself"
+  },
+  "errors": {
+    "customer_org_number_taken": "This org. number is already registered as a customer.",
+    "invalid_orgnr": "The org. number must have nine digits.",
+    "orgnr_not_found": "No company with this org. number was found.",
+    "registry_unavailable": "Could not get the details right now – fill them in yourself.",
+    "invalid_status": "Choose a valid status.",
+    "invalid_user": "Choose a member of the organisation as customer owner.",
+    "name_required": "Could not save. Fill in the name.",
+    "invalid_customer": "The customer no longer exists. Choose another one.",
+    "merge_into_self": "A customer cannot be merged with itself.",
+    "match_not_pending": "This match has already been decided.",
+    "forbidden": "You do not have permission to do this.",
+    "invalid": "Could not save. Check the fields and try again.",
+    "generic": "Something went wrong. Try again."
+  },
+  "fields": {
+    "name": "Name",
+    "legalName": "Registered name",
+    "orgNumber": "Org. number",
+    "orgForm": "Organisation form",
+    "country": "Country (code)",
+    "address": "Address",
+    "postalCode": "Postcode",
+    "city": "City",
+    "industryCode": "Industry code (NACE)",
+    "industry": "Industry",
+    "segment": "Segment",
+    "status": "Status",
+    "owner": "Customer owner",
+    "website": "Website",
+    "email": "Email",
+    "phone": "Phone",
+    "description": "About the customer",
+    "customerSince": "Customer since"
+  },
+  "filters": {
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "segment": "Segment",
+    "allSegments": "All segments",
+    "allOwners": "All customer owners",
+    "openClaims": "Has open claims",
+    "sort": "Sort by"
+  },
+  "sorts": {
+    "name": "Name",
+    "updated": "Last changed",
+    "nextRenewal": "Next renewal"
+  },
+  "form": {
+    "newTitle": "New customer",
+    "editTitle": "Edit customer",
+    "editTitleNamed": "Edit {{ name }}",
+    "nameRequired": "Fill in the name.",
+    "openExisting": "Open {{ name }}",
+    "checksumWarning": "This does not look like a valid Norwegian org. number. Check the digits.",
+    "sections": {
+      "company": "Company",
+      "relationship": "Customer relationship",
+      "contact": "Contact details"
+    }
+  },
+  "list": {
+    "subtitle": "The customers you deliver to, and everything connected to them.",
+    "searchPlaceholder": "Search name, org. number, code or city",
+    "orgNumber": "Org. no. {{ number }}",
+    "renews": "renews in {{ count }} days",
+    "renewsOne": "renews in 1 day",
+    "openClaims": "{{ count }} open claims",
+    "openClaimsOne": "1 open claim",
+    "pending": "{{ count }} customer matches are waiting for review",
+    "pendingOne": "1 customer match is waiting for review",
+    "pendingReview": "Review",
+    "resetFilters": "Clear the filters"
+  },
+  "lookup": {
+    "loading": "Looking up the org. number in the Brønnøysund Register Centre…",
+    "filled": "Retrieved from the Brønnøysund Register Centre. Check the details before you save.",
+    "nothingToFill": "Found in the Brønnøysund Register Centre. The fields were already filled in.",
+    "notFound": "No company with this org. number was found in the Brønnøysund Register Centre.",
+    "unavailable": "Could not get the details right now – fill them in yourself.",
+    "exists": "Already registered: {{ name }}.",
+    "open": "Open",
+    "alsoSupplier": "Also registered as a supplier: {{ name }}."
+  },
+  "matches": {
+    "title": "Review customer matches",
+    "subtitle": "Customer names found in existing records that could not be linked for certain. Decide which customer each one belongs to.",
+    "proposed": "Suggested customer:",
+    "proposedNew": "New customer: “{{ name }}”",
+    "foundIn": "Found in",
+    "hiddenRecord": "a record you cannot open",
+    "reason": {
+      "same_core_name": "Same name, different spelling",
+      "similar_name": "Similar name",
+      "ambiguous": "Several customers could fit"
+    },
+    "accept": "Link",
+    "create": "Create new customer",
+    "dismiss": "Not a customer",
+    "other": "Link to another customer…",
+    "applySame": "Use the same choice for {{ count }} identical matches",
+    "select": "Select “{{ text }}”",
+    "bulk": {
+      "label": "Selected matches",
+      "selected": "{{ count }} selected",
+      "clear": "Clear selection"
+    },
+    "done": {
+      "accept": "Linked ({{ count }}).",
+      "create": "Customer created and linked.",
+      "dismiss": "Marked as not a customer ({{ count }})."
+    },
+    "emptyTitle": "Nothing to review",
+    "emptyBody": "All customer names found so far are linked or decided."
+  },
+  "merge": {
+    "title": "Merge with another customer",
+    "message": "Everything connected to {{ name }} is moved to the customer you choose, and {{ name }} is deleted.",
+    "into": "Keep this customer",
+    "confirm": "Merge",
+    "self": "Choose a different customer."
+  },
+  "missing": {
+    "owner": "No customer owner · Choose",
+    "contact": "No contact person · Add",
+    "orgNumber": "Org. number missing · Fill in",
+    "notice": "Contract {{ code }} must be terminated by {{ date }}",
+    "matches": "{{ count }} customer matches are waiting · Review",
+    "matchesOne": "1 customer match is waiting · Review"
+  },
+  "notices": {
+    "created": "Customer {{ code }} registered.",
+    "saved": "Customer {{ code }} saved.",
+    "deleted": "Customer {{ code }} deleted.",
+    "merged": "Merged into {{ code }}.",
+    "refetched": "Details updated from the Brønnøysund Register Centre."
+  },
+  "registry": {
+    "bankrupt": "Bankrupt",
+    "underLiquidation": "Under liquidation",
+    "deleted": "Deleted from the register"
+  },
+  "scan": {
+    "action": "Find customers in existing data",
+    "again": "Look for customers again",
+    "result": "Created {{ created }} customers and linked {{ linked }} records. {{ pending }} matches are waiting for review.",
+    "review": "Review them"
+  },
+  "sentence": {
+    "status": {
+      "active": "Active customer",
+      "prospect": "Prospect",
+      "former": "Former customer"
+    },
+    "rest": {
+      "active": "no open matters",
+      "prospect": "not a customer yet",
+      "former": "no open matters"
+    },
+    "claims": "{{ count }} open claims",
+    "claimsOne": "1 open claim",
+    "breaches": "{{ count }} open personal data breaches",
+    "breachesOne": "1 open personal data breach",
+    "renewal": "contract renews in {{ count }} days",
+    "renewalOne": "contract renews in 1 day",
+    "noticeBy": "contract must be terminated by {{ date }}",
+    "requirements": "{{ count }} customer requirements not met",
+    "requirementsOne": "1 customer requirement not met",
+    "satisfactionDown": "satisfaction is falling"
+  },
+  "sections": {
+    "none": "None yet.",
+    "openCount": "{{ count }} open",
+    "openCountOne": "1 open",
+    "seeAll": "See all ({{ count }})",
+    "claims": {
+      "title": "Claims and complaints",
+      "new": "New claim"
+    },
+    "deviations": {
+      "title": "Deviations and incidents",
+      "new": "New deviation"
+    },
+    "contracts": {
+      "title": "Contracts",
+      "new": "New contract",
+      "renews": "renews in {{ count }} days",
+      "renewsOne": "renews in 1 day"
+    },
+    "projects": {
+      "title": "Projects",
+      "new": "New project"
+    },
+    "satisfaction": {
+      "title": "Satisfaction",
+      "new": "New feedback",
+      "counts": "{{ complaints }} complaints and {{ compliments }} compliments in the last 12 months",
+      "trend": {
+        "up": "Rising",
+        "down": "Falling",
+        "flat": "Stable"
+      }
+    },
+    "requirements": {
+      "title": "Customer requirements",
+      "new": "New customer requirement"
+    },
+    "audits": {
+      "title": "Audits by the customer",
+      "new": "New customer audit",
+      "last": "Last audit {{ date }}",
+      "next": "next {{ date }}",
+      "findings": "{{ count }} open findings",
+      "findingsOne": "1 open finding"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "new": "New processing activity"
+    },
+    "property": {
+      "title": "Customer property",
+      "new": "Register customer property"
+    },
+    "documents": {
+      "title": "Documents",
+      "new": "New document"
+    },
+    "work": {
+      "title": "Tasks",
+      "new": "New task"
+    },
+    "other": {
+      "title": "Other records",
+      "new": "New record"
+    },
+    "badges": {
+      "dpa": "Data processing agreement",
+      "nda": "Confidentiality agreement",
+      "autoRenew": "Renews automatically",
+      "processor": "We are processor",
+      "breach": "Breach",
+      "notifyController": "Notify the customer without undue delay"
+    }
+  }
+}

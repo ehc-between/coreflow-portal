@@ -23,7 +23,8 @@ import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { PrivacyApi } from './data/privacy-api';
-import { PrivacyRecord } from './data/privacy.models';
+import { DataBreach, PrivacyRecord, RopaEntry } from './data/privacy.models';
+import type { CustomerRef } from '../../shared/customers';
 import { nowDateTimeInput } from './data/privacy-dates';
 import { PrivacyErrorMessage, privacyError } from './data/privacy-errors';
 import {
@@ -32,6 +33,7 @@ import {
   prefillValues,
   updateBody,
   valuesFromRecord,
+  withCustomerRole,
 } from './data/privacy-form-model';
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import {
@@ -100,6 +102,7 @@ const NOW_FIELDS = ['received_at', 'aware_at', 'given_at'];
               [error]="saveError()"
               [permissions]="perms()"
               [quickStart]="quickStart"
+              [customerRefs]="customerRefs()"
               (submitted)="save($event)"
               (cancelled)="cancel()"
             />
@@ -132,6 +135,14 @@ export class PrivacyRegisterEdit {
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly loadError = signal('privacy.common.loadFailed');
   protected readonly record = signal<PrivacyRecord | null>(null);
+  /** The record's customers (names for the Kunde fields). */
+  protected readonly customerRefs = computed<readonly CustomerRef[]>(() => {
+    const r = this.record() as (PrivacyRecord & Partial<RopaEntry & DataBreach>) | null;
+    if (!r) {
+      return [];
+    }
+    return [...(r.customer ? [r.customer] : []), ...(r.customers ?? [])];
+  });
   protected readonly values = signal<FormValues | null>(null);
   protected readonly saving = signal(false);
   protected readonly saveError = signal<PrivacyErrorMessage | null>(null);
@@ -192,7 +203,12 @@ export class PrivacyRegisterEdit {
         if (!current) {
           return;
         }
-        this.values.set(this.mergeEmpty(current, prefillValues(this.def(), ctx.prefill)));
+        this.values.set(
+          withCustomerRole(
+            this.def(),
+            this.mergeEmpty(current, prefillValues(this.def(), ctx.prefill)),
+          ),
+        );
       });
     });
   }
@@ -244,7 +260,7 @@ export class PrivacyRegisterEdit {
       if (ctx) {
         merged = this.mergeEmpty(merged, prefillValues(def, ctx.prefill));
       }
-      this.values.set(merged);
+      this.values.set(withCustomerRole(def, merged));
       this.state.set('ready');
       return;
     }
