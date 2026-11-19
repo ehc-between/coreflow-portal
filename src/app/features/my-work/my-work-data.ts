@@ -195,6 +195,7 @@ export const LABELLED_SOURCES: readonly string[] = [
   'management_review_signoff',
   'project_milestone',
   'training_due',
+  'requirement_suggestions',
 ];
 
 /** i18n key (scope `tasks`) naming what an item is. */
