@@ -71,9 +71,9 @@ interface OwnerOption {
       <div class="mb-3 flex items-center justify-between gap-3">
         <div>
           <h2 class="font-display text-section font-bold text-fg">
-            {{ 'deviations.actions.title' | transloco }}
+            {{ titleKey() | transloco }}
           </h2>
-          <p class="mt-0.5 text-meta text-fg-muted">{{ 'deviations.capa.intro' | transloco }}</p>
+          <p class="mt-0.5 text-meta text-fg-muted">{{ introKey() | transloco }}</p>
         </div>
         @if (canEdit() && !adding()) {
           <app-button variant="secondary" size="sm" (click)="startAdd()">
@@ -451,6 +451,9 @@ export class DeviationActions {
   private readonly notifications = inject(NotificationService);
 
   readonly deviationId = input.required<string>();
+  /** U33: the heading (the deviation page asks "Hva gjør vi?"). */
+  readonly titleKey = input('deviations.actions.title');
+  readonly introKey = input('deviations.capa.intro');
   readonly actions = input.required<readonly Action[]>();
   readonly owners = input<readonly OwnerOption[]>([]);
   readonly canEdit = input(false);
