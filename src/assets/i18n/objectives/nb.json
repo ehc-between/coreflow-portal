@@ -543,5 +543,11 @@
     "kpiThresholdBreached": "KPI-en havnet utenfor målverdien",
     "kpiBackOnTrack": "KPI-en er tilbake på sporet",
     "kpiDeleted": "{{ actor_name }} slettet KPI-en"
+  },
+  "measure": {
+    "lead": "Det dere måler:",
+    "objectives": "{{ count }} mål",
+    "kpis": "{{ count }} nøkkeltall (KPI-er)",
+    "explain": "Mål er det dere vil oppnå. Nøkkeltallene viser om dere er på vei dit."
   }
 }

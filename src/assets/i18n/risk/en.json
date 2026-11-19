@@ -55,7 +55,8 @@
     "noAppetite": "No risk appetite set",
     "acceptedAbove": "{{ count }} accepted above it",
     "awaitingCheck": "{{ count }} completed treatments are waiting for an effectiveness check.",
-    "seeAll": "See all"
+    "seeAll": "See all",
+    "aboveAppetitePlain": "Higher than you accept"
   },
   "setup": {
     "done": "Risk management is set up with a 5x5 matrix and an enterprise risk register.",
@@ -822,5 +823,16 @@
       "title": "Justify {{ count }} controls in the Statement of Applicability",
       "why": "Every control needs a decision and a reason before the statement can be approved."
     }
+  },
+  "quick": {
+    "title": "What can go wrong?",
+    "intro": "Answer three questions to add a risk. You can fill in the rest later.",
+    "what": "What can go wrong?",
+    "whatPlaceholder": "E.g. a key supplier cannot deliver",
+    "likely": "How likely is it?",
+    "bad": "How bad would it be?",
+    "save": "Add the risk",
+    "later": "You can add measures and an owner on the risk page.",
+    "saved": "The risk was added."
   }
 }
