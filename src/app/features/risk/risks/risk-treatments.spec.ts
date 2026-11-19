@@ -131,8 +131,12 @@ describe('RiskTreatments', () => {
     });
   });
 
-  it('opens the treatment named in the URL', () => {
-    setup([treatment()], 't-1');
+  it('opens the treatment named in the URL, read-only until "Edit"', () => {
+    const { fixture } = setup([treatment()], 't-1');
+    expect(document.querySelector('[data-testid="treatment-summary"]')).toBeTruthy();
+    expect(document.querySelector('#treatment-title')).toBeNull();
+    document.querySelector<HTMLElement>('[data-testid="treatment-edit"] button')?.click();
+    fixture.detectChanges();
     const title = document.querySelector<HTMLInputElement>('#treatment-title');
     expect(title?.value).toBe('Encrypt disks');
   });

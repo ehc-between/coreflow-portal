@@ -8,17 +8,19 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
+import { AiAssistApi } from '../../../core/ai/ai-assist-api';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
+import { SseStream } from '../../../core/ai/sse-client';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { Term } from '../../../shared/guidance/term';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { EntityChip } from '../../../shared/kit/entity-chip';
@@ -27,15 +29,21 @@ import {
   RecordMissingItem,
   RecordTab,
 } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -48,7 +56,6 @@ import {
   appetiteState,
   canonicalControlRef,
   controlsOf,
-  currentBasis,
   currentRating,
   frameworksForCategory,
   fromDateInput,
@@ -116,14 +123,84 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
   acceptance_expires_at: 'risk.fields.acceptanceExpires',
 };
 
+/** The status sentence of a risk ("Over risikoappetitten – …"), docs/ux-guide.md §2.7. */
+export interface RiskStatusSentence {
+  readonly key: string;
+  readonly tone: StatusLineTone;
+}
+
 /**
- * One risk. The first card says what the risk is (description, the exposed record,
- * threat, vulnerability, consequence); then the assessment (inherent -> treatment
- * decision -> residual, against the appetite), the acceptance sign-off, the
- * treatment plan (tasks, effectiveness checks) and the cited controls (linked to the
- * SoA with their implementation status). The aside shows the requirements the
- * risk documents (fed by its controls), its connections and a short summary; the
- * record kit tabs hold related items, activity, comments, attachments and revisions.
+ * How the risk stands, in one sentence: closed, not rated yet, accepted, above or
+ * within the appetite. Open work is `warn`, never `fail`; a low risk is not an
+ * achievement, so "within the appetite" is neutral, not green.
+ */
+export function riskStatusSentence(risk: Risk): RiskStatusSentence | null {
+  if (risk.status === 'closed') {
+    return { key: 'risk.detail.statusLine.closed', tone: 'neutral' };
+  }
+  if (!risk.inherent && !risk.residual) {
+    return { key: 'risk.detail.statusLine.unrated', tone: 'warn' };
+  }
+  const appetite = appetiteState(risk);
+  if (risk.acceptance || appetite === 'accepted') {
+    return { key: 'risk.detail.statusLine.accepted', tone: 'neutral' };
+  }
+  if (appetite === 'above') {
+    return { key: 'risk.detail.statusLine.above', tone: 'warn' };
+  }
+  if (risk.appetite_max_score !== null && risk.appetite_max_score !== undefined) {
+    return { key: 'risk.detail.statusLine.within', tone: 'neutral' };
+  }
+  return null;
+}
+
+/** What a risk still needs ("Oppfølging"): each line a link to the form or an action. */
+export function riskMissing(
+  risk: Risk,
+  editLink: readonly unknown[],
+  actions: { review: (() => void) | null; addTreatment: (() => void) | null },
+): RecordMissingItem[] {
+  if (!risk.can_edit || risk.status === 'closed') {
+    return [];
+  }
+  const items: RecordMissingItem[] = [];
+  if (risk.review_overdue && actions.review) {
+    items.push({ key: 'review', labelKey: 'risk.detail.missing.review', action: actions.review });
+  }
+  if (!risk.inherent && !risk.residual) {
+    items.push({ key: 'rating', labelKey: 'risk.detail.missing.rating', link: editLink });
+  }
+  if (!risk.treatment_strategy) {
+    items.push({ key: 'strategy', labelKey: 'risk.detail.missing.strategy', link: editLink });
+  }
+  if (
+    risk.treatment_strategy === 'mitigate' &&
+    risk.treatments.open + risk.treatments.done === 0 &&
+    actions.addTreatment
+  ) {
+    items.push({
+      key: 'treatments',
+      labelKey: 'risk.detail.missing.treatments',
+      action: actions.addTreatment,
+    });
+  }
+  if (!risk.owner) {
+    items.push({ key: 'owner', labelKey: 'risk.detail.missing.owner', link: editLink });
+  }
+  return items;
+}
+
+type RiskAssist = 'controls' | 'plan';
+
+/**
+ * One risk, on the detail-page anatomy (docs/ux-guide.md §2.7). "Hovedinformasjon"
+ * says what could happen, how serious it is (before -> after treatment, against
+ * the appetite), how it is handled and what it concerns; the details tab holds the
+ * rest of the analysis, the acceptance sign-off, the treatment plan and the cited
+ * controls (linked to the SoA). The "Oppfølging" card lists what is missing, the
+ * requirements the risk documents, its connections and the owner / review dates.
+ * Assistant actions (explain, suggest controls, draft a treatment plan) sit in the
+ * header's "Spør KI" menu.
  */
 @Component({
   selector: 'app-risk-detail',
@@ -131,23 +208,22 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
     TourStepDirective,
     RouterLink,
     TranslocoPipe,
-    WatchButton,
-    AiAssistButton,
-    AskAbout,
     Term,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     LocalDatePipe,
     LocalDayPipe,
     SupportsRequirements,
     Alert,
     Badge,
     Button,
-    Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     FormField,
     HelpStrip,
     Icon,
@@ -164,6 +240,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
     @if (risk(); as r) {
       @let rating = current();
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="risk"
         [entityId]="r.id"
         [title]="r.title"
@@ -190,253 +267,265 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
           >
             {{ r.register.name }}
           </a>
+          <span aria-hidden="true">·</span>
           <app-status-badge
             meaning="lifecycle"
             [value]="statusValue(r.status)"
             [labelKey]="'risk.status.' + r.status"
           />
-          <app-rating-badge
-            [score]="rating?.score"
-            [level]="rating?.level"
-            [label]="rating?.label"
-            [color]="rating?.color"
-            prefixKey="risk.rating.currentPrefix"
-            [hintKey]="basisHint()"
-          />
-          @switch (appetite()) {
-            @case ('above') {
-              <app-badge tone="fail">{{ 'risk.rating.aboveAppetite' | transloco }}</app-badge>
-            }
-            @case ('accepted') {
-              <app-badge tone="neutral" data-testid="accepted-above-appetite">
-                {{ acceptedLabel() }}
-              </app-badge>
-            }
-          }
           @if (r.review_overdue) {
             <app-badge tone="warn">{{ 'risk.detail.reviewOverdue' | transloco }}</app-badge>
           }
-          <app-watch-button entityType="risk" [entityId]="r.id" />
         </ng-container>
 
         @if (r.can_edit) {
-          <app-button primary size="sm" (click)="edit()" data-testid="risk-edit">
+          <app-button primary (click)="edit()" data-testid="risk-edit">
             {{ 'risk.common.edit' | transloco }}
           </app-button>
         }
-        @if (r.can_edit && r.status !== 'closed') {
-          <app-button secondary size="sm" variant="secondary" (click)="reviewOpen.set(true)">
+        @if (canReview() && r.review_overdue) {
+          <app-button secondary variant="secondary" (click)="reviewOpen.set(true)">
             <app-icon name="checkcircle" [size]="14" />
             {{ 'risk.detail.review' | transloco }}
           </app-button>
         }
-        @if (r.can_accept && r.status !== 'closed' && !r.acceptance) {
+        @if (canAccept() && acceptIsNext()) {
           <app-button
             secondary
-            size="sm"
             variant="secondary"
-            [disabled]="!rated()"
-            [attr.title]="rated() ? null : ('risk.detail.acceptNeedsRating' | transloco)"
             (click)="openAccept()"
             data-testid="risk-accept"
           >
             {{ 'risk.detail.accept' | transloco }}
           </app-button>
         }
+        @if (canReview() && !r.review_overdue) {
+          <button appMenuItem overflow type="button" (click)="reviewOpen.set(true)">
+            {{ 'risk.detail.review' | transloco }}
+          </button>
+        }
+        @if (canAccept() && !acceptIsNext()) {
+          <button
+            appMenuItem
+            overflow
+            type="button"
+            [disabled]="!rated()"
+            [attr.title]="rated() ? null : ('risk.detail.acceptNeedsRating' | transloco)"
+            (click)="openAccept()"
+            data-testid="risk-accept"
+          >
+            {{ 'risk.detail.accept' | transloco }}
+          </button>
+        }
+        @if (r.can_edit && r.status !== 'closed' && !r.acceptance) {
+          <button
+            appMenuItem
+            overflow
+            type="button"
+            (click)="openStatus()"
+            data-testid="risk-change-status"
+          >
+            {{ 'risk.detail.changeStatusAction' | transloco }}
+          </button>
+        }
         @if (r.can_accept && r.status !== 'closed' && r.acceptance) {
-          <button appMenuItem overflow (click)="revokeOpen.set(true)">
+          <button appMenuItem overflow type="button" (click)="revokeOpen.set(true)">
             {{ 'risk.detail.revoke' | transloco }}
           </button>
         }
         @if (r.can_delete) {
-          <button appMenuItem overflow [danger]="true" (click)="deleteOpen.set(true)">
+          <button appMenuItem overflow type="button" [danger]="true" (click)="deleteOpen.set(true)">
             {{ 'risk.common.delete' | transloco }}
           </button>
         }
 
-        <div class="flex flex-col gap-5">
+        <button appMenuItem ask type="button" (click)="explain()">
+          <app-icon name="spark" [size]="15" />
+          {{ 'risk.ai.explainRating' | transloco }}
+        </button>
+        @if (r.can_edit && r.status !== 'closed') {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            [disabled]="!!assisting()"
+            (click)="runAssist('plan')"
+            data-testid="risk-ai-plan"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'risk.ai.draftTreatment' | transloco }}
+          </button>
+        }
+        @if (r.can_edit) {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            [disabled]="!!assisting()"
+            (click)="runAssist('controls')"
+            data-testid="risk-ai-controls"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'risk.ai.suggestControls' | transloco }}
+          </button>
+        }
+
+        <app-help-strip help scope="risk" page="detail" tour="detail" lesson="treating-risks" />
+
+        <app-record-lead record-lead [fillLink]="r.can_edit ? editLink() : null">
+          @if (statusSentence(); as s) {
+            <app-record-status-line status [tone]="s.tone" data-testid="risk-status-line">
+              {{
+                s.key
+                  | transloco
+                    : {
+                        name:
+                          r.acceptance?.accepted_by?.name ?? ('risk.common.unknown' | transloco),
+                        score: r.appetite_max_score,
+                      }
+              }}
+            </app-record-status-line>
+          }
+          <app-field-item
+            size="lead"
+            labelKey="risk.detail.lead.what"
+            [wide]="true"
+            [value]="r.description"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="risk.detail.lead.level"
+            [appTourStep]="'risk-ratings'"
+          >
+            @if (rating) {
+              <span class="flex flex-col gap-2" data-testid="risk-level">
+                <span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                  @if (r.inherent; as i) {
+                    <span class="text-ui text-fg-muted">
+                      <app-term scope="risk" key="inherent-risk">{{
+                        'risk.detail.before' | transloco
+                      }}</app-term>
+                    </span>
+                    <app-rating-badge
+                      [score]="i.score"
+                      [level]="i.level"
+                      [label]="i.label"
+                      [color]="i.color"
+                    />
+                  }
+                  @if (r.inherent && r.residual) {
+                    <span aria-hidden="true" class="text-fg-subtle">→</span>
+                  }
+                  @if (r.residual; as res) {
+                    <span class="text-ui text-fg-muted">
+                      <app-term scope="risk" key="residual-risk">{{
+                        'risk.detail.after' | transloco
+                      }}</app-term>
+                    </span>
+                    <app-rating-badge
+                      [score]="res.score"
+                      [level]="res.level"
+                      [label]="res.label"
+                      [color]="res.color"
+                    />
+                  }
+                </span>
+                @if (!r.residual) {
+                  <span class="text-ui text-fg-muted">{{
+                    'risk.detail.noResidual' | transloco
+                  }}</span>
+                }
+                @if (appetiteMax() !== null) {
+                  <span class="text-meta text-fg-subtle" data-testid="risk-appetite-line">
+                    <app-term scope="risk" key="risk-appetite">{{
+                      'risk.overview.appetiteTerm' | transloco
+                    }}</app-term
+                    >: {{ 'risk.detail.appetiteLine' | transloco: { score: appetiteMax() } }}
+                  </span>
+                }
+              </span>
+            }
+          </app-field-item>
+          <app-field-item size="lead" labelKey="risk.detail.lead.handling">
+            @if (r.treatment_strategy || r.treatment_notes || hasTreatments()) {
+              <span class="flex flex-col gap-1">
+                @if (r.treatment_strategy) {
+                  <span>{{ 'risk.strategies.' + r.treatment_strategy | transloco }}</span>
+                }
+                @if (hasTreatments()) {
+                  <a
+                    href="#risk-treatments"
+                    class="text-ui font-semibold text-accent hover:underline"
+                    (click)="$event.preventDefault(); scrollTo('risk-treatments')"
+                    >{{
+                      'risk.detail.treatmentCounts'
+                        | transloco: { open: r.treatments.open, done: r.treatments.done }
+                    }}</a
+                  >
+                }
+                @if (r.treatment_notes) {
+                  <span class="text-ui whitespace-pre-line text-fg-muted">{{
+                    r.treatment_notes
+                  }}</span>
+                }
+              </span>
+            }
+          </app-field-item>
+          <app-field-item size="lead" labelKey="risk.detail.lead.concerns">
+            @if (r.source_type || r.source_entity || r.source_ref) {
+              <span class="flex flex-col gap-1">
+                @if (r.source_type) {
+                  <span>{{ 'risk.sourceTypes.' + r.source_type | transloco }}</span>
+                }
+                @if (r.source_entity; as entity) {
+                  <app-entity-chip [ref]="entity" data-testid="risk-subject" />
+                } @else if (r.source_ref) {
+                  <span class="text-ui text-fg-muted">{{ r.source_ref }}</span>
+                }
+              </span>
+            }
+          </app-field-item>
+        </app-record-lead>
+
+        <div class="flex flex-col gap-8">
           @if (errorKey(); as key) {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
 
-          <app-card data-testid="risk-what">
-            <h2 class="mb-3 font-display text-section font-bold text-fg">
-              {{ 'risk.detail.what' | transloco }}
-            </h2>
-            @if (r.description) {
-              <p class="mb-4 text-body whitespace-pre-line text-fg">{{ r.description }}</p>
-            }
-            <app-field-list>
-              <app-field-item labelKey="risk.fields.sourceType" [wide]="true">
-                <div class="flex flex-wrap items-center gap-2">
-                  @if (r.source_type) {
-                    <span>{{ 'risk.sourceTypes.' + r.source_type | transloco }}</span>
-                  }
-                  @if (r.source_entity; as entity) {
-                    <app-entity-chip [ref]="entity" data-testid="risk-subject" />
-                  } @else if (r.source_ref) {
-                    <span class="text-fg-muted">· {{ r.source_ref }}</span>
-                  } @else if (!r.source_type) {
-                    <span class="text-fg-muted">{{ 'common.empty.notSet' | transloco }}</span>
-                  }
-                </div>
-              </app-field-item>
-              <app-field-item
-                labelKey="risk.fields.threat"
-                [value]="r.threat"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item
-                labelKey="risk.fields.vulnerability"
-                [value]="r.vulnerability"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item
-                labelKey="risk.fields.consequence"
-                [value]="r.consequence_text"
-                [wide]="true"
-                [multiline]="true"
-              />
-              @if (r.affected_properties.length) {
-                <app-field-item
-                  labelKey="risk.fields.affectedProperties"
-                  [value]="properties()"
-                  [wide]="true"
-                />
-              }
-            </app-field-list>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-3 flex items-center gap-1.5 font-display text-section font-bold text-fg">
-              {{ 'risk.detail.assessment' | transloco }}
-              <app-ask-about [prompt]="'risk.ask.rating' | transloco" field="rating" />
-            </h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3" [appTourStep]="'risk-ratings'">
-              <div>
-                <p class="mb-1 text-meta font-semibold text-fg-muted">
-                  <app-term scope="risk" key="inherent-risk">{{
-                    'risk.fields.inherent' | transloco
-                  }}</app-term>
-                </p>
-                <app-rating-badge
-                  [score]="r.inherent?.score"
-                  [level]="r.inherent?.level"
-                  [label]="r.inherent?.label"
-                  [color]="r.inherent?.color"
-                />
-                @if (r.inherent; as i) {
-                  <p class="mt-1 text-meta text-fg-subtle">
-                    {{ 'risk.detail.lc' | transloco: { l: i.likelihood, c: i.consequence } }}
-                  </p>
-                }
-              </div>
-              <div>
-                <p class="mb-1 text-meta font-semibold text-fg-muted">
-                  {{ 'risk.fields.strategy' | transloco }}
-                </p>
-                <p class="text-body text-fg">
-                  {{
-                    r.treatment_strategy
-                      ? ('risk.strategies.' + r.treatment_strategy | transloco)
-                      : ('risk.common.notDecided' | transloco)
-                  }}
-                </p>
-                <p class="mt-1 text-meta text-fg-subtle">
-                  {{
-                    'risk.detail.treatmentCounts'
-                      | transloco: { open: r.treatments.open, done: r.treatments.done }
-                  }}
-                </p>
-              </div>
-              <div>
-                <p class="mb-1 text-meta font-semibold text-fg-muted">
-                  <app-term scope="risk" key="residual-risk">{{
-                    'risk.fields.residual' | transloco
-                  }}</app-term>
-                </p>
-                <app-rating-badge
-                  [score]="r.residual?.score"
-                  [level]="r.residual?.level"
-                  [label]="r.residual?.label"
-                  [color]="r.residual?.color"
-                />
-                @if (r.residual; as res) {
-                  <p class="mt-1 text-meta text-fg-subtle">
-                    {{ 'risk.detail.lc' | transloco: { l: res.likelihood, c: res.consequence } }}
-                  </p>
-                } @else if (r.inherent) {
-                  <p class="mt-1 text-meta text-fg-subtle">
-                    {{ 'risk.detail.noResidual' | transloco }}
-                  </p>
-                }
-              </div>
-            </div>
-            <div
-              class="mt-4 flex flex-col gap-1 rounded-tile bg-surface-2 px-3 py-2 text-ui text-fg-muted"
-            >
-              <p>
-                <app-term scope="risk" key="current-rating">{{
-                  'risk.rating.current' | transloco
-                }}</app-term
-                >:
-                {{ basisHint() ?? 'risk.rating.basisHint.none' | transloco }}
-              </p>
-              @if (appetiteMax() !== null) {
-                <p data-testid="risk-appetite-line">
-                  <app-term scope="risk" key="risk-appetite">{{
-                    'risk.overview.appetiteTerm' | transloco
-                  }}</app-term
-                  >:
-                  {{ 'risk.detail.appetiteLine' | transloco: { score: appetiteMax() } }}
-                </p>
-              }
-              @if (!rated() && r.can_accept) {
-                <p>{{ 'risk.detail.acceptNeedsRating' | transloco }}</p>
-              }
-            </div>
-            @if (r.treatment_notes) {
-              <p class="mt-3 text-body whitespace-pre-line text-fg-muted">
-                {{ r.treatment_notes }}
-              </p>
-            }
-            @if (r.status !== 'closed' && r.can_edit) {
-              <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                <label for="risk-status" class="text-meta font-semibold text-fg-muted">
-                  {{ 'risk.detail.changeStatus' | transloco }}
-                </label>
-                <select
-                  id="risk-status"
-                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-                  [disabled]="!!r.acceptance"
-                  [attr.aria-describedby]="r.acceptance ? 'risk-status-locked' : null"
-                  (change)="requestStatus($any($event.target).value)"
-                >
-                  @if (r.status === 'accepted') {
-                    <option value="accepted" selected>
-                      {{ 'risk.status.accepted' | transloco }}
-                    </option>
-                  }
-                  @for (s of patchableStatuses; track s) {
-                    <option [value]="s" [selected]="s === r.status">
-                      {{ 'risk.status.' + s | transloco }}
-                    </option>
-                  }
-                </select>
-                @if (r.acceptance) {
-                  <span id="risk-status-locked" class="text-meta text-fg-subtle">{{
-                    'risk.detail.acceptedLocked' | transloco
-                  }}</span>
-                }
-              </div>
-            }
-          </app-card>
+          <app-record-details [columns]="2" [fillLink]="r.can_edit ? editLink() : null">
+            <app-field-item
+              labelKey="risk.detail.plain.threat"
+              [value]="r.threat"
+              [multiline]="true"
+            />
+            <app-field-item
+              labelKey="risk.detail.plain.vulnerability"
+              [value]="r.vulnerability"
+              [multiline]="true"
+            />
+            <app-field-item
+              labelKey="risk.detail.plain.consequence"
+              [value]="r.consequence_text"
+              [multiline]="true"
+            />
+            <app-field-item labelKey="risk.detail.plain.properties" [value]="properties()" />
+            <app-field-item
+              labelKey="risk.fields.category"
+              [value]="'risk.categories.' + r.category | transloco"
+            />
+            <app-field-item labelKey="risk.fields.department" [value]="r.department?.name" />
+            <app-field-item
+              labelKey="risk.detail.plain.statusReason"
+              [wide]="true"
+              [value]="r.status_reason"
+              [multiline]="true"
+            />
+          </app-record-details>
 
           @if (r.acceptance; as a) {
-            <app-card data-testid="risk-acceptance">
-              <h2 class="mb-2 font-display text-section font-bold text-fg">
+            <section data-testid="risk-acceptance" aria-labelledby="risk-acceptance-title">
+              <h2 id="risk-acceptance-title" class="mb-2 font-display text-card font-bold text-fg">
                 {{ 'risk.detail.acceptance' | transloco }}
               </h2>
               <p class="text-body text-fg">
@@ -460,38 +549,49 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
               @if (a.note) {
                 <p class="mt-2 text-body whitespace-pre-line text-fg-muted">{{ a.note }}</p>
               }
-            </app-card>
+            </section>
           }
 
-          <app-card>
+          <section id="risk-treatments" class="scroll-mt-20">
+            @if (assisting() === 'plan') {
+              <p class="mb-2 text-ui text-fg-muted" role="status" data-testid="risk-ai-running">
+                <app-icon name="spark" [size]="14" />
+                {{ 'risk.ai.working' | transloco }}
+              </p>
+            }
             <app-risk-treatments
               [appTourStep]="'risk-treatments'"
               [risk]="r"
               [canEdit]="r.can_edit && r.status !== 'closed'"
               [focusId]="treatmentFocus()"
+              [(plan)]="plan"
               (changed)="reload()"
               (planApplied)="applyPlan($event)"
               (rerate)="rerate()"
             />
-          </app-card>
+          </section>
 
-          <app-card data-testid="risk-controls">
-            <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="flex items-center gap-1.5 font-display text-section font-bold text-fg">
-                {{ 'risk.detail.controls' | transloco }}
-              </h2>
-              @if (r.can_edit) {
-                <app-ai-assist-button
-                  assist="risk.suggest_controls"
-                  labelKey="risk.ai.suggestControls"
-                  [input]="{ risk_id: r.id }"
-                  entityType="risk"
-                  [entityId]="r.id"
-                  (result)="onControls($event)"
-                />
-              }
-            </div>
+          <section
+            id="risk-controls"
+            class="scroll-mt-20"
+            data-testid="risk-controls"
+            aria-labelledby="risk-controls-title"
+          >
+            <h2 id="risk-controls-title" class="mb-1 font-display text-card font-bold text-fg">
+              {{ 'risk.detail.controls' | transloco }}
+            </h2>
             <p class="mb-3 text-meta text-fg-muted">{{ 'risk.detail.controlsHint' | transloco }}</p>
+            @if (assisting() === 'controls') {
+              <p class="mb-2 text-ui text-fg-muted" role="status" data-testid="risk-ai-running">
+                <app-icon name="spark" [size]="14" />
+                {{ 'risk.ai.working' | transloco }}
+              </p>
+            }
+            @if (assistFailed()) {
+              <app-alert tone="error" class="mb-3 block">{{
+                'risk.ai.failed' | transloco
+              }}</app-alert>
+            }
             @if (controlSuggestions().length) {
               <section
                 class="mb-3 rounded-card border border-accent/30 bg-accent-soft p-3 text-ui"
@@ -537,7 +637,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
               </section>
             }
             <app-risk-control-list [controls]="controls()" emptyKey="risk.detail.noControls" />
-          </app-card>
+          </section>
         </div>
 
         <app-supports-requirements
@@ -548,39 +648,37 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
           [frameworks]="frameworks()"
         />
 
-        <app-card aside>
-          <h2 class="mb-3 text-card font-semibold text-fg">
-            {{ 'risk.detail.summary' | transloco }}
-          </h2>
-          <app-field-list [columns]="1">
-            <app-field-item labelKey="risk.fields.riskOwner" [value]="r.owner?.name" empty="none" />
-            <app-field-item labelKey="risk.fields.department" [value]="r.department?.name" />
-            <app-field-item
-              labelKey="risk.fields.category"
-              [value]="'risk.categories.' + r.category | transloco"
-            />
-            <app-field-item
-              labelKey="risk.fields.lastReviewed"
-              [value]="r.last_reviewed_at ? (r.last_reviewed_at | localDay) : null"
-            />
-            <app-field-item
-              labelKey="risk.fields.nextReview"
-              [value]="r.next_review_at ? (r.next_review_at | localDay) : null"
-            />
-            @if (r.status_reason) {
-              <app-field-item labelKey="risk.fields.statusReason" [value]="r.status_reason" />
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="risk.fields.riskOwner"
+            [value]="r.owner?.name"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="risk.fields.lastReviewed"
+            [value]="r.last_reviewed_at ? (r.last_reviewed_at | localDay) : null"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="risk.fields.nextReview"
+            [keepEmpty]="r.status !== 'closed'"
+            emptyKey="kit.detail.meta.notPlanned"
+            emptyActionKey="kit.detail.meta.plan"
+            [emptyLink]="r.can_edit ? editLink() : null"
+          >
+            @if (r.next_review_at) {
+              <span [class.text-warn-ink]="r.review_overdue">{{
+                r.next_review_at | localDay
+              }}</span>
             }
-            <app-field-item labelKey="risk.fields.updatedAt" [value]="r.updated_at | localDate" />
-          </app-field-list>
-        </app-card>
-
-        <app-help-strip
-          aside-learn
-          scope="risk"
-          page="detail"
-          tour="detail"
-          lesson="treating-risks"
-        />
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="risk.fields.updatedAt"
+            [value]="r.updated_at | localDate"
+          />
+        </app-record-meta>
       </app-record-detail-layout>
 
       <app-prompt-dialog
@@ -608,21 +706,50 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
         (cancelled)="revokeOpen.set(false)"
       />
 
-      <app-prompt-dialog
-        [open]="statusTarget() !== null"
+      <app-confirm-dialog
+        [open]="statusOpen()"
         [title]="'risk.detail.statusTitle' | transloco"
-        [message]="
-          'risk.detail.statusMessage'
-            | transloco: { status: ('risk.status.' + (statusTarget() ?? 'identified') | transloco) }
-        "
-        [label]="'risk.detail.reason' | transloco"
-        [required]="statusTarget() === 'closed'"
+        confirmVariant="primary"
         [confirmLabel]="'risk.common.save' | transloco"
         [cancelLabel]="'risk.common.cancel' | transloco"
         [busy]="busy()"
-        (confirmed)="setStatus($event)"
-        (cancelled)="cancelStatus()"
-      />
+        [confirmDisabled]="
+          !statusChoice() || (statusChoice() === 'closed' && !statusReason().trim())
+        "
+        (confirmed)="setStatus()"
+        (cancelled)="statusOpen.set(false)"
+      >
+        <div class="mt-3 flex flex-col gap-3" data-testid="risk-status-dialog">
+          <app-form-field [label]="'risk.detail.newStatus' | transloco" inputId="risk-status">
+            <select id="risk-status" (change)="statusChoice.set($any($event.target).value)">
+              @if (r.status === 'accepted') {
+                <option value="" selected disabled>
+                  {{ 'risk.status.accepted' | transloco }}
+                </option>
+              }
+              @for (s of patchableStatuses; track s) {
+                <option [value]="s" [selected]="s === statusChoice()">
+                  {{ 'risk.status.' + s | transloco }}
+                </option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            [label]="
+              (statusChoice() === 'closed' ? 'risk.detail.reasonRequired' : 'risk.detail.reason')
+                | transloco
+            "
+            inputId="risk-status-reason"
+          >
+            <textarea
+              id="risk-status-reason"
+              rows="3"
+              [value]="statusReason()"
+              (input)="statusReason.set($any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        </div>
+      </app-confirm-dialog>
 
       <app-confirm-dialog
         [open]="acceptOpen()"
@@ -715,11 +842,16 @@ export class RiskDetailPage {
   private readonly toasts = inject(NotificationService);
   private readonly auth = inject(AuthService);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly assistApi = inject(AiAssistApi);
+  private readonly availability = inject(AiAvailability);
   protected readonly perms = inject(RiskPermissions);
 
   readonly id = input.required<string>();
   /** `?treatment=<id>` (entity URL of a treatment). */
   readonly treatment = input<string | undefined>(undefined);
+
+  private readonly treatmentsRef = viewChild(RiskTreatments);
 
   protected readonly tabs = TABS;
   protected readonly fieldLabels = RISK_FIELD_LABELS;
@@ -735,47 +867,62 @@ export class RiskDetailPage {
   protected readonly revokeOpen = signal(false);
   protected readonly acceptOpen = signal(false);
   protected readonly deleteOpen = signal(false);
+  protected readonly statusOpen = signal(false);
+  protected readonly statusChoice = signal<PatchableRiskStatus | ''>('');
+  protected readonly statusReason = signal('');
   protected readonly acceptNote = signal('');
   protected readonly acceptExpiry = signal('');
-  protected readonly statusTarget = signal<PatchableRiskStatus | null>(null);
   protected readonly controlSuggestions = signal<readonly ControlSuggestion[]>([]);
+  /** The drafted treatment plan (shown in the treatment section). */
+  protected readonly plan = signal<TreatmentPlan | null>(null);
+  protected readonly assisting = signal<RiskAssist | null>(null);
+  protected readonly assistFailed = signal(false);
+  private assistStream: SseStream | null = null;
   private sub: Subscription | null = null;
 
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/risk/risks',
+    this.id(),
+    'edit',
+  ]);
   protected readonly treatmentFocus = computed(() => this.treatment() ?? null);
   protected readonly current = computed(() => {
     const risk = this.risk();
     return risk ? currentRating(risk) : null;
   });
   protected readonly rated = computed(() => !!this.risk()?.inherent || !!this.risk()?.residual);
-  /** "Hva mangler" (U29): what an editor still has to fill in, each a link to the form. */
+  protected readonly hasTreatments = computed(() => {
+    const t = this.risk()?.treatments;
+    return !!t && t.open + t.done > 0;
+  });
+  protected readonly statusSentence = computed(() => {
+    const risk = this.risk();
+    return risk ? riskStatusSentence(risk) : null;
+  });
+  protected readonly canReview = computed(() => {
+    const r = this.risk();
+    return !!r && r.can_edit && r.status !== 'closed';
+  });
+  protected readonly canAccept = computed(() => {
+    const r = this.risk();
+    return !!r && r.can_accept && r.status !== 'closed' && !r.acceptance;
+  });
+  /** Accepting is the obvious next step when the decision was "accept" and it is rated. */
+  protected readonly acceptIsNext = computed(
+    () => this.rated() && this.risk()?.treatment_strategy === 'accept',
+  );
+  /** "Oppfølging" (§2.7): what an editor still has to do, each a link or an action. */
   protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
     const r = this.risk();
-    if (!r?.can_edit || r.status === 'closed') {
+    if (!r) {
       return [];
     }
-    const link = ['/risk/risks', r.id, 'edit'];
-    const items: RecordMissingItem[] = [];
-    if (!this.rated()) {
-      items.push({ key: 'rating', labelKey: 'risk.detail.missing.rating', link });
-    }
-    if (!r.owner) {
-      items.push({ key: 'owner', labelKey: 'risk.detail.missing.owner', link });
-    }
-    if (!r.treatment_strategy) {
-      items.push({ key: 'strategy', labelKey: 'risk.detail.missing.strategy', link });
-    }
-    return items;
-  });
-  protected readonly appetite = computed(() => {
-    const risk = this.risk();
-    return risk ? appetiteState(risk) : null;
+    return riskMissing(r, this.editLink(), {
+      review: this.canReview() ? () => this.reviewOpen.set(true) : null,
+      addTreatment: () => this.addTreatment(),
+    });
   });
   protected readonly appetiteMax = computed(() => this.risk()?.appetite_max_score ?? null);
-  protected readonly basisHint = computed(() => {
-    const risk = this.risk();
-    const basis = risk ? currentBasis(risk) : null;
-    return basis ? `risk.rating.basisHint.${basis}` : null;
-  });
   protected readonly controls = computed(() => {
     const risk = this.risk();
     return risk ? controlsOf(risk) : [];
@@ -797,15 +944,6 @@ export class RiskDetailPage {
       .join(', '),
   );
   protected readonly signer = computed(() => this.auth.displayName() || '');
-  protected readonly acceptedLabel = computed(() => {
-    const a = this.risk()?.acceptance;
-    if (!a) {
-      return this.translate('risk.rating.acceptedAboveAppetite');
-    }
-    return this.translate('risk.rating.acceptedAboveAppetiteBy', {
-      name: a.accepted_by?.name ?? this.translate('risk.common.unknown'),
-    });
-  });
 
   private translate(key: string, params?: Record<string, unknown>): string {
     return this.language.translate(key, params);
@@ -825,7 +963,10 @@ export class RiskDetailPage {
       const id = this.id();
       untracked(() => this.load(orgId, id));
     });
-    inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.sub?.unsubscribe();
+      this.assistStream?.cancel();
+    });
   }
 
   private load(orgId: string | null, id: string): void {
@@ -851,14 +992,74 @@ export class RiskDetailPage {
   }
 
   protected edit(): void {
-    void this.router.navigate(['/risk/risks', this.id(), 'edit']);
+    void this.router.navigate(this.editLink());
+  }
+
+  protected scrollTo(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** "Legg til tiltak" from the follow-up card: open the new-treatment panel. */
+  protected addTreatment(): void {
+    this.scrollTo('risk-treatments');
+    this.treatmentsRef()?.openNew();
   }
 
   /** After an effectiveness check: re-rate the residual risk on the edit form. */
   protected rerate(): void {
-    void this.router.navigate(['/risk/risks', this.id(), 'edit'], {
-      queryParams: { step: 'assess' },
-    });
+    void this.router.navigate(this.editLink(), { queryParams: { step: 'assess' } });
+  }
+
+  protected explain(): void {
+    this.ask.askAbout(this.translate('risk.ask.rating'), { field: 'rating' });
+  }
+
+  /** Run an assistant action from the "Spør KI" menu; the result shows in its section. */
+  protected runAssist(kind: RiskAssist): void {
+    const orgId = this.perms.orgId();
+    const risk = this.risk();
+    if (!orgId || !risk || this.assisting()) {
+      return;
+    }
+    this.assistFailed.set(false);
+    this.assisting.set(kind);
+    this.scrollTo(kind === 'plan' ? 'risk-treatments' : 'risk-controls');
+    const key = kind === 'plan' ? 'risk.draft_treatment' : 'risk.suggest_controls';
+    this.assistStream = this.assistApi.run(
+      orgId,
+      key,
+      { input: { risk_id: risk.id }, entity_type: 'risk', entity_id: risk.id },
+      (event) => {
+        switch (event.type) {
+          case 'result':
+            if (kind === 'plan') {
+              if (event.data && typeof event.data === 'object') {
+                this.plan.set(event.data as TreatmentPlan);
+              }
+            } else {
+              this.onControls(event.data);
+            }
+            break;
+          case 'done':
+            this.finishAssist();
+            break;
+          case 'error':
+            this.assistFailed.set(true);
+            this.finishAssist();
+            break;
+          case 'not-configured':
+            this.availability.markUnavailable();
+            this.assistFailed.set(true);
+            this.finishAssist();
+            break;
+        }
+      },
+    );
+  }
+
+  private finishAssist(): void {
+    this.assisting.set(null);
+    this.assistStream = null;
   }
 
   /** Run a mutation that returns the updated risk. */
@@ -897,6 +1098,9 @@ export class RiskDetailPage {
   }
 
   protected openAccept(): void {
+    if (!this.rated()) {
+      return;
+    }
     this.acceptNote.set('');
     // Default: valid until the next periodic review (27001 6.1.3 f).
     this.acceptExpiry.set(toDateInput(this.risk()?.next_review_at));
@@ -923,32 +1127,34 @@ export class RiskDetailPage {
     );
   }
 
-  protected requestStatus(status: string): void {
-    if ((PATCHABLE_RISK_STATUSES as readonly string[]).includes(status)) {
-      this.statusTarget.set(status as PatchableRiskStatus);
-    }
+  protected openStatus(): void {
+    const status = this.risk()?.status ?? '';
+    this.statusChoice.set(
+      (PATCHABLE_RISK_STATUSES as readonly string[]).includes(status)
+        ? (status as PatchableRiskStatus)
+        : '',
+    );
+    this.statusReason.set('');
+    this.statusOpen.set(true);
   }
 
-  protected cancelStatus(): void {
-    this.statusTarget.set(null);
-    // Re-render the select with the stored status.
-    const risk = this.risk();
-    this.risk.set(risk ? { ...risk } : null);
-  }
-
-  protected setStatus(reason: string): void {
-    const status = this.statusTarget();
+  protected setStatus(): void {
+    const status = this.statusChoice();
     if (!status) {
+      return;
+    }
+    if (status === this.risk()?.status) {
+      this.statusOpen.set(false);
       return;
     }
     this.mutate(
       (orgId) =>
         this.api.updateRisk(orgId, this.id(), {
           status,
-          status_reason: reason.trim() || null,
+          status_reason: this.statusReason().trim() || null,
         }),
       'risk.notices.statusChanged',
-      () => this.statusTarget.set(null),
+      () => this.statusOpen.set(false),
     );
   }
 

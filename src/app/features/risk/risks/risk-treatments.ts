@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  model,
   output,
   signal,
   untracked,
@@ -15,8 +16,9 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { Term } from '../../../shared/guidance/term';
+import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
+import { RecordStatusLine, StatusLineTone } from '../../../shared/kit/record-sections';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -73,6 +75,25 @@ const EFFECT_VALUE: Readonly<Record<EffectivenessResult, string>> = {
   not_effective: 'non_compliant',
 };
 
+/** The status sentence of a treatment (docs/ux-guide.md §2.7). */
+export function treatmentStatusLine(t: Treatment): { key: string; tone: StatusLineTone } {
+  const needsCheck = t.needs_effectiveness_check ?? (t.status === 'done' && !t.effectiveness);
+  if (t.status === 'cancelled') {
+    return { key: 'risk.treatments.view.status.cancelled', tone: 'neutral' };
+  }
+  if (t.status === 'done') {
+    return needsCheck
+      ? { key: 'risk.treatments.view.status.doneUnchecked', tone: 'warn' }
+      : { key: 'risk.treatments.view.status.done', tone: 'pass' };
+  }
+  if (t.overdue) {
+    return { key: 'risk.treatments.view.status.overdue', tone: 'warn' };
+  }
+  return t.status === 'in_progress'
+    ? { key: 'risk.treatments.view.status.in_progress', tone: 'info' }
+    : { key: 'risk.treatments.view.status.planned', tone: 'neutral' };
+}
+
 /** Today as `YYYY-MM-DD` (local date, for the date input default). */
 function today(): string {
   const d = new Date();
@@ -95,7 +116,6 @@ function today(): string {
     FormsModule,
     RouterLink,
     TranslocoPipe,
-    AiAssistButton,
     Term,
     LocalDayPipe,
     ClausePicker,
@@ -106,6 +126,8 @@ function today(): string {
     SlideOver,
     StatusBadge,
     ControlList,
+    EntityChip,
+    RecordStatusLine,
     PersonSelect,
     RiskField,
   ],
@@ -113,22 +135,14 @@ function today(): string {
   host: { class: 'block' },
   template: `
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-      <h2 class="font-display text-section font-bold text-fg">
+      <h2 class="font-display text-card font-bold text-fg">
         <app-term scope="risk" key="risk-treatment">{{
           'risk.treatments.title' | transloco
         }}</app-term>
       </h2>
       @if (canEdit()) {
         <div class="flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            assist="risk.draft_treatment"
-            labelKey="risk.ai.draftTreatment"
-            [input]="{ risk_id: risk().id }"
-            entityType="risk"
-            [entityId]="risk().id"
-            (result)="onPlan($event)"
-          />
-          <app-button size="sm" (click)="openNew()">
+          <app-button size="sm" variant="secondary" (click)="openNew()">
             <app-icon name="plus" [size]="14" />
             {{ 'risk.treatments.add' | transloco }}
           </app-button>
@@ -315,97 +329,202 @@ function today(): string {
 
     <app-slide-over
       [open]="panelOpen()"
-      [title]="(editing() ? 'risk.treatments.editTitle' : 'risk.treatments.newTitle') | transloco"
+      [title]="editing()?.title ?? ('risk.treatments.newTitle' | transloco)"
       [subtitle]="risk().code + ' · ' + risk().title"
       [closeLabel]="'risk.common.close' | transloco"
       (closed)="closePanel()"
     >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
-        <app-risk-field
-          inputId="treatment-title"
-          labelKey="risk.fields.title"
-          [required]="true"
-          [error]="titleError()"
-        >
-          <input
-            id="treatment-title"
-            required
-            maxlength="255"
-            [disabled]="!canEdit()"
-            [value]="form().title"
-            [attr.aria-invalid]="titleError() ? true : null"
-            (input)="set('title', $any($event.target).value)"
-          />
-        </app-risk-field>
-        <app-risk-field inputId="treatment-description" labelKey="risk.fields.description">
-          <textarea
-            id="treatment-description"
-            rows="3"
-            [disabled]="!canEdit()"
-            [value]="form().description"
-            (input)="set('description', $any($event.target).value)"
-          ></textarea>
-        </app-risk-field>
-        <app-risk-field
-          inputId="treatment-owner"
-          labelKey="risk.fields.owner"
-          helpPage="treatment"
-          helpField="owner"
-        >
-          <app-person-select
-            inputId="treatment-owner"
-            [disabled]="!canEdit()"
-            [value]="form().owner_user_id"
-            [currentName]="editing()?.owner?.name ?? null"
-            (valueChange)="set('owner_user_id', $event)"
-          />
-        </app-risk-field>
-        <app-risk-field inputId="treatment-due" labelKey="risk.fields.dueAt">
-          <input
-            id="treatment-due"
-            type="date"
-            [disabled]="!canEdit()"
-            [value]="form().due_at"
-            (input)="set('due_at', $any($event.target).value)"
-          />
-        </app-risk-field>
-        <app-risk-field
-          inputId="treatment-controls"
-          labelKey="risk.fields.controlRefs"
-          [plain]="true"
-          helpPage="treatment"
-          helpField="controls"
-        >
-          <app-clause-picker
-            inputId="treatment-controls"
-            placeholderKey="risk.form.controlPickerPlaceholder"
-            [frameworks]="frameworks()"
-            [disabled]="!canEdit()"
-            [ngModel]="form().control_refs"
-            (ngModelChange)="set('control_refs', $event)"
-            [ngModelOptions]="{ standalone: true }"
-          />
-          <span hint>{{ 'risk.form.controlsHint' | transloco }}</span>
-        </app-risk-field>
-        @if (errorKey(); as key) {
-          <app-alert tone="error">{{ key | transloco }}</app-alert>
-        }
-        @if (canEdit()) {
-          <div class="flex flex-wrap justify-between gap-2">
-            @if (editing()) {
+      @if (editing(); as t) {
+        <section class="flex flex-col gap-4" data-testid="treatment-summary">
+          @let line = statusLine(t);
+          <app-record-status-line [tone]="line.tone" class="!mb-0">
+            {{ line.key | transloco: { date: t.due_at ? (t.due_at | localDay) : '' } }}
+          </app-record-status-line>
+          @if (t.description) {
+            <div>
+              <h3 class="text-ui font-semibold text-fg">
+                {{ 'risk.treatments.view.what' | transloco }}
+              </h3>
+              <p class="mt-1 text-body whitespace-pre-line text-fg">{{ t.description }}</p>
+            </div>
+          }
+          <dl class="grid grid-cols-2 gap-4">
+            <div>
+              <dt class="text-meta font-semibold text-fg-muted">
+                {{ 'risk.treatments.view.owner' | transloco }}
+              </dt>
+              <dd class="mt-1 text-body" [class]="t.owner ? 'text-fg' : 'text-warn-ink'">
+                {{ t.owner?.name ?? ('risk.common.unassigned' | transloco) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-meta font-semibold text-fg-muted">
+                {{ 'risk.fields.dueAt' | transloco }}
+              </dt>
+              <dd class="mt-1 text-body" [class]="t.overdue ? 'text-warn-ink' : 'text-fg'">
+                {{ t.due_at ? (t.due_at | localDay) : ('risk.treatments.view.noDue' | transloco) }}
+              </dd>
+            </div>
+          </dl>
+          @if (t.effectiveness; as eff) {
+            <div class="flex flex-col gap-1">
+              <h3 class="text-ui font-semibold text-fg">
+                {{ 'risk.effectiveness.result' | transloco }}
+              </h3>
+              <p class="flex flex-wrap items-center gap-2 text-meta text-fg-muted">
+                <app-status-badge
+                  meaning="compliance"
+                  [value]="effectValue(eff.result)"
+                  [labelKey]="'risk.effectiveness.results.' + eff.result"
+                />
+                {{
+                  'risk.effectiveness.checkedBy'
+                    | transloco
+                      : {
+                          name: eff.checked_by?.name ?? ('risk.common.unknown' | transloco),
+                          date: eff.checked_at ? (eff.checked_at | localDay) : '',
+                        }
+                }}
+              </p>
+              @if (eff.note) {
+                <p class="text-ui whitespace-pre-line text-fg-muted">{{ eff.note }}</p>
+              }
+            </div>
+          } @else if (needsCheck(t) && canEdit()) {
+            <div>
+              <app-button size="sm" variant="secondary" (click)="openEffect(t)">
+                {{ 'risk.effectiveness.check' | transloco }}
+              </app-button>
+            </div>
+          }
+
+          <div class="border-t border-border pt-4" data-testid="treatment-connections">
+            <h3 class="mb-2 text-ui font-semibold text-fg">
+              {{ 'risk.treatments.view.connections' | transloco }}
+            </h3>
+            <ul class="flex flex-col gap-2">
+              <li><app-entity-chip [ref]="riskRef()" /></li>
+              @if (t.task_id) {
+                <li><app-entity-chip [ref]="taskRef(t)" [statusText]="!!t.task_status" /></li>
+              }
+            </ul>
+            @if (t.control_refs.length) {
+              <p class="mt-3 mb-1 text-meta font-semibold text-fg-muted">
+                {{ 'risk.treatments.view.controls' | transloco }}
+              </p>
+              <app-risk-control-list [compact]="true" [controls]="controls(t)" />
+            }
+          </div>
+
+          @if (canEdit() && !formOpen()) {
+            <div class="flex flex-wrap justify-between gap-2 border-t border-border pt-4">
               <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
                 <app-icon name="trash" [size]="14" />
                 {{ 'risk.common.delete' | transloco }}
               </app-button>
-            } @else {
-              <span></span>
-            }
-            <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-              {{ 'risk.common.save' | transloco }}
-            </app-button>
-          </div>
-        }
-      </form>
+              <app-button (click)="formOpen.set(true)" data-testid="treatment-edit">
+                {{ 'risk.treatments.view.edit' | transloco }}
+              </app-button>
+            </div>
+          }
+        </section>
+      }
+      @if (!editing() || formOpen()) {
+        <form
+          class="flex flex-col gap-4"
+          [class.mt-5]="!!editing()"
+          [class.border-t]="!!editing()"
+          [class.border-border]="!!editing()"
+          [class.pt-4]="!!editing()"
+          (submit)="$event.preventDefault(); save()"
+          novalidate
+        >
+          <app-risk-field
+            inputId="treatment-title"
+            labelKey="risk.fields.title"
+            [required]="true"
+            [error]="titleError()"
+          >
+            <input
+              id="treatment-title"
+              required
+              maxlength="255"
+              [disabled]="!canEdit()"
+              [value]="form().title"
+              [attr.aria-invalid]="titleError() ? true : null"
+              (input)="set('title', $any($event.target).value)"
+            />
+          </app-risk-field>
+          <app-risk-field inputId="treatment-description" labelKey="risk.fields.description">
+            <textarea
+              id="treatment-description"
+              rows="3"
+              [disabled]="!canEdit()"
+              [value]="form().description"
+              (input)="set('description', $any($event.target).value)"
+            ></textarea>
+          </app-risk-field>
+          <app-risk-field
+            inputId="treatment-owner"
+            labelKey="risk.fields.owner"
+            helpPage="treatment"
+            helpField="owner"
+          >
+            <app-person-select
+              inputId="treatment-owner"
+              [disabled]="!canEdit()"
+              [value]="form().owner_user_id"
+              [currentName]="editing()?.owner?.name ?? null"
+              (valueChange)="set('owner_user_id', $event)"
+            />
+          </app-risk-field>
+          <app-risk-field inputId="treatment-due" labelKey="risk.fields.dueAt">
+            <input
+              id="treatment-due"
+              type="date"
+              [disabled]="!canEdit()"
+              [value]="form().due_at"
+              (input)="set('due_at', $any($event.target).value)"
+            />
+          </app-risk-field>
+          <app-risk-field
+            inputId="treatment-controls"
+            labelKey="risk.fields.controlRefs"
+            [plain]="true"
+            helpPage="treatment"
+            helpField="controls"
+          >
+            <app-clause-picker
+              inputId="treatment-controls"
+              placeholderKey="risk.form.controlPickerPlaceholder"
+              [frameworks]="frameworks()"
+              [disabled]="!canEdit()"
+              [ngModel]="form().control_refs"
+              (ngModelChange)="set('control_refs', $event)"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <span hint>{{ 'risk.form.controlsHint' | transloco }}</span>
+          </app-risk-field>
+          @if (errorKey(); as key) {
+            <app-alert tone="error">{{ key | transloco }}</app-alert>
+          }
+          @if (canEdit()) {
+            <div class="flex flex-wrap justify-between gap-2">
+              @if (editing()) {
+                <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
+                  <app-icon name="trash" [size]="14" />
+                  {{ 'risk.common.delete' | transloco }}
+                </app-button>
+              } @else {
+                <span></span>
+              }
+              <app-button type="submit" [loading]="saving()" [disabled]="saving()">
+                {{ 'risk.common.save' | transloco }}
+              </app-button>
+            </div>
+          }
+        </form>
+      }
     </app-slide-over>
 
     <app-confirm-dialog
@@ -529,7 +648,8 @@ export class RiskTreatments {
   protected readonly submitted = signal(false);
   protected readonly errorKey = signal<string | null>(null);
   protected readonly confirmDelete = signal(false);
-  protected readonly plan = signal<TreatmentPlan | null>(null);
+  /** A drafted treatment plan (the page runs the assistant from its "Spør KI" menu). */
+  readonly plan = model<TreatmentPlan | null>(null);
   protected readonly effectFor = signal<Treatment | null>(null);
   protected readonly effectResult = signal<EffectivenessResult>('effective');
   protected readonly effectNote = signal('');
@@ -540,6 +660,18 @@ export class RiskTreatments {
   private sub: Subscription | null = null;
 
   private readonly riskId = computed(() => this.risk().id);
+  /** An existing treatment opens read-only; "Endre tiltaket" shows the form. */
+  protected readonly formOpen = signal(false);
+  protected readonly riskRef = computed<EntityChipRef>(() => {
+    const risk = this.risk();
+    return {
+      entity_type: 'risk',
+      entity_id: risk.id,
+      code: risk.code,
+      title: risk.title,
+      url: `/risk/risks/${risk.id}`,
+    };
+  });
   protected readonly frameworks = computed(() => {
     const risk = this.risk();
     const list = risk.frameworks?.length ? risk.frameworks : frameworksForCategory(risk.category);
@@ -605,6 +737,22 @@ export class RiskTreatments {
     return controlsOf({ control_refs: d.control_refs ?? [] });
   }
 
+  protected taskRef(t: Treatment): EntityChipRef {
+    return {
+      entity_type: 'task',
+      entity_id: t.task_id ?? '',
+      title: t.title,
+      url: `/tasks/${t.task_id}`,
+      status: t.task_status,
+      module: 'tasks',
+    };
+  }
+
+  /** The treatment's status sentence (done is green only once the effect is checked). */
+  protected statusLine(t: Treatment): { key: string; tone: StatusLineTone } {
+    return treatmentStatusLine(t);
+  }
+
   protected effectValue(result: EffectivenessResult): string {
     return EFFECT_VALUE[result] ?? 'not_assessed';
   }
@@ -618,7 +766,7 @@ export class RiskTreatments {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
-  protected openNew(prefill: Partial<TreatmentForm> = {}): void {
+  openNew(prefill: Partial<TreatmentForm> = {}): void {
     this.editing.set(null);
     this.form.set({ ...EMPTY_FORM, owner_user_id: this.risk().owner?.id ?? '', ...prefill });
     this.errorKey.set(null);
@@ -628,6 +776,7 @@ export class RiskTreatments {
 
   protected openEdit(t: Treatment): void {
     this.editing.set(t);
+    this.formOpen.set(false);
     this.form.set({
       title: t.title,
       description: t.description ?? '',
@@ -641,6 +790,7 @@ export class RiskTreatments {
   }
 
   protected closePanel(): void {
+    this.formOpen.set(false);
     this.panelOpen.set(false);
     this.editing.set(null);
   }
@@ -753,12 +903,6 @@ export class RiskTreatments {
       },
       error: (e: unknown) => this.toasts.error(riskErrorKey(e)),
     });
-  }
-
-  protected onPlan(result: unknown): void {
-    if (result && typeof result === 'object') {
-      this.plan.set(result as TreatmentPlan);
-    }
   }
 
   protected adoptDraft(d: TreatmentDraft): void {
