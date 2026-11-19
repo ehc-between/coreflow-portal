@@ -355,7 +355,45 @@
     "kpisTerm": "Key performance indicators",
     "kpisHint": "show with figures whether the objective is on track.",
     "addKpi": "Add KPI",
-    "noKpis": "No KPI measures this objective yet. Add one so progress is based on data."
+    "noKpis": "No KPI measures this objective yet. Add one so progress is based on data.",
+    "statusLine": {
+      "achieved": "Achieved – the objective was closed as achieved.",
+      "notAchieved": "Not achieved – the objective was closed without reaching the result.",
+      "cancelled": "Cancelled – the objective is no longer followed up.",
+      "draft": "Draft – the objective is not approved yet and is not followed up until it is activated.",
+      "overdue": "The deadline has passed – close the objective as achieved or not achieved.",
+      "noKpis": "Active – no KPI measures the objective yet, so we cannot tell whether it is on track.",
+      "attention": "Active – {{ count }} of {{ total }} KPIs need follow-up.",
+      "attentionOne": "Active – 1 of {{ total }} KPIs needs follow-up.",
+      "onTrack": "Active – all KPIs are on track.",
+      "partly": "Active – {{ count }} of {{ total }} KPIs are on track, the rest are not measured yet.",
+      "partlyOne": "Active – the KPI does not show yet whether the objective is on track."
+    },
+    "lead": {
+      "target": "What we will achieve",
+      "progress": "Progress",
+      "due": "Deadline",
+      "closing": "How it went",
+      "kpis": "How we measure it (KPIs)"
+    },
+    "missing": {
+      "activate": "Approve and activate the objective",
+      "close": "The deadline has passed – close the objective",
+      "addKpi": "Add a KPI that measures the objective",
+      "attention": "{{ count }} KPIs need follow-up",
+      "attentionOne": "1 KPI needs follow-up",
+      "origins": "Show what the objective is based on (policy, risk or opportunity)",
+      "systems": "Choose the management system the objective belongs to",
+      "communicate": "Record who the objective was communicated to"
+    },
+    "why": "Why we have this objective",
+    "about": "More about the objective",
+    "plan": "How we will reach it",
+    "evaluation": "How we judge whether it is reached",
+    "communicatedTo": "Communicated to",
+    "systems": "Management system",
+    "closedOn": "Closed",
+    "updated": "Last changed"
   },
   "kpi": {
     "record": "Record measurement",
@@ -384,7 +422,27 @@
     "measurements": "Measurements",
     "noMeasurements": "No measurements yet. Record the first value to start the trend.",
     "deleteTitle": "Delete this KPI?",
-    "deleteMessage": "{{ code }} is removed and its open measurement tasks are cancelled. Recorded measurements are kept."
+    "deleteMessage": "{{ code }} is removed and its open measurement tasks are cancelled. Recorded measurements are kept.",
+    "statusLine": {
+      "retired": "Retired – the KPI is no longer measured.",
+      "paused": "Paused – no measurement is due while the KPI is paused.",
+      "onTrack": "On track – {{ value }} in {{ period }}, the target is {{ target }}.",
+      "atRisk": "At risk – {{ value }} in {{ period }}, against a target of {{ target }}. Decide what to do.",
+      "offTrack": "Off target – {{ value }} in {{ period }}, against a target of {{ target }}. Decide what to do.",
+      "noTarget": "No target – set a target to see whether the KPI is on track.",
+      "noData": "Not measured yet – record the first value to see whether the KPI is on track."
+    },
+    "missing": {
+      "deviation": "Create a deviation to correct it",
+      "task": "Create a task",
+      "adjustTarget": "Adjust the target",
+      "overdue": "Record the overdue measurement",
+      "first": "Record the first measurement",
+      "target": "Set a target",
+      "objective": "Link the KPI to the objective it measures"
+    },
+    "explaining": "Writing an explanation …",
+    "reviewedIn": "Reviewed in"
   },
   "attention": {
     "label": "What to do now",

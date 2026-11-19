@@ -96,7 +96,9 @@
     "resolved": "Resolved",
     "verified": "Verified",
     "implemented": "Implemented",
-    "published": "Published"
+    "published": "Published",
+    "evaluating": "Evaluating",
+    "realised": "Realised"
   },
   "chip": {
     "open": "Open {{ type }} {{ title }}",
