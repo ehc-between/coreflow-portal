@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
@@ -5,7 +6,16 @@ import { localize } from '../../core/records/localized';
 import { FieldSpec, LayoutSection, RecordData } from '../../core/records/record.models';
 import { DynamicControl } from './dynamic-control';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
-import { PickOption, isVisible, resolveSections, withCalculated } from './form-model';
+import { MoreFields } from '../forms/more-fields';
+import { isAdvanced } from '../forms/field-tier';
+import {
+  PickOption,
+  ResolvedSection,
+  isEmptyValue,
+  isVisible,
+  resolveSections,
+  withCalculated,
+} from './form-model';
 
 /**
  * Renders a record type's fields in its layout sections (contracts 7.7):
@@ -19,15 +29,32 @@ import { PickOption, isVisible, resolveSections, withCalculated } from './form-m
  * to one column on small screens; `half` fields take one column, `full` both.
  * `readonly` turns it into the read view. Option lists for people,
  * departments and attachments are optional extras the host may pass.
+ * U31: when editing, fields marked `advanced` are folded under "Flere felt (N)"
+ * (`foldAdvanced`, on by default), so the first screen holds only required and
+ * audit-relevant fields.
  */
 @Component({
   selector: 'app-dynamic-form',
-  imports: [TranslocoPipe, DynamicControl],
+  imports: [TranslocoPipe, DynamicControl, MoreFields, NgTemplateOutlet],
   viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-6">
-      @for (section of sections(); track section.key) {
+      <ng-container *ngTemplateOutlet="sectionList; context: { $implicit: mainSections() }" />
+      <app-more-fields [count]="advancedCount()" [open]="advancedOpen()">
+        <div class="flex flex-col gap-6">
+          <ng-container
+            *ngTemplateOutlet="sectionList; context: { $implicit: advancedSections() }"
+          />
+        </div>
+      </app-more-fields>
+      @if (mainSections().length === 0 && advancedCount() === 0) {
+        <p class="text-[13px] text-fg-muted">{{ 'records.form.noFields' | transloco }}</p>
+      }
+    </div>
+
+    <ng-template #sectionList let-list>
+      @for (section of asSections(list); track section.key) {
         <fieldset class="min-w-0">
           @if (section.label) {
             <legend class="mb-3 text-[12px] font-bold tracking-[0.06em] text-fg-subtle uppercase">
@@ -54,10 +81,8 @@ import { PickOption, isVisible, resolveSections, withCalculated } from './form-m
             }
           </div>
         </fieldset>
-      } @empty {
-        <p class="text-[13px] text-fg-muted">{{ 'records.form.noFields' | transloco }}</p>
       }
-    </div>
+    </ng-template>
   `,
 })
 export class DynamicForm {
@@ -74,12 +99,40 @@ export class DynamicForm {
   readonly people = input<readonly PickOption[]>([]);
   readonly departments = input<readonly PickOption[]>([]);
   readonly attachments = input<readonly PickOption[]>([]);
+  /** U31: fold `advanced` fields under "Flere felt" while editing. */
+  readonly foldAdvanced = input(true);
 
   readonly valueChange = output<Record<string, unknown>>();
 
   protected readonly activeLang = computed(() => this.lang() ?? this.language.active());
-  protected readonly sections = computed(() => resolveSections(this.fields(), this.layout()));
+  private readonly folding = computed(() => this.foldAdvanced() && !this.readonly());
+  private readonly folded = computed(() =>
+    this.folding() ? this.fields().filter((field) => isAdvanced(field)) : [],
+  );
+  protected readonly mainSections = computed(() => {
+    const folded = new Set(this.folded());
+    return resolveSections(
+      this.fields().filter((field) => !folded.has(field)),
+      this.layout(),
+    );
+  });
+  protected readonly advancedSections = computed(() =>
+    resolveSections(this.folded(), this.layout()),
+  );
+  protected readonly advancedCount = computed(
+    () => this.folded().filter((field) => isVisible(field, this.data())).length,
+  );
+  /** Open the fold when a folded field already has a value or an error. */
+  protected readonly advancedOpen = computed(() =>
+    this.folded().some(
+      (field) => !isEmptyValue(this.data()[field.key]) || !!this.errors()[field.key],
+    ),
+  );
   protected readonly data = computed(() => withCalculated(this.fields(), this.value()));
+
+  protected asSections(list: unknown): readonly ResolvedSection[] {
+    return list as readonly ResolvedSection[];
+  }
 
   protected visible(field: FieldSpec): boolean {
     return isVisible(field, this.data());

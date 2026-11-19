@@ -11,6 +11,7 @@ import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { DeviationNew } from './deviation-new';
+import formsNb from '../../../assets/i18n/forms/nb.json';
 import guidanceNb from '../../../assets/i18n/guidance/nb.json';
 import searchNb from '../../../assets/i18n/search/nb.json';
 import standardsNb from '../../../assets/i18n/standards/nb.json';
@@ -18,6 +19,7 @@ import { deviationsLang, mergeTranslations } from './deviations.testing';
 
 // The shared scopes the form uses (field help, requirement picker), as loaded in the app.
 const nb = mergeTranslations(deviationsLang('nb'), {
+  forms: formsNb,
   guidance: guidanceNb,
   search: searchNb,
   standards: standardsNb,

@@ -41,6 +41,7 @@ import { AskAbout } from '../../shared/ask/ask-about';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { FlowBanner } from '../../shared/kit/flow-banner';
+import { MoreFields } from '../../shared/forms/more-fields';
 import { DynamicForm } from '../../shared/records/dynamic-form';
 import { defaultData } from '../../shared/records/form-model';
 import { Alert } from '../../shared/ui/alert/alert';
@@ -107,6 +108,7 @@ export function linksFromParams(params: {
   selector: 'app-deviation-new',
   imports: [
     TourStepDirective,
+    MoreFields,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -335,29 +337,7 @@ export function linksFromParams(params: {
                         }
                       </select>
                     </app-deviation-form-row>
-                    <app-deviation-form-row
-                      labelKey="deviations.create.fields.source"
-                      inputId="dev-source"
-                      help="source"
-                    >
-                      <select
-                        id="dev-source"
-                        name="source"
-                        [ngModel]="source()"
-                        (ngModelChange)="source.set($event)"
-                      >
-                        @for (option of sourceOptions; track option) {
-                          <option [value]="option">{{ sourceLabelKey(option) | transloco }}</option>
-                        }
-                      </select>
-                    </app-deviation-form-row>
                   </div>
-                  <app-deviation-classification-fields
-                    idPrefix="dev"
-                    [typical]="type.default_clauses ?? []"
-                    [(refs)]="refs"
-                    [(tags)]="tags"
-                  />
                 </div>
               </app-card>
 
@@ -435,6 +415,40 @@ export function linksFromParams(params: {
                       }
                     </select>
                   </app-deviation-form-row>
+                  <app-deviation-form-row
+                    labelKey="deviations.create.fields.due"
+                    inputId="dev-due"
+                    help="due"
+                  >
+                    <input
+                      id="dev-due"
+                      type="date"
+                      name="due"
+                      [ngModel]="dueAt()"
+                      (ngModelChange)="dueAt.set($event)"
+                    />
+                  </app-deviation-form-row>
+                </div>
+              </app-card>
+
+              <app-more-fields [count]="moreFieldCount()" [open]="moreFieldsOpen()">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <app-deviation-form-row
+                    labelKey="deviations.create.fields.source"
+                    inputId="dev-source"
+                    help="source"
+                  >
+                    <select
+                      id="dev-source"
+                      name="source"
+                      [ngModel]="source()"
+                      (ngModelChange)="source.set($event)"
+                    >
+                      @for (option of sourceOptions; track option) {
+                        <option [value]="option">{{ sourceLabelKey(option) | transloco }}</option>
+                      }
+                    </select>
+                  </app-deviation-form-row>
                   @if (departments().length) {
                     <app-deviation-form-row
                       labelKey="deviations.create.fields.department"
@@ -453,19 +467,6 @@ export function linksFromParams(params: {
                       </select>
                     </app-deviation-form-row>
                   }
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.due"
-                    inputId="dev-due"
-                    help="due"
-                  >
-                    <input
-                      id="dev-due"
-                      type="date"
-                      name="due"
-                      [ngModel]="dueAt()"
-                      (ngModelChange)="dueAt.set($event)"
-                    />
-                  </app-deviation-form-row>
                   <app-deviation-form-row
                     labelKey="deviations.create.fields.visibility"
                     inputId="dev-visibility"
@@ -486,7 +487,13 @@ export function linksFromParams(params: {
                     </select>
                   </app-deviation-form-row>
                 </div>
-              </app-card>
+                <app-deviation-classification-fields
+                  idPrefix="dev"
+                  [typical]="type.default_clauses ?? []"
+                  [(refs)]="refs"
+                  [(tags)]="tags"
+                />
+              </app-more-fields>
 
               @if (links().length) {
                 <app-alert tone="info">{{
@@ -576,6 +583,16 @@ export class DeviationNew {
   protected readonly departmentId = signal('');
   protected readonly dueAt = signal('');
   protected readonly visibility = signal<DeviationVisibility>('organization');
+  /** U31: source, department, visibility and requirements/tags sit under "Flere felt". */
+  protected readonly moreFieldCount = computed(() => (this.departments().length ? 5 : 4));
+  protected readonly moreFieldsOpen = computed(
+    () =>
+      this.source() !== 'internal' ||
+      this.refs().length > 0 ||
+      this.tags().length > 0 ||
+      !!this.departmentId() ||
+      this.visibility() !== 'organization',
+  );
 
   protected readonly data = signal<Record<string, unknown>>({});
   protected readonly dataErrors = signal<Record<string, string>>({});

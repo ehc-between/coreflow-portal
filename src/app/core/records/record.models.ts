@@ -38,6 +38,9 @@ export interface VisibleIf {
 }
 
 /** One field definition (contracts 7.1). */
+/** U31: how much a form asks for a field (see `shared/forms/field-tier`). */
+export type FieldTier = 'quick' | 'audit_relevant' | 'advanced';
+
 export interface FieldSpec {
   readonly key: string;
   readonly label: LocalizedText;
@@ -56,6 +59,8 @@ export interface FieldSpec {
   readonly default?: unknown;
   /** A26: canonical requirement refs this field documents (at most 8); null when none. */
   readonly requirements?: readonly string[] | null;
+  /** U31: unset counts as `audit_relevant`. */
+  readonly tier?: FieldTier | null;
 }
 
 /** A form layout section. */
