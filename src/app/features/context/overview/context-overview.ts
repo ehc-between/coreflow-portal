@@ -12,6 +12,7 @@ import { Params, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
+import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -249,6 +250,21 @@ export function saveBlob(blob: Blob, name: string, doc: Document = document): vo
                 <p class="mt-1 text-ui text-fg-muted">
                   {{ 'context.overview.setup.intro' | transloco }}
                 </p>
+                @if (showInterview()) {
+                  <div
+                    class="mt-3 flex flex-wrap items-center gap-3 rounded-tile bg-accent-soft p-3"
+                    data-testid="context-interview-cta"
+                  >
+                    <p class="min-w-0 flex-1 text-ui text-fg">
+                      {{ 'context.interview.cta' | transloco }}
+                    </p>
+                    <a
+                      routerLink="/context/interview"
+                      class="inline-flex min-h-9 items-center rounded-tile bg-accent px-3 text-ui font-semibold text-white outline-none hover:bg-accent-2 focus-visible:ring-2 focus-visible:ring-accent"
+                      >{{ 'context.interview.start' | transloco }}</a
+                    >
+                  </div>
+                }
                 <ol class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
                   @for (step of steps(); track step.key) {
                     <li>
@@ -440,22 +456,24 @@ export function saveBlob(blob: Blob, name: string, doc: Document = document): vo
               class="flex flex-col gap-4"
               [attr.aria-label]="'context.overview.aside' | transloco"
             >
-              <app-card>
-                <h2 class="font-display text-card font-bold text-fg">
-                  {{ 'context.overview.matrix.title' | transloco }}
-                </h2>
-                <p class="mt-1 text-ui text-fg-muted">
-                  {{ 'context.overview.matrix.body' | transloco }}
-                </p>
-                <a
-                  routerLink="/context/responsibilities/matrix"
-                  class="mt-3 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
-                  data-testid="open-matrix"
-                >
-                  <app-icon name="grid" [size]="14" />
-                  {{ 'context.overview.matrix.open' | transloco }}
-                </a>
-              </app-card>
+              @if (!beginner()) {
+                <app-card>
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'context.overview.matrix.title' | transloco }}
+                  </h2>
+                  <p class="mt-1 text-ui text-fg-muted">
+                    {{ 'context.overview.matrix.body' | transloco }}
+                  </p>
+                  <a
+                    routerLink="/context/responsibilities/matrix"
+                    class="mt-3 inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                    data-testid="open-matrix"
+                  >
+                    <app-icon name="grid" [size]="14" />
+                    {{ 'context.overview.matrix.open' | transloco }}
+                  </a>
+                </app-card>
+              }
               <app-card>
                 <h2 class="font-display text-card font-bold text-fg">
                   {{ 'context.overview.pack.title' | transloco }}
@@ -512,6 +530,18 @@ export class ContextOverviewPage {
   protected readonly steps = computed(() => setupSteps(this.overview()));
   protected readonly setupDone = computed(() => this.steps().every((step) => step.done));
   protected readonly attention = computed(() => attentionItems(this.overview()));
+  /** U34: beginners skip the RACI matrix card and are offered the interview. */
+  protected readonly beginner = inject(GuidanceService).isBeginner;
+  /** The interview drafts analysis, parties and scope: offer it while one of them is missing. */
+  protected readonly showInterview = computed(
+    () =>
+      this.perms.canWrite() &&
+      this.steps().some(
+        (step) =>
+          !step.done &&
+          (step.kind === 'analysis' || step.kind === 'party' || step.kind === 'scope'),
+      ),
+  );
 
   private request = new Subscription();
 

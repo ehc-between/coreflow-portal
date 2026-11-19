@@ -543,5 +543,11 @@
     "kpiThresholdBreached": "The KPI went off track",
     "kpiBackOnTrack": "The KPI is back on track",
     "kpiDeleted": "{{ actor_name }} deleted the KPI"
+  },
+  "measure": {
+    "lead": "What you measure:",
+    "objectives": "objectives: {{ count }}",
+    "kpis": "key figures (KPIs): {{ count }}",
+    "explain": "Objectives are what you want to achieve. Key figures show whether you are on track."
   }
 }

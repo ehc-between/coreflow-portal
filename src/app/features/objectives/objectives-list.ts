@@ -8,10 +8,11 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -81,6 +82,14 @@ export function statusesForFilter(filter: ObjectiveStatusFilter): readonly Objec
   return filter === 'all' ? [] : [filter];
 }
 
+/** The tiles a beginner sees (U34: at most four). */
+export const BEGINNER_TILES: ReadonlySet<string> = new Set([
+  'active',
+  'overdue',
+  'achieved',
+  'kpis',
+]);
+
 /** The register's headline tiles; each one is a filter (finding 28: objective tiles only). */
 export function objectiveTiles(
   o: ObjectivesOverview | null,
@@ -146,6 +155,7 @@ export function objectiveTiles(
   selector: 'app-objectives-list',
   imports: [
     FulfilsRequirements,
+    RouterLink,
     TranslocoPipe,
     TeachingEmpty,
     TourStepDirective,
@@ -181,6 +191,19 @@ export function objectiveTiles(
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
     >
+      @if (overview(); as o) {
+        <p intro class="mt-1 text-ui text-fg-muted" data-testid="objectives-measure">
+          {{ 'objectives.measure.lead' | transloco }}
+          <a routerLink="/objectives" class="font-semibold text-accent hover:underline">{{
+            'objectives.measure.objectives' | transloco: { count: o.objectives.total }
+          }}</a>
+          ·
+          <a routerLink="/objectives/kpis" class="font-semibold text-accent hover:underline">{{
+            'objectives.measure.kpis' | transloco: { count: o.kpis.total }
+          }}</a>
+          <span class="block text-meta">{{ 'objectives.measure.explain' | transloco }}</span>
+        </p>
+      }
       <app-fulfils-requirements help locationKey="objectives.objectives" />
       @if (canWrite()) {
         <app-button
@@ -427,9 +450,12 @@ export class ObjectivesList {
   protected readonly overview = signal<ObjectivesOverview | null>(null);
   protected readonly exporting = signal(false);
 
-  protected readonly tiles = computed(() =>
-    objectiveTiles(this.overview(), this.status(), this.overdue()),
-  );
+  private readonly beginner = inject(GuidanceService).isBeginner;
+  /** Beginners get the four tiles that answer "how are we doing" (principle 5). */
+  protected readonly tiles = computed(() => {
+    const tiles = objectiveTiles(this.overview(), this.status(), this.overdue());
+    return this.beginner() ? tiles.filter((tile) => BEGINNER_TILES.has(tile.key)) : tiles;
+  });
   protected readonly exportYear = computed(() => this.year() ?? Number(new Date().getFullYear()));
   protected readonly moreActive = computed(
     () =>
