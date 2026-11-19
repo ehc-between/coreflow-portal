@@ -25,7 +25,12 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
   template: `
     <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       @for (group of groups(); track group.raci) {
-        <div class="rounded-tile border border-border p-2.5">
+        @let gap = isGap(group);
+        <div
+          class="rounded-tile border p-2.5"
+          [class]="gap ? 'border-warn/50 bg-warn-soft/40' : 'border-border'"
+          [attr.data-gap]="gap || null"
+        >
           <dt class="mb-1.5 flex items-center gap-2 text-ui font-semibold text-fg">
             <app-context-raci-letter [raci]="group.raci" />
             {{ 'context.raci.roles.' + group.raci | transloco }}
@@ -43,7 +48,9 @@ export function raciGroups(assignments: readonly RaciAssignment[]): RaciGroup[] 
                 ({{ 'context.assigneeTypes.' + a.type | transloco }})</span
               >{{ last ? '' : ', ' }}
             } @empty {
-              <span class="text-fg-subtle">{{ 'context.raci.nobody' | transloco }}</span>
+              <span [class]="gap ? 'font-semibold text-warn-ink' : 'text-fg-subtle'">{{
+                'context.raci.nobody' | transloco
+              }}</span>
             }
           </dd>
         </div>
@@ -55,4 +62,9 @@ export class RaciChips {
   readonly assignments = input.required<readonly RaciAssignment[]>();
 
   protected readonly groups = computed(() => raciGroups(this.assignments()));
+
+  /** An empty R or A is a gap (somebody must do the work and own the result). */
+  protected isGap(group: RaciGroup): boolean {
+    return !group.assignments.length && (group.raci === 'R' || group.raci === 'A');
+  }
 }

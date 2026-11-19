@@ -16,7 +16,6 @@ import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { KitApi } from '../../../core/kit/kit-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { EntityChip } from '../../../shared/kit/entity-chip';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
@@ -26,6 +25,7 @@ import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContextApi } from '../data/context-api';
 import { AcknowledgementItem, Acknowledgements, Policy } from '../data/context.models';
 import { contextErrorKey } from '../context-kinds';
+import { LinkedRecords } from '../ui/linked-records';
 import { PickedRecord, RecordSearch } from '../ui/record-search';
 
 /** The badge of one person's acknowledgement (confirmed, waiting or overdue). */
@@ -36,18 +36,25 @@ export function acknowledgementState(item: AcknowledgementItem): 'done' | 'overd
   return item.overdue ? 'overdue' : 'open';
 }
 
+/** Which part of the policy panels to render. */
+export type PolicyPanelsPart = 'all' | 'links' | 'acknowledgements';
+
 /**
  * The connected parts of a policy on its Details tab:
  * - the controlled document carrying it (link one inline, HS 5.2 / 7.5),
  * - the objectives set from it (HS 5.2 b -> 6.2, "Nytt mål fra denne policyen"),
  * - who has read and confirmed the current version (HS 5.2 / 7.3), with a list
  *   and "Send påminnelse".
+ *
+ * `part` renders only the links (document and objectives) or only the
+ * acknowledgements; `plain` drops the card frame and heading of the
+ * acknowledgements (inside "Hovedinformasjon", where the field label names it).
  */
 @Component({
   selector: 'app-context-policy-panels',
   imports: [
     TranslocoPipe,
-    EntityChip,
+    LinkedRecords,
     LocalDayPipe,
     Button,
     FormField,
@@ -60,110 +67,105 @@ export function acknowledgementState(item: AcknowledgementItem): 'done' | 'overd
   host: { class: 'flex flex-col gap-4' },
   template: `
     @let p = policy();
-    <section
-      class="rounded-card border border-border bg-surface p-4"
-      aria-labelledby="pol-doc-title"
-      data-testid="policy-document"
-    >
-      <h3 id="pol-doc-title" class="font-display text-card font-bold text-fg">
-        {{ 'context.policy.documentTitle' | transloco }}
-      </h3>
-      @if (p.documents.length) {
-        <ul class="mt-2 flex flex-col gap-1.5">
-          @for (doc of p.documents; track doc.entity_id) {
-            <li><app-entity-chip [ref]="doc" [statusText]="true" /></li>
-          }
-        </ul>
-      } @else {
-        <p class="mt-1 text-ui text-fg-muted">{{ 'context.policy.noDocuments' | transloco }}</p>
-      }
-      @if (canEdit()) {
-        @if (linking()) {
-          <div class="mt-3">
-            <app-form-field
-              [label]="'context.policy.document' | transloco"
-              inputId="pol-doc-search"
-            >
-              <app-context-record-search
-                inputId="pol-doc-search"
-                [types]="['document']"
-                placeholderKey="context.policy.documentPlaceholder"
-                noMatchesKey="context.policy.noDocumentMatches"
-                [excluded]="documentIds()"
-                (picked)="linkDocument($event)"
-              />
-            </app-form-field>
-            <p class="mt-1 text-meta text-fg-muted">
-              {{ 'context.policy.documentHint' | transloco }}
-            </p>
-            <app-button class="mt-2" variant="ghost" size="sm" (click)="linking.set(false)">
-              {{ 'context.common.cancel' | transloco }}
-            </app-button>
-          </div>
+    @if (part() !== 'acknowledgements') {
+      <section
+        class="rounded-card border border-border bg-surface p-4"
+        aria-labelledby="pol-doc-title"
+        data-testid="policy-document"
+      >
+        <h3 id="pol-doc-title" class="font-display text-card font-bold text-fg">
+          {{ 'context.policy.documentTitle' | transloco }}
+        </h3>
+        @if (p.documents.length) {
+          <app-context-linked-records class="mt-2" [refs]="p.documents" />
         } @else {
+          <p class="mt-1 text-ui text-fg-muted">{{ 'context.policy.noDocuments' | transloco }}</p>
+        }
+        @if (canEdit()) {
+          @if (linking()) {
+            <div class="mt-3">
+              <app-form-field
+                [label]="'context.policy.document' | transloco"
+                inputId="pol-doc-search"
+              >
+                <app-context-record-search
+                  inputId="pol-doc-search"
+                  [types]="['document']"
+                  placeholderKey="context.policy.documentPlaceholder"
+                  noMatchesKey="context.policy.noDocumentMatches"
+                  [excluded]="documentIds()"
+                  (picked)="linkDocument($event)"
+                />
+              </app-form-field>
+              <p class="mt-1 text-meta text-fg-muted">
+                {{ 'context.policy.documentHint' | transloco }}
+              </p>
+              <app-button class="mt-2" variant="ghost" size="sm" (click)="linking.set(false)">
+                {{ 'context.common.cancel' | transloco }}
+              </app-button>
+            </div>
+          } @else {
+            <app-button
+              class="mt-3"
+              variant="secondary"
+              size="sm"
+              [loading]="busy() === 'document'"
+              (click)="linking.set(true)"
+              data-testid="link-policy-document"
+            >
+              <app-icon name="link" [size]="14" />
+              {{
+                (p.documents.length ? 'context.policy.linkAnother' : 'context.policy.linkDocument')
+                  | transloco
+              }}
+            </app-button>
+          }
+        }
+      </section>
+
+      <section
+        class="rounded-card border border-border bg-surface p-4"
+        aria-labelledby="pol-obj-title"
+        data-testid="policy-objectives"
+      >
+        <h3 id="pol-obj-title" class="font-display text-card font-bold text-fg">
+          {{ 'context.policy.objectivesTitle' | transloco }}
+        </h3>
+        <p class="mt-0.5 text-meta text-fg-muted">
+          {{ 'context.policy.objectivesHint' | transloco }}
+        </p>
+        @if (objectives().length) {
+          <app-context-linked-records class="mt-2" [refs]="objectives()" />
+        } @else {
+          <p class="mt-2 text-ui text-warn-ink">{{ 'context.policy.noObjectives' | transloco }}</p>
+        }
+        @if (objectiveFlow()) {
           <app-button
             class="mt-3"
             variant="secondary"
             size="sm"
-            [loading]="busy() === 'document'"
-            (click)="linking.set(true)"
-            data-testid="link-policy-document"
+            [disabled]="flows.starting() !== null"
+            (click)="newObjective()"
+            data-testid="policy-new-objective"
           >
-            <app-icon name="link" [size]="14" />
-            {{
-              (p.documents.length ? 'context.policy.linkAnother' : 'context.policy.linkDocument')
-                | transloco
-            }}
+            <app-icon name="target" [size]="14" />
+            {{ 'context.policy.newObjective' | transloco }}
           </app-button>
         }
-      }
-    </section>
-
-    <section
-      class="rounded-card border border-border bg-surface p-4"
-      aria-labelledby="pol-obj-title"
-      data-testid="policy-objectives"
-    >
-      <h3 id="pol-obj-title" class="font-display text-card font-bold text-fg">
-        {{ 'context.policy.objectivesTitle' | transloco }}
-      </h3>
-      <p class="mt-0.5 text-meta text-fg-muted">
-        {{ 'context.policy.objectivesHint' | transloco }}
-      </p>
-      @if (objectives().length) {
-        <ul class="mt-2 flex flex-col gap-1.5">
-          @for (objective of objectives(); track objective.entity_id) {
-            <li><app-entity-chip [ref]="objective" [statusText]="true" /></li>
-          }
-        </ul>
-      } @else {
-        <p class="mt-2 text-ui text-warn-ink">{{ 'context.policy.noObjectives' | transloco }}</p>
-      }
-      @if (objectiveFlow()) {
-        <app-button
-          class="mt-3"
-          variant="secondary"
-          size="sm"
-          [disabled]="flows.starting() !== null"
-          (click)="newObjective()"
-          data-testid="policy-new-objective"
-        >
-          <app-icon name="target" [size]="14" />
-          {{ 'context.policy.newObjective' | transloco }}
-        </app-button>
-      }
-    </section>
-
-    @if (p.status === 'approved') {
+      </section>
+    }
+    @if (p.status === 'approved' && part() !== 'links') {
       <section
-        class="rounded-card border border-border bg-surface p-4"
-        aria-labelledby="pol-ack-title"
+        [class]="plain() ? 'block' : 'rounded-card border border-border bg-surface p-4'"
+        [attr.aria-labelledby]="plain() ? null : 'pol-ack-title'"
         data-testid="policy-acknowledgements"
       >
         <div class="flex flex-wrap items-start justify-between gap-2">
-          <h3 id="pol-ack-title" class="font-display text-card font-bold text-fg">
-            {{ 'context.policy.ack.title' | transloco }}
-          </h3>
+          @if (!plain()) {
+            <h3 id="pol-ack-title" class="font-display text-card font-bold text-fg">
+              {{ 'context.policy.ack.title' | transloco }}
+            </h3>
+          }
           @if (summary().total > 0) {
             <span class="text-ui font-semibold text-fg" data-testid="ack-count">
               {{
@@ -244,7 +246,7 @@ export function acknowledgementState(item: AcknowledgementItem): 'done' | 'overd
           }
         } @else {
           <p class="mt-1 text-ui text-warn-ink">{{ 'context.policy.ack.none' | transloco }}</p>
-          @if (canWrite()) {
+          @if (canWrite() && !plain()) {
             <app-button
               class="mt-3"
               size="sm"
@@ -273,6 +275,10 @@ export class PolicyPanels {
   readonly canEdit = input(false);
   /** `context:write`: reminders and communicating. */
   readonly canWrite = input(false);
+  /** Render everything, only the links or only the acknowledgements. */
+  readonly part = input<PolicyPanelsPart>('all');
+  /** Acknowledgements without their card frame and heading. */
+  readonly plain = input(false);
   /** The policy after a document was linked. */
   readonly changed = output<Policy>();
   /** Open the "communicate" panel. */
