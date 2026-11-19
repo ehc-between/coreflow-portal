@@ -310,12 +310,17 @@
     }
   },
   "ask": {
-    "title": "Ask CoreFlow",
     "explain": "Explain this obligation in plain language: what it requires of us, and how we can show that we comply.",
     "missingEvidence": "Which duties in this obligation lack documentation or have not been evaluated?",
     "nextStep": "What should we do next to be compliant with this obligation?",
     "applicability": "Help me describe how this obligation applies to our organisation, and what is in or out of scope.",
-    "applicabilityLabel": "Ask for help describing how it applies"
+    "applicabilityLabel": "Ask for help describing how it applies",
+    "menu": {
+      "explain": "Explain what it requires of us",
+      "missingEvidence": "Which duties lack documentation?",
+      "nextStep": "What should we do now?",
+      "applicability": "Help me describe how it applies to us"
+    }
   },
   "proposal": {
     "run": "Suggest duties",
@@ -331,82 +336,60 @@
     "applied": "The suggestions were added to the form. Review them before saving."
   },
   "summarise": {
-    "run": "Explain in plain words"
+    "run": "Explain in plain words",
+    "title": "In plain words",
+    "dismiss": "Close the explanation"
   },
   "detail": {
-    "about": "About the obligation",
-    "renewalBadge": "Renewal due",
     "retire": "Mark as retired",
     "reactivate": "Make active again",
-    "noEnd": "No end date",
     "endsIn": "in {{ days }} days",
     "endedAgo": "ended {{ days }} days ago",
     "validUntilWithDays": "{{ date }} ({{ days }})",
-    "noApplicability": "Not described yet.",
-    "schedule": "Evaluation plan",
-    "noSchedule": "No evaluation plan",
     "nextDue": "Next evaluation due {{ date }}",
     "overdueSince": "Evaluation overdue since {{ date }}",
     "lastEvaluated": "Last evaluated",
-    "never": "Never",
-    "latestResult": "Latest result",
-    "evaluationCount": "Evaluations recorded",
-    "openChanges": "Changes to handle",
     "deleteTitle": "Delete {{ code }}?",
     "deleteMessage": "Deleting removes the obligation from the register, cancels its open tasks and stops its evaluation plan. Only delete an obligation that was registered by mistake.",
     "deleteAnyway": "Delete anyway",
     "retireInstead": "Does the obligation no longer apply? Mark it as retired instead. The history and evaluations are kept for the auditor.",
-    "retireInsteadAction": "Mark as retired instead"
-  },
-  "next": {
-    "retired": {
-      "title": "This obligation is retired",
-      "body": "It is kept for the record but no longer evaluated. Make it active again if it applies once more."
+    "retireInsteadAction": "Mark as retired instead",
+    "evaluationOverdue": "Evaluation overdue",
+    "notEvaluated": "Not evaluated yet",
+    "readLaw": "Read the text on {{ host }}",
+    "showEvaluation": "See the evaluation",
+    "showEvaluations": "See all {{ count }} evaluations",
+    "lead": {
+      "requires": "What it requires",
+      "appliesToUs": "How it applies to us",
+      "source": "Where it comes from",
+      "latestEvaluation": "Latest compliance evaluation"
     },
-    "draft": {
-      "title": "This obligation is a draft",
-      "body": "Make it active once the duties and the owner are confirmed. Only active obligations are evaluated."
+    "meta": {
+      "schedule": "Evaluated",
+      "updated": "Last changed"
     },
-    "overdue": {
-      "title": "The evaluation is overdue (due {{ date }})",
-      "body": "Check whether the organisation still meets each duty and record the result with documentation."
+    "sentence": {
+      "compliant": "Compliant – the latest evaluation found that the duties are met.",
+      "partially_compliant": "Partly compliant – the latest evaluation found gaps that must be followed up.",
+      "non_compliant": "Not compliant – the latest evaluation found that the requirements are not met.",
+      "not_evaluated": "Not evaluated yet – we do not know whether we meet the requirements until the first evaluation is recorded.",
+      "not_applicable": "Not relevant – the latest evaluation concluded that the obligation does not apply to us now.",
+      "draft": "Draft – the obligation is not evaluated until it is made active.",
+      "retired": "Retired – the obligation is no longer evaluated, but its history is kept."
     },
-    "firstEvaluation": {
-      "title": "Not evaluated yet",
-      "body": "Record the first compliance evaluation: go through the duties and note what is in place."
+    "todo": {
+      "draft": "Make the obligation active when the duties and the owner are confirmed",
+      "expired": "The validity ended {{ date }} – update it or retire the obligation",
+      "overdue": "Record the compliance evaluation – it was due {{ date }}",
+      "firstEvaluation": "Record the first compliance evaluation",
+      "noFollowUp": "Follow up the gaps from the latest evaluation – register a deviation",
+      "noSchedule": "Plan a yearly compliance evaluation",
+      "renewal": "Apply for renewal by {{ date }}",
+      "changes": "Handle the changes to the rules ({{ count }})",
+      "owner": "Choose who owns the obligation"
     },
-    "noFollowUp": {
-      "title": "The latest evaluation found gaps with no follow-up",
-      "body": "Register a deviation or a follow-up task so the gap is closed, or justify why nothing is needed."
-    },
-    "noSchedule": {
-      "title": "No evaluation plan",
-      "body": "Nobody is reminded to check compliance. ISO 14001 and ISO 45001 expect evaluation at planned intervals."
-    },
-    "renewal": {
-      "title": "Apply for renewal by {{ date }}",
-      "body": "The permit or contract runs out soon. A renewal task is in the owner's My Work."
-    },
-    "expired": {
-      "title": "The validity ended on {{ date }}",
-      "body": "Update the validity if it was renewed, or mark the obligation as retired."
-    },
-    "changes": {
-      "title": "Changes to handle: {{ count }}",
-      "body": "Assess what the change means for you and update the duties before it takes effect."
-    },
-    "ok": {
-      "title": "All in order",
-      "body": "The obligation is evaluated, followed up and has a plan. The next evaluation is due {{ date }}."
-    },
-    "actions": {
-      "evaluate": "Record evaluation",
-      "createDeviation": "Register deviation",
-      "planYearly": "Plan a yearly evaluation",
-      "activate": "Make active",
-      "updateValidity": "Update validity",
-      "showChanges": "Show changes"
-    }
+    "validity": "Validity"
   },
   "duties": {
     "title": "Duties",
@@ -510,7 +493,10 @@
     "linkDeviation": "Link deviation",
     "linkAction": "Link",
     "removeTitle": "Delete this evaluation?",
-    "removeMessage": "Only delete an evaluation that was recorded in error. The compliance status falls back to the latest remaining evaluation."
+    "removeMessage": "Only delete an evaluation that was recorded in error. The compliance status falls back to the latest remaining evaluation.",
+    "latest": "Latest",
+    "checked": "What was checked",
+    "findings": "Findings"
   },
   "actions": {
     "title": "Planned evaluations and tasks",

@@ -635,7 +635,11 @@ export function evaluationProblems(input: {
           } @else {
             <ol class="mt-3 flex flex-col gap-3" data-testid="evaluation-rows">
               @for (e of items(); track e.id) {
-                <li class="rounded-tile border border-border p-3">
+                <li
+                  class="rounded-tile border p-3 sm:p-4"
+                  [class]="$first ? 'border-accent/40 bg-surface' : 'border-border'"
+                  [attr.data-testid]="'evaluation-' + e.id"
+                >
                   <div class="flex flex-wrap items-center gap-2">
                     <app-status-badge
                       meaning="compliance"
@@ -650,6 +654,12 @@ export function evaluationProblems(input: {
                         {{ 'obligations.evaluations.by' | transloco: { name } }}
                       </span>
                     }
+                    @if ($first && items().length > 1) {
+                      <span
+                        class="rounded-full bg-accent-soft px-2 py-0.5 text-micro font-semibold text-accent"
+                        >{{ 'obligations.evaluations.latest' | transloco }}</span
+                      >
+                    }
                     @if (canRemove()) {
                       <app-button
                         class="ml-auto"
@@ -663,55 +673,69 @@ export function evaluationProblems(input: {
                       </app-button>
                     }
                   </div>
-                  @if (e.duty_results?.length) {
-                    <ul class="mt-2 flex flex-col gap-1 text-ui">
-                      @for (r of e.duty_results; track r.duty_id) {
-                        <li class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <app-status-badge
-                            meaning="compliance"
-                            [value]="r.result"
-                            [labelKey]="resultKey(r.result)"
-                          />
-                          <span class="min-w-0 text-fg">{{ dutyTitle(r.duty_id) }}</span>
-                          @if (r.note) {
-                            <span class="w-full text-meta text-fg-muted sm:w-auto"
-                              >— {{ r.note }}</span
-                            >
-                          }
-                        </li>
-                      }
-                    </ul>
-                  }
                   @if (e.notes) {
-                    <p class="mt-2 text-ui whitespace-pre-line text-fg">
-                      <span class="font-semibold"
-                        >{{ 'obligations.evaluations.notes' | transloco }}:</span
-                      >
-                      {{ e.notes }}
-                    </p>
+                    <div class="mt-3">
+                      <p class="text-meta font-semibold text-fg-subtle">
+                        {{ 'obligations.evaluations.findings' | transloco }}
+                      </p>
+                      <p class="mt-0.5 text-body whitespace-pre-line text-fg">{{ e.notes }}</p>
+                    </div>
                   }
                   @if (e.justification) {
-                    <p class="mt-2 text-ui whitespace-pre-line text-fg-muted">
-                      <span class="font-semibold text-fg"
-                        >{{ 'obligations.evaluations.justification' | transloco }}:</span
-                      >
-                      {{ e.justification }}
-                    </p>
+                    <div class="mt-3">
+                      <p class="text-meta font-semibold text-fg-subtle">
+                        {{ 'obligations.evaluations.justification' | transloco }}
+                      </p>
+                      <p class="mt-0.5 text-ui whitespace-pre-line text-fg">
+                        {{ e.justification }}
+                      </p>
+                    </div>
+                  }
+                  @if (e.duty_results?.length) {
+                    <div class="mt-3">
+                      <p class="text-meta font-semibold text-fg-subtle">
+                        {{ 'obligations.evaluations.dutiesTitle' | transloco }}
+                      </p>
+                      <ul class="mt-1 flex flex-col gap-1.5 text-ui">
+                        @for (r of e.duty_results; track r.duty_id) {
+                          @let duty = dutyOf(r.duty_id);
+                          <li class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            <app-status-badge
+                              class="self-center"
+                              meaning="compliance"
+                              [value]="r.result"
+                              [labelKey]="resultKey(r.result)"
+                            />
+                            @if (duty) {
+                              <span class="font-mono text-meta text-fg-muted">{{ duty.code }}</span>
+                              <span class="min-w-0 text-fg">{{ duty.title }}</span>
+                            } @else {
+                              <span class="text-fg-muted">—</span>
+                            }
+                            @if (r.note) {
+                              <span class="w-full text-meta text-fg-muted">{{ r.note }}</span>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    </div>
                   }
                   @if (e.evidence_summary) {
-                    <p class="mt-2 text-meta whitespace-pre-line text-fg-muted">
-                      <span class="font-semibold text-fg"
-                        >{{ 'obligations.evaluations.evidenceSummary' | transloco }}:</span
-                      >
-                      {{ e.evidence_summary }}
-                    </p>
+                    <div class="mt-3">
+                      <p class="text-meta font-semibold text-fg-subtle">
+                        {{ 'obligations.evaluations.checked' | transloco }}
+                      </p>
+                      <p class="mt-0.5 text-ui whitespace-pre-line text-fg">
+                        {{ e.evidence_summary }}
+                      </p>
+                    </div>
                   }
                   @if (e.evidence?.length || e.evidence_urls?.length || e.attachment_ids.length) {
-                    <div class="mt-2">
+                    <div class="mt-3">
                       <p class="text-meta font-semibold text-fg-subtle">
                         {{ 'obligations.evaluations.evidenceTitle' | transloco }}
                       </p>
-                      <ul class="mt-1 flex flex-wrap items-center gap-1.5 text-meta">
+                      <ul class="mt-1 flex flex-col items-start gap-1.5 text-meta">
                         @for (ref of e.evidence ?? []; track ref.entity_type + ref.entity_id) {
                           <li><app-entity-chip [ref]="ref" /></li>
                         }
@@ -931,9 +955,8 @@ export class ObligationEvaluations {
     return this.attachments().find((a) => a.id === id)?.filename ?? id.slice(0, 8);
   }
 
-  protected dutyTitle(id: string): string {
-    const d = this.duties().find((x) => x.id === id);
-    return d ? `${d.code} ${d.title}` : '—';
+  protected dutyOf(id: string) {
+    return this.duties().find((x) => x.id === id) ?? null;
   }
 
   protected link(url: string): string | null {

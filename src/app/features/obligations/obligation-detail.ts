@@ -22,12 +22,20 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../shared/ask/ask-about';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../shared/kit/record-sections';
+import { LocalDatePipe, LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { RuleSummary } from '../../shared/tasks/rule-summary';
@@ -35,21 +43,20 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { ObligationsApi } from './data/obligations-api';
 import { ENTITY_TYPE, Obligation } from './data/obligation.models';
+import { ObligationTodo, obligationSentence, obligationTodos } from './data/obligation-anatomy';
 import {
-  NextStep,
-  complianceKey,
   daysUntil,
   isRenewable,
   jurisdictionKey,
-  nextSteps,
   obligationStatusKey,
   obligationStatusMeaning,
   obligationTypeKey,
@@ -59,7 +66,6 @@ import {
 } from './data/obligation-display';
 import { DEFAULT_EVALUATION_RRULE } from './data/obligation-form-model';
 import { obligationErrorKey } from './data/obligation-errors';
-import { AskPrompt, ObligationAsk } from './obligation-ask';
 import { ObligationActions } from './obligation-actions';
 import { ObligationChanges } from './obligation-changes';
 import { ObligationDuties } from './obligation-duties';
@@ -105,34 +111,43 @@ export const OBLIGATION_FIELD_LABELS: Readonly<Record<string, string>> = {
 /** Days before `valid_until` from which the validity end is highlighted. */
 export const EXPIRY_WARNING_DAYS = 60;
 
-/** The assistant questions offered on an obligation. */
-const ASK_PROMPTS: readonly AskPrompt[] = [
-  { key: 'explain' },
-  { key: 'missingEvidence' },
-  { key: 'nextStep' },
-];
+/** The ready-made assistant questions in "Spør KI" (`obligations.ask.<key>`). */
+const ASK_PROMPTS: readonly string[] = ['explain', 'missingEvidence', 'nextStep', 'applicability'];
+
+/** Section ids the Oppfølging lines and the lead scroll to. */
+const SECTIONS = {
+  duties: 'obligation-duties',
+  evaluations: 'obligation-evaluations',
+  changes: 'obligation-changes',
+} as const;
 
 /**
- * An obligation (`/obligations/:id`). The details tab opens with one clear next
- * step (evaluate, plan, follow up, renew …), then what the obligation is and where
- * it comes from, its duties (each with its own owner, clauses, documentation and
- * result), the compliance evaluations with their evidence and follow-up, and change
- * monitoring. The aside shows the requirements it documents, its connections, the
- * evaluation plan and ready-made questions for the assistant. Evaluation, renewal,
- * change and follow-up tasks are in the Tasks tab.
+ * An obligation (`/obligations/:id`) on the detail-page anatomy (docs/ux-guide.md §2.7).
+ * Header: code · type · status, "Registrer vurdering" (or "Rediger"), "Spør KI" (plain
+ * explanation and ready-made questions) and "Mer". "Hovedinformasjon" answers what a
+ * reader and an auditor come for: are we compliant (status sentence), what the law
+ * requires, how it applies to us, where it comes from (authority, reference, the law
+ * text) and the latest evaluation with the next one. The Details tab holds the duties,
+ * the evaluation history with evidence and follow-up, change monitoring and the few
+ * secondary fields. One "Oppfølging" card lists the open next steps (evaluate, follow
+ * up, plan, renew, handle changes), the requirements, the connections and owner /
+ * schedule / dates. Evaluation, renewal, change and follow-up tasks are in the Tasks tab.
  */
 @Component({
   selector: 'app-obligation-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
+    LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
-    WatchButton,
     AiAssistButton,
-    AskAbout,
     WhyItMatters,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     RuleSummary,
     Button,
@@ -140,14 +155,12 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
     StatusBadge,
     ObligationActions,
-    ObligationAsk,
     ObligationChanges,
     ObligationDuties,
     ObligationEvaluations,
@@ -173,7 +186,9 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
       }
       @default {
         @if (obligation(); as o) {
+          @let sentence = statusSentence();
           <app-record-detail-layout
+            [anatomy]="true"
             [entityType]="entityType"
             [entityId]="o.id"
             [title]="o.title"
@@ -185,32 +200,26 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
             [counts]="{ attachments: attachments().length }"
             [canEdit]="o.can_edit"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
             backLink="/obligations"
             backLabelKey="obligations.common.backToList"
           >
-            <ng-container meta>
-              <span class="font-mono font-semibold" data-testid="obligation-code">{{
-                o.code
-              }}</span>
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono" data-testid="obligation-code">{{ o.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ typeKey(o.obligation_type) | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 meaning="lifecycle"
                 [value]="statusMeaning(o.status)"
                 [labelKey]="statusKey(o.status)"
                 data-testid="obligation-status"
               />
-              <app-status-badge
-                meaning="compliance"
-                [value]="o.compliance_status"
-                [labelKey]="complianceKey(o.compliance_status)"
-                data-testid="obligation-compliance"
-              />
-              @if (o.renewal_due) {
+              @if (o.status !== 'retired' && o.next_evaluation?.overdue) {
                 <app-status-badge
                   meaning="lifecycle"
-                  value="due"
-                  labelKey="obligations.detail.renewalBadge"
+                  value="overdue"
+                  labelKey="obligations.detail.evaluationOverdue"
                 />
               }
             </ng-container>
@@ -218,14 +227,13 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
             <ng-container ngProjectAs="[secondary]">
               @if (canRecord() && o.can_edit) {
                 <a
-                  [routerLink]="['/obligations', o.id, 'edit']"
+                  [routerLink]="editLink()"
                   class="inline-flex h-9 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   data-testid="obligation-edit"
                 >
                   {{ 'obligations.common.edit' | transloco }}
                 </a>
               }
-              <app-watch-button [entityType]="entityType" [entityId]="o.id" />
             </ng-container>
             <ng-container ngProjectAs="[primary]">
               @if (canRecord()) {
@@ -235,7 +243,7 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
                 </app-button>
               } @else if (o.can_edit) {
                 <a
-                  [routerLink]="['/obligations', o.id, 'edit']"
+                  [routerLink]="editLink()"
                   class="inline-flex h-9 items-center rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
                   data-testid="obligation-edit"
                 >
@@ -272,143 +280,196 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
               }
             </ng-container>
 
+            <!-- §2.7: every assistant action in the header's "Spør KI" menu. -->
+            <button appMenuItem ask type="button" (click)="summarise()" data-testid="summarise">
+              <app-icon name="spark" [size]="15" />
+              {{ 'obligations.summarise.run' | transloco }}
+            </button>
+            @for (key of askPrompts; track key) {
+              <button
+                appMenuItem
+                ask
+                type="button"
+                (click)="askAi(key)"
+                [attr.data-testid]="'ask-' + key"
+              >
+                <app-icon name="spark" [size]="15" />
+                {{ 'obligations.ask.menu.' + key | transloco }}
+              </button>
+            }
+
             <app-help-strip help scope="obligations" page="detail" lesson="evaluating-compliance" />
 
-            <div class="flex flex-col gap-6">
-              @if (steps(); as all) {
-                @let first = all[0];
-                <section
-                  class="rounded-card border p-4"
-                  [class]="stripClass(first)"
-                  aria-labelledby="cf-ob-next-h"
-                  data-testid="next-step"
-                  [attr.data-kind]="first.kind"
-                >
-                  <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <app-icon
-                      [name]="first.tone === 'pass' ? 'checkcircle' : 'alert'"
-                      [size]="18"
-                      class="mt-0.5 flex-none"
+            <app-record-lead record-lead [fillLink]="o.can_edit ? editLink() : null">
+              <app-record-status-line
+                status
+                [tone]="sentence.tone"
+                data-testid="obligation-compliance"
+                [attr.data-kind]="sentence.kind"
+              >
+                {{ 'obligations.detail.sentence.' + sentence.kind | transloco }}
+              </app-record-status-line>
+
+              <app-field-item
+                size="lead"
+                labelKey="obligations.detail.lead.requires"
+                [wide]="true"
+                [multiline]="true"
+                [value]="o.description"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="obligations.detail.lead.appliesToUs"
+                [wide]="true"
+                [multiline]="true"
+                [value]="o.applicability"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="obligations.detail.lead.source"
+                data-testid="lead-source"
+              >
+                @if (o.issuer || o.reference || o.source_url || jurisdiction()) {
+                  @if (sourceLine(); as line) {
+                    <span class="block">{{ line }}</span>
+                  }
+                  @if (o.reference) {
+                    <span class="block font-mono text-ui text-fg-muted">{{ o.reference }}</span>
+                  }
+                  @if (sourceLink(); as url) {
+                    <a
+                      [href]="url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="mt-1 inline-flex items-center gap-1 text-ui font-semibold break-all text-accent hover:underline"
+                    >
+                      {{ 'obligations.detail.readLaw' | transloco: { host: sourceHost() } }}
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  } @else if (o.source_url) {
+                    <span class="block text-ui break-all text-fg-muted">{{ o.source_url }}</span>
+                  }
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="obligations.detail.lead.latestEvaluation"
+                [keepEmpty]="o.status === 'active'"
+                emptyKey="obligations.detail.notEvaluated"
+                data-testid="lead-evaluation"
+              >
+                @if (o.latest_evaluation; as latest) {
+                  <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <app-status-badge
+                      meaning="compliance"
+                      [value]="latest.result"
+                      [labelKey]="resultKey(latest.result)"
                     />
-                    <div class="min-w-0 flex-1">
-                      <h2 id="cf-ob-next-h" class="text-card font-semibold text-fg">
-                        {{ stepTitleKey(first) | transloco: stepParams(first) }}
+                    <span>{{ latest.evaluated_on | localDay }}</span>
+                  </span>
+                  @if (latest.evaluated_by?.name; as name) {
+                    <span class="mt-0.5 block text-ui text-fg-muted">
+                      {{ 'obligations.evaluations.by' | transloco: { name } }}
+                    </span>
+                  }
+                }
+                @if (o.status !== 'retired' && o.evaluation_rrule && o.next_evaluation?.due_at) {
+                  @let next = o.next_evaluation!;
+                  <span
+                    class="mt-1 block text-ui"
+                    [class.text-warn-ink]="next.overdue"
+                    [class.font-semibold]="next.overdue"
+                    [class.text-fg-muted]="!next.overdue"
+                    data-testid="next-evaluation"
+                  >
+                    {{
+                      (next.overdue
+                        ? 'obligations.detail.overdueSince'
+                        : 'obligations.detail.nextDue'
+                      ) | transloco: { date: (next.due_at | localDay) }
+                    }}
+                  </span>
+                }
+                @if (o.evaluation_count > 0) {
+                  <button
+                    type="button"
+                    class="mt-1 inline-flex items-center gap-1 text-ui font-semibold text-accent hover:underline"
+                    (click)="scrollTo(sections.evaluations)"
+                  >
+                    {{
+                      (o.evaluation_count === 1
+                        ? 'obligations.detail.showEvaluation'
+                        : 'obligations.detail.showEvaluations'
+                      ) | transloco: { count: o.evaluation_count }
+                    }}
+                    <span aria-hidden="true">↓</span>
+                  </button>
+                }
+              </app-field-item>
+            </app-record-lead>
+
+            <div class="flex flex-col gap-6">
+              <app-ai-assist-button
+                #summaryAssist
+                class="empty:hidden"
+                [quiet]="true"
+                assist="obligations.summarise"
+                labelKey="obligations.summarise.run"
+                [entityType]="entityType"
+                [entityId]="o.id"
+                (text)="aiSummary.set($event)"
+              />
+              @if (aiSummary()) {
+                <app-card>
+                  <div class="flex items-start justify-between gap-3" aria-live="polite">
+                    <div class="min-w-0">
+                      <h2 class="mb-1 text-meta font-bold tracking-wide text-fg-subtle uppercase">
+                        {{ 'obligations.summarise.title' | transloco }}
                       </h2>
-                      <p class="mt-0.5 text-ui text-fg-muted">
-                        {{ stepBodyKey(first) | transloco: stepParams(first) }}
-                      </p>
-                      @if (all.length > 1) {
-                        <ul class="mt-2 flex flex-col gap-0.5 text-meta text-fg-muted">
-                          @for (s of all.slice(1); track s.kind) {
-                            <li class="flex items-center gap-1.5">
-                              <span
-                                aria-hidden="true"
-                                class="h-1.5 w-1.5 flex-none rounded-full"
-                                [class]="s.tone === 'warn' ? 'bg-warn' : 'bg-info'"
-                              ></span>
-                              {{ stepTitleKey(s) | transloco: stepParams(s) }}
-                            </li>
-                          }
-                        </ul>
-                      }
+                      <div
+                        class="prose-sm text-ui text-fg"
+                        data-testid="ai-summary"
+                        [innerHTML]="aiSummary() | appMarkdown"
+                      ></div>
                     </div>
-                    @if (stepAction(first, o); as action) {
-                      <app-button
-                        class="flex-none"
-                        size="sm"
-                        [variant]="first.tone === 'pass' ? 'secondary' : 'primary'"
-                        [loading]="acting()"
-                        (click)="runStep(first)"
-                        data-testid="next-step-action"
-                      >
-                        {{ action | transloco }}
-                      </app-button>
-                    }
+                    <button
+                      type="button"
+                      (click)="aiSummary.set('')"
+                      [attr.aria-label]="'obligations.summarise.dismiss' | transloco"
+                      class="flex flex-none rounded-lg p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                    >
+                      <app-icon name="x" [size]="15" />
+                    </button>
                   </div>
-                </section>
+                </app-card>
               }
 
-              <app-card>
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'obligations.detail.about' | transloco }}
-                  </h2>
-                  <app-ai-assist-button
-                    assist="obligations.summarise"
-                    labelKey="obligations.summarise.run"
-                    [entityType]="entityType"
-                    [entityId]="o.id"
-                    (text)="aiSummary.set($event)"
-                    data-testid="summarise"
-                  />
-                </div>
-                @if (aiSummary()) {
-                  <div
-                    class="prose-sm mb-4 rounded-tile bg-surface-2 p-3 text-ui text-fg"
-                    aria-live="polite"
-                    data-testid="ai-summary"
-                    [innerHTML]="aiSummary() | appMarkdown"
-                  ></div>
-                }
-                @if (o.description) {
-                  <p class="mb-4 text-body whitespace-pre-line text-fg">{{ o.description }}</p>
-                }
-                <app-field-list [columns]="3">
-                  <app-field-item labelKey="obligations.fields.owner" [value]="o.owner?.name" />
-                  <app-field-item
-                    labelKey="obligations.fields.jurisdiction"
-                    [value]="jurisdiction()"
-                  />
-                  <app-field-item labelKey="obligations.fields.issuer" [value]="o.issuer" />
-                  <app-field-item labelKey="obligations.fields.reference" [value]="o.reference" />
-                  <app-field-item
-                    labelKey="obligations.fields.sourceUrl"
-                    [value]="sourceLink() ? null : o.source_url"
+              @if (renewable() || o.valid_from || o.valid_until) {
+                <app-card>
+                  <app-record-details
+                    titleKey="obligations.detail.validity"
+                    [columns]="3"
+                    [fillLink]="o.can_edit ? editLink() : null"
                   >
-                    @if (sourceLink(); as url) {
-                      <a
-                        [href]="url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="font-semibold break-all text-accent hover:underline"
-                      >
-                        {{ sourceHost() }}
-                      </a>
-                    }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="obligations.fields.validFrom"
-                    [value]="o.valid_from ? (o.valid_from | localDay) : null"
-                  />
-                  <app-field-item
-                    labelKey="obligations.fields.validUntil"
-                    [value]="validUntilText()"
-                    data-testid="valid-until"
-                  />
-                  @if (renewable()) {
                     <app-field-item
-                      labelKey="obligations.fields.renewalDueOn"
-                      [value]="o.renewal_due_on ? (o.renewal_due_on | localDay) : null"
+                      labelKey="obligations.fields.validFrom"
+                      [value]="o.valid_from ? (o.valid_from | localDay) : null"
                     />
-                  }
-                </app-field-list>
-                <div class="mt-5">
-                  <h3 class="mb-1 flex items-center gap-1 text-ui font-semibold text-fg-muted">
-                    {{ 'obligations.fields.applicability' | transloco }}
-                    <app-ask-about
-                      [prompt]="'obligations.ask.applicability' | transloco"
-                      field="applicability"
-                      [fieldLabel]="'obligations.fields.applicability' | transloco"
-                      labelKey="obligations.ask.applicabilityLabel"
+                    <app-field-item
+                      labelKey="obligations.fields.validUntil"
+                      [value]="validUntilText()"
+                      data-testid="valid-until"
                     />
-                  </h3>
-                  <p class="text-body whitespace-pre-line text-fg">
-                    {{ o.applicability || ('obligations.detail.noApplicability' | transloco) }}
-                  </p>
-                </div>
-              </app-card>
-
-              <app-card>
+                    @if (renewable()) {
+                      <app-field-item
+                        labelKey="obligations.fields.renewalDueOn"
+                        [value]="o.renewal_due_on ? (o.renewal_due_on | localDay) : null"
+                      />
+                    }
+                  </app-record-details>
+                </app-card>
+              }
+              <app-card class="scroll-mt-20">
                 <app-obligation-duties
                   [obligation]="o"
                   [canEdit]="o.can_edit && o.status !== 'retired'"
@@ -417,7 +478,7 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
                 />
               </app-card>
 
-              <app-card>
+              <app-card class="scroll-mt-20">
                 <app-obligation-evaluations
                   [obligation]="o"
                   [attachments]="attachments()"
@@ -426,7 +487,7 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
                 />
               </app-card>
 
-              <app-card>
+              <app-card class="scroll-mt-20">
                 <app-obligation-changes
                   [obligationId]="o.id"
                   [canEdit]="o.can_edit"
@@ -452,74 +513,37 @@ const ASK_PROMPTS: readonly AskPrompt[] = [
               />
             </ng-container>
 
-            <ng-container aside>
-              <app-card>
-                <h2 class="mb-2 text-card font-semibold text-fg">
-                  {{ 'obligations.detail.schedule' | transloco }}
-                </h2>
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="obligations.fields.owner"
+                [value]="o.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="obligations.detail.meta.schedule"
+                [keepEmpty]="o.status !== 'retired'"
+                emptyKey="kit.detail.meta.notPlanned"
+                emptyActionKey="kit.detail.meta.plan"
+                [emptyLink]="o.can_edit ? editLink() : null"
+              >
                 @if (o.evaluation_rrule) {
-                  <p class="text-body font-semibold text-fg" data-testid="schedule">
-                    <app-rule-summary [rrule]="o.evaluation_rrule" />
-                  </p>
-                  @if (o.next_evaluation; as next) {
-                    <p
-                      class="mt-1 text-ui"
-                      [class.text-warn-ink]="next.overdue"
-                      [class.font-semibold]="next.overdue"
-                      data-testid="next-evaluation"
-                    >
-                      {{
-                        (next.overdue
-                          ? 'obligations.detail.overdueSince'
-                          : 'obligations.detail.nextDue'
-                        ) | transloco: { date: (next.due_at | localDay) }
-                      }}
-                    </p>
-                  }
-                } @else {
-                  <p class="text-ui font-semibold text-warn-ink" data-testid="schedule-missing">
-                    {{ 'obligations.detail.noSchedule' | transloco }}
-                  </p>
+                  <span data-testid="schedule"
+                    ><app-rule-summary [rrule]="o.evaluation_rrule"
+                  /></span>
                 }
-                <dl class="mt-3 flex flex-col gap-2 text-meta">
-                  <div class="flex justify-between gap-2">
-                    <dt class="text-fg-subtle">
-                      {{ 'obligations.detail.lastEvaluated' | transloco }}
-                    </dt>
-                    <dd class="text-right text-fg">
-                      {{
-                        o.last_evaluated_at
-                          ? (o.last_evaluated_at | localDay)
-                          : ('obligations.detail.never' | transloco)
-                      }}
-                    </dd>
-                  </div>
-                  @if (o.latest_evaluation; as latest) {
-                    <div class="flex justify-between gap-2">
-                      <dt class="text-fg-subtle">
-                        {{ 'obligations.detail.latestResult' | transloco }}
-                      </dt>
-                      <dd class="text-right text-fg">{{ resultKey(latest.result) | transloco }}</dd>
-                    </div>
-                  }
-                  <div class="flex justify-between gap-2">
-                    <dt class="text-fg-subtle">
-                      {{ 'obligations.detail.evaluationCount' | transloco }}
-                    </dt>
-                    <dd class="text-right text-fg">{{ o.evaluation_count }}</dd>
-                  </div>
-                  <div class="flex justify-between gap-2">
-                    <dt class="text-fg-subtle">
-                      {{ 'obligations.detail.openChanges' | transloco }}
-                    </dt>
-                    <dd class="text-right text-fg" data-testid="open-changes">
-                      {{ o.open_changes }}
-                    </dd>
-                  </div>
-                </dl>
-              </app-card>
-              <app-obligation-ask [prompts]="askPrompts" [requirements]="o.clause_refs" />
-            </ng-container>
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="obligations.detail.lastEvaluated"
+                [value]="o.last_evaluated_at ? (o.last_evaluated_at | localDay) : null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="obligations.detail.meta.updated"
+                [value]="o.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <ng-container aside-learn>
               <app-why-it-matters scope="obligations" page="detail" />
@@ -566,19 +590,21 @@ export class ObligationDetail {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly flows = inject(CreateFlowService);
+  private readonly askPanel = inject(AskPanelService);
 
   readonly id = input.required<string>();
 
   private readonly evaluations = viewChild(ObligationEvaluations);
+  private readonly summaryAssist = viewChild<AiAssistButton>('summaryAssist');
 
   protected readonly entityType = ENTITY_TYPE;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = OBLIGATION_FIELD_LABELS;
   protected readonly askPrompts = ASK_PROMPTS;
+  protected readonly sections = SECTIONS;
   protected readonly statusKey = obligationStatusKey;
   protected readonly statusMeaning = obligationStatusMeaning;
   protected readonly typeKey = obligationTypeKey;
-  protected readonly complianceKey = complianceKey;
   protected readonly resultKey = resultKey;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -590,13 +616,23 @@ export class ObligationDetail {
   protected readonly actionsVersion = signal(0);
   protected readonly aiSummary = signal('');
 
-  protected readonly steps = computed(() => {
-    const o = this.obligation();
-    return o ? nextSteps(o) : null;
-  });
   protected readonly canRecord = computed(() => {
     const o = this.obligation();
     return !!o && o.can_evaluate && o.status !== 'retired';
+  });
+  protected readonly editLink = computed(() => ['/obligations', this.obligation()?.id, 'edit']);
+  protected readonly statusSentence = computed(() => {
+    const o = this.obligation();
+    return o ? obligationSentence(o) : { kind: 'not_evaluated', tone: 'warn' as const };
+  });
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const o = this.obligation();
+    if (!o) {
+      return [];
+    }
+    return obligationTodos(o, { canRecord: this.canRecord(), canEdit: o.can_edit }).map((t) =>
+      this.missingItem(t),
+    );
   });
   protected readonly renewable = computed(() => isRenewable(this.obligation()?.obligation_type));
   protected readonly sourceLink = computed(() => safeUrl(this.obligation()?.source_url));
@@ -609,10 +645,14 @@ export class ObligationDetail {
     const key = jurisdictionKey(value);
     return key ? this.language.translate(key) : (value ?? null);
   });
+  /** "Arbeidstilsynet · Norge": who issued it and where it applies. */
+  protected readonly sourceLine = computed(() =>
+    [this.obligation()?.issuer, this.jurisdiction()].filter(Boolean).join(' · '),
+  );
   protected readonly validUntilText = computed(() => {
     const o = this.obligation();
     if (!o?.valid_until) {
-      return this.language.translate('obligations.detail.noEnd');
+      return null;
     }
     const days = daysUntil(o.valid_until);
     const date = this.day(o.valid_until);
@@ -681,83 +721,52 @@ export class ObligationDetail {
     this.load(this.selectedOrg.currentOrgId(), this.id(), initial);
   }
 
-  protected stripClass(step: NextStep): string {
-    switch (step.tone) {
-      case 'warn':
-        return 'border-warn/40 bg-warn-soft text-warn-ink';
-      case 'pass':
-        return 'border-pass/30 bg-pass-soft text-pass-ink';
-      default:
-        return 'border-info/30 bg-info-soft text-info-ink';
-    }
-  }
-
-  protected stepTitleKey(step: NextStep): string {
-    return `obligations.next.${step.kind}.title`;
-  }
-
-  protected stepBodyKey(step: NextStep): string {
-    return `obligations.next.${step.kind}.body`;
-  }
-
-  protected stepParams(step: NextStep): Record<string, unknown> {
-    const params: Record<string, unknown> = { ...step.params };
+  /** One "Hva mangler" line: the label, and what clicking it does. */
+  private missingItem(todo: ObligationTodo): RecordMissingItem {
+    const params: Record<string, unknown> = { ...todo.params };
     if (typeof params['date'] === 'string' && params['date']) {
       params['date'] = this.day(params['date'] as string);
     }
-    return params;
-  }
-
-  /** The button of the primary step, or null when it has none for this user. */
-  protected stepAction(step: NextStep, o: Obligation): string | null {
-    switch (step.kind) {
-      case 'overdue':
-      case 'firstEvaluation':
-        return this.canRecord() ? 'obligations.next.actions.evaluate' : null;
-      case 'noFollowUp':
-        return this.canRecord() ? 'obligations.next.actions.createDeviation' : null;
-      case 'noSchedule':
-        return o.can_edit ? 'obligations.next.actions.planYearly' : null;
-      case 'draft':
-        return o.can_edit ? 'obligations.next.actions.activate' : null;
-      case 'renewal':
-      case 'expired':
-        return o.can_edit ? 'obligations.next.actions.updateValidity' : null;
-      case 'changes':
-        return 'obligations.next.actions.showChanges';
-      default:
-        return null;
-    }
-  }
-
-  protected runStep(step: NextStep): void {
+    const base = { key: todo.kind, labelKey: `obligations.detail.todo.${todo.kind}`, params };
     const o = this.obligation();
-    if (!o) {
-      return;
-    }
-    switch (step.kind) {
+    switch (todo.kind) {
       case 'overdue':
       case 'firstEvaluation':
-        this.recordEvaluation();
-        break;
+        return { ...base, action: () => this.recordEvaluation() };
       case 'noFollowUp':
         // The new deviation is attached to the latest failing evaluation on save.
-        void this.flows.start('obligation.to_deviation', ENTITY_TYPE, o.id);
-        break;
+        return {
+          ...base,
+          action: () => void this.flows.start('obligation.to_deviation', ENTITY_TYPE, o?.id ?? ''),
+        };
       case 'noSchedule':
-        this.patch({ evaluation_rrule: DEFAULT_EVALUATION_RRULE }, 'obligations.notices.planned');
-        break;
+        return {
+          ...base,
+          action: () =>
+            this.patch(
+              { evaluation_rrule: DEFAULT_EVALUATION_RRULE },
+              'obligations.notices.planned',
+            ),
+        };
       case 'draft':
-        this.setStatus('active');
-        break;
-      case 'renewal':
-      case 'expired':
-        void this.router.navigate(['/obligations', o.id, 'edit']);
-        break;
+        return { ...base, action: () => this.setStatus('active') };
       case 'changes':
-        this.scrollTo('obligation-changes');
-        break;
+        return { ...base, action: () => this.scrollTo(SECTIONS.changes) };
+      default:
+        // renewal, expired, owner: the edit page.
+        return { ...base, link: this.editLink() };
     }
+  }
+
+  protected summarise(): void {
+    this.summaryAssist()?.run();
+  }
+
+  protected askAi(key: string): void {
+    const o = this.obligation();
+    this.askPanel.askAbout(this.language.translate(`obligations.ask.${key}`), undefined, {
+      requirements: o?.clause_refs ?? null,
+    });
   }
 
   protected recordEvaluation(): void {
@@ -836,7 +845,7 @@ export class ObligationDetail {
     });
   }
 
-  private scrollTo(id: string): void {
+  protected scrollTo(id: string): void {
     document.getElementById(id)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
   }
 
