@@ -725,7 +725,11 @@
     "deleteMessage": "The record is removed from the register. It stays in the audit trail.",
     "linkedRecord": "Linked record",
     "setStatus": "Set status: {{ status }}",
-    "missingArt30": "Missing (required by Art. 30)"
+    "missingArt30": "Missing (required by Art. 30)",
+    "outputs": {
+      "title": "Documents",
+      "hint": "Make this record into a report or letter as Word or PDF. Missing information is shown first."
+    }
   },
   "ai": {
     "ropaTitle": "Draft from a description",
@@ -1243,7 +1247,37 @@
     "title": "Documents and reports",
     "subtitle": "The records Datatilsynet and auditors ask for, made from what you have registered. See what is missing first, then make the document as PDF, Word or Excel.",
     "registers": "The registers as tables",
-    "registersHint": "Each register as a spreadsheet or PDF, with the filters you choose."
+    "registersHint": "Each register as a spreadsheet or PDF, with the filters you choose.",
+    "notices": {
+      "title": "Privacy notices",
+      "hint": "What you tell customers, employees and job applicants about their personal data (GDPR Art. 13 and 14). Make the notice above, check it, then approve it: it becomes a controlled document that is sent for approval under Documents.",
+      "audience": {
+        "customers": "Customers",
+        "employees": "Employees",
+        "applicants": "Job applicants"
+      },
+      "version": "Version {{version}}, made {{date}}",
+      "noVersion": "No version yet. Make the notice under Documents and reports above.",
+      "draft": "Draft – a person must check the text",
+      "accept": "Approve as document",
+      "acceptRevision": "Approve as new revision",
+      "accepted": "\"{{title}}\" is sent for approval under Documents.",
+      "sourceChanged": "Source data changed – make a new version and approve it as a new revision",
+      "upToDate": "Matches the registered data",
+      "builtFrom": "Processing activities it is built from ({{n}}):",
+      "noActivities": "No active processing activity names this group under data subjects yet.",
+      "openRopa": "Open processing activities",
+      "docStatus": {
+        "draft": "Draft",
+        "in_review": "Awaiting approval",
+        "approved": "Approved",
+        "obsolete": "Obsolete"
+      },
+      "errors": {
+        "sourceChanged": "The data has changed since this version. Make a new version first.",
+        "failed": "The notice could not be made into a document. Try again."
+      }
+    }
   },
   "path": {
     "title": "Get your privacy in order",

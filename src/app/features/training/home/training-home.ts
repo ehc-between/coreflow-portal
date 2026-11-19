@@ -96,7 +96,6 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
           { labelKey: 'training.nav.mine' },
         ]"
         outputsModule="training"
-
       >
         <app-button
           secondary
