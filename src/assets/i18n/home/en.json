@@ -105,7 +105,10 @@
     "modules": "Modules",
     "roles": "Roles",
     "tasks": "First tasks",
-    "done": "Summary"
+    "done": "Summary",
+    "policies": "Policies",
+    "risks": "Risks",
+    "ropa": "Processing activities"
   },
   "setup": {
     "standards": "Choose the standards your organisation follows",
@@ -277,6 +280,19 @@
         "skip": "Skip this step",
         "undo": "Undo",
         "include": "Include again"
+      }
+    },
+    "target": {
+      "label": "Ready for the audit by",
+      "none": "No target audit date yet.",
+      "set": "Target audit date",
+      "savedToast": "The target date is saved.",
+      "status": {
+        "on_track": "On track",
+        "behind": "{{ weeks }} weeks behind",
+        "overdue": "The target date has passed",
+        "done": "Ready",
+        "behindOne": "1 week behind"
       }
     }
   },

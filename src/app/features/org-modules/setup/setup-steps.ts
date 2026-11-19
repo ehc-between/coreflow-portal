@@ -1,7 +1,15 @@
 import { ModuleRecommendation, OrgModule, SetupState } from '../../../core/modules/module.models';
 
 /** The wizard steps, in order (the backend stores the current one as `setup_step`). */
-export const SETUP_STEPS = ['profile', 'frameworks', 'modules', 'roles', 'tasks', 'done'] as const;
+export const SETUP_STEPS = [
+  'profile',
+  'frameworks',
+  'modules',
+  'policies',
+  'risks',
+  'ropa',
+  'done',
+] as const;
 export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export function isSetupStep(value: string | null | undefined): value is SetupStep {
@@ -17,6 +25,35 @@ export function resumeStep(state: SetupState | null): SetupStep {
     return 'profile';
   }
   return isSetupStep(state.step) && state.step !== 'done' ? state.step : 'profile';
+}
+
+/** U09: the starter-template steps ("Legg til 12 policyer"), keyed by starter kind. */
+export const STARTER_STEPS = ['policies', 'risks', 'ropa'] as const;
+export type StarterStep = (typeof STARTER_STEPS)[number];
+
+export function isStarterStep(step: SetupStep): step is StarterStep {
+  return (STARTER_STEPS as readonly string[]).includes(step);
+}
+
+/** U09: the module a starter step needs (its create endpoint is gated by it). */
+export const STARTER_MODULE: Readonly<Record<StarterStep, string>> = {
+  policies: 'context',
+  risks: 'risk',
+  ropa: 'privacy',
+};
+
+/**
+ * U09: the next / previous step that is shown, skipping starter steps whose module is
+ * off (`shown` says which steps are shown). Clamped at both ends.
+ */
+export function stepAfter(step: SetupStep, shown: (s: SetupStep) => boolean): SetupStep {
+  const rest = SETUP_STEPS.slice(SETUP_STEPS.indexOf(step) + 1);
+  return rest.find(shown) ?? step;
+}
+
+export function stepBefore(step: SetupStep, shown: (s: SetupStep) => boolean): SetupStep {
+  const before = SETUP_STEPS.slice(0, SETUP_STEPS.indexOf(step)).reverse();
+  return before.find(shown) ?? step;
 }
 
 /** The step after / before `step` (clamped). */

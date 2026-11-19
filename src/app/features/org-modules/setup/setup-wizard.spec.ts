@@ -16,6 +16,22 @@ const BASE = 'http://test/api';
 const ORG = 'org-1';
 const url = (path: string) => `${BASE}/v1/orgs/${ORG}/${path}`;
 
+const PACKAGES = {
+  total: 28,
+  enabled: 6,
+  items: [
+    {
+      key: 'quality',
+      frameworks: ['iso9001'],
+      modules: ['audits', 'documents'],
+      module_count: 10,
+      missing: ['audits'],
+      covered: false,
+    },
+    { key: 'full', frameworks: [], modules: [], module_count: 28, missing: [], covered: false },
+  ],
+};
+
 function mod(key: string, enabled: boolean): OrgModule {
   return {
     key,
@@ -53,6 +69,7 @@ describe('SetupWizard', () => {
     http.expectOne(url('profile')).flush({ ...emptyProfile(ORG), frameworks });
     http.expectOne(url('setup')).flush({ completed_at: null, step });
     http.expectOne(url('modules')).flush([mod('documents', true), mod('audits', false)]);
+    http.expectOne(url('modules/packages')).flush(PACKAGES);
     await settle();
   }
 
@@ -158,34 +175,118 @@ describe('SetupWizard', () => {
     );
   });
 
-  it('skips first tasks gracefully on 404 and finishes the setup', async () => {
-    await open('tasks');
+  it('switches the modules on, adds confirmed starters and ends with a first document (U09)', async () => {
+    await open('modules');
     flushRecommendations();
     await settle();
 
-    button('modules.setup.tasks.create')!.click();
-    for (const req of http.match(url('tasks'))) {
-      req.flush({}, { status: 404, statusText: 'Not Found' });
-    }
-    // Tasks are created one at a time; flush any that follow.
-    let more = http.match(url('tasks'));
-    while (more.length) {
-      more.forEach((req) => req.flush({}, { status: 404, statusText: 'Not Found' }));
-      more = http.match(url('tasks'));
-    }
-    await settle();
-    expect(el().textContent).toContain('modules.setup.tasks.unavailable');
-
     button('modules.setup.next')!.click();
-    http.expectOne(url('setup/step')).flush({ completed_at: null, step: 'done' });
+    const save = http.expectOne(url('setup/complete'));
+    expect(save.request.body).toEqual({ modules: ['audits', 'documents'], step: 'policies' });
+    save.flush({
+      enabled: ['audits', 'context', 'documents'],
+      completed_at: '2026-11-19T06:00:00',
+    });
+    http
+      .expectOne((req) => req.url === url('setup/starters'))
+      .flush({
+        policies: {
+          module: 'context',
+          module_enabled: true,
+          items: [
+            {
+              key: 'quality',
+              title: 'Quality policy',
+              summary: 'We deliver.',
+              payload: { kind: 'quality', title: 'Quality policy' },
+              exists: false,
+            },
+            {
+              key: 'privacy',
+              title: 'Privacy policy',
+              summary: 'Lawful.',
+              payload: { kind: 'privacy', title: 'Privacy policy' },
+              exists: true,
+            },
+          ],
+        },
+        risks: { module: 'risk', module_enabled: false, items: [] },
+        ropa: { module: 'privacy', module_enabled: false, items: [] },
+      });
+    await settle();
+    expect(reload).toHaveBeenCalled();
+    expect(el().querySelector('[aria-current="step"]')?.textContent).toContain(
+      'modules.setup.steps.policies',
+    );
+    // Steps whose module is off are not shown.
+    expect(el().textContent).not.toContain('modules.setup.steps.risks');
+    const boxes = [
+      ...el().querySelectorAll<HTMLInputElement>(
+        '[data-testid="setup-starters-policies"] input[type="checkbox"]',
+      ),
+    ];
+    expect(boxes.map((b) => [b.checked, b.disabled])).toEqual([
+      [true, false],
+      [false, true],
+    ]);
+
+    button('modules.setup.starters.policies.add')!.click();
+    const created = http.expectOne(url('context/policies'));
+    expect(created.request.body).toEqual({ kind: 'quality', title: 'Quality policy' });
+    created.flush({});
+    const step = http.expectOne(url('setup/step'));
+    expect(step.request.body).toEqual({ step: 'done' });
+    step.flush({ completed_at: '2026-11-19T06:00:00', step: 'done' });
     await settle();
 
     button('modules.setup.finish')!.click();
-    const complete = http.expectOne(url('setup/complete'));
-    expect(complete.request.body).toEqual({ modules: ['audits', 'documents'], step: 'done' });
-    complete.flush({ enabled: ['audits', 'documents'], completed_at: '2026-11-12T10:00:00' });
+    http
+      .expectOne(url('setup/complete'))
+      .flush({ enabled: ['audits', 'documents'], completed_at: '2026-11-19T06:05:00' });
     await settle();
-    expect(reload).toHaveBeenCalled();
     expect(el().textContent).toContain('modules.setup.done.finished');
+    expect(el().querySelector('[data-testid="setup-created"]')).not.toBeNull();
+    const doc = el().querySelector('[data-testid="setup-first-document"] a') as HTMLAnchorElement;
+    expect(doc.getAttribute('href')).toBe('/library');
+  });
+
+  it('pre-fills the profile from the Brønnøysund register (U09)', async () => {
+    await open(null);
+    const input = el().querySelector('#setup-orgnr') as HTMLInputElement;
+    input.value = '923609016';
+    input.dispatchEvent(new Event('input'));
+    await settle();
+    (el().querySelector('[data-testid="setup-lookup"] button') as HTMLButtonElement).click();
+    http.expectOne(url('setup/registry/923609016')).flush({
+      orgnr: '923609016',
+      name: 'Eksempel AS',
+      industry: 'Konsulentvirksomhet',
+      employees: 42,
+      size_band: '11-50',
+      countries: ['NO'],
+    });
+    await settle();
+    expect(el().textContent).toContain('modules.setup.lookup.found');
+    expect((el().querySelector('#setup-industry') as HTMLInputElement).value).toBe(
+      'Konsulentvirksomhet',
+    );
+    expect((el().querySelector('#setup-size') as HTMLSelectElement).value).toBe('11-50');
+  });
+
+  it('offers the packages and a package sets the standards (U09)', async () => {
+    await open('frameworks', []);
+    const radios = el().querySelectorAll<HTMLInputElement>(
+      '[data-testid="setup-packages"] input[type="radio"]',
+    );
+    expect(radios.length).toBe(2);
+    radios[0].click();
+    await settle();
+    const box = (name: string) =>
+      [...el().querySelectorAll('label')]
+        .find((l) => l.textContent?.includes(name))
+        ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    expect(box('modules.frameworks.iso9001.name')?.checked).toBe(true);
+    expect(box('modules.frameworks.gdpr.name')?.checked).toBe(false);
+    expect(el().textContent).toContain('modules.packages.items.quality.name');
   });
 });

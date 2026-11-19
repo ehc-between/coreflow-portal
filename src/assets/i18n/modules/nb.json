@@ -250,7 +250,10 @@
       "modules": "Moduler",
       "roles": "Roller",
       "tasks": "Første oppgaver",
-      "done": "Ferdig"
+      "done": "Ferdig",
+      "policies": "Policyer",
+      "risks": "Risikoer",
+      "ropa": "Behandlinger"
     },
     "profile": {
       "title": "Fortell oss om organisasjonen",
@@ -259,7 +262,8 @@
     "frameworks": {
       "title": "Hvilke rammeverk er i omfang?",
       "body": "Velg standardene og regelverkene dere jobber mot, nå eller snart.",
-      "hint": "Usikker? Start med det dere trenger først. Dere kan legge til flere når som helst under Innstillinger, Organisasjonsprofil."
+      "hint": "Usikker? Start med det dere trenger først. Dere kan legge til flere når som helst under Innstillinger, Organisasjonsprofil.",
+      "custom": "Eller velg standardene selv"
     },
     "modules": {
       "title": "Anbefalte moduler",
@@ -318,7 +322,7 @@
     },
     "done": {
       "title": "Klar til bruk",
-      "body": "Fullfør for å slå på de valgte modulene. Du kan endre dem senere under Innstillinger, Moduler.",
+      "body": "Fullfør oppsettet for å se resultatet og lage det første dokumentet.",
       "summary": "Disse modulene slås på: {{ modules }}.",
       "summaryNone": "Ingen nye moduler slås på.",
       "finished": "Oppsettet er fullført.",
@@ -329,7 +333,13 @@
       "journeyTitle": "Neste: følg en veiledet reise",
       "journeyBody": "En reise tar deg steg for steg fra den første avgrensningen til organisasjonen er klar for revisjon. Hvert steg forteller hva du skal gjøre, og hvilke krav det dekker.",
       "startJourney": "Start reisen for {{ standard }}",
-      "journeyFailed": "Kunne ikke starte reisen. Prøv igjen fra siden for standarden."
+      "journeyFailed": "Kunne ikke starte reisen. Prøv igjen fra siden for standarden.",
+      "created": "Lagt til: {{ policies }} policyer, {{ risks }} risikoer og {{ ropa }} behandlingsaktiviteter.",
+      "firstDocTitle": "Lag det første dokumentet",
+      "firstDocBody": "Under Dokumenter og rapporter lager dere ferdige dokumenter av det dere har lagt inn, i Word eller PDF.",
+      "firstDocCta": "Lag dokumentet →",
+      "targetLabel": "Når vil dere være klare for revisjon?",
+      "targetHint": "Reisen viser da om dere er i rute."
     },
     "back": "Tilbake",
     "next": "Fortsett",
@@ -338,6 +348,45 @@
     "errors": {
       "unknownModules": "En av de valgte modulene finnes ikke lenger. Gå tilbake og sjekk listen.",
       "recommendations": "Anbefalingene kunne ikke lastes. Prøv igjen."
+    },
+    "lookup": {
+      "label": "Organisasjonsnummer",
+      "button": "Hent fra Brønnøysundregistrene",
+      "hint": "Valgfritt. Vi henter bransje, antall ansatte og land fra Enhetsregisteret.",
+      "found": "Fant {{ name }}. Bransje, størrelse og land er fylt inn. Sjekk at det stemmer.",
+      "invalid": "Et organisasjonsnummer har 9 sifre.",
+      "notFound": "Fant ingen virksomhet med det nummeret.",
+      "unavailable": "Fikk ikke kontakt med registeret. Fyll inn feltene selv."
+    },
+    "policies": {
+      "title": "Legg til policyer",
+      "body": "Ferdige policyer i klart språk. Huk av dem dere vil ha. Dere kan endre teksten og sende dem til godkjenning etterpå."
+    },
+    "risks": {
+      "title": "Legg til risikoer",
+      "body": "Vanlige risikoer for en virksomhet som deres. Huk av dem som gjelder dere. Dere vurderer og behandler dem etterpå."
+    },
+    "ropa": {
+      "title": "Legg til behandlingsaktiviteter",
+      "body": "Vanlige måter en virksomhet behandler personopplysninger på (protokollen over behandlingsaktiviteter). Huk av dem dere gjør."
+    },
+    "starters": {
+      "chosen": "Valgt: {{ count }}",
+      "all": "Velg alle",
+      "none": "Velg ingen",
+      "exists": "Lagt til fra før",
+      "hint": "De legges til som utkast som du eier. Ingenting er delt eller godkjent ennå.",
+      "created": "Lagt til.",
+      "failed": "Noen kunne ikke legges til. Dere kan legge dem til senere.",
+      "policies": {
+        "add": "Legg til {{ count }} policyer →"
+      },
+      "risks": {
+        "add": "Legg til {{ count }} risikoer →"
+      },
+      "ropa": {
+        "add": "Legg til {{ count }} behandlingsaktiviteter →"
+      }
     }
   },
   "banner": {
@@ -374,5 +423,35 @@
         }
       }
     }
+  },
+  "packages": {
+    "title": "Velg en pakke",
+    "moduleCount": "{{ count }} av {{ total }} områder",
+    "coverage": "Du har {{ on }} av {{ total }} områder på.",
+    "enough": "Det er nok for {{ package }}.",
+    "items": {
+      "internal_control": {
+        "name": "Internkontroll/HMS",
+        "description": "Helse, miljø og sikkerhet: avvik, risiko, opplæring og HMS-håndboken."
+      },
+      "quality": {
+        "name": "Kvalitet ISO 9001",
+        "description": "Dokumenter, avvik, risiko, internrevisjon og ledelsens gjennomgang for ISO 9001."
+      },
+      "security_privacy": {
+        "name": "Informasjonssikkerhet + personvern",
+        "description": "ISO 27001 og GDPR: verdier, risiko, behandlingsaktiviteter, revisjon og gjennomgang."
+      },
+      "full": {
+        "name": "Full styring",
+        "description": "Alle områder slått på. Passer best når dere allerede kjenner CoreFlow."
+      }
+    },
+    "sectionTitle": "Pakker",
+    "sectionBody": "Slå på en hel pakke på én gang. Ingenting blir slått av.",
+    "apply": "Slå på",
+    "covered": "På",
+    "appliedToast": "Pakken er slått på.",
+    "applyFailed": "Pakken kunne ikke slås på. Prøv igjen."
   }
 }

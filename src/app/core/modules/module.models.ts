@@ -227,3 +227,55 @@ export function toProfileUpdate(profile: OrgProfileUpdate): OrgProfileUpdate {
     description: profile.description,
   };
 }
+
+// --- U09: packages, starter templates, register lookup ---------------------------
+
+/** A plain bundle of modules (`internal_control`, `quality`, `security_privacy`, `full`). */
+export interface ModulePackage {
+  readonly key: string;
+  readonly frameworks: readonly string[];
+  readonly modules: readonly string[];
+  /** Modules on after applying it (always-on modules included). */
+  readonly module_count: number;
+  /** Package modules still off in this org. */
+  readonly missing: readonly string[];
+  readonly covered: boolean;
+}
+
+export interface PackagesResponse {
+  /** Every registered module. */
+  readonly total: number;
+  /** Modules on in the org now. */
+  readonly enabled: number;
+  readonly items: readonly ModulePackage[];
+}
+
+export type StarterKindKey = 'policies' | 'risks' | 'ropa';
+
+export interface StarterItem {
+  readonly key: string;
+  readonly title: string;
+  readonly summary: string;
+  /** The create body for the kind's normal create endpoint. */
+  readonly payload: Record<string, unknown>;
+  /** A live record with this title exists already. */
+  readonly exists: boolean;
+}
+
+export interface StarterKind {
+  readonly module: string;
+  readonly module_enabled: boolean;
+  readonly items: readonly StarterItem[];
+}
+
+export type StartersResponse = Record<StarterKindKey, StarterKind>;
+
+/** Pre-fill from the Brønnøysund register. */
+export interface RegistryLookup {
+  readonly orgnr: string;
+  readonly name: string;
+  readonly industry: string | null;
+  readonly employees: number | null;
+  readonly size_band: string | null;
+  readonly countries: readonly string[];
+}

@@ -18,6 +18,7 @@ import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
@@ -72,6 +73,7 @@ type View =
     PageHeader,
     ProgressBar,
     JourneyStepRow,
+    LocalDayPipe,
   ],
   viewProviders: [provideSharedScope('home')],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -207,6 +209,54 @@ type View =
                   · {{ 'home.journey.skipped' | transloco: { count: j.skipped } }}
                 }
               </p>
+              <!-- U09: the target audit date and whether the plan is on track -->
+              <div
+                class="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3"
+                data-testid="journey-target"
+              >
+                @if (j.target_date) {
+                  <span class="text-ui text-fg">
+                    {{ 'home.journey.target.label' | transloco }}
+                    <strong>{{ j.target_date | localDay }}</strong>
+                  </span>
+                  @if (j.schedule; as s) {
+                    <span
+                      class="rounded-full px-2.5 py-0.5 text-meta font-semibold"
+                      [class]="
+                        s.status === 'on_track' || s.status === 'done'
+                          ? 'bg-pass-soft text-pass-ink'
+                          : s.status === 'behind'
+                            ? 'bg-warn-soft text-warn-ink'
+                            : 'bg-fail-soft text-fail-ink'
+                      "
+                      data-testid="journey-schedule"
+                    >
+                      {{
+                        'home.journey.target.status.' +
+                          (s.status === 'behind' && s.weeks_behind === 1 ? 'behindOne' : s.status)
+                          | transloco: { weeks: s.weeks_behind }
+                      }}
+                    </span>
+                  }
+                } @else {
+                  <span class="text-ui text-fg-muted">{{
+                    'home.journey.target.none' | transloco
+                  }}</span>
+                }
+                @if (canManage() && j.status !== 'archived') {
+                  <label class="ml-auto flex items-center gap-2 text-meta text-fg-muted">
+                    <span>{{ 'home.journey.target.set' | transloco }}</span>
+                    <input
+                      type="date"
+                      class="h-8 rounded-tile border border-border bg-surface px-2 text-ui text-fg"
+                      [value]="j.target_date ?? ''"
+                      [disabled]="busy()"
+                      (change)="setTargetDate($any($event.target).value)"
+                      data-testid="journey-target-input"
+                    />
+                  </label>
+                }
+              </div>
               @if (j.status === 'completed') {
                 <p
                   class="mt-3 flex items-center gap-2 rounded-tile bg-pass-soft px-3 py-2 text-ui text-pass-ink"
@@ -466,6 +516,27 @@ export class JourneyPage {
         this.notifications.success(
           status === 'archived' ? 'home.journey.archivedToast' : 'home.journey.reactivatedToast',
         );
+      },
+      error: () => {
+        this.busy.set(false);
+        this.notifications.error('home.journey.errors.save');
+      },
+    });
+  }
+
+  /** U09: set (or clear with an empty value) the target audit date. */
+  protected setTargetDate(value: string): void {
+    const orgId = this.selectedOrg.currentOrgId();
+    const j = this.journey();
+    if (!orgId || !j || (value || null) === (j.target_date ?? null)) {
+      return;
+    }
+    this.busy.set(true);
+    this.api.setTargetDate(orgId, j.id, value || null, this.language.active()).subscribe({
+      next: (journey) => {
+        this.busy.set(false);
+        this.view.set({ kind: 'journey', journey });
+        this.notifications.success('home.journey.target.savedToast');
       },
       error: () => {
         this.busy.set(false);
