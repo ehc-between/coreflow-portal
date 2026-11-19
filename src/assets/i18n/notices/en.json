@@ -1,0 +1,27 @@
+{
+  "title": "Notification",
+  "intro": "Drafts of the notices this record requires, built from what you have recorded. Copy each part into the form in Altinn.",
+  "to": "To: {{ recipient }}",
+  "due": "Deadline: {{ date }}",
+  "withoutDelay": "Send without undue delay",
+  "sentOn": "Sent {{ date }}",
+  "reference": "Reference {{ ref }}",
+  "showDraft": "Show draft",
+  "hideDraft": "Hide draft",
+  "missingCount": "{{ count }} missing",
+  "missing": "Missing. Fill this in on the record first.",
+  "optional": "Not filled in (optional)",
+  "copy": "Copy",
+  "copyPart": "Copy {{ part }}",
+  "copyAll": "Copy everything",
+  "copied": "Copied",
+  "save": "Save as document",
+  "saveFailed": "Could not open the document. Try again.",
+  "status": {
+    "pending": "Not sent",
+    "overdue": "Overdue",
+    "sent": "Sent",
+    "not_required": "Not required",
+    "closed_unreported": "Closed without notice"
+  }
+}

@@ -466,6 +466,8 @@ interface ClauseChip {
           @if (openObligations().length && !editing()) {
             <app-deviation-reporting
               [obligations]="dev.reporting_obligations ?? []"
+              [deviationId]="dev.id"
+              [version]="dev"
               [canEdit]="canEditThis()"
               [busy]="savingReporting()"
               (save)="saveReporting($event)"
@@ -894,6 +896,8 @@ interface ClauseChip {
             @if (!openObligations().length && (dev.reporting_obligations ?? []).length) {
               <app-deviation-reporting
                 [obligations]="dev.reporting_obligations ?? []"
+                [deviationId]="dev.id"
+                [version]="dev"
                 [canEdit]="canEditThis()"
                 [busy]="savingReporting()"
                 (save)="saveReporting($event)"
