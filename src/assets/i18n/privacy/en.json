@@ -587,7 +587,7 @@
       },
       "draft_reply": {
         "title": "Draft the reply",
-        "body": "Answer in plain language. The assistant can write a first draft."
+        "body": "Reply in plain language. Choose \"Ask AI\" at the top of the page for a first draft."
       },
       "send_reply": {
         "title": "Send the reply",
@@ -1211,7 +1211,8 @@
     "completeness": "{{ filled }} of {{ total }} filled in",
     "completenessShort": "Art. 30: {{ filled }}/{{ total }}",
     "completenessMissing": "Fill these in before you mark the entry as active:",
-    "completenessDone": "Every Art. 30 detail is filled in."
+    "completenessDone": "Every Art. 30 detail is filled in.",
+    "linkedAdd": "Not linked yet – create what the processing needs:"
   },
   "retention": {
     "months": "{{ count }} months",
@@ -1305,5 +1306,84 @@
         "cta": "Make the documents"
       }
     }
+  },
+  "lead": {
+    "ropa": {
+      "purposes": "What we use the data for",
+      "legal_basis": "What allows us to (legal basis)",
+      "data_subject_categories": "Whose data it is",
+      "data_categories": "What data"
+    },
+    "dpia": {
+      "ropa_entry_id": "Processing being assessed",
+      "screening": "Why a DPIA is needed",
+      "measures": "Measures against the risks",
+      "residual_risk": "Risk left after the measures (residual risk)"
+    },
+    "dsr": {
+      "request_type": "What the person asks for",
+      "requester_name": "Who is asking",
+      "outcome": "What we did (outcome)"
+    },
+    "breach": {
+      "description": "What happened",
+      "risk_level": "Risk to the people affected",
+      "authority": "Notifying the supervisory authority",
+      "subjects": "Notifying the people affected"
+    },
+    "transfer": {
+      "destination_country": "Where the data goes",
+      "mechanism": "What the transfer relies on (transfer mechanism)",
+      "tia_conclusion": "Conclusion of the transfer assessment (TIA)",
+      "supplementary_measures": "Extra measures to protect the data"
+    },
+    "status": {
+      "ropa": {
+        "draft": "Draft – {{ filled }} of {{ total }} facts required by Article 30 are filled in.",
+        "draftComplete": "Draft – everything Article 30 requires is filled in. Set the processing to active once it is in use.",
+        "active": "Active – the processing is in use and fully described in the record.",
+        "activeIncomplete": "Active – but {{ count }} facts required by Article 30 are missing.",
+        "retired": "Retired – the processing is no longer in use."
+      },
+      "dpia": {
+        "screening": "Screening – step 1 of 3: decide whether a DPIA is needed.",
+        "in_progress": "In progress – step 2 of 3: describe the necessity, the risks and the measures.",
+        "awaiting_decision": "Awaiting decision – step 3 of 3: the approver accepts the residual risk or rejects it.",
+        "not_required": "Not required – the screening shows that no DPIA is needed.",
+        "approved": "Approved – {{ name }} accepted the residual risk on {{ date }}.",
+        "rejected": "Rejected – {{ name }} rejected the assessment on {{ date }}. The processing cannot start as described."
+      },
+      "dsr": {
+        "open": "{{ status }} – the reply is due by {{ date }} ({{ days }} days left).",
+        "overdue": "Past the deadline – the reply was due by {{ date }}.",
+        "completed": "Completed – the reply was sent on {{ date }}.",
+        "rejected": "Refused – the request was refused on {{ date }}.",
+        "withdrawn": "Withdrawn – the person withdrew the request."
+      },
+      "breach": {
+        "closed": "Closed – the breach is handled and the notification decisions are documented.",
+        "notified": "Notified – waiting for the breach to be closed.",
+        "overdue": "Over 72 hours – the deadline to notify the supervisory authority passed on {{ deadline }}.",
+        "running": "{{ status }} – {{ hours }} hours left to notify the supervisory authority ({{ deadline }}).",
+        "decide": "{{ status }} – record whether the authority and the people affected must be notified, then close the breach."
+      },
+      "transfer": {
+        "draft": "Draft – the transfer to {{ country }} can start once its mechanism is in place and assessed.",
+        "active": "Active – data is sent to {{ country }} on the mechanism below.",
+        "suspended": "Suspended – no data may be sent to {{ country }} until the transfer is reassessed.",
+        "retired": "Retired – the transfer to {{ country }} is no longer in use."
+      }
+    },
+    "priorConsultation": "Prior consultation needed – the residual risk is still high, so the processing must be discussed with the supervisory authority before it starts (Art. 36).",
+    "meta": {
+      "owner": "Responsible",
+      "updated": "Last changed"
+    }
+  },
+  "missing": {
+    "thisRecord": "This record",
+    "art30": "Fill in what Article 30 requires: {{ fields }}",
+    "review": "The review is overdue ({{ date }}) – review the record",
+    "owner": "Choose who is responsible"
   }
 }

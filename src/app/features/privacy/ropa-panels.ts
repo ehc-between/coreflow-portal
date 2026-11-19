@@ -57,10 +57,11 @@ interface LinkedGroup {
       </h2>
       <p class="mb-3 text-ui text-fg-muted">{{ 'privacy.ropa.linkedIntro' | transloco }}</p>
       <div class="flex flex-col divide-y divide-border" data-testid="ropa-linked">
-        @for (g of groups(); track g.register) {
+        @for (g of filled(); track g.register) {
           <section class="py-3 first:pt-0 last:pb-0" [attr.data-testid]="'linked-' + g.register">
             <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <h3 class="text-ui font-semibold text-fg">
+              <h3 class="flex items-center gap-1.5 text-ui font-semibold text-fg">
+                <app-icon [name]="icon(g.register)" [size]="14" />
                 {{ 'privacy.registers.' + g.register + '.plural' | transloco }}
                 <span class="ml-1 text-meta font-normal text-fg-subtle">{{ g.items.length }}</span>
               </h3>
@@ -77,30 +78,47 @@ interface LinkedGroup {
                 </button>
               }
             </div>
-            @if (g.items.length === 0) {
-              <p class="text-meta text-fg-subtle">
-                {{ 'privacy.ropa.linkedNone.' + g.register | transloco }}
-              </p>
-            } @else {
-              <ul class="flex flex-col gap-1">
-                @for (item of g.items; track item.id) {
-                  <li class="flex flex-wrap items-center justify-between gap-2">
-                    <a
-                      [routerLink]="['/privacy', segment(g.register), item.id]"
-                      class="min-w-0 truncate text-ui text-fg hover:underline"
-                    >
-                      <span class="font-mono text-meta text-fg-subtle">{{ item.code }}</span>
-                      {{ item.title }}
-                    </a>
-                    <app-status-badge
-                      meaning="lifecycle"
-                      [value]="toneValue(item.status)"
-                      [labelKey]="statusKey(item.status)"
-                    />
-                  </li>
+            <ul class="flex flex-col gap-1">
+              @for (item of g.items; track item.id) {
+                <li class="flex flex-wrap items-center justify-between gap-2">
+                  <a
+                    [routerLink]="['/privacy', segment(g.register), item.id]"
+                    class="min-w-0 truncate text-ui text-fg hover:text-accent hover:underline"
+                  >
+                    <span class="font-mono text-meta text-fg-subtle">{{ item.code }}</span>
+                    {{ item.title }}
+                  </a>
+                  <app-status-badge
+                    meaning="lifecycle"
+                    [value]="toneValue(item.status)"
+                    [labelKey]="statusKey(item.status)"
+                  />
+                </li>
+              }
+            </ul>
+          </section>
+        }
+        @if (creatable().length) {
+          <section class="py-3 first:pt-0 last:pb-0" data-testid="linked-empty">
+            <p class="mb-1.5 text-ui text-fg-muted">
+              {{ 'privacy.ropa.linkedAdd' | transloco }}
+            </p>
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
+              @for (g of creatable(); track g.register) {
+                @if (g.canCreate) {
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 text-ui font-semibold text-accent hover:underline disabled:opacity-60"
+                    [disabled]="flows.starting() !== null"
+                    (click)="create(g.flow)"
+                    [attr.data-testid]="'linked-create-' + g.register"
+                  >
+                    <app-icon name="plus" [size]="14" />
+                    {{ 'privacy.registers.' + g.register + '.new' | transloco }}
+                  </button>
                 }
-              </ul>
-            }
+              }
+            </div>
           </section>
         }
       </div>
@@ -127,6 +145,12 @@ export class RopaLinked {
     })),
   );
 
+  /** Groups with records; the empty ones are named in one line with their "+ Ny …". */
+  protected readonly filled = computed(() => this.groups().filter((g) => g.items.length > 0));
+  protected readonly creatable = computed(() =>
+    this.groups().filter((g) => g.items.length === 0 && g.canCreate),
+  );
+
   private sub = new Subscription();
 
   constructor() {
@@ -137,6 +161,10 @@ export class RopaLinked {
       const perms = this.perms();
       untracked(() => this.load(orgId, id, perms));
     });
+  }
+
+  protected icon(register: RegisterKey): string {
+    return REGISTERS[register].icon;
   }
 
   protected segment(register: RegisterKey): string {

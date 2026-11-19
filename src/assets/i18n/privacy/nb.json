@@ -587,7 +587,7 @@
       },
       "draft_reply": {
         "title": "Skriv svaret",
-        "body": "Svar med et enkelt språk. Assistenten kan lage et første utkast."
+        "body": "Svar med et enkelt språk. Velg «Spør KI» øverst på siden for et første utkast."
       },
       "send_reply": {
         "title": "Send svaret",
@@ -1211,7 +1211,8 @@
     "completeness": "{{ filled }} av {{ total }} fylt ut",
     "completenessShort": "Art. 30: {{ filled }}/{{ total }}",
     "completenessMissing": "Fyll ut disse før du setter posten som aktiv:",
-    "completenessDone": "Alle opplysningene etter artikkel 30 er fylt ut."
+    "completenessDone": "Alle opplysningene etter artikkel 30 er fylt ut.",
+    "linkedAdd": "Ikke koblet ennå – lag det behandlingen trenger:"
   },
   "retention": {
     "months": "{{ count }} måneder",
@@ -1305,5 +1306,84 @@
         "cta": "Lag dokumentene"
       }
     }
+  },
+  "lead": {
+    "ropa": {
+      "purposes": "Hva vi bruker opplysningene til",
+      "legal_basis": "Hva som gir oss lov (behandlingsgrunnlag)",
+      "data_subject_categories": "Hvem opplysningene gjelder",
+      "data_categories": "Hvilke opplysninger"
+    },
+    "dpia": {
+      "ropa_entry_id": "Behandlingen som vurderes",
+      "screening": "Derfor trengs en DPIA",
+      "measures": "Tiltak mot risikoene",
+      "residual_risk": "Risiko som gjenstår etter tiltakene (restrisiko)"
+    },
+    "dsr": {
+      "request_type": "Hva personen ber om",
+      "requester_name": "Hvem som spør",
+      "outcome": "Hva vi gjorde (utfall)"
+    },
+    "breach": {
+      "description": "Hva skjedde",
+      "risk_level": "Risiko for de berørte",
+      "authority": "Varsling til Datatilsynet",
+      "subjects": "Varsling til de berørte"
+    },
+    "transfer": {
+      "destination_country": "Hvor opplysningene sendes",
+      "mechanism": "Hva overføringen bygger på (overføringsgrunnlag)",
+      "tia_conclusion": "Konklusjon i overføringsvurderingen (TIA)",
+      "supplementary_measures": "Ekstra tiltak for å beskytte opplysningene"
+    },
+    "status": {
+      "ropa": {
+        "draft": "Utkast – {{ filled }} av {{ total }} opplysninger som artikkel 30 krever, er fylt ut.",
+        "draftComplete": "Utkast – alt artikkel 30 krever, er fylt ut. Sett behandlingen som aktiv når den er i bruk.",
+        "active": "Aktiv – behandlingen er i bruk og fullstendig beskrevet i protokollen.",
+        "activeIncomplete": "Aktiv – men {{ count }} opplysninger som artikkel 30 krever, mangler.",
+        "retired": "Avsluttet – behandlingen er ikke lenger i bruk."
+      },
+      "dpia": {
+        "screening": "Forhåndsvurdering – steg 1 av 3: avgjør om en DPIA trengs.",
+        "in_progress": "Under arbeid – steg 2 av 3: beskriv nødvendigheten, risikoene og tiltakene.",
+        "awaiting_decision": "Venter på beslutning – steg 3 av 3: den som godkjenner, godtar restrisikoen eller avviser den.",
+        "not_required": "Ikke påkrevd – forhåndsvurderingen viser at en DPIA ikke trengs.",
+        "approved": "Godkjent – {{ name }} godtok restrisikoen {{ date }}.",
+        "rejected": "Avvist – {{ name }} avviste vurderingen {{ date }}. Behandlingen kan ikke starte slik den er beskrevet."
+      },
+      "dsr": {
+        "open": "{{ status }} – svaret må sendes senest {{ date }} ({{ days }} dager igjen).",
+        "overdue": "Over fristen – svaret skulle vært sendt senest {{ date }}.",
+        "completed": "Fullført – svaret ble sendt {{ date }}.",
+        "rejected": "Avslått – henvendelsen ble avslått {{ date }}.",
+        "withdrawn": "Trukket tilbake – den som spurte, trakk henvendelsen."
+      },
+      "breach": {
+        "closed": "Lukket – bruddet er håndtert, og varslingsbeslutningene er dokumentert.",
+        "notified": "Varslet – venter på at bruddet lukkes.",
+        "overdue": "Over 72 timer – fristen for å varsle Datatilsynet gikk ut {{ deadline }}.",
+        "running": "{{ status }} – {{ hours }} timer igjen til fristen for å varsle Datatilsynet ({{ deadline }}).",
+        "decide": "{{ status }} – registrer om Datatilsynet og de berørte skal varsles, og lukk bruddet."
+      },
+      "transfer": {
+        "draft": "Utkast – overføringen til {{ country }} kan starte når grunnlaget er på plass og vurdert.",
+        "active": "Aktiv – opplysninger sendes til {{ country }} på grunnlaget nedenfor.",
+        "suspended": "Stanset – ingen opplysninger skal sendes til {{ country }} før overføringen er vurdert på nytt.",
+        "retired": "Avsluttet – overføringen til {{ country }} er ikke lenger i bruk."
+      }
+    },
+    "priorConsultation": "Forhåndsdrøfting nødvendig – restrisikoen er fortsatt høy, så behandlingen må drøftes med Datatilsynet før den starter (art. 36).",
+    "meta": {
+      "owner": "Ansvarlig",
+      "updated": "Sist endret"
+    }
+  },
+  "missing": {
+    "thisRecord": "Denne posten",
+    "art30": "Fyll ut det artikkel 30 krever: {{ fields }}",
+    "review": "Gjennomgangen er forfalt ({{ date }}) – gå gjennom posten",
+    "owner": "Velg hvem som er ansvarlig"
   }
 }
