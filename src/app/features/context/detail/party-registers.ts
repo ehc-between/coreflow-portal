@@ -63,65 +63,92 @@ export function registerFor(category: PartyCategory | string): PartyRegister | n
   imports: [RouterLink, TranslocoPipe, LinkPicker, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section
-      class="rounded-card border border-border bg-surface p-4"
-      aria-labelledby="party-reg-title"
-      data-testid="party-registers"
-    >
-      <h3 id="party-reg-title" class="font-display text-card font-bold text-fg">
-        {{ 'context.party.registers.title' | transloco }}
-      </h3>
-      <p class="mt-0.5 text-meta text-fg-muted">
-        {{ 'context.party.registers.hint.' + party().category | transloco }}
-      </p>
-      @if (counts().length) {
-        <ul class="mt-2 flex flex-wrap gap-1.5" data-testid="party-register-counts">
-          @for (c of counts(); track c.type) {
-            <li
-              class="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-meta font-semibold text-fg"
-            >
-              {{ c.label }} · {{ c.count }}
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="mt-2 text-ui text-fg-muted">{{ 'context.party.registers.none' | transloco }}</p>
-      }
-      <div class="mt-3 flex flex-wrap gap-2">
-        @if (canEdit()) {
-          <app-button size="sm" variant="secondary" (click)="pickerOpen.set(true)">
-            <app-icon name="link" [size]="14" />
-            {{ 'context.party.registers.link' | transloco }}
-          </app-button>
-        }
+    @if (variant() === 'inline') {
+      <!-- Inside the "Oppfølging" card (docs/ux-guide.md §2.7): the card has "Koble til…". -->
+      <div class="mt-3 flex flex-col items-start gap-2 empty:hidden" data-testid="party-registers">
         @if (register(); as reg) {
           <a
             [routerLink]="reg.link"
-            class="inline-flex h-8 items-center gap-1 px-2 text-ui font-semibold text-accent hover:underline"
+            class="inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
           >
             {{ 'context.party.registers.open.' + party().category | transloco }}
+            <span aria-hidden="true">→</span>
           </a>
         }
+        @if (party().is_compliance_obligation && obligationFlow()) {
+          <app-button
+            size="sm"
+            variant="secondary"
+            [disabled]="flows.starting() !== null"
+            (click)="createObligation()"
+            data-testid="party-obligation"
+          >
+            <app-icon name="scale" [size]="14" />
+            {{ 'context.party.createObligation' | transloco }}
+          </app-button>
+        }
       </div>
-      @if (party().is_compliance_obligation) {
-        <div class="mt-4 border-t border-border pt-3" data-testid="party-obligation">
-          <p class="text-ui text-fg">{{ 'context.party.obligationHint' | transloco }}</p>
-          @if (obligationFlow()) {
-            <app-button
-              class="mt-2"
-              size="sm"
-              variant="secondary"
-              [disabled]="flows.starting() !== null"
-              (click)="createObligation()"
-            >
-              <app-icon name="scale" [size]="14" />
-              {{ 'context.party.createObligation' | transloco }}
+    } @else {
+      <section
+        class="rounded-card border border-border bg-surface p-4"
+        aria-labelledby="party-reg-title"
+        data-testid="party-registers"
+      >
+        <h3 id="party-reg-title" class="font-display text-card font-bold text-fg">
+          {{ 'context.party.registers.title' | transloco }}
+        </h3>
+        <p class="mt-0.5 text-meta text-fg-muted">
+          {{ 'context.party.registers.hint.' + party().category | transloco }}
+        </p>
+        @if (counts().length) {
+          <ul class="mt-2 flex flex-wrap gap-1.5" data-testid="party-register-counts">
+            @for (c of counts(); track c.type) {
+              <li
+                class="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-meta font-semibold text-fg"
+              >
+                {{ c.label }} · {{ c.count }}
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="mt-2 text-ui text-fg-muted">{{ 'context.party.registers.none' | transloco }}</p>
+        }
+        <div class="mt-3 flex flex-wrap gap-2">
+          @if (canEdit()) {
+            <app-button size="sm" variant="secondary" (click)="pickerOpen.set(true)">
+              <app-icon name="link" [size]="14" />
+              {{ 'context.party.registers.link' | transloco }}
             </app-button>
           }
+          @if (register(); as reg) {
+            <a
+              [routerLink]="reg.link"
+              class="inline-flex h-8 items-center gap-1 px-2 text-ui font-semibold text-accent hover:underline"
+            >
+              {{ 'context.party.registers.open.' + party().category | transloco }}
+            </a>
+          }
         </div>
-      }
-    </section>
-    @if (canEdit()) {
+        @if (party().is_compliance_obligation) {
+          <div class="mt-4 border-t border-border pt-3" data-testid="party-obligation">
+            <p class="text-ui text-fg">{{ 'context.party.obligationHint' | transloco }}</p>
+            @if (obligationFlow()) {
+              <app-button
+                class="mt-2"
+                size="sm"
+                variant="secondary"
+                [disabled]="flows.starting() !== null"
+                (click)="createObligation()"
+              >
+                <app-icon name="scale" [size]="14" />
+                {{ 'context.party.createObligation' | transloco }}
+              </app-button>
+            }
+          </div>
+        }
+      </section>
+    }
+    @if (canEdit() && variant() === 'card') {
       <app-link-picker
         [open]="pickerOpen()"
         sourceType="interested_party"
@@ -144,6 +171,8 @@ export class PartyRegisters {
 
   readonly party = input.required<InterestedParty>();
   readonly canEdit = input(false);
+  /** `card` (own section) or `inline` (the register link and obligation action only). */
+  readonly variant = input<'card' | 'inline'>('card');
 
   protected readonly pickerOpen = signal(false);
   protected readonly obligationFlow = signal(false);

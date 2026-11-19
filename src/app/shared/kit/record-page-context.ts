@@ -23,6 +23,8 @@ export interface RecordRequirementsHandle {
   readonly suggestMore: (() => void) | null;
   /** Open the full panel (confirm / reject the suggestions). */
   readonly review: () => void;
+  /** The full panel is open (its own "Bekreft alle" is on screen). */
+  readonly expanded?: boolean;
 }
 
 /**

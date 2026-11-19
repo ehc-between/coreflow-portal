@@ -165,9 +165,38 @@ let nextId = 0;
       >
         <ng-container ngProjectAs="[lead]"><ng-content select="[header]" /></ng-container>
         <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
-        <ng-container ngProjectAs="[secondary]"
-          ><ng-content select="[actions]" /><ng-content select="[secondary]"
-        /></ng-container>
+        <ng-container ngProjectAs="[secondary]">
+          @if (aiAvailable()) {
+            <!-- §2.7: every assistant action of the page in one "Spør KI" menu. -->
+            <app-overflow-menu
+              icon="spark"
+              [label]="'kit.detail.ask.label' | transloco"
+              triggerTestId="record-ask-menu"
+            >
+              <ng-content select="[ask]" />
+              @if (anatomy()) {
+                @if (connectionsPanel()) {
+                  <button appMenuItem type="button" data-testid="record-ask" (click)="askAbout()">
+                    <app-icon name="spark" [size]="15" />
+                    {{ 'kit.connections.askAbout' | transloco }}
+                  </button>
+                }
+                @if (page.requirements()?.suggestMore; as suggestMore) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    data-testid="record-find-requirements"
+                    (click)="suggestMore()"
+                  >
+                    <app-icon name="spark" [size]="15" />
+                    {{ 'kit.detail.findRequirements' | transloco }}
+                  </button>
+                }
+              }
+            </app-overflow-menu>
+          }
+          <ng-content select="[actions]" /><ng-content select="[secondary]" />
+        </ng-container>
         <ng-container ngProjectAs="[primary]"><ng-content select="[primary]" /></ng-container>
         <ng-container ngProjectAs="[overflow]">
           @if (watch()) {
@@ -190,23 +219,25 @@ let nextId = 0;
               <app-icon name="grid" [size]="15" />
               {{ 'kit.connections.showMap' | transloco }}
             </button>
-            @if (aiAvailable()) {
+            @if (aiAvailable() && !anatomy()) {
               <button appMenuItem type="button" data-testid="record-ask" (click)="askAbout()">
                 <app-icon name="spark" [size]="15" />
                 {{ 'kit.connections.askAbout' | transloco }}
               </button>
             }
           }
-          @if (page.requirements()?.suggestMore; as suggestMore) {
-            <button
-              appMenuItem
-              type="button"
-              data-testid="record-find-requirements"
-              (click)="suggestMore()"
-            >
-              <app-icon name="spark" [size]="15" />
-              {{ 'kit.detail.findRequirements' | transloco }}
-            </button>
+          @if (!anatomy() || !aiAvailable()) {
+            @if (page.requirements()?.suggestMore; as suggestMore) {
+              <button
+                appMenuItem
+                type="button"
+                data-testid="record-find-requirements"
+                (click)="suggestMore()"
+              >
+                <app-icon name="spark" [size]="15" />
+                {{ 'kit.detail.findRequirements' | transloco }}
+              </button>
+            }
           }
           <div role="separator" class="my-1 border-t border-border last:hidden"></div>
           <ng-content select="[overflow]" />
@@ -242,8 +273,23 @@ let nextId = 0;
       }
       <ng-content select="[help]" />
 
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div class="min-w-0 flex-1">
+      <div
+        [class]="
+          anatomy()
+            ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_1fr] lg:items-start'
+            : 'flex flex-col gap-6 lg:flex-row lg:items-start'
+        "
+      >
+        <!-- §2.7 "Hovedinformasjon": first on every screen size. -->
+        <div class="min-w-0 empty:hidden lg:col-start-1 lg:row-start-1">
+          <ng-content select="[record-lead]" />
+        </div>
+        <div
+          class="min-w-0 flex-1"
+          [class.order-3]="anatomy()"
+          [class.lg:col-start-1]="anatomy()"
+          [class.lg:row-start-2]="anatomy()"
+        >
           <div class="mb-4 flex items-end border-b border-border">
             <div
               role="tablist"
@@ -372,73 +418,155 @@ let nextId = 0;
 
         <aside
           class="flex w-full min-w-0 flex-col gap-4 empty:hidden lg:w-[300px] lg:flex-none"
+          [class.order-2]="anatomy()"
+          [class.lg:col-start-2]="anatomy()"
+          [class.lg:row-start-1]="anatomy()"
+          [class.lg:row-span-2]="anatomy()"
           [attr.aria-label]="'ui.detail.aside' | transloco"
         >
-          @if (missingItems().length > 0) {
-            <section
-              class="rounded-card border border-warn/30 bg-warn-soft/50 p-4"
-              [attr.aria-labelledby]="panelId + '-missing'"
-              data-testid="record-missing"
-            >
+          <!-- §2.7: one "Oppfølging" card (anatomy) or the separate panels (legacy). -->
+          <section
+            [class]="
+              anatomy()
+                ? 'flex flex-col rounded-card border border-border bg-surface shadow-card'
+                : 'contents'
+            "
+            [attr.aria-labelledby]="anatomy() ? panelId + '-follow-up' : null"
+            [attr.data-testid]="anatomy() ? 'record-follow-up' : null"
+          >
+            @if (anatomy()) {
               <h2
-                [id]="panelId + '-missing'"
-                class="mb-2 flex items-center gap-2 font-display text-card font-bold text-fg"
+                [id]="panelId + '-follow-up'"
+                class="px-4 pt-4 pb-1 font-display text-card font-bold text-fg"
               >
-                {{ 'kit.detail.missing.title' | transloco }}
-                <span
-                  class="rounded-full bg-surface px-1.5 text-micro font-semibold text-fg-muted"
-                  data-testid="record-missing-count"
-                  >{{ missingItems().length }}</span
-                >
+                {{ 'kit.detail.followUp.title' | transloco }}
               </h2>
-              <ul class="flex flex-col gap-1.5">
-                @for (item of missingItems(); track item.key) {
-                  <li data-testid="record-missing-item">
-                    @if (item.link) {
-                      <a
-                        [routerLink]="item.link"
-                        [queryParams]="item.queryParams"
-                        [fragment]="item.fragment"
-                        class="inline-flex min-h-6 items-start gap-1 text-ui font-semibold text-fg hover:text-accent hover:underline"
-                        >{{ item.labelKey | transloco: item.params }}
-                        <span aria-hidden="true" class="text-accent">→</span></a
-                      >
-                    } @else {
-                      <button
-                        type="button"
-                        class="inline-flex min-h-6 items-start gap-1 text-left text-ui font-semibold text-fg hover:text-accent hover:underline"
-                        (click)="item.action?.()"
-                      >
-                        {{ item.labelKey | transloco: item.params }}
-                        <span aria-hidden="true" class="text-accent">→</span>
-                      </button>
-                    }
-                  </li>
+            }
+            @if (todoItems().length > 0) {
+              <section
+                [class]="
+                  anatomy()
+                    ? 'px-4 pt-2 pb-4'
+                    : 'rounded-card border border-warn/30 bg-warn-soft/50 p-4'
+                "
+                [attr.aria-labelledby]="panelId + '-missing'"
+                data-testid="record-missing"
+              >
+                <h2
+                  [id]="panelId + '-missing'"
+                  [class]="
+                    anatomy()
+                      ? 'sr-only'
+                      : 'mb-2 flex items-center gap-2 font-display text-card font-bold text-fg'
+                  "
+                >
+                  {{ 'kit.detail.missing.title' | transloco }}
+                  <span
+                    class="rounded-full bg-surface px-1.5 text-micro font-semibold text-fg-muted"
+                    data-testid="record-missing-count"
+                    >{{ todoItems().length }}</span
+                  >
+                </h2>
+                <ul class="flex flex-col" [class]="anatomy() ? 'gap-2' : 'gap-1.5'">
+                  @for (item of todoItems(); track item.key) {
+                    <li
+                      data-testid="record-missing-item"
+                      [class.flex]="anatomy()"
+                      [class.gap-2]="anatomy()"
+                    >
+                      @if (anatomy()) {
+                        <span
+                          aria-hidden="true"
+                          class="mt-1.5 h-2 w-2 flex-none rounded-full bg-warn"
+                        ></span>
+                      }
+                      @if (item.link) {
+                        <a
+                          [routerLink]="item.link"
+                          [queryParams]="item.queryParams"
+                          [fragment]="item.fragment"
+                          class="inline-flex min-h-6 items-start gap-1 text-ui font-semibold text-fg hover:text-accent hover:underline"
+                          >{{ item.labelKey | transloco: item.params }}
+                          <span aria-hidden="true" class="text-accent">→</span></a
+                        >
+                      } @else {
+                        <button
+                          type="button"
+                          class="inline-flex min-h-6 items-start gap-1 text-left text-ui font-semibold text-fg hover:text-accent hover:underline"
+                          (click)="item.action?.()"
+                        >
+                          {{ item.labelKey | transloco: item.params }}
+                          <span aria-hidden="true" class="text-accent">→</span>
+                        </button>
+                      }
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+            <div
+              [class]="
+                anatomy()
+                  ? 'border-t border-border px-4 py-4 empty:hidden [&_h2]:font-display [&_h2]:text-ui'
+                  : 'contents'
+              "
+              data-testid="record-follow-up-requirements"
+            >
+              <ng-content select="[aside-requirements]">
+                @if (requirementsPanel()) {
+                  <app-supports-requirements
+                    [entityType]="entityType()"
+                    [entityId]="entityId()"
+                    [canEdit]="canEdit()"
+                  />
                 }
-              </ul>
-            </section>
-          }
-          <ng-content select="[aside-requirements]">
-            @if (requirementsPanel()) {
-              <app-supports-requirements
-                [entityType]="entityType()"
-                [entityId]="entityId()"
-                [canEdit]="canEdit()"
-              />
-            }
-          </ng-content>
-          <ng-content select="[aside-connections]">
-            @if (connectionsPanel()) {
-              <app-connections-panel
-                [entityType]="entityType()"
-                [entityId]="entityId()"
-                [canEdit]="canEdit()"
-                [relatedTab]="hasRelatedTab()"
-                [compact]="true"
-                (showAll)="showRelated()"
-              />
-            }
-          </ng-content>
+              </ng-content>
+              @if (anatomy() && pendingRequirements(); as reqs) {
+                <button
+                  type="button"
+                  class="mt-2 inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
+                  data-testid="record-confirm-requirements"
+                  (click)="reqs.review()"
+                >
+                  {{
+                    (reqs.pending === 1
+                      ? 'kit.detail.followUp.confirmOne'
+                      : 'kit.detail.followUp.confirm'
+                    ) | transloco: { count: reqs.pending }
+                  }}
+                  <span aria-hidden="true">→</span>
+                </button>
+              }
+            </div>
+            <div
+              [class]="anatomy() ? 'border-t border-border px-4 py-4' : 'contents'"
+              data-testid="record-follow-up-connections"
+            >
+              <ng-content select="[aside-connections]">
+                @if (connectionsPanel()) {
+                  <app-connections-panel
+                    [entityType]="entityType()"
+                    [entityId]="entityId()"
+                    [canEdit]="canEdit()"
+                    [relatedTab]="hasRelatedTab()"
+                    [compact]="true"
+                    [variant]="anatomy() ? 'section' : 'card'"
+                    (showAll)="showRelated()"
+                  />
+                }
+              </ng-content>
+              <ng-content select="[follow-up-connections]" />
+            </div>
+            <div
+              [class]="
+                anatomy()
+                  ? 'rounded-b-card border-t border-border bg-surface-2/50 px-4 py-3 empty:hidden'
+                  : 'contents'
+              "
+            >
+              <ng-content select="[follow-up-meta]" />
+            </div>
+          </section>
           <ng-content select="[aside]" />
           <ng-content select="[aside-learn]" />
         </aside>
@@ -487,6 +615,13 @@ export class RecordDetailLayout {
    * are in "Mer ⋯".
    */
   readonly connectionsPanel = input(true);
+  /**
+   * Use the detail-page anatomy (docs/ux-guide.md §2.7): `[record-lead]`
+   * ("Hovedinformasjon") first, one "Oppfølging" card in the aside (what is
+   * missing, requirements, connections, `[follow-up-meta]`), assistant actions in
+   * the header's "Spør KI" menu (`[ask]`), and on phones lead, card, then tabs.
+   */
+  readonly anatomy = input(false);
   /** Offer "Lag ny fra denne" in "Mer ⋯" (P4). */
   readonly createFlows = input(true);
   /** Offer "Følg" in "Mer ⋯" (U29; hidden by itself for types that can't be followed). */
@@ -587,6 +722,22 @@ export class RecordDetailLayout {
       });
     }
     return items;
+  });
+
+  /**
+   * The lines of the "Hva mangler" list. With the anatomy the requirement
+   * suggestions are confirmed in the card's requirements part instead.
+   */
+  protected readonly todoItems = computed(() =>
+    this.anatomy()
+      ? this.missingItems().filter((item) => item.key !== 'kit:requirements')
+      : this.missingItems(),
+  );
+
+  /** Requirement suggestions waiting for a decision ("Bekreft 2 forslag"), or null. */
+  protected readonly pendingRequirements = computed(() => {
+    const reqs = this.page.requirements();
+    return reqs && reqs.pending > 0 && !reqs.expanded ? reqs : null;
   });
 
   constructor() {

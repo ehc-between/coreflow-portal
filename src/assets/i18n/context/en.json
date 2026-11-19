@@ -416,6 +416,30 @@
       }
     }
   },
+  "partyDetail": {
+    "lead": {
+      "needs": "What they need",
+      "expectations": "What they expect",
+      "requirements": "Requirements they set",
+      "howAddressed": "How we meet them"
+    },
+    "status": {
+      "addressed": "Handled – their needs and expectations are met.",
+      "partially": "Partly handled – some of their expectations are not met yet.",
+      "not_addressed": "Not handled yet – decide how to meet their expectations.",
+      "not_relevant": "Not relevant – nothing needs to be done for now."
+    },
+    "priorityBasis": "Influence {{ influence }}, interest {{ interest }}.",
+    "binding": "Binding requirements",
+    "bindingYes": "Yes – some of the requirements are laws or other obligations we must meet.",
+    "frameworks": "Standards",
+    "missing": {
+      "review": "Review the interested party",
+      "needs": "Describe what they need and expect",
+      "howAddressed": "Describe how you meet them",
+      "owner": "Choose an owner"
+    }
+  },
   "scope": {
     "noExclusions": "No requirements are excluded. Every requirement of the standard applies.",
     "exclusionsHint": "While the scope is approved, these requirements count as not applicable in the requirement coverage.",
