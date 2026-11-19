@@ -74,10 +74,10 @@ describe('ModuleNav (U30)', () => {
     expect(el.querySelector('[data-testid="t2"]')!.getAttribute('aria-current')).toBeNull();
   });
 
-  it('hides empty tabs for beginners, unless it is the current page', async () => {
+  it('never hides empty tabs, not even for beginners', async () => {
     const items: ModuleNavItem[] = [six[0], { ...six[1], empty: true }, { ...six[2], empty: true }];
     const beginner = await setup(items, '/m/c', true);
-    expect(beginner.tabs()).toEqual(['t1', 't3']);
+    expect(beginner.tabs()).toEqual(['t1', 't2', 't3']);
   });
 
   it('shows empty tabs to everyone else', async () => {
