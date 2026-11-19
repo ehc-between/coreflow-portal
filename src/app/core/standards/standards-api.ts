@@ -7,6 +7,7 @@ import { SKIP_ERROR_TOAST } from '../http/error.interceptor';
 import { LanguageService } from '../i18n/language.service';
 import {
   AiMapTarget,
+  AuditPrep,
   BulkLinksRequest,
   BulkLinksResponse,
   CatalogueClause,
@@ -348,6 +349,17 @@ export class StandardsApi {
       ...INLINE_ERRORS,
       params: { format, lang: this.lang() },
     });
+  }
+
+  /**
+   * "Forbered revisjon" (simplify U19): the next audit of the standard, its open audit
+   * findings and the latest audit pack. Parts the caller may not read come back empty.
+   */
+  auditPrep(orgId: string, key: string): Observable<AuditPrep> {
+    return this.api.get<AuditPrep>(
+      `${this.base(orgId)}/standards/${encodeURIComponent(key)}/audit-prep`,
+      INLINE_ERRORS,
+    );
   }
 
   // --- Background jobs -------------------------------------------------------
