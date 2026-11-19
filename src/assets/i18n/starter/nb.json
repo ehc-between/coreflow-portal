@@ -1,0 +1,161 @@
+{
+  "subtitle": "Et første utkast basert på bedriftsprofilen deres. Ingenting lagres før du bekrefter.",
+  "close": "Lukk",
+  "start": "Lag forslag fra bedriftsprofilen",
+  "promptNote": "Du går gjennom alt før noe lagres.",
+  "loadingHint": "Dette tar vanligvis under ett minutt.",
+  "status": {
+    "preparing": "Leser bedriftsprofilen…",
+    "generating": "Lager forslag…",
+    "checking": "Sjekker hva dere allerede har…"
+  },
+  "source": {
+    "ai": "Forslag fra assistenten, basert på virksomheten deres. Se over og juster før du oppretter noe.",
+    "template": "Et standardoppsett for virksomheter som deres.",
+    "ai_unavailable": "Assistenten er ikke tilgjengelig, så dette er et standardoppsett for virksomheter som deres.",
+    "ai_failed": "Assistenten kunne ikke svare akkurat nå, så dette er et standardoppsett for virksomheter som deres.",
+    "ai_empty": "Assistenten hadde ingen nye forslag, så dette er et standardoppsett for virksomheter som deres."
+  },
+  "basedOn": "Basert på: {{ facts }}",
+  "basedOnSize": "{{ size }} ansatte",
+  "basedOnRecords": "{{ count }} oppføringer i andre registre",
+  "basedOnNothing": "Bedriftsprofilen er nesten tom, så forslagene blir generelle. Fyll ut profilen for bedre forslag.",
+  "skipped": "{{ count }} forslag ble utelatt fordi dere allerede har dem.",
+  "nothingNew": "Ingenting nytt å foreslå: dere har allerede det vi ville foreslått.",
+  "selectedCount": "{{ count }} av {{ total }} valgt",
+  "selectAll": "Velg alle",
+  "selectNone": "Velg ingen",
+  "why": "Hvorfor:",
+  "edit": "Rediger",
+  "done": "Ferdig",
+  "untitled": "(uten tittel)",
+  "none": "Ingen",
+  "tagsHint": "Én per linje.",
+  "clause": "Krav",
+  "justification": "Begrunnelse",
+  "remove": "Fjern",
+  "noExclusions": "Ingen unntak.",
+  "assignee": "Hvem",
+  "raciLetter": "RACI",
+  "addAssignee": "Legg til person, rolle eller avdeling",
+  "noAssignees": "Ingen å velge ennå. Legg til medlemmer, roller eller avdelinger først, eller fyll ut dette senere.",
+  "raciLegend": "R = utfører, A = ansvarlig (nøyaktig én), C = rådføres, I = informeres.",
+  "assigneeTypes": {
+    "user": "Person",
+    "role": "Rolle",
+    "department": "Avdeling"
+  },
+  "confirmNote": "Bare de valgte forslagene opprettes.",
+  "cancel": "Avbryt",
+  "accept": "Opprett {{ count }} valgte",
+  "acceptSingle": "Opprett analysen",
+  "useStandard": "Bruk standardoppsettet",
+  "retry": "Prøv igjen",
+  "errors": {
+    "generate": "Vi fikk ikke laget forslag. Prøv igjen, eller bruk standardoppsettet.",
+    "accept": "Vi fikk ikke opprettet oppføringene. Prøv igjen.",
+    "invalid": "Noen av de valgte forslagene er ufullstendige. Sjekk de påkrevde feltene og prøv igjen."
+  },
+  "toast": {
+    "created": "{{ count }} oppføringer opprettet fra forslaget.",
+    "createdSingle": "Analysen ble opprettet fra forslaget.",
+    "nothingCreated": "Ingenting ble opprettet: dere har allerede disse."
+  },
+  "hints": {
+    "no_accountable": "Ingen er ansvarlig (A) ennå. Velg én person når dere vet hvem det er.",
+    "no_responsible": "Ingen utfører (R) ennå. Legg til hvem som gjør jobben."
+  },
+  "fields": {
+    "title": "Tittel",
+    "summary": "Oppsummering",
+    "name": "Navn",
+    "category": "Kategori",
+    "party_type": "Intern eller ekstern",
+    "needs": "Behov",
+    "expectations": "Forventninger",
+    "how_addressed": "Slik følger vi det opp",
+    "influence": "Påvirkning",
+    "interest": "Interesse",
+    "is_compliance_obligation": "Kravene er lovpålagte eller avtalefestede",
+    "text": "Faktor",
+    "impact": "Betydning",
+    "statement": "Omfangsbeskrivelse",
+    "boundaries": "Avgrensninger",
+    "products_services": "Produkter og tjenester",
+    "sites": "Lokasjoner",
+    "exclusions": "Unntak (krav som ikke gjelder)",
+    "process_id": "Prosess",
+    "description": "Beskrivelse",
+    "authorities": "Myndighet",
+    "assignments": "Hvem gjør hva (RACI)"
+  },
+  "options": {
+    "party_category": {
+      "customer": "Kunder",
+      "employee": "Ansatte",
+      "owner": "Eiere og investorer",
+      "regulator": "Myndigheter og tilsyn",
+      "supplier": "Leverandører",
+      "partner": "Samarbeidspartnere",
+      "community": "Lokalsamfunn og naboer",
+      "competitor": "Konkurrenter",
+      "other": "Andre"
+    },
+    "party_type": {
+      "internal": "Intern",
+      "external": "Ekstern"
+    },
+    "level": {
+      "low": "Lav",
+      "medium": "Middels",
+      "high": "Høy"
+    },
+    "swot": {
+      "strength": "Styrker",
+      "weakness": "Svakheter",
+      "opportunity": "Muligheter",
+      "threat": "Trusler"
+    },
+    "framework": {
+      "iso9001": "ISO 9001",
+      "iso27001": "ISO/IEC 27001",
+      "iso14001": "ISO 14001",
+      "iso42001": "ISO/IEC 42001",
+      "iso45001": "ISO 45001",
+      "gdpr": "GDPR",
+      "eu_ai_act": "EUs KI-forordning",
+      "nis2": "NIS2",
+      "general": "Generelt"
+    }
+  },
+  "providers": {
+    "context_interested_parties": {
+      "title": "Forslag til interessenter",
+      "whatTitle": "Hva er en interessent?",
+      "intro": "Interessenter er personer og organisasjoner som påvirker virksomheten deres eller blir påvirket av den: kunder, ansatte, eiere, leverandører, myndigheter og så videre. For hver av dem noterer dere hva de trenger og forventer av dere, og hvordan dere følger det opp.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå interessentene som er vanlige for en virksomhet som deres, med behov og forventninger, basert på bedriftsprofilen og det dere allerede har registrert."
+    },
+    "context_swot": {
+      "title": "Forslag til SWOT-analyse",
+      "whatTitle": "Hva er en SWOT-analyse?",
+      "intro": "En SWOT-analyse er en enkel måte å beskrive situasjonen deres på: styrker og svakheter internt, muligheter og trusler utenfor virksomheten. Den hjelper dere å se hva styringssystemet må ta hånd om.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan lage et første utkast til SWOT-analyse for virksomheten, basert på bedriftsprofilen og det dere allerede har registrert."
+    },
+    "context_scopes": {
+      "title": "Forslag til omfang",
+      "whatTitle": "Hva er et omfang?",
+      "intro": "Omfanget sier hva styringssystemet dekker: hvilke aktiviteter, lokasjoner og tjenester som er med, hvor grensene går, og hvilke krav i en standard som ikke gjelder dere (med begrunnelse).",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå et omfang for hver standard dere jobber med, basert på bedriftsprofilen, lokasjonene og prosessene deres."
+    },
+    "context_responsibilities": {
+      "title": "Forslag til roller og ansvar",
+      "whatTitle": "Hva er roller og ansvar (RACI)?",
+      "intro": "Her bestemmer dere hvem som gjør hva i styringssystemet. For hver oppgave viser RACI hvem som utfører (R), hvem som er ansvarlig (A, alltid nøyaktig én), hvem som rådføres (C) og hvem som holdes informert (I). I en liten bedrift har ofte én person flere roller.",
+      "promptTitle": "Vil du at jeg foreslår roller og ansvar for dere?",
+      "promptBody": "Vi foreslår de vanlige ansvarsområdene for standardene dere jobber med, med deres egne personer, roller og avdelinger, og kobler dem til prosessene deres der de finnes."
+    }
+  }
+}

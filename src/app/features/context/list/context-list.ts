@@ -8,6 +8,7 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -56,8 +57,19 @@ import {
   toListQuery,
 } from './list-config';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { StarterSetup } from '../../../shared/starter-setup/starter-setup';
+import { StarterSetupPrompt } from '../../../shared/starter-setup/starter-setup-prompt';
 
 const PAGE_SIZE = 25;
+
+/** The starter-setup provider ("Kom i gang med et forslag") of each register that has one. */
+export const STARTER_PROVIDERS: Partial<Record<ContextKind, string>> = {
+  party: 'context.interested_parties',
+  analysis: 'context.swot',
+  scope: 'context.scopes',
+  responsibility: 'context.responsibilities',
+};
 const WIDE_QUERY = '(min-width: 640px)';
 
 /** The badges a list row shows after the status (warnings, handling, coverage of acknowledgements). */
@@ -144,6 +156,9 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
     RecordRowHeader,
     StatusBadge,
     ContextFilter,
+    MenuItem,
+    StarterSetup,
+    StarterSetupPrompt,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -178,6 +193,18 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
             {{ 'context.raci.matrixLink' | transloco }}
           </app-button>
         </a>
+      }
+
+      @if (starterProvider() && perms.canWrite() && rows().length > 0) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          data-testid="starter-more"
+          (click)="starter()?.open()"
+        >
+          {{ 'context.list.suggestMore' | transloco }}
+        </button>
       }
 
       <app-module-nav nav [items]="nav" labelKey="modules.names.context" />
@@ -284,6 +311,11 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
       }
 
       <div empty>
+        @if (starterProvider(); as provider) {
+          @if (perms.canWrite()) {
+            <app-starter-setup-prompt [provider]="provider" (begin)="starter()?.open()" />
+          }
+        }
         <app-teaching-empty
           scope="context"
           [page]="cfg().guidance + '-list'"
@@ -294,6 +326,9 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
 
       <app-why-it-matters below scope="context" [page]="cfg().guidance + '-list'" />
     </app-record-list-page>
+    @if (starterProvider(); as provider) {
+      <app-starter-setup [provider]="provider" (created)="reload()" />
+    }
   `,
 })
 export class ContextList {
@@ -309,6 +344,8 @@ export class ContextList {
 
   protected readonly kind = computed(() => asKind(this.contextKind()));
   protected readonly cfg = computed(() => KINDS[this.kind()]);
+  protected readonly starterProvider = computed(() => STARTER_PROVIDERS[this.kind()] ?? null);
+  protected readonly starter = viewChild(StarterSetup);
   protected readonly newLink = computed(() => `/context/${this.cfg().segment}/new`);
   protected readonly nav = CONTEXT_NAV;
   protected readonly breadcrumbs = computed(() => [
