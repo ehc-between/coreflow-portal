@@ -10,6 +10,7 @@ import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { NoticePanel } from '../../../shared/notices/notice-panel';
 import {
   hoursLeft,
   isOpenObligation,
@@ -35,7 +36,7 @@ export interface ReportingSave {
  */
 @Component({
   selector: 'app-deviation-reporting',
-  imports: [RouterLink, TranslocoPipe, LocalDatePipe, Button, Icon, StatusBadge],
+  imports: [RouterLink, TranslocoPipe, LocalDatePipe, Button, Icon, StatusBadge, NoticePanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
@@ -227,6 +228,18 @@ export interface ReportingSave {
         }
       </ul>
     </section>
+    @if (deviationId(); as id) {
+      @if (hasNis2()) {
+        <div class="mt-4">
+          <app-notice-panel
+            [path]="'deviations/' + id + '/notices'"
+            [entityId]="id"
+            [version]="version()"
+            [canSave]="canEdit()"
+          />
+        </div>
+      }
+    }
   `,
 })
 export class DeviationReporting {
@@ -234,6 +247,10 @@ export class DeviationReporting {
   readonly canEdit = input(false);
   /** The obligation being saved (spinner). */
   readonly busy = input<ReportingKey | null>(null);
+  /** U13: the deviation, for the NIS2 report drafts (Varsling) under the obligations. */
+  readonly deviationId = input<string | null>(null);
+  /** The deviation itself: a new copy (after a save) reloads the drafts. */
+  readonly version = input<unknown>(null);
   readonly save = output<ReportingSave>();
 
   protected readonly max = nowLocal();
@@ -244,6 +261,9 @@ export class DeviationReporting {
   protected readonly reason = signal('');
 
   protected readonly anyOpen = computed(() => this.obligations().some(isOpenObligation));
+  protected readonly hasNis2 = computed(() =>
+    this.obligations().some((o) => o.key.startsWith('nis2_')),
+  );
   protected readonly anyOverdue = computed(() =>
     this.obligations().some((o) => o.status === 'overdue'),
   );
