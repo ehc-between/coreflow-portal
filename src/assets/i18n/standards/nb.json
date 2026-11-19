@@ -215,7 +215,12 @@
       "documentsOne": "Dokumenterer 1 krav",
       "suggested": "{{count}} forslag",
       "suggestedOne": "1 forslag",
-      "none": "Ikke koblet til krav"
+      "none": "Ikke koblet til krav",
+      "count": "{{count}} krav",
+      "countOne": "1 krav",
+      "pending": "{{count}} forslag venter på vurdering",
+      "pendingOne": "1 forslag venter på vurdering",
+      "summary": "{{documents}}, {{pending}}"
     },
     "picker": {
       "placeholder": "Søk på punkt eller tittel, f.eks. «A.8.13» eller «sikkerhetskopi»",

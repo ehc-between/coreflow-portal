@@ -249,7 +249,7 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
                 dateKind="next"
                 [overdue]="overdue(row)"
               >
-                <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                <span coverage class="block min-w-0">
                   <app-coverage-chip [entityType]="cfg().entityType" [entityId]="row.id" />
                 </span>
                 @let status = statusOf(row);

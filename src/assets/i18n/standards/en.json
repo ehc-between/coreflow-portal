@@ -215,7 +215,12 @@
       "documentsOne": "Documents 1 requirement",
       "suggested": "{{count}} suggestions",
       "suggestedOne": "1 suggestion",
-      "none": "Not linked to requirements"
+      "none": "Not linked to requirements",
+      "count": "{{count}} requirements",
+      "countOne": "1 requirement",
+      "pending": "{{count}} suggestions awaiting review",
+      "pendingOne": "1 suggestion awaiting review",
+      "summary": "{{documents}}, {{pending}}"
     },
     "picker": {
       "placeholder": "Search by clause or title, e.g. “A.8.13” or “backup”",

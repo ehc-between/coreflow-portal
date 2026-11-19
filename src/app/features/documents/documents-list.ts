@@ -228,7 +228,7 @@ interface Row {
                 @if (canReadStandards() && row.links) {
                   <span
                     coverage
-                    class="block min-w-0 [&_[data-testid=coverage-chip]]:whitespace-normal"
+                    class="block min-w-0"
                     [title]="coverageTitle(row.links)"
                     data-testid="requirement-cell"
                   >
