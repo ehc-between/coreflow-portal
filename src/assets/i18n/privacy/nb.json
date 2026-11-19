@@ -158,7 +158,9 @@
     "awareOn": "Kjent siden {{ date }}",
     "givenOn": "Gitt {{ date }}",
     "noLegalBasis": "Behandlingsgrunnlag ikke satt",
-    "clearAttention": "Vis alle"
+    "clearAttention": "Vis alle",
+    "processorsAreSuppliers": "Hver databehandler er også en leverandør: leverandørkortet har avtalen, risikoen og vurderingene.",
+    "openSupplierRegister": "Se dem i leverandørregisteret"
   },
   "sorts": {
     "created_atDesc": "Nyeste først",

@@ -43,6 +43,8 @@
     "ownedByMe": "Eid av meg",
     "evaluationDue": "Revurdering",
     "flag": "Hva de gjør for oss",
+    "dpa": "Databehandleravtale",
+    "anyDpa": "Alle avtalestatuser",
     "sort": "Sortering",
     "due": {
       "overdue": "Revurdering forfalt",

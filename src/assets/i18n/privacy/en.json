@@ -158,7 +158,9 @@
     "awareOn": "Aware since {{ date }}",
     "givenOn": "Given {{ date }}",
     "noLegalBasis": "No legal basis yet",
-    "clearAttention": "Show all"
+    "clearAttention": "Show all",
+    "processorsAreSuppliers": "Every processor is also a supplier: the supplier record holds the agreement, risk and evaluations.",
+    "openSupplierRegister": "See them in the supplier register"
   },
   "sorts": {
     "created_atDesc": "Newest first",
