@@ -201,7 +201,50 @@
     "conditionsDue": "Re-evaluate by {{ date }}",
     "conditionsOverdue": "Overdue since {{ date }}",
     "conditionsTask": "Follow-up task: {{ status }}",
-    "openDecision": "Open the decision"
+    "openDecision": "Open the decision",
+    "lead": {
+      "status": {
+        "prospective": "Prospective – registered but not evaluated. Do not use the supplier yet.",
+        "under_evaluation": "Under evaluation – an evaluation is in progress.",
+        "approved": "Approved – the supplier met your requirements at the last evaluation.",
+        "conditional": "Conditionally approved – the conditions must be followed up within six months.",
+        "suspended": "Suspended – place no new orders until the problems are solved.",
+        "rejected": "Rejected – the supplier did not meet your requirements.",
+        "inactive": "Inactive – the supplier is no longer used."
+      },
+      "whatTheyDeliver": "What they deliver",
+      "criticality": "How critical they are",
+      "criticalityHint": "Re-evaluated every {{ months }} months",
+      "approval": "Approval",
+      "approvedOn": "Approved {{ date }} by {{ name }}",
+      "lastEvaluated": "Last evaluated {{ date }}",
+      "lastEvaluatedScore": "Last evaluated {{ date }} · {{ score }} / 100",
+      "whatTheyDo": "What they do for you"
+    },
+    "meta": {
+      "interval": "Re-evaluated",
+      "intervalOwn": "Every {{ months }} months (set for this supplier)",
+      "intervalDefault": "Every {{ months }} months",
+      "updated": "Last changed"
+    },
+    "todo": {
+      "attention": {
+        "not_approved": "Not approved – start the {{ kind }}",
+        "evaluation_overdue": "Re-evaluation overdue – start the {{ kind }}",
+        "weak_performance": "Weak performance – start the {{ kind }}",
+        "dpa_missing": "No data processing agreement – create one",
+        "dpa_pending": "The data processing agreement is not signed – follow it up",
+        "transfer_assessment_missing": "No transfer assessment – register one",
+        "certificate_expired": "A certificate has expired – update it",
+        "certificate_expiring": "A certificate expires soon – update it",
+        "no_next_evaluation": "No date for the next re-evaluation – set a date"
+      },
+      "open": "Finish the {{ kind }} – it is in progress",
+      "required": "Required: start the {{ kind }}",
+      "conditions": "Follow up the approval conditions",
+      "conditionsOverdue": "The conditions were due {{ date }}",
+      "owner": "Choose a supplier owner"
+    }
   },
   "statusDialog": {
     "title": "Change supplier status",
@@ -233,7 +276,8 @@
     "noneTitle": "No evaluations yet",
     "kindRecommended": "{{ kind }} (recommended)",
     "showAllKinds": "Show all types",
-    "overdueSince": "Overdue since {{ date }}"
+    "overdueSince": "Overdue since {{ date }}",
+    "history": "All evaluations"
   },
   "evaluationKind": {
     "initial": "Initial evaluation",
@@ -321,7 +365,38 @@
     "scoreMeaning": "The score is the weighted share of points (0–100). At {{ pass }} or more, with no critical question failed, the recommendation is to approve.",
     "raiseDeviation": "Register deviation",
     "raiseDeviationHint": "A failed critical question or a rejection is a nonconformity. Register it as a deviation so it is followed up.",
-    "evidenceFor": "This decided evaluation documents:"
+    "evidenceFor": "This decided evaluation documents:",
+    "editDetails": "Change title, evaluator and deadline",
+    "writeSummary": "Write the summary",
+    "lead": {
+      "status": {
+        "draft": "Draft – answer the questions and send the evaluation for a decision.",
+        "submitted": "Waiting for a decision – someone with approval rights decides the evaluation.",
+        "completed": "Decided {{ date }} by {{ name }}.",
+        "cancelled": "Cancelled – the evaluation can no longer be answered or decided.",
+        "decided": {
+          "approved": "Approved – decided {{ date }} by {{ name }}.",
+          "conditional": "Conditionally approved – decided {{ date }} by {{ name }}. The conditions must be followed up.",
+          "rejected": "Rejected – decided {{ date }} by {{ name }}."
+        }
+      },
+      "supplier": "Supplier",
+      "result": "Result",
+      "noScore": "No score yet",
+      "passMark": "Passes at {{ pass }} or more",
+      "recommends": "The score recommends:",
+      "answeredOf": "{{ answered }} of {{ total }} questions",
+      "whatDecisionDoes": "What the decision does",
+      "evidence": "Documents"
+    },
+    "todo": {
+      "unanswered": "{{ count }} questions are not answered",
+      "unansweredOne": "1 question is not answered",
+      "evaluator": "Choose who evaluates",
+      "due": "Set a deadline",
+      "overdue": "The deadline passed {{ date }} – set a new one",
+      "deviation": "Critical questions failed – register a deviation"
+    }
   },
   "decide": {
     "title": "Decide the evaluation",

@@ -5,6 +5,7 @@ import nb from '../../../assets/i18n/suppliers/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
 import { SUPPLIER_ERROR_CODES } from './data/supplier-errors';
 import {
+  ATTENTION_CODES,
   CRITICALITIES,
   DECISIONS,
   EVALUATION_DUE_FILTERS,
@@ -73,6 +74,10 @@ describe('suppliers i18n and guidance', () => {
     ['criticality', CRITICALITIES],
     ['status', SUPPLIER_STATUSES],
     ['statusHelp', SUPPLIER_STATUSES],
+    ['detail.lead.status', SUPPLIER_STATUSES],
+    ['detail.todo.attention', ATTENTION_CODES],
+    ['evaluation.lead.status', EVALUATION_STATUSES],
+    ['evaluation.lead.status.decided', DECISIONS],
     ['flags', SUPPLIER_FLAGS],
     ['flagsShort', SUPPLIER_FLAGS],
     ['filters.sorts', SUPPLIER_SORTS],

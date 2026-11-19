@@ -298,7 +298,10 @@ describe('AspectDetail', () => {
     expect(el.querySelector('[data-testid="aspect-linked-controls"]')?.textContent).toContain(
       'PRO-010',
     );
-    expect(el.querySelector('[data-testid="aspect-notices"]')).toBeNull();
+    expect(el.querySelector('[data-testid="aspect-significance"]')?.textContent).toContain(
+      'environment.aspect.statusLine.significant',
+    );
+    expect(el.querySelector('[data-testid="record-missing"]')).toBeNull();
     el.querySelector<HTMLElement>('[data-testid="aspect-review"] button')!.click();
     await render(fixture);
     const confirm = Array.from(document.querySelectorAll('[role="alertdialog"] button')).find((b) =>
@@ -332,9 +335,13 @@ describe('AspectDetail', () => {
     await render(fixture);
     flushKit(http);
     await render(fixture);
-    expect(el.querySelector('[data-testid="aspect-notice-controls"]')).toBeTruthy();
-    expect(el.querySelector('[data-testid="aspect-notice-plan"]')).toBeTruthy();
-    el.querySelector<HTMLElement>('[data-testid="aspect-make-plan"] button')!.click();
+    const items = Array.from(
+      el.querySelectorAll<HTMLElement>('[data-testid="record-missing-item"] button'),
+    );
+    const texts = items.map((b) => b.textContent ?? '');
+    expect(texts.some((t) => t.includes('environment.aspect.missing.controls'))).toBe(true);
+    const plan = items.find((b) => b.textContent?.includes('environment.aspect.missing.plan'));
+    plan!.click();
     expect(start).toHaveBeenCalledWith('env_aspect.to_emergency_plan', 'env_aspect', 'a-1');
   });
 

@@ -13,7 +13,6 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, of } from 'rxjs';
-import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { CreateFlowService } from '../../../core/kit/create-flow.service';
@@ -22,27 +21,42 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { StandardsApi } from '../../../core/standards/standards-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { WorkflowPanel } from '../../../shared/records/workflow-panel';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
-import { changeTypeBadge, levelBadge, stateCategoryBadge } from '../data/asset-display';
+import { LinkedRecords } from '../../context/ui/linked-records';
+import {
+  BadgeSpec,
+  levelBadge,
+  localizedLabel,
+  missingStepFields,
+  stateCategoryBadge,
+} from '../data/asset-display';
 import { assetErrorMessage } from '../data/asset-errors';
-import { ChangeDetail, UpdateChangeRequest } from '../data/asset.models';
+import { ChangeDetail, ReviewOutcome, UpdateChangeRequest } from '../data/asset.models';
 import { AssetsApi } from '../data/assets-api';
 import { ChangeStep } from './change-step';
 
@@ -107,6 +121,97 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
   return out;
 }
 
+/** The evaluation result as a badge: worked green, partly amber, failed or rolled back red. */
+export function outcomeBadge(value: ReviewOutcome): BadgeSpec {
+  switch (value) {
+    case 'successful':
+      return { meaning: 'lifecycle', value: 'passed' };
+    case 'partially_successful':
+      return { meaning: 'lifecycle', value: 'due' };
+    default:
+      return { meaning: 'lifecycle', value: 'failed' };
+  }
+}
+
+/** Workflow states with their own plain-language meaning. */
+const MEANING_STATES = new Set([
+  'draft',
+  'assessment',
+  'approved',
+  'implementing',
+  'review',
+  'rejected',
+  'cancelled',
+]);
+
+/**
+ * The status sentence of a change (docs/ux-guide.md §2.7): the meaning key after the
+ * dash and the tone. Closed changes say whether they worked; waiting for approval is
+ * open work (amber); stopped changes are neutral.
+ */
+export function changeLeadStatus(c: ChangeDetail): {
+  readonly tone: StatusLineTone;
+  readonly meaningKey: string;
+} {
+  const base = 'assets.changeDetail.lead.meaning.';
+  if (c.status === 'closed' || (c.closed && c.review_outcome)) {
+    const outcome = c.review_outcome ?? 'none';
+    return {
+      tone: outcome === 'successful' ? 'pass' : outcome === 'none' ? 'neutral' : 'warn',
+      meaningKey: base + 'closed.' + outcome,
+    };
+  }
+  if (c.status === 'rejected' || c.status === 'cancelled' || c.closed) {
+    return {
+      tone: 'neutral',
+      meaningKey: base + (MEANING_STATES.has(c.status) ? c.status : 'other'),
+    };
+  }
+  if (c.pending_approval) {
+    return { tone: 'warn', meaningKey: base + 'pending' };
+  }
+  return { tone: 'info', meaningKey: base + (MEANING_STATES.has(c.status) ? c.status : 'other') };
+}
+
+/** What a change still needs ("Oppfølging"): the next step's fields, an owner, a way back, follow-ups. */
+export function changeMissing(
+  c: ChangeDetail,
+  editLink: readonly unknown[] | null,
+  followUps: readonly ChangeFollowUp[],
+  showStep: () => void,
+  startFlow: (key: string) => void,
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  const step = editLink ? missingStepFields(c).length : 0;
+  if (step > 0) {
+    items.push({
+      key: 'step',
+      labelKey: 'assets.changeDetail.missing.step',
+      params: { count: step },
+      action: showStep,
+    });
+  }
+  if (editLink && !c.owner) {
+    items.push({ key: 'owner', labelKey: 'assets.changeDetail.missing.owner', link: editLink });
+  }
+  if (
+    editLink &&
+    !c.rollback_plan?.trim() &&
+    (c.risk_level === 'high' || c.risk_level === 'critical') &&
+    !c.locked_fields.includes('rollback_plan')
+  ) {
+    items.push({
+      key: 'rollback',
+      labelKey: 'assets.changeDetail.missing.rollback',
+      link: editLink,
+    });
+  }
+  for (const f of followUps) {
+    items.push({ key: f.key, labelKey: f.labelKey, action: () => startFlow(f.key) });
+  }
+  return items;
+}
+
 /**
  * A change request (`/assets/changes/:id`): the workflow (state, the steps the caller
  * may take, approvals with segregation of duties), what the next step still needs,
@@ -125,22 +230,23 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
     LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
-    Button,
     Card,
     ChangeStep,
     ConfirmDialog,
-    EntityChip,
     EntityTasks,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
+    LinkedRecords,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
-    WatchButton,
     WhyItMatters,
     WorkflowPanel,
   ],
@@ -169,6 +275,7 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
       @default {
         @if (change(); as c) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="change_request"
             [entityId]="c.id"
             [title]="c.title"
@@ -183,33 +290,18 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
             [requirementsPanel]="true"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
-            backLink="/assets/changes"
-            backLabelKey="assets.common.backToChanges"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ c.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ 'assets.changeCategory.' + c.category | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 [meaning]="stateBadge(c.status_category).meaning"
                 [value]="stateBadge(c.status_category).value"
                 [labelKey]="'assets.changeState.' + c.status"
               />
-              @if (c.change_type !== 'normal') {
-                <app-status-badge
-                  [meaning]="typeBadge(c.change_type).meaning"
-                  [value]="typeBadge(c.change_type).value"
-                  [labelKey]="'assets.changeTypeShort.' + c.change_type"
-                />
-              }
-              @if (c.risk_level) {
-                <app-status-badge
-                  [meaning]="riskBadge(c.risk_level).meaning"
-                  [value]="riskBadge(c.risk_level).value"
-                  labelKey="assets.changes.riskBadge"
-                  [labelParams]="{ level: ('assets.criticality.' + c.risk_level | transloco) }"
-                />
-              }
               @if (c.pending_approval) {
                 <app-status-badge
                   meaning="lifecycle"
@@ -221,24 +313,22 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
 
             @if (canWrite() && !c.closed) {
               <a
-                secondary
-                [routerLink]="['/assets/changes', c.id, 'edit']"
-                class="inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+                primary
+                [routerLink]="editLink()"
+                class="inline-flex h-9 items-center gap-1.5 rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+                data-testid="change-edit"
               >
                 {{ 'assets.common.edit' | transloco }}
               </a>
             }
-            <app-watch-button secondary entityType="change_request" [entityId]="c.id" />
-            @if (!ai.unavailable()) {
-              <button appMenuItem overflow type="button" (click)="askSummary()">
-                {{ 'assets.ai.summariseChange' | transloco }}
-              </button>
-            }
-            @if (!ai.unavailable()) {
-              <button appMenuItem overflow type="button" (click)="askAssessment()">
-                {{ 'assets.ai.reviewAssessment' | transloco }}
-              </button>
-            }
+            <button appMenuItem ask type="button" (click)="askSummary()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'assets.ai.summariseChange' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAssessment()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'assets.ai.reviewAssessment' | transloco }}
+            </button>
             @if (canManage()) {
               <button
                 appMenuItem
@@ -259,13 +349,66 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
               [subject]="c.title"
             />
 
+            <app-record-lead record-lead [fillLink]="canWrite() && !c.closed ? editLink() : null">
+              <app-record-status-line status [tone]="lead().tone">
+                <span data-testid="change-status-sentence">{{ lead().sentence }}</span>
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="assets.changeDetail.lead.what">
+                @if (c.description; as text) {
+                  <div class="cf-prose" [innerHTML]="text | appMarkdown"></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="assets.changeDetail.lead.why">
+                @if (c.reason; as text) {
+                  <div class="cf-prose" [innerHTML]="text | appMarkdown"></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="assets.changeDetail.lead.risk">
+                @if (c.risk_level) {
+                  <app-status-badge
+                    [meaning]="riskBadge(c.risk_level).meaning"
+                    [value]="riskBadge(c.risk_level).value"
+                    [labelKey]="'assets.criticality.' + c.risk_level"
+                  />
+                  <span class="mt-1 block text-meta text-fg-muted">{{
+                    'assets.changeType.' + c.change_type | transloco
+                  }}</span>
+                }
+              </app-field-item>
+              @if (c.review_outcome) {
+                <app-field-item size="lead" labelKey="assets.changeDetail.lead.outcome">
+                  <app-status-badge
+                    [meaning]="outcomeBadge(c.review_outcome).meaning"
+                    [value]="outcomeBadge(c.review_outcome).value"
+                    [labelKey]="'assets.reviewOutcome.' + c.review_outcome"
+                  />
+                  @if (c.implemented_at) {
+                    <span class="mt-1 block text-meta text-fg-muted">{{
+                      'assets.changeDetail.lead.implementedOn'
+                        | transloco: { date: (c.implemented_at | localDay) }
+                    }}</span>
+                  }
+                </app-field-item>
+              } @else {
+                <app-field-item size="lead" labelKey="assets.changeDetail.lead.when">
+                  @if (c.planned_start || c.planned_end) {
+                    {{ c.planned_start ? (c.planned_start | localDay) : '…' }}
+                    –
+                    {{ c.planned_end ? (c.planned_end | localDay) : '…' }}
+                  }
+                </app-field-item>
+              }
+            </app-record-lead>
+
             <div class="flex flex-col gap-5">
-              <app-change-step
-                [change]="c"
-                [canWrite]="canWrite()"
-                [busy]="busy()"
-                (saved)="saveStep(c, $event)"
-              />
+              <div id="change-next-step" class="empty:hidden">
+                <app-change-step
+                  [change]="c"
+                  [canWrite]="canWrite()"
+                  [busy]="busy()"
+                  (saved)="saveStep(c, $event)"
+                />
+              </div>
 
               <app-workflow-panel
                 entityType="change_request"
@@ -273,31 +416,6 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
                 [data]="c.data"
                 (transitioned)="reload()"
               />
-
-              @if (followUps().length) {
-                <app-card>
-                  <div data-testid="change-follow-ups">
-                    <h2 class="mb-1 font-display text-card font-bold text-fg">
-                      {{ 'assets.changeDetail.followUpTitle' | transloco }}
-                    </h2>
-                    <p class="mb-3 text-ui text-fg-muted">
-                      {{ 'assets.changeDetail.followUpBody' | transloco }}
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      @for (f of followUps(); track f.key) {
-                        <app-button
-                          size="sm"
-                          variant="secondary"
-                          [attr.data-flow]="f.key"
-                          (click)="startFlow(f.key)"
-                        >
-                          {{ f.labelKey | transloco }}
-                        </app-button>
-                      }
-                    </div>
-                  </div>
-                </app-card>
-              }
 
               @if (c.locked_fields.length && !c.closed) {
                 <p class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted" role="note">
@@ -307,132 +425,57 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
               }
 
               <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'assets.changeForm.sections.request' | transloco }}
-                </h2>
-                <app-field-list [columns]="2">
-                  @for (key of requestTexts; track key.field) {
+                <app-record-details
+                  [columns]="2"
+                  [fillLink]="canWrite() && !c.closed ? editLink() : null"
+                >
+                  @for (key of detailTexts; track key.field) {
                     <app-field-item
-                      [labelKey]="'assets.fields.' + key.label"
+                      [labelKey]="'assets.changeDetail.fields.' + key.label"
                       [wide]="true"
-                      empty="none"
                     >
                       @if (c[key.field]; as text) {
                         <div class="cf-prose text-body" [innerHTML]="text | appMarkdown"></div>
                       }
                     </app-field-item>
                   }
-                  <app-field-item labelKey="assets.fields.changeType">
-                    {{ 'assets.changeType.' + c.change_type | transloco }}
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="assets.fields.owner"
-                    [value]="c.owner?.name"
-                    empty="none"
-                  />
-                  @if (c.requested_by?.name; as name) {
-                    <app-field-item
-                      labelKey="assets.changeDetail.requestedByLabel"
-                      [value]="name"
-                    />
-                  }
-                  <app-field-item labelKey="assets.changeDetail.planned">
-                    @if (c.planned_start || c.planned_end) {
-                      {{ c.planned_start ? (c.planned_start | localDay) : '…' }}
-                      –
-                      {{ c.planned_end ? (c.planned_end | localDay) : '…' }}
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'assets.changeForm.sections.assessment' | transloco }}
-                </h2>
-                <app-field-list [columns]="2">
-                  <app-field-item labelKey="assets.fields.riskLevel">
-                    @if (c.risk_level) {
-                      {{ 'assets.criticality.' + c.risk_level | transloco }}
-                    }
-                  </app-field-item>
-                  @for (key of assessmentTexts; track key.field) {
-                    <app-field-item
-                      [labelKey]="'assets.fields.' + key.label"
-                      [wide]="true"
-                      empty="none"
-                    >
-                      @if (c[key.field]; as text) {
-                        <div class="cf-prose text-body" [innerHTML]="text | appMarkdown"></div>
+                  @if (c.review_outcome) {
+                    <app-field-item labelKey="assets.changeDetail.lead.when">
+                      @if (c.planned_start || c.planned_end) {
+                        {{ c.planned_start ? (c.planned_start | localDay) : '…' }}
+                        –
+                        {{ c.planned_end ? (c.planned_end | localDay) : '…' }}
                       }
                     </app-field-item>
-                  }
-                </app-field-list>
-              </app-card>
-
-              @if (
-                c.implemented_at ||
-                c.review_outcome ||
-                c.status === 'review' ||
-                c.status === 'closed'
-              ) {
-                <app-card>
-                  <h2 class="mb-3 font-display text-card font-bold text-fg">
-                    {{ 'assets.changeForm.sections.implementation' | transloco }}
-                  </h2>
-                  <app-field-list [columns]="2">
+                  } @else {
                     <app-field-item
                       labelKey="assets.fields.implementedAt"
-                      [value]="c.implemented_at | localDate: 'mediumDate'"
+                      [value]="c.implemented_at ? (c.implemented_at | localDay) : null"
                     />
-                    <app-field-item labelKey="assets.fields.reviewOutcome">
-                      @if (c.review_outcome) {
-                        {{ 'assets.reviewOutcome.' + c.review_outcome | transloco }}
-                      }
-                    </app-field-item>
-                    @if (c.review_notes) {
-                      <app-field-item labelKey="assets.fields.reviewNotes" [wide]="true">
-                        <div
-                          class="cf-prose text-body"
-                          [innerHTML]="c.review_notes | appMarkdown"
-                        ></div>
-                      </app-field-item>
+                  }
+                  <app-field-item labelKey="assets.fields.reviewNotes" [wide]="true">
+                    @if (c.review_notes; as text) {
+                      <div class="cf-prose text-body" [innerHTML]="text | appMarkdown"></div>
                     }
-                  </app-field-list>
-                </app-card>
-              }
+                  </app-field-item>
+                </app-record-details>
+              </app-card>
 
-              <app-card>
-                <h2 class="mb-2 font-display text-card font-bold text-fg">
+              <app-card data-testid="change-assets">
+                <h2 class="font-display text-card font-bold text-fg">
                   {{ 'assets.fields.affectedAssets' | transloco }}
                 </h2>
-                @if (c.affected_assets.length) {
-                  <ul class="flex flex-wrap gap-x-4 gap-y-1.5">
-                    @for (a of c.affected_assets; track a.id) {
-                      <li>
-                        <app-entity-chip
-                          [ref]="{
-                            entity_type: 'asset',
-                            entity_id: a.id,
-                            code: a.code,
-                            title: a.name,
-                            url: a.url,
-                          }"
-                        />
-                      </li>
-                    }
-                  </ul>
+                <p class="mt-1 mb-3 text-meta text-fg-muted">
+                  {{ 'assets.changeDetail.assetsHint' | transloco }}
+                </p>
+                @if (assetRefs().length) {
+                  <app-context-linked-records [refs]="assetRefs()" />
                 } @else {
                   <p class="text-ui text-fg-subtle">
                     {{ 'assets.changeDetail.noAssets' | transloco }}
                   </p>
                 }
-                <p class="mt-2 text-meta text-fg-subtle">
-                  {{ 'assets.changeDetail.assetsHint' | transloco }}
-                </p>
               </app-card>
-
-              <app-why-it-matters scope="assets" page="change" />
             </div>
 
             <div tasks>
@@ -442,6 +485,28 @@ export function changeFollowUps(c: ChangeDetail): readonly ChangeFollowUp[] {
                 [canCreate]="canWrite() && !c.closed"
                 [entityLabel]="c.code + ' ' + c.title"
               />
+            </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="assets.fields.owner"
+                [value]="c.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="assets.changeDetail.requestedByLabel"
+                [value]="c.requested_by?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="assets.changeDetail.lead.updated"
+                [value]="c.updated_at | localDate"
+              />
+            </app-record-meta>
+
+            <div aside-learn>
+              <app-why-it-matters scope="assets" page="change" />
             </div>
           </app-record-detail-layout>
 
@@ -472,7 +537,6 @@ export class ChangeDetailPage {
   private readonly ask = inject(AskPanelService);
   private readonly flows = inject(CreateFlowService);
   private readonly router = inject(Router);
-  protected readonly ai = inject(AiAvailability);
 
   readonly id = input.required<string>();
 
@@ -482,16 +546,13 @@ export class ChangeDetailPage {
   protected readonly fieldLabels = CHANGE_FIELD_LABELS;
   protected readonly riskBadge = levelBadge;
   protected readonly stateBadge = stateCategoryBadge;
-  protected readonly typeBadge = changeTypeBadge;
-  protected readonly requestTexts = [
-    { field: 'description', label: 'description' },
-    { field: 'reason', label: 'reason' },
-  ] as const;
-  protected readonly assessmentTexts = [
-    { field: 'impact_assessment', label: 'impactAssessment' },
-    { field: 'risk_assessment', label: 'riskAssessment' },
-    { field: 'implementation_plan', label: 'implementationPlan' },
-    { field: 'rollback_plan', label: 'rollbackPlan' },
+  protected readonly outcomeBadge = outcomeBadge;
+  /** The assessment and plans, under "Hovedinformasjon" (plain labels). */
+  protected readonly detailTexts = [
+    { field: 'impact_assessment', label: 'impact' },
+    { field: 'risk_assessment', label: 'risk' },
+    { field: 'implementation_plan', label: 'plan' },
+    { field: 'rollback_plan', label: 'rollback' },
   ] as const;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
@@ -511,6 +572,54 @@ export class ChangeDetailPage {
     const keys = this.flowKeys();
     return c ? changeFollowUps(c).filter((f) => keys.has(f.key)) : [];
   });
+
+  protected readonly editLink = computed(() => ['/assets/changes', this.id(), 'edit']);
+  /** "Godkjent – klar til å gjennomføres." */
+  protected readonly lead = computed(() => {
+    const c = this.change();
+    if (!c) {
+      return { tone: 'neutral' as StatusLineTone, sentence: '' };
+    }
+    const status = changeLeadStatus(c);
+    const key = 'assets.changeState.' + c.status;
+    const translated = this.language.translate(key);
+    const word =
+      translated && translated !== key
+        ? translated
+        : localizedLabel(c.status_label, this.language.active()) || c.status;
+    return {
+      tone: status.tone,
+      sentence: this.language.translate('assets.changeDetail.lead.sentence', {
+        status: word,
+        meaning: this.language.translate(status.meaningKey),
+      }),
+    };
+  });
+  protected readonly missing = computed(() => {
+    const c = this.change();
+    return c
+      ? changeMissing(
+          c,
+          this.canWrite() && !c.closed ? this.editLink() : null,
+          this.followUps(),
+          () =>
+            document
+              .getElementById('change-next-step')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+          (key) => this.startFlow(key),
+        )
+      : [];
+  });
+  /** The affected assets as connection rows. */
+  protected readonly assetRefs = computed(() =>
+    (this.change()?.affected_assets ?? []).map((a) => ({
+      entity_type: 'asset',
+      entity_id: a.id,
+      code: a.code,
+      title: a.name,
+      url: a.url,
+    })),
+  );
 
   private request = new Subscription();
   private related = new Subscription();

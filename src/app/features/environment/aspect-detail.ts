@@ -13,31 +13,39 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { CreateFlowService } from '../../core/kit/create-flow.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RequirementLink } from '../../core/standards/standards.models';
-import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
 import { Term } from '../../shared/guidance/term';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../shared/kit/entity-chip';
 import { LinkPicker } from '../../shared/kit/link-picker';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { EnvironmentApi } from './data/environment-api';
@@ -56,11 +64,9 @@ import {
   ENV_FRAMEWORKS,
   ENV_MODULE,
   ENV_ROOT_CRUMB,
-  EnvAskButton,
   departmentName,
   injectEnvPermissions,
 } from './environment-shared';
-import { EnvFlowButtons } from './flow-buttons';
 import { EnvReviewDialog } from './review-dialog';
 
 const TABS: readonly RecordTab[] = [
@@ -99,14 +105,6 @@ export const ASPECT_FIELD_LABELS: Readonly<Record<string, string>> = {
   process_id: 'environment.fields.process',
 };
 
-/** The "create from here" flows offered in the operational controls card. */
-export const CONTROL_FLOWS: readonly string[] = [
-  FLOWS.aspectToDocument,
-  FLOWS.aspectToObjective,
-  FLOWS.aspectToRisk,
-  FLOWS.aspectToTask,
-];
-
 /** What needs attention on an aspect, most important first. */
 export type AspectNotice = 'controls' | 'plan' | 'review' | 'unscored';
 
@@ -127,6 +125,88 @@ export function aspectNotices(a: Aspect): AspectNotice[] {
   return out;
 }
 
+/** The status sentence of an aspect: significance, or why it has none yet. */
+export type AspectStatusKey = 'significant' | 'notSignificant' | 'unscored' | 'retired';
+
+export function aspectStatusKey(a: Aspect): AspectStatusKey {
+  if (a.status === 'retired') {
+    return 'retired';
+  }
+  if (a.significant) {
+    return 'significant';
+  }
+  return a.evaluated ? 'notSignificant' : 'unscored';
+}
+
+/** Significant is open work (warn, never red); not significant and retired are neutral. */
+export const ASPECT_STATUS_TONE: Readonly<Record<AspectStatusKey, StatusLineTone>> = {
+  significant: 'warn',
+  notSignificant: 'neutral',
+  unscored: 'warn',
+  retired: 'neutral',
+};
+
+/** The actions behind each notice ("Oppfølging", docs/ux-guide.md §2.7). */
+export interface AspectMissingActions {
+  readonly editLink: readonly unknown[];
+  readonly linkControl: () => void;
+  readonly makePlan: () => void;
+  readonly review: () => void;
+}
+
+/** What an aspect still needs, as actionable lines of the "Oppfølging" card. */
+export function aspectMissing(a: Aspect, actions: AspectMissingActions): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  for (const n of aspectNotices(a)) {
+    switch (n) {
+      case 'review':
+        items.push({
+          key: n,
+          labelKey: 'environment.aspect.missing.review',
+          action: actions.review,
+        });
+        break;
+      case 'controls':
+        items.push({
+          key: n,
+          labelKey: 'environment.aspect.missing.controls',
+          action: actions.linkControl,
+        });
+        break;
+      case 'plan':
+        items.push({
+          key: n,
+          labelKey: 'environment.aspect.missing.plan',
+          action: actions.makePlan,
+        });
+        break;
+      case 'unscored':
+        items.push({
+          key: n,
+          labelKey: 'environment.aspect.missing.unscored',
+          link: actions.editLink,
+        });
+        break;
+    }
+  }
+  if (a.legal_requirement && !(a.obligations ?? []).length) {
+    items.push({
+      key: 'obligations',
+      labelKey: 'environment.aspect.missing.obligations',
+      link: actions.editLink,
+      fragment: 'obligations',
+    });
+  }
+  if (!a.owner_user_id && a.status !== 'retired') {
+    items.push({
+      key: 'owner',
+      labelKey: 'environment.aspect.missing.owner',
+      link: actions.editLink,
+    });
+  }
+  return items;
+}
+
 /** A linked record as an entity-chip reference. */
 export function chipRef(r: LinkedRecord) {
   return {
@@ -140,16 +220,15 @@ export function chipRef(r: LinkedRecord) {
 }
 
 /**
- * An environmental aspect (`/environment/aspects/:id`). The page follows the route
- * id. Header: code, status, significance; Edit is the primary action, "Merk som
- * gjennomgått" and "Lag ny fra denne" are secondary, Delete is under "Mer". Body:
- * what needs attention (missing controls, no emergency plan, review overdue) with
- * the action that fixes it; the activity, aspect and impact as labelled fields;
- * the evaluation with each score's meaning and "Poeng 9 av 20 · vesentlig fra 12";
- * the obligations from "Lover og forskrifter" that apply (6.1.3); the operational
- * controls, written and linked (procedures, processes, objectives, risks, 8.1); the
- * emergency plans covering it (8.2). Aside: the requirements it documents,
- * connections, ownership and review, and why it matters.
+ * An environmental aspect (`/environment/aspects/:id`), built on the detail-page
+ * anatomy (docs/ux-guide.md §2.7). Header: code · Miljøaspekt · status; Edit is the
+ * primary action, "Merk som gjennomgått" secondary, Delete under "Mer", the
+ * assistant in "Spør KI". Hovedinformasjon: whether it is significant (with the
+ * score), what we do, what it does to the environment, how we keep it under control
+ * (text and linked procedures, processes …, 8.1) and the laws that apply (6.1.3).
+ * Details: the classification and how the significance was scored. Oppfølging:
+ * what is missing (controls, emergency plan, review, score, owner), the
+ * requirements, the connections with the emergency plans (8.2), and ownership.
  */
 @Component({
   selector: 'app-env-aspect-detail',
@@ -159,29 +238,26 @@ export function chipRef(r: LinkedRecord) {
     LocalDatePipe,
     LocalDayPipe,
     LocalNumberPipe,
-    WatchButton,
-    AskAbout,
     Term,
     WhyItMatters,
     EntityChip,
     LinkPicker,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     EntityTasks,
     Button,
-    Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     StatusBadge,
-    EnvAskButton,
-    EnvFlowButtons,
     EnvReviewDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -211,6 +287,7 @@ export function chipRef(r: LinkedRecord) {
       @default {
         @if (aspect(); as a) {
           <app-record-detail-layout
+            [anatomy]="true"
             [entityType]="entityType"
             [entityId]="a.id"
             [title]="a.aspect"
@@ -219,6 +296,7 @@ export function chipRef(r: LinkedRecord) {
             [tabs]="tabs"
             [canEdit]="perms.write()"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ a.code }}</span>
@@ -233,29 +311,17 @@ export function chipRef(r: LinkedRecord) {
                 [labelKey]="'environment.status.' + a.status"
                 data-testid="aspect-status"
               />
-              @if (a.significant) {
+              @if (a.review_overdue) {
                 <app-status-badge
-                  meaning="severity"
-                  value="medium"
-                  labelKey="environment.aspect.significant"
-                  data-testid="aspect-significant"
-                />
-              } @else if (a.evaluated) {
-                <app-status-badge
-                  meaning="severity"
-                  value="low"
-                  labelKey="environment.aspect.notSignificant"
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="environment.aspect.reviewOverdue"
                 />
               }
             </ng-container>
 
             @if (perms.write()) {
-              <a
-                primary
-                [routerLink]="['/environment/aspects', a.id, 'edit']"
-                tabindex="-1"
-                data-testid="aspect-edit"
-              >
+              <a primary [routerLink]="editLink()" tabindex="-1" data-testid="aspect-edit">
                 <app-button>{{ 'environment.common.edit' | transloco }}</app-button>
               </a>
             }
@@ -283,12 +349,19 @@ export function chipRef(r: LinkedRecord) {
               </button>
             }
 
-            <app-module-nav
-              nav
-              class="mb-4 block"
-              [items]="perms.nav()"
-              labelKey="modules.names.environment"
-            />
+            <button appMenuItem ask type="button" (click)="askAi('summariseAspect')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.summariseLabel' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('explainSignificance')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.explainSignificanceLabel' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('controlsField')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.controlsLabel' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="environment"
@@ -297,138 +370,13 @@ export function chipRef(r: LinkedRecord) {
               [subject]="a.aspect"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (notices().length) {
-                <ul class="flex flex-col gap-2" role="status" data-testid="aspect-notices">
-                  @for (n of notices(); track n) {
-                    <li
-                      class="flex flex-col gap-2 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink sm:flex-row sm:items-center"
-                      [attr.data-testid]="'aspect-notice-' + n"
-                    >
-                      <span class="flex min-w-0 flex-1 gap-2">
-                        <app-icon name="alert" [size]="15" class="mt-0.5 flex-none" />
-                        <span>{{
-                          'environment.aspect.notices.' + n
-                            | transloco: { date: (a.review_due_at | localDay) }
-                        }}</span>
-                      </span>
-                      @if (perms.write()) {
-                        <span class="flex flex-none flex-wrap gap-2">
-                          @switch (n) {
-                            @case ('controls') {
-                              <app-button variant="secondary" size="sm" (click)="linking.set(true)">
-                                <app-icon name="link" [size]="13" />
-                                {{ 'environment.aspect.linkControl' | transloco }}
-                              </app-button>
-                            }
-                            @case ('plan') {
-                              <app-button
-                                variant="secondary"
-                                size="sm"
-                                [loading]="flows.starting() === planFlow"
-                                (click)="startFlow(planFlow)"
-                                data-testid="aspect-make-plan"
-                              >
-                                <app-icon name="plus" [size]="13" />
-                                {{ 'environment.aspect.makePlan' | transloco }}
-                              </app-button>
-                            }
-                            @case ('review') {
-                              <app-button
-                                variant="secondary"
-                                size="sm"
-                                (click)="reviewing.set(true)"
-                              >
-                                {{ 'environment.review.action' | transloco }}
-                              </app-button>
-                            }
-                            @case ('unscored') {
-                              <a
-                                [routerLink]="['/environment/aspects', a.id, 'edit']"
-                                tabindex="-1"
-                              >
-                                <app-button variant="secondary" size="sm">{{
-                                  'environment.aspect.scoreNow' | transloco
-                                }}</app-button>
-                              </a>
-                            }
-                          }
-                        </span>
-                      }
-                    </li>
-                  }
-                </ul>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'environment.aspect.sections.identify' | transloco }}
-                </h2>
-                <app-field-list data-testid="aspect-identify">
-                  <app-field-item labelKey="environment.fields.activity" [wide]="true">
-                    <span class="flex flex-wrap items-center gap-2">
-                      <span>{{ a.activity }}</span>
-                      @if (a.process; as p) {
-                        <app-entity-chip [ref]="ref(p)" />
-                      }
-                    </span>
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="environment.fields.aspect"
-                    [value]="a.aspect"
-                    [wide]="true"
-                  />
-                  <app-field-item
-                    labelKey="environment.fields.impact"
-                    [value]="a.impact"
-                    [wide]="true"
-                    [multiline]="true"
-                  />
-                  <app-field-item
-                    labelKey="environment.fields.impactType"
-                    [value]="'environment.impactTypes.' + a.impact_type | transloco"
-                  />
-                  <app-field-item
-                    labelKey="environment.fields.condition"
-                    [value]="'environment.conditions.' + a.condition | transloco"
-                  />
-                  <app-field-item
-                    labelKey="environment.fields.controlLevel"
-                    [value]="'environment.controlLevels.' + a.control_level | transloco"
-                  />
-                  <app-field-item labelKey="environment.fields.site" [value]="a.site" />
-                  <app-field-item labelKey="environment.fields.lifecycleStages" [wide]="true">
-                    @if (a.lifecycle_stages.length) {
-                      <span class="flex flex-wrap gap-1.5">
-                        @for (s of a.lifecycle_stages; track s) {
-                          <app-status-badge
-                            meaning="lifecycle"
-                            value="draft"
-                            [labelKey]="'environment.stages.' + s"
-                          />
-                        }
-                      </span>
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
-
-              <app-card data-testid="aspect-evaluation">
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    <app-term key="significant-aspect" scope="environment">{{
-                      'environment.aspect.sections.evaluate' | transloco
-                    }}</app-term>
-                  </h2>
-                  <app-ask-about
-                    [prompt]="'environment.ask.explainSignificance' | transloco"
-                    field="significant"
-                    [fieldLabel]="'environment.aspect.sections.evaluate' | transloco"
-                    [requirements]="confirmedRefs()"
-                  />
-                </div>
-                <p class="text-body font-semibold text-fg" data-testid="aspect-score">
-                  @if (a.score !== null) {
+            <app-record-lead record-lead [fillLink]="perms.write() ? editLink() : null">
+              <app-record-status-line status [tone]="statusTone()">
+                <span data-testid="aspect-significance">{{
+                  'environment.aspect.statusLine.' + statusKey() | transloco
+                }}</span>
+                @if (a.score !== null && a.status !== 'retired') {
+                  <span class="block text-ui font-normal text-fg-muted" data-testid="aspect-score">
                     @if (threshold() !== null) {
                       {{
                         'environment.aspect.scoreLine'
@@ -445,19 +393,125 @@ export function chipRef(r: LinkedRecord) {
                           | transloco: { score: (a.score | localNumber: '1.0-2') }
                       }}
                     }
-                  } @else {
-                    {{ 'environment.aspect.scoreIncomplete' | transloco }}
+                  </span>
+                }
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="environment.aspect.lead.activity" [wide]="true">
+                <span class="flex flex-col items-start gap-1.5">
+                  <span>{{ a.activity }}</span>
+                  @if (a.process; as p) {
+                    <app-entity-chip [ref]="ref(p)" [statusText]="true" />
                   }
-                </p>
-                @if (perms.manage()) {
-                  <a
-                    routerLink="/settings/modules/environment"
-                    class="mt-1 inline-block text-meta font-semibold text-accent hover:underline"
-                    >{{ 'environment.aspect.seeMethod' | transloco }}</a
-                  >
+                </span>
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="environment.aspect.lead.impact"
+                [value]="a.impact"
+                [wide]="true"
+                [multiline]="true"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="environment.aspect.lead.controls"
+                [wide]="true"
+                data-testid="aspect-controls"
+              >
+                @if (a.operational_controls || controls().length) {
+                  @if (a.operational_controls) {
+                    <span class="block whitespace-pre-line">{{ a.operational_controls }}</span>
+                  }
+                  @if (controls().length) {
+                    <ul class="mt-2 flex flex-col gap-1.5" data-testid="aspect-linked-controls">
+                      @for (c of controls(); track c.id) {
+                        <li><app-entity-chip [ref]="ref(c)" [statusText]="true" /></li>
+                      }
+                    </ul>
+                  }
+                  @if (perms.write()) {
+                    <button
+                      type="button"
+                      class="mt-2 inline-flex items-center gap-1 text-meta font-semibold text-accent hover:underline"
+                      (click)="linking.set(true)"
+                      data-testid="aspect-link-control"
+                    >
+                      <app-icon name="link" [size]="13" />
+                      {{ 'environment.aspect.linkControlMore' | transloco }}
+                    </button>
+                  }
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="environment.aspect.lead.obligations"
+                [wide]="true"
+                data-testid="aspect-obligations"
+              >
+                @if (obligations().length) {
+                  <ul class="flex flex-col gap-1.5">
+                    @for (o of obligations(); track o.id) {
+                      <li><app-entity-chip [ref]="ref(o)" [statusText]="true" /></li>
+                    }
+                  </ul>
+                }
+              </app-field-item>
+            </app-record-lead>
+
+            <app-record-details [columns]="3" [fillLink]="perms.write() ? editLink() : null">
+              <app-field-item
+                labelKey="environment.aspect.details.impactType"
+                [value]="'environment.impactTypes.' + a.impact_type | transloco"
+              />
+              <app-field-item
+                labelKey="environment.aspect.details.condition"
+                [value]="'environment.conditions.' + a.condition | transloco"
+              />
+              <app-field-item
+                labelKey="environment.aspect.details.controlLevel"
+                [value]="'environment.controlLevels.' + a.control_level | transloco"
+              />
+              <app-field-item labelKey="environment.aspect.details.site" [value]="a.site" />
+              <app-field-item labelKey="environment.fields.lifecycleStages" [wide]="true">
+                @if (a.lifecycle_stages.length) {
+                  <span class="flex flex-wrap gap-1.5">
+                    @for (s of a.lifecycle_stages; track s) {
+                      <app-status-badge
+                        meaning="lifecycle"
+                        value="draft"
+                        [labelKey]="'environment.stages.' + s"
+                      />
+                    }
+                  </span>
+                }
+              </app-field-item>
+
+              <section
+                after
+                class="mt-5 border-t border-border pt-4"
+                data-testid="aspect-evaluation"
+                aria-labelledby="env-aspect-eval-h"
+              >
+                <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 id="env-aspect-eval-h" class="font-display text-ui font-bold text-fg">
+                    <app-term key="significant-aspect" scope="environment">{{
+                      'environment.aspect.sections.evaluateHow' | transloco
+                    }}</app-term>
+                  </h3>
+                  @if (perms.manage()) {
+                    <a
+                      routerLink="/settings/modules/environment"
+                      class="text-meta font-semibold text-accent hover:underline"
+                      >{{ 'environment.aspect.seeMethod' | transloco }}</a
+                    >
+                  }
+                </div>
+                @if (a.score === null) {
+                  <p class="text-ui text-fg-muted">
+                    {{ 'environment.aspect.scoreIncomplete' | transloco }}
+                  </p>
                 }
                 @if (method(); as m) {
-                  <div class="mt-3 overflow-x-auto">
+                  <div class="overflow-x-auto">
                     <table class="w-full text-left text-ui" data-testid="aspect-scores">
                       <thead class="text-meta text-fg-subtle">
                         <tr>
@@ -492,9 +546,9 @@ export function chipRef(r: LinkedRecord) {
                   </div>
                 }
                 @if (a.significance_reasons.length) {
-                  <h3 class="mt-4 mb-1 text-meta font-semibold text-fg-muted">
+                  <h4 class="mt-3 mb-1 text-meta font-semibold text-fg-muted">
                     {{ 'environment.aspect.whySignificant' | transloco }}
-                  </h3>
+                  </h4>
                   <ul class="flex flex-col gap-1 text-ui text-fg">
                     @for (r of a.significance_reasons; track r) {
                       <li class="flex items-center gap-1.5">
@@ -522,124 +576,8 @@ export function chipRef(r: LinkedRecord) {
                     }}
                   </p>
                 }
-              </app-card>
-
-              <app-card data-testid="aspect-obligations">
-                <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    <app-term key="compliance-obligation" scope="environment">{{
-                      'environment.aspect.sections.obligations' | transloco
-                    }}</app-term>
-                  </h2>
-                  @if (perms.write()) {
-                    <a
-                      [routerLink]="['/environment/aspects', a.id, 'edit']"
-                      fragment="obligations"
-                      class="text-ui font-semibold text-accent hover:underline"
-                      >{{ 'environment.aspect.editObligations' | transloco }}</a
-                    >
-                  }
-                </div>
-                <p class="mb-3 text-meta text-fg-muted">
-                  {{ 'environment.aspect.obligationsHint' | transloco }}
-                </p>
-                @if (obligations().length) {
-                  <ul class="flex flex-col gap-2">
-                    @for (o of obligations(); track o.id) {
-                      <li><app-entity-chip [ref]="ref(o)" [statusText]="true" /></li>
-                    }
-                  </ul>
-                } @else {
-                  <p class="text-ui text-fg-muted" data-testid="no-obligations">
-                    {{ 'environment.aspect.noObligations' | transloco }}
-                  </p>
-                }
-              </app-card>
-
-              <app-card data-testid="aspect-controls">
-                <h2 class="mb-1 font-display text-card font-bold text-fg">
-                  <app-term key="operational-control" scope="environment">{{
-                    'environment.fields.operationalControls' | transloco
-                  }}</app-term>
-                </h2>
-                <p class="mb-3 text-meta text-fg-muted">
-                  {{ 'environment.aspect.controlsHint' | transloco }}
-                </p>
-                @if (a.operational_controls) {
-                  <p class="mb-3 text-body whitespace-pre-line text-fg">
-                    {{ a.operational_controls }}
-                  </p>
-                }
-                @if (controls().length) {
-                  <h3 class="mb-1.5 text-meta font-semibold text-fg-muted">
-                    {{ 'environment.aspect.linkedControls' | transloco }}
-                  </h3>
-                  <ul class="mb-3 flex flex-col gap-2" data-testid="aspect-linked-controls">
-                    @for (c of controls(); track c.id) {
-                      <li><app-entity-chip [ref]="ref(c)" [statusText]="true" /></li>
-                    }
-                  </ul>
-                }
-                @if (!a.operational_controls && !controls().length) {
-                  <p class="mb-3 text-ui text-fg-muted">
-                    {{
-                      (a.significant
-                        ? 'environment.aspect.noControlsSignificant'
-                        : 'environment.aspect.noControls'
-                      ) | transloco
-                    }}
-                  </p>
-                }
-                @if (perms.write()) {
-                  <div class="flex flex-wrap gap-2" data-testid="aspect-control-actions">
-                    <app-button variant="secondary" size="sm" (click)="linking.set(true)">
-                      <app-icon name="link" [size]="13" />
-                      {{ 'environment.aspect.linkControl' | transloco }}
-                    </app-button>
-                    <app-env-flow-buttons
-                      [entityType]="entityType"
-                      [entityId]="a.id"
-                      [keys]="controlFlows"
-                    />
-                  </div>
-                }
-              </app-card>
-
-              @if (a.condition !== 'normal' || plans().length) {
-                <app-card data-testid="aspect-plans">
-                  <h2 class="mb-1 font-display text-card font-bold text-fg">
-                    {{ 'environment.aspect.sections.preparedness' | transloco }}
-                  </h2>
-                  <p class="mb-3 text-meta text-fg-muted">
-                    {{ 'environment.aspect.plansHint' | transloco }}
-                  </p>
-                  @if (plans().length) {
-                    <ul class="flex flex-col gap-2">
-                      @for (p of plans(); track p.id) {
-                        <li><app-entity-chip [ref]="ref(p)" [statusText]="true" /></li>
-                      }
-                    </ul>
-                  } @else {
-                    <p class="text-ui text-fg-muted">
-                      {{ 'environment.aspect.noPlan' | transloco }}
-                    </p>
-                  }
-                  @if (perms.write() && !plans().length) {
-                    <div class="mt-3">
-                      <app-button
-                        variant="secondary"
-                        size="sm"
-                        [loading]="flows.starting() === planFlow"
-                        (click)="startFlow(planFlow)"
-                      >
-                        <app-icon name="plus" [size]="13" />
-                        {{ 'environment.aspect.makePlan' | transloco }}
-                      </app-button>
-                    </div>
-                  }
-                </app-card>
-              }
-            </div>
+              </section>
+            </app-record-details>
 
             <div tasks>
               <app-entity-tasks
@@ -659,49 +597,63 @@ export function chipRef(r: LinkedRecord) {
               (linksChange)="onLinks($event)"
             />
 
-            <div aside class="flex flex-col gap-4">
-              <app-card data-testid="aspect-ownership">
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'environment.aspect.ownership' | transloco }}
-                  </h2>
-                  <app-watch-button [entityType]="entityType" [entityId]="a.id" />
-                </div>
-                <app-field-list [columns]="1">
-                  <app-field-item labelKey="environment.fields.owner" [value]="a.owner_name" />
-                  <app-field-item labelKey="environment.fields.department" [value]="department()" />
-                  <app-field-item labelKey="environment.fields.reviewDue">
-                    @if (a.review_due_at) {
-                      <span
-                        [class.font-semibold]="a.review_overdue"
-                        [class.text-warn-ink]="a.review_overdue"
-                      >
-                        {{ a.review_due_at | localDay }}
-                        @if (a.review_overdue) {
-                          · {{ 'common.status.overdue' | transloco }}
-                        }
-                      </span>
+            @if (a.condition !== 'normal' || plans().length) {
+              <div follow-up-connections class="mt-4" data-testid="aspect-plans">
+                <h3 class="mb-1.5 text-meta font-semibold text-fg-muted">
+                  {{ 'environment.aspect.sections.preparedness' | transloco }}
+                </h3>
+                @if (plans().length) {
+                  <ul class="flex flex-col gap-1.5">
+                    @for (p of plans(); track p.id) {
+                      <li>
+                        <app-entity-chip [ref]="ref(p)" [statusText]="true" [stacked]="true" />
+                      </li>
                     }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="environment.fields.lastReviewed"
-                    [value]="a.last_reviewed_at ? (a.last_reviewed_at | localDate) : null"
-                    empty="none"
-                  />
-                </app-field-list>
-                <div
-                  class="mt-4 flex flex-wrap gap-1"
-                  role="group"
-                  [attr.aria-label]="'environment.ask.group' | transloco"
-                >
-                  <app-env-ask-button
-                    labelKey="environment.ask.summariseLabel"
-                    promptKey="environment.ask.summariseAspect"
-                    [requirements]="confirmedRefs()"
-                  />
-                </div>
-              </app-card>
-            </div>
+                  </ul>
+                } @else {
+                  <p class="text-meta text-fg-muted">
+                    {{ 'environment.aspect.noPlan' | transloco }}
+                  </p>
+                }
+              </div>
+            }
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.owner"
+                [value]="a.owner_name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.department"
+                [value]="department()"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.reviewDue"
+                [keepEmpty]="true"
+                emptyKey="kit.detail.meta.notPlanned"
+                emptyActionKey="kit.detail.meta.plan"
+                [emptyLink]="perms.write() ? editLink() : null"
+              >
+                @if (a.review_due_at) {
+                  <span [class.text-warn-ink]="a.review_overdue">{{
+                    a.review_due_at | localDay
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.lastReviewed"
+                [value]="a.last_reviewed_at ? (a.last_reviewed_at | localDay) : null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.common.updated"
+                [value]="a.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters scope="environment" page="aspectDetail" />
@@ -746,6 +698,7 @@ export class AspectDetail {
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly directory = inject(AssigneeOptionsService);
+  private readonly ask = inject(AskPanelService);
   protected readonly flows = inject(CreateFlowService);
 
   /** Route param (component input binding): follows navigation between aspects. */
@@ -756,7 +709,6 @@ export class AspectDetail {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = ASPECT_FIELD_LABELS;
   protected readonly frameworks = ENV_FRAMEWORKS;
-  protected readonly controlFlows = CONTROL_FLOWS;
   protected readonly controlLinkTypes: readonly string[] = ['mitigates', 'relates_to'];
   protected readonly planFlow = FLOWS.aspectToPlan;
   protected readonly ref = chipRef;
@@ -776,9 +728,27 @@ export class AspectDetail {
     ENV_CRUMBS.aspects,
     { label: this.aspect()?.code ?? '' },
   ]);
-  protected readonly notices = computed(() => {
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/environment/aspects',
+    this.id(),
+    'edit',
+  ]);
+  protected readonly statusKey = computed(() => {
     const a = this.aspect();
-    return a ? aspectNotices(a) : [];
+    return a ? aspectStatusKey(a) : ('unscored' as const);
+  });
+  protected readonly statusTone = computed(() => ASPECT_STATUS_TONE[this.statusKey()]);
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const a = this.aspect();
+    if (!a || !this.perms.write()) {
+      return [];
+    }
+    return aspectMissing(a, {
+      editLink: this.editLink(),
+      linkControl: () => this.linking.set(true),
+      makePlan: () => this.startFlow(this.planFlow),
+      review: () => this.reviewing.set(true),
+    });
   });
   protected readonly obligations = computed(() => this.aspect()?.obligations ?? []);
   protected readonly controls = computed(() => this.aspect()?.controls ?? []);
@@ -826,6 +796,12 @@ export class AspectDetail {
 
   protected level(c: ScoringMethod['criteria'][number], value: number): string {
     return levelText(c, value, this.language.active());
+  }
+
+  protected askAi(promptKey: 'summariseAspect' | 'explainSignificance' | 'controlsField'): void {
+    this.ask.askAbout(this.language.translate(`environment.ask.${promptKey}`), undefined, {
+      requirements: this.confirmedRefs(),
+    });
   }
 
   protected onLinks(links: readonly RequirementLink[]): void {

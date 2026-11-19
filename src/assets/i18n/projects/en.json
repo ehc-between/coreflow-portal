@@ -199,7 +199,52 @@
     "deleteTitle": "Delete this project?",
     "deleteMessage": "{{ code }} is removed together with its milestones, design reviews and lessons, and its open tasks are cancelled. The audit trail is kept.",
     "closeoutTitle": "Project result",
-    "approvedBy": "{{ name }}, {{ date }}"
+    "approvedBy": "{{ name }}, {{ date }}",
+    "lead": {
+      "sentence": "{{ status }} – {{ meaning }}.",
+      "overdue": "Past the deadline",
+      "objective": "What the project should achieve",
+      "scope": "What's included",
+      "due": "Finish by",
+      "meaning": {
+        "milestones": "{{ done }} of {{ total }} milestones are done",
+        "tasks": "{{ done }} of {{ total }} tasks are done",
+        "none": "nothing is planned yet",
+        "cancelled": "the project was stopped before it was finished",
+        "met": {
+          "yes": "the objective was met",
+          "partial": "the objective was partly met",
+          "no": "the objective was not met",
+          "unknown": "the project is closed"
+        }
+      }
+    },
+    "fields": {
+      "changeConsequences": "What could go wrong",
+      "changeResources": "People and budget needed",
+      "health": "Owner's assessment",
+      "updated": "Last changed"
+    },
+    "securityYes": "Yes – the project must follow the security checklist below",
+    "touches": {
+      "title": "What the project changes",
+      "intro": "The processes and documents that change, and the objectives the project supports.",
+      "affected": "Processes and documents that change",
+      "objectives": "Objectives it supports",
+      "noneAffected": "None linked yet.",
+      "noneObjectives": "None linked yet."
+    },
+    "missing": {
+      "milestonesOverdue": "Milestones past their deadline: {{ count }}",
+      "reviewsPending": "Reviews waiting: {{ count }}",
+      "reviewActions": "Open actions from reviews: {{ count }}",
+      "security": "Security checks left: {{ count }}",
+      "objective": "Write down what the project should achieve",
+      "scope": "Describe what's included",
+      "owner": "Choose who owns the project",
+      "due": "Set a deadline",
+      "plan": "Plan milestones"
+    }
   },
   "progress": {
     "title": "Progress",
@@ -435,7 +480,10 @@
     "taskFailed": "The task could not be added.",
     "risksNote": "Suggestions only. \"Register in the risk register\" opens the risk form filled in, and the risk is linked to the project when you save.",
     "menu": "AI help: status and risks",
-    "registerRisk": "Register in the risk register"
+    "registerRisk": "Register in the risk register",
+    "askSummarise": "Summarise the project",
+    "askObjective": "Is the objective clear and measurable?",
+    "askPanel": "Status report and risk suggestions"
   },
   "ask": {
     "summarise": "Summarise this project: where it stands, what is late and what needs a decision.",

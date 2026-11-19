@@ -377,7 +377,44 @@
     "annexOptional": "Annex IV is optional for you",
     "risks": "AI risks",
     "risksHint": "Record the risks this system brings in the Risk module (ISO/IEC 42001 6.1.2). Linked risks show under Connections.",
-    "createRisk": "Create AI risk"
+    "createRisk": "Create AI risk",
+    "reviewOverdue": "Review overdue",
+    "updated": "Last changed",
+    "obligationsHint": "What the AI Act requires of you for this system. Mark each one met when it is in place, with evidence.",
+    "providerToggle": "The provider's duties ({{ count }})",
+    "statusLine": {
+      "unclassified": "Not classified – find out which risk class the system has and which duties apply.",
+      "prohibited": "Prohibited practice – the system must not be used as described.",
+      "none": "{{ risk }} – no duties for you to follow up.",
+      "done": "{{ risk }} – all {{ total }} duties are met.",
+      "open": "{{ risk }} – {{ met }} of {{ total }} duties are met."
+    },
+    "lead": {
+      "purpose": "What the system is used for",
+      "riskMeaning": "What the risk class means for you",
+      "provider": "Where it comes from",
+      "overseers": "Who oversees it"
+    },
+    "plain": {
+      "dataCategories": "Data it uses",
+      "personalData": "Personal data",
+      "personalDataYes": "Yes – the system processes personal data.",
+      "dpia": "Data protection impact assessment",
+      "kind": "Kind of system"
+    },
+    "missing": {
+      "classify": "Classify the system",
+      "review": "The review is overdue",
+      "obligations": "{{ count }} duties are not met yet",
+      "obligationsOne": "1 duty is not met yet",
+      "fria": "Carry out the FRIA (required before use)",
+      "purpose": "Describe what the system is used for",
+      "owner": "Choose an owner",
+      "overseers": "Name who oversees the system",
+      "literacy": "AI literacy is missing for {{ count }} of the overseers",
+      "ropa": "Link the processing activity",
+      "dpia": "Create the recommended DPIA"
+    }
   },
   "wizard": {
     "title": "Classify: {{ name }}",
@@ -581,7 +618,37 @@
     "reviewFlag": {
       "reclassified": "The AI system has been reclassified since this assessment was done. Review it.",
       "system_changed": "The AI system has changed since this assessment was done (purpose, role, models or data). Review it."
-    }
+    },
+    "reviewOverdue": "Review overdue",
+    "restTitle": "The rest of the assessment",
+    "notPlanned": "Not planned",
+    "plan": "Plan",
+    "lead": {
+      "system": "AI system it covers",
+      "outcome": "Outcome",
+      "conclusion": "Conclusion",
+      "affected": "Who is affected",
+      "mitigations": "How we reduce the impact",
+      "risks": "Risks of harm",
+      "oversight": "How people oversee it"
+    },
+    "statusLine": {
+      "approved": "Approved – the assessment is done and applies until the next review.",
+      "completed": "Completed – waiting for approval.",
+      "draftWizard": "Draft – finish the answers in the wizard.",
+      "draftMissing": "Draft – {{ done }} of {{ total }} required parts written.",
+      "draftReady": "Draft – all required parts are written. It can be completed."
+    },
+    "todo": {
+      "flag": {
+        "reclassified": "The system was reclassified – review the assessment",
+        "system_changed": "The system has changed – review the assessment"
+      },
+      "review": "The review is overdue – review the assessment",
+      "section": "Write \"{{ section }}\"",
+      "owner": "Choose an owner"
+    },
+    "outcomeDetail": "Why, and the duties that follow"
   },
   "sections": {
     "impact": {
