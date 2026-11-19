@@ -324,9 +324,14 @@ describe('process detail', () => {
     );
     await tick();
     fixture.detectChanges();
-    expect(el.querySelector('[data-testid="health-card"]')).not.toBeNull();
-    expect(el.querySelector('[data-testid="health-fix-map"]')).not.toBeNull();
-    expect(el.querySelector('[data-testid="health-fix-owner"]')).toBeNull();
+    const status = el.querySelector('[data-testid="record-status-line"]');
+    expect(status?.textContent).toContain('processes.detail.statusLine.partial');
+    expect(status?.getAttribute('data-tone')).toBe('warn');
+    const missing = [...el.querySelectorAll('[data-testid="record-missing-item"]')].map(
+      (li) => li.textContent ?? '',
+    );
+    expect(missing.some((t) => t.includes('processes.detail.missing.map'))).toBe(true);
+    expect(missing.some((t) => t.includes('processes.detail.missing.owner'))).toBe(false);
   });
 
   it('shows an empty state, not an error toast, when the process does not exist', async () => {

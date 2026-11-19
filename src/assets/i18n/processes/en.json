@@ -221,7 +221,41 @@
     "noMapShort": "No map yet",
     "mapHint": "Select a step to see details. Open the map to change it.",
     "notFoundTitle": "Process not found",
-    "notFoundBody": "The process does not exist, has been deleted or you do not have access to it."
+    "notFoundBody": "The process does not exist, has been deleted or you do not have access to it.",
+    "categoryOne": {
+      "management": "Management process",
+      "core": "Core process",
+      "support": "Support process"
+    },
+    "explain": "Explain the process",
+    "lead": {
+      "purpose": "What the process is for",
+      "scope": "Where it starts and stops",
+      "owner": "Process owner",
+      "document": "Description document",
+      "noDocument": "Not added yet"
+    },
+    "partOf": "Part of",
+    "frameworks": "Standards it supports",
+    "updated": "Last changed",
+    "statusLine": {
+      "active": "In use – all the building blocks are in place.",
+      "partial": "In use – {{ done }} of {{ total }} building blocks are in place.",
+      "overdue": "Review overdue – check that the process still works and record the review.",
+      "draft": "Draft – the process is not in use yet. Activate it when it is ready.",
+      "retired": "Retired – the process is no longer in use."
+    },
+    "missing": {
+      "owner": "Choose a process owner",
+      "purpose": "Describe what the process is for",
+      "scope": "Describe where it starts and stops",
+      "map": "Draw the process map",
+      "description": "Add a description document",
+      "kpis": "Link a KPI that has measurements",
+      "risks": "Link a risk or opportunity",
+      "review": "Record a review",
+      "reviewOverdue": "The review is overdue – record it"
+    }
   },
   "turtle": {
     "title": "Process sheet (turtle diagram)",
