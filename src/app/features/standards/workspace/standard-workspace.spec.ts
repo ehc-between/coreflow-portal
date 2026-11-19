@@ -203,6 +203,11 @@ describe('StandardWorkspace', () => {
         ),
       );
     flushLocationRequests(http); // requirement-locations (L4)
+    // U12: the standard's "Dokumenter og rapporter" cards.
+    http
+      .match((r) => r.url.endsWith('/outputs'))
+      .filter((r) => !r.cancelled)
+      .forEach((r) => r.flush({ items: [], audiences: [], kinds: [] }));
     http.verify();
     vi.restoreAllMocks();
   });
