@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -33,6 +34,8 @@ import { MenuItem, OverflowMenu } from '../../shared/ui/overflow-menu/overflow-m
 import { Pager } from '../../shared/ui/pager/pager';
 import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { StarterSetup } from '../../shared/starter-setup/starter-setup';
+import { StarterSetupPrompt } from '../../shared/starter-setup/starter-setup-prompt';
 import { ObligationsApi } from './data/obligations-api';
 import {
   COMPLIANCE_STATUSES,
@@ -146,6 +149,8 @@ function flag(value: string | null): boolean {
     RecordRow,
     RecordRowHeader,
     StatusBadge,
+    StarterSetup,
+    StarterSetupPrompt,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -185,6 +190,17 @@ function flag(value: string | null): boolean {
           </button>
         }
       </app-overflow-menu>
+      @if (canWrite() && total() > 0) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          data-testid="starter-more"
+          (click)="starter()?.open()"
+        >
+          {{ 'obligations.list.suggestMore' | transloco }}
+        </button>
+      }
 
       <app-help-strip help scope="obligations" page="list" tour="list" lesson="legal-register" />
 
@@ -527,6 +543,9 @@ function flag(value: string | null): boolean {
       <app-why-it-matters below scope="obligations" page="list" />
 
       <div empty class="flex flex-col gap-6">
+        @if (canWrite()) {
+          <app-starter-setup-prompt [provider]="starterProvider" (begin)="starter()?.open()" />
+        }
         <app-card>
           <app-teaching-empty
             scope="obligations"
@@ -538,6 +557,7 @@ function flag(value: string | null): boolean {
         <app-why-it-matters scope="obligations" page="list" />
       </div>
     </app-record-list-page>
+    <app-starter-setup [provider]="starterProvider" (created)="reload()" />
   `,
 })
 export class ObligationsList {
@@ -565,6 +585,9 @@ export class ObligationsList {
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_WRITE),
   );
+  /** The starter-setup provider of the register ("Kom i gang med et forslag"). */
+  protected readonly starterProvider = 'obligations.laws';
+  protected readonly starter = viewChild(StarterSetup);
 
   protected readonly q = signal('');
   protected readonly status = signal<string>('current');

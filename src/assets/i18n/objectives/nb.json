@@ -28,7 +28,8 @@
     "onTrack": "{{ count }} på sporet",
     "atRisk": "{{ count }} i faresonen",
     "offTrack": "{{ count }} utenfor målverdien",
-    "noData": "{{ count }} uten data"
+    "noData": "{{ count }} uten data",
+    "suggestMore": "Foreslå flere"
   },
   "kpiList": {
     "title": "KPI-er",
