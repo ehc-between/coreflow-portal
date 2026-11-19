@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { niceTicks, stepPath } from './components/kpi-chart';
 import { kpiPayload, kpiToForm, EMPTY_KPI_FORM } from './kpi-editor';
-import { monitoringRef, toneOfShare } from './kpi-detail';
+import { kpiMissing, kpiStatusLine, monitoringRef, toneOfShare } from './kpi-detail';
 import { kpiStatusesForFilter, healthForChoice, kpiTiles } from './kpis-list';
-import { nextSteps } from './objective-detail';
+import { nextSteps, objectiveMissing, objectiveStatusLine } from './objective-detail';
 import {
   EMPTY_OBJECTIVE_FORM,
   changedFields,
@@ -459,5 +459,80 @@ describe('isMissingRecord', () => {
     expect(isMissingRecord(new HttpErrorResponse({ status: 500 }))).toBe(false);
     expect(isMissingRecord(new HttpErrorResponse({ status: 0 }))).toBe(false);
     expect(isMissingRecord(new Error('boom'))).toBe(false);
+  });
+});
+
+describe('objective and KPI detail anatomy', () => {
+  it('says how the objective is doing in one sentence (never red for a to-do)', () => {
+    expect(objectiveStatusLine(objective())).toEqual({
+      key: 'objectives.detail.statusLine.onTrack',
+      tone: 'pass',
+      params: {},
+    });
+    expect(objectiveStatusLine(objective({ status: 'draft' })).tone).toBe('warn');
+    expect(objectiveStatusLine(objective({ status: 'not_achieved' })).tone).toBe('neutral');
+    expect(objectiveStatusLine(objective({ due_date: '2020-01-01' }), '2026-11-19').key).toBe(
+      'objectives.detail.statusLine.overdue',
+    );
+    expect(
+      objectiveStatusLine(
+        objective({ kpis: { total: 3, on_track: 1, at_risk: 1, off_track: 0, no_data: 1 } }),
+      ),
+    ).toEqual({
+      key: 'objectives.detail.statusLine.attentionOne',
+      tone: 'warn',
+      params: { count: 1, total: 3 },
+    });
+  });
+
+  it('turns the next steps into follow-up lines with links and actions', () => {
+    const activate = vi.fn();
+    const items = objectiveMissing(objective({ status: 'draft', kpi_items: [] }), {
+      activate,
+      close: vi.fn(),
+    });
+    expect(items.map((i) => i.key)).toEqual(['activate', 'addKpi']);
+    items[0].action?.();
+    expect(activate).toHaveBeenCalled();
+    expect(items[1].queryParams).toEqual({ objective: 'o-1' });
+    const readOnly = objectiveMissing(
+      objective({ status: 'draft', kpi_items: [], can_edit: false }),
+      { activate, close: vi.fn() },
+    );
+    expect(readOnly).toEqual([]);
+  });
+
+  it('describes a KPI by its latest value against the target', () => {
+    const params = { value: '91 %', target: '95 %', period: 'oktober 2026' };
+    const kpi = (o: Partial<KpiDetail>) => ({ status: 'active', ...o }) as KpiDetail;
+    expect(kpiStatusLine(kpi({ last_status: 'at_risk' }), params)).toEqual({
+      key: 'objectives.kpi.statusLine.atRisk',
+      tone: 'warn',
+      params,
+    });
+    expect(kpiStatusLine(kpi({ last_status: null }), params).key).toBe(
+      'objectives.kpi.statusLine.noData',
+    );
+    expect(kpiStatusLine(kpi({ status: 'retired', last_status: 'on_track' }), params).tone).toBe(
+      'neutral',
+    );
+    const items = kpiMissing(
+      kpi({
+        id: 'k-1',
+        last_status: 'off_track',
+        can_edit: true,
+        target_value: 95,
+        objective: null,
+        measurement_overdue: false,
+      }),
+      {
+        canRecord: true,
+        hasMeasurements: true,
+        flows: new Set(['kpi.to_deviation']),
+        record: vi.fn(),
+        flow: vi.fn(),
+      },
+    );
+    expect(items.map((i) => i.key)).toEqual(['kpi.to_deviation', 'adjust', 'objective']);
   });
 });

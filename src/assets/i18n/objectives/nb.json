@@ -355,7 +355,45 @@
     "kpisTerm": "Nøkkeltall (KPI-er)",
     "kpisHint": "viser med tall om målet er på sporet.",
     "addKpi": "Legg til KPI",
-    "noKpis": "Ingen KPI måler dette målet ennå. Legg til en, slik at fremdriften bygger på data."
+    "noKpis": "Ingen KPI måler dette målet ennå. Legg til en, slik at fremdriften bygger på data.",
+    "statusLine": {
+      "achieved": "Nådd – målet er avsluttet som nådd.",
+      "notAchieved": "Ikke nådd – målet er avsluttet uten at resultatet ble nådd.",
+      "cancelled": "Avbrutt – målet følges ikke opp lenger.",
+      "draft": "Utkast – målet er ikke godkjent ennå, og følges ikke opp før det aktiveres.",
+      "overdue": "Fristen er passert – avslutt målet som nådd eller ikke nådd.",
+      "noKpis": "Aktiv – ingen KPI måler målet ennå, så vi vet ikke om det er på sporet.",
+      "attention": "Aktiv – {{ count }} av {{ total }} KPI-er trenger oppfølging.",
+      "attentionOne": "Aktiv – 1 av {{ total }} KPI-er trenger oppfølging.",
+      "onTrack": "Aktiv – alle KPI-ene er på sporet.",
+      "partly": "Aktiv – {{ count }} av {{ total }} KPI-er er på sporet, resten er ikke målt ennå.",
+      "partlyOne": "Aktiv – KPI-en viser ennå ikke om målet er på sporet."
+    },
+    "lead": {
+      "target": "Hva vi skal oppnå",
+      "progress": "Fremdrift",
+      "due": "Frist",
+      "closing": "Hvordan det gikk",
+      "kpis": "Slik måler vi det (KPI-er)"
+    },
+    "missing": {
+      "activate": "Godkjenn og aktiver målet",
+      "close": "Fristen er passert – avslutt målet",
+      "addKpi": "Legg til en KPI som måler målet",
+      "attention": "{{ count }} KPI-er trenger oppfølging",
+      "attentionOne": "1 KPI trenger oppfølging",
+      "origins": "Vis hva målet bygger på (policy, risiko eller mulighet)",
+      "systems": "Velg styringssystemet målet hører til",
+      "communicate": "Registrer hvem målet er kommunisert til"
+    },
+    "why": "Hvorfor vi har målet",
+    "about": "Mer om målet",
+    "plan": "Slik når vi målet",
+    "evaluation": "Slik vurderer vi om målet er nådd",
+    "communicatedTo": "Kommunisert til",
+    "systems": "Styringssystem",
+    "closedOn": "Avsluttet",
+    "updated": "Sist endret"
   },
   "kpi": {
     "record": "Registrer måling",
@@ -384,7 +422,27 @@
     "measurements": "Målinger",
     "noMeasurements": "Ingen målinger ennå. Registrer den første verdien for å starte trenden.",
     "deleteTitle": "Slette denne KPI-en?",
-    "deleteMessage": "{{ code }} fjernes, og åpne måleoppgaver avbrytes. Registrerte målinger beholdes."
+    "deleteMessage": "{{ code }} fjernes, og åpne måleoppgaver avbrytes. Registrerte målinger beholdes.",
+    "statusLine": {
+      "retired": "Avviklet – KPI-en måles ikke lenger.",
+      "paused": "På pause – ingen måling er forfalt mens KPI-en står på pause.",
+      "onTrack": "På sporet – {{ value }} i {{ period }}, målverdien er {{ target }}.",
+      "atRisk": "I faresonen – {{ value }} i {{ period }}, mot en målverdi på {{ target }}. Bestem hva som skal gjøres.",
+      "offTrack": "Utenfor målverdien – {{ value }} i {{ period }}, mot en målverdi på {{ target }}. Bestem hva som skal gjøres.",
+      "noTarget": "Ingen målverdi – sett en målverdi, så ser du om KPI-en er på sporet.",
+      "noData": "Ikke målt ennå – registrer den første verdien for å se om KPI-en er på sporet."
+    },
+    "missing": {
+      "deviation": "Opprett et avvik for å rette det opp",
+      "task": "Opprett en oppgave",
+      "adjustTarget": "Juster målverdien",
+      "overdue": "Registrer målingen som er forfalt",
+      "first": "Registrer den første målingen",
+      "target": "Sett en målverdi",
+      "objective": "Koble KPI-en til målet den måler"
+    },
+    "explaining": "Lager en forklaring …",
+    "reviewedIn": "Gjennomgås i"
   },
   "attention": {
     "label": "Hva du bør gjøre nå",

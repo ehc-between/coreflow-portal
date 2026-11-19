@@ -96,7 +96,9 @@
     "resolved": "Løst",
     "verified": "Verifisert",
     "implemented": "Gjennomført",
-    "published": "Publisert"
+    "published": "Publisert",
+    "evaluating": "Vurderes",
+    "realised": "Realisert"
   },
   "chip": {
     "open": "Åpne {{ type }} {{ title }}",
