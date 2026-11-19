@@ -288,10 +288,8 @@
     "notFound": "Denne eiendelen finnes ikke, eller du har ikke tilgang til den.",
     "calibrationOverdue": "Kalibrering forfalt",
     "raiseChange": "Meld en endring",
-    "protection": "Klassifisering og beskyttelse",
     "noHandlingRules": "Ingen håndteringsregler ennå.",
     "personalDataHint": "Denne eiendelen inneholder personopplysninger. Sørg for at den er med i protokollen over behandlingsaktiviteter, og at tilgangen er begrenset til dem som trenger den.",
-    "profile": "Detaljer",
     "lifecycle": "Livsløp",
     "changes": "Endringsforespørsler",
     "allChanges": "Alle endringer",
@@ -304,22 +302,52 @@
     "deleteMessage": "{{ code }} {{ name }} fjernes fra registeret. Historikken beholdes for revisjoner.",
     "deleted": "{{ code }} er slettet.",
     "notFoundTitle": "Fant ikke eiendelen",
-    "notFilledIn": "Ikke fylt ut: {{ fields }}.",
-    "addDetails": "Legg til detaljer",
-    "attentionTitle": "Trenger oppfølging ({{ count }})",
-    "doNotUseTitle": "Ikke bruk til kontroll før det er kalibrert.",
-    "doNotUseBody": "Kalibreringen er forfalt, og instrumentet står fortsatt som i bruk.",
     "markOutOfUse": "Merk som ute av bruk",
     "quarantineReason": "Kalibrering forfalt: tatt ut av bruk til det er kalibrert.",
     "quarantined": "{{ code }} er merket som ute av bruk.",
-    "securityOptional": "Informasjonssikkerhet (valgfritt)",
-    "securityOptionalHint": "Konfidensialitet, integritet og tilgjengelighet trengs sjelden for måleutstyr eller lokaler. Vurder dem under Rediger hvis eiendelen lagrer eller behandler informasjon.",
-    "processingLinked": "Koblet til {{ count }} behandlingsaktiviteter",
-    "processingLinkedOne": "Koblet til 1 behandlingsaktivitet",
-    "processingNone": "Ikke koblet til behandlingsprotokollen",
-    "lastReview": "Siste gjennomgang",
-    "nextReview": "Neste gjennomgang",
-    "openRevocations": "Fjerninger som gjenstår"
+    "updated": "Sist endret",
+    "completedOn": "Fullført {{ date }}",
+    "revocationsLeft": "{{ count }} tilgangsendringer gjenstår",
+    "revocationsLeftOne": "1 tilgangsendring gjenstår",
+    "statusLine": {
+      "retired": "Tatt ut av bruk – brukes ikke lenger.",
+      "disposed": "Avhendet – brukes ikke lenger.",
+      "quarantined": "Ute av bruk – skal ikke brukes før det er kontrollert eller kalibrert.",
+      "calibrationOverdueInUse": "Kalibrering forfalt – ikke bruk instrumentet til kontroll før det er kalibrert.",
+      "calibrationOverdue": "Kalibrering forfalt – kalibrer det før det tas i bruk igjen.",
+      "calibrationDueSoon": "Kalibrering snart – neste kalibrering {{ date }}.",
+      "calibrated": "Kalibrert – kan brukes til kontroll. Neste kalibrering {{ date }}.",
+      "calibrationNotScheduled": "Ingen kalibrering planlagt – sett når den skal gjøres neste gang.",
+      "reviewOverdue": "Gjennomgang forfalt – bekreft at eier, klassifisering og plassering fortsatt stemmer.",
+      "planned": "Planlagt – ikke tatt i bruk ennå.",
+      "maintenance": "Under vedlikehold – midlertidig ute av vanlig bruk.",
+      "reviewed": "I bruk – registreringen er gjennomgått og oppdatert.",
+      "notReviewed": "I bruk – registreringen er ikke bekreftet i en gjennomgang ennå."
+    },
+    "lead": {
+      "what": "Hva det er",
+      "calibration": "Neste kalibrering",
+      "sensitivity": "Hvor sensitiv den er",
+      "responsible": "Hvem som har ansvaret",
+      "custodian": "Daglig: {{ name }}",
+      "personalData": "Personopplysninger",
+      "personalDataLinked": "Ja – brukes i {{ count }} behandlingsaktiviteter",
+      "personalDataLinkedOne": "Ja – brukes i 1 behandlingsaktivitet",
+      "personalDataUnlinked": "Ja, men ikke koblet til behandlingsprotokollen ennå"
+    },
+    "cia": {
+      "confidentiality": "Skade hvis den blir kjent (konfidensialitet)",
+      "integrity": "Skade hvis den er feil (integritet)",
+      "availability": "Skade hvis den er utilgjengelig (tilgjengelighet)"
+    },
+    "missing": {
+      "calibration_overdue_in_use": "Registrer den forfalte kalibreringen",
+      "calibration_impact_missing": "Vurder hva den feilede kalibreringen har påvirket",
+      "review_overdue": "Bekreft den forfalte gjennomgangen",
+      "no_owner": "Velg en eier",
+      "personal_data_unlinked": "Legg den til i behandlingsprotokollen",
+      "held_by_leaver": "Registrer innleveringen – den som har den, har sluttet"
+    }
   },
   "calibration": {
     "title": "Kalibrering",
@@ -443,14 +471,10 @@
     "cancel": "Avlys gjennomgangen",
     "needItems": "Legg til kontoene som har tilgang før gjennomgangen kan fullføres.",
     "needDecisions": "Avgjør alle kontoer før du fullfører ({{ pending }} igjen).",
-    "accounts": "Kontoer",
-    "about": "Om gjennomgangen",
     "oneOff": "Enkeltstående",
-    "series": "Serie av gjennomganger",
     "previous": "Forrige gjennomgang",
     "next": "Neste gjennomgang",
     "attestation": "Bekreftelse",
-    "completedBy": "Fullført av {{ name }} {{ date }}",
     "remediationTasks": "{{ count }} tilgangsendringer gjenstår. Det er opprettet oppgaver for dem.",
     "readOnly": "Bare den ansvarlige for gjennomgangen eller en eiendelsansvarlig kan registrere avgjørelser.",
     "completeTitle": "Fullfør tilgangsgjennomgangen",
@@ -467,14 +491,45 @@
     "cancelled": "{{ code }} er avlyst.",
     "deleted": "{{ code }} er slettet.",
     "notFoundTitle": "Fant ikke tilgangsgjennomgangen",
-    "decided": "Avgjort",
-    "left": "{{ count }} igjen",
-    "flagged": "Flaggede kontoer",
-    "toCarryOut": "Fjerninger gjennomført",
     "revocationsTitle": "Fjerninger som skal gjennomføres",
     "revocationsOpen": "{{ count }} tilgangsendringer gjenstår. Kryss av hver konto nedenfor når den er gjennomført, så lukkes oppgaven samtidig.",
     "revocationsOpenOne": "1 tilgangsendring gjenstår. Kryss av kontoen nedenfor når den er gjennomført, så lukkes oppgaven samtidig.",
-    "revocationsDone": "Alle fjerninger og endringer er gjennomført."
+    "revocationsDone": "Alle fjerninger og endringer er gjennomført.",
+    "type": "Tilgangsgjennomgang",
+    "statusLine": {
+      "cancelled": "Avlyst – gjennomgangen trengs ikke lenger.",
+      "completed": "Fullført – all tilgang er bekreftet, og endringene er gjennomført.",
+      "completedOpen": "Fullført – {{ count }} tilgangsendringer gjenstår.",
+      "completedOpenOne": "Fullført – 1 tilgangsendring gjenstår.",
+      "noAccounts": "Ikke startet – legg til kontoene som har tilgang til systemet.",
+      "deciding": "Pågår – {{ done }} av {{ total }} kontoer er avgjort.",
+      "ready": "Klar til å fullføres – alle {{ total }} kontoer er avgjort.",
+      "planned": "Ikke startet – {{ total }} kontoer skal gjennomgås. Start gjennomgangen når du er klar."
+    },
+    "lead": {
+      "system": "System som gjennomgås",
+      "completed": "Fullført",
+      "completedBy": "{{ date }} av {{ name }}",
+      "result": "Kontoer"
+    },
+    "result": {
+      "accounts": "{{ count }} kontoer",
+      "accountsOne": "1 konto",
+      "flagged": "{{ count }} flagget",
+      "flaggedOne": "1 flagget",
+      "revoke": "{{ count }} skal fjernes",
+      "revokeOne": "1 skal fjernes",
+      "modify": "{{ count }} skal endres",
+      "modifyOne": "1 skal endres",
+      "allKept": "alle beholdes"
+    },
+    "missing": {
+      "accounts": "Legg til kontoene som har tilgang",
+      "decisions": "Avgjør {{ count }} kontoer",
+      "decisionsOne": "Avgjør 1 konto",
+      "revocations": "Gjennomfør {{ count }} tilgangsendringer",
+      "revocationsOne": "Gjennomfør 1 tilgangsendring"
+    }
   },
   "reviewItems": {
     "title": "Kontoer og avgjørelser",
@@ -604,24 +659,51 @@
   },
   "changeDetail": {
     "notFound": "Denne endringsforespørselen finnes ikke, eller du har ikke tilgang til den.",
-    "requestedBy": "Meldt av {{ name }}",
     "locked": "Det godkjente innholdet er låst. Bare datoene, eieren og opplysningene om gjennomføring og evaluering kan fortsatt endres.",
     "planned": "Planlagt",
-    "noAssets": "Ingen eiendeler er koblet til.",
-    "assetsHint": "Prosesser, dokumenter, leverandører og risikoer som endringen berører, vises under Koblinger.",
     "deleteTitle": "Slette denne endringsforespørselen?",
     "deleteMessage": "{{ code }} {{ title }} fjernes. Historikken beholdes for revisjoner.",
     "deleted": "{{ code }} er slettet.",
     "notFoundTitle": "Fant ikke endringsforespørselen",
     "requestedByLabel": "Meldt av",
     "followUpTitle": "Følg opp endringen",
-    "followUpBody": "En endring er ikke ferdig før dokumentene, opplæringen og kontrollene den berører, er oppdatert.",
     "followUp": {
       "document": "Oppdater et dokument",
       "training": "Tildel opplæring",
       "task": "Opprett en oppgave",
       "deviation": "Registrer avvik",
       "risk": "Registrer risiko"
+    },
+    "created": "Registrert",
+    "statusLine": {
+      "pendingApproval": "Venter på godkjenning – endringen kan ikke gjøres før den er godkjent.",
+      "draft": "Utkast – beskriv endringen og hvorfor, og send den til vurdering.",
+      "assessment": "Til vurdering – konsekvens og risiko vurderes før endringen godkjennes.",
+      "approved": "Godkjent – klar til å gjennomføres.",
+      "implementing": "Gjennomføres – registrer når den er ferdig.",
+      "review": "Evaluering – sjekk at endringen virket som planlagt.",
+      "closed": "Lukket – endringen er gjennomført og evaluert.",
+      "closedFailed": "Lukket, men endringen virket ikke – følg opp med et avvik.",
+      "rejected": "Avvist – endringen blir ikke gjort.",
+      "cancelled": "Kansellert – endringen blir ikke gjort.",
+      "other": "{{ state }}."
+    },
+    "lead": {
+      "what": "Hva som endres",
+      "why": "Hvorfor det trengs",
+      "risk": "Risiko og konsekvens",
+      "assets": "Berørte eiendeler"
+    },
+    "plain": {
+      "implementationPlan": "Slik gjøres den",
+      "rollbackPlan": "Slik rulles den tilbake hvis noe går galt",
+      "riskAssessment": "Hva som kan gå galt"
+    },
+    "missing": {
+      "step": "Fyll ut {{ count }} felt som neste steg krever",
+      "stepOne": "Fyll ut feltet som neste steg krever",
+      "owner": "Velg en eier",
+      "approval": "Godkjenn eller avvis endringen i arbeidsflyten"
     }
   },
   "ai": {
@@ -652,7 +734,8 @@
     "askClassification": "Spør om klassifisering",
     "askCia": "Spør om konfidensialitet, integritet og tilgjengelighet",
     "askRiskLevel": "Spør om risikonivå",
-    "askAssessment": "Spør om konsekvensvurderingen"
+    "askAssessment": "Spør om konsekvensvurderingen",
+    "askControls": "Hvilke sikkerhetstiltak passer"
   },
   "errors": {
     "generic": "Noe gikk galt. Prøv igjen.",
@@ -747,20 +830,6 @@
     "personal_data_unlinked": "Personopplysninger ikke koblet",
     "held_by_leaver": "Hos en som har sluttet"
   },
-  "attentionWhy": {
-    "calibration_overdue_in_use": "Ikke bruk instrumentet til å kontrollere produkter eller resultater før det er kalibrert. Kalibrer det nå, eller merk det som ute av bruk.",
-    "calibration_impact_missing": "En feilet kalibrering betyr at tidligere målinger kan være feil. Vurder hvilke produkter eller resultater som kan være berørt.",
-    "review_overdue": "Eieren bør minst én gang i året bekrefte at registreringen stemmer: eier, klassifisering og plassering.",
-    "no_owner": "Hver eiendel trenger en navngitt eier som svarer for hvordan den beskyttes.",
-    "personal_data_unlinked": "Eiendelen lagrer personopplysninger, men er ikke koblet til noen behandlingsaktivitet i behandlingsprotokollen.",
-    "held_by_leaver": "Personen som har eiendelen, har sluttet. Få eiendelen tilbake, og registrer hvem som har den nå."
-  },
-  "attentionAction": {
-    "calibration_impact_missing": "Vurder konsekvensen",
-    "no_owner": "Velg eier",
-    "personal_data_unlinked": "Legg til i behandlingsprotokollen",
-    "held_by_leaver": "Registrer innleveringen"
-  },
   "classificationOption": {
     "public": "Åpen – kan deles med alle",
     "internal": "Intern – for de som jobber i organisasjonen",
@@ -793,8 +862,7 @@
     "notePlaceholder": "For eksempel: sjekket med systemeier, ingen endringer",
     "done": "Gjennomgangen er bekreftet. Neste gjennomgang {{ date }}.",
     "lastBy": "{{ date }} av {{ name }}",
-    "everyMonths": "Hver {{ months }}. måned",
-    "hint": "ISO 27001 A.5.9 krever at registeret holdes oppdatert. Bekreft gjennomgangen når du har sjekket registreringen."
+    "everyMonths": "Hver {{ months }}. måned"
   },
   "changeTypeShort": {
     "standard": "Standardendring",

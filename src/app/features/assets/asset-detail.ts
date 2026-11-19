@@ -14,7 +14,6 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { pluralKey } from '../../shared/i18n/plural';
 import { Subscription, catchError, of } from 'rxjs';
-import { AiAvailability } from '../../core/ai/ai-availability';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { CreateFlowService } from '../../core/kit/create-flow.service';
@@ -23,19 +22,27 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
-import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -43,35 +50,25 @@ import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import {
-  attentionBadge,
-  classificationBadge,
   levelBadge,
   lifecycleBadge,
-  localizedLabel,
-  reviewDueBadge,
   reviewStatusBadge,
   stateCategoryBadge,
 } from './data/asset-display';
 import { assetErrorKey } from './data/asset-errors';
-import {
-  AssetDetail,
-  AttentionCode,
-  ChangeRequest,
-  LocalizedLabel,
-  SYSTEM_ASSET_TYPES,
-} from './data/asset.models';
+import { AssetDetail, AttentionCode, ChangeRequest, SYSTEM_ASSET_TYPES } from './data/asset.models';
 import { AssetsApi } from './data/assets-api';
 import { AssetCalibrationPanel } from './detail/calibration-panel';
 import { AssetOptionsService } from './shared/asset-select';
 
 const TABS: readonly RecordTab[] = [
   'details',
-  'tasks',
   'related',
   'activity',
   'comments',
   'attachments',
   'revisions',
+  'tasks',
 ];
 
 /** Revision snapshot field -> label key (the asset's controlled fields). */
@@ -117,19 +114,21 @@ export const ASSET_FIELD_LABELS: Readonly<Record<string, string>> = {
   notes: 'assets.fields.notes',
 };
 
-/** The optional profile fields shown in "Detaljer" (only when filled in). */
+/** The optional text fields shown in "Flere detaljer" (empty ones are hidden). */
 const PROFILE_FIELDS = [
-  { field: 'location', label: 'location' },
+  { field: 'category', label: 'category' },
   { field: 'model', label: 'model' },
   { field: 'serial_number', label: 'serialNumber' },
   { field: 'version', label: 'version' },
-  { field: 'category', label: 'category' },
 ] as const;
 
+/** Dates of the asset's life; the disposal dates only once it is taken out of use. */
 const DATE_FIELDS = [
   { field: 'acquired_on', label: 'acquiredOn' },
   { field: 'warranty_until', label: 'warrantyUntil' },
   { field: 'end_of_life_on', label: 'endOfLifeOn' },
+] as const;
+const CLOSED_DATE_FIELDS = [
   { field: 'retired_on', label: 'retiredOn' },
   { field: 'disposed_on', label: 'disposedOn' },
 ] as const;
@@ -166,18 +165,113 @@ export function securityUnset(a: AssetDetail): boolean {
   return !a.confidentiality && !a.integrity && !a.availability && !a.handling_rules;
 }
 
+/** The status sentence of an asset ("I bruk – …"): i18n key under `assets.detail.statusLine`. */
+export interface AssetStatusLine {
+  readonly key: string;
+  readonly tone: StatusLineTone;
+}
+
+/**
+ * How the asset stands, in one sentence (docs/ux-guide.md §2.7): measuring equipment by
+ * its calibration, everything else by its lifecycle and the register review. An overdue
+ * instrument still in use is the one red line (do not use it for checks).
+ */
+export function assetStatusLine(a: AssetDetail): AssetStatusLine {
+  const line = (key: string, tone: StatusLineTone): AssetStatusLine => ({
+    key: `assets.detail.statusLine.${key}`,
+    tone,
+  });
+  const status = a.lifecycle_status;
+  if (status === 'retired' || status === 'disposed') {
+    return line(status, 'neutral');
+  }
+  if (status === 'quarantined') {
+    return line('quarantined', 'warn');
+  }
+  if (a.requires_calibration) {
+    switch (a.calibration_status) {
+      case 'overdue':
+        return status === 'in_use'
+          ? line('calibrationOverdueInUse', 'fail')
+          : line('calibrationOverdue', 'warn');
+      case 'due_soon':
+        return line('calibrationDueSoon', 'warn');
+      case 'ok':
+        return line('calibrated', 'pass');
+      default:
+        return line('calibrationNotScheduled', 'warn');
+    }
+  }
+  if (a.review_status === 'overdue') {
+    return line('reviewOverdue', 'warn');
+  }
+  if (status === 'planned' || status === 'maintenance') {
+    return line(status, 'neutral');
+  }
+  return a.last_reviewed_at ? line('reviewed', 'pass') : line('notReviewed', 'neutral');
+}
+
+/** The handlers the asset page offers its "Oppfølging" lines. */
+export interface AssetMissingHandlers {
+  readonly calibrate: (() => void) | null;
+  readonly impact: (() => void) | null;
+  readonly review: (() => void) | null;
+  readonly processing: (() => void) | null;
+}
+
+/**
+ * What the asset still needs ("Oppfølging"): one actionable line per follow-up flag from
+ * the backend, each with the action that closes it (empty main fields are listed in the lead).
+ */
+export function assetMissing(
+  a: AssetDetail,
+  editLink: readonly unknown[],
+  handlers: AssetMissingHandlers,
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  for (const code of a.attention) {
+    const labelKey = `assets.detail.missing.${code}`;
+    switch (attentionAction(code)) {
+      case 'calibrate':
+        if (handlers.calibrate) {
+          items.push({ key: code, labelKey, action: handlers.calibrate });
+        }
+        break;
+      case 'impact':
+        if (handlers.impact) {
+          items.push({ key: code, labelKey, action: handlers.impact });
+        }
+        break;
+      case 'review':
+        if (handlers.review) {
+          items.push({ key: code, labelKey, action: handlers.review });
+        }
+        break;
+      case 'processing':
+        if (handlers.processing) {
+          items.push({ key: code, labelKey, action: handlers.processing });
+        }
+        break;
+      case 'edit':
+        items.push({ key: code, labelKey, link: editLink });
+        break;
+    }
+  }
+  return items;
+}
+
 /**
  * An asset's page (`/assets/:id`; `?calibration=<id>` highlights a calibration and
- * `?calibrate=1` opens "Registrer kalibrering"). Up front: what needs follow-up (each
- * flag with the action that closes it) and, for an overdue instrument still in use,
- * "do not use for verification until calibrated" with "Merk som ute av bruk". Then
- * calibration for measuring equipment, classification and protection (with
- * criticality, personal data and the processing activities it is linked to), the
- * register review (who confirmed it and when, "Bekreft gjennomgang"), the details
- * that are filled in (supplier from the Suppliers register), the access reviews of a
- * system and its change requests. The aside shows the requirements the asset
- * documents and its connections; "Lag ny fra denne" creates a deviation, risk,
- * processing activity, change or access review from it.
+ * `?calibrate=1` opens "Registrer kalibrering"), on the detail-page anatomy
+ * (docs/ux-guide.md §2.7). Hovedinformasjon: how the asset stands (calibration for
+ * measuring equipment, otherwise lifecycle and register review; an overdue instrument
+ * still in use offers "Merk som ute av bruk"), what it is, how sensitive it is (or its
+ * next calibration), who is responsible and, when it holds personal data, whether it is
+ * in the processing register. Flere detaljer holds the rest with empty fields hidden,
+ * then the calibrations, the access reviews of a system and its change requests, each
+ * as a linked line (type, code, title, status). One Oppfølging card holds the follow-up
+ * flags with the action that closes each, the requirements, the connections and the
+ * register review dates.
  */
 @Component({
   selector: 'app-asset-detail',
@@ -187,24 +281,24 @@ export function securityUnset(a: AssetDetail): boolean {
     LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
-    Alert,
     AssetCalibrationPanel,
     Button,
-    Card,
     ConfirmDialog,
     EntityChip,
     EntityTasks,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
     PromptDialog,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
-    WatchButton,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -231,7 +325,9 @@ export function securityUnset(a: AssetDetail): boolean {
       }
       @default {
         @if (asset(); as a) {
+          @let line = statusLine();
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="asset"
             [entityId]="a.id"
             [title]="a.name"
@@ -245,31 +341,25 @@ export function securityUnset(a: AssetDetail): boolean {
             [requirementsPanel]="true"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
-            backLink="/assets"
-            backLabelKey="assets.common.backToInventory"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ a.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ 'assets.assetType.' + a.asset_type | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 [meaning]="lifeBadge(a.lifecycle_status).meaning"
                 [value]="lifeBadge(a.lifecycle_status).value"
                 [labelKey]="'assets.lifecycle.' + a.lifecycle_status"
               />
-              @if (a.criticality) {
+              @if (a.review_status === 'overdue' && !closed()) {
                 <app-status-badge
-                  [meaning]="critBadge(a.criticality).meaning"
-                  [value]="critBadge(a.criticality).value"
-                  labelKey="assets.criticalityLabel"
-                  [labelParams]="{ level: ('assets.criticality.' + a.criticality | transloco) }"
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="assets.attention.review_overdue"
                 />
               }
-              <app-status-badge
-                [meaning]="classBadge(a.classification).meaning"
-                [value]="classBadge(a.classification).value"
-                [labelKey]="'assets.classification.' + a.classification"
-              />
             </ng-container>
 
             @if (canWrite() && !closed() && a.requires_calibration) {
@@ -277,29 +367,35 @@ export function securityUnset(a: AssetDetail): boolean {
                 {{ 'assets.calibration.record' | transloco }}
               </app-button>
             }
-            @if (canWrite() && !closed() && !a.requires_calibration) {
-              <app-button primary data-testid="header-review" (click)="reviewOpen.set(true)">
+            @if (canWrite() && !closed() && a.requires_calibration) {
+              <app-button secondary variant="secondary" data-testid="header-edit" (click)="edit()">
+                {{ 'assets.common.edit' | transloco }}
+              </app-button>
+            }
+            @if (canWrite() && (closed() || !a.requires_calibration)) {
+              <app-button primary data-testid="header-edit" (click)="edit()">
+                {{ 'assets.common.edit' | transloco }}
+              </app-button>
+            }
+            @if (canWrite() && !closed() && reviewDue()) {
+              <app-button
+                secondary
+                variant="secondary"
+                data-testid="header-review"
+                (click)="reviewOpen.set(true)"
+              >
                 {{ 'assets.review.confirm' | transloco }}
               </app-button>
             }
-            @if (canWrite()) {
-              <a
-                secondary
-                [routerLink]="['/assets', a.id, 'edit']"
-                class="inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+            @if (canWrite() && !closed() && !reviewDue()) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                data-testid="header-review"
+                (click)="reviewOpen.set(true)"
               >
-                {{ 'assets.common.edit' | transloco }}
-              </a>
-            }
-            <app-watch-button secondary entityType="asset" [entityId]="a.id" />
-            @if (canWrite() && !closed() && a.requires_calibration) {
-              <button appMenuItem overflow type="button" (click)="reviewOpen.set(true)">
                 {{ 'assets.review.confirm' | transloco }}
-              </button>
-            }
-            @if (!ai.unavailable()) {
-              <button appMenuItem overflow type="button" (click)="askSummary()">
-                {{ 'assets.ai.summarise' | transloco }}
               </button>
             }
             @if (canManage()) {
@@ -314,6 +410,23 @@ export function securityUnset(a: AssetDetail): boolean {
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'assets.ai.summarise' | transloco }}
+            </button>
+            @if (!a.requires_calibration) {
+              <button appMenuItem ask type="button" (click)="askAi('classification')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'assets.ai.askClassification' | transloco }}
+              </button>
+            }
+            @if (!a.requires_calibration) {
+              <button appMenuItem ask type="button" (click)="askAi('controls')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'assets.ai.askControls' | transloco }}
+              </button>
+            }
+
             <app-help-strip
               help
               scope="assets"
@@ -322,117 +435,103 @@ export function securityUnset(a: AssetDetail): boolean {
               [subject]="a.name"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (quarantineWarning()) {
-                <app-alert tone="error">
-                  <div
-                    class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-                    data-testid="quarantine-warning"
-                  >
-                    <span>
-                      <strong>{{ 'assets.detail.doNotUseTitle' | transloco }}</strong>
-                      {{ 'assets.detail.doNotUseBody' | transloco }}
-                    </span>
-                    @if (canWrite()) {
-                      <app-button
-                        size="sm"
-                        variant="secondary"
-                        [disabled]="busy()"
-                        (click)="quarantine(a)"
-                      >
-                        {{ 'assets.detail.markOutOfUse' | transloco }}
-                      </app-button>
-                    }
-                  </div>
-                </app-alert>
-              }
-
-              @if (attention().length) {
-                <app-card>
-                  <div data-testid="attention-card">
-                    <h2
-                      class="mb-2 flex items-center gap-2 font-display text-card font-bold text-fg"
-                    >
-                      <app-icon name="alert" [size]="16" class="text-warn-ink" />
-                      {{
-                        'assets.detail.attentionTitle' | transloco: { count: attention().length }
-                      }}
-                    </h2>
-                    <ul class="flex flex-col divide-y divide-border">
-                      @for (code of attention(); track code) {
-                        <li
-                          class="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:gap-3"
-                          [attr.data-code]="code"
-                        >
-                          <div class="min-w-0 flex-1">
-                            <app-status-badge
-                              [meaning]="attnBadge(code).meaning"
-                              [value]="attnBadge(code).value"
-                              [labelKey]="'assets.attention.' + code"
-                            />
-                            <p class="mt-1 text-ui text-fg-muted">
-                              {{ 'assets.attentionWhy.' + code | transloco }}
-                            </p>
-                          </div>
-                          @if (canWrite()) {
-                            @switch (actionFor(code)) {
-                              @case ('calibrate') {
-                                <app-button
-                                  size="sm"
-                                  variant="secondary"
-                                  (click)="openCalibration()"
-                                >
-                                  {{ 'assets.calibration.record' | transloco }}
-                                </app-button>
-                              }
-                              @case ('impact') {
-                                <app-button
-                                  size="sm"
-                                  variant="secondary"
-                                  (click)="scrollToCalibration()"
-                                >
-                                  {{ 'assets.attentionAction.' + code | transloco }}
-                                </app-button>
-                              }
-                              @case ('review') {
-                                <app-button
-                                  size="sm"
-                                  variant="secondary"
-                                  (click)="reviewOpen.set(true)"
-                                >
-                                  {{ 'assets.review.confirm' | transloco }}
-                                </app-button>
-                              }
-                              @case ('edit') {
-                                <a
-                                  [routerLink]="['/assets', a.id, 'edit']"
-                                  class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
-                                >
-                                  {{ 'assets.attentionAction.' + code | transloco }}
-                                </a>
-                              }
-                              @case ('processing') {
-                                @if (flowEnabled('asset.to_processing')) {
-                                  <app-button
-                                    size="sm"
-                                    variant="secondary"
-                                    (click)="startFlow('asset.to_processing')"
-                                  >
-                                    {{ 'assets.attentionAction.' + code | transloco }}
-                                  </app-button>
-                                }
-                              }
-                            }
+            <app-record-lead record-lead [fillLink]="canWrite() ? editLink() : null">
+              <app-record-status-line status [tone]="line.tone" data-testid="asset-status-line">
+                <span
+                  class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                  [attr.data-testid]="quarantineWarning() ? 'quarantine-warning' : null"
+                >
+                  <span>{{
+                    line.key
+                      | transloco
+                        : {
+                            date: a.next_calibration_due ? (a.next_calibration_due | localDay) : '',
                           }
-                        </li>
-                      }
-                    </ul>
-                  </div>
-                </app-card>
-              }
-
+                  }}</span>
+                  @if (quarantineWarning() && canWrite()) {
+                    <app-button
+                      size="sm"
+                      variant="secondary"
+                      [disabled]="busy()"
+                      (click)="quarantine(a)"
+                    >
+                      {{ 'assets.detail.markOutOfUse' | transloco }}
+                    </app-button>
+                  }
+                </span>
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="assets.detail.lead.what" [wide]="true">
+                @if (a.description) {
+                  <div class="cf-prose" [innerHTML]="a.description | appMarkdown"></div>
+                }
+              </app-field-item>
               @if (a.requires_calibration) {
-                <div id="asset-calibration">
+                <app-field-item size="lead" labelKey="assets.detail.lead.calibration">
+                  @if (a.next_calibration_due) {
+                    <span
+                      [class.font-semibold]="a.calibration_status === 'overdue'"
+                      [class.text-warn-ink]="a.calibration_status === 'overdue'"
+                      >{{ a.next_calibration_due | localDay }}</span
+                    >
+                    @if (a.calibration_interval_months; as months) {
+                      <span class="mt-0.5 block text-ui text-fg-muted">{{
+                        'assets.review.everyMonths' | transloco: { months }
+                      }}</span>
+                    }
+                  }
+                </app-field-item>
+              } @else {
+                <app-field-item size="lead" labelKey="assets.detail.lead.sensitivity">
+                  {{ 'assets.classificationHelp.' + a.classification | transloco }}
+                  @if (a.criticality) {
+                    <span class="mt-1.5 block">
+                      <app-status-badge
+                        [meaning]="critBadge(a.criticality).meaning"
+                        [value]="critBadge(a.criticality).value"
+                        labelKey="assets.criticalityLabel"
+                        [labelParams]="{
+                          level: ('assets.criticality.' + a.criticality | transloco),
+                        }"
+                      />
+                    </span>
+                  }
+                </app-field-item>
+              }
+              <app-field-item size="lead" labelKey="assets.detail.lead.responsible">
+                @if (a.owner) {
+                  {{ a.owner.name }}
+                }
+                @if (a.owner && a.custodian && a.custodian.id !== a.owner.id) {
+                  <span class="mt-0.5 block text-ui text-fg-muted">{{
+                    'assets.detail.lead.custodian' | transloco: { name: a.custodian.name }
+                  }}</span>
+                }
+              </app-field-item>
+              @if (a.contains_personal_data) {
+                <app-field-item size="lead" labelKey="assets.detail.lead.personalData">
+                  @if (a.processing_activities) {
+                    {{
+                      pluralKey('assets.detail.lead.personalDataLinked', a.processing_activities)
+                        | transloco: { count: a.processing_activities }
+                    }}
+                  } @else {
+                    <span class="text-warn-ink">{{
+                      'assets.detail.lead.personalDataUnlinked' | transloco
+                    }}</span>
+                  }
+                </app-field-item>
+              } @else if (a.requires_calibration) {
+                <app-field-item
+                  size="lead"
+                  labelKey="assets.fields.location"
+                  [value]="a.location"
+                />
+              }
+            </app-record-lead>
+
+            <div class="flex flex-col gap-8">
+              @if (a.requires_calibration) {
+                <div id="asset-calibration" class="scroll-mt-20">
                   <app-asset-calibration-panel
                     [asset]="a"
                     [canWrite]="canWrite()"
@@ -444,207 +543,90 @@ export function securityUnset(a: AssetDetail): boolean {
                 </div>
               }
 
-              <app-card>
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'assets.detail.protection' | transloco }}
-                  </h2>
-                </div>
-                <app-field-list [columns]="3">
-                  <app-field-item labelKey="assets.fields.classification" [wide]="true">
-                    {{ 'assets.classificationHelp.' + a.classification | transloco }}
-                  </app-field-item>
+              <app-record-details [columns]="3" [fillLink]="canWrite() ? editLink() : null">
+                @if (!a.requires_calibration) {
+                  <app-field-item labelKey="assets.fields.location" [value]="a.location" />
+                } @else {
+                  <app-field-item
+                    labelKey="assets.fields.measurementRange"
+                    [value]="a.measurement_range"
+                  />
+                  <app-field-item labelKey="assets.fields.accuracy" [value]="a.accuracy" />
+                }
+                <app-field-item labelKey="assets.fields.supplier">
+                  @if (a.supplier; as s) {
+                    <app-entity-chip
+                      [ref]="{
+                        entity_type: 'supplier',
+                        entity_id: s.id,
+                        code: s.code,
+                        title: s.name,
+                        url: s.url,
+                      }"
+                      [showType]="false"
+                    />
+                  } @else if (a.vendor) {
+                    {{ a.vendor }}
+                  }
+                </app-field-item>
+                @for (key of profileFields; track key.field) {
+                  <app-field-item
+                    [labelKey]="'assets.fields.' + key.label"
+                    [value]="a[key.field]"
+                  />
+                }
+                @if (a.requires_calibration) {
+                  <app-field-item
+                    labelKey="assets.fields.classification"
+                    [value]="'assets.classification.' + a.classification | transloco"
+                  />
                   <app-field-item labelKey="assets.fields.criticality">
                     @if (a.criticality) {
                       {{ 'assets.criticality.' + a.criticality | transloco }}
                     }
                   </app-field-item>
-                  <app-field-item labelKey="assets.fields.containsPersonalData">
-                    {{
-                      (a.contains_personal_data ? 'assets.common.yes' : 'assets.common.no')
-                        | transloco
-                    }}
-                  </app-field-item>
-                  @if (a.contains_personal_data) {
-                    <app-field-item labelKey="assets.fields.processingActivities">
-                      @if (a.processing_activities) {
-                        {{
-                          pluralKey('assets.detail.processingLinked', a.processing_activities)
-                            | transloco: { count: a.processing_activities }
-                        }}
-                      } @else {
-                        <span class="font-semibold text-warn-ink">{{
-                          'assets.detail.processingNone' | transloco
-                        }}</span>
-                      }
-                    </app-field-item>
-                  }
-                </app-field-list>
-                @if (securityCollapsed()) {
-                  <details
-                    class="mt-4 rounded-tile border border-border px-3 py-2"
-                    data-testid="security-optional"
-                  >
-                    <summary class="cursor-pointer text-ui font-semibold text-fg-muted">
-                      {{ 'assets.detail.securityOptional' | transloco }}
-                    </summary>
-                    <p class="mt-2 text-meta text-fg-muted">
-                      {{ 'assets.detail.securityOptionalHint' | transloco }}
-                    </p>
-                  </details>
-                } @else {
-                  <h3 class="mt-5 mb-2 text-ui font-semibold text-fg">
-                    {{ 'assets.form.cia' | transloco }}
-                  </h3>
-                  <app-field-list [columns]="3">
-                    @for (key of ciaKeys; track key) {
-                      <app-field-item [labelKey]="'assets.fields.' + key">
-                        @if (a[key]) {
-                          {{ 'assets.level.' + a[key] | transloco }}
-                        }
-                      </app-field-item>
-                    }
-                    <app-field-item
-                      labelKey="assets.fields.handlingRules"
-                      [wide]="true"
-                      empty="none"
-                    >
-                      @if (a.handling_rules) {
-                        <div
-                          class="cf-prose text-body"
-                          [innerHTML]="a.handling_rules | appMarkdown"
-                        ></div>
-                      }
-                    </app-field-item>
-                  </app-field-list>
                 }
-              </app-card>
-
-              <app-card>
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'assets.review.title' | transloco }}
-                  </h2>
-                  @if (canWrite() && !closed()) {
-                    <app-button size="sm" variant="secondary" (click)="reviewOpen.set(true)">
-                      {{ 'assets.review.confirm' | transloco }}
-                    </app-button>
-                  }
-                </div>
-                <app-field-list [columns]="3">
-                  <app-field-item labelKey="assets.fields.reviewDate">
-                    @if (a.review_date) {
-                      {{ a.review_date | localDay }}
-                      @if (a.review_status && a.review_status !== 'ok') {
-                        <app-status-badge
-                          class="ml-1"
-                          [meaning]="reviewBadge(a.review_status).meaning"
-                          [value]="reviewBadge(a.review_status).value"
-                          [labelKey]="'assets.reviewDue.' + a.review_status"
-                        />
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="assets.fields.lastReviewed" empty="none">
-                    @if (a.last_reviewed_at) {
-                      {{
-                        'assets.review.lastBy'
-                          | transloco
-                            : {
-                                date: (a.last_reviewed_at | localDate: 'mediumDate'),
-                                name:
-                                  a.last_reviewed_by?.name ?? ('assets.common.unknown' | transloco),
-                              }
-                      }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="assets.fields.reviewInterval">
-                    {{
-                      'assets.review.everyMonths'
-                        | transloco: { months: a.review_interval_months ?? 12 }
-                    }}
-                  </app-field-item>
-                </app-field-list>
-                <p class="mt-3 text-meta text-fg-subtle">{{ 'assets.review.hint' | transloco }}</p>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'assets.detail.profile' | transloco }}
-                </h2>
-                @if (a.description) {
-                  <div
-                    class="cf-prose mb-4 text-body leading-relaxed text-fg"
-                    [innerHTML]="a.description | appMarkdown"
-                  ></div>
-                }
-                <app-field-list [columns]="3">
+                @for (key of dateFields(); track key.field) {
                   <app-field-item
-                    labelKey="assets.fields.owner"
-                    empty="none"
-                    [value]="a.owner?.name"
+                    [labelKey]="'assets.fields.' + key.label"
+                    [value]="a[key.field] ? (a[key.field] | localDay) : null"
                   />
-                  @if (a.custodian) {
-                    <app-field-item labelKey="assets.fields.custodian" [value]="a.custodian.name" />
-                  }
-                  @if (a.supplier || a.vendor) {
-                    <app-field-item labelKey="assets.fields.supplier">
-                      @if (a.supplier; as s) {
-                        <app-entity-chip
-                          [ref]="{
-                            entity_type: 'supplier',
-                            entity_id: s.id,
-                            code: s.code,
-                            title: s.name,
-                            url: s.url,
-                          }"
-                        />
-                      } @else {
-                        {{ a.vendor }}
+                }
+                @if (closed()) {
+                  <app-field-item
+                    labelKey="assets.fields.disposalMethod"
+                    [value]="a.disposal_method"
+                  />
+                }
+                @if (!securityCollapsed()) {
+                  @for (key of ciaKeys; track key) {
+                    <app-field-item [labelKey]="'assets.detail.cia.' + key">
+                      @if (a[key]) {
+                        {{ 'assets.level.' + a[key] | transloco }}
                       }
                     </app-field-item>
                   }
-                  @for (key of profileFields; track key.field) {
-                    @if (a[key.field]) {
-                      <app-field-item
-                        [labelKey]="'assets.fields.' + key.label"
-                        [value]="a[key.field]"
-                      />
+                  <app-field-item labelKey="assets.fields.handlingRules" [wide]="true">
+                    @if (a.handling_rules) {
+                      <div
+                        class="cf-prose text-body"
+                        [innerHTML]="a.handling_rules | appMarkdown"
+                      ></div>
                     }
-                  }
-                  @for (key of dateFields; track key.field) {
-                    @if (a[key.field]) {
-                      <app-field-item
-                        [labelKey]="'assets.fields.' + key.label"
-                        [value]="a[key.field] | localDay"
-                      />
-                    }
-                  }
-                  @if (a.disposal_method) {
-                    <app-field-item
-                      labelKey="assets.fields.disposalMethod"
-                      [value]="a.disposal_method"
-                    />
-                  }
-                </app-field-list>
-                @if (missingDetails().length) {
-                  <p class="mt-4 text-meta text-fg-subtle" data-testid="details-missing">
-                    {{ 'assets.detail.notFilledIn' | transloco: { fields: missingDetails() } }}
-                    @if (canWrite()) {
-                      <a
-                        [routerLink]="['/assets', a.id, 'edit']"
-                        class="ml-1 font-semibold text-accent hover:underline"
-                        >{{ 'assets.detail.addDetails' | transloco }}</a
-                      >
-                    }
-                  </p>
+                  </app-field-item>
                 }
-              </app-card>
+                <app-field-item labelKey="assets.fields.notes" [wide]="true">
+                  @if (a.notes) {
+                    <div class="cf-prose text-body" [innerHTML]="a.notes | appMarkdown"></div>
+                  }
+                </app-field-item>
+              </app-record-details>
 
               @if (showReviews()) {
-                <app-card>
-                  <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h2 class="font-display text-card font-bold text-fg">
+                @let ar = a.access_reviews;
+                <section aria-labelledby="asset-reviews-title" data-testid="asset-reviews">
+                  <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <h2 id="asset-reviews-title" class="font-display text-card font-bold text-fg">
                       {{ 'assets.detail.reviews' | transloco }}
                     </h2>
                     @if (canManage()) {
@@ -653,56 +635,28 @@ export function securityUnset(a: AssetDetail): boolean {
                       </app-button>
                     }
                   </div>
-                  @let ar = a.access_reviews;
-                  <app-field-list [columns]="3">
-                    <app-field-item labelKey="assets.detail.lastReview" empty="none">
-                      @if (ar.last; as last) {
-                        <a
-                          [routerLink]="['/assets/access-reviews', last.id]"
-                          class="text-accent hover:underline"
-                        >
-                          {{ last.code }}
-                        </a>
-                        @if (last.completed_at) {
-                          · {{ last.completed_at | localDate: 'mediumDate' }}
-                        }
-                      }
-                    </app-field-item>
-                    <app-field-item labelKey="assets.detail.nextReview" empty="none">
-                      @if (ar.next; as next) {
-                        <a
-                          [routerLink]="['/assets/access-reviews', next.id]"
-                          class="text-accent hover:underline"
-                        >
-                          {{ next.code }}
-                        </a>
-                        ·
-                        <span
-                          [class.font-semibold]="next.overdue"
-                          [class.text-warn-ink]="next.overdue"
-                          >{{
-                            'assets.reviews.dueOn' | transloco: { date: (next.due_on | localDay) }
-                          }}</span
-                        >
-                      }
-                    </app-field-item>
-                    <app-field-item labelKey="assets.detail.openRevocations">
-                      <span
-                        [class.font-semibold]="ar.open_revocations > 0"
-                        [class.text-warn-ink]="ar.open_revocations > 0"
-                        >{{ ar.open_revocations }}</span
-                      >
-                    </app-field-item>
-                  </app-field-list>
+                  @if (ar.open_revocations > 0) {
+                    <p class="mb-2 text-ui font-semibold text-warn-ink">
+                      {{
+                        pluralKey('assets.detail.revocationsLeft', ar.open_revocations)
+                          | transloco: { count: ar.open_revocations }
+                      }}
+                    </p>
+                  }
                   @if (ar.items.length) {
-                    <ul class="mt-4 flex flex-col divide-y divide-border border-t border-border">
+                    <ul
+                      class="flex flex-col divide-y divide-border rounded-card border border-border bg-surface"
+                    >
                       @for (r of ar.items; track r.id) {
-                        <li class="flex flex-wrap items-center gap-2 py-2 text-ui">
+                        <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5">
+                          <app-icon name="shield" [size]="15" class="flex-none text-fg-subtle" />
                           <a
                             [routerLink]="['/assets/access-reviews', r.id]"
-                            class="font-semibold text-fg hover:underline"
+                            class="min-w-0 flex-1 text-ui font-semibold text-fg hover:text-accent hover:underline"
                           >
-                            <span class="font-mono text-meta text-fg-muted">{{ r.code }}</span>
+                            <span class="mr-1.5 font-mono text-meta font-normal text-fg-muted">{{
+                              r.code
+                            }}</span>
                             {{ r.title }}
                           </a>
                           <app-status-badge
@@ -710,28 +664,39 @@ export function securityUnset(a: AssetDetail): boolean {
                             [value]="revBadge(r.status).value"
                             [labelKey]="'assets.reviewStatus.' + r.status"
                           />
-                          <span class="text-meta text-fg-subtle" [class.text-warn-ink]="r.overdue">
-                            {{
-                              'assets.reviews.dueOn' | transloco: { date: (r.due_on | localDay) }
-                            }}
+                          <span
+                            class="text-meta text-fg-subtle"
+                            [class.font-semibold]="r.overdue"
+                            [class.text-warn-ink]="r.overdue"
+                          >
+                            @if (r.completed_at) {
+                              {{
+                                'assets.detail.completedOn'
+                                  | transloco: { date: (r.completed_at | localDate: 'mediumDate') }
+                              }}
+                            } @else {
+                              {{
+                                'assets.reviews.dueOn' | transloco: { date: (r.due_on | localDay) }
+                              }}
+                            }
                           </span>
                         </li>
                       }
                     </ul>
                   } @else {
-                    <p class="mt-3 text-ui text-fg-subtle">
+                    <p class="text-ui text-fg-subtle">
                       {{ 'assets.detail.noReviews' | transloco }}
                     </p>
                   }
-                </app-card>
+                </section>
               }
 
-              <app-card>
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
+              <section aria-labelledby="asset-changes-title" data-testid="asset-changes">
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h2 id="asset-changes-title" class="font-display text-card font-bold text-fg">
                     {{ 'assets.detail.changes' | transloco }}
                   </h2>
-                  <div class="flex flex-wrap items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-3">
                     @if (canWrite()) {
                       <app-button size="sm" variant="secondary" (click)="raiseChange(a)">
                         {{ 'assets.detail.raiseChange' | transloco }}
@@ -746,14 +711,19 @@ export function securityUnset(a: AssetDetail): boolean {
                   </div>
                 </div>
                 @if (changes().length) {
-                  <ul class="flex flex-col divide-y divide-border">
+                  <ul
+                    class="flex flex-col divide-y divide-border rounded-card border border-border bg-surface"
+                  >
                     @for (c of changes(); track c.id) {
-                      <li class="flex flex-wrap items-center gap-2 py-2 text-ui">
+                      <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5">
+                        <app-icon name="history" [size]="15" class="flex-none text-fg-subtle" />
                         <a
                           [routerLink]="['/assets/changes', c.id]"
-                          class="font-semibold text-fg hover:underline"
+                          class="min-w-0 flex-1 text-ui font-semibold text-fg hover:text-accent hover:underline"
                         >
-                          <span class="font-mono text-meta text-fg-muted">{{ c.code }}</span>
+                          <span class="mr-1.5 font-mono text-meta font-normal text-fg-muted">{{
+                            c.code
+                          }}</span>
                           {{ c.title }}
                         </a>
                         <app-status-badge
@@ -767,21 +737,7 @@ export function securityUnset(a: AssetDetail): boolean {
                 } @else {
                   <p class="text-ui text-fg-subtle">{{ 'assets.detail.noChanges' | transloco }}</p>
                 }
-              </app-card>
-
-              @if (a.notes) {
-                <app-card>
-                  <h2 class="mb-2 font-display text-card font-bold text-fg">
-                    {{ 'assets.fields.notes' | transloco }}
-                  </h2>
-                  <div class="cf-prose text-body text-fg" [innerHTML]="a.notes | appMarkdown"></div>
-                </app-card>
-              }
-
-              <app-why-it-matters
-                scope="assets"
-                [page]="a.requires_calibration ? 'detailInstrument' : 'detail'"
-              />
+              </section>
             </div>
 
             <div tasks>
@@ -790,6 +746,53 @@ export function securityUnset(a: AssetDetail): boolean {
                 [entityId]="a.id"
                 [canCreate]="canWrite()"
                 [entityLabel]="a.code + ' ' + a.name"
+              />
+            </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item layout="inline" labelKey="assets.fields.reviewInterval">
+                {{
+                  'assets.review.everyMonths'
+                    | transloco: { months: a.review_interval_months ?? 12 }
+                }}
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="assets.fields.lastReviewed">
+                @if (a.last_reviewed_at) {
+                  {{
+                    'assets.review.lastBy'
+                      | transloco
+                        : {
+                            date: (a.last_reviewed_at | localDate: 'mediumDate'),
+                            name: a.last_reviewed_by?.name ?? ('assets.common.unknown' | transloco),
+                          }
+                  }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="assets.fields.reviewDate"
+                [keepEmpty]="!closed()"
+                emptyKey="kit.detail.meta.notPlanned"
+                emptyActionKey="kit.detail.meta.plan"
+                [emptyLink]="canWrite() ? editLink() : null"
+              >
+                @if (a.review_date) {
+                  <span [class.text-warn-ink]="a.review_status === 'overdue'">{{
+                    a.review_date | localDay
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="assets.detail.updated"
+                [value]="a.updated_at | localDate"
+              />
+            </app-record-meta>
+
+            <div aside-learn>
+              <app-why-it-matters
+                scope="assets"
+                [page]="a.requires_calibration ? 'detailInstrument' : 'detail'"
               />
             </div>
           </app-record-detail-layout>
@@ -836,7 +839,6 @@ export class AssetDetailPage {
   private readonly options = inject(AssetOptionsService);
   private readonly flows = inject(CreateFlowService);
   private readonly router = inject(Router);
-  protected readonly ai = inject(AiAvailability);
 
   readonly id = input.required<string>();
   /** `?calibration=<id>`: the calibration to highlight. */
@@ -850,15 +852,10 @@ export class AssetDetailPage {
   protected readonly fieldLabels = ASSET_FIELD_LABELS;
   protected readonly ciaKeys = ['confidentiality', 'integrity', 'availability'] as const;
   protected readonly profileFields = PROFILE_FIELDS;
-  protected readonly dateFields = DATE_FIELDS;
   protected readonly lifeBadge = lifecycleBadge;
   protected readonly critBadge = levelBadge;
-  protected readonly classBadge = classificationBadge;
-  protected readonly attnBadge = attentionBadge;
-  protected readonly reviewBadge = reviewDueBadge;
   protected readonly revBadge = reviewStatusBadge;
   protected readonly catBadge = stateCategoryBadge;
-  protected readonly actionFor = attentionAction;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly asset = signal<AssetDetail | null>(null);
@@ -879,13 +876,21 @@ export class AssetDetailPage {
   protected readonly canDeviate = computed(() => this.permissions().includes('deviations:write'));
   protected readonly lang = computed(() => this.language.active());
 
+  protected readonly editLink = computed<readonly unknown[]>(() => ['/assets', this.id(), 'edit']);
+
   protected readonly closed = computed(() => {
     const status = this.asset()?.lifecycle_status;
     return status === 'retired' || status === 'disposed';
   });
-  protected readonly attention = computed<readonly AttentionCode[]>(
-    () => this.asset()?.attention ?? [],
-  );
+  /** The register review is due or overdue: "Bekreft gjennomgang" goes next to Rediger. */
+  protected readonly reviewDue = computed(() => {
+    const status = this.asset()?.review_status;
+    return status === 'overdue' || status === 'due_soon';
+  });
+  protected readonly statusLine = computed(() => {
+    const a = this.asset();
+    return a ? assetStatusLine(a) : { key: '', tone: 'neutral' as const };
+  });
   /** An overdue instrument that is still marked as in use. */
   protected readonly quarantineWarning = computed(() => {
     const a = this.asset();
@@ -896,7 +901,7 @@ export class AssetDetailPage {
       a.lifecycle_status === 'in_use'
     );
   });
-  /** Measuring equipment and hardware without any security rating: fold the CIA block away. */
+  /** Measuring equipment and hardware without any security rating: leave the CIA fields out. */
   protected readonly securityCollapsed = computed(() => {
     const a = this.asset();
     return (
@@ -909,19 +914,24 @@ export class AssetDetailPage {
     const a = this.asset();
     return !!a && (SYSTEM_ASSET_TYPES.includes(a.asset_type) || a.access_reviews.total > 0);
   });
-  /** Labels of the optional details that are still empty ("Modell, Serienummer"). */
-  protected readonly missingDetails = computed(() => {
+  protected readonly dateFields = computed(() =>
+    this.closed() ? [...DATE_FIELDS, ...CLOSED_DATE_FIELDS] : DATE_FIELDS,
+  );
+
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
     const a = this.asset();
-    if (!a) {
-      return '';
+    if (!a || !this.canWrite()) {
+      return [];
     }
-    const missing = PROFILE_FIELDS.filter((f) => !a[f.field]).map((f) =>
-      this.language.translate(`assets.fields.${f.label}`),
-    );
-    if (!a.supplier && !a.vendor) {
-      missing.unshift(this.language.translate('assets.fields.supplier'));
-    }
-    return missing.join(', ');
+    const open = !this.closed();
+    return assetMissing(a, this.editLink(), {
+      calibrate: open ? () => this.openCalibration() : null,
+      impact: () => this.scrollToCalibration(),
+      review: open ? () => this.reviewOpen.set(true) : null,
+      processing: this.flowEnabled('asset.to_processing')
+        ? () => this.startFlow('asset.to_processing')
+        : null,
+    });
   });
 
   private request = new Subscription();
@@ -954,10 +964,6 @@ export class AssetDetailPage {
     });
   }
 
-  protected label(value: LocalizedLabel): string {
-    return localizedLabel(value, this.language.active());
-  }
-
   protected flowEnabled(key: string): boolean {
     return this.flowKeys().has(key);
   }
@@ -967,6 +973,10 @@ export class AssetDetailPage {
     if (a) {
       void this.flows.start(key, 'asset', a.id);
     }
+  }
+
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
   }
 
   protected openCalibration(): void {
@@ -1001,8 +1011,8 @@ export class AssetDetailPage {
     this.load(this.selectedOrg.currentOrgId(), this.id(), false);
   }
 
-  protected askSummary(): void {
-    this.ask.showWith(this.language.translate('assets.ai.prompts.summarise'));
+  protected askAi(kind: 'summarise' | 'classification' | 'controls'): void {
+    this.ask.showWith(this.language.translate(`assets.ai.prompts.${kind}`));
   }
 
   protected confirmReview(a: AssetDetail, note: string): void {
