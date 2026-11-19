@@ -114,7 +114,7 @@ export class AiAssistButton {
     inject(DestroyRef).onDestroy(() => this.stream?.cancel());
   }
 
-  /** Start the assist (no-op while it runs), e.g. from a header menu item. */
+  /** Start a run from outside (e.g. a "Spør KI" menu item); no-op while one runs. */
   run(): void {
     if (!this.running()) {
       this.start();

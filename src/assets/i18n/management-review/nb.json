@@ -221,14 +221,8 @@
   "detail": {
     "edit": "Rediger",
     "report": "Rapport",
-    "progress": "Fremdrift i gjennomgangen",
     "readOnly": "Denne gjennomgangen kan ikke lenger redigeres.",
-    "cancelledNotice": "Denne gjennomgangen ble avlyst {{ date }}.",
-    "awaitingNotice": "Sendt til signering av {{ name }} {{ date }}. Gjennomgangen er låst til den er signert eller sendt tilbake.",
-    "signedNotice": "Signert av {{ name }} {{ date }}. Rapporten er låst.",
     "beforeSubmit": "Før du kan sende til signering:",
-    "actionsHeading": "Oppfølgingstiltak",
-    "actionStats": "Åpne: {{ open }} · Utført: {{ done }} · Forfalt: {{ overdue }}",
     "meetingHeading": "Møte {{ code }}",
     "openMeeting": "Åpne møtesiden",
     "outputsHeading": "Resultater av gjennomgangen",
@@ -236,17 +230,13 @@
     "unsaved": "Ulagrede endringer",
     "deleteTitle": "Slette denne gjennomgangen?",
     "deleteMessage": "{{ code }} og møtet blir fjernet. Dette kan ikke angres.",
-    "topManagement": "Toppledelsen til stede",
-    "neighbours": "Andre gjennomganger",
-    "previous": "Forrige: {{ code }}",
-    "next": "Neste: {{ code }}",
     "noMeeting": "Denne gjennomgangen har ikke noe møte. Det kan være fjernet.",
     "outputsIntro": "Skriv hva toppledelsen konkluderte og besluttet. Beslutningene som er registrert i møtet, vises under feltet de hører til. Hvert tiltak der blir en oppgave med eier.",
     "fromMeeting": "Fra møtet ({{ category }}):",
     "saveBar": "Ulagrede endringer",
     "discard": "Forkast",
     "leaveUnsaved": "Du har tekst som ikke er lagret i denne gjennomgangen. Vil du gå uten å lagre?",
-    "topManagementValue": "{{ present }} av {{ total }}"
+    "type": "Ledelsens gjennomgang"
   },
   "inputs": {
     "compiledAt": "Tallene ble hentet {{ date }}",
@@ -618,7 +608,6 @@
     "statusHeading": "Møtestatus",
     "heldAt": "Holdt {{ date }}",
     "readOnly": "Dette møtet kan ikke lenger redigeres.",
-    "partOfReview": "Dette møtet hører til ledelsens gjennomgang",
     "delete": "Slett møte",
     "deleteTitle": "Slette dette møtet?",
     "deleteMessage": "{{ code }} med agenda, deltakere, referat og beslutninger blir fjernet.",
@@ -968,7 +957,9 @@
   },
   "previous": {
     "heading": "Forrige gjennomgang",
-    "signed": "signert {{ date }}"
+    "nextHeading": "Neste gjennomgang",
+    "openActions": "Åpne tiltak herfra ({{ count }})",
+    "allDone": "Alle tiltakene herfra er fulgt opp."
   },
   "planning": {
     "label": "Planlegging av gjennomganger",
@@ -1008,6 +999,66 @@
     "never": {
       "title": "Hold den første ledelsens gjennomgang",
       "why": "Toppledelsen har ikke gjennomgått styringssystemet ennå. ISO krever det med planlagte mellomrom."
+    }
+  },
+  "status": {
+    "planned": "Planlagt",
+    "in_progress": "Pågår",
+    "awaiting_signoff": "Venter på signering",
+    "signed": "Signert",
+    "completed": "Gjennomført",
+    "cancelled": "Avlyst"
+  },
+  "lead": {
+    "period": "Perioden som gjennomgås",
+    "meeting": "Møtet",
+    "topManagement": "Toppledelsen: {{ present }} av {{ total }} til stede",
+    "conclusions": "Hva ledelsen konkluderte",
+    "actions": "Oppfølgingstiltak",
+    "actionStats": "Åpne: {{ open }} · Utført: {{ done }}",
+    "overdue": "{{ count }} forfalt",
+    "frameworks": "Standarder",
+    "compiledAt": "Tall hentet",
+    "updated": "Sist endret",
+    "status": {
+      "planned": "Planlagt – start gjennomgangen for å hente tallene til grunnlaget.",
+      "in_progress": "Pågår – {{ done }} av {{ total }} punkter i grunnlaget er gjennomgått. Se hva som gjenstår før signering.",
+      "ready": "Pågår – alt er på plass. Send gjennomgangen til toppledelsen for signering.",
+      "awaiting_signoff": "Venter på signering – sendt av {{ name }} {{ date }}. Gjennomgangen er låst til den blir signert eller sendt tilbake.",
+      "signed": "Signert – av {{ name }} {{ date }}. Rapporten er låst.",
+      "cancelled": "Avlyst {{ date }} – gjennomgangen blir ikke fullført."
+    },
+    "missing": {
+      "period": "Angi perioden som gjennomgås",
+      "owner": "Velg en eier",
+      "inputs_reviewed": "Gå gjennom grunnlaget ({{ done }} av {{ total }} ferdig)",
+      "meeting_completed": "Hold møtet og merk det som gjennomført",
+      "minutes_approved": "Skriv og godkjenn referatet",
+      "top_management_present": "Registrer at toppledelsen deltok ({{ present }} av {{ total }})",
+      "assessment_criteria": "Vurder om styringssystemet fungerer",
+      "conclusions": "Skriv konklusjonene"
+    }
+  },
+  "meetingLead": {
+    "when": "Tid og sted",
+    "purpose": "Formål",
+    "concerns": "Gjelder",
+    "decisions": "Beslutninger",
+    "decisionCount": "{{ count }} registrert, {{ actions }} av dem tiltak",
+    "updated": "Sist endret",
+    "status": {
+      "planned": "Planlagt – møtet holdes {{ date }}.",
+      "plannedNoDate": "Planlagt – tidspunktet er ikke satt ennå.",
+      "in_progress": "Pågår – skriv referatet og beslutningene underveis.",
+      "completed": "Gjennomført – referatet er ikke godkjent ennå.",
+      "approved": "Gjennomført – referatet ble godkjent av {{ name }} {{ date }}.",
+      "cancelled": "Avlyst – møtet blir ikke holdt."
+    },
+    "missing": {
+      "when": "Sett tidspunkt for møtet",
+      "chair": "Velg møteleder",
+      "minutes": "Godkjenn referatet",
+      "tasks": "Lag oppfølgingsoppgave for tiltak som mangler det ({{ count }})"
     }
   }
 }

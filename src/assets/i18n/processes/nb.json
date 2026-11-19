@@ -221,7 +221,41 @@
     "noMapShort": "Ingen kart ennå",
     "mapHint": "Velg et trinn for å se detaljer. Åpne kartet for å endre det.",
     "notFoundTitle": "Fant ikke prosessen",
-    "notFoundBody": "Prosessen finnes ikke, er slettet eller du har ikke tilgang til den."
+    "notFoundBody": "Prosessen finnes ikke, er slettet eller du har ikke tilgang til den.",
+    "categoryOne": {
+      "management": "Ledelsesprosess",
+      "core": "Kjerneprosess",
+      "support": "Støtteprosess"
+    },
+    "explain": "Forklar prosessen",
+    "lead": {
+      "purpose": "Hva prosessen skal oppnå",
+      "scope": "Hvor den starter og slutter",
+      "owner": "Prosesseier",
+      "document": "Beskrivelsesdokument",
+      "noDocument": "Ikke lagt til ennå"
+    },
+    "partOf": "Del av",
+    "frameworks": "Standarder den støtter",
+    "updated": "Sist endret",
+    "statusLine": {
+      "active": "I bruk – alle byggeklossene er på plass.",
+      "partial": "I bruk – {{ done }} av {{ total }} byggeklosser er på plass.",
+      "overdue": "Gjennomgang forfalt – sjekk at prosessen fortsatt fungerer, og registrer gjennomgangen.",
+      "draft": "Utkast – prosessen er ikke tatt i bruk ennå. Aktiver den når den er klar.",
+      "retired": "Utgått – prosessen er ikke lenger i bruk."
+    },
+    "missing": {
+      "owner": "Velg en prosesseier",
+      "purpose": "Beskriv hva prosessen skal oppnå",
+      "scope": "Beskriv hvor den starter og slutter",
+      "map": "Tegn prosesskartet",
+      "description": "Legg til et beskrivelsesdokument",
+      "kpis": "Koble et nøkkeltall med målinger",
+      "risks": "Koble en risiko eller mulighet",
+      "review": "Registrer en gjennomgang",
+      "reviewOverdue": "Gjennomgangen er forfalt – registrer den"
+    }
   },
   "turtle": {
     "title": "Prosessark (skilpaddediagram)",
