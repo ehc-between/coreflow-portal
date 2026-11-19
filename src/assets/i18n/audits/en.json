@@ -108,6 +108,7 @@
     "planStatus": {
       "unresolved": "Open audits",
       "all": "All statuses",
+      "signed": "Signed (report approved)",
       "planned": "Planned",
       "in_progress": "In progress",
       "reporting": "Reporting",

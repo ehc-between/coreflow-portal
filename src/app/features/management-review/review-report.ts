@@ -38,6 +38,7 @@ import {
   ReviewInput,
   ReviewReport,
 } from './data/management-review.models';
+import { OutputsPanel } from '../../shared/outputs';
 import {
   MR_MODULE,
   MR_SCOPE,
@@ -117,6 +118,7 @@ export function attendanceOf(
     StatusBadge,
     ClauseRef,
     InputDataView,
+    OutputsPanel,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -132,6 +134,12 @@ export function attendanceOf(
             {{ 'managementReview.report.print' | transloco }}
           </app-button>
         </app-page-header>
+        <app-outputs-panel
+          class="mb-4"
+          entityType="management_review"
+          [entityId]="id()"
+          data-testid="report-snapshots"
+        />
         <app-help-strip [scope]="scope" page="report" />
       </div>
 

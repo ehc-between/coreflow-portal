@@ -241,6 +241,8 @@ describe('audit form mapping', () => {
     expect(parseFindingStatusFilter('junk')).toBe('unresolved');
     expect(planStatusParam('unresolved')).toBe('planned,in_progress,reporting,report_review');
     expect(planStatusParam('all')).toBeUndefined();
+    // U18 "Signert" is sent as `signed=true`, not as a status.
+    expect(planStatusParam('signed')).toBeUndefined();
     expect(planStatusParam('closed')).toBe('closed');
   });
 

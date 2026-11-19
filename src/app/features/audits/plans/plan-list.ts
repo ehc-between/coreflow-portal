@@ -60,7 +60,7 @@ export function planStatusParam(filter: string): string | undefined {
   if (filter === 'unresolved') {
     return PLAN_OPEN_STATUSES.join(',');
   }
-  return filter && filter !== 'all' ? filter : undefined;
+  return filter && filter !== 'all' && filter !== 'signed' ? filter : undefined;
 }
 
 /** `/audits/plans`: every audit (internal and external) with filters, search, sort and paging. */
@@ -301,6 +301,7 @@ export class PlanList {
       this.api.listPlans(orgId, {
         q: this.q() || undefined,
         status: planStatusParam(this.status()),
+        signed: this.status() === 'signed' || undefined,
         kind: this.kind() || undefined,
         sort: this.sort(),
         limit: PAGE_SIZE,
