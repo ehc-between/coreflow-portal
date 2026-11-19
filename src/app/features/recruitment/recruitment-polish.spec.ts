@@ -41,6 +41,13 @@ import {
 import { requisitionErrors, emptyRequisitionDraft } from './data/requisition-form-model';
 import { recruitmentNavItems } from './shared/recruitment-nav';
 import { StageMove } from './shared/stage-move';
+import { candidateMissing } from './candidates/candidate-detail';
+import { requisitionMissing } from './requisitions/requisition-detail';
+import {
+  CandidateDetail,
+  REQUISITION_STATUSES,
+  RequisitionDetail,
+} from './data/recruitment.models';
 
 type Dict = Record<string, unknown>;
 const get = (d: unknown, path: string): unknown =>
@@ -387,5 +394,42 @@ describe('StageMove screening override', () => {
     await tick();
     expect(fixture.componentInstance.moved()?.stage).toBe('interview');
     http.verify();
+  });
+});
+
+describe('recruitment detail pages (anatomy)', () => {
+  it('has a status sentence for every requisition status in en and nb', () => {
+    for (const status of [...REQUISITION_STATUSES, 'pending_you', 'rejected_note']) {
+      for (const dict of [recruitmentEn, recruitmentNb]) {
+        expect(typeof get(dict, `detail.req.status.${status}`), status).toBe('string');
+      }
+    }
+  });
+
+  it('lists what an open requisition still needs, and nothing once it is closed', () => {
+    const base = {
+      status: 'open',
+      screening_criteria: [],
+      hiring_manager: null,
+      posting_text: '  ',
+    } as unknown as RequisitionDetail;
+    expect(requisitionMissing(base, ['/edit']).map((m) => m.key)).toEqual([
+      'criteria',
+      'manager',
+      'posting',
+    ]);
+    expect(requisitionMissing({ ...base, status: 'filled' }, ['/edit'])).toEqual([]);
+  });
+
+  it('asks to record the privacy notice and a first application for a candidate', () => {
+    const record = vi.fn();
+    const items = candidateMissing(
+      { id: 'c1', privacy_notice_given_at: null, applications: [] } as unknown as CandidateDetail,
+      record,
+    );
+    expect(items.map((m) => m.key)).toEqual(['notice', 'application']);
+    items[0].action?.();
+    expect(record).toHaveBeenCalled();
+    expect(items[1].queryParams).toEqual({ candidate_id: 'c1' });
   });
 });

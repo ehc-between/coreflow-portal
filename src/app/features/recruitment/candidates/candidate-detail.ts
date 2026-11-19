@@ -14,20 +14,27 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
@@ -45,39 +52,65 @@ import { injectConfirmedRefs } from '../shared/confirmed-refs';
 import {
   RECRUITMENT_CRUMB,
   RECRUITMENT_SETTINGS_LINK,
-  injectRecruitmentNav,
   settingsLinkFor,
 } from '../shared/recruitment-nav';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
 
 const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments', 'attachments'];
 
+/** What a candidate record still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+export function candidateMissing(
+  c: CandidateDetail,
+  recordNotice: () => void,
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  if (!c.privacy_notice_given_at) {
+    items.push({
+      key: 'notice',
+      labelKey: 'recruitment.detail.cand.missing.notice',
+      action: recordNotice,
+    });
+  }
+  if (c.applications.length === 0) {
+    items.push({
+      key: 'application',
+      labelKey: 'recruitment.detail.cand.missing.application',
+      link: ['/recruitment/applications/new'],
+      queryParams: { candidate_id: c.id },
+    });
+  }
+  return items;
+}
+
 /**
- * A candidate: contact details, applications with their progress, the privacy
- * notice given (the exact approved revision in Documents), talent-pool consent,
- * when the data is deleted and why, and GDPR erasure (in "Mer"). The record
- * documents GDPR art. 13/14 (information given) for this person.
+ * A candidate, on the detail-page anatomy (docs/ux-guide.md §2.7): "Hovedinformasjon"
+ * says whether the privacy notice was given, lists the applications (each with its
+ * stage and progress), the contact details and when the data is deleted and why.
+ * The "Oppfølging" card holds what is missing (record the notice, contact details,
+ * a first application), the requirements, the connections with the exact approved
+ * privacy-notice revision in Documents, and the consent metadata. Consent changes
+ * and GDPR erasure are in "Mer". The record documents GDPR art. 13/14 for this person.
  */
 @Component({
   selector: 'app-candidate-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    WatchButton,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     LocalDatePipe,
     Button,
-    Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
-    ModuleNav,
     MenuItem,
     StatusBadge,
     ApplicationIndicators,
@@ -95,6 +128,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
       </div>
     } @else if (cand(); as c) {
       <app-record-detail-layout
+        [anatomy]="true"
         [entityType]="entityType"
         [entityId]="c.id"
         [title]="c.full_name"
@@ -103,26 +137,33 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
         [tabs]="tabs"
         [canEdit]="c.can_edit"
         [requirementsPanel]="true"
+        [missing]="missing()"
       >
-        <span meta class="flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="cand-meta">
-          <span class="font-mono font-semibold">{{ c.code }}</span>
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="cand-meta">{{ c.code }}</span>
           <span aria-hidden="true">·</span>
-          <span>{{ 'recruitment.source.' + c.source | transloco }}</span>
-          @if (c.talent_pool_consent) {
-            <app-status-badge
-              meaning="lifecycle"
-              value="submitted"
-              labelKey="recruitment.candidates.inPool"
-            />
-          }
+          <span>{{ 'recruitment.detail.cand.type' | transloco }}</span>
+          <span aria-hidden="true">·</span>
           @if (!c.privacy_notice_given_at) {
             <app-status-badge
               meaning="lifecycle"
               value="blocked"
               labelKey="recruitment.candidates.noticeMissing"
             />
+          } @else if (c.talent_pool_consent) {
+            <app-status-badge
+              meaning="lifecycle"
+              value="submitted"
+              labelKey="recruitment.candidates.inPool"
+            />
+          } @else if (c.latest_stage; as stage) {
+            <app-status-badge
+              meaning="lifecycle"
+              [value]="stageValue(stage)"
+              [labelKey]="'recruitment.stage.' + stage"
+            />
           }
-        </span>
+        </ng-container>
 
         @if (perms().write && c.can_edit) {
           <a
@@ -130,18 +171,46 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
             [routerLink]="['/recruitment/applications/new']"
             [queryParams]="{ candidate_id: c.id }"
           >
-            <app-button size="sm" data-testid="cand-add-application">
+            <app-button data-testid="cand-add-application">
               <app-icon name="plus" [size]="15" />
               {{ 'recruitment.candidate.addApplication' | transloco }}
             </app-button>
           </a>
         }
         @if (perms().write && c.can_edit) {
-          <a secondary [routerLink]="['/recruitment/candidates', c.id, 'edit']">
-            <app-button size="sm" variant="secondary">
+          <a secondary [routerLink]="editLink()">
+            <app-button variant="secondary" data-testid="cand-edit">
               {{ 'recruitment.common.edit' | transloco }}
             </app-button>
           </a>
+        }
+        @if (perms().write && c.can_edit && !c.privacy_notice_given_at) {
+          <button
+            overflow
+            appMenuItem
+            type="button"
+            data-testid="record-notice"
+            (click)="recordNotice()"
+          >
+            {{ 'recruitment.privacy.recordNotice' | transloco }}
+          </button>
+        }
+        @if (perms().write && c.can_edit) {
+          <button
+            overflow
+            appMenuItem
+            type="button"
+            data-testid="cand-consent"
+            [disabled]="busy()"
+            (click)="privacy({ talent_pool_consent: !c.talent_pool_consent })"
+          >
+            {{
+              (c.talent_pool_consent
+                ? 'recruitment.privacy.withdrawConsent'
+                : 'recruitment.privacy.recordConsent'
+              ) | transloco
+            }}
+          </button>
         }
         @if (perms().manage) {
           <button
@@ -156,44 +225,38 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
           </button>
         }
 
-        <app-module-nav nav [items]="nav()" labelKey="modules.names.recruitment" />
         <app-help-strip help scope="recruitment" page="candidate" lesson="candidate-privacy" />
 
-        <div class="flex flex-col gap-4">
-          <app-card>
-            <h2 class="mb-3 text-card font-bold text-fg">
-              {{ 'recruitment.candidate.contact' | transloco }}
-            </h2>
-            <app-field-list>
-              <app-field-item labelKey="recruitment.fields.email" [value]="c.email" />
-              <app-field-item labelKey="recruitment.fields.phone" [value]="c.phone" />
-              <app-field-item labelKey="recruitment.fields.location" [value]="c.location" />
-              <app-field-item labelKey="recruitment.fields.profileUrl" [value]="c.profile_url" />
-              @if (c.notes) {
-                <app-field-item
-                  labelKey="recruitment.fields.notes"
-                  [value]="c.notes"
-                  [wide]="true"
-                  [multiline]="true"
-                />
-              }
-            </app-field-list>
-          </app-card>
-
-          <app-card [padded]="false">
-            <h2 class="px-5 pt-5 pb-2 text-card font-bold text-fg">
-              {{ 'recruitment.candidate.applications' | transloco }}
-            </h2>
-            <ul class="flex flex-col" data-testid="cand-applications">
+        <app-record-lead record-lead [fillLink]="c.can_edit && perms().write ? editLink() : null">
+          <app-record-status-line
+            status
+            [tone]="c.privacy_notice_given_at ? 'pass' : 'warn'"
+            data-testid="cand-status-line"
+          >
+            {{
+              (c.privacy_notice_given_at
+                ? 'recruitment.detail.cand.status.noticeGiven'
+                : 'recruitment.detail.cand.status.noticeMissing'
+              ) | transloco: { date: (c.privacy_notice_given_at | localDate: 'mediumDate') }
+            }}
+          </app-record-status-line>
+          <div class="min-w-0 sm:col-span-full">
+            <span class="text-ui font-semibold text-fg">{{
+              'recruitment.detail.cand.applications' | transloco
+            }}</span>
+            <ul class="mt-1 flex flex-col divide-y divide-border" data-testid="cand-applications">
               @for (a of c.applications; track a.id) {
-                <li class="relative border-t border-border px-5 py-3 hover:bg-surface-2">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-mono text-meta text-fg-subtle">{{ a.code }}</span>
+                <li class="flex flex-col gap-1 py-2">
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <app-icon name="userplus" [size]="16" class="text-fg-muted" />
                     <a
                       [routerLink]="['/recruitment/applications', a.id]"
-                      class="min-w-0 flex-1 truncate text-body font-semibold text-fg after:absolute after:inset-0 hover:underline"
+                      class="min-w-0 text-body font-semibold text-fg hover:text-accent hover:underline"
                     >
-                      {{ a.requisition_code }} · {{ a.requisition_title }}
+                      <span class="font-mono text-meta font-normal text-fg-muted">{{
+                        a.requisition_code
+                      }}</span>
+                      {{ a.requisition_title }}
                     </a>
                     <app-status-badge
                       meaning="lifecycle"
@@ -201,112 +264,123 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
                       [labelKey]="'recruitment.stage.' + a.stage"
                     />
                   </div>
-                  <app-application-indicators class="mt-1" [app]="a" />
+                  <app-application-indicators class="pl-7" [app]="a" />
                 </li>
               } @empty {
-                <li class="border-t border-border px-5 py-4 text-ui text-fg-muted">
+                <li class="py-2 text-body text-fg-muted">
                   {{ 'recruitment.candidate.noApplications' | transloco }}
                 </li>
               }
             </ul>
-          </app-card>
-        </div>
-
-        <ng-container aside>
-          <app-card>
-            <h2 class="mb-3 text-card font-bold text-fg">
-              {{ 'recruitment.privacy.title' | transloco }}
-            </h2>
-            <app-field-list [columns]="1">
-              <app-field-item labelKey="recruitment.privacy.notice" data-testid="cand-notice">
-                @if (c.privacy_notice_given_at) {
-                  <span class="block">{{
-                    'recruitment.privacy.givenOn'
-                      | transloco: { date: (c.privacy_notice_given_at | localDate) }
-                  }}</span>
-                  @if (noticeRef(); as ref) {
-                    <app-entity-chip class="mt-1 block" [ref]="ref" [showType]="false" />
-                    <span class="block text-meta text-fg-muted">{{
-                      'recruitment.privacy.revision'
-                        | transloco: { revision: c.privacy_notice!.revision }
-                    }}</span>
-                  } @else if (c.privacy_notice_version) {
-                    <span class="block text-meta text-fg-muted">{{
-                      'recruitment.privacy.legacyVersion'
-                        | transloco: { version: c.privacy_notice_version }
-                    }}</span>
-                  }
-                } @else {
-                  <span class="font-semibold text-warn-ink">{{
-                    'recruitment.candidates.noticeMissing' | transloco
-                  }}</span>
-                }
-              </app-field-item>
-              <app-field-item labelKey="recruitment.privacy.pool">
-                @if (c.talent_pool_consent) {
-                  {{
-                    'recruitment.privacy.consentSince'
-                      | transloco: { date: (c.consent_given_at | localDate) }
-                  }}
-                } @else if (c.consent_withdrawn_at) {
-                  {{
-                    'recruitment.privacy.consentWithdrawn'
-                      | transloco: { date: (c.consent_withdrawn_at | localDate) }
-                  }}
-                } @else {
-                  {{ 'recruitment.privacy.noConsent' | transloco }}
-                }
-              </app-field-item>
-              <app-field-item labelKey="recruitment.privacy.retention" data-testid="cand-retention">
-                <span class="block" [class]="due() ? 'font-semibold text-warn-ink' : 'text-fg'">
-                  {{
-                    c.retention_until
-                      ? (c.retention_until | localDate: 'mediumDate')
-                      : ('recruitment.privacy.retentionPending' | transloco)
-                  }}
-                </span>
-                <span class="mt-0.5 block text-meta text-fg-muted">{{ retentionWhy() }}</span>
-                @if (perms().manage) {
-                  <a
-                    [routerLink]="settingsPath"
-                    class="mt-1 inline-block text-meta font-semibold text-accent"
-                    >{{ 'recruitment.privacy.retentionSettings' | transloco }}</a
-                  >
-                }
-              </app-field-item>
-            </app-field-list>
-            @if (perms().write && c.can_edit) {
-              <div class="mt-4 flex flex-col gap-2">
-                @if (!c.privacy_notice_given_at) {
-                  <app-button
-                    size="sm"
-                    [loading]="busy()"
-                    (click)="privacy({ privacy_notice_given: true })"
-                    data-testid="record-notice"
-                  >
-                    {{ 'recruitment.privacy.recordNotice' | transloco }}
-                  </app-button>
-                }
-                <app-button
-                  size="sm"
-                  variant="secondary"
-                  [loading]="busy()"
-                  (click)="privacy({ talent_pool_consent: !c.talent_pool_consent })"
-                >
-                  {{
-                    (c.talent_pool_consent
-                      ? 'recruitment.privacy.withdrawConsent'
-                      : 'recruitment.privacy.recordConsent'
-                    ) | transloco
-                  }}
-                </app-button>
-              </div>
-            }
-          </app-card>
-          <div class="flex justify-start">
-            <app-watch-button [entityType]="entityType" [entityId]="c.id" />
           </div>
-        </ng-container>
+          <app-field-item size="lead" labelKey="recruitment.detail.cand.contact">
+            @if (c.email) {
+              <a [href]="'mailto:' + c.email" class="block text-accent hover:underline">{{
+                c.email
+              }}</a>
+            }
+            @if (c.phone) {
+              <span class="block">{{ c.phone }}</span>
+            }
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="recruitment.detail.cand.retention"
+            data-testid="cand-retention"
+          >
+            <span class="block" [class.text-warn-ink]="due()" [class.font-semibold]="due()">
+              {{
+                c.retention_until
+                  ? (c.retention_until | localDate: 'mediumDate')
+                  : ('recruitment.privacy.retentionPending' | transloco)
+              }}
+            </span>
+            <span class="mt-0.5 block text-ui text-fg-muted">{{ retentionWhy() }}</span>
+            @if (perms().manage) {
+              <a
+                [routerLink]="settingsPath"
+                class="mt-1 inline-block text-meta font-semibold text-accent hover:underline"
+                >{{ 'recruitment.privacy.retentionSettings' | transloco }}</a
+              >
+            }
+          </app-field-item>
+        </app-record-lead>
+
+        <app-record-details
+          [columns]="3"
+          [fillLink]="c.can_edit && perms().write ? editLink() : null"
+        >
+          <app-field-item
+            labelKey="recruitment.detail.cand.source"
+            [value]="'recruitment.source.' + c.source | transloco"
+          />
+          <app-field-item labelKey="recruitment.fields.location" [value]="c.location" />
+          <app-field-item labelKey="recruitment.fields.profileUrl">
+            @if (c.profile_url; as url) {
+              <a
+                [href]="url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="break-all text-accent hover:underline"
+                >{{ url }}</a
+              >
+            }
+          </app-field-item>
+          <app-field-item
+            labelKey="recruitment.fields.notes"
+            [value]="c.notes"
+            [wide]="true"
+            [multiline]="true"
+          />
+        </app-record-details>
+
+        @if (c.privacy_notice_given_at && (noticeRef() || c.privacy_notice_version)) {
+          <div follow-up-connections class="mt-3 flex flex-col gap-1" data-testid="cand-notice">
+            <span class="text-meta font-semibold text-fg-muted">{{
+              'recruitment.detail.cand.noticeDoc' | transloco
+            }}</span>
+            @if (noticeRef(); as ref) {
+              <app-entity-chip [ref]="ref" [stacked]="true" />
+              <span class="text-meta text-fg-muted">{{
+                'recruitment.privacy.revision' | transloco: { revision: c.privacy_notice!.revision }
+              }}</span>
+            } @else {
+              <span class="text-meta text-fg">{{
+                'recruitment.privacy.legacyVersion'
+                  | transloco: { version: c.privacy_notice_version }
+              }}</span>
+            }
+          </div>
+        }
+
+        <app-record-meta follow-up-meta>
+          <app-field-item layout="inline" labelKey="recruitment.privacy.pool">
+            @if (c.talent_pool_consent) {
+              {{
+                'recruitment.privacy.consentSince'
+                  | transloco: { date: (c.consent_given_at | localDate) }
+              }}
+            } @else if (c.consent_withdrawn_at) {
+              {{
+                'recruitment.privacy.consentWithdrawn'
+                  | transloco: { date: (c.consent_withdrawn_at | localDate) }
+              }}
+            } @else {
+              {{ 'recruitment.privacy.noConsent' | transloco }}
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.detail.created"
+            [value]="c.created_at | localDate"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.detail.updated"
+            [value]="c.updated_at | localDate"
+          />
+        </app-record-meta>
+
         <app-why-it-matters aside-learn scope="recruitment" page="candidate" />
       </app-record-detail-layout>
 
@@ -334,7 +408,6 @@ export class CandidateDetailPage {
   private readonly language = inject(LanguageService);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
   protected readonly settingsPath = RECRUITMENT_SETTINGS_LINK;
 
@@ -357,6 +430,17 @@ export class CandidateDetailPage {
     { labelKey: 'recruitment.nav.candidates', link: '/recruitment/candidates' },
     { label: this.cand()?.full_name ?? '' },
   ]);
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/recruitment/candidates',
+    this.cand()?.id ?? '',
+    'edit',
+  ]);
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const c = this.cand();
+    return c && c.can_edit && this.perms().write
+      ? candidateMissing(c, () => this.recordNotice())
+      : [];
+  });
   protected readonly due = computed(() => retentionDue(this.cand()?.retention_until ?? null, 30));
   protected readonly noticeRef = computed(() => {
     const n = this.cand()?.privacy_notice;
@@ -413,6 +497,10 @@ export class CandidateDetailPage {
 
   protected reload(): void {
     this.version.update((v) => v + 1);
+  }
+
+  protected recordNotice(): void {
+    this.privacy({ privacy_notice_given: true });
   }
 
   protected privacy(body: PrivacyUpdate): void {

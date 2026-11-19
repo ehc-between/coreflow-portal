@@ -91,13 +91,7 @@
   },
   "requisition": {
     "pipeline": "Kandidatløp",
-    "pipelineSummary": "Kandidatløp",
-    "requiredChecks": "Påkrevde bakgrunnssjekker",
-    "noPosting": "Ingen stillingsannonse ennå. Skriv annonsen, eller la assistenten lage et utkast fra kriteriene.",
     "hiresOf": "{{ hires }} av {{ headcount }} ansatt",
-    "rejectedNote": "Avvist: {{ note }}",
-    "awaitingApproval": "Venter på godkjenning fra en HR-leder.",
-    "awaitingYou": "Dette stillingsbehovet venter på din godkjenning.",
     "note": "Merknad",
     "deleteTitle": "Slette dette stillingsbehovet?",
     "deleteMessage": "{{ code }} blir slettet. Et stillingsbehov med søknader kan ikke slettes; avbryt det i stedet.",
@@ -132,18 +126,14 @@
       "cancel": "Rekrutteringen for {{ code }} er stoppet.",
       "delete": "{{ code }} er slettet."
     },
-    "aboutRole": "Om stillingen",
     "approval": "Godkjenning",
     "approvedBy": "Godkjent av {{ name }}, {{ date }}",
     "rejectedBy": "Avvist av {{ name }}, {{ date }}",
     "submittedBy": "sendt inn av {{ name }}, {{ date }}",
-    "awaitingShort": "Venter på godkjenning",
-    "draftHint": "Dette er et utkast. Legg inn kriteriene og rekrutteringsteamet, og send det til godkjenning.",
     "allApplications": "Se alle søknader",
     "noApplications": "Ingen søknader ennå.",
     "noApplicationsOpen": "Ingen søknader ennå. Legg til den første kandidaten når du får en søknad.",
     "stageTileLabel": "{{ count }} på trinnet {{ stage }}: åpne listen",
-    "requiredChecksHint": "Planlegges automatisk når en kandidat kommer til referansesjekk, etter tabellen for {{ risk }}.",
     "legalBasisNote": "Politiattest og kredittsjekk planlegges aldri automatisk. Legg dem til per kandidat, med hjemmel.",
     "writePosting": "Skriv stillingsannonsen",
     "postingDeadline": "Søknadsfrist {{ date }}",
@@ -233,8 +223,7 @@
     "erase": "Slett personopplysninger",
     "eraseTitle": "Slette denne kandidaten?",
     "eraseMessage": "Personopplysningene til {{ code }} anonymiseres, fritekst i søknader, intervjuer, vurderingsskjemaer og sjekker fjernes, og kommentarer og vedlegg slettes. Dette kan ikke angres.",
-    "erased": "Personopplysningene til {{ code }} er slettet.",
-    "contact": "Kontaktopplysninger"
+    "erased": "Personopplysningene til {{ code }} er slettet."
   },
   "privacy": {
     "title": "Personvern og samtykke",
@@ -254,7 +243,6 @@
     "recordConsent": "Registrer samtykke til kandidatbanken",
     "withdrawConsent": "Trekk samtykke til kandidatbanken",
     "saved": "Personvernopplysningene er oppdatert.",
-    "givenOn": "Gitt {{ date }}",
     "revision": "Revisjon {{ revision }}",
     "legacyVersion": "Versjon {{ version }} (tekst i rekrutteringsinnstillingene)",
     "noticeFromDocument": "Kandidatene får den godkjente personvernerklæringen ({{ version }}):",
@@ -295,13 +283,10 @@
   },
   "application": {
     "backToPipeline": "Tilbake til kandidatløpet",
-    "facts": "Søknad",
     "appliedAt": "Søknadsdato",
     "stageSince": "På dette trinnet siden",
     "yourRole": "Din rolle",
-    "noticeMissing": "Kandidaten har ikke fått personvernerklæringen ennå, så søknaden kan ikke gå videre etter screening.",
     "openCandidate": "Åpne kandidaten",
-    "rejectedBecause": "Avvist: {{ reason }}",
     "deleteTitle": "Slette denne søknaden?",
     "deleteMessage": "{{ code }} med intervjuer, vurderingsskjemaer og sjekker blir slettet.",
     "deleted": "Søknad {{ code }} er slettet.",
@@ -313,7 +298,6 @@
     },
     "openPipeline": "Åpne kandidatløpet",
     "delete": "Slett søknaden",
-    "screeningIncomplete": "Screening ikke ferdig",
     "overrideNote": "{{ name }} flyttet kandidaten videre før screeningen var ferdig ({{ date }}).",
     "overrideReason": "Begrunnelse: {{ reason }}"
   },
@@ -406,12 +390,10 @@
     "extendedAt": "Tilbud gitt",
     "respondedAt": "Besvart",
     "hiredAt": "Ansatt",
-    "onboardingTask": "Oppstartsoppgave",
     "extended": "Tilbudet er registrert.",
     "accepted": "Tilbudet er akseptert.",
     "declined": "Tilbudet er avslått; søknaden er trukket.",
     "hired": "Ansatt. Personen og oppstarten er opprettet.",
-    "employee": "I Personer",
     "openOnboarding": "Åpne oppstartsoppgaven",
     "noEmployee": "Ingen person ble registrert i Personer (modulen er av, eller du har ikke lov til å registrere ansatte). Registrer personen der og koble oppstarten."
   },
@@ -826,8 +808,6 @@
     "stalled": "Ingen fremdrift på {{ count }} dager"
   },
   "offerBlockers": {
-    "title": "Før du kan gi tilbud",
-    "go": "Gå dit",
     "other": "Noe annet hindrer tilbudet.",
     "overrideHint": "Du kan gi tilbud før screeningen er ferdig bare med en skriftlig begrunnelse, som logges.",
     "application_closed": "Søknaden er lukket.",
@@ -889,6 +869,84 @@
       "hired": "Ansatt",
       "rejected": "Avvist",
       "withdrawn": "Trukket"
+    }
+  },
+  "detail": {
+    "aiRunning": "Lager utkast …",
+    "aiFailed": "Kunne ikke lage utkastet. Prøv igjen senere.",
+    "opened": "Åpnet for søknader",
+    "created": "Registrert",
+    "updated": "Sist endret",
+    "req": {
+      "type": "Stillingsbehov",
+      "why": "Hvorfor stillingen trengs",
+      "candidates": "Kandidater",
+      "risk": "Risikonivå og bakgrunnssjekker",
+      "checks": "Sjekkes for alle kandidater: {{ checks }}.",
+      "noChecks": "Risikonivået krever ingen bakgrunnssjekker.",
+      "checksWhen": "De planlegges automatisk når en kandidat kommer til referansesjekk.",
+      "hires": "Ansatt så langt",
+      "noPosting": "Ingen stillingsannonse ennå.",
+      "status": {
+        "draft": "Utkast – legg inn kriteriene og rekrutteringsteamet, og send det til godkjenning.",
+        "pending_approval": "Venter på godkjenning – en HR-leder avgjør om stillingen kan besettes.",
+        "pending_you": "Venter på din godkjenning – godkjenn, eller avvis og skriv hva som må endres.",
+        "approved": "Godkjent – klart til å åpnes for søknader.",
+        "rejected": "Avvist – endre stillingsbehovet og send det inn på nytt.",
+        "rejected_note": "Avvist – {{ note }}",
+        "open": "Åpent for søknader – {{ active }} kandidater er med, {{ hires }} av {{ headcount }} er ansatt.",
+        "on_hold": "På vent – ingen nye søknader før det åpnes igjen.",
+        "filled": "Besatt – {{ hires }} av {{ headcount }} er ansatt.",
+        "cancelled": "Stoppet – rekrutteringen ble avsluttet uten ansettelse."
+      },
+      "missing": {
+        "criteria": "Legg inn utvalgskriterier",
+        "manager": "Velg ansettende leder",
+        "posting": "Skriv stillingsannonsen"
+      }
+    },
+    "cand": {
+      "type": "Kandidat",
+      "applications": "Søknader",
+      "contact": "Kontakt",
+      "retention": "Personopplysningene slettes",
+      "source": "Hvordan vi fant kandidaten",
+      "noticeDoc": "Personvernerklæring gitt",
+      "status": {
+        "noticeGiven": "Personvernerklæringen er gitt {{ date }} – kandidaten vet hvordan opplysningene brukes.",
+        "noticeMissing": "Personvernerklæringen mangler – registrer at kandidaten har fått den før søknaden går videre etter screening."
+      },
+      "missing": {
+        "notice": "Registrer at personvernerklæringen er gitt",
+        "application": "Legg kandidaten til i et stillingsbehov"
+      }
+    },
+    "app": {
+      "type": "Søknad",
+      "requisition": "Søker på",
+      "candidate": "Kandidat",
+      "checks": "Bakgrunnssjekker",
+      "checksDone": "{{ done }} av {{ total }} påkrevde sjekker er ferdige",
+      "noChecks": "Ingen påkrevde sjekker",
+      "noCriteria": "Stillingsbehovet har ingen kriterier.",
+      "startsOn": "starter {{ date }}",
+      "status": {
+        "hired": "Ansatt – rekrutteringen av denne kandidaten er fullført.",
+        "hiredPeople": "Ansatt – personen er registrert i Personer.",
+        "rejected": "Avvist – {{ reason }}.",
+        "rejectedPlain": "Avvist.",
+        "withdrawn": "Trukket – kandidaten er ikke lenger med.",
+        "offerExtended": "Tilbud gitt – registrer kandidatens svar.",
+        "offerAccepted": "Tilbudet er akseptert – merk kandidaten som ansatt.",
+        "blocked": "{{ stage }} – {{ count }} ting må gjøres før du kan gi tilbud.",
+        "blockedOne": "{{ stage }} – én ting må gjøres før du kan gi tilbud.",
+        "ready": "{{ stage }} – alt er på plass for å gi tilbud.",
+        "active": "{{ stage }} – pågår."
+      },
+      "missing": {
+        "notice": "Kandidaten har ikke fått personvernerklæringen",
+        "text": "{{ text }}"
+      }
     }
   }
 }

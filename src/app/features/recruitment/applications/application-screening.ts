@@ -7,6 +7,7 @@ import {
   linkedSignal,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -52,7 +53,8 @@ let nextId = 0;
 /**
  * Structured screening: a human records, per criterion, whether the application
  * meets it. The optional AI summary only collects what the material says about
- * each criterion when someone asks; it never scores, ranks or recommends.
+ * each criterion when someone asks ("Spør KI" in the page header calls
+ * {@link summarise}); it never scores, ranks or recommends.
  */
 @Component({
   selector: 'app-application-screening',
@@ -72,12 +74,16 @@ let nextId = 0;
           />
         </h2>
         @if (canEdit() && app().criteria.length > 0) {
+          <!-- Started from "Spør KI" in the page header (summarise()). -->
           <app-ai-assist-button
+            #summaryAssist
+            class="hidden"
             assist="recruitment.summarise_application"
             labelKey="recruitment.ai.summarise"
             [entityType]="entityType"
             [entityId]="app().id"
-            (text)="summary.set($event)"
+            (text)="onSummary($event)"
+            (failed)="onFailed()"
           />
         }
       </div>
@@ -93,6 +99,11 @@ let nextId = 0;
           @if (progress().done < progress().total) {
             · {{ 'recruitment.screening.progressHint' | transloco }}
           }
+        </p>
+      }
+      @if (summarising()) {
+        <p class="my-3 text-ui text-fg-muted" role="status">
+          {{ 'recruitment.detail.aiRunning' | transloco }}
         </p>
       }
       @if (summary()) {
@@ -196,6 +207,11 @@ export class ApplicationScreening {
   protected readonly cover = linkedSignal(() => this.app().cover_note ?? '');
   protected readonly saving = signal(false);
   protected readonly summary = signal<string | null>(null);
+  protected readonly summarising = signal(false);
+  private readonly summaryAssist = viewChild<AiAssistButton>('summaryAssist');
+
+  /** Whether the AI summary can be asked for (the page shows it in "Spør KI"). */
+  readonly canSummarise = computed(() => this.canEdit() && this.app().criteria.length > 0);
   private readonly edited = linkedSignal({ source: this.app, computation: () => false });
   /** Criteria with a result ("Ikke vurdert ennå" does not count). */
   protected readonly progress = computed(() => {
@@ -205,6 +221,25 @@ export class ApplicationScreening {
   protected readonly dirty = computed(
     () => this.edited() || this.cover() !== (this.app().cover_note ?? ''),
   );
+
+  /** Start the AI summary against the criteria (from the page's "Spør KI" menu). */
+  summarise(): void {
+    const assist = this.summaryAssist();
+    if (assist) {
+      this.summarising.set(true);
+      assist.run();
+    }
+  }
+
+  protected onSummary(text: string): void {
+    this.summarising.set(false);
+    this.summary.set(text);
+  }
+
+  protected onFailed(): void {
+    this.summarising.set(false);
+    this.toasts.error('recruitment.detail.aiFailed');
+  }
 
   protected update(index: number, patch: Partial<Row>): void {
     this.rows.update((rows) => rows.map((r, i) => (i === index ? { ...r, ...patch } : r)));
