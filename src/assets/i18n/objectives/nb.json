@@ -52,7 +52,7 @@
     "onTrack": "På sporet",
     "atRisk": "I faresonen",
     "offTrack": "Utenfor målverdien",
-    "noData": "Ingen data ennå",
+    "noData": "Ikke målt ennå",
     "measurementOverdue": "Måling forfalt"
   },
   "filters": {
@@ -91,7 +91,7 @@
       "on_track": "På sporet",
       "at_risk": "I faresonen",
       "off_track": "Utenfor målverdien",
-      "no_data": "Ingen data ennå",
+      "no_data": "Ikke målt ennå",
       "no_target": "Ingen målverdi"
     },
     "objectiveSorts": {
@@ -128,7 +128,7 @@
     "at_risk": "I faresonen",
     "off_track": "Utenfor målverdien",
     "no_target": "Ingen målverdi",
-    "no_data": "Ingen data ennå"
+    "no_data": "Ikke målt ennå"
   },
   "trend": {
     "improving": "Bedres",

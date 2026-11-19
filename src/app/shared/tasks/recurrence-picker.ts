@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { DateInput } from '../ui/date-input/date-input';
 import { FormField } from '../ui/form-field/form-field';
 import {
   DEFAULT_RULE,
@@ -26,7 +27,7 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
  */
 @Component({
   selector: 'app-recurrence-picker',
-  imports: [TranslocoPipe, FormField, RuleSummary],
+  imports: [TranslocoPipe, FormField, RuleSummary, DateInput],
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -156,12 +157,11 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
               (change)="setEnd({ type: 'until', until: endUntil() || defaultUntil })"
             />
             {{ 'tasks.rrule.endUntil' | transloco }}
-            <input
-              type="date"
-              class="h-8 rounded-tile border border-border bg-bg px-2 text-[13px]"
-              [attr.aria-label]="'tasks.rrule.endUntilLabel' | transloco"
+            <app-date-input
+              class="w-40"
+              [ariaLabel]="'tasks.rrule.endUntilLabel' | transloco"
               [value]="endUntil()"
-              (change)="setEnd({ type: 'until', until: $any($event.target).value })"
+              (valueChange)="setEnd({ type: 'until', until: $event ?? '' })"
             />
           </label>
         </div>

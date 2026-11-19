@@ -27,6 +27,7 @@ import {
 import { TasksApi } from '../../core/tasks/tasks-api';
 import { Alert } from '../ui/alert/alert';
 import { Button } from '../ui/button/button';
+import { DateInput } from '../ui/date-input/date-input';
 import { FormField } from '../ui/form-field/form-field';
 import { Icon } from '../ui/icon/icon';
 import { AssigneeSelect } from './assignee-select';
@@ -88,6 +89,7 @@ let nextId = 0;
     Alert,
     Button,
     FormField,
+    DateInput,
     Icon,
     AssigneeSelect,
     RecurrencePicker,
@@ -178,12 +180,11 @@ let nextId = 0;
               [label]="(repeat() ? 'tasks.form.firstDue' : 'tasks.form.due') | transloco"
               [inputId]="id('due')"
             >
-              <input
-                [id]="id('due')"
-                type="date"
-                [attr.aria-invalid]="dueMissing() || null"
+              <app-date-input
+                [inputId]="id('due')"
+                [invalid]="dueMissing()"
                 [value]="dueDay()"
-                (change)="dueDay.set($any($event.target).value)"
+                (valueChange)="dueDay.set($event ?? '')"
               />
             </app-form-field>
             <app-task-field-help page="form" field="due" />
@@ -196,11 +197,10 @@ let nextId = 0;
           @if (!repeat()) {
             <div>
               <app-form-field [label]="'tasks.form.start' | transloco" [inputId]="id('start')">
-                <input
-                  [id]="id('start')"
-                  type="date"
+                <app-date-input
+                  [inputId]="id('start')"
                   [value]="startDay()"
-                  (change)="startDay.set($any($event.target).value)"
+                  (valueChange)="startDay.set($event ?? '')"
                 />
               </app-form-field>
               <app-task-field-help page="form" field="start" />
@@ -210,11 +210,10 @@ let nextId = 0;
       } @else {
         <div>
           <app-form-field [label]="'tasks.form.seriesStart' | transloco" [inputId]="id('due')">
-            <input
-              [id]="id('due')"
-              type="date"
+            <app-date-input
+              [inputId]="id('due')"
               [value]="dueDay()"
-              (change)="dueDay.set($any($event.target).value)"
+              (valueChange)="dueDay.set($event ?? '')"
             />
           </app-form-field>
         </div>
