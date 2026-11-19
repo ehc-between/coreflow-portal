@@ -22,12 +22,22 @@ import { KitApi } from '../../core/kit/kit-api';
 import { LinkItem } from '../../core/kit/kit.models';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { WatchButton } from '../../shared/activity/watch-button';
+import { AskPanelService } from '../ask/ask-panel.service';
+import { LinkedRecords } from '../context/ui/linked-records';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { CoverageChip } from '../../shared/requirement-links/coverage-chip';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { RequirementLink } from '../../core/standards/standards.models';
@@ -46,7 +56,6 @@ import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { PromptDialog } from '../../shared/ui/prompt-dialog/prompt-dialog';
 import { SlideOver } from '../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
-import { ProjectAskButton } from './ask-button';
 import { GanttRow, planRows } from './data/gantt';
 import {
   EntityRef,
@@ -124,6 +133,149 @@ export function percentExplanation(p: ProjectProgress): string {
   }
 }
 
+/** The status sentence of a project: i18n key, params and tone (docs/ux-guide.md §2.7). */
+export interface ProjectLeadStatus {
+  readonly tone: StatusLineTone;
+  /** The status word (i18n key) before the dash. */
+  readonly statusKey: string;
+  /** What it means, after the dash (i18n key + params). */
+  readonly meaningKey: string;
+  readonly meaningParams: Record<string, unknown>;
+}
+
+/** How far the project has come, in words ("3 av 6 milepæler er ferdige"). */
+function progressMeaning(
+  p: ProjectDetail,
+): Pick<ProjectLeadStatus, 'meaningKey' | 'meaningParams'> {
+  const g = p.progress;
+  switch (g.percent_basis) {
+    case 'tasks':
+      return {
+        meaningKey: 'projects.detail.lead.meaning.tasks',
+        meaningParams: { done: g.tasks_done, total: g.tasks_total },
+      };
+    case 'none':
+      return { meaningKey: 'projects.detail.lead.meaning.none', meaningParams: {} };
+    default:
+      return g.milestones_total
+        ? {
+            meaningKey: 'projects.detail.lead.meaning.milestones',
+            meaningParams: { done: g.milestones_done, total: g.milestones_total },
+          }
+        : { meaningKey: 'projects.detail.lead.meaning.none', meaningParams: {} };
+  }
+}
+
+/**
+ * "Fullført – målet ble nådd.", "I faresonen – 2 av 6 milepæler er ferdige.":
+ * closed projects say how they ended; open ones say how they are going (the
+ * owner's traffic light, or "Fristen er passert") and how far they have come.
+ */
+export function projectLeadStatus(p: ProjectDetail): ProjectLeadStatus {
+  if (p.status === 'completed') {
+    return {
+      tone: p.objective_met === 'no' ? 'warn' : 'pass',
+      statusKey: 'projects.status.completed',
+      meaningKey: `projects.detail.lead.meaning.met.${p.objective_met ?? 'unknown'}`,
+      meaningParams: {},
+    };
+  }
+  if (p.status === 'cancelled') {
+    return {
+      tone: 'neutral',
+      statusKey: 'projects.status.cancelled',
+      meaningKey: 'projects.detail.lead.meaning.cancelled',
+      meaningParams: {},
+    };
+  }
+  const meaning = progressMeaning(p);
+  if (p.is_overdue) {
+    return { tone: 'warn', statusKey: 'projects.detail.lead.overdue', ...meaning };
+  }
+  switch (p.health) {
+    case 'green':
+      return { tone: 'pass', statusKey: 'projects.healths.green', ...meaning };
+    case 'amber':
+      return { tone: 'warn', statusKey: 'projects.healths.amber', ...meaning };
+    case 'red':
+      return { tone: 'fail', statusKey: 'projects.healths.red', ...meaning };
+    default:
+      return {
+        tone: p.status === 'on_hold' ? 'warn' : 'info',
+        statusKey: `projects.status.${p.status}`,
+        ...meaning,
+      };
+  }
+}
+
+/** What a project still needs ("Oppfølging", docs/ux-guide.md §2.7). Closed projects need nothing. */
+export function projectMissing(
+  p: ProjectDetail,
+  editLink: readonly unknown[] | null,
+  go: (target: 'plan' | 'overdue' | 'reviews' | 'security') => void,
+): RecordMissingItem[] {
+  if (isClosedStatus(p.status)) {
+    return [];
+  }
+  const items: RecordMissingItem[] = [];
+  const g = p.progress;
+  if (g.milestones_overdue > 0) {
+    items.push({
+      key: 'overdue',
+      labelKey: 'projects.detail.missing.milestonesOverdue',
+      params: { count: g.milestones_overdue },
+      action: () => go('overdue'),
+    });
+  }
+  if (g.design_reviews_pending > 0) {
+    items.push({
+      key: 'reviews',
+      labelKey: 'projects.detail.missing.reviewsPending',
+      params: { count: g.design_reviews_pending },
+      action: () => go('reviews'),
+    });
+  }
+  if ((g.review_actions_open ?? 0) > 0) {
+    items.push({
+      key: 'actions',
+      labelKey: 'projects.detail.missing.reviewActions',
+      params: { count: g.review_actions_open },
+      action: () => go('reviews'),
+    });
+  }
+  const openChecks = (p.security_checklist ?? []).filter((c) => !c.done).length;
+  if (p.security_relevant && openChecks > 0) {
+    items.push({
+      key: 'security',
+      labelKey: 'projects.detail.missing.security',
+      params: { count: openChecks },
+      action: () => go('security'),
+    });
+  }
+  if (editLink) {
+    if (!p.objective?.trim()) {
+      items.push({
+        key: 'objective',
+        labelKey: 'projects.detail.missing.objective',
+        link: editLink,
+      });
+    }
+    if (!p.scope?.trim()) {
+      items.push({ key: 'scope', labelKey: 'projects.detail.missing.scope', link: editLink });
+    }
+    if (!p.owner) {
+      items.push({ key: 'owner', labelKey: 'projects.detail.missing.owner', link: editLink });
+    }
+    if (!p.due_date) {
+      items.push({ key: 'due', labelKey: 'projects.detail.missing.due', link: editLink });
+    }
+  }
+  if (p.can_contribute && !g.milestones_total && !g.tasks_total) {
+    items.push({ key: 'plan', labelKey: 'projects.detail.missing.plan', action: () => go('plan') });
+  }
+  return items;
+}
+
 /** The related records shown in the purpose card, by role. */
 export function purposeLinks(links: readonly LinkItem[]): {
   readonly affected: EntityRef[];
@@ -168,11 +320,13 @@ export function purposeLinks(links: readonly LinkItem[]): {
     TranslocoPipe,
     LocalDatePipe,
     LocalDayPipe,
-    WatchButton,
     WhyItMatters,
-    EntityChip,
     RecordDetailLayout,
-    CoverageChip,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    LinkedRecords,
     SupportsRequirements,
     EntityTasks,
     Alert,
@@ -190,7 +344,6 @@ export function purposeLinks(links: readonly LinkItem[]): {
     PromptDialog,
     SlideOver,
     StatusBadge,
-    ProjectAskButton,
     GanttChart,
     ProjectAiPanel,
     ProjectBoard,
@@ -226,6 +379,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
       @default {
         @if (project(); as p) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="project"
             [entityId]="p.id"
             [title]="p.title"
@@ -238,41 +392,20 @@ export function purposeLinks(links: readonly LinkItem[]): {
             [requirementsPanel]="false"
             [canEdit]="p.can_contribute && !closed()"
             [fieldLabels]="fieldLabels"
-            backLink="/projects"
-            backLabelKey="projects.common.backToList"
+            [missing]="missing()"
           >
-            <ng-container meta>
+            <ng-container ngProjectAs="[meta]">
               <span class="font-mono font-semibold" data-testid="project-code">{{ p.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ 'projects.kinds.' + p.kind | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 [meaning]="statusBadge(p.status).meaning"
                 [value]="statusBadge(p.status).value"
                 [labelKey]="statusBadge(p.status).labelKey"
                 data-testid="project-status"
               />
-              @if (p.priority === 'high' || p.priority === 'urgent') {
-                <app-status-badge
-                  [meaning]="priority(p.priority).meaning"
-                  [value]="priority(p.priority).value"
-                  [labelKey]="priority(p.priority).labelKey"
-                />
-              }
-              @if (p.health && !closed()) {
-                <app-status-badge
-                  [meaning]="health(p.health).meaning"
-                  [value]="health(p.health).value"
-                  [labelKey]="health(p.health).labelKey"
-                  [attr.title]="'projects.fields.healthHint' | transloco"
-                />
-              }
-              @if (p.security_relevant) {
-                <span class="inline-flex items-center gap-1 text-meta text-info-ink">
-                  <app-icon name="lock" [size]="12" />
-                  {{ 'projects.fields.securityShort' | transloco }}
-                </span>
-              }
-              @if (p.is_overdue) {
+              @if (p.is_overdue && !closed()) {
                 <app-status-badge meaning="lifecycle" value="overdue" />
               }
             </ng-container>
@@ -280,7 +413,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
             @if (p.can_edit && !closed()) {
               <a
                 primary
-                [routerLink]="['/projects', p.id, 'edit']"
+                [routerLink]="editLink()"
                 class="inline-flex h-9 items-center gap-1.5 rounded-tile bg-accent px-3.5 text-ui font-semibold text-white hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
                 data-testid="project-edit"
               >
@@ -303,15 +436,6 @@ export function purposeLinks(links: readonly LinkItem[]): {
                 {{ 'projects.closeout.open' | transloco }}
               </app-button>
             }
-            <app-project-ask-button
-              secondary
-              promptKey="projects.ask.summarise"
-              labelKey="projects.ask.label"
-              [requirements]="confirmedRefs()"
-              testId="project-ask"
-            />
-            <app-watch-button secondary entityType="project" [entityId]="p.id" />
-
             @if (p.can_edit && !closed()) {
               <button
                 appMenuItem
@@ -323,15 +447,6 @@ export function purposeLinks(links: readonly LinkItem[]): {
                 {{ 'projects.closeout.open' | transloco }}
               </button>
             }
-            <button
-              appMenuItem
-              overflow
-              type="button"
-              (click)="aiOpen.set(true)"
-              data-testid="open-ai"
-            >
-              {{ 'projects.ai.menu' | transloco }}
-            </button>
             @if (p.can_delete) {
               <button
                 appMenuItem
@@ -345,12 +460,151 @@ export function purposeLinks(links: readonly LinkItem[]): {
               </button>
             }
 
+            <button
+              appMenuItem
+              ask
+              type="button"
+              (click)="askAi('projects.ask.summarise')"
+              data-testid="project-ask"
+            >
+              <app-icon name="spark" [size]="15" />
+              {{ 'projects.ai.askSummarise' | transloco }}
+            </button>
+            @if (!closed()) {
+              <button appMenuItem ask type="button" (click)="askAi('projects.ask.objectiveReview')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'projects.ai.askObjective' | transloco }}
+              </button>
+            }
+            <button appMenuItem ask type="button" (click)="aiOpen.set(true)" data-testid="open-ai">
+              <app-icon name="spark" [size]="15" />
+              {{ 'projects.ai.askPanel' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="projects"
               page="detail"
               [lesson]="p.kind === 'design_development' ? 'design-control' : 'project-basics'"
             />
+
+            <app-record-lead record-lead [fillLink]="p.can_edit && !closed() ? editLink() : null">
+              <app-record-status-line status [tone]="lead().tone">
+                <span data-testid="project-status-sentence">{{ lead().sentence }}</span>
+              </app-record-status-line>
+              @if (closed()) {
+                <app-field-item
+                  size="lead"
+                  labelKey="projects.detail.lead.objective"
+                  [value]="p.objective"
+                  [multiline]="true"
+                />
+                <app-field-item size="lead" labelKey="projects.fields.objectiveMet">
+                  @if (p.objective_met) {
+                    <app-status-badge
+                      [meaning]="metBadge(p.objective_met).meaning"
+                      [value]="metBadge(p.objective_met).value"
+                      [labelKey]="metBadge(p.objective_met).labelKey"
+                    />
+                    @if (p.closeout_approved_by) {
+                      <span class="mt-1 block text-meta text-fg-muted">
+                        {{
+                          'projects.detail.approvedBy'
+                            | transloco
+                              : {
+                                  name: p.closeout_approved_by.name,
+                                  date: (p.closeout_approved_at | localDate: 'mediumDate'),
+                                }
+                        }}
+                      </span>
+                    }
+                  }
+                </app-field-item>
+                <app-field-item
+                  size="lead"
+                  labelKey="projects.fields.objectiveEvidence"
+                  [value]="p.objective_evidence"
+                  [multiline]="true"
+                />
+                <app-field-item
+                  size="lead"
+                  labelKey="projects.fields.closeoutSummary"
+                  [value]="p.closeout_summary"
+                  [multiline]="true"
+                />
+              } @else {
+                <app-field-item
+                  size="lead"
+                  labelKey="projects.detail.lead.objective"
+                  [value]="p.objective"
+                  [multiline]="true"
+                />
+                <app-field-item
+                  size="lead"
+                  labelKey="projects.detail.lead.scope"
+                  [value]="p.scope"
+                  [multiline]="true"
+                />
+                <app-field-item size="lead" labelKey="projects.detail.lead.due">
+                  @if (p.due_date) {
+                    <span [class.text-warn-ink]="p.is_overdue">{{ p.due_date | localDay }}</span>
+                    @if (daysToDue(); as text) {
+                      <span class="block text-meta text-fg-muted">{{ text }}</span>
+                    }
+                  }
+                </app-field-item>
+                <app-field-item size="lead" labelKey="projects.progress.title">
+                  <span class="flex items-center gap-3" data-testid="progress-card">
+                    <app-progress-bar
+                      class="min-w-0 flex-1"
+                      [value]="p.progress.percent"
+                      [label]="'projects.progress.title' | transloco"
+                    />
+                    <span class="font-bold" data-testid="progress-percent">{{
+                      'projects.progress.percent' | transloco: { percent: p.progress.percent }
+                    }}</span>
+                  </span>
+                  <span class="mt-1 block text-meta text-fg-muted" data-testid="progress-basis">
+                    {{ basisKey() | transloco }}
+                  </span>
+                  <span class="mt-2 flex flex-col items-start gap-0.5 text-ui">
+                    <button
+                      type="button"
+                      class="text-left hover:text-accent hover:underline"
+                      (click)="showPlan()"
+                      data-testid="progress-milestones"
+                    >
+                      {{ 'projects.progress.milestones' | transloco }}:
+                      {{ progressLine('milestones') }}
+                    </button>
+                    <span data-testid="progress-tasks">
+                      {{ 'projects.progress.tasks' | transloco }}: {{ progressLine('tasks') }}
+                    </span>
+                    @if (p.progress.design_reviews_total || p.kind === 'design_development') {
+                      <button
+                        type="button"
+                        class="text-left hover:text-accent hover:underline"
+                        (click)="setSection('reviews')"
+                        data-testid="progress-reviews"
+                      >
+                        {{ 'projects.progress.reviews' | transloco }}:
+                        {{ progressLine('reviews') }}
+                      </button>
+                    }
+                  </span>
+                  @if (summary(); as s) {
+                    @if (s.next_milestone; as next) {
+                      <span class="mt-2 block text-meta text-fg-muted" data-testid="next-milestone">
+                        {{
+                          'projects.progress.nextMilestone'
+                            | transloco: { title: next.title, date: (next.due_date | localDay) }
+                        }}
+                      </span>
+                    }
+                  }
+                </app-field-item>
+              }
+            </app-record-lead>
 
             <div class="flex flex-col gap-5">
               <nav
@@ -398,257 +652,162 @@ export function purposeLinks(links: readonly LinkItem[]): {
               @switch (section()) {
                 @case ('overview') {
                   <div class="flex flex-col gap-5" data-testid="section-overview-body">
-                    <div
-                      class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-border bg-surface px-4 py-3 text-ui lg:hidden"
-                      data-testid="mobile-summary"
-                    >
-                      <span class="inline-flex items-center gap-1.5 text-fg-muted">
-                        <app-icon name="people" [size]="14" />
-                        {{ p.owner?.name ?? ('projects.common.none' | transloco) }}
-                        · {{ 'projects.list.members' | transloco: { count: p.member_count } }}
-                      </span>
-                      <app-coverage-chip entityType="project" [entityId]="p.id" />
-                    </div>
-
-                    @if (closed()) {
-                      <app-card data-testid="closeout-card">
-                        <h2 class="mb-3 font-display text-card font-bold text-fg">
-                          {{ 'projects.detail.closeoutTitle' | transloco }}
-                        </h2>
-                        <app-field-list>
-                          <app-field-item labelKey="projects.fields.objectiveMet">
-                            @if (p.objective_met) {
-                              <app-status-badge
-                                [meaning]="metBadge(p.objective_met).meaning"
-                                [value]="metBadge(p.objective_met).value"
-                                [labelKey]="metBadge(p.objective_met).labelKey"
-                              />
-                            }
-                          </app-field-item>
-                          <app-field-item labelKey="projects.fields.closeoutApprovedBy">
-                            @if (p.closeout_approved_by) {
-                              {{
-                                'projects.detail.approvedBy'
-                                  | transloco
-                                    : {
-                                        name: p.closeout_approved_by.name,
-                                        date: (p.closeout_approved_at | localDate: 'mediumDate'),
-                                      }
-                              }}
-                            }
-                          </app-field-item>
-                          <app-field-item
-                            labelKey="projects.fields.objectiveEvidence"
-                            [value]="p.objective_evidence"
-                            [wide]="true"
-                            [multiline]="true"
-                          />
-                          <app-field-item
-                            labelKey="projects.fields.closeoutSummary"
-                            [value]="p.closeout_summary"
-                            [wide]="true"
-                            [multiline]="true"
-                          />
-                        </app-field-list>
-                      </app-card>
-                    }
-
                     <app-card>
-                      <h2 class="mb-3 font-display text-card font-bold text-fg">
-                        {{ 'projects.detail.purpose' | transloco }}
-                      </h2>
-                      <app-field-list>
+                      <app-record-details
+                        [columns]="2"
+                        [fillLink]="p.can_edit && !closed() ? editLink() : null"
+                      >
                         <app-field-item
-                          labelKey="projects.fields.objective"
-                          [value]="p.objective"
+                          labelKey="projects.fields.description"
+                          [value]="p.description"
                           [wide]="true"
                           [multiline]="true"
                         />
-                        <app-field-item
-                          labelKey="projects.fields.scope"
-                          [value]="p.scope"
-                          [wide]="true"
-                          [multiline]="true"
-                        />
-                        @if (p.description) {
+                        @if (closed()) {
                           <app-field-item
-                            labelKey="projects.fields.description"
-                            [value]="p.description"
+                            labelKey="projects.detail.lead.scope"
+                            [value]="p.scope"
                             [wide]="true"
                             [multiline]="true"
                           />
                         }
-                        <app-field-item labelKey="projects.fields.owner" [value]="p.owner?.name" />
                         <app-field-item
-                          labelKey="projects.fields.department"
-                          [value]="departmentName()"
+                          labelKey="projects.detail.fields.changeConsequences"
+                          [value]="p.change_consequences"
+                          [wide]="true"
+                          [multiline]="true"
                         />
                         <app-field-item
-                          labelKey="projects.fields.startDate"
-                          [value]="p.start_date ? (p.start_date | localDay) : null"
+                          labelKey="projects.detail.fields.changeResources"
+                          [value]="p.change_resources"
+                          [wide]="true"
+                          [multiline]="true"
                         />
-                        <app-field-item labelKey="projects.fields.dueDate">
-                          @if (p.due_date) {
-                            <span [class.text-warn-ink]="p.is_overdue">{{
-                              p.due_date | localDay
-                            }}</span>
-                            @if (daysToDue(); as text) {
-                              <span class="block text-meta text-fg-subtle">{{ text }}</span>
-                            }
+                        <app-field-item labelKey="projects.fields.priority">
+                          @if (p.priority !== 'normal') {
+                            <app-status-badge
+                              [meaning]="priority(p.priority).meaning"
+                              [value]="priority(p.priority).value"
+                              [labelKey]="priority(p.priority).labelKey"
+                            />
                           }
                         </app-field-item>
-                      </app-field-list>
-
-                      <div class="mt-5 border-t border-border pt-4" data-testid="change-card">
-                        <h3
-                          class="mb-3 flex flex-wrap items-center gap-1.5 text-body font-semibold text-fg"
-                        >
-                          {{ 'projects.form.sections.change' | transloco }}
-                        </h3>
-                        <app-field-list>
-                          <app-field-item
-                            labelKey="projects.fields.changeConsequences"
-                            [value]="p.change_consequences"
-                            [wide]="true"
-                            [multiline]="true"
-                          />
-                          <app-field-item
-                            labelKey="projects.fields.changeResources"
-                            [value]="p.change_resources"
-                            [wide]="true"
-                            [multiline]="true"
-                          />
-                          <app-field-item
-                            labelKey="projects.form.affected"
-                            [wide]="true"
-                            empty="none"
-                          >
-                            @if (purpose().affected.length || canLink()) {
-                              <div class="flex flex-col gap-2">
-                                @if (purpose().affected.length && !canLink()) {
-                                  <div class="flex flex-wrap gap-1.5" data-testid="affected">
-                                    @for (r of purpose().affected; track r.entity_id) {
-                                      <app-entity-chip [ref]="r" />
-                                    }
-                                  </div>
-                                }
-                                @if (canLink()) {
-                                  <app-project-record-picker
-                                    [types]="affectedTypes"
-                                    [picked]="purpose().affected"
-                                    [label]="'projects.form.affected' | transloco"
-                                    [placeholder]="'projects.form.affectedPlaceholder' | transloco"
-                                    testId="detail-pick-affected"
-                                    (selected)="link($event, 'relates_to')"
-                                  />
-                                }
-                              </div>
-                            }
+                        @if (p.health && p.is_overdue && !closed()) {
+                          <app-field-item labelKey="projects.detail.fields.health">
+                            <app-status-badge
+                              [meaning]="health(p.health).meaning"
+                              [value]="health(p.health).value"
+                              [labelKey]="health(p.health).labelKey"
+                            />
+                            <span class="mt-1 block text-meta text-fg-muted">{{
+                              'projects.fields.healthHint' | transloco
+                            }}</span>
                           </app-field-item>
+                        }
+                        @if (closed()) {
                           <app-field-item
-                            labelKey="projects.form.objectives"
+                            labelKey="projects.detail.lead.due"
+                            [value]="p.due_date ? (p.due_date | localDay) : null"
+                          />
+                        }
+                        @if (p.security_relevant) {
+                          <app-field-item
+                            labelKey="projects.fields.securityShort"
                             [wide]="true"
-                            empty="none"
-                          >
-                            @if (purpose().objectives.length || canLink()) {
-                              <div class="flex flex-col gap-2">
-                                @if (purpose().objectives.length && !canLink()) {
-                                  <div class="flex flex-wrap gap-1.5" data-testid="objectives">
-                                    @for (r of purpose().objectives; track r.entity_id) {
-                                      <app-entity-chip [ref]="r" />
-                                    }
-                                  </div>
-                                }
-                                @if (canLink()) {
-                                  <app-project-record-picker
-                                    [types]="objectiveTypes"
-                                    [picked]="purpose().objectives"
-                                    [label]="'projects.form.objectives' | transloco"
-                                    [placeholder]="
-                                      'projects.form.objectivesPlaceholder' | transloco
-                                    "
-                                    testId="detail-pick-objectives"
-                                    (selected)="link($event, 'implements')"
-                                  />
-                                }
-                              </div>
-                            }
-                          </app-field-item>
-                        </app-field-list>
-                      </div>
+                            [value]="'projects.detail.securityYes' | transloco"
+                          />
+                        }
+                      </app-record-details>
                     </app-card>
 
-                    <app-card data-testid="progress-card">
-                      <div class="mb-3 flex items-center justify-between gap-2">
-                        <h2 class="font-display text-card font-bold text-fg">
-                          {{ 'projects.progress.title' | transloco }}
-                        </h2>
-                        <span class="text-card font-bold text-fg" data-testid="progress-percent">
-                          {{
-                            'projects.progress.percent' | transloco: { percent: p.progress.percent }
-                          }}
-                        </span>
-                      </div>
-                      <app-progress-bar
-                        [value]="p.progress.percent"
-                        [label]="'projects.progress.title' | transloco"
-                      />
-                      <p class="mt-2 text-meta text-fg-subtle" data-testid="progress-basis">
-                        {{ basisKey() | transloco }}
+                    <app-card data-testid="change-card">
+                      <h2 class="font-display text-card font-bold text-fg">
+                        {{ 'projects.detail.touches.title' | transloco }}
+                      </h2>
+                      <p class="mt-1 mb-4 text-meta text-fg-muted">
+                        {{ 'projects.detail.touches.intro' | transloco }}
                       </p>
-                      <ul class="mt-4 grid grid-cols-1 gap-3 text-ui sm:grid-cols-3">
-                        <li>
-                          <p class="text-meta font-semibold text-fg-muted">
-                            {{ 'projects.progress.milestones' | transloco }}
-                          </p>
-                          <p class="text-fg" data-testid="progress-milestones">
-                            {{ progressLine('milestones') }}
-                          </p>
-                        </li>
-                        <li>
-                          <p class="text-meta font-semibold text-fg-muted">
-                            {{ 'projects.progress.tasks' | transloco }}
-                          </p>
-                          <p class="text-fg" data-testid="progress-tasks">
-                            {{ progressLine('tasks') }}
-                          </p>
-                        </li>
-                        <li>
-                          <p class="text-meta font-semibold text-fg-muted">
-                            {{ 'projects.progress.reviews' | transloco }}
-                          </p>
-                          <p class="text-fg" data-testid="progress-reviews">
-                            {{ progressLine('reviews') }}
-                          </p>
-                        </li>
-                      </ul>
-                      @if (summary(); as s) {
-                        @if (s.next_milestone; as next) {
-                          <p class="mt-3 text-ui text-fg-muted" data-testid="next-milestone">
-                            {{
-                              'projects.progress.nextMilestone'
-                                | transloco: { title: next.title, date: (next.due_date | localDay) }
-                            }}
-                          </p>
-                        }
-                      }
+                      <div class="grid gap-5 md:grid-cols-2">
+                        <section aria-labelledby="project-affected-title">
+                          <h3
+                            id="project-affected-title"
+                            class="mb-2 text-ui font-semibold text-fg"
+                          >
+                            {{ 'projects.detail.touches.affected' | transloco }}
+                          </h3>
+                          @if (purpose().affected.length) {
+                            <app-context-linked-records
+                              [refs]="purpose().affected"
+                              data-testid="affected"
+                            />
+                          } @else {
+                            <p class="text-ui text-fg-subtle">
+                              {{ 'projects.detail.touches.noneAffected' | transloco }}
+                            </p>
+                          }
+                          @if (canLink()) {
+                            <app-project-record-picker
+                              class="mt-2 block"
+                              [types]="affectedTypes"
+                              [picked]="purpose().affected"
+                              [showPicked]="false"
+                              [label]="'projects.form.affected' | transloco"
+                              [placeholder]="'projects.form.affectedPlaceholder' | transloco"
+                              testId="detail-pick-affected"
+                              (selected)="link($event, 'relates_to')"
+                            />
+                          }
+                        </section>
+                        <section aria-labelledby="project-objectives-title">
+                          <h3
+                            id="project-objectives-title"
+                            class="mb-2 text-ui font-semibold text-fg"
+                          >
+                            {{ 'projects.detail.touches.objectives' | transloco }}
+                          </h3>
+                          @if (purpose().objectives.length) {
+                            <app-context-linked-records
+                              [refs]="purpose().objectives"
+                              data-testid="objectives"
+                            />
+                          } @else {
+                            <p class="text-ui text-fg-subtle">
+                              {{ 'projects.detail.touches.noneObjectives' | transloco }}
+                            </p>
+                          }
+                          @if (canLink()) {
+                            <app-project-record-picker
+                              class="mt-2 block"
+                              [types]="objectiveTypes"
+                              [picked]="purpose().objectives"
+                              [showPicked]="false"
+                              [label]="'projects.form.objectives' | transloco"
+                              [placeholder]="'projects.form.objectivesPlaceholder' | transloco"
+                              testId="detail-pick-objectives"
+                              (selected)="link($event, 'implements')"
+                            />
+                          }
+                        </section>
+                      </div>
                     </app-card>
 
                     @if (p.security_relevant) {
-                      <app-card data-testid="security-card">
+                      <app-card id="project-security" data-testid="security-card">
                         <h2 class="mb-1 font-display text-card font-bold text-fg">
                           {{ 'projects.security.title' | transloco }}
                         </h2>
                         <p class="mb-3 text-meta text-fg-muted">
                           {{ 'projects.security.intro' | transloco }}
                         </p>
-                        <app-field-list [columns]="1">
-                          <app-field-item
-                            labelKey="projects.fields.securityRequirements"
-                            [value]="p.security_requirements"
-                            [multiline]="true"
-                          />
-                        </app-field-list>
+                        @if (p.security_requirements) {
+                          <app-field-list [columns]="1">
+                            <app-field-item
+                              labelKey="projects.fields.securityRequirements"
+                              [value]="p.security_requirements"
+                              [multiline]="true"
+                            />
+                          </app-field-list>
+                        }
                         @if ((p.security_checklist ?? []).length) {
                           <ul class="mt-4 flex flex-col gap-2" data-testid="security-checklist">
                             @for (c of p.security_checklist; track c.key) {
@@ -674,11 +833,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
                                     >
                                   </p>
                                   @if (c.items.length) {
-                                    <div class="mt-1 flex flex-wrap gap-1.5">
-                                      @for (i of c.items; track i.entity_type + i.entity_id) {
-                                        <app-entity-chip [ref]="i" />
-                                      }
-                                    </div>
+                                    <app-context-linked-records class="mt-1.5" [refs]="c.items" />
                                   } @else {
                                     <p class="text-meta text-fg-subtle">
                                       {{ 'projects.security.hints.' + c.key | transloco }}
@@ -738,11 +893,7 @@ export function purposeLinks(links: readonly LinkItem[]): {
                           {{ 'projects.outputs.intro' | transloco }}
                         </p>
                         @if ((p.design_outputs ?? []).length) {
-                          <div class="flex flex-wrap gap-1.5">
-                            @for (d of p.design_outputs; track d.entity_id) {
-                              <app-entity-chip [ref]="d" />
-                            }
-                          </div>
+                          <app-context-linked-records [refs]="p.design_outputs ?? []" />
                         } @else {
                           <p class="text-ui text-fg-subtle">
                             {{ 'projects.outputs.empty' | transloco }}
@@ -760,8 +911,6 @@ export function purposeLinks(links: readonly LinkItem[]): {
                         </p>
                       </app-card>
                     }
-
-                    <app-why-it-matters scope="projects" page="detail" />
                   </div>
                 }
                 @case ('plan') {
@@ -892,6 +1041,40 @@ export function purposeLinks(links: readonly LinkItem[]): {
                 (linksChange)="reqLinks.set($event)"
               />
             </ng-container>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="projects.fields.owner"
+                [value]="p.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="projects.fields.department"
+                [value]="departmentName()"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="projects.fields.startDate"
+                [value]="p.start_date ? (p.start_date | localDay) : null"
+              />
+              @if (closed()) {
+                <app-field-item
+                  layout="inline"
+                  labelKey="projects.fields.closedAt"
+                  [value]="p.closed_at ? (p.closed_at | localDay) : null"
+                />
+              }
+              <app-field-item
+                layout="inline"
+                labelKey="projects.detail.fields.updated"
+                [value]="p.updated_at | localDate"
+              />
+            </app-record-meta>
+
+            <div aside-learn>
+              <app-why-it-matters scope="projects" page="detail" />
+            </div>
 
             <ng-container aside>
               <app-card>
@@ -1039,6 +1222,33 @@ export class ProjectDetailPage {
       : null;
   });
 
+  private readonly ask = inject(AskPanelService);
+
+  protected readonly editLink = computed(() => ['/projects', this.id(), 'edit']);
+  /** The status sentence at the top of "Hovedinformasjon". */
+  protected readonly lead = computed(() => {
+    const p = this.project();
+    if (!p) {
+      return { tone: 'neutral' as StatusLineTone, sentence: '' };
+    }
+    const s = projectLeadStatus(p);
+    return {
+      tone: s.tone,
+      sentence: this.language.translate('projects.detail.lead.sentence', {
+        status: this.language.translate(s.statusKey),
+        meaning: this.language.translate(s.meaningKey, s.meaningParams),
+      }),
+    };
+  });
+  protected readonly missing = computed(() => {
+    const p = this.project();
+    return p
+      ? projectMissing(p, p.can_edit && !this.closed() ? this.editLink() : null, (t) =>
+          this.goTo(t),
+        )
+      : [];
+  });
+
   protected readonly reopenAllowed = computed(() => {
     const p = this.project();
     return (
@@ -1118,7 +1328,8 @@ export class ProjectDetailPage {
     this.section.set(s);
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { section: s === 'overview' ? null : s },
+      // Sections live in the Details tab: open it too.
+      queryParams: { section: s === 'overview' ? null : s, tab: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -1290,6 +1501,35 @@ export class ProjectDetailPage {
         this.notifications.error(projectErrorKey(error));
       },
     });
+  }
+
+  /** "Spør KI": ask the assistant about the project, with its confirmed requirements. */
+  protected askAi(promptKey: string): void {
+    this.ask.askAbout(this.language.translate(promptKey), undefined, {
+      requirements: this.confirmedRefs(),
+    });
+  }
+
+  /** The plan as a list (from the progress line). */
+  protected showPlan(): void {
+    this.setSection('plan');
+    this.planView.set('list');
+  }
+
+  /** Where an "Oppfølging" line leads. */
+  protected goTo(target: 'plan' | 'overdue' | 'reviews' | 'security'): void {
+    if (target === 'reviews') {
+      this.setSection('reviews');
+    } else if (target === 'security') {
+      this.setSection('overview');
+      setTimeout(() =>
+        document
+          .getElementById('project-security')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
+    } else {
+      this.showPlan();
+    }
   }
 
   protected statusKey(status: string): string {

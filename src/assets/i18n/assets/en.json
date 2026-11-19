@@ -608,7 +608,7 @@
     "locked": "The approved content is frozen. Only the dates, owner and the implementation and review details can still be changed.",
     "planned": "Planned",
     "noAssets": "No assets linked.",
-    "assetsHint": "Processes, documents, suppliers and risks the change affects are shown under Connections.",
+    "assetsHint": "Processes, documents, suppliers and risks the change affects are shown under “Connected to” in Follow-up.",
     "deleteTitle": "Delete this change request?",
     "deleteMessage": "{{ code }} {{ title }} is removed. Its history is kept for audits.",
     "deleted": "{{ code }} deleted.",
@@ -622,6 +622,45 @@
       "task": "Create a task",
       "deviation": "Register a deviation",
       "risk": "Register a risk"
+    },
+    "lead": {
+      "sentence": "{{ status }} – {{ meaning }}.",
+      "what": "What changes",
+      "why": "Why",
+      "risk": "Risk",
+      "when": "Planned",
+      "outcome": "Did it work?",
+      "implementedOn": "Carried out {{ date }}",
+      "updated": "Last changed",
+      "meaning": {
+        "draft": "the request has not been sent for assessment yet",
+        "assessment": "the consequences and risk are being assessed",
+        "approved": "ready to be carried out",
+        "implementing": "the change is being made now",
+        "review": "check whether the change worked",
+        "rejected": "the change will not be made",
+        "cancelled": "the change was stopped",
+        "other": "follow the workflow below",
+        "pending": "waiting for approval",
+        "closed": {
+          "successful": "the change worked as planned",
+          "partially_successful": "the change partly worked",
+          "failed": "the change did not work",
+          "rolled_back": "the change was rolled back",
+          "none": "the change is closed"
+        }
+      }
+    },
+    "fields": {
+      "impact": "What the change affects",
+      "risk": "What could go wrong",
+      "plan": "How it is carried out",
+      "rollback": "How we go back if something goes wrong"
+    },
+    "missing": {
+      "step": "Fields to fill in before the next step: {{ count }}",
+      "owner": "Choose an owner",
+      "rollback": "Write down how to go back (high risk)"
     }
   },
   "ai": {

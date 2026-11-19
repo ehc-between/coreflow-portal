@@ -199,7 +199,52 @@
     "deleteTitle": "Slette prosjektet?",
     "deleteMessage": "{{ code }} fjernes sammen med milepæler, gjennomganger og erfaringer, og åpne oppgaver avbrytes. Revisjonssporet beholdes.",
     "closeoutTitle": "Resultat av prosjektet",
-    "approvedBy": "{{ name }}, {{ date }}"
+    "approvedBy": "{{ name }}, {{ date }}",
+    "lead": {
+      "sentence": "{{ status }} – {{ meaning }}.",
+      "overdue": "Fristen er passert",
+      "objective": "Hva prosjektet skal oppnå",
+      "scope": "Hva som er med",
+      "due": "Ferdig innen",
+      "meaning": {
+        "milestones": "{{ done }} av {{ total }} milepæler er ferdige",
+        "tasks": "{{ done }} av {{ total }} oppgaver er ferdige",
+        "none": "ingenting er planlagt ennå",
+        "cancelled": "prosjektet ble stoppet før det var ferdig",
+        "met": {
+          "yes": "målet ble nådd",
+          "partial": "målet ble delvis nådd",
+          "no": "målet ble ikke nådd",
+          "unknown": "prosjektet er avsluttet"
+        }
+      }
+    },
+    "fields": {
+      "changeConsequences": "Hva som kan gå galt",
+      "changeResources": "Folk og budsjett som trengs",
+      "health": "Eierens vurdering",
+      "updated": "Sist endret"
+    },
+    "securityYes": "Ja – prosjektet må følge sikkerhetssjekklisten nedenfor",
+    "touches": {
+      "title": "Hva prosjektet endrer",
+      "intro": "Prosessene og dokumentene som endres, og målene prosjektet bidrar til.",
+      "affected": "Prosesser og dokumenter som endres",
+      "objectives": "Mål prosjektet bidrar til",
+      "noneAffected": "Ingen koblet ennå.",
+      "noneObjectives": "Ingen koblet ennå."
+    },
+    "missing": {
+      "milestonesOverdue": "Milepæler som har passert fristen: {{ count }}",
+      "reviewsPending": "Gjennomganger som venter: {{ count }}",
+      "reviewActions": "Åpne tiltak fra gjennomganger: {{ count }}",
+      "security": "Sikkerhetskontroller som gjenstår: {{ count }}",
+      "objective": "Skriv ned hva prosjektet skal oppnå",
+      "scope": "Beskriv hva som er med",
+      "owner": "Velg hvem som eier prosjektet",
+      "due": "Sett en frist",
+      "plan": "Planlegg milepæler"
+    }
   },
   "progress": {
     "title": "Fremdrift",
@@ -435,7 +480,10 @@
     "taskFailed": "Oppgaven kunne ikke legges til.",
     "risksNote": "Bare forslag. «Registrer i risikoregisteret» åpner risikoskjemaet ferdig utfylt, og risikoen kobles til prosjektet når du lagrer.",
     "menu": "KI-hjelp: status og risikoer",
-    "registerRisk": "Registrer i risikoregisteret"
+    "registerRisk": "Registrer i risikoregisteret",
+    "askSummarise": "Oppsummer prosjektet",
+    "askObjective": "Er målet tydelig og målbart?",
+    "askPanel": "Statusrapport og forslag til risikoer"
   },
   "ask": {
     "summarise": "Oppsummer dette prosjektet: hvor det står, hva som er forsinket og hva som trenger en beslutning.",
