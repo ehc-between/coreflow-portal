@@ -16,7 +16,12 @@ import {
   roleChange,
 } from './members/member-rules';
 import { cellActions, matrixCsv, matrixFromRoles } from './roles/roles-page';
-import { SETTINGS_GROUPS, hubSections } from './settings-links/settings-links';
+import {
+  PRIMARY_SETTINGS_PATHS,
+  SETTINGS_GROUPS,
+  hubSections,
+  primaryHubCards,
+} from './settings-links/settings-links';
 import { peopleLandingFor, peopleNavFor } from './settings-nav/settings-nav';
 
 const role = (key: string, permissions: string[], grantable = true): OrgRole => ({
@@ -143,6 +148,11 @@ describe('settings navigation', () => {
     ]);
     expect(peopleLandingFor(['org:manage'])).toBe('/settings/members');
     expect(peopleNavFor(['audit:read']).map((i) => i.link)).toEqual(['/settings/roles']);
+  });
+
+  it('puts four main cards on top of the hub (U37)', () => {
+    expect(primaryHubCards(['org:manage']).map((c) => c.path)).toEqual([...PRIMARY_SETTINGS_PATHS]);
+    expect(primaryHubCards(['users:invite'])).toEqual([]);
   });
 
   it('groups the hub cards in the fixed section order', () => {

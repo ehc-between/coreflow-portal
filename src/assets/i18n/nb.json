@@ -721,7 +721,8 @@
         "trace": "Sporbarhet",
         "advanced": "Avansert"
       },
-      "advancedHint": "Egne registertyper og slettelogger."
+      "advancedHint": "Merkevare, roller, avdelinger, revisjonsloggen, modulinnstillinger og menyen.",
+      "rarely": "Sjelden brukt"
     },
     "moduleConfig": {
       "note": "Her bestemmer du hvordan modulen fungerer. Det daglige arbeidet gjør du i selve modulen.",

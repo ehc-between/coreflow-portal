@@ -2,7 +2,7 @@
   "sections": {
     "label": "Inspection sections",
     "inspections": "Inspections",
-    "findings": "Findings",
+    "findings": "What the inspection found",
     "templates": "Checklist templates",
     "schedules": "Recurring"
   },
@@ -347,7 +347,7 @@
     "overview": "About the inspection",
     "answers": "Answers",
     "findings": "Findings ({{ count }})",
-    "noFindings": "No findings.",
+    "noFindings": "The inspection found nothing that needs follow-up.",
     "notStarted": "This inspection has not started yet.",
     "unanswered": "Not answered",
     "start": "Start inspection",
@@ -432,7 +432,7 @@
     "imageAlt": "Signature of {{ name }}"
   },
   "findings": {
-    "title": "Findings",
+    "title": "What inspections found (findings)",
     "subtitle": "What the inspections found, who follows it up, and whether it became a deviation.",
     "searchPlaceholder": "Search by code or title",
     "noOwner": "No owner",

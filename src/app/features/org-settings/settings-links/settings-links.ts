@@ -218,6 +218,25 @@ export function hubSections(
   })).filter((section) => section.cards.length > 0);
 }
 
+/**
+ * U37: the four settings people actually set up, shown as cards on top of the hub
+ * (Organisasjon, Personer og tilgang, Moduler, Varsler). Everything else sits under
+ * "Avansert".
+ */
+export const PRIMARY_SETTINGS_PATHS: readonly string[] = [
+  '/settings/profile',
+  '/settings/members',
+  '/settings/modules',
+  '/settings/notifications',
+];
+
+/** The primary hub cards the caller may open, in {@link PRIMARY_SETTINGS_PATHS} order. */
+export function primaryHubCards(granted: readonly string[] | null | undefined): SettingsLink[] {
+  return PRIMARY_SETTINGS_PATHS.map((path) =>
+    SETTINGS_HUB_CARDS.find((card) => card.path === path),
+  ).filter((card): card is SettingsLink => !!card && hasAnyPermission(granted, card.permission));
+}
+
 /** A module's own configuration pages, listed on its card in the hub. */
 export interface ModuleSettingsCard {
   /** Backend module key (`modules.names.<key>`). */
@@ -279,89 +298,107 @@ export const MODULE_SETTINGS_CARDS: readonly ModuleSettingsCard[] = [
       </ul>
     </ng-template>
 
-    @for (section of mainSections(); track section.group; let first = $first) {
-      <section
-        [attr.aria-labelledby]="'settings-hub-' + section.group"
-        [class.mt-8]="!first"
-        [attr.data-testid]="'settings-section-' + section.group"
-      >
-        <h2
-          [id]="'settings-hub-' + section.group"
-          class="mb-3 font-display text-section font-bold text-fg"
-        >
-          {{ 'settings.hub.groups.' + section.group | transloco }}
+    <!-- U37: four cards for what people set up, everything else under "Avansert". -->
+    @if (primaryCards().length) {
+      <section aria-labelledby="settings-hub-primary" data-testid="settings-primary">
+        <h2 id="settings-hub-primary" class="sr-only">
+          {{ 'settings.hub.title' | transloco }}
         </h2>
-        <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: section.cards }" />
+        <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: primaryCards() }" />
       </section>
     }
 
-    @if (moduleCards().length) {
-      <section
-        aria-labelledby="settings-hub-modules"
-        class="mt-8"
-        data-testid="settings-module-cards"
+    <details
+      class="group mt-8 rounded-card border border-border bg-surface-2/40"
+      data-testid="settings-section-advanced"
+      [open]="advancedOpen()"
+    >
+      <summary
+        class="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 py-3 font-display text-section font-bold text-fg focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden"
+        data-testid="settings-advanced-toggle"
       >
-        <h2 id="settings-hub-modules" class="font-display text-section font-bold text-fg">
-          {{ 'settings.hub.moduleSettings' | transloco }}
-        </h2>
-        <p class="mt-1 mb-3 text-ui text-fg-muted">
-          {{ 'settings.hub.moduleSettingsHint' | transloco }}
-        </p>
-        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          @for (card of moduleCards(); track card.module) {
-            <li
-              class="flex h-full flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-card"
-              [attr.data-testid]="'settings-module-' + card.module"
-            >
-              <span class="flex items-center gap-2 text-card font-bold text-fg">
-                <span class="flex text-accent" aria-hidden="true">
-                  <app-icon [name]="card.icon" [size]="17" />
-                </span>
-                {{ 'modules.names.' + card.module | transloco }}
-              </span>
-              <ul class="flex flex-wrap gap-x-4 gap-y-1">
-                @for (link of card.links; track link.path) {
-                  <li>
-                    <a
-                      [routerLink]="link.path"
-                      class="inline-flex min-h-6 items-center text-ui font-semibold text-accent hover:underline"
-                      >{{ link.labelKey | transloco }}</a
-                    >
-                  </li>
-                }
-              </ul>
-            </li>
-          }
-        </ul>
-      </section>
-    }
-
-    @if (advancedCards().length) {
-      <details
-        class="group mt-8 rounded-card border border-border bg-surface-2/40"
-        data-testid="settings-section-advanced"
-        [open]="advancedOpen()"
-      >
-        <summary
-          class="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 py-3 font-display text-section font-bold text-fg focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden"
-          data-testid="settings-advanced-toggle"
+        <span
+          class="flex text-fg-muted -rotate-90 transition-transform group-open:rotate-0"
+          aria-hidden="true"
         >
-          <span
-            class="flex text-fg-muted -rotate-90 transition-transform group-open:rotate-0"
-            aria-hidden="true"
+          <app-icon name="chevron" [size]="16" />
+        </span>
+        {{ 'settings.hub.groups.advanced' | transloco }}
+        <span class="ml-1 text-meta font-normal text-fg-muted">
+          {{ 'settings.hub.advancedHint' | transloco }}
+        </span>
+      </summary>
+      <div class="px-4 pb-4">
+        @for (section of mainSections(); track section.group; let first = $first) {
+          <section
+            [attr.aria-labelledby]="'settings-hub-' + section.group"
+            [class.mt-6]="!first"
+            [attr.data-testid]="'settings-section-' + section.group"
           >
-            <app-icon name="chevron" [size]="16" />
-          </span>
-          {{ 'settings.hub.groups.advanced' | transloco }}
-          <span class="ml-1 text-meta font-normal text-fg-muted">
-            {{ 'settings.hub.advancedHint' | transloco }}
-          </span>
-        </summary>
-        <div class="px-4 pb-4">
-          <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: advancedCards() }" />
-        </div>
-      </details>
-    }
+            <h3
+              [id]="'settings-hub-' + section.group"
+              class="mb-3 font-display text-card font-bold text-fg"
+            >
+              {{ 'settings.hub.groups.' + section.group | transloco }}
+            </h3>
+            <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: section.cards }" />
+          </section>
+        }
+
+        @if (moduleCards().length) {
+          <section
+            aria-labelledby="settings-hub-modules"
+            class="mt-6"
+            data-testid="settings-module-cards"
+          >
+            <h3 id="settings-hub-modules" class="font-display text-card font-bold text-fg">
+              {{ 'settings.hub.moduleSettings' | transloco }}
+            </h3>
+            <p class="mt-1 mb-3 text-ui text-fg-muted">
+              {{ 'settings.hub.moduleSettingsHint' | transloco }}
+            </p>
+            <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              @for (card of moduleCards(); track card.module) {
+                <li
+                  class="flex h-full flex-col gap-2 rounded-card border border-border bg-surface p-4 shadow-card"
+                  [attr.data-testid]="'settings-module-' + card.module"
+                >
+                  <span class="flex items-center gap-2 text-card font-bold text-fg">
+                    <span class="flex text-accent" aria-hidden="true">
+                      <app-icon [name]="card.icon" [size]="17" />
+                    </span>
+                    {{ 'modules.names.' + card.module | transloco }}
+                  </span>
+                  <ul class="flex flex-wrap gap-x-4 gap-y-1">
+                    @for (link of card.links; track link.path) {
+                      <li>
+                        <a
+                          [routerLink]="link.path"
+                          class="inline-flex min-h-6 items-center text-ui font-semibold text-accent hover:underline"
+                          >{{ link.labelKey | transloco }}</a
+                        >
+                      </li>
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (advancedCards().length) {
+          <section aria-labelledby="settings-hub-rarely" class="mt-6">
+            <h3 id="settings-hub-rarely" class="mb-3 font-display text-card font-bold text-fg">
+              {{ 'settings.hub.rarely' | transloco }}
+            </h3>
+            <ng-container *ngTemplateOutlet="cardGrid; context: { $implicit: advancedCards() }" />
+          </section>
+        }
+
+        <!-- Menu and home-page settings from the hub page. -->
+        <div class="mt-6 empty:hidden"><ng-content /></div>
+      </div>
+    </details>
   `,
 })
 export class SettingsLinks {
@@ -372,9 +409,20 @@ export class SettingsLinks {
 
   private readonly sections = computed(() => hubSections(this.granted()));
 
-  protected readonly mainSections = computed(() =>
-    this.sections().filter((section) => !ADVANCED_GROUPS.includes(section.group)),
-  );
+  /** The (at most four) cards on top of the hub, in {@link PRIMARY_SETTINGS_PATHS} order. */
+  protected readonly primaryCards = computed(() => primaryHubCards(this.granted()));
+
+  /** The other sections, inside the "Avansert" fold (primary cards left out). */
+  protected readonly mainSections = computed(() => {
+    const primary = new Set(this.primaryCards().map((card) => card.path));
+    return this.sections()
+      .filter((section) => !ADVANCED_GROUPS.includes(section.group))
+      .map((section) => ({
+        ...section,
+        cards: section.cards.filter((card) => !primary.has(card.path)),
+      }))
+      .filter((section) => section.cards.length > 0);
+  });
 
   protected readonly advancedCards = computed(() =>
     this.sections()
@@ -382,10 +430,8 @@ export class SettingsLinks {
       .flatMap((section) => section.cards),
   );
 
-  /** Open the fold when it is all the caller may see (nothing else to scan past). */
-  protected readonly advancedOpen = computed(
-    () => this.mainSections().length === 0 && this.moduleCards().length === 0,
-  );
+  /** Open the fold when the caller has none of the four main cards (nothing else to scan past). */
+  protected readonly advancedOpen = computed(() => this.primaryCards().length === 0);
 
   protected readonly moduleCards = computed(() =>
     MODULE_SETTINGS_CARDS.filter(
