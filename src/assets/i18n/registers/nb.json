@@ -1,0 +1,46 @@
+{
+  "title": "Registre",
+  "description": "Alle listene virksomheten fører, samlet etter arbeidsområde. Åpne en liste for å se og legge til poster. Fest de du bruker mest, så ligger de i menyen.",
+  "search": {
+    "label": "Søk i registre",
+    "placeholder": "Søk, f.eks. kalibrering eller nestenulykke",
+    "hits": "Treff: {{count}}",
+    "noneTitle": "Ingen registre passer «{{query}}»",
+    "noneBody": "Prøv et annet ord, eller åpne registeret fra modulen det hører til."
+  },
+  "pinned": {
+    "title": "Festet i menyen"
+  },
+  "pin": {
+    "add": "Fest {{name}} i menyen",
+    "remove": "Løsne {{name}} fra menyen",
+    "full": "Du kan feste opptil {{max}} registre. Løsne ett først."
+  },
+  "groups": {
+    "governance": "Styring",
+    "risk": "Risiko og lovkrav",
+    "improvement": "Hendelser og forbedring",
+    "suppliersAssets": "Leverandører og eiendeler",
+    "people": "Mennesker",
+    "privacy": "Personvern",
+    "ai": "KI",
+    "environmentHse": "Miljø og HMS",
+    "continuity": "Beredskap",
+    "documents": "Dokumenter og rapporter",
+    "other": "Andre registre"
+  },
+  "more": {
+    "title": "Flere registre ({{count}})",
+    "hint": "Tomme registre som ingen av standardene deres krever, og oppsettslister som typer og maler."
+  },
+  "row": {
+    "count": "{{count}} poster",
+    "countOne": "1 post",
+    "empty": "Tom",
+    "updated": "Oppdatert {{when}}"
+  },
+  "empty": {
+    "title": "Ingen registre ennå",
+    "body": "Registrene vises her når en modul er slått på og du har tilgang til den."
+  }
+}

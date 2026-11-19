@@ -35,7 +35,17 @@
     "edit": "Endre",
     "ropa": "Behandlingsprotokoll",
     "breaches": "Personvernbrudd",
-    "sja": "Sikker jobbanalyse (SJA)"
+    "sja": "Sikker jobbanalyse (SJA)",
+    "requests": "Henvendelser fra registrerte",
+    "processors": "Databehandlere",
+    "risks": "Risikoregister",
+    "feedback": "Tilbakemeldinger",
+    "ppe": "Personlig verneutstyr",
+    "accessReviews": "Tilgangsgjennomganger",
+    "changes": "Endringer",
+    "candidates": "Kandidater",
+    "aiAssessments": "KI-vurderinger",
+    "auditFindings": "Revisjonsfunn"
   },
   "help": {
     "label": "Hjelp og læring",
@@ -55,18 +65,6 @@
   },
   "prefs": {
     "saveFailed": "Kunne ikke lagre menyvalget. Prøv igjen."
-  },
-  "registers": {
-    "title": "Registre",
-    "description": "Alle listene i organisasjonen, samlet etter arbeidsområde. Fest dem du bruker mest, så ligger de i menyen.",
-    "filterLabel": "Finn et register",
-    "filterPlaceholder": "Finn et register …",
-    "pinnedHeading": "Festet i menyen ({{ count }} av {{ max }})",
-    "pin": "Fest {{ name }} i menyen",
-    "unpin": "Løsne {{ name }} fra menyen",
-    "pinsFull": "Du kan feste opptil {{ max }} registre. Løsne ett for å feste {{ name }}.",
-    "emptyTitle": "Ingen registre passer",
-    "emptyBody": "Prøv et annet ord, eller bruk «Finn eller spør» øverst på siden."
   },
   "orgSettings": {
     "title": "Meny",
