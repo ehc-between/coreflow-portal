@@ -48,7 +48,8 @@
     "feedback": "Customer feedback",
     "learning": "Learning centre",
     "customizeDone": "Done",
-    "showItem": "Show {{ name }} in the menu"
+    "showItem": "Show {{ name }} in the menu",
+    "library": "Documents and reports"
   },
   "topbar": {
     "searchPlaceholder": "Search, or ask CoreFlow…",
@@ -548,6 +549,10 @@
       "operatorsHidden": "{{count}} service accounts hidden",
       "operator": "Service account",
       "openPerson": "Open the person in the People register",
+      "noCard": "No employee card",
+      "noCardTitle": "This member is not in the People register. Create an employee card for them.",
+      "withoutCard": "{{ count }} without an employee card",
+      "withoutCardOne": "1 without an employee card",
       "lastActive": "Last active {{when}}",
       "neverActive": "Not signed in yet",
       "joined": "Joined {{date}}",
@@ -687,7 +692,9 @@
         "security": "Security rules",
         "securityHint": "Two-step sign-in, document approval and attachment types.",
         "auditLog": "Audit log",
-        "auditLogHint": "Who changed what, and when. Filter and export for audits."
+        "auditLogHint": "Who changed what, and when. Filter and export for audits.",
+        "branding": "Branding",
+        "brandingHint": "Logo, colour, footer and classification on documents CoreFlow makes."
       },
       "moduleLinks": {
         "types": "Types",
@@ -1909,7 +1916,8 @@
       "empty": "You're all caught up.",
       "loadMore": "Load more",
       "unread": "Unread",
-      "settings": "Notification settings"
+      "settings": "Notification settings",
+      "myWork": "Things to do are in My Work →"
     },
     "preferences": {
       "title": "Notification settings",
@@ -2447,7 +2455,8 @@
       "document_template": "Document template",
       "retention_rule": "Retention rule",
       "audit_certification": "Certification",
-      "audit_auditor_profile": "Auditor profile"
+      "audit_auditor_profile": "Auditor profile",
+      "generated_output": "Generated document"
     },
     "links": {
       "title": "Organisation",
@@ -2562,7 +2571,9 @@
       "back": "Back"
     },
     "moduleNav": {
-      "label": "Sections"
+      "label": "Sections",
+      "more": "More",
+      "moreCurrent": "More sections, now showing {{name}}"
     },
     "help": {
       "label": "Help on this page",
@@ -2633,6 +2644,11 @@
       "remove": "Remove {{ name }}",
       "flagged": "Check this value",
       "none": "Not set"
+    },
+    "kpiBand": {
+      "title": "Key figures",
+      "showAll": "Show all ({{count}})",
+      "showFewer": "Show fewer"
     }
   },
   "account": {

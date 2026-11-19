@@ -144,7 +144,7 @@ export function aspectQuery(q: string, f: AspectListFilters, offset: number): As
 /** How many of the "Flere filtre" values differ from the defaults. */
 export function moreFiltersCount(f: AspectListFilters): number {
   return (
-    ['impactType', 'condition', 'stage', 'owner', 'process', 'sort', 'group'] as const
+    ['attention', 'impactType', 'condition', 'stage', 'owner', 'process', 'sort', 'group'] as const
   ).filter((k) => f[k] !== ASPECT_DEFAULT_FILTERS[k]).length;
 }
 
@@ -164,7 +164,7 @@ export function groupByActivity(
 
 /**
  * The register of environmental aspects and impacts (`/environment/aspects`, ISO
- * 14001 6.1.2). Search; status, significance and "needs follow-up" filters, with
+ * 14001 6.1.2). Search; status and significance filters, with "needs follow-up" and
  * the rest under "Flere filtre"; grouping by activity; saved views; paging. Each row
  * shows the aspect, its activity, the score against the threshold, significance,
  * missing controls or emergency plan, the requirements it documents, the owner
@@ -269,24 +269,25 @@ export function groupByActivity(
           </option>
         }
       </select>
-      <select
-        filters
-        class="cf-filter"
-        [attr.aria-label]="'environment.filters.attention' | transloco"
-        (change)="setFilter('attention', $any($event.target).value)"
-        data-testid="filter-attention"
-      >
-        <option value="" [selected]="!filters().attention">
-          {{ 'environment.filters.attentionAny' | transloco }}
-        </option>
-        @for (a of attentions; track a) {
-          <option [value]="a" [selected]="filters().attention === a">
-            {{ 'environment.filters.aspectAttention.' + a | transloco }}
-          </option>
-        }
-      </select>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="cf-more-label">
+          {{ 'environment.filters.attention' | transloco }}
+          <select
+            class="cf-filter"
+            (change)="setFilter('attention', $any($event.target).value)"
+            data-testid="filter-attention"
+          >
+            <option value="" [selected]="!filters().attention">
+              {{ 'environment.filters.attentionAny' | transloco }}
+            </option>
+            @for (a of attentions; track a) {
+              <option [value]="a" [selected]="filters().attention === a">
+                {{ 'environment.filters.aspectAttention.' + a | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="cf-more-label">
           {{ 'environment.fields.impactType' | transloco }}
           <select

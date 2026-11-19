@@ -7,7 +7,7 @@ import { AssigneeOptionsService } from './assignee-options';
  * Native `<select>` of task assignees: people, roles and departments of the current
  * org, as encoded values (`user:<id>`, `role:<key>`, `department:<id>`; '' = nobody).
  * A current value missing from the options (e.g. a former member) stays selectable
- * under its known name.
+ * under its known name. U26: people show their job title from the People register.
  */
 @Component({
   selector: 'app-assignee-select',
@@ -28,7 +28,9 @@ import { AssigneeOptionsService } from './assignee-options';
       }
       <optgroup [label]="'tasks.assignee.groups.users' | transloco">
         @for (o of options().users; track o.value) {
-          <option [value]="o.value" [selected]="o.value === value()">{{ o.label }}</option>
+          <option [value]="o.value" [selected]="o.value === value()">
+            {{ o.detail ? o.label + ' · ' + o.detail : o.label }}
+          </option>
         }
       </optgroup>
       <optgroup [label]="'tasks.assignee.groups.roles' | transloco">

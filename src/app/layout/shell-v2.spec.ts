@@ -21,6 +21,7 @@ import {
   navWorkspace,
   registerGroups,
 } from './nav-v2';
+import { RegistrerService } from '../shared/registrer/registrer.service';
 import { SideNavV2 } from './side-nav-v2/side-nav-v2';
 
 type Tree = Record<string, unknown>;
@@ -246,15 +247,13 @@ describe('SideNavV2', () => {
     ]);
   });
 
-  it('only offers create forms the user may open', () => {
-    const { el } = render({ roles: ['member'], permissions: MEMBER_PERMISSIONS });
-    const actions = Array.from(el.querySelectorAll('[data-testid^="registrer-"]')).map((a) =>
-      a.getAttribute('data-testid'),
-    );
-    expect(actions).toEqual(['registrer-deviation']);
-    expect(el.querySelector('[data-testid="registrer-deviation"]')!.getAttribute('href')).toBe(
-      '/deviations/new',
-    );
+  it('opens the Registrer dialog (U05) instead of a menu of create forms', () => {
+    const { registrer } = render({ roles: ['member'], permissions: MEMBER_PERMISSIONS });
+    const service = TestBed.inject(RegistrerService);
+    expect(registrer!.tagName).toBe('BUTTON');
+    expect(service.open()).toBe(false);
+    (registrer as HTMLButtonElement).click();
+    expect(service.open()).toBe(true);
   });
 
   it('hides Registrer when the user may not create anything', () => {

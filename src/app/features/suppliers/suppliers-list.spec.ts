@@ -141,14 +141,14 @@ describe('SuppliersList', () => {
     again.flush({ items: [], total: 0 });
   });
 
-  it('keeps search, status, follow-up and criticality visible and the rest under more filters', async () => {
+  it('keeps search, status and follow-up visible and the rest (criticality …) under more filters', async () => {
     const { fixture, http, root } = setup();
     await flushList(fixture, http, [row()]);
     expect(root.querySelector('#sup-f-status')).not.toBeNull();
     expect(root.querySelector('[data-testid="filter-attention"]')).not.toBeNull();
-    expect(root.querySelector('#sup-f-crit')).not.toBeNull();
     const panel = root.querySelector('[data-testid="more-filters-panel"]')!;
-    expect(panel.querySelectorAll('select').length).toBe(5);
+    expect(panel.querySelector('#sup-f-crit')).not.toBeNull();
+    expect(panel.querySelectorAll('select').length).toBe(6);
   });
 
   it('shows the teaching empty state for an empty register and hides "new" without write access', async () => {

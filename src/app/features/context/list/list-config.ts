@@ -65,8 +65,8 @@ const EXTRA_FILTERS: Readonly<Record<ContextKind, readonly ListFilterDef[]>> = {
   responsibility: [],
 };
 
-/** How many filters sit in the toolbar; the rest go behind "Flere filtre". */
-export const VISIBLE_FILTERS = 3;
+/** How many filters sit in the toolbar next to search (U30: two); the rest go behind "Flere filtre". */
+export const VISIBLE_FILTERS = 2;
 
 /** Framework options with the organisation's adopted standards first. */
 export function frameworkOptions(ordered: readonly string[] = FRAMEWORK_KEYS): FilterOption[] {

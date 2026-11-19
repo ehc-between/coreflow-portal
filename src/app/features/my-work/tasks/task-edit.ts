@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,6 +23,7 @@ import { TaskForm, TaskFormResult, TaskFormValue } from '../../../shared/tasks/t
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { goBack } from '../go-back';
 import { provideTasksPageContext } from '../tasks-page-context';
 
 /**
@@ -78,6 +80,7 @@ export class TaskEdit {
   private readonly api = inject(TasksApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly notifications = inject(NotificationService);
 
   /** Route param (component input binding). */
@@ -111,8 +114,9 @@ export class TaskEdit {
     void this.router.navigate(['/tasks', result.task?.id ?? this.id()]);
   }
 
+  /** Cancel returns to where the user came from (U08); a direct visit lands on the task. */
   protected back(): void {
-    void this.router.navigate(['/tasks', this.id()]);
+    goBack(this.router, this.location, ['/tasks', this.id()]);
   }
 
   private load(orgId: string | null, id: string): void {

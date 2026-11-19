@@ -144,6 +144,8 @@ export function parseFindingStatusFilter(value: string | null | undefined): Find
             </option>
           }
         </select>
+      </ng-container>
+      <div more-filters class="flex flex-col gap-3">
         <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg">
           <input
             type="checkbox"
@@ -152,8 +154,6 @@ export function parseFindingStatusFilter(value: string | null | undefined): Find
           />
           {{ 'audits.filters.mine' | transloco }}
         </label>
-      </ng-container>
-      <div more-filters class="flex flex-col gap-3">
         <div class="flex flex-col gap-1">
           <label class="text-meta font-semibold text-fg-muted" for="fd-sort">{{
             'audits.filters.sort' | transloco
@@ -283,7 +283,7 @@ export class FindingList {
     overdue: this.overdue() ? '1' : '',
   }));
   protected readonly moreActive = computed(
-    () => (this.sort() !== 'severity' ? 1 : 0) + (this.overdue() ? 1 : 0),
+    () => (this.mine() ? 1 : 0) + (this.sort() !== 'severity' ? 1 : 0) + (this.overdue() ? 1 : 0),
   );
   protected readonly isEmpty = computed(
     () =>

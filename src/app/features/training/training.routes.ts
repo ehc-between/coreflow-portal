@@ -11,14 +11,17 @@ const OVERSEE = ['training:report', 'training:assign', 'training:manage'];
  * `permissionGuard('training:read')`. Entity URLs registered by the backend:
  * `/training/courses/<id>`, `/training/assignments/<id>`, `/training/records/<id>`,
  * `/training/people/<user id>` (matrix `users[].url`), `/training/plan`.
+ * The register lands on Kurs (U08); the learner's own overview is `/training/mine`
+ * and their open courses are in My Work ("Min opplæring").
  */
 export default [
   {
     path: '',
     providers: [provideTranslocoScope('training')],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: 'courses' },
       {
-        path: '',
+        path: 'mine',
         loadComponent: () => import('./home/training-home').then((m) => m.TrainingHome),
       },
       {

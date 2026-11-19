@@ -148,6 +148,8 @@
     "positionMany": "(requirements {{first}} and {{last}} of {{count}})",
     "positionLong": "Requirement {{index}} of {{count}}",
     "showAll": "Show all {{count}}",
+    "edit": "Edit",
+    "showLess": "Show less",
     "onAction": "On action: {{action}}",
     "moreLabel": "Show {{count}} more linked requirements",
     "moreLabelOne": "Show 1 more linked requirement",

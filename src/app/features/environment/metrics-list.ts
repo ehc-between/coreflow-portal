@@ -135,8 +135,8 @@ export function changeArrow(pct: number | null | undefined): string {
 
 /**
  * Environmental indicators (`/environment/metrics`, ISO 14001 9.1.1): energy, water,
- * waste, emissions and materials measured over time. Search; category, target and
- * emission category (scope) filters, the rest under "Flere filtre"; saved views and
+ * waste, emissions and materials measured over time. Search; category and target
+ * filters, emission category (scope) and the rest under "Flere filtre"; saved views and
  * paging. Each row reads "Siste: 14 000 kWh (okt. 2026) ↓ 5 %", with the target
  * status, the requirements it documents and the owner.
  */
@@ -242,23 +242,24 @@ export function changeArrow(pct: number | null | undefined): string {
           </option>
         }
       </select>
-      <select
-        filters
-        class="cf-filter"
-        [attr.aria-label]="'environment.fields.ghgScope' | transloco"
-        (change)="setFilter('scope', $any($event.target).value)"
-        data-testid="filter-scope"
-      >
-        <option value="" [selected]="!filters().scope">
-          {{ 'environment.filters.anyScope' | transloco }}
-        </option>
-        @for (s of scopes; track s) {
-          <option [value]="s" [selected]="filters().scope === s">
-            {{ 'environment.scopes.' + s | transloco }}
-          </option>
-        }
-      </select>
       <div more-filters class="flex flex-col gap-3">
+        <label class="cf-more-label">
+          {{ 'environment.fields.ghgScope' | transloco }}
+          <select
+            class="cf-filter"
+            (change)="setFilter('scope', $any($event.target).value)"
+            data-testid="filter-scope"
+          >
+            <option value="" [selected]="!filters().scope">
+              {{ 'environment.filters.anyScope' | transloco }}
+            </option>
+            @for (s of scopes; track s) {
+              <option [value]="s" [selected]="filters().scope === s">
+                {{ 'environment.scopes.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="cf-more-label">
           {{ 'environment.filters.status' | transloco }}
           <select class="cf-filter" (change)="setFilter('status', $any($event.target).value)">
@@ -401,7 +402,7 @@ export class MetricsList {
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
   protected readonly moreActive = computed(
     () =>
-      (['status', 'owner', 'sort'] as const).filter(
+      (['scope', 'status', 'owner', 'sort'] as const).filter(
         (k) => this.filters()[k] !== METRIC_DEFAULT_FILTERS[k],
       ).length,
   );

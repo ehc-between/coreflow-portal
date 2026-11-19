@@ -16,8 +16,21 @@
       "overdue": "Forfalt",
       "this_week": "Denne uka",
       "later": "Senere",
-      "review": "Til gjennomgang"
+      "review": "Til gjennomgang",
+      "acknowledge": "Les og bekreft",
+      "training": "Min opplæring",
+      "calendar": "Kalender"
     },
+    "scopeLabel": "Hvem sitt arbeid",
+    "scopes": {
+      "mine": "Mine",
+      "all": "Alle"
+    },
+    "notMine": "Noen andres",
+    "recurringFilter": "Gjentakende oppgaver",
+    "allTraining": "Se all opplæringen din →",
+    "orgCalendar": "Åpne hele kalenderen for alle områder →",
+    "manageRecurring": "Administrer gjentakende oppgaver",
     "empty": {
       "overdue": {
         "title": "Ingenting er forfalt",
@@ -34,6 +47,18 @@
       "review": {
         "title": "Ingenting venter på din gjennomgang",
         "body": "Dokumenter til godkjenning, endringsforslag, revisjonsrapporter og ledelsens gjennomgang til signering dukker opp her."
+      },
+      "acknowledge": {
+        "title": "Ingenting å lese og bekrefte",
+        "body": "Dokumenter og policyer du blir bedt om å lese og bekrefte, dukker opp her."
+      },
+      "training": {
+        "title": "Ingen kurs venter på deg",
+        "body": "Kurs du er tildelt, og opplæring som har forfalt eller snart går ut, dukker opp her."
+      },
+      "calendar": {
+        "title": "Ingenting i kalenderen",
+        "body": "Alt som har en frist, vises på datoen sin."
       }
     },
     "reviewHint": "Alt som venter på din gjennomgang, finner du også i Mitt arbeid →"

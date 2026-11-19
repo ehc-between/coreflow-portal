@@ -105,7 +105,7 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
 }
 
 /**
- * `/reports/definitions/new` and `/reports/definitions/:id/edit`: a saved
+ * `/library/reports/new` and `/library/reports/:id/edit`: a saved
  * report — name, register, filters, columns, default format and language. On
  * edit the register is fixed; an owner change and a change reason are recorded
  * in the report's revision history. One column, 760 px wide, Save bottom right
@@ -135,7 +135,7 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
         [titleKey]="id() ? 'reports.form.editTitle' : 'reports.form.newTitle'"
         descriptionKey="reports.form.subtitle"
         [breadcrumbs]="crumbs()"
-        [backLink]="id() ? ['/reports/definitions', id()] : '/reports/definitions'"
+        [backLink]="id() ? ['/library/reports', id()] : '/library/reports'"
         backLabelKey="reports.definitions.back"
       />
       <app-help-strip scope="reports" page="definitionForm" />
@@ -416,13 +416,13 @@ export class DefinitionForm {
 
   protected readonly crumbs = computed<readonly Breadcrumb[]>(() => {
     const base: Breadcrumb[] = [
-      { labelKey: 'modules.names.reports', link: '/reports' },
-      { labelKey: 'reports.nav.definitions', link: '/reports/definitions' },
+      { labelKey: 'outputs.title', link: '/library' },
+      { labelKey: 'reports.nav.definitions', link: '/library/reports' },
     ];
     const id = this.id();
     const original = this.original();
     if (id && original) {
-      base.push({ label: original.name, link: ['/reports/definitions', id] });
+      base.push({ label: original.name, link: ['/library/reports', id] });
     }
     base.push({ labelKey: id ? 'reports.form.editTitle' : 'reports.form.newTitle' });
     return base;
@@ -475,7 +475,7 @@ export class DefinitionForm {
 
   protected cancel(): void {
     const id = this.id();
-    void this.router.navigate(id ? ['/reports/definitions', id] : ['/reports/definitions']);
+    void this.router.navigate(id ? ['/library/reports', id] : ['/library/reports']);
   }
 
   protected save(): void {
@@ -520,7 +520,7 @@ export class DefinitionForm {
         next: (saved) => {
           this.saving.set(false);
           this.notifications.success(id ? 'reports.form.saved' : 'reports.form.created');
-          void this.router.navigate(['/reports/definitions', saved.id]);
+          void this.router.navigate(['/library/reports', saved.id]);
         },
         error: (error: unknown) => {
           this.saving.set(false);

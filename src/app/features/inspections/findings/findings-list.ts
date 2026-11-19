@@ -228,24 +228,22 @@ export function toFindingQuery(q: string, f: FindingListFilters, offset: number)
           </option>
         }
       </select>
-      <select
-        filters
-        class="cf-filter"
-        [attr.aria-label]="'inspections.filters.deviation' | transloco"
-        (change)="setFilter('deviation', $any($event.target).value)"
-      >
-        <option value="" [selected]="filters().deviation === ''">
-          {{ 'inspections.filters.deviationAny' | transloco }}
-        </option>
-        <option value="true" [selected]="filters().deviation === 'true'">
-          {{ 'inspections.filters.deviationYes' | transloco }}
-        </option>
-        <option value="false" [selected]="filters().deviation === 'false'">
-          {{ 'inspections.filters.deviationNo' | transloco }}
-        </option>
-      </select>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'inspections.filters.deviation' | transloco }}
+          <select class="cf-filter" (change)="setFilter('deviation', $any($event.target).value)">
+            <option value="" [selected]="filters().deviation === ''">
+              {{ 'inspections.filters.deviationAny' | transloco }}
+            </option>
+            <option value="true" [selected]="filters().deviation === 'true'">
+              {{ 'inspections.filters.deviationYes' | transloco }}
+            </option>
+            <option value="false" [selected]="filters().deviation === 'false'">
+              {{ 'inspections.filters.deviationNo' | transloco }}
+            </option>
+          </select>
+        </label>
         <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
           {{ 'inspections.filters.owner' | transloco }}
           <select class="cf-filter" (change)="setFilter('owner', $any($event.target).value)">
@@ -436,6 +434,7 @@ export class FindingsList {
   protected readonly moreActive = computed(() => {
     const f = this.filters();
     return (
+      (f.deviation ? 1 : 0) +
       (f.owner ? 1 : 0) +
       (f.template ? 1 : 0) +
       (f.from || f.to ? 1 : 0) +

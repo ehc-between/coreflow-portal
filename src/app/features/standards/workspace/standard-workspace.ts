@@ -34,6 +34,7 @@ import {
   standardName,
 } from '../../../core/standards/standards-display';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
+import { OutputsLink } from '../../../shared/outputs/outputs-link';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -168,6 +169,7 @@ function clampWidth(width: number): number {
   selector: 'app-standard-workspace',
   imports: [
     RouterLink,
+    OutputsLink,
     TranslocoPipe,
     HasPermissionDirective,
     Attachments,
@@ -432,7 +434,7 @@ function clampWidth(width: number): number {
                     {{ 'standards.export.' + format | transloco }}
                   </button>
                 }
-                <a appMenuItem routerLink="/reports/audit-packs" data-testid="audit-pack-link">
+                <a appMenuItem routerLink="/library/audit-packs" data-testid="audit-pack-link">
                   <app-icon name="qa" [size]="15" />
                   {{ 'standards.export.auditPack' | transloco }}
                 </a>
@@ -532,6 +534,10 @@ function clampWidth(width: number): number {
                       }}
                     }
                   </p>
+                }
+                @if (std.enabled) {
+                  <!-- U11: "Dokumenter du kan hente ut" for this standard (the library, filtered). -->
+                  <app-outputs-link class="mt-3 inline-block" [standard]="std.key" />
                 }
                 @if (!std.enabled) {
                   <div

@@ -1,6 +1,7 @@
 import { WorkItem } from '../../core/tasks/task.models';
 import {
   NO_FILTERS,
+  RECURRING_FILTER,
   boardColumn,
   countTabs,
   defaultTab,
@@ -8,8 +9,11 @@ import {
   gridRange,
   groupByColumn,
   groupOf,
+  inTab,
   itemsByDay,
+  laneOf,
   monthGrid,
+  parseScope,
   parseTab,
   parseView,
   shiftMonth,
@@ -69,6 +73,28 @@ describe('My Work data', () => {
     expect(parseTab('soon')).toBeNull();
     expect(parseTab(null)).toBeNull();
     expect(tabGroup('review')).toBe('awaiting_review');
+    expect(parseTab('acknowledge')).toBe('acknowledge');
+    expect(parseTab('read')).toBe('acknowledge');
+    expect(parseTab('training')).toBe('training');
+    expect(parseTab('calendar')).toBe('calendar');
+  });
+
+  it('puts items in a lane: the backend lane, else the same rule', () => {
+    expect(laneOf(item({ source: 'task', lane: 'acknowledge' }))).toBe('acknowledge');
+    expect(laneOf(item({ source: 'document_ack' }))).toBe('acknowledge');
+    expect(laneOf(item({ source: 'training_due' }))).toBe('training');
+    expect(laneOf(item({ source: 'proposal' }))).toBe('review');
+    expect(laneOf(item({ source: 'task' }))).toBe('work');
+    const ack = item({ source: 'document_ack', group: 'later' });
+    expect(inTab(ack, 'acknowledge', TODAY)).toBe(true);
+    expect(inTab(ack, 'later', TODAY)).toBe(true);
+    expect(inTab(ack, 'training', TODAY)).toBe(false);
+  });
+
+  it('parses the Mine / All switch', () => {
+    expect(parseScope('all')).toBe('all');
+    expect(parseScope('mine')).toBe('mine');
+    expect(parseScope(null)).toBe('mine');
   });
 
   it('uses the backend group, else computes it the same way', () => {
@@ -85,10 +111,36 @@ describe('My Work data', () => {
 
   it('counts the tabs and opens the first one with items', () => {
     const counts = countTabs(items, TODAY);
-    expect(counts).toEqual({ overdue: 1, this_week: 2, later: 2, review: 1 });
+    expect(counts).toEqual({
+      overdue: 1,
+      this_week: 2,
+      later: 2,
+      review: 1,
+      acknowledge: 1,
+      training: 0,
+    });
     expect(defaultTab(counts)).toBe('overdue');
-    expect(defaultTab({ overdue: 0, this_week: 0, later: 3, review: 1 })).toBe('later');
-    expect(defaultTab({ overdue: 0, this_week: 0, later: 0, review: 0 })).toBe('overdue');
+    const none = { overdue: 0, this_week: 0, later: 0, review: 0, acknowledge: 0, training: 0 };
+    expect(defaultTab({ ...none, later: 3, review: 1 })).toBe('later');
+    expect(defaultTab({ ...none, acknowledge: 2 })).toBe('overdue');
+  });
+
+  it('counts the lane tabs on top of the time tabs', () => {
+    const counts = countTabs(
+      [
+        item({ source: 'document_ack', group: 'later' }),
+        item({ source: 'training_due', lane: 'training', group: 'overdue' }),
+      ],
+      TODAY,
+    );
+    expect(counts).toMatchObject({ overdue: 1, later: 1, acknowledge: 1, training: 1 });
+  });
+
+  it('filters recurring tasks through the type filter', () => {
+    const list = [item({ id: 'r', recurring: true }), item({ id: 'o' })];
+    expect(
+      filterWorkItems(list, { module: 'all', source: RECURRING_FILTER }).map((i) => i.id),
+    ).toEqual(['r']);
   });
 
   it('filters by module and type', () => {

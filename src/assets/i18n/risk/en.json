@@ -294,6 +294,11 @@
     "changeStatus": "Status",
     "acceptedLocked": "Revoke the acceptance to change the status.",
     "reviewOverdue": "Review overdue",
+    "missing": {
+      "rating": "Rate the risk (likelihood and consequence)",
+      "owner": "Choose an owner",
+      "strategy": "Choose how to treat the risk"
+    },
     "review": "Record review",
     "reviewTitle": "Record a periodic review",
     "reviewMessage": "Confirm that the risk, its rating and its treatments are still correct. The next review is scheduled automatically.",

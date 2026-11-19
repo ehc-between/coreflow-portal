@@ -95,7 +95,8 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
  * A privacy register list (`/privacy/<segment>`), driven by the register descriptor,
  * on the shared list frame: page header (breadcrumbs, the register's export, the
  * gear), the module nav, the help strip, one toolbar row (search, status, the
- * register's own filters; owner, sort and "overdue" under "Flere filtre"), and record
+ * register's first own filter; its other filters, owner, sort and "overdue" under
+ * "Flere filtre"), and record
  * rows with the facts an auditor scans for, requirement coverage, status and the
  * register's deadline.
  */
@@ -193,7 +194,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
           <span class="sr-only">{{ 'privacy.list.clearAttention' | transloco }}</span>
         </button>
       }
-      @for (f of def().filters; track f.param) {
+      @for (f of inlineFilters(); track f.param) {
         <ng-container filters>
           <label class="sr-only" [for]="id(f.param)">
             {{ 'privacy.fields.' + f.param | transloco }}
@@ -214,6 +215,29 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
             }
           </select>
         </ng-container>
+      }
+
+      @for (f of moreDefFilters(); track f.param) {
+        <div more-filters class="flex flex-col gap-1.5">
+          <label class="text-meta font-semibold text-fg-muted" [for]="id(f.param)">
+            {{ 'privacy.fields.' + f.param | transloco }}
+          </label>
+          <select
+            [id]="id(f.param)"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="setExtra(f.param, $any($event.target).value)"
+            [attr.data-testid]="'filter-' + f.param"
+          >
+            <option value="" [selected]="!extra()[f.param]">
+              {{ 'privacy.list.any.' + f.param | transloco }}
+            </option>
+            @for (o of f.options; track o) {
+              <option [value]="o" [selected]="extra()[f.param] === o">
+                {{ 'privacy.options.' + f.optionSet + '.' + o | transloco }}
+              </option>
+            }
+          </select>
+        </div>
       }
 
       <div more-filters class="flex flex-col gap-1.5">
@@ -359,6 +383,9 @@ export class PrivacyRegisterList {
   /** Route data: which register this page lists. */
   readonly register = input.required<RegisterKey>();
   protected readonly def = computed(() => REGISTERS[this.register()]);
+  /** U30: search, status and the register's first own filter stay inline; the rest go under "Flere filtre". */
+  protected readonly inlineFilters = computed(() => this.def().filters.slice(0, 1));
+  protected readonly moreDefFilters = computed(() => this.def().filters.slice(1));
 
   protected readonly nav = privacyNavItems(this.perms);
   protected readonly settingsLink = PRIVACY_SETTINGS_LINK;
@@ -394,7 +421,10 @@ export class PrivacyRegisterList {
 
   protected readonly moreActive = computed(
     () =>
-      (this.owner() ? 1 : 0) + (this.overdue() ? 1 : 0) + (this.sort() !== '-created_at' ? 1 : 0),
+      this.moreDefFilters().filter((f) => !!this.extra()[f.param]).length +
+      (this.owner() ? 1 : 0) +
+      (this.overdue() ? 1 : 0) +
+      (this.sort() !== '-created_at' ? 1 : 0),
   );
   protected readonly isFiltered = computed(
     () =>

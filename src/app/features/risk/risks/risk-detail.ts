@@ -22,7 +22,11 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { Term } from '../../../shared/guidance/term';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -173,6 +177,7 @@ export const RISK_FIELD_LABELS: Readonly<Record<string, string>> = {
         [canEdit]="r.can_edit"
         [includeAudit]="perms.canReadAudit()"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
         backLink="/risk/risks"
         backLabelKey="risk.common.backToRisks"
       >
@@ -742,6 +747,25 @@ export class RiskDetailPage {
     return risk ? currentRating(risk) : null;
   });
   protected readonly rated = computed(() => !!this.risk()?.inherent || !!this.risk()?.residual);
+  /** "Hva mangler" (U29): what an editor still has to fill in, each a link to the form. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const r = this.risk();
+    if (!r?.can_edit || r.status === 'closed') {
+      return [];
+    }
+    const link = ['/risk/risks', r.id, 'edit'];
+    const items: RecordMissingItem[] = [];
+    if (!this.rated()) {
+      items.push({ key: 'rating', labelKey: 'risk.detail.missing.rating', link });
+    }
+    if (!r.owner) {
+      items.push({ key: 'owner', labelKey: 'risk.detail.missing.owner', link });
+    }
+    if (!r.treatment_strategy) {
+      items.push({ key: 'strategy', labelKey: 'risk.detail.missing.strategy', link });
+    }
+    return items;
+  });
   protected readonly appetite = computed(() => {
     const risk = this.risk();
     return risk ? appetiteState(risk) : null;

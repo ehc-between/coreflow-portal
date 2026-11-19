@@ -7,7 +7,7 @@ interface Section extends ModuleNavItem {
   readonly permission?: string;
 }
 
-/** The sub-pages of Reports, in nav order (the last two need their own permission). */
+/** The sub-pages of Reports, in nav order (the designer needs its own permission). */
 export const REPORTS_SECTIONS: readonly Section[] = [
   {
     labelKey: 'reports.nav.overview',
@@ -17,20 +17,10 @@ export const REPORTS_SECTIONS: readonly Section[] = [
   },
   { labelKey: 'reports.nav.calendar', link: '/reports/calendar', testId: 'reports-nav-calendar' },
   {
-    labelKey: 'reports.nav.registers',
-    link: '/reports/registers',
-    testId: 'reports-nav-registers',
-  },
-  {
-    labelKey: 'reports.nav.definitions',
-    link: '/reports/definitions',
-    testId: 'reports-nav-definitions',
-  },
-  {
-    labelKey: 'reports.nav.auditPacks',
-    link: '/reports/audit-packs',
-    testId: 'reports-nav-audit-packs',
-    permission: REPORTS_PERMISSIONS.auditPack,
+    // U11: register exports, saved reports and audit packs live in the library now.
+    labelKey: 'reports.nav.library',
+    link: '/library',
+    testId: 'reports-nav-library',
   },
   {
     labelKey: 'reports.nav.dashboards',

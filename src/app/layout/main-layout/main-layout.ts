@@ -20,6 +20,10 @@ import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPalette } from '../../features/command-palette/command-palette';
 import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { Notifications } from '../../shared/notifications/notifications';
+import { RegistrerComplete } from '../../shared/registrer/registrer-complete';
+import { RegistrerDialog } from '../../shared/registrer/registrer-dialog';
+import { isRegistrerShortcut } from '../../shared/registrer/registrer-data';
+import { RegistrerService } from '../../shared/registrer/registrer.service';
 import { trapTabKey } from '../../shared/ui/focus-trap';
 import { Icon } from '../../shared/ui/icon/icon';
 import { NavDrawerService } from '../nav-drawer.service';
@@ -53,6 +57,8 @@ import { TopBar } from '../top-bar/top-bar';
     Notifications,
     AskPanel,
     CommandPalette,
+    RegistrerDialog,
+    RegistrerComplete,
     Icon,
   ],
   host: { '(document:keydown)': 'onKeydown($event)' },
@@ -64,6 +70,7 @@ export class MainLayout {
   protected readonly palette = inject(CommandPaletteService);
   protected readonly drawer = inject(NavDrawerService);
   protected readonly shell = inject(ShellPreferencesService);
+  protected readonly registrer = inject(RegistrerService);
   private readonly navPanel = viewChild.required<ElementRef<HTMLElement>>('navPanel');
 
   /** The shortcut as shown to the user (Cmd on Apple platforms). */
@@ -112,6 +119,10 @@ export class MainLayout {
       this.ask.toggle();
     } else if (event.key === 'Escape' && this.drawer.open()) {
       this.drawer.close();
+    } else if (isRegistrerShortcut(event) && !this.registrer.open()) {
+      // U05: N opens "Registrer" from any page (not while typing or in another dialog).
+      event.preventDefault();
+      this.registrer.show();
     }
   }
 

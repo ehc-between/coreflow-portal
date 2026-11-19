@@ -87,7 +87,7 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
       searchPlaceholderKey="training.courses.search"
       [query]="q()"
       [filters]="filters()"
-      [moreFiltersActive]="sort() !== 'title' ? 1 : 0"
+      [moreFiltersActive]="(kind() ? 1 : 0) + (sort() !== 'title' ? 1 : 0)"
       [empty]="loaded() && !failed() && courses().length === 0 && !hasFilters()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
@@ -122,14 +122,14 @@ const SORTS: readonly CourseSort[] = ['title', 'code', '-updated_at', '-created_
         [options]="categoryOptions()"
         (valueChange)="setFilter('category', $event)"
       />
-      <app-training-filter
-        filters
-        [label]="'training.filters.kind' | transloco"
-        [value]="kind()"
-        [options]="kindOptions()"
-        (valueChange)="setFilter('kind', $event)"
-      />
-      <div more-filters>
+      <div more-filters class="flex flex-col gap-3">
+        <app-training-filter
+          [label]="'training.filters.kind' | transloco"
+          [showLabel]="true"
+          [value]="kind()"
+          [options]="kindOptions()"
+          (valueChange)="setFilter('kind', $event)"
+        />
         <app-training-filter
           [label]="'training.filters.sort' | transloco"
           [showLabel]="true"

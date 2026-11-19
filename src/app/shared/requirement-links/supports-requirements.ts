@@ -23,6 +23,7 @@ import {
   RequirementLink,
   RequirementSuggestion,
 } from '../../core/standards/standards.models';
+import { RecordPageContext } from '../kit/record-page-context';
 import { Icon } from '../ui/icon/icon';
 import { RequirementCatalogueSearch, RequirementPick } from './requirement-catalogue-search';
 import { RequirementChip } from './requirement-chip';
@@ -67,6 +68,8 @@ interface ActionGroup {
 
 /** Confirmed rows shown before "Vis alle". */
 export const CONFIRMED_PREVIEW = 8;
+/** Chips the compact record-page panel shows before "+N" (U29). */
+export const COMPACT_CHIPS = 3;
 /** Wait after the links load before asking for suggestions (debounce per record visit). */
 export const SUGGEST_DELAY_MS = 400;
 /** Poll interval of an AI `record_map` job. */
@@ -267,6 +270,12 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
  *
  * Editing needs `standards:manage`, or `canEdit` from the host (the user may
  * edit the record). Renders nothing without `standards:read`.
+ *
+ * On a record page (`app-record-detail-layout`, U29) the panel starts compact:
+ * at most three requirement chips and "+N". "Endre" / "+N" open the full panel.
+ * The suggestions waiting for a decision are listed in the page's "Hva mangler"
+ * box, and "Foreslå flere krav" sits in its "Mer ⋯" menu (both through
+ * {@link RecordPageContext}).
  */
 @Component({
   selector: 'app-supports-requirements',
@@ -276,7 +285,76 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    @if (canRead()) {
+    @if (canRead() && compact()) {
+      <section
+        data-testid="supports-requirements"
+        data-compact="true"
+        [attr.aria-labelledby]="headingId"
+      >
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <h2 [id]="headingId" class="flex items-center gap-2 text-card font-bold text-fg">
+            {{ 'standards.reqs.title' | transloco }}
+            @if (confirmedClauses().length > 0) {
+              <span
+                class="rounded-full bg-surface-2 px-1.5 text-micro font-semibold text-fg-muted"
+                data-testid="supports-count"
+                >{{ confirmedClauses().length }}</span
+              >
+            }
+          </h2>
+          @if (canManage() && !loading()) {
+            <button
+              type="button"
+              class="inline-flex flex-none items-center gap-1 text-meta font-semibold text-accent hover:underline"
+              data-testid="supports-expand"
+              (click)="openEditor()"
+            >
+              {{
+                (confirmedClauses().length > 0 ? 'standards.reqs.edit' : 'standards.reqs.add')
+                  | transloco
+              }}
+            </button>
+          }
+        </div>
+        @if (loading()) {
+          <p class="text-meta text-fg-muted">{{ 'common.loading' | transloco }}</p>
+        } @else if (confirmedClauses().length === 0) {
+          <p class="text-meta text-fg-muted" data-testid="supports-none">
+            {{ 'standards.reqs.none' | transloco }}
+          </p>
+        } @else {
+          <div class="flex flex-wrap items-center gap-1.5" data-testid="supports-chips">
+            @for (row of compactChips(); track row.key) {
+              <app-requirement-chip
+                [label]="row.label"
+                [status]="row.status"
+                [positions]="row.positions"
+                [showPosition]="false"
+              />
+            }
+            @if (compactHidden() > 0) {
+              <button
+                type="button"
+                class="rounded-full border border-border px-2 py-0.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent"
+                [attr.aria-label]="
+                  (compactHidden() === 1
+                    ? 'standards.reqs.moreLabelOne'
+                    : 'standards.reqs.moreLabel'
+                  ) | transloco: { count: compactHidden() }
+                "
+                data-testid="supports-more"
+                (click)="expand()"
+              >
+                +{{ compactHidden() }}
+              </button>
+            }
+          </div>
+        }
+        @if (errorKey(); as key) {
+          <p class="mt-2 text-meta text-fail" role="alert">{{ key | transloco }}</p>
+        }
+      </section>
+    } @else if (canRead()) {
       <section data-testid="supports-requirements" [attr.aria-labelledby]="headingId">
         <div class="mb-2 flex items-center justify-between gap-2">
           <h2 [id]="headingId" class="flex items-center gap-2 text-card font-bold text-fg">
@@ -400,7 +478,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
                 }
               </ul>
             </div>
-          } @else if (canManage() && confirmed().length > 0 && !suggestRequested()) {
+          } @else if (canManage() && confirmed().length > 0 && !suggestRequested() && !recordPage) {
             <button
               type="button"
               class="mt-1 inline-flex items-center gap-1 text-meta font-semibold text-fg-muted hover:text-accent"
@@ -415,6 +493,16 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
 
         @if (errorKey(); as key) {
           <p class="mt-2 text-meta text-fail" role="alert">{{ key | transloco }}</p>
+        }
+        @if (recordPage) {
+          <button
+            type="button"
+            class="mt-2 text-meta font-semibold text-fg-muted hover:text-accent"
+            data-testid="supports-collapse"
+            (click)="collapse()"
+          >
+            {{ 'standards.reqs.showLess' | transloco }}
+          </button>
         }
       </section>
 
@@ -526,6 +614,8 @@ export class SupportsRequirements {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly transloco = inject(TranslocoService);
   private readonly coverage = inject(RequirementCoverageService);
+  /** The record page this panel sits on (U29), if any. */
+  protected readonly recordPage = inject(RecordPageContext, { optional: true });
 
   readonly entityType = input.required<LinkEntityType>();
   readonly entityId = input.required<string>();
@@ -563,6 +653,9 @@ export class SupportsRequirements {
   protected readonly errorKey = signal<string | null>(null);
   protected readonly adding = signal(false);
   protected readonly showAll = signal(false);
+  /** Record pages: the full panel was opened ("Endre", "+N", "Hva mangler"). */
+  protected readonly expanded = signal(false);
+  protected readonly compact = computed(() => !!this.recordPage && !this.expanded());
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canRead = computed(() => this.permissions().includes('standards:read'));
@@ -583,7 +676,12 @@ export class SupportsRequirements {
   );
 
   /** Confirmed links, one row per clause. */
-  private readonly confirmedClauses = computed(() => groupByClause(this.confirmed()));
+  protected readonly confirmedClauses = computed(() => groupByClause(this.confirmed()));
+  /** The compact panel's chips (U29). */
+  protected readonly compactChips = computed(() => this.confirmedClauses().slice(0, COMPACT_CHIPS));
+  protected readonly compactHidden = computed(() =>
+    Math.max(0, this.confirmedClauses().length - COMPACT_CHIPS),
+  );
 
   protected readonly hiddenConfirmed = computed(() =>
     this.showAll() ? 0 : Math.max(0, this.confirmedClauses().length - CONFIRMED_PREVIEW),
@@ -644,6 +742,29 @@ export class SupportsRequirements {
       const visible = this.visible();
       untracked(() => this.linksChange.emit(visible));
     });
+    const page = this.recordPage;
+    if (page) {
+      // Hand "Foreslå flere krav" and the pending suggestions to the record page.
+      const review = () => this.expand();
+      const suggestMore = () => {
+        this.expand();
+        this.suggest();
+      };
+      effect(() => {
+        const manage = this.canManage();
+        const pending = manage ? this.suggestionClauses().length : 0;
+        const offerMore =
+          manage &&
+          !this.loading() &&
+          this.confirmed().length > 0 &&
+          this.suggestions().length === 0 &&
+          !this.suggestRequested();
+        page.requirements.set(
+          this.canRead() ? { pending, suggestMore: offerMore ? suggestMore : null, review } : null,
+        );
+      });
+      inject(DestroyRef).onDestroy(() => page.requirements.set(null));
+    }
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
       const canRead = this.canRead();
@@ -661,6 +782,24 @@ export class SupportsRequirements {
       this.actionSub?.unsubscribe();
       this.suggestSub?.unsubscribe();
     });
+  }
+
+  /** Open the full panel (record pages). */
+  expand(): void {
+    this.expanded.set(true);
+  }
+
+  /** "Endre" / "Legg til krav" on the compact panel. */
+  protected openEditor(): void {
+    this.expand();
+    if (this.confirmedClauses().length === 0) {
+      this.adding.set(true);
+    }
+  }
+
+  protected collapse(): void {
+    this.expanded.set(false);
+    this.adding.set(false);
   }
 
   /** "(alle 3 krav)" / "(krav 2 av 3)" under the chip, or null for one-requirement clauses. */

@@ -48,7 +48,8 @@
     "feedback": "Kundetilbakemeldinger",
     "learning": "Læringssenter",
     "customizeDone": "Ferdig",
-    "showItem": "Vis {{ name }} i menyen"
+    "showItem": "Vis {{ name }} i menyen",
+    "library": "Dokumenter og rapporter"
   },
   "topbar": {
     "searchPlaceholder": "Søk, eller spør CoreFlow …",
@@ -548,6 +549,10 @@
       "operatorsHidden": "{{count}} tjenestekontoer er skjult",
       "operator": "Tjenestekonto",
       "openPerson": "Åpne personen i personregisteret",
+      "noCard": "Mangler ansattkort",
+      "noCardTitle": "Medlemmet står ikke i personregisteret. Opprett et ansattkort for personen.",
+      "withoutCard": "{{ count }} uten ansattkort",
+      "withoutCardOne": "1 uten ansattkort",
       "lastActive": "Sist aktiv {{when}}",
       "neverActive": "Har ikke logget inn ennå",
       "joined": "Ble med {{date}}",
@@ -687,7 +692,9 @@
         "security": "Sikkerhetsregler",
         "securityHint": "Totrinnsbekreftelse, godkjenning av dokumenter og filtyper for vedlegg.",
         "auditLog": "Revisjonslogg",
-        "auditLogHint": "Hvem som endret hva, og når. Filtrer og eksporter til revisjoner."
+        "auditLogHint": "Hvem som endret hva, og når. Filtrer og eksporter til revisjoner.",
+        "branding": "Merkevare",
+        "brandingHint": "Logo, farge, bunntekst og gradering på dokumenter CoreFlow lager."
       },
       "moduleLinks": {
         "types": "Typer",
@@ -1909,7 +1916,8 @@
       "empty": "Du har ingen nye varsler.",
       "loadMore": "Last inn flere",
       "unread": "Ulest",
-      "settings": "Varslingsinnstillinger"
+      "settings": "Varslingsinnstillinger",
+      "myWork": "Det du skal gjøre, ligger i Mitt arbeid →"
     },
     "preferences": {
       "title": "Varslingsinnstillinger",
@@ -2447,7 +2455,8 @@
       "document_template": "Dokumentmal",
       "retention_rule": "Oppbevaringsregel",
       "audit_certification": "Sertifisering",
-      "audit_auditor_profile": "Revisorprofil"
+      "audit_auditor_profile": "Revisorprofil",
+      "generated_output": "Laget dokument"
     },
     "links": {
       "title": "Organisasjon",
@@ -2562,7 +2571,9 @@
       "back": "Tilbake"
     },
     "moduleNav": {
-      "label": "Deler av modulen"
+      "label": "Deler av modulen",
+      "more": "Mer",
+      "moreCurrent": "Flere deler, viser nå {{name}}"
     },
     "help": {
       "label": "Hjelp på denne siden",
@@ -2633,6 +2644,11 @@
       "remove": "Fjern {{ name }}",
       "flagged": "Kontroller denne verdien",
       "none": "Ikke satt"
+    },
+    "kpiBand": {
+      "title": "Nøkkeltall",
+      "showAll": "Vis alle ({{count}})",
+      "showFewer": "Vis færre"
     }
   },
   "account": {

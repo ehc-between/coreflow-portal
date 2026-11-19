@@ -17,11 +17,11 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog'
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PeopleApi } from '../data/people-api';
 import { peopleErrorKey } from '../data/people-errors';
-import { UserMatch, UserMatches } from '../data/people.models';
+import { EMPLOYMENT_TYPES, EmploymentType, UserMatch, UserMatches } from '../data/people.models';
 
 /**
- * "Importer brukere som personer": the organisation's members who have no person
- * record yet (each can become one in one go), and the suggested links between
+ * "Opprett ansattkort" (U26): the organisation's members who have no employee card
+ * yet (each can get one in one go, as staff or flagged as external/contractor), and the suggested links between
  * existing people and user accounts (same email, or an unambiguous name) with
  * "Koble til". Without the link, training, tasks and access reviews cannot reach
  * the person.
@@ -138,6 +138,27 @@ import { UserMatch, UserMatches } from '../data/people.models';
                   </option>
                 </select>
               </label>
+              <label
+                class="mt-3 flex flex-col gap-1 text-meta font-semibold text-fg-muted"
+                for="cf-imp-type"
+              >
+                {{ 'people.import.typeLabel' | transloco }}
+                <select
+                  id="cf-imp-type"
+                  class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                  (change)="setType($any($event.target).value)"
+                  data-testid="import-type"
+                >
+                  @for (t of types; track t) {
+                    <option [value]="t" [selected]="employmentType() === t">
+                      {{ 'people.employmentTypes.' + t | transloco }}
+                    </option>
+                  }
+                </select>
+                <span class="font-normal text-fg-subtle">{{
+                  'people.import.typeHint' | transloco
+                }}</span>
+              </label>
             }
           </section>
         }
@@ -158,6 +179,9 @@ export class ImportUsersDialog {
   protected readonly selected = signal<ReadonlySet<string>>(new Set());
   protected readonly status = signal<'active' | 'onboarding'>('active');
   protected readonly busy = signal(false);
+  /** U26: consultants and auditors are carded as `contractor` (external). */
+  protected readonly employmentType = signal<EmploymentType>('permanent');
+  protected readonly types = EMPLOYMENT_TYPES;
 
   /** Members without a record that are not just the account of an existing person. */
   protected readonly candidates = computed(() =>
@@ -194,6 +218,14 @@ export class ImportUsersDialog {
     this.selected.set(on ? new Set(this.candidates().map((u) => u.id)) : new Set());
   }
 
+  protected setType(value: string): void {
+    this.employmentType.set(
+      (EMPLOYMENT_TYPES as readonly string[]).includes(value)
+        ? (value as EmploymentType)
+        : 'permanent',
+    );
+  }
+
   protected link(match: UserMatch): void {
     const orgId = this.selectedOrg.currentOrgId();
     if (!orgId || this.busy()) {
@@ -223,21 +255,27 @@ export class ImportUsersDialog {
       return;
     }
     this.busy.set(true);
-    this.api.importUsers(orgId, { user_ids: ids, status: this.status() }).subscribe({
-      next: (page) => {
-        this.busy.set(false);
-        this.selected.set(new Set());
-        this.notifications.success(
-          page.total === 1 ? 'people.notices.importedOne' : 'people.notices.imported',
-          { count: page.total },
-        );
-        this.done.emit();
-      },
-      error: (error: unknown) => {
-        this.busy.set(false);
-        this.notifications.error(peopleErrorKey(error));
-      },
-    });
+    this.api
+      .importUsers(orgId, {
+        user_ids: ids,
+        status: this.status(),
+        employment_type: this.employmentType(),
+      })
+      .subscribe({
+        next: (page) => {
+          this.busy.set(false);
+          this.selected.set(new Set());
+          this.notifications.success(
+            page.total === 1 ? 'people.notices.importedOne' : 'people.notices.imported',
+            { count: page.total },
+          );
+          this.done.emit();
+        },
+        error: (error: unknown) => {
+          this.busy.set(false);
+          this.notifications.error(peopleErrorKey(error));
+        },
+      });
   }
 
   private load(): void {
@@ -249,6 +287,7 @@ export class ImportUsersDialog {
       next: (data) => {
         this.data.set(data);
         this.selected.set(new Set());
+        this.employmentType.set('permanent');
       },
       error: () => this.data.set({ suggestions: [], members_without_employee: [] }),
     });

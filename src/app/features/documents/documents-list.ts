@@ -104,6 +104,7 @@ interface Row {
   template: `
     <app-record-list-page
       titleKey="modules.names.documents"
+      outputsModule="documents"
       descriptionKey="documents.subtitle"
       scope="documents"
       page="list"
@@ -111,6 +112,7 @@ interface Row {
       settingsLink="/settings/modules/documents"
       [query]="query()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="reviewDue() ? 1 : 0"
       [empty]="registerEmpty()"
       (search)="onQueryChange($event)"
       (viewApplied)="applyView($event.filters)"
@@ -147,22 +149,6 @@ interface Row {
           </option>
         }
       </select>
-      <button
-        filters
-        type="button"
-        [attr.aria-pressed]="reviewDue()"
-        (click)="onReviewDueToggle()"
-        class="flex h-10 items-center gap-2 rounded-tile border px-3 text-ui font-semibold transition-colors"
-        [class]="
-          reviewDue()
-            ? 'border-warn/40 bg-warn-soft text-warn-ink'
-            : 'border-border bg-bg text-fg-muted hover:text-fg'
-        "
-        data-testid="filter-review"
-      >
-        <app-icon name="history" [size]="15" />
-        {{ 'documents.review.filter' | transloco }}
-      </button>
       @if (canReadStandards()) {
         <button
           filters
@@ -182,6 +168,24 @@ interface Row {
           {{ 'documents.requirements.filterUnlinked' | transloco }}
         </button>
       }
+
+      <div more-filters class="flex flex-col gap-3">
+        <button
+          type="button"
+          [attr.aria-pressed]="reviewDue()"
+          (click)="onReviewDueToggle()"
+          class="flex h-10 w-full items-center gap-2 rounded-tile border px-3 text-ui font-semibold transition-colors"
+          [class]="
+            reviewDue()
+              ? 'border-warn/40 bg-warn-soft text-warn-ink'
+              : 'border-border bg-bg text-fg-muted hover:text-fg'
+          "
+          data-testid="filter-review"
+        >
+          <app-icon name="history" [size]="15" />
+          {{ 'documents.review.filter' | transloco }}
+        </button>
+      </div>
 
       @if (loading()) {
         <app-loading-state [rows]="6" />
