@@ -23,13 +23,18 @@ import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
-import { ProgressBar } from '../../shared/ui/progress-bar/progress-bar';
 import { SetupBanner } from '../org-modules/setup-banner/setup-banner';
 import { DismissRequest, NextActions } from './components/next-actions';
 import { StandardStatus } from './components/standard-status';
 import { HomeApi } from './data/home-api';
-import { firstName, greetingKey, hasJourney, journeyUrl } from './data/home-format';
-import { HomeResponse, JourneySummary } from './data/home.models';
+import { firstName, greetingKey, hasJourney, journeyUrl, splitUrl } from './data/home-format';
+import {
+  FrameworkStatus,
+  HomeResponse,
+  JourneySummary,
+  MyWorkSummary,
+  WorkspaceKey,
+} from './data/home.models';
 
 type LoadState = 'loading' | 'error' | 'ready';
 
@@ -41,6 +46,25 @@ const WORK_TILES = [
   { field: 'later', tab: 'later', labelKey: 'home.work.later' },
 ] as const;
 
+/** The employee home's three counters (U07): count field, My Work filter, label. */
+const EMPLOYEE_COUNTERS: readonly {
+  readonly field: keyof MyWorkSummary;
+  readonly query: Record<string, string>;
+  readonly labelKey: string;
+}[] = [
+  { field: 'tasks', query: {}, labelKey: 'home.employee.tasks' },
+  {
+    field: 'acknowledge',
+    query: { source: 'document_ack' },
+    labelKey: 'home.employee.acknowledge',
+  },
+  { field: 'training', query: { source: 'training_due' }, labelKey: 'home.employee.training' },
+];
+
+/** "Vis alt" on a trimmed home previews the full template (every section stays
+ *  permission-gated by the API, so it never shows more data). */
+const FULL_WORKSPACE: WorkspaceKey = 'quality_lead';
+
 /** Setup items the home page can point at (the wizard has its own banner). */
 const SETUP_LINKS: Record<string, string> = {
   standards: '/standards',
@@ -48,14 +72,17 @@ const SETUP_LINKS: Record<string, string> = {
 };
 
 /**
- * Oversikt (home): on login every member sees where the organisation stands per
- * standard and what *they* should do next, from `GET /home`:
+ * Hjem (U07): the page follows the caller's home template (`workspace` from `GET
+ * /home`, mapped from their RBAC roles; org admins change the mapping in Settings):
  *
- * 1. "Do this now": up to seven next actions, each with why and one button.
- * 2. My Work counts per tab, and the active guided journeys ("Continue the journey").
- * 3. "How the organisation is doing": one card per enabled standard with its
- *    requirement coverage, trend and three most important gaps.
+ * - Ansatt (`employee`): three "Hva vil du gjøre?" buttons and three counters (tasks,
+ *   read and confirm, courses), "Du er à jour" when all are zero, and "Vis alt".
+ * - Eier / Kvalitetsleder / Ledelse / Revisor: the "Hva vil du gjøre?" row, "Gjør
+ *   dette nå" (at most three things, then one row with the system's suggestions), My
+ *   Work counts, journeys as steps ("Steg 12/20", never a percentage) and one card
+ *   per target standard with the one readiness number; the rest under "Vis alle".
  *
+ * Every number is a link to the list it counts.
  * The detailed readiness lives on Standards; exports and audit packs on Reports.
  * Reloads on org or language change (text fields come back in the UI language).
  */
@@ -70,7 +97,6 @@ const SETUP_LINKS: Record<string, string> = {
     Icon,
     LoadingState,
     PageHeader,
-    ProgressBar,
     SetupBanner,
     NextActions,
     StandardStatus,
@@ -97,86 +123,140 @@ const SETUP_LINKS: Record<string, string> = {
         }
         @case ('ready') {
           @if (home(); as h) {
-            <div class="flex flex-col gap-8">
-              <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-                <!-- Do this now -->
-                <section aria-labelledby="home-next-title" class="min-w-0">
-                  <h2 id="home-next-title" class="mb-1 font-display text-section font-bold text-fg">
-                    {{ 'home.next.title' | transloco }}
-                  </h2>
-                  <p class="mb-3 text-ui text-fg-muted">{{ 'home.next.subtitle' | transloco }}</p>
-                  @if (actions().length) {
-                    <app-next-actions [actions]="actions()" (dismissed)="dismiss($event)" />
-                  } @else {
-                    <app-empty-state
-                      icon="checkcircle"
-                      titleKey="home.next.emptyTitle"
-                      bodyKey="home.next.emptyBody"
-                      [compact]="true"
-                    />
-                  }
-                  @if (missingSetup().length) {
-                    <ul class="mt-3 flex flex-col gap-1.5" data-testid="home-setup-missing">
-                      @for (item of missingSetup(); track item) {
+            @if (h.workspace.key === 'employee') {
+              <div class="flex flex-col gap-6" data-testid="home-employee">
+                <p class="max-w-[72ch] text-body text-fg-muted">
+                  {{ 'home.employee.intro' | transloco }}
+                </p>
+                @if (h.quick_actions.length) {
+                  <nav aria-labelledby="home-quick-title" data-testid="home-quick">
+                    <h2 id="home-quick-title" class="sr-only">
+                      {{ 'home.quick.title' | transloco }}
+                    </h2>
+                    <ul class="grid gap-3 sm:grid-cols-3">
+                      @for (q of h.quick_actions; track q.key; let first = $first) {
                         <li>
                           <a
-                            [routerLink]="setupLinks[item]"
-                            class="inline-flex items-center gap-2 text-ui font-semibold text-accent hover:underline"
+                            [routerLink]="quickLink(q.url).path"
+                            [queryParams]="quickLink(q.url).query"
+                            class="flex min-h-14 items-center justify-center rounded-card px-4 py-3 text-center text-ui font-semibold"
+                            [class.bg-accent]="first"
+                            [class.text-white]="first"
+                            [class.border]="!first"
+                            [class.border-border]="!first"
+                            [class.bg-surface]="!first"
+                            [class.text-fg]="!first"
+                            [attr.data-testid]="'home-quick-' + q.key"
                           >
-                            <app-icon name="plus" [size]="14" />
-                            {{ 'home.setup.' + item | transloco }}
+                            {{ 'home.quick.' + q.key | transloco }}
                           </a>
                         </li>
                       }
                     </ul>
+                  </nav>
+                }
+                <section aria-labelledby="home-work-title" data-testid="home-counters">
+                  <h2 id="home-work-title" class="sr-only">{{ 'nav.myWork' | transloco }}</h2>
+                  <ul class="grid gap-3 sm:grid-cols-3">
+                    @for (c of employeeCounters; track c.field) {
+                      <li>
+                        <a
+                          routerLink="/my-work"
+                          [queryParams]="c.query"
+                          class="flex items-baseline justify-between gap-3 rounded-card border border-border bg-surface px-4 py-3 shadow-card hover:border-border-strong hover:bg-surface-2"
+                          [attr.data-testid]="'home-counter-' + c.field"
+                        >
+                          <span class="text-ui text-fg">{{ c.labelKey | transloco }}</span>
+                          <span class="font-display text-section font-bold text-fg"
+                            >{{ h.my_work[c.field] }} →</span
+                          >
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                  @if (upToDate()) {
+                    <p class="mt-3 text-ui text-pass-ink" data-testid="home-up-to-date">
+                      {{ 'home.employee.upToDate' | transloco }}
+                    </p>
                   }
                 </section>
-
-                <div class="flex min-w-0 flex-col gap-6">
-                  <!-- My Work -->
-                  <section
-                    aria-labelledby="home-work-title"
-                    class="rounded-card border border-border bg-surface p-5 shadow-card"
-                    data-testid="home-my-work"
+                <p class="text-meta text-fg-muted">
+                  <button
+                    type="button"
+                    class="font-semibold text-accent hover:underline"
+                    data-testid="home-show-all"
+                    (click)="showAll()"
                   >
-                    <div class="mb-3 flex items-baseline justify-between gap-3">
-                      <h2 id="home-work-title" class="font-display text-card font-bold text-fg">
-                        {{ 'nav.myWork' | transloco }}
-                      </h2>
-                      <a
-                        routerLink="/my-work"
-                        class="text-meta font-semibold text-accent hover:underline"
-                      >
-                        {{ 'home.work.open' | transloco }} →
-                      </a>
-                    </div>
-                    @if (h.my_work.total === 0) {
-                      <p class="text-ui text-fg-muted">{{ 'home.work.empty' | transloco }}</p>
+                    {{ 'home.employee.showAll' | transloco }}
+                  </button>
+                  · {{ 'home.employee.showAllHint' | transloco }}
+                </p>
+              </div>
+            } @else {
+              <div class="flex flex-col gap-8">
+                @if (h.workspace.source === 'requested') {
+                  <p class="text-meta text-fg-muted" data-testid="home-previewing">
+                    {{ 'home.workspace.previewing' | transloco }}
+                    <button
+                      type="button"
+                      class="ml-1 font-semibold text-accent hover:underline"
+                      (click)="backToMine()"
+                    >
+                      {{ 'home.workspace.back' | transloco }}
+                    </button>
+                  </p>
+                }
+                @if (h.quick_actions.length) {
+                  <nav aria-labelledby="home-quick-title" data-testid="home-quick">
+                    <h2 id="home-quick-title" class="mb-2 font-display text-card font-bold text-fg">
+                      {{ 'home.quick.title' | transloco }}
+                    </h2>
+                    <ul class="flex flex-wrap gap-2">
+                      @for (q of h.quick_actions; track q.key) {
+                        <li>
+                          <a
+                            [routerLink]="quickLink(q.url).path"
+                            [queryParams]="quickLink(q.url).query"
+                            class="inline-flex min-h-10 items-center rounded-tile border border-border bg-surface px-3 py-2 text-ui font-semibold text-fg hover:border-border-strong hover:bg-surface-2"
+                            [attr.data-testid]="'home-quick-' + q.key"
+                          >
+                            {{ 'home.quick.' + q.key | transloco }}
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  </nav>
+                }
+                <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+                  <!-- Do this now -->
+                  <section aria-labelledby="home-next-title" class="min-w-0">
+                    <h2
+                      id="home-next-title"
+                      class="mb-1 font-display text-section font-bold text-fg"
+                    >
+                      {{ 'home.next.title' | transloco }}
+                    </h2>
+                    <p class="mb-3 text-ui text-fg-muted">{{ 'home.next.subtitle' | transloco }}</p>
+                    @if (actions().length) {
+                      <app-next-actions [actions]="actions()" (dismissed)="dismiss($event)" />
                     } @else {
-                      <ul class="grid grid-cols-2 gap-2">
-                        @for (tile of workTiles; track tile.field) {
+                      <app-empty-state
+                        icon="checkcircle"
+                        titleKey="home.next.emptyTitle"
+                        bodyKey="home.next.emptyBody"
+                        [compact]="true"
+                      />
+                    }
+                    @if (missingSetup().length) {
+                      <ul class="mt-3 flex flex-col gap-1.5" data-testid="home-setup-missing">
+                        @for (item of missingSetup(); track item) {
                           <li>
                             <a
-                              routerLink="/my-work"
-                              [queryParams]="{ tab: tile.tab }"
-                              class="flex flex-col rounded-tile border border-border px-3 py-2 hover:border-border-strong hover:bg-surface-2"
-                              [class.border-warn]="
-                                tile.field === 'overdue' && h.my_work.overdue > 0
-                              "
+                              [routerLink]="setupLinks[item]"
+                              class="inline-flex items-center gap-2 text-ui font-semibold text-accent hover:underline"
                             >
-                              <span
-                                class="font-display text-section font-bold"
-                                [class.text-warn-ink]="
-                                  tile.field === 'overdue' && h.my_work.overdue > 0
-                                "
-                                [class.text-fg]="
-                                  !(tile.field === 'overdue' && h.my_work.overdue > 0)
-                                "
-                                >{{ h.my_work[tile.field] }}</span
-                              >
-                              <span class="text-meta text-fg-muted">{{
-                                tile.labelKey | transloco
-                              }}</span>
+                              <app-icon name="plus" [size]="14" />
+                              {{ 'home.setup.' + item | transloco }}
                             </a>
                           </li>
                         }
@@ -184,123 +264,182 @@ const SETUP_LINKS: Record<string, string> = {
                     }
                   </section>
 
-                  <!-- Journeys -->
-                  @if (showJourneys()) {
+                  <div class="flex min-w-0 flex-col gap-6">
+                    <!-- My Work -->
                     <section
-                      aria-labelledby="home-journeys-title"
+                      aria-labelledby="home-work-title"
                       class="rounded-card border border-border bg-surface p-5 shadow-card"
-                      data-testid="home-journeys"
+                      data-testid="home-my-work"
                     >
-                      <h2
-                        id="home-journeys-title"
-                        class="mb-3 font-display text-card font-bold text-fg"
-                      >
-                        {{ 'home.journeys.title' | transloco }}
-                      </h2>
-                      @for (j of h.journeys; track j.id) {
+                      <div class="mb-3 flex items-baseline justify-between gap-3">
+                        <h2 id="home-work-title" class="font-display text-card font-bold text-fg">
+                          {{ 'nav.myWork' | transloco }}
+                        </h2>
                         <a
-                          [routerLink]="j.url"
-                          class="mb-2 block rounded-tile border border-border p-3 last:mb-0 hover:border-border-strong hover:bg-surface-2"
-                          data-testid="home-journey"
+                          routerLink="/my-work"
+                          class="text-meta font-semibold text-accent hover:underline"
                         >
-                          <span class="flex items-baseline justify-between gap-2">
-                            <span class="text-ui font-semibold text-fg">{{ j.title }}</span>
-                            <span class="flex-none text-meta text-fg-muted">{{ j.percent }} %</span>
-                          </span>
-                          <app-progress-bar
-                            class="mt-2 block"
-                            [value]="j.percent"
-                            [label]="
-                              'home.journeys.progress' | transloco: { done: j.done, total: j.total }
-                            "
-                          />
-                          <span class="mt-2 block text-meta text-fg-muted">
-                            {{
-                              'home.journeys.progress' | transloco: { done: j.done, total: j.total }
-                            }}
-                          </span>
-                          @if (j.next_step; as next) {
-                            <span class="mt-1 block text-meta text-fg">
-                              {{ 'home.journeys.next' | transloco: { step: next.title } }}
-                            </span>
+                          {{ 'home.work.open' | transloco }} →
+                        </a>
+                      </div>
+                      @if (h.my_work.total === 0) {
+                        <p class="text-ui text-fg-muted">{{ 'home.work.empty' | transloco }}</p>
+                      } @else {
+                        <ul class="grid grid-cols-2 gap-2">
+                          @for (tile of workTiles; track tile.field) {
+                            <li>
+                              <a
+                                routerLink="/my-work"
+                                [queryParams]="{ tab: tile.tab }"
+                                class="flex flex-col rounded-tile border border-border px-3 py-2 hover:border-border-strong hover:bg-surface-2"
+                                [class.border-warn]="
+                                  tile.field === 'overdue' && h.my_work.overdue > 0
+                                "
+                              >
+                                <span
+                                  class="font-display text-section font-bold"
+                                  [class.text-warn-ink]="
+                                    tile.field === 'overdue' && h.my_work.overdue > 0
+                                  "
+                                  [class.text-fg]="
+                                    !(tile.field === 'overdue' && h.my_work.overdue > 0)
+                                  "
+                                  >{{ h.my_work[tile.field] }}</span
+                                >
+                                <span class="text-meta text-fg-muted">{{
+                                  tile.labelKey | transloco
+                                }}</span>
+                              </a>
+                            </li>
                           }
-                          <span class="mt-2 block text-meta font-semibold text-accent">
-                            {{
-                              (j.status === 'completed'
-                                ? 'home.journeys.view'
-                                : 'home.journeys.continue'
-                              ) | transloco
-                            }}
-                            →
-                          </span>
-                        </a>
-                      } @empty {
-                        <p class="text-ui text-fg-muted">
-                          {{ 'home.journeys.emptyBody' | transloco }}
-                        </p>
-                        <a
-                          [routerLink]="startJourneyUrl()"
-                          class="mt-3 inline-flex text-ui font-semibold text-accent hover:underline"
-                        >
-                          {{ 'home.journeys.start' | transloco }} →
-                        </a>
+                        </ul>
                       }
                     </section>
-                  }
-                </div>
-              </div>
 
-              <!-- How the organisation is doing -->
-              @if (h.frameworks.length) {
-                <section aria-labelledby="home-status-title">
-                  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                    <div>
-                      <h2
-                        id="home-status-title"
-                        class="font-display text-section font-bold text-fg"
+                    <!-- Journeys -->
+                    @if (showJourneys()) {
+                      <section
+                        aria-labelledby="home-journeys-title"
+                        class="rounded-card border border-border bg-surface p-5 shadow-card"
+                        data-testid="home-journeys"
                       >
-                        {{ 'home.status.title' | transloco }}
-                      </h2>
-                      <p class="mt-0.5 text-ui text-fg-muted">
-                        {{ 'home.status.subtitle' | transloco }}
-                      </p>
-                    </div>
-                    <a
-                      routerLink="/standards"
-                      class="text-ui font-semibold text-accent hover:underline"
-                    >
-                      {{ 'home.status.allStandards' | transloco }} →
-                    </a>
-                  </div>
-                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    @for (fw of h.frameworks; track fw.framework) {
-                      <app-standard-status
-                        [status]="fw"
-                        [journey]="journeyFor(fw.framework)"
-                        [canStartJourney]="canManageStandards()"
-                      />
+                        <h2
+                          id="home-journeys-title"
+                          class="mb-3 font-display text-card font-bold text-fg"
+                        >
+                          {{ 'home.journeys.title' | transloco }}
+                        </h2>
+                        @for (j of h.journeys; track j.id) {
+                          <a
+                            [routerLink]="j.url"
+                            class="mb-2 block rounded-tile border border-border p-3 last:mb-0 hover:border-border-strong hover:bg-surface-2"
+                            data-testid="home-journey"
+                          >
+                            <span class="flex items-baseline justify-between gap-2">
+                              <span class="text-ui font-semibold text-fg">{{ j.title }}</span>
+                              <span class="flex-none text-meta text-fg-muted">{{
+                                'home.journeys.steps' | transloco: { done: j.done, total: j.total }
+                              }}</span>
+                            </span>
+                            @if (j.next_step; as next) {
+                              <span class="mt-1 block text-meta text-fg">
+                                {{ 'home.journeys.next' | transloco: { step: next.title } }}
+                              </span>
+                            }
+                            <span class="mt-2 block text-meta font-semibold text-accent">
+                              {{
+                                (j.status === 'completed'
+                                  ? 'home.journeys.view'
+                                  : 'home.journeys.continue'
+                                ) | transloco
+                              }}
+                              →
+                            </span>
+                          </a>
+                        } @empty {
+                          <p class="text-ui text-fg-muted">
+                            {{ 'home.journeys.emptyBody' | transloco }}
+                          </p>
+                          <a
+                            [routerLink]="startJourneyUrl()"
+                            class="mt-3 inline-flex text-ui font-semibold text-accent hover:underline"
+                          >
+                            {{ 'home.journeys.start' | transloco }} →
+                          </a>
+                        }
+                      </section>
                     }
                   </div>
-                </section>
-              } @else if (canReadStandards()) {
-                <app-empty-state
-                  icon="iso"
-                  titleKey="home.status.emptyTitle"
-                  bodyKey="home.status.emptyBody"
-                  ctaKey="home.status.emptyCta"
-                  ctaLink="/standards"
-                />
-              }
+                </div>
 
-              @if (showReports()) {
-                <p class="text-ui text-fg-muted">
-                  {{ 'home.reports.hint' | transloco }}
-                  <a routerLink="/reports" class="font-semibold text-accent hover:underline">
-                    {{ 'home.reports.link' | transloco }} →
-                  </a>
-                </p>
-              }
-            </div>
+                <!-- How the organisation is doing -->
+                @if (h.frameworks.length) {
+                  <section aria-labelledby="home-status-title">
+                    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                      <div>
+                        <h2
+                          id="home-status-title"
+                          class="font-display text-section font-bold text-fg"
+                        >
+                          {{ 'home.status.title' | transloco }}
+                        </h2>
+                        <p class="mt-0.5 text-ui text-fg-muted">
+                          {{ 'home.status.subtitle' | transloco }}
+                        </p>
+                      </div>
+                      <a
+                        routerLink="/standards"
+                        class="text-ui font-semibold text-accent hover:underline"
+                      >
+                        {{ 'home.status.allStandards' | transloco }} →
+                      </a>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      @for (fw of shownStandards(); track fw.framework) {
+                        <app-standard-status
+                          [status]="fw"
+                          [journey]="journeyFor(fw.framework)"
+                          [canStartJourney]="canManageStandards()"
+                        />
+                      }
+                    </div>
+                    @if (otherStandards().length) {
+                      <button
+                        type="button"
+                        class="mt-3 text-ui font-semibold text-accent hover:underline"
+                        data-testid="home-standards-toggle"
+                        [attr.aria-expanded]="showOthers()"
+                        (click)="showOthers.set(!showOthers())"
+                      >
+                        {{
+                          showOthers()
+                            ? ('home.status.hideOthers' | transloco)
+                            : ('home.status.showOthers'
+                              | transloco: { count: otherStandards().length })
+                        }}
+                      </button>
+                    }
+                  </section>
+                } @else if (canReadStandards()) {
+                  <app-empty-state
+                    icon="iso"
+                    titleKey="home.status.emptyTitle"
+                    bodyKey="home.status.emptyBody"
+                    ctaKey="home.status.emptyCta"
+                    ctaLink="/standards"
+                  />
+                }
+
+                @if (showReports()) {
+                  <p class="text-ui text-fg-muted">
+                    {{ 'home.reports.hint' | transloco }}
+                    <a routerLink="/reports" class="font-semibold text-accent hover:underline">
+                      {{ 'home.reports.link' | transloco }} →
+                    </a>
+                  </p>
+                }
+              </div>
+            }
           }
         }
       }
@@ -317,10 +456,15 @@ export class Dashboard {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly workTiles = WORK_TILES;
+  protected readonly employeeCounters = EMPLOYEE_COUNTERS;
   protected readonly setupLinks = SETUP_LINKS;
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly home = signal<HomeResponse | null>(null);
+  /** "Vis alt": the template previewed in this visit (null = the caller's own). */
+  private readonly requested = signal<WorkspaceKey | null>(null);
+  /** Non-target standards unfolded ("Vis alle standarder"). */
+  protected readonly showOthers = signal(false);
   /** Actions hidden in this visit (the API stores the dismissal; this hides it at once). */
   private readonly hidden = signal<ReadonlySet<string>>(new Set());
 
@@ -339,6 +483,25 @@ export class Dashboard {
       this.canReadStandards() &&
       ((this.home()?.journeys.length ?? 0) > 0 || this.canManageStandards()),
   );
+
+  /** Target standards first; the rest only after "Vis alle standarder". */
+  private readonly targetStandards = computed<readonly FrameworkStatus[]>(() =>
+    (this.home()?.frameworks ?? []).filter((f) => f.is_target !== false),
+  );
+  protected readonly otherStandards = computed<readonly FrameworkStatus[]>(() =>
+    (this.home()?.frameworks ?? []).filter((f) => f.is_target === false),
+  );
+  protected readonly shownStandards = computed(() =>
+    this.showOthers() || !this.targetStandards().length
+      ? [...this.targetStandards(), ...this.otherStandards()]
+      : this.targetStandards(),
+  );
+
+  /** The employee home is "à jour" when none of its three counters has anything. */
+  protected readonly upToDate = computed(() => {
+    const work = this.home()?.my_work;
+    return !!work && !work.tasks && !work.acknowledge && !work.training;
+  });
 
   protected readonly actions = computed(() => {
     const hidden = this.hidden();
@@ -386,6 +549,20 @@ export class Dashboard {
       const lang = this.language.active();
       untracked(() => this.load(orgId, lang));
     });
+  }
+
+  protected quickLink(url: string): { path: string; query: Record<string, string> } {
+    return splitUrl(url);
+  }
+
+  protected showAll(): void {
+    this.requested.set(FULL_WORKSPACE);
+    this.reload();
+  }
+
+  protected backToMine(): void {
+    this.requested.set(null);
+    this.reload();
   }
 
   protected journeyFor(framework: string): JourneySummary | null {
@@ -443,7 +620,7 @@ export class Dashboard {
       this.state.set('loading');
     }
     this.loadedOrg = orgId;
-    this.request = this.api.home(orgId, lang).subscribe({
+    this.request = this.api.home(orgId, lang, this.requested()).subscribe({
       next: (home) => {
         this.loadActionScopes(home.next_actions ?? [], lang);
         this.home.set(home);

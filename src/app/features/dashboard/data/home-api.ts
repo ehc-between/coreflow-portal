@@ -11,6 +11,8 @@ import {
   NextActionList,
   StepStatus,
   StepTaskRequest,
+  WorkspaceKey,
+  WorkspaceSettings,
 } from './home.models';
 
 /** Mutations skip the generic toast: the pages show a translated, specific message. */
@@ -29,8 +31,27 @@ const skipToast = () => ({ context: new HttpContext().set(SKIP_ERROR_TOAST, true
 export class HomeApi {
   private readonly api = inject(ApiService);
 
-  home(orgId: string, lang: string): Observable<HomeResponse> {
-    return this.api.get<HomeResponse>(`v1/orgs/${orgId}/home`, { params: { lang } });
+  /** The caller's home; `workspace` previews another template ("Vis alt"). */
+  home(orgId: string, lang: string, workspace?: WorkspaceKey | null): Observable<HomeResponse> {
+    const params: Record<string, string> = workspace ? { lang, workspace } : { lang };
+    return this.api.get<HomeResponse>(`v1/orgs/${orgId}/home`, { params });
+  }
+
+  /** U07: the home template per RBAC role (`org:manage`). */
+  workspaces(orgId: string): Observable<WorkspaceSettings> {
+    return this.api.get<WorkspaceSettings>(`v1/orgs/${orgId}/home/workspaces`);
+  }
+
+  /** Set (or with `null` reset to the default) the template of the given roles. */
+  setWorkspaces(
+    orgId: string,
+    mapping: Readonly<Record<string, WorkspaceKey | null>>,
+  ): Observable<WorkspaceSettings> {
+    return this.api.put<WorkspaceSettings>(
+      `v1/orgs/${orgId}/home/workspaces`,
+      { mapping },
+      skipToast(),
+    );
   }
 
   nextActions(orgId: string, lang: string, limit = 7): Observable<NextActionList> {

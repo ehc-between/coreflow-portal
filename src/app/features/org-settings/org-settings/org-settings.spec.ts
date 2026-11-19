@@ -114,6 +114,8 @@ describe('Settings hub for an org:manage user', () => {
     ]);
     // U03: the menu card reads the org's nav_v2 setting.
     http.expectOne(`${BASE}/v1/orgs/${ORG}/settings`).flush({ nav_v2: true });
+    // U07: the home page per role card.
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/home/workspaces`).flush({ workspaces: [], roles: [] });
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;

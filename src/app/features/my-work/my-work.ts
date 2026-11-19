@@ -793,7 +793,11 @@ export class MyWork {
 
   protected readonly state = signal<LoadState>('loading');
   protected readonly items = signal<readonly WorkItem[]>([]);
-  protected readonly filters = signal<WorkFilters>(NO_FILTERS);
+  /** `?source=` (e.g. `document_ack` from a Home counter, U07) preselects the type. */
+  protected readonly filters = signal<WorkFilters>({
+    ...NO_FILTERS,
+    source: this.route.snapshot?.queryParamMap?.get('source') || NO_FILTERS.source,
+  });
   protected readonly busyId = signal<string | null>(null);
   protected readonly formOpen = signal(false);
 
