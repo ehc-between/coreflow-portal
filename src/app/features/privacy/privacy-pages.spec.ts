@@ -158,6 +158,96 @@ describe('PrivacyOverview', () => {
     expect(el.querySelector('[data-testid="register-card-dsr"]')).toBeNull();
     expect(el.querySelector('[data-testid="register-card-ropa"]')).toBeTruthy();
   });
+
+  it('gives beginners the four-step path, two incident buttons, four tabs and four tiles', async () => {
+    const { http } = configureKit(PrivacyOverview, {
+      permissions: ALL,
+      providers: [...provideFakeGuidance({}, 'beginner').providers],
+    });
+    const fixture = TestBed.createComponent(PrivacyOverview);
+    const el = fixture.nativeElement as HTMLElement;
+    await render(fixture);
+    const step = (key: string, done: boolean) => ({
+      key,
+      done,
+      manual: false,
+      count: null,
+      url: key === 'documents' ? '/privacy/documents' : `/privacy/${key}`,
+    });
+    http.expectOne(kitUrl('privacy/overview')).flush({
+      ropa_active: 3,
+      ropa_total: 4,
+      dpias_open: 1,
+      dpias_required_undecided: 2,
+      dsr_open: 1,
+      dsr_overdue: 1,
+      breaches_open: 1,
+      breaches_clock_running: 1,
+      breaches_overdue: 1,
+      processors_without_dpa: 2,
+      transfers_missing_tia: 1,
+      reviews_overdue: 3,
+      path: {
+        done: 1,
+        total: 4,
+        steps: [
+          step('ropa', true),
+          step('processors', false),
+          step('dpia', false),
+          step('documents', false),
+        ],
+      },
+      setup: { done: 0, total: 7, steps: [] },
+    });
+    await render(fixture);
+    expect(el.querySelector('[data-testid="privacy-path"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="privacy-setup"]')).toBeNull();
+    expect(el.querySelectorAll('[data-testid^="path-step-"]').length).toBe(4);
+    expect(el.querySelector('[data-testid="path-cta-documents"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="overview-report-breach"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="overview-new-request"]')).toBeTruthy();
+    // At most four alert tiles; the rest behind one button.
+    expect(el.querySelectorAll('[data-testid^="kpi-"]').length).toBe(4);
+    expect(el.querySelector('[data-testid="privacy-kpis-all"]')).toBeTruthy();
+    // Beginners see the work, not the stats strip or the register cards.
+    expect(el.querySelector('[data-testid="privacy-stats"]')).toBeNull();
+    expect(el.querySelector('[data-testid="register-card-ropa"]')).toBeNull();
+    // Four work tabs, then "Flere registre".
+    const tabs = [
+      ...el.querySelectorAll('[data-testid^="privacy-nav-"], [data-testid="nav-overview"]'),
+    ]
+      .map((a) => a.getAttribute('data-testid'))
+      .slice(0, 4);
+    expect(tabs).toEqual([
+      'nav-overview',
+      'privacy-nav-ropa',
+      'privacy-nav-processors',
+      'privacy-nav-incidents',
+    ]);
+    expect(el.querySelector('[data-testid="module-nav-more"]')?.textContent).toContain(
+      'privacy.nav.more',
+    );
+  });
+});
+
+describe('PrivacyGroupSwitch', () => {
+  it('switches between the two registers of a shared tab', async () => {
+    const { http } = configureKit(PrivacyRegisterList, {
+      permissions: ALL,
+      providers: [...provideFakeGuidance().providers],
+    });
+    const fixture = TestBed.createComponent(PrivacyRegisterList);
+    fixture.componentRef.setInput('register', 'transfer');
+    const el = fixture.nativeElement as HTMLElement;
+    await render(fixture);
+    http.expectOne((r) => r.url === kitUrl('privacy/transfers')).flush({ items: [], total: 0 });
+    await render(fixture);
+    const sw = el.querySelector('[data-testid="privacy-group-switch"]');
+    expect(sw?.querySelector('[data-testid="privacy-group-processor"]')).toBeTruthy();
+    expect(
+      sw?.querySelector('[data-testid="privacy-group-transfer"]')?.getAttribute('aria-current'),
+    ).toBe('page');
+  });
 });
 
 describe('PrivacyRegisterDetail', () => {

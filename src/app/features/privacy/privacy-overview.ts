@@ -41,6 +41,11 @@ import { OutputsPanel } from '../../shared/outputs/outputs-panel';
 import { PrivacyGaps } from './privacy-gaps';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
 import { PrivacySetupCard } from './privacy-setup';
+import { PrivacyPath } from './privacy-path';
+import { GuidanceService } from '../../core/guidance/guidance.service';
+
+/** At most this many alert tiles show at first (principle 5); the rest behind a button. */
+const MAX_TILES = 4;
 
 interface Tile {
   readonly key: string;
@@ -91,6 +96,7 @@ export const OVERVIEW_LESSONS = [
     OutputsPanel,
     PrivacyGaps,
     PrivacySetupCard,
+    PrivacyPath,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -113,9 +119,25 @@ export const OVERVIEW_LESSONS = [
             {{ 'privacy.overview.reportBreach' | transloco }}
           </a>
         }
+        @if (canRequests()) {
+          <a
+            secondary
+            [routerLink]="['/privacy', 'data-subject-requests', 'new']"
+            [queryParams]="{ quick: 1 }"
+            class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3.5 text-ui font-semibold text-fg hover:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+            data-testid="overview-new-request"
+          >
+            <app-icon name="inbox" [size]="15" />
+            {{ 'privacy.overview.newRequest' | transloco }}
+          </a>
+        }
       </app-page-header>
 
-      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-module-nav
+        labelKey="modules.names.privacy"
+        moreLabelKey="privacy.nav.more"
+        [items]="nav()"
+      />
       <app-help-strip scope="privacy" page="overview" tour="overview" lesson="gdpr-principles" />
 
       @switch (state()) {
@@ -128,7 +150,9 @@ export const OVERVIEW_LESSONS = [
         @default {
           @if (overview(); as o) {
             <div class="flex flex-col gap-6">
-              @if (o.setup; as setup) {
+              @if (beginner() && o.path) {
+                <app-privacy-path [path]="o.path" data-testid="privacy-path" />
+              } @else if (o.setup; as setup) {
                 <app-privacy-setup
                   [setup]="setup"
                   [canManage]="canManage()"
@@ -147,7 +171,7 @@ export const OVERVIEW_LESSONS = [
                 </h2>
                 @if (tiles().length) {
                   <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-                    @for (t of tiles(); track t.key) {
+                    @for (t of shownTiles(); track t.key) {
                       <app-kpi-tile
                         [link]="t.link"
                         [queryParams]="t.query ?? null"
@@ -158,6 +182,19 @@ export const OVERVIEW_LESSONS = [
                       />
                     }
                   </div>
+                  @if (tiles().length > maxTiles && !allTiles()) {
+                    <button
+                      type="button"
+                      class="mt-2 text-ui font-semibold text-accent hover:underline"
+                      (click)="allTiles.set(true)"
+                      data-testid="privacy-kpis-all"
+                    >
+                      {{
+                        'privacy.overview.moreAlerts'
+                          | transloco: { count: tiles().length - maxTiles }
+                      }}
+                    </button>
+                  }
                 } @else {
                   <p
                     class="flex items-center gap-2 rounded-tile border border-pass/30 bg-pass-soft/60 px-4 py-3 text-ui text-fg"
@@ -263,24 +300,26 @@ export const OVERVIEW_LESSONS = [
                 }
               </div>
 
-              <section [attr.aria-label]="'privacy.overview.stats' | transloco">
-                <ul
-                  class="flex flex-wrap gap-x-5 gap-y-2 rounded-tile border border-border bg-surface px-4 py-3 text-ui text-fg-muted"
-                  data-testid="privacy-stats"
-                >
-                  @for (s of stats(); track s.key) {
-                    <li>
-                      <a
-                        [routerLink]="s.link"
-                        [queryParams]="s.query ?? null"
-                        class="hover:text-fg hover:underline"
-                      >
-                        {{ 'privacy.overview.stat.' + s.key | transloco: s.params }}
-                      </a>
-                    </li>
-                  }
-                </ul>
-              </section>
+              @if (!beginner()) {
+                <section [attr.aria-label]="'privacy.overview.stats' | transloco">
+                  <ul
+                    class="flex flex-wrap gap-x-5 gap-y-2 rounded-tile border border-border bg-surface px-4 py-3 text-ui text-fg-muted"
+                    data-testid="privacy-stats"
+                  >
+                    @for (s of stats(); track s.key) {
+                      <li>
+                        <a
+                          [routerLink]="s.link"
+                          [queryParams]="s.query ?? null"
+                          class="hover:text-fg hover:underline"
+                        >
+                          {{ 'privacy.overview.stat.' + s.key | transloco: s.params }}
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                </section>
+              }
             </div>
           }
         }
@@ -302,39 +341,41 @@ export const OVERVIEW_LESSONS = [
         <app-outputs-panel module="privacy" [excludeKinds]="documentKindsOnly" />
       </section>
 
-      <h2 class="mt-8 mb-3 font-display text-section font-bold text-fg">
-        {{ 'privacy.overview.registers' | transloco }}
-      </h2>
-      <div
-        class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
-        appTourStep="privacy-registers"
-      >
-        @for (r of registers(); track r.key) {
-          <a
-            [routerLink]="['/privacy', r.segment]"
-            class="group flex gap-3 rounded-card border border-border bg-surface p-4 outline-none hover:border-accent focus-visible:ring-2 focus-visible:ring-accent"
-            [attr.data-testid]="'register-card-' + r.key"
-          >
-            <span
-              class="flex h-9 w-9 flex-none items-center justify-center rounded-tile bg-accent-soft text-accent"
+      @if (!beginner()) {
+        <h2 class="mt-8 mb-3 font-display text-section font-bold text-fg">
+          {{ 'privacy.overview.registers' | transloco }}
+        </h2>
+        <div
+          class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+          appTourStep="privacy-registers"
+        >
+          @for (r of registers(); track r.key) {
+            <a
+              [routerLink]="['/privacy', r.segment]"
+              class="group flex gap-3 rounded-card border border-border bg-surface p-4 outline-none hover:border-accent focus-visible:ring-2 focus-visible:ring-accent"
+              [attr.data-testid]="'register-card-' + r.key"
             >
-              <app-icon [name]="r.icon" [size]="17" />
-            </span>
-            <span class="min-w-0">
-              <span class="block text-body font-semibold text-fg group-hover:underline">
-                {{ 'privacy.registers.' + r.key + '.plural' | transloco }}
+              <span
+                class="flex h-9 w-9 flex-none items-center justify-center rounded-tile bg-accent-soft text-accent"
+              >
+                <app-icon [name]="r.icon" [size]="17" />
               </span>
-              <span class="mt-0.5 block text-meta leading-snug text-fg-muted">
-                {{ 'privacy.registers.' + r.key + '.description' | transloco }}
+              <span class="min-w-0">
+                <span class="block text-body font-semibold text-fg group-hover:underline">
+                  {{ 'privacy.registers.' + r.key + '.plural' | transloco }}
+                </span>
+                <span class="mt-0.5 block text-meta leading-snug text-fg-muted">
+                  {{ 'privacy.registers.' + r.key + '.description' | transloco }}
+                </span>
               </span>
-            </span>
-          </a>
-        }
-      </div>
+            </a>
+          }
+        </div>
 
-      <div class="mt-8">
-        <app-why-it-matters scope="privacy" page="overview" />
-      </div>
+        <div class="mt-8">
+          <app-why-it-matters scope="privacy" page="overview" />
+        </div>
+      }
     </div>
   `,
 })
@@ -347,6 +388,13 @@ export class PrivacyOverview {
   private readonly perms = privacyPermissions();
 
   protected readonly nav = privacyNavItems(this.perms);
+  /** Beginners get the four-step path and only the work (U32). */
+  protected readonly beginner = inject(GuidanceService).isBeginner;
+  protected readonly maxTiles = MAX_TILES;
+  protected readonly allTiles = signal(false);
+  protected readonly shownTiles = computed(() =>
+    this.allTiles() ? this.tiles() : this.tiles().slice(0, MAX_TILES),
+  );
   protected readonly settingsLink = PRIVACY_SETTINGS_LINK;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly overview = signal<Overview | null>(null);
