@@ -98,7 +98,8 @@
     "implemented": "Gjennomført",
     "published": "Publisert",
     "evaluating": "Vurderes",
-    "realised": "Realisert"
+    "realised": "Realisert",
+    "signed": "Signert"
   },
   "chip": {
     "open": "Åpne {{ type }} {{ title }}",

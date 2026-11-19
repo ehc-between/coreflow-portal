@@ -98,7 +98,8 @@
     "implemented": "Implemented",
     "published": "Published",
     "evaluating": "Evaluating",
-    "realised": "Realised"
+    "realised": "Realised",
+    "signed": "Signed"
   },
   "chip": {
     "open": "Open {{ type }} {{ title }}",

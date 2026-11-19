@@ -77,13 +77,53 @@
   },
   "detail": {
     "notFound": "This task doesn't exist or you don't have access to it.",
-    "statusLabel": "Status",
-    "description": "Description",
-    "noDescription": "No description.",
-    "closedHint": "This task is closed. Reopen it to make changes.",
     "escalated": "Escalated (level {{ level }})",
     "partOfSeries": "Part of a recurring series",
-    "recordUnavailable": "The linked record is not available to you."
+    "recordUnavailable": "The linked record is not available to you.",
+    "notFoundTitle": "Task not found",
+    "type": "Task",
+    "setStatus": {
+      "open": "Mark as to do",
+      "in_progress": "Mark as in progress",
+      "blocked": "Mark as blocked"
+    },
+    "statusLine": {
+      "open": "To do – not started yet.",
+      "openOverdue": "To do – the deadline has passed and the work has not started.",
+      "inProgress": "In progress – the work has started.",
+      "inProgressOverdue": "In progress – the deadline has passed.",
+      "blocked": "Blocked – something is stopping the work.",
+      "done": "Done – nothing more to do. Reopen the task to change it.",
+      "doneOn": "Done {{ date }} – nothing more to do. Reopen the task to change it.",
+      "cancelled": "Cancelled – this task will not be done. Reopen it to change it."
+    },
+    "lead": {
+      "what": "What to do",
+      "due": "Deadline",
+      "duePassed": "The deadline has passed",
+      "assignee": "Who is responsible",
+      "record": "Belongs to"
+    },
+    "missing": {
+      "overdue": "The deadline has passed – finish the task or set a new deadline",
+      "blocked": "The task is blocked – write what is stopping it in a comment",
+      "assignee": "Choose who is responsible",
+      "due": "Set a deadline"
+    },
+    "fields": {
+      "priority": "Priority",
+      "start": "Start date",
+      "series": "Repeats",
+      "completed": "Completed",
+      "escalation": "Escalation",
+      "created": "Created",
+      "updated": "Last changed"
+    },
+    "series": {
+      "paused": "The series is paused – no new tasks are created.",
+      "next": "Next task due {{ date }}",
+      "open": "Show the series in recurring tasks"
+    }
   },
   "recurring": {
     "title": "Recurring tasks",
@@ -215,11 +255,11 @@
   "checklist": {
     "title": "Checklist",
     "progress": "{{ done }} of {{ total }} done",
-    "empty": "No checklist items.",
     "addLabel": "New checklist item",
     "addPlaceholder": "Add a step…",
     "add": "Add",
-    "remove": "Remove \"{{ text }}\""
+    "remove": "Remove \"{{ text }}\"",
+    "emptyHint": "No steps yet. Break the work into small steps you can tick off."
   },
   "history": {
     "title": "History",

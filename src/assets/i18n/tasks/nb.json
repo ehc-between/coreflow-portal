@@ -77,13 +77,53 @@
   },
   "detail": {
     "notFound": "Oppgaven finnes ikke, eller du har ikke tilgang til den.",
-    "statusLabel": "Status",
-    "description": "Beskrivelse",
-    "noDescription": "Ingen beskrivelse.",
-    "closedHint": "Oppgaven er lukket. Gjenåpne den for å gjøre endringer.",
     "escalated": "Eskalert (nivå {{ level }})",
     "partOfSeries": "Del av en gjentakende serie",
-    "recordUnavailable": "Den koblede registreringen er ikke tilgjengelig for deg."
+    "recordUnavailable": "Den koblede registreringen er ikke tilgjengelig for deg.",
+    "notFoundTitle": "Fant ikke oppgaven",
+    "type": "Oppgave",
+    "setStatus": {
+      "open": "Merk som å gjøre",
+      "in_progress": "Merk som pågår",
+      "blocked": "Merk som blokkert"
+    },
+    "statusLine": {
+      "open": "Å gjøre – ikke startet ennå.",
+      "openOverdue": "Å gjøre – fristen er passert, og arbeidet er ikke startet.",
+      "inProgress": "Pågår – arbeidet er i gang.",
+      "inProgressOverdue": "Pågår – fristen er passert.",
+      "blocked": "Blokkert – noe hindrer arbeidet.",
+      "done": "Utført – ingenting mer å gjøre. Gjenåpne oppgaven for å endre den.",
+      "doneOn": "Utført {{ date }} – ingenting mer å gjøre. Gjenåpne oppgaven for å endre den.",
+      "cancelled": "Avbrutt – oppgaven skal ikke gjøres. Gjenåpne den for å endre den."
+    },
+    "lead": {
+      "what": "Hva skal gjøres",
+      "due": "Frist",
+      "duePassed": "Fristen er passert",
+      "assignee": "Hvem er ansvarlig",
+      "record": "Hører til"
+    },
+    "missing": {
+      "overdue": "Fristen er passert – fullfør oppgaven eller sett en ny frist",
+      "blocked": "Oppgaven er blokkert – skriv i en kommentar hva som hindrer den",
+      "assignee": "Velg hvem som er ansvarlig",
+      "due": "Sett en frist"
+    },
+    "fields": {
+      "priority": "Prioritet",
+      "start": "Startdato",
+      "series": "Gjentas",
+      "completed": "Utført",
+      "escalation": "Eskalering",
+      "created": "Opprettet",
+      "updated": "Sist endret"
+    },
+    "series": {
+      "paused": "Serien er satt på pause – det lages ingen nye oppgaver.",
+      "next": "Neste oppgave har frist {{ date }}",
+      "open": "Vis serien i gjentakende oppgaver"
+    }
   },
   "recurring": {
     "title": "Gjentakende oppgaver",
@@ -215,11 +255,11 @@
   "checklist": {
     "title": "Sjekkliste",
     "progress": "{{ done }} av {{ total }} utført",
-    "empty": "Ingen sjekklistepunkter.",
     "addLabel": "Nytt sjekklistepunkt",
     "addPlaceholder": "Legg til et steg …",
     "add": "Legg til",
-    "remove": "Fjern «{{ text }}»"
+    "remove": "Fjern «{{ text }}»",
+    "emptyHint": "Ingen steg ennå. Del arbeidet opp i små steg du kan krysse av."
   },
   "history": {
     "title": "Historikk",
