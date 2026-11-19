@@ -129,7 +129,8 @@
     "openTreatments": "{{ count }} åpne tiltak",
     "subtitle": "Alle risikoer på tvers av registrene, med nåværende vurdering og eier.",
     "export": "Eksporter CSV",
-    "exportFailed": "Eksporten mislyktes. Prøv igjen om litt."
+    "exportFailed": "Eksporten mislyktes. Prøv igjen om litt.",
+    "suggestMore": "Foreslå flere"
   },
   "filters": {
     "status": "Status",

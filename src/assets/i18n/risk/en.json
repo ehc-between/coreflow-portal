@@ -129,7 +129,8 @@
     "openTreatments": "{{ count }} open treatments",
     "subtitle": "Every risk across all registers, with its current rating and owner.",
     "export": "Export CSV",
-    "exportFailed": "The export failed. Try again in a moment."
+    "exportFailed": "The export failed. Try again in a moment.",
+    "suggestMore": "Suggest more"
   },
   "filters": {
     "status": "Status",

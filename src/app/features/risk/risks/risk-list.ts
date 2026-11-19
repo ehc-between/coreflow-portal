@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -55,6 +56,12 @@ import { RatingBadge } from '../shared/rating-badge';
 import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { StarterSetup } from '../../../shared/starter-setup/starter-setup';
+import { StarterSetupPrompt } from '../../../shared/starter-setup/starter-setup-prompt';
+
+/** The starter-setup provider of the risk register ("Kom i gang med et forslag"). */
+export const RISK_STARTER_PROVIDER = 'risk.risks';
 
 const PAGE_SIZE = 50;
 
@@ -166,6 +173,9 @@ export function moreFiltersCount(filters: RiskFilters): number {
     StatusBadge,
     RatingBadge,
     RiskNav,
+    MenuItem,
+    StarterSetup,
+    StarterSetupPrompt,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -204,6 +214,18 @@ export function moreFiltersCount(filters: RiskFilters): number {
         <app-icon name="upload" [size]="14" />
         {{ 'risk.risks.export' | transloco }}
       </app-button>
+
+      @if (perms.canWrite() && rows().length > 0) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          data-testid="starter-more"
+          (click)="starter()?.open()"
+        >
+          {{ 'risk.risks.suggestMore' | transloco }}
+        </button>
+      }
 
       <app-risk-nav nav />
       <app-help-strip help scope="risk" page="risks" tour="risks" lesson="first-risk-assessment" />
@@ -382,6 +404,9 @@ export function moreFiltersCount(filters: RiskFilters): number {
       </app-card>
 
       <app-card empty>
+        @if (perms.canWrite()) {
+          <app-starter-setup-prompt [provider]="starterProvider" (begin)="starter()?.open()" />
+        }
         <app-teaching-empty
           scope="risk"
           page="risks"
@@ -392,6 +417,7 @@ export function moreFiltersCount(filters: RiskFilters): number {
 
       <app-why-it-matters below scope="risk" page="risks" />
     </app-record-list-page>
+    <app-starter-setup [provider]="starterProvider" (created)="reload()" />
   `,
 })
 export class RiskListPage {
@@ -401,6 +427,8 @@ export class RiskListPage {
   private readonly language = inject(LanguageService);
   private readonly toasts = inject(NotificationService);
   protected readonly perms = inject(RiskPermissions);
+  protected readonly starterProvider = RISK_STARTER_PROVIDER;
+  protected readonly starter = viewChild(StarterSetup);
 
   protected readonly statusFilters = RISK_STATUS_FILTERS;
   protected readonly sorts = RISK_SORTS;

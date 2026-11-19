@@ -63,7 +63,8 @@
   },
   "hints": {
     "no_accountable": "Ingen er ansvarlig (A) ennå. Velg én person når dere vet hvem det er.",
-    "no_responsible": "Ingen utfører (R) ennå. Legg til hvem som gjør jobben."
+    "no_responsible": "Ingen utfører (R) ennå. Legg til hvem som gjør jobben.",
+    "unrated": "Ikke vurdert ennå. Velg sannsynlighet og konsekvens, eller vurder den senere."
   },
   "fields": {
     "title": "Tittel",
@@ -87,7 +88,28 @@
     "process_id": "Prosess",
     "description": "Beskrivelse",
     "authorities": "Myndighet",
-    "assignments": "Hvem gjør hva (RACI)"
+    "assignments": "Hvem gjør hva (RACI)",
+    "threat": "Hva kan skje",
+    "vulnerability": "Hva gjør det mulig",
+    "consequence_text": "Hva det fører til",
+    "likelihood": "Sannsynlighet",
+    "consequence": "Konsekvens",
+    "treatment_notes": "Forslag til tiltak",
+    "subject": "Gjelder",
+    "obligation_type": "Type",
+    "issuer": "Myndighet",
+    "reference": "Referanse",
+    "source_url": "Lenke til teksten",
+    "applicability": "Slik gjelder det oss",
+    "requirements": "Viktigste plikter",
+    "purpose": "Formål",
+    "inputs": "Inn",
+    "outputs": "Ut",
+    "management_system": "Standard",
+    "target": "Mål (målbart)",
+    "plan": "Slik når vi målet",
+    "evaluation_method": "Slik måler vi det",
+    "due_date": "Frist (ÅÅÅÅ-MM-DD)"
   },
   "options": {
     "party_category": {
@@ -126,6 +148,57 @@
       "eu_ai_act": "EUs KI-forordning",
       "nis2": "NIS2",
       "general": "Generelt"
+    },
+    "risk_category": {
+      "enterprise": "Virksomhet",
+      "information_security": "Informasjonssikkerhet",
+      "privacy": "Personvern",
+      "ai": "KI",
+      "hse": "Helse og sikkerhet",
+      "environmental": "Miljø",
+      "project": "Prosjekter",
+      "quality": "Kvalitet",
+      "other": "Annet"
+    },
+    "likelihood": {
+      "1": "1 – Svært lite sannsynlig",
+      "2": "2 – Lite sannsynlig",
+      "3": "3 – Mulig",
+      "4": "4 – Sannsynlig",
+      "5": "5 – Svært sannsynlig"
+    },
+    "consequence": {
+      "1": "1 – Svært liten",
+      "2": "2 – Liten",
+      "3": "3 – Moderat",
+      "4": "4 – Stor",
+      "5": "5 – Svært stor"
+    },
+    "obligation_type": {
+      "law": "Lov",
+      "regulation": "Forskrift",
+      "permit": "Tillatelse",
+      "licence": "Lisens",
+      "contract": "Avtale",
+      "standard": "Standard",
+      "industry_code": "Bransjenorm",
+      "voluntary": "Frivillig forpliktelse",
+      "internal": "Internt krav",
+      "other": "Annet"
+    },
+    "obligation_area": {
+      "work": "Ansatte og arbeidsmiljø",
+      "privacy": "Personvern",
+      "finance": "Regnskap og økonomi",
+      "security": "Digital sikkerhet og KI",
+      "environment": "Miljø",
+      "product": "Produkter og forbrukere",
+      "industry": "Deres bransje"
+    },
+    "process_category": {
+      "management": "Ledelsesprosesser",
+      "core": "Kjerneprosesser",
+      "support": "Støtteprosesser"
     }
   },
   "providers": {
@@ -156,6 +229,34 @@
       "intro": "Her bestemmer dere hvem som gjør hva i styringssystemet. For hver oppgave viser RACI hvem som utfører (R), hvem som er ansvarlig (A, alltid nøyaktig én), hvem som rådføres (C) og hvem som holdes informert (I). I en liten bedrift har ofte én person flere roller.",
       "promptTitle": "Vil du at jeg foreslår roller og ansvar for dere?",
       "promptBody": "Vi foreslår de vanlige ansvarsområdene for standardene dere jobber med, med deres egne personer, roller og avdelinger, og kobler dem til prosessene deres der de finnes."
+    },
+    "risk_risks": {
+      "title": "Forslag til risikoer",
+      "whatTitle": "Hva er et risikoregister?",
+      "intro": "En risiko er noe som kan gå galt og skade virksomheten, de ansatte, kundene eller informasjonen deres. For hver risiko anslår dere hvor sannsynlig den er og hvor alvorlig konsekvensen blir, slik at dere tar tak i de viktigste først. Vurderingene her er forslag: juster dem til deres situasjon.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå risikoene som er typiske for en virksomhet som deres, med en første vurdering og forslag til tiltak, og koble dem til eiendeler, prosesser og leverandører der de finnes."
+    },
+    "obligations_laws": {
+      "title": "Forslag til lover og forskrifter",
+      "whatTitle": "Hvorfor en oversikt over lover og forskrifter?",
+      "intro": "Alle virksomheter må vite hvilke lover og forskrifter som gjelder for dem, og sjekke jevnlig at de følger dem. Det kreves både av internkontrollforskriften og av ISO-standardene. Forslagene er et utgangspunkt: sjekk at hvert punkt gjelder dere, og legg til tillatelser eller avtaler dere har.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå lovene og forskriftene som vanligvis gjelder for en norsk virksomhet i deres bransje og størrelse, med de viktigste pliktene i hver."
+    },
+    "processes_map": {
+      "title": "Forslag til prosesser",
+      "whatTitle": "Hva er et prosesskart?",
+      "intro": "En prosess er en rekke aktiviteter som gjør noe som kommer inn (en bestilling, et behov) om til noe som går ut (en leveranse, en beslutning). Kjerneprosessene skaper verdi for kundene, ledelsesprosessene styrer virksomheten, og støtteprosessene gjør resten mulig. Kartet viser hvordan virksomheten fungerer.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå et prosesskart med ledelses-, kjerne- og støtteprosesser, basert på bransjen deres og standardene dere jobber med."
+    },
+    "objectives_objectives": {
+      "title": "Forslag til mål",
+      "whatTitle": "Hva er et godt mål?",
+      "intro": "Et godt mål er SMART: spesifikt, målbart, oppnåelig, relevant og tidsbestemt. Hvert forslag har et mål dere kan måle, en kort plan og en frist. Målene opprettes som utkast, slik at ledelsen kan godkjenne dem etterpå.",
+      "promptTitle": "Kom i gang med et forslag",
+      "promptBody": "Vi kan foreslå noen SMART-mål for hver standard dere jobber med, basert på bedriftsprofilen."
     }
   }
 }

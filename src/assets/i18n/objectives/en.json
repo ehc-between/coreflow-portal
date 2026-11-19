@@ -28,7 +28,8 @@
     "atRisk": "{{ count }} at risk",
     "offTrack": "{{ count }} off track",
     "noData": "{{ count }} without data",
-    "kpiCountOne": "1 KPI"
+    "kpiCountOne": "1 KPI",
+    "suggestMore": "Suggest more"
   },
   "kpiList": {
     "title": "KPIs",

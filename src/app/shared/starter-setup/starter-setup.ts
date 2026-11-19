@@ -280,6 +280,11 @@ const LETTERS: readonly RaciSlot['raci'][] = ['R', 'A', 'C', 'I'];
                                       [id]="id"
                                       (change)="set(row.key, f.name, $any($event.target).value)"
                                     >
+                                      @if (!f.required && !row.fields[f.name]) {
+                                        <option value="" selected>
+                                          {{ 'starter.none' | transloco }}
+                                        </option>
+                                      }
                                       @for (o of f.options; track o) {
                                         <option [value]="o" [selected]="o === row.fields[f.name]">
                                           {{

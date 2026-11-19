@@ -59,6 +59,33 @@ describe('starter setup', () => {
     }
   });
 
+  it('has texts and labels for the risk, law, process and objective providers', () => {
+    const en = starterEn as unknown as {
+      providers: Record<string, Record<string, string>>;
+      options: Record<string, Record<string, string>>;
+      fields: Record<string, string>;
+    };
+    for (const key of [
+      'risk.risks',
+      'obligations.laws',
+      'processes.map',
+      'objectives.objectives',
+    ]) {
+      const texts = en.providers[providerI18nKey(key)];
+      for (const part of ['title', 'whatTitle', 'intro', 'promptTitle', 'promptBody']) {
+        expect(texts?.[part], `${key}.${part}`).toBeTruthy();
+      }
+    }
+    for (const set of ['risk_category', 'likelihood', 'consequence', 'obligation_type']) {
+      expect(en.options[set], set).toBeTruthy();
+    }
+    expect(Object.keys(en.options['obligation_area'])).toHaveLength(7);
+    expect(Object.keys(en.options['process_category'])).toEqual(['management', 'core', 'support']);
+    for (const field of ['threat', 'likelihood', 'subject', 'requirements', 'purpose', 'target']) {
+      expect(en.fields[field], field).toBeTruthy();
+    }
+  });
+
   it('starts with every row selected, grouped in first-seen order', () => {
     const rows = toRows(RESULT.items);
     expect(rows.every((r) => r.selected && !r.expanded)).toBe(true);

@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -34,6 +35,8 @@ import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
 import { RecordRow, RecordRowHeader } from '../../shared/ui/record-row/record-row';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { StarterSetup } from '../../shared/starter-setup/starter-setup';
+import { StarterSetupPrompt } from '../../shared/starter-setup/starter-setup-prompt';
 import { ObjectiveProgress } from './components/objective-progress';
 import { ObjectivesTiles, SummaryTile } from './components/summary-tiles';
 import { ObjectivesApi } from './data/objectives-api';
@@ -176,6 +179,8 @@ export function objectiveTiles(
     StatusBadge,
     ObjectiveProgress,
     ObjectivesTiles,
+    StarterSetup,
+    StarterSetupPrompt,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -235,6 +240,17 @@ export function objectiveTiles(
           [attr.data-testid]="'export-' + format"
         >
           {{ 'objectives.export.' + format | transloco: { year: exportYear() } }}
+        </button>
+      }
+      @if (canWrite() && total() > 0) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          data-testid="starter-more"
+          (click)="starter()?.open()"
+        >
+          {{ 'objectives.list.suggestMore' | transloco }}
         </button>
       }
 
@@ -399,6 +415,9 @@ export function objectiveTiles(
       }
 
       <div empty>
+        @if (canWrite()) {
+          <app-starter-setup-prompt [provider]="starterProvider" (begin)="starter()?.open()" />
+        }
         <app-teaching-empty
           [scope]="scope"
           page="list"
@@ -409,6 +428,7 @@ export function objectiveTiles(
 
       <app-why-it-matters below [scope]="scope" page="list" />
     </app-record-list-page>
+    <app-starter-setup [provider]="starterProvider" (created)="reload()" />
   `,
 })
 export class ObjectivesList {
@@ -434,6 +454,9 @@ export class ObjectivesList {
   protected readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes('objectives:write'),
   );
+  /** The starter-setup provider of the register ("Kom i gang med et forslag"). */
+  protected readonly starterProvider = 'objectives.objectives';
+  protected readonly starter = viewChild(StarterSetup);
 
   protected readonly q = signal('');
   protected readonly status = signal<ObjectiveStatusFilter>('open');
