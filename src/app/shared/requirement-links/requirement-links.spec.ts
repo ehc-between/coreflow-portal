@@ -210,7 +210,9 @@ describe('CoverageChip', () => {
       ),
     );
     expect(chips.map((c) => c.dataset['state'])).toEqual(['documents', 'suggested', 'none']);
-    expect(chips[0].textContent).toContain('standards.reqs.coverage.documents');
+    expect(chips[0].textContent).toContain('standards.reqs.coverage.count');
+    expect(chips[0].textContent).not.toContain('·');
+    expect(chips[2].getAttribute('title')).toContain('standards.reqs.coverage.none');
   });
 });
 

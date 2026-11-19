@@ -17,8 +17,11 @@ export function coverageState(counts: RequirementCoverageCounts): CoverageState 
 }
 
 /**
- * Requirement coverage of a record, for list rows: "Dokumenterer 3 krav"
- * (plus "· 2 forslag"), "13 forslag" or "Ikke koblet til krav".
+ * Requirement coverage of a record, for list rows. Compact and single-line:
+ * a small pill "✓ 3 krav" (plus a secondary "2 forslag" beside it, wrapping
+ * under it only when the column is too narrow), a dashed "13 forslag" pill,
+ * or a muted "–". The full sentence ("Dokumenterer 3 krav, 2 forslag venter
+ * på vurdering") is the tooltip and the screen-reader text.
  *
  * Pass `counts` directly, or `entityType` + `entityId` and the chip reads them
  * from `RequirementCoverageService` (every chip of a list is fetched in one
@@ -29,52 +32,78 @@ export function coverageState(counts: RequirementCoverageCounts): CoverageState 
   imports: [TranslocoPipe, Icon],
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex' },
+  host: { class: 'inline-flex max-w-full items-center align-middle' },
   template: `
     @if (resolved(); as c) {
       @switch (state()) {
         @case ('documents') {
+          @let documents =
+            plural('standards.reqs.coverage.documents', c.confirmed)
+              | transloco: { count: c.confirmed };
+          @let summary =
+            c.suggested > 0
+              ? ('standards.reqs.coverage.summary'
+                | transloco
+                  : {
+                      documents,
+                      pending:
+                        (plural('standards.reqs.coverage.pending', c.suggested)
+                        | transloco: { count: c.suggested }),
+                    })
+              : documents;
           <span
-            class="inline-flex max-w-full flex-wrap items-center gap-x-1 rounded-tile border border-border bg-surface px-2 py-0.5 text-meta font-medium text-fg-muted"
+            class="inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 text-meta leading-5"
+            [title]="summary"
             data-testid="coverage-chip"
             data-state="documents"
           >
-            <app-icon name="checkcircle" [size]="12" class="text-pass" />
-            <span class="whitespace-nowrap">{{
-              plural('standards.reqs.coverage.documents', c.confirmed)
-                | transloco: { count: c.confirmed }
-            }}</span>
+            <span
+              class="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 font-medium whitespace-nowrap text-fg-muted"
+              aria-hidden="true"
+            >
+              <app-icon name="checkcircle" [size]="12" class="text-pass" />
+              {{
+                plural('standards.reqs.coverage.count', c.confirmed)
+                  | transloco: { count: c.confirmed }
+              }}
+            </span>
             @if (c.suggested > 0) {
-              <span class="whitespace-nowrap text-accent"
-                >·
-                {{
-                  plural('standards.reqs.coverage.suggested', c.suggested)
-                    | transloco: { count: c.suggested }
-                }}</span
-              >
+              <span class="whitespace-nowrap text-accent" aria-hidden="true">{{
+                plural('standards.reqs.coverage.suggested', c.suggested)
+                  | transloco: { count: c.suggested }
+              }}</span>
             }
+            <span class="sr-only">{{ summary }}</span>
           </span>
         }
         @case ('suggested') {
+          @let pending =
+            plural('standards.reqs.coverage.pending', c.suggested)
+              | transloco: { count: c.suggested };
           <span
-            class="inline-flex items-center gap-1 rounded-full border border-dashed border-accent-border bg-surface px-2 py-0.5 text-meta font-medium whitespace-nowrap text-accent"
+            class="inline-flex items-center gap-1 rounded-full border border-dashed border-accent-border px-2 text-meta leading-5 font-medium whitespace-nowrap text-accent"
+            [title]="pending"
             data-testid="coverage-chip"
             data-state="suggested"
           >
             <app-icon name="spark" [size]="12" />
-            {{
+            <span aria-hidden="true">{{
               plural('standards.reqs.coverage.suggested', c.suggested)
                 | transloco: { count: c.suggested }
-            }}
+            }}</span>
+            <span class="sr-only">{{ pending }}</span>
           </span>
         }
         @default {
+          @let none = 'standards.reqs.coverage.none' | transloco;
           <span
-            class="inline-flex items-center rounded-full px-1 py-0.5 text-meta whitespace-nowrap text-fg-subtle"
+            class="inline-flex items-center px-1 text-meta leading-5 text-fg-subtle"
+            [title]="none"
             data-testid="coverage-chip"
             data-state="none"
           >
-            {{ 'standards.reqs.coverage.none' | transloco }}
+            <span aria-hidden="true">–</span>
+            <span class="sr-only">{{ none }}</span>
           </span>
         }
       }

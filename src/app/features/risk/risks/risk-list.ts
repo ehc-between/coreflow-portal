@@ -334,7 +334,7 @@ export function moreFiltersCount(filters: RiskFilters): number {
                   >
                     <app-coverage-chip
                       coverage
-                      class="max-w-full [&_[data-testid=coverage-chip]]:flex-wrap [&_[data-testid=coverage-chip]]:whitespace-normal"
+                      class="max-w-full"
                       entityType="risk"
                       [entityId]="r.id"
                     />

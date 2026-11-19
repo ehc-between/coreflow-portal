@@ -364,7 +364,7 @@ export function objectiveTiles(
                     dateKind="due"
                     [overdue]="o.overdue"
                   >
-                    <span coverage class="block min-w-0 [&_span]:whitespace-normal">
+                    <span coverage class="block min-w-0">
                       <app-coverage-chip entityType="objective" [entityId]="o.id" />
                     </span>
                     <app-status-badge
