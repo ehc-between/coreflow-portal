@@ -100,6 +100,7 @@ export function isReviewOverdue(a: AssessmentSummary, now: Date = new Date()): b
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="ai_assessments"
       titleKey="aiGovernance.assessments.title"
       descriptionKey="aiGovernance.assessments.subtitle"
       [scope]="scope"

@@ -91,6 +91,7 @@ export function parseFindingStatusFilter(value: string | null | undefined): Find
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="audit_findings"
       titleKey="audits.findings.title"
       descriptionKey="audits.findings.subtitle"
       scope="audits"

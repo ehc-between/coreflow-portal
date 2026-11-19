@@ -97,6 +97,7 @@ const PAGE_SIZE = 25;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="ai_systems"
       titleKey="aiGovernance.systems.title"
       descriptionKey="aiGovernance.systems.subtitle"
       [scope]="scope"

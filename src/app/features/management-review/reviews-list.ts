@@ -123,6 +123,7 @@ const SELECT =
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="management_reviews"
       [titleKey]="nameKey"
       descriptionKey="managementReview.list.subtitle"
       [breadcrumbs]="crumbs"

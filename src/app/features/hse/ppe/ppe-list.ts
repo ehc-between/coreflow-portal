@@ -136,6 +136,7 @@ export function ppeSortKey(sort: PpeSort): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="ppe_items"
       titleKey="hse.ppe.list.title"
       descriptionKey="hse.ppe.list.subtitle"
       scope="hse"

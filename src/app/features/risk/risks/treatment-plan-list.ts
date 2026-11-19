@@ -90,6 +90,7 @@ export function treatmentFiltersFromParams(params: ParamMap): TreatmentPlanFilte
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="risk_treatments"
       titleKey="risk.treatmentPlan.title"
       descriptionKey="risk.treatmentPlan.subtitle"
       scope="risk"

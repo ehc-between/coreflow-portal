@@ -70,6 +70,7 @@ const PAGE_SIZE = 50;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="competences"
       titleKey="people.competences.title"
       descriptionKey="people.competences.subtitle"
       [breadcrumbs]="[root, { labelKey: 'people.competences.title' }]"
