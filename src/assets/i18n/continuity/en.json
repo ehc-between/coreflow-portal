@@ -26,7 +26,6 @@
     "deleted": "{{ code }} was deleted.",
     "deleteMessage": "Delete {{ code }} {{ title }}? It is removed from all lists, but the audit trail keeps its history.",
     "months": "{{ count }} months",
-    "notYet": "Not yet",
     "unknownPerson": "someone no longer in the organisation",
     "seeAll": "See all",
     "more": "+{{ count }} more",
@@ -117,16 +116,12 @@
     "maxImpact": "Max impact {{ value }}/5",
     "uncovered": "No plan",
     "planCount": "{{ count }} plans",
-    "coveringPlans": "Plans that cover this activity",
-    "noPlans": "No continuity plan covers this activity yet. Create one so the recovery targets have a way to be met.",
-    "createPlan": "Create continuity plan",
     "deleteTitle": "Delete impact analysis",
     "planCountOne": "1 plan",
     "impactsIntro": "How bad it gets per area if the activity stops for as long as it can tolerate.",
     "noTimeline": "Not filled in. Rate the impact after 4 hours, 1 day, 3 days and 1 week to find the real MTPD.",
     "suggestedMtpd": "The impact becomes serious after",
     "mtpdLonger": "The MTPD set is longer than that.",
-    "noProcess": "Not linked to a process. Link it, so the process page shows its recovery target.",
     "linkHidden": "(you cannot open the linked record)"
   },
   "plans": {
@@ -143,11 +138,7 @@
     "lastExercised": "Last exercised {{ date }}",
     "neverExercised": "Never exercised",
     "nextExercise": "next planned {{ date }}",
-    "targets": "Recovery targets",
-    "targetsHint": "The strictest targets of the impact analyses this plan covers. The plan's steps must make them achievable.",
-    "noBias": "This plan covers no impact analysis yet. Link the activities it protects so its targets are known.",
     "exercises": "Exercises and tests",
-    "noExercises": "This plan has not been exercised yet.",
     "planExercise": "Plan an exercise",
     "deleteTitle": "Delete continuity plan",
     "deleteMessage": "Delete {{ code }} {{ title }}? Its own crisis contacts are deleted too. The audit trail keeps its history.",
@@ -196,8 +187,6 @@
     "targetRto": "Target recovery time",
     "rtoMet": "Target met",
     "rtoMissed": "Target missed",
-    "noLessons": "No lessons learned recorded.",
-    "completedBy": "Recorded {{ date }} by {{ name }}",
     "cancel": "Cancel exercise",
     "cancelTitle": "Cancel this exercise?",
     "cancelMessage": "A cancelled exercise stays in the history. You can reopen it later.",
@@ -209,7 +198,6 @@
       "reopen": "{{ code }} was reopened."
     },
     "targetMissed": "The recovery took longer than the target. The outcome is set to \"Partly successful\"; change it only if the target did not apply.",
-    "outcomeConflict": "Marked successful, but the recovery time missed the target. Check the outcome.",
     "targetSource": {
       "exercise": "Set for this exercise",
       "plan": "From the plan: how fast it must be back up",
@@ -318,15 +306,7 @@
     "moveDown": "Move {{ name }} down"
   },
   "control": {
-    "title": "Approval and review",
-    "version": "Version {{ version }}",
-    "approvedOn": "{{ date }} by {{ name }}",
-    "notApproved": "Not approved yet",
-    "submittedOn": "Submitted {{ date }} by {{ name }}",
-    "interval": "Reviewed every {{ months }} months once approved",
-    "note": "Note (optional unless rejecting)",
-    "approvedBy": "Approved by {{ name }}",
-    "approvedUndated": "Approved (no date recorded)"
+    "note": "Note (optional unless rejecting)"
   },
   "schedule": {
     "title": "Exercise every …",
@@ -344,7 +324,7 @@
     "saved": "The exercise schedule was saved."
   },
   "followUps": {
-    "title": "Follow-up",
+    "title": "Following up the lessons",
     "empty": "No follow-up actions yet. Turn each lesson learned into an action with an owner and a due date.",
     "add": "Add action",
     "what": "What needs to be done",
@@ -416,7 +396,6 @@
     "reviewInterval": "Review interval (months)",
     "lastReviewed": "Last reviewed",
     "nextReview": "Next review",
-    "approved": "Approved by / date",
     "planType": "Plan type",
     "location": "Location or site",
     "phase": "Phase",
@@ -906,6 +885,100 @@
     "notExercised": {
       "title": "Exercise {{ code }}",
       "why": "{{ count }} approved plans have not been exercised in the last year, starting with {{ name }}."
+    }
+  },
+  "detail": {
+    "fill": "Fill in",
+    "type": {
+      "bia": "Impact analysis",
+      "plan": "Continuity plan",
+      "ict": "ICT service"
+    },
+    "ask": {
+      "nextStep": "What is the next step?"
+    },
+    "status": {
+      "approvedOn": "Approved – version {{ version }} applies. Approved {{ date }} by {{ name }}.",
+      "approvedBy": "Approved – version {{ version }} applies, approved by {{ name }}.",
+      "approved": "Approved – version {{ version }} applies.",
+      "inReviewOn": "Waiting for approval – submitted {{ date }} by {{ name }}. An approver must approve or reject it.",
+      "inReview": "Waiting for approval – an approver must approve or reject it.",
+      "draft": "Draft – not approved yet. Submit it for approval when it is ready.",
+      "retired": "Retired – no longer in use, kept for the record.",
+      "exercise": {
+        "planned": "Planned – to be held {{ date }}. Record the result afterwards.",
+        "undated": "Planned – no date set yet.",
+        "overdue": "Overdue – it was due {{ date }}. Record the result, or move the date.",
+        "successful": "Successful – held {{ date }}, and it went as planned.",
+        "partial": "Partly successful – held {{ date }}. Follow up what did not work.",
+        "unsuccessful": "Unsuccessful – held {{ date }}. The plan did not work as intended; follow up the lessons.",
+        "completed": "Held – {{ date }}.",
+        "conflict": "Check the outcome – marked successful, but the recovery took longer than the target.",
+        "cancelled": "Cancelled – the exercise was not held."
+      }
+    },
+    "targets": {
+      "rto": "Back up within",
+      "rpo": "Data loss at most",
+      "mtpd": "Can stand still for"
+    },
+    "bia": {
+      "process": "Activity analysed",
+      "criticality": "How critical",
+      "maxImpact": "worst impact {{ value }} of 5",
+      "targets": "Recovery targets",
+      "plans": "Plans that cover the activity",
+      "description": "About the activity",
+      "workarounds": "Workarounds while it is down",
+      "peakPeriods": "Busy periods (when a stop hurts most)",
+      "unrated": "Not rated: {{ areas }}",
+      "dependencies": "What the activity depends on",
+      "dependenciesIntro": "People, systems, suppliers and other things that must work for the activity to run."
+    },
+    "plan": {
+      "scope": "What the plan covers",
+      "activation": "When the plan is used",
+      "targets": "Recovery targets",
+      "targetsFrom": "The strictest targets of the impact analyses the plan covers.",
+      "bias": "Activities the plan protects",
+      "steps": "What to do, step by step",
+      "more": "More about the plan"
+    },
+    "exercise": {
+      "subject": "What is exercised",
+      "recovery": "Recovery time achieved",
+      "lessons": "What we learned",
+      "when": "When",
+      "target": "Target recovery time"
+    },
+    "meta": {
+      "approved": "Approved",
+      "reviewEvery": "Reviewed",
+      "everyMonths": "every {{ count }} months",
+      "afterApproval": "Set when approved",
+      "lastExercised": "Last exercised",
+      "updated": "Last changed",
+      "recorded": "Result recorded",
+      "recordedBy": "{{ date }}, {{ name }}"
+    },
+    "missing": {
+      "review": "The review is overdue – review it now",
+      "owner": "Choose an owner",
+      "biaPlan": "No plan covers this activity – create one",
+      "biaTargets": "Set the recovery targets (MTPD and RTO)",
+      "biaMtpd": "The MTPD is longer than the impacts suggest – check it",
+      "biaProcess": "Link the analysis to its process",
+      "ictGapOne": "{{ name }} cannot be recovered fast enough",
+      "ictGap": "{{ count }} ICT services cannot be recovered fast enough, among them {{ name }}",
+      "planBias": "Link the activities (impact analyses) the plan protects",
+      "planSteps": "Add the steps of the plan",
+      "planExercise": "The plan has never been exercised – plan an exercise",
+      "planPrint": "Print or download the plan and keep a copy offline",
+      "planReprint": "The printed copy is out of date – print the current version",
+      "exerciseResult": "The date has passed – record the result",
+      "exerciseDate": "Set a date for the exercise",
+      "exerciseFollowUp": "Follow up the lessons learned",
+      "exerciseSubject": "Choose the plan or ICT service to exercise"
     }
   }
 }

@@ -26,7 +26,6 @@
     "deleted": "{{ code }} ble slettet.",
     "deleteMessage": "Slette {{ code }} {{ title }}? Den fjernes fra alle lister, men revisjonssporet beholder historikken.",
     "months": "{{ count }} måneder",
-    "notYet": "Ikke ennå",
     "unknownPerson": "en som ikke lenger er i organisasjonen",
     "seeAll": "Se alle",
     "more": "+{{ count }} til",
@@ -117,16 +116,12 @@
     "maxImpact": "Høyeste konsekvens {{ value }}/5",
     "uncovered": "Ingen plan",
     "planCount": "{{ count }} planer",
-    "coveringPlans": "Planer som dekker denne aktiviteten",
-    "noPlans": "Ingen kontinuitetsplan dekker denne aktiviteten ennå. Lag en, slik at gjenopprettingsmålene kan nås.",
-    "createPlan": "Lag kontinuitetsplan",
     "deleteTitle": "Slett konsekvensanalyse",
     "planCountOne": "1 plan",
     "impactsIntro": "Hvor alvorlig det blir per område hvis aktiviteten står stille så lenge den tåler.",
     "noTimeline": "Ikke fylt ut. Vurder konsekvensen etter 4 timer, 1 døgn, 3 døgn og 1 uke for å finne riktig MTPD.",
     "suggestedMtpd": "Konsekvensen blir alvorlig etter",
     "mtpdLonger": "Den satte MTPD-en er lengre enn dette.",
-    "noProcess": "Ikke koblet til en prosess. Koble den, så viser prosessiden gjenopprettingsmålet.",
     "linkHidden": "(du har ikke tilgang til den koblede posten)"
   },
   "plans": {
@@ -143,11 +138,7 @@
     "lastExercised": "Sist øvd {{ date }}",
     "neverExercised": "Aldri øvd",
     "nextExercise": "neste planlagt {{ date }}",
-    "targets": "Gjenopprettingsmål",
-    "targetsHint": "De strengeste målene fra konsekvensanalysene planen dekker. Stegene i planen må gjøre dem oppnåelige.",
-    "noBias": "Planen dekker ingen konsekvensanalyse ennå. Koble til aktivitetene den beskytter, slik at målene blir kjent.",
     "exercises": "Øvelser og tester",
-    "noExercises": "Planen er ikke øvd ennå.",
     "planExercise": "Planlegg en øvelse",
     "deleteTitle": "Slett kontinuitetsplan",
     "deleteMessage": "Slette {{ code }} {{ title }}? Planens egne krisekontakter slettes også. Revisjonssporet beholder historikken.",
@@ -196,8 +187,6 @@
     "targetRto": "Mål for gjenopprettingstid",
     "rtoMet": "Målet nådd",
     "rtoMissed": "Målet ikke nådd",
-    "noLessons": "Ingen erfaringer registrert.",
-    "completedBy": "Registrert {{ date }} av {{ name }}",
     "cancel": "Avlys øvelsen",
     "cancelTitle": "Avlyse øvelsen?",
     "cancelMessage": "En avlyst øvelse blir værende i historikken. Du kan gjenåpne den senere.",
@@ -209,7 +198,6 @@
       "reopen": "{{ code }} ble gjenåpnet."
     },
     "targetMissed": "Gjenopprettingen tok lengre tid enn målet. Utfallet er satt til «Delvis vellykket». Endre det bare hvis målet ikke gjaldt.",
-    "outcomeConflict": "Merket som vellykket, men gjenopprettingstiden nådde ikke målet. Sjekk utfallet.",
     "targetSource": {
       "exercise": "Satt for denne øvelsen",
       "plan": "Fra planen: hvor fort det må være oppe igjen",
@@ -318,15 +306,7 @@
     "moveDown": "Flytt {{ name }} ned"
   },
   "control": {
-    "title": "Godkjenning og gjennomgang",
-    "version": "Versjon {{ version }}",
-    "approvedOn": "{{ date }} av {{ name }}",
-    "notApproved": "Ikke godkjent ennå",
-    "submittedOn": "Sendt inn {{ date }} av {{ name }}",
-    "interval": "Gjennomgås hver {{ months }}. måned når den er godkjent",
-    "note": "Merknad (valgfri, unntatt ved avvisning)",
-    "approvedBy": "Godkjent av {{ name }}",
-    "approvedUndated": "Godkjent (dato ikke registrert)"
+    "note": "Merknad (valgfri, unntatt ved avvisning)"
   },
   "schedule": {
     "title": "Fast øvelse",
@@ -344,7 +324,7 @@
     "saved": "Øvelsesplanen ble lagret."
   },
   "followUps": {
-    "title": "Oppfølging",
+    "title": "Oppfølging av erfaringene",
     "empty": "Ingen oppfølgingstiltak ennå. Gjør hver erfaring om til et tiltak med ansvarlig og frist.",
     "add": "Legg til tiltak",
     "what": "Hva som må gjøres",
@@ -416,7 +396,6 @@
     "reviewInterval": "Gjennomgangsintervall (måneder)",
     "lastReviewed": "Sist gjennomgått",
     "nextReview": "Neste gjennomgang",
-    "approved": "Godkjent av / dato",
     "planType": "Plantype",
     "location": "Sted eller lokasjon",
     "phase": "Fase",
@@ -906,6 +885,100 @@
     "notExercised": {
       "title": "Øv {{ code }}",
       "why": "{{ count }} godkjente planer er ikke øvd det siste året, først {{ name }}."
+    }
+  },
+  "detail": {
+    "fill": "Fyll ut",
+    "type": {
+      "bia": "Konsekvensanalyse",
+      "plan": "Kontinuitetsplan",
+      "ict": "IKT-tjeneste"
+    },
+    "ask": {
+      "nextStep": "Hva er neste steg?"
+    },
+    "status": {
+      "approvedOn": "Godkjent – versjon {{ version }} gjelder. Godkjent {{ date }} av {{ name }}.",
+      "approvedBy": "Godkjent – versjon {{ version }} gjelder, godkjent av {{ name }}.",
+      "approved": "Godkjent – versjon {{ version }} gjelder.",
+      "inReviewOn": "Til godkjenning – sendt inn {{ date }} av {{ name }}. En godkjenner må godkjenne eller avvise den.",
+      "inReview": "Til godkjenning – en godkjenner må godkjenne eller avvise den.",
+      "draft": "Utkast – ikke godkjent ennå. Send den til godkjenning når den er klar.",
+      "retired": "Faset ut – ikke lenger i bruk, men tatt vare på som dokumentasjon.",
+      "exercise": {
+        "planned": "Planlagt – gjennomføres {{ date }}. Registrer resultatet etterpå.",
+        "undated": "Planlagt – ingen dato er satt ennå.",
+        "overdue": "Forfalt – den skulle vært gjennomført {{ date }}. Registrer resultatet, eller flytt datoen.",
+        "successful": "Vellykket – gjennomført {{ date }}, og det gikk som planlagt.",
+        "partial": "Delvis vellykket – gjennomført {{ date }}. Følg opp det som ikke virket.",
+        "unsuccessful": "Ikke vellykket – gjennomført {{ date }}. Planen virket ikke som tenkt; følg opp erfaringene.",
+        "completed": "Gjennomført – {{ date }}.",
+        "conflict": "Sjekk utfallet – merket som vellykket, men gjenopprettingen tok lengre tid enn målet.",
+        "cancelled": "Avlyst – øvelsen ble ikke gjennomført."
+      }
+    },
+    "targets": {
+      "rto": "Oppe igjen innen",
+      "rpo": "Maks datatap",
+      "mtpd": "Tåler stans i"
+    },
+    "bia": {
+      "process": "Aktiviteten som analyseres",
+      "criticality": "Hvor kritisk",
+      "maxImpact": "verste konsekvens {{ value }} av 5",
+      "targets": "Gjenopprettingsmål",
+      "plans": "Planer som dekker aktiviteten",
+      "description": "Om aktiviteten",
+      "workarounds": "Midlertidige løsninger mens den står",
+      "peakPeriods": "Travle perioder (når en stans rammer mest)",
+      "unrated": "Ikke vurdert: {{ areas }}",
+      "dependencies": "Hva aktiviteten er avhengig av",
+      "dependenciesIntro": "Personer, systemer, leverandører og annet som må virke for at aktiviteten skal gå."
+    },
+    "plan": {
+      "scope": "Hva planen dekker",
+      "activation": "Når planen tas i bruk",
+      "targets": "Gjenopprettingsmål",
+      "targetsFrom": "De strengeste målene fra konsekvensanalysene planen dekker.",
+      "bias": "Aktiviteter planen beskytter",
+      "steps": "Hva som skal gjøres, steg for steg",
+      "more": "Mer om planen"
+    },
+    "exercise": {
+      "subject": "Hva som øves",
+      "recovery": "Oppnådd gjenopprettingstid",
+      "lessons": "Hva vi lærte",
+      "when": "Når",
+      "target": "Mål for gjenopprettingstid"
+    },
+    "meta": {
+      "approved": "Godkjent",
+      "reviewEvery": "Gjennomgås",
+      "everyMonths": "hver {{ count }}. måned",
+      "afterApproval": "Settes ved godkjenning",
+      "lastExercised": "Sist øvd",
+      "updated": "Sist endret",
+      "recorded": "Resultat registrert",
+      "recordedBy": "{{ date }}, {{ name }}"
+    },
+    "missing": {
+      "review": "Gjennomgangen er forfalt – gjennomgå nå",
+      "owner": "Velg en eier",
+      "biaPlan": "Ingen plan dekker aktiviteten – lag en",
+      "biaTargets": "Sett gjenopprettingsmålene (MTPD og RTO)",
+      "biaMtpd": "MTPD er lengre enn konsekvensene tilsier – sjekk den",
+      "biaProcess": "Koble analysen til prosessen",
+      "ictGapOne": "{{ name }} kan ikke gjenopprettes raskt nok",
+      "ictGap": "{{ count }} IKT-tjenester kan ikke gjenopprettes raskt nok, blant annet {{ name }}",
+      "planBias": "Koble til aktivitetene (konsekvensanalysene) planen beskytter",
+      "planSteps": "Legg inn stegene i planen",
+      "planExercise": "Planen er aldri øvd – planlegg en øvelse",
+      "planPrint": "Skriv ut eller last ned planen, og ha en kopi utenfor systemene",
+      "planReprint": "Utskriften er utdatert – skriv ut den gjeldende versjonen",
+      "exerciseResult": "Datoen er passert – registrer resultatet",
+      "exerciseDate": "Sett en dato for øvelsen",
+      "exerciseFollowUp": "Følg opp erfaringene",
+      "exerciseSubject": "Velg planen eller IKT-tjenesten som skal øves"
     }
   }
 }
