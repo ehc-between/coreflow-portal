@@ -392,7 +392,7 @@
   },
   "interactionMap": {
     "back": "Tilbake til prosesser",
-    "title": "Samspillskart",
+    "title": "Slik henger arbeidet sammen",
     "includeRetired": "Vis utgåtte prosesser",
     "empty": "Ingen prosesser ennå. Legg til prosesser og samspillet mellom dem for å se kartet.",
     "svgLabel": "Kart over alle prosesser og hvordan de samspiller",
@@ -413,7 +413,7 @@
   },
   "map": {
     "back": "Tilbake til prosessen",
-    "title": "Slik henger arbeidet sammen",
+    "title": "Prosesskart: {{ title }}",
     "version": "Kartversjon {{ version }}",
     "unsaved": "Ulagrede endringer",
     "save": "Lagre kart",
@@ -555,7 +555,7 @@
   },
   "nav": {
     "register": "Prosessregister",
-    "interactionMap": "Samspillskart"
+    "interactionMap": "Slik henger arbeidet sammen"
   },
   "frameworks": {
     "iso9001": "ISO 9001",

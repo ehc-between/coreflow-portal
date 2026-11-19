@@ -392,7 +392,7 @@
   },
   "interactionMap": {
     "back": "Back to processes",
-    "title": "Interaction map",
+    "title": "How the work fits together",
     "includeRetired": "Show retired processes",
     "empty": "No processes yet. Add processes and their interactions to see the map.",
     "svgLabel": "Map of all processes and how they interact",
@@ -413,7 +413,7 @@
   },
   "map": {
     "back": "Back to the process",
-    "title": "How the work fits together",
+    "title": "Process map: {{ title }}",
     "version": "Map version {{ version }}",
     "unsaved": "Unsaved changes",
     "save": "Save map",
@@ -555,7 +555,7 @@
   },
   "nav": {
     "register": "Process register",
-    "interactionMap": "Interaction map"
+    "interactionMap": "How the work fits together"
   },
   "frameworks": {
     "iso9001": "ISO 9001",
