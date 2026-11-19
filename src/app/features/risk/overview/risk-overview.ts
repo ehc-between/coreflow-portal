@@ -138,6 +138,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                   class="mb-5 block"
                   [orgId]="perms.orgId() ?? ''"
                   [matrix]="h.matrix"
+                  [registerId]="registerId()"
                   (created)="go('/risk/risks/' + $event.id)"
                 />
               }

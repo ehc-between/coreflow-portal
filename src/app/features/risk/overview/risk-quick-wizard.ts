@@ -134,6 +134,8 @@ export class RiskQuickWizard {
 
   readonly orgId = input.required<string>();
   readonly matrix = input.required<Matrix>();
+  /** The register the overview is filtered on (its matrix is the one shown); empty = default. */
+  readonly registerId = input('');
   readonly created = output<Risk>();
 
   protected readonly title = signal('');
@@ -159,16 +161,19 @@ export class RiskQuickWizard {
       return;
     }
     this.saving.set(true);
-    this.api.createRisk(this.orgId(), body).subscribe({
-      next: (risk) => {
-        this.saving.set(false);
-        this.toasts.success('risk.quick.saved');
-        this.created.emit(risk);
-      },
-      error: (e: unknown) => {
-        this.saving.set(false);
-        this.toasts.error(riskErrorKey(e));
-      },
-    });
+    const registerId = this.registerId();
+    this.api
+      .createRisk(this.orgId(), registerId ? { ...body, register_id: registerId } : body)
+      .subscribe({
+        next: (risk) => {
+          this.saving.set(false);
+          this.toasts.success('risk.quick.saved');
+          this.created.emit(risk);
+        },
+        error: (e: unknown) => {
+          this.saving.set(false);
+          this.toasts.error(riskErrorKey(e));
+        },
+      });
   }
 }
