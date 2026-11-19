@@ -299,7 +299,9 @@
     "missing": {
       "rating": "Rate the risk (likelihood and consequence)",
       "owner": "Choose an owner",
-      "strategy": "Choose how to treat the risk"
+      "strategy": "Choose how to treat the risk",
+      "review": "The review is overdue – record a review",
+      "treatments": "Add the actions that will reduce the risk"
     },
     "review": "Record review",
     "reviewTitle": "Record a periodic review",
@@ -333,7 +335,32 @@
     "acceptNoteHint": "Write why the organisation accepts a risk above the appetite.",
     "acceptExpiryHint": "Set to the next review by default. The acceptance must be renewed after this date.",
     "acceptanceUntilReview": "Valid until the next review",
-    "controlsHint": "The Annex A controls (or other controls) that reduce this risk."
+    "controlsHint": "The Annex A controls (or other controls) that reduce this risk.",
+    "changeStatusAction": "Change status",
+    "newStatus": "New status",
+    "reasonRequired": "Reason (required)",
+    "before": "Before treatment",
+    "after": "After treatment",
+    "lead": {
+      "what": "What could happen",
+      "level": "How serious it is",
+      "handling": "How we handle it",
+      "concerns": "What it concerns"
+    },
+    "plain": {
+      "threat": "What could trigger it",
+      "vulnerability": "The weakness it exploits",
+      "consequence": "What happens if it occurs",
+      "properties": "What is at stake",
+      "statusReason": "Reason for the status"
+    },
+    "statusLine": {
+      "closed": "Closed – the risk is no longer followed up.",
+      "unrated": "Not assessed – set likelihood and consequence to see how serious the risk is.",
+      "accepted": "Accepted – {{ name }} decided that we keep the risk at this level.",
+      "above": "Above the risk appetite – reduce the risk, or have management accept it.",
+      "within": "Within the risk appetite – the level is acceptable to the organisation."
+    }
   },
   "treatments": {
     "title": "Treatment plan",
@@ -357,6 +384,22 @@
       "blocked": "blocked",
       "done": "done",
       "cancelled": "cancelled"
+    },
+    "view": {
+      "what": "What will be done",
+      "owner": "Responsible",
+      "noDue": "No due date",
+      "connections": "Connected to",
+      "controls": "Controls this action puts in place",
+      "edit": "Edit the action",
+      "status": {
+        "planned": "Planned – not started yet.",
+        "in_progress": "In progress – the action is under way.",
+        "overdue": "Overdue – the due date has passed.",
+        "done": "Done – the effect has been checked.",
+        "doneUnchecked": "Done – check that the action works.",
+        "cancelled": "Cancelled – the action will not be carried out."
+      }
     }
   },
   "treatmentPlan": {
@@ -447,7 +490,27 @@
     },
     "actionPlanHint": "Add the concrete steps as action items on the opportunity after saving.",
     "actionsHint": "Action items are tasks: they appear in the owner's My work. Use \"Create from this\" for an objective or a project.",
-    "openActions": "{{ count }} open actions"
+    "openActions": "{{ count }} open actions",
+    "lead": {
+      "what": "What the opportunity is",
+      "value": "How valuable it is",
+      "plan": "How we will realise it",
+      "concerns": "What it concerns"
+    },
+    "statusLine": {
+      "identified": "Identified – assess benefit and feasibility and decide whether to go ahead.",
+      "evaluating": "Being evaluated – decide whether to go ahead.",
+      "planned": "Planned – the actions are decided but not started.",
+      "in_progress": "In progress – the actions are under way.",
+      "realised": "Realised – the benefit has been achieved.",
+      "rejected": "Rejected – we are not going ahead with it."
+    },
+    "missing": {
+      "overdue": "The due date has passed – update the plan or the date",
+      "score": "Assess benefit and feasibility",
+      "plan": "Describe how you will realise the opportunity",
+      "owner": "Choose an owner"
+    }
   },
   "soa": {
     "title": "Statement of Applicability",
@@ -576,7 +639,27 @@
     },
     "excludedDelta": "Each needs a justification",
     "showMissingShort": "Show them",
-    "documents": "Documents and reports"
+    "documents": "Documents and reports",
+    "detail": {
+      "whyIncluded": "Why it applies",
+      "whyExcluded": "Why it is excluded",
+      "reasons": "Reasons for including it",
+      "how": "How it is implemented",
+      "connections": "Connected to",
+      "risks": "Risks that use this control",
+      "treatments": "{{ count }} actions",
+      "notReviewed": "Not reviewed",
+      "edit": "Edit the decision",
+      "status": {
+        "implemented": "Applies to us – implemented.",
+        "partial": "Applies to us – partly implemented.",
+        "planned": "Applies to us – planned, not implemented yet.",
+        "not_started": "Applies to us – not started.",
+        "missing": "Applies to us – the justification is missing.",
+        "excluded": "Excluded – the justification is below.",
+        "excludedMissing": "Excluded – the justification is missing."
+      }
+    }
   },
   "registers": {
     "title": "Risk registers",
@@ -665,7 +748,11 @@
     "expectedResidual": "Expected residual: likelihood {{ likelihood }}, consequence {{ consequence }}",
     "applyResidual": "Use as residual rating",
     "draftJustification": "Draft justification",
-    "justificationHint": "The draft is based on the saved decision. Review it before saving."
+    "justificationHint": "The draft is based on the saved decision. Review it before saving.",
+    "explainRating": "Explain the assessment",
+    "explainOpportunity": "Help me assess the opportunity",
+    "working": "Making suggestions …",
+    "failed": "The suggestions could not be made. Try again shortly."
   },
   "ask": {
     "inherent": "Help me rate the likelihood and consequence of this risk before treatment.",
