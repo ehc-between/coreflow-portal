@@ -13,29 +13,36 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { pluralKey } from '../../../shared/i18n/plural';
 import { Subscription, catchError, concatMap, from, last, of } from 'rxjs';
-import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { StandardsApi } from '../../../core/standards/standards-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
@@ -48,11 +55,11 @@ import { ItemChange, ReviewItems, countItems } from './review-items';
 
 const TABS: readonly RecordTab[] = [
   'details',
-  'tasks',
   'related',
   'activity',
   'comments',
   'attachments',
+  'tasks',
 ];
 
 /** Whether a review can be completed now (accounts exist, none undecided, still open). */
@@ -77,15 +84,100 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
   return null;
 }
 
+/** The status sentence of a review: i18n key under `assets.reviewDetail.statusLine`, tone, params. */
+export interface ReviewStatusLine {
+  readonly key: string;
+  readonly tone: StatusLineTone;
+  readonly params: Record<string, unknown>;
+}
+
 /**
- * An access review (`/assets/access-reviews/:id`): progress ("3 av 5 avgjort"), accounts
- * flagged against People (left, leaving, no longer a member; "Fjern" suggested), the
- * decisions, the revocations still to carry out with their tasks, and completion with
- * a signed attestation (ISO 27001 A.5.15–A.5.18). The header shows only the next step
- * ("Start gjennomgangen" / "Fullfør og bekreft"); editing, importing accounts,
- * cancelling and deleting sit under "Mer". Accounts can be pasted from the system's
- * account list (CSV). After completion, revocations are ticked off as they are carried
- * out, which closes the matching remediation task.
+ * How the review stands, in one sentence (docs/ux-guide.md §2.7): how many accounts are
+ * decided while it is open, whether the access changes are carried out once it is done.
+ * Open work is a to-do (warn), never red.
+ */
+export function reviewStatusLine(r: AccessReviewDetail): ReviewStatusLine {
+  const c = r.counts;
+  const line = (key: string, tone: StatusLineTone, params: Record<string, unknown> = {}) => ({
+    key: `assets.reviewDetail.statusLine.${key}`,
+    tone,
+    params,
+  });
+  if (r.status === 'cancelled') {
+    return line('cancelled', 'neutral');
+  }
+  if (r.status === 'completed') {
+    return c.unremediated > 0
+      ? line(c.unremediated === 1 ? 'completedOpenOne' : 'completedOpen', 'warn', {
+          count: c.unremediated,
+        })
+      : line('completed', 'pass');
+  }
+  if (c.total === 0) {
+    return line('noAccounts', 'warn');
+  }
+  if (r.status === 'planned' && c.pending === c.total) {
+    return line('planned', 'neutral', { total: c.total });
+  }
+  if (c.pending > 0) {
+    return line('deciding', 'warn', { done: c.total - c.pending, total: c.total });
+  }
+  return line('ready', 'pass', { total: c.total });
+}
+
+/** Where the review's "Oppfølging" lines lead (sections of the Details tab). */
+export interface ReviewMissingHandlers {
+  readonly accounts: () => void;
+  readonly revocations: () => void;
+}
+
+/** What the review still needs ("Oppfølging"): accounts, decisions, access changes to carry out. */
+export function reviewMissing(
+  r: AccessReviewDetail,
+  handlers: ReviewMissingHandlers,
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  const c = r.counts;
+  const open = r.status === 'planned' || r.status === 'in_progress';
+  if (open && r.can_work) {
+    if (c.total === 0) {
+      items.push({
+        key: 'accounts',
+        labelKey: 'assets.reviewDetail.missing.accounts',
+        action: handlers.accounts,
+      });
+    } else if (c.pending > 0) {
+      items.push({
+        key: 'decisions',
+        labelKey: pluralKey('assets.reviewDetail.missing.decisions', c.pending),
+        params: { count: c.pending },
+        action: handlers.accounts,
+      });
+    }
+  }
+  if (r.status === 'completed' && c.unremediated > 0 && (r.can_work || r.can_manage)) {
+    items.push({
+      key: 'revocations',
+      labelKey: pluralKey('assets.reviewDetail.missing.revocations', c.unremediated),
+      params: { count: c.unremediated },
+      action: handlers.revocations,
+    });
+  }
+  return items;
+}
+
+/**
+ * An access review (`/assets/access-reviews/:id`) on the detail-page anatomy
+ * (docs/ux-guide.md §2.7). Hovedinformasjon: how far the review has come ("3 av 5 kontoer
+ * er avgjort"), which system it reviews (linked to the asset), who is responsible, the
+ * deadline, the result so far (flagged accounts, accounts to remove or change) and, once
+ * completed, the signed attestation (ISO 27001 A.5.15–A.5.18). The header shows only the
+ * next step ("Start gjennomgangen" / "Fullfør og bekreft") and Rediger; importing
+ * accounts, cancelling and deleting sit under "Mer". The Details tab holds the
+ * revocations still to carry out with their tasks, the accounts and their decisions
+ * (paste the system's account list as CSV, or import the members) and the scope. The
+ * Oppfølging card says what is left, the requirements, the connections (with the
+ * previous and next review of the series) and the dates.
  */
 @Component({
   selector: 'app-access-review-detail',
@@ -97,23 +189,23 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
     MarkdownPipe,
     Alert,
     Button,
-    Card,
     ConfirmDialog,
     EntityChip,
     EntityTasks,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
-    KpiTile,
     LoadingState,
     MenuItem,
     PromptDialog,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     ReviewItems,
     StatusBadge,
-    WatchButton,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -140,7 +232,9 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
       }
       @default {
         @if (review(); as r) {
+          @let line = statusLine();
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="access_review"
             [entityId]="r.id"
             [title]="r.title"
@@ -153,11 +247,12 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
             [canEdit]="r.can_manage"
             [requirementsPanel]="true"
             [includeAudit]="canAudit()"
-            backLink="/assets/access-reviews"
-            backLabelKey="assets.common.backToReviews"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ r.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'assets.reviewDetail.type' | transloco }}</span>
               <span aria-hidden="true">·</span>
               <app-status-badge
                 [meaning]="statusBadge(r.status).meaning"
@@ -170,12 +265,6 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                   value="overdue"
                   labelKey="assets.common.overdue"
                 />
-              }
-              @if (r.counts.total) {
-                <span data-testid="review-progress">{{
-                  'assets.reviews.progress'
-                    | transloco: { done: r.counts.total - r.counts.pending, total: r.counts.total }
-                }}</span>
               }
             </ng-container>
 
@@ -195,16 +284,16 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                 {{ 'assets.reviewDetail.complete' | transloco }}
               </app-button>
             }
-            @if (r.can_manage && open()) {
-              <a
-                secondary
-                [routerLink]="['/assets/access-reviews', r.id, 'edit']"
-                class="inline-flex h-9 items-center rounded-tile border border-border px-3 text-ui font-semibold text-fg hover:bg-surface-2"
-              >
+            @if (r.can_manage && open() && nextStep()) {
+              <app-button secondary variant="secondary" data-testid="review-edit" (click)="edit(r)">
                 {{ 'assets.common.edit' | transloco }}
-              </a>
+              </app-button>
             }
-            <app-watch-button secondary entityType="access_review" [entityId]="r.id" />
+            @if (r.can_manage && open() && !nextStep()) {
+              <app-button primary data-testid="review-edit" (click)="edit(r)">
+                {{ 'assets.common.edit' | transloco }}
+              </app-button>
+            }
             @if (open() && r.can_work) {
               <button appMenuItem overflow type="button" (click)="csvOpen.set(true)">
                 {{ 'assets.reviewItems.importCsv' | transloco }}
@@ -213,11 +302,6 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
             @if (open() && r.can_work) {
               <button appMenuItem overflow type="button" (click)="importMembers(r)">
                 {{ 'assets.reviewItems.importMembers' | transloco }}
-              </button>
-            }
-            @if (!ai.unavailable()) {
-              <button appMenuItem overflow type="button" (click)="askHelp()">
-                {{ 'assets.ai.reviewHelp' | transloco }}
               </button>
             }
             @if (r.can_manage && open()) {
@@ -237,6 +321,11 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askHelp()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'assets.ai.reviewHelp' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="assets"
@@ -245,201 +334,140 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
               [subject]="r.title"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (open() && !completable() && r.can_work) {
-                <p class="text-ui text-fg-muted" data-testid="review-next-hint">
-                  {{
-                    (r.counts.total === 0
-                      ? 'assets.reviewDetail.needItems'
-                      : 'assets.reviewDetail.needDecisions'
-                    ) | transloco: { pending: r.counts.pending }
-                  }}
-                </p>
-              }
-
-              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.reviewDetail.accounts' | transloco"
-                  [value]="r.counts.total"
-                />
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.reviewDetail.decided' | transloco"
-                  [value]="r.counts.total - r.counts.pending"
-                  [delta]="
-                    r.counts.pending
-                      ? ('assets.reviewDetail.left' | transloco: { count: r.counts.pending })
-                      : ''
-                  "
-                  [tone]="r.counts.pending ? 'warn' : r.counts.total ? 'pass' : 'neutral'"
-                />
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.reviewDetail.flagged' | transloco"
-                  [value]="flagged()"
-                  [tone]="flagged() ? 'warn' : 'neutral'"
-                />
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.decision.revoke' | transloco"
-                  [value]="r.counts.revoke"
-                  [tone]="r.counts.revoke ? 'fail' : 'neutral'"
-                />
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.decision.modify' | transloco"
-                  [value]="r.counts.modify"
-                  [tone]="r.counts.modify ? 'warn' : 'neutral'"
-                />
-                <app-kpi-tile
-                  noLink="shownBelow"
-                  [label]="'assets.reviewDetail.toCarryOut' | transloco"
-                  [value]="carriedOut() + ' / ' + (r.counts.revoke + r.counts.modify)"
-                  [tone]="r.counts.unremediated ? 'warn' : 'neutral'"
-                />
-              </div>
-
-              @if (r.status === 'completed' && r.counts.revoke + r.counts.modify) {
-                <app-card>
-                  <div data-testid="revocations-card">
-                    <h2 class="mb-1 font-display text-card font-bold text-fg">
-                      {{ 'assets.reviewDetail.revocationsTitle' | transloco }}
-                    </h2>
-                    <p class="mb-3 text-ui text-fg-muted">
-                      @if (r.counts.unremediated) {
-                        {{
-                          pluralKey('assets.reviewDetail.revocationsOpen', r.counts.unremediated)
-                            | transloco: { count: r.counts.unremediated }
-                        }}
-                      } @else {
-                        {{ 'assets.reviewDetail.revocationsDone' | transloco }}
-                      }
-                    </p>
-                    @if (tasks().length) {
-                      <ul class="flex flex-col divide-y divide-border">
-                        @for (t of tasks(); track t.id) {
-                          <li class="flex flex-wrap items-center gap-2 py-2 text-ui">
-                            <app-entity-chip
-                              [ref]="{
-                                entity_type: 'task',
-                                entity_id: t.id,
-                                title: t.title,
-                                url: t.url,
-                                status: t.status,
-                              }"
-                            />
-                            @if (t.assignee?.name; as name) {
-                              <span class="text-meta text-fg-muted">{{ name }}</span>
-                            }
-                            @if (t.due_at) {
-                              <span class="text-meta text-fg-subtle">{{
-                                'assets.reviews.dueOn' | transloco: { date: (t.due_at | localDay) }
-                              }}</span>
-                            }
-                          </li>
-                        }
-                      </ul>
-                    }
-                  </div>
-                </app-card>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'assets.reviewDetail.about' | transloco }}
-                </h2>
-                <app-field-list [columns]="3">
-                  <app-field-item labelKey="assets.fields.system">
-                    @if (r.system_asset; as s) {
-                      <app-entity-chip
-                        [ref]="{
-                          entity_type: 'asset',
-                          entity_id: s.id,
-                          code: s.code,
-                          title: s.name,
-                          url: s.url,
-                        }"
-                      />
-                    } @else if (r.system_name) {
-                      {{ r.system_name }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="assets.fields.reviewer" [value]="r.reviewer?.name" />
-                  <app-field-item labelKey="assets.fields.dueOn">
-                    <span [class.font-semibold]="r.overdue" [class.text-warn-ink]="r.overdue">{{
-                      r.due_on | localDay
-                    }}</span>
-                  </app-field-item>
-                  <app-field-item labelKey="assets.fields.frequencyMonths">
-                    @if (r.frequency_months; as months) {
-                      {{ 'assets.reviews.everyMonths' | transloco: { months } }}
-                    } @else {
-                      {{ 'assets.reviewDetail.oneOff' | transloco }}
-                    }
-                  </app-field-item>
-                  @if (r.started_at) {
-                    <app-field-item
-                      labelKey="assets.fields.startedAt"
-                      [value]="r.started_at | localDate"
-                    />
-                  }
-                  @if (r.previous_review_id || r.next_review_id) {
-                    <app-field-item labelKey="assets.reviewDetail.series">
-                      <span class="flex flex-col">
-                        @if (r.previous_review_id) {
-                          <a
-                            [routerLink]="['/assets/access-reviews', r.previous_review_id]"
-                            class="text-accent hover:underline"
-                          >
-                            {{ 'assets.reviewDetail.previous' | transloco }}
-                          </a>
-                        }
-                        @if (r.next_review_id) {
-                          <a
-                            [routerLink]="['/assets/access-reviews', r.next_review_id]"
-                            class="text-accent hover:underline"
-                          >
-                            {{ 'assets.reviewDetail.next' | transloco }}
-                          </a>
-                        }
-                      </span>
-                    </app-field-item>
-                  }
-                  @if (r.scope) {
-                    <app-field-item labelKey="assets.fields.scope" [wide]="true">
-                      <div class="cf-prose text-body" [innerHTML]="r.scope | appMarkdown"></div>
-                    </app-field-item>
-                  }
-                </app-field-list>
-              </app-card>
-
+            <app-record-lead record-lead [fillLink]="r.can_manage && open() ? editLink() : null">
+              <app-record-status-line status [tone]="line.tone" data-testid="review-status-line">
+                {{ line.key | transloco: line.params }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="assets.reviewDetail.lead.system">
+                @if (r.system_asset; as s) {
+                  <app-entity-chip
+                    [ref]="{
+                      entity_type: 'asset',
+                      entity_id: s.id,
+                      code: s.code,
+                      title: s.name,
+                      url: s.url,
+                    }"
+                  />
+                } @else if (r.system_name) {
+                  {{ r.system_name }}
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="assets.fields.reviewer"
+                [value]="r.reviewer?.name"
+              />
               @if (r.status === 'completed') {
-                <app-card>
-                  <h2 class="mb-2 font-display text-card font-bold text-fg">
-                    {{ 'assets.reviewDetail.attestation' | transloco }}
-                  </h2>
-                  <p class="text-meta text-fg-muted">
+                <app-field-item size="lead" labelKey="assets.reviewDetail.lead.completed">
+                  @if (r.completed_at) {
                     {{
-                      'assets.reviewDetail.completedBy'
+                      'assets.reviewDetail.lead.completedBy'
                         | transloco
                           : {
+                              date: (r.completed_at | localDate: 'mediumDate'),
                               name: r.completed_by?.name ?? ('assets.common.unknown' | transloco),
-                              date: (r.completed_at | localDate),
                             }
                     }}
-                  </p>
-                  <blockquote class="mt-2 border-l-2 border-accent pl-3 text-body text-fg">
-                    {{ r.attestation }}
-                  </blockquote>
-                </app-card>
+                  }
+                </app-field-item>
+              } @else if (r.status !== 'cancelled') {
+                <app-field-item size="lead" labelKey="assets.fields.dueOn">
+                  <span [class.font-semibold]="r.overdue" [class.text-warn-ink]="r.overdue">{{
+                    r.due_on | localDay
+                  }}</span>
+                </app-field-item>
               }
+              @if (r.counts.total) {
+                <app-field-item size="lead" labelKey="assets.reviewDetail.lead.result">
+                  <span data-testid="review-progress">{{ resultLine() }}</span>
+                </app-field-item>
+              }
+              @if (r.status === 'completed') {
+                <app-field-item
+                  size="lead"
+                  labelKey="assets.reviewDetail.attestation"
+                  [wide]="true"
+                >
+                  @if (r.attestation) {
+                    <blockquote class="border-l-2 border-accent pl-3 text-body text-fg">
+                      {{ r.attestation }}
+                    </blockquote>
+                  }
+                </app-field-item>
+              }
+            </app-record-lead>
 
+            <div class="flex flex-col gap-8">
               @if (!r.can_work && open()) {
                 <app-alert tone="info">{{ 'assets.reviewDetail.readOnly' | transloco }}</app-alert>
               }
 
-              <app-card>
+              @if (r.status === 'completed' && (r.counts.unremediated || tasks().length)) {
+                <section
+                  id="review-revocations"
+                  class="scroll-mt-20"
+                  aria-labelledby="review-revocations-title"
+                  data-testid="revocations-card"
+                >
+                  <h2
+                    id="review-revocations-title"
+                    class="mb-1 font-display text-card font-bold text-fg"
+                  >
+                    {{ 'assets.reviewDetail.revocationsTitle' | transloco }}
+                  </h2>
+                  <p class="mb-3 text-ui text-fg-muted">
+                    @if (r.counts.unremediated) {
+                      {{
+                        pluralKey('assets.reviewDetail.revocationsOpen', r.counts.unremediated)
+                          | transloco: { count: r.counts.unremediated }
+                      }}
+                    } @else {
+                      {{ 'assets.reviewDetail.revocationsDone' | transloco }}
+                    }
+                  </p>
+                  @if (tasks().length) {
+                    <ul
+                      class="flex flex-col divide-y divide-border rounded-card border border-border bg-surface"
+                    >
+                      @for (t of tasks(); track t.id) {
+                        <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5 text-ui">
+                          <app-entity-chip
+                            [ref]="{
+                              entity_type: 'task',
+                              entity_id: t.id,
+                              title: t.title,
+                              url: t.url,
+                              status: t.status,
+                            }"
+                            [statusText]="true"
+                          />
+                          @if (t.assignee?.name; as name) {
+                            <span class="text-meta text-fg-muted">{{ name }}</span>
+                          }
+                          @if (t.due_at) {
+                            <span class="text-meta text-fg-subtle">{{
+                              'assets.reviews.dueOn' | transloco: { date: (t.due_at | localDay) }
+                            }}</span>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+              }
+
+              <section id="review-accounts" class="scroll-mt-20">
+                @if (open() && !completable() && r.can_work) {
+                  <p class="mb-2 text-ui text-fg-muted" data-testid="review-next-hint">
+                    {{
+                      (r.counts.total === 0
+                        ? 'assets.reviewDetail.needItems'
+                        : 'assets.reviewDetail.needDecisions'
+                      ) | transloco: { pending: r.counts.pending }
+                    }}
+                  </p>
+                }
                 <app-review-items
                   [items]="r.items"
                   [editable]="open() && r.can_work"
@@ -452,9 +480,18 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                   (importCsv)="csvOpen.set(true)"
                   (keepAll)="keepAll(r)"
                 />
-              </app-card>
+              </section>
 
-              <app-why-it-matters scope="assets" page="review" />
+              <app-record-details
+                [columns]="2"
+                [fillLink]="r.can_manage && open() ? editLink() : null"
+              >
+                <app-field-item labelKey="assets.fields.scope" [wide]="true">
+                  @if (r.scope) {
+                    <div class="cf-prose text-body" [innerHTML]="r.scope | appMarkdown"></div>
+                  }
+                </app-field-item>
+              </app-record-details>
             </div>
 
             <div tasks>
@@ -464,6 +501,66 @@ export function reviewNextStep(r: AccessReviewDetail): ReviewNextStep {
                 [canCreate]="r.can_manage"
                 [entityLabel]="r.code + ' ' + r.title"
               />
+            </div>
+
+            @if (r.previous_review_id || r.next_review_id) {
+              <div
+                follow-up-connections
+                class="mt-3 flex flex-col gap-1.5"
+                data-testid="review-series"
+              >
+                @if (r.previous_review_id) {
+                  <a
+                    [routerLink]="['/assets/access-reviews', r.previous_review_id]"
+                    class="inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                  >
+                    <app-icon name="shield" [size]="14" />
+                    {{ 'assets.reviewDetail.previous' | transloco }}
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+                @if (r.next_review_id) {
+                  <a
+                    [routerLink]="['/assets/access-reviews', r.next_review_id]"
+                    class="inline-flex items-center gap-1.5 text-ui font-semibold text-accent hover:underline"
+                  >
+                    <app-icon name="shield" [size]="14" />
+                    {{ 'assets.reviewDetail.next' | transloco }}
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+              </div>
+            }
+
+            <app-record-meta follow-up-meta>
+              <app-field-item layout="inline" labelKey="assets.fields.frequencyMonths">
+                @if (r.frequency_months; as months) {
+                  {{ 'assets.reviews.everyMonths' | transloco: { months } }}
+                } @else {
+                  {{ 'assets.reviewDetail.oneOff' | transloco }}
+                }
+              </app-field-item>
+              @if (r.status === 'completed') {
+                <app-field-item
+                  layout="inline"
+                  labelKey="assets.fields.dueOn"
+                  [value]="r.due_on | localDay"
+                />
+              }
+              <app-field-item
+                layout="inline"
+                labelKey="assets.fields.startedAt"
+                [value]="r.started_at ? (r.started_at | localDate: 'mediumDate') : null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="assets.detail.updated"
+                [value]="r.updated_at | localDate"
+              />
+            </app-record-meta>
+
+            <div aside-learn>
+              <app-why-it-matters scope="assets" page="review" />
             </div>
           </app-record-detail-layout>
 
@@ -537,7 +634,6 @@ export class AccessReviewDetailPage {
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
-  protected readonly ai = inject(AiAvailability);
 
   readonly id = input.required<string>();
 
@@ -552,6 +648,11 @@ export class AccessReviewDetailPage {
   protected readonly csvOpen = signal(false);
   private readonly requirementRefs = signal<readonly string[]>([]);
 
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/assets/access-reviews',
+    this.id(),
+    'edit',
+  ]);
   protected readonly open = computed(() => {
     const status = this.review()?.status;
     return status === 'planned' || status === 'in_progress';
@@ -564,12 +665,40 @@ export class AccessReviewDetailPage {
     const r = this.review();
     return r && this.open() ? reviewNextStep(r) : null;
   });
+  protected readonly statusLine = computed(() => {
+    const r = this.review();
+    return r ? reviewStatusLine(r) : { key: '', tone: 'neutral' as const, params: {} };
+  });
   protected readonly flagged = computed(
     () => (this.review()?.items ?? []).filter((i) => isFlaggedSubject(i.subject_status)).length,
   );
-  protected readonly carriedOut = computed(() => {
+  /** "1 flagget · 2 skal fjernes · 1 skal endres" (only the parts above zero). */
+  protected readonly resultLine = computed(() => {
     const r = this.review();
-    return r ? r.counts.revoke + r.counts.modify - r.counts.unremediated : 0;
+    if (!r) {
+      return '';
+    }
+    const t = (key: string, count: number) =>
+      this.language.translate(pluralKey(`assets.reviewDetail.result.${key}`, count), { count });
+    const parts = [
+      t('accounts', r.counts.total),
+      this.flagged() ? t('flagged', this.flagged()) : '',
+      r.counts.revoke ? t('revoke', r.counts.revoke) : '',
+      r.counts.modify ? t('modify', r.counts.modify) : '',
+    ];
+    if (!r.counts.revoke && !r.counts.modify && !r.counts.pending) {
+      parts.push(this.language.translate('assets.reviewDetail.result.allKept'));
+    }
+    return parts.filter(Boolean).join(' · ');
+  });
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const r = this.review();
+    return r
+      ? reviewMissing(r, {
+          accounts: () => this.scrollTo('review-accounts'),
+          revocations: () => this.scrollTo('review-revocations'),
+        })
+      : [];
   });
   protected readonly tasks = computed(() => this.review()?.remediation_tasks ?? []);
   protected readonly systemLabel = computed(() => {
@@ -606,6 +735,14 @@ export class AccessReviewDetailPage {
         this.loadRefs(orgId, id);
       });
     });
+  }
+
+  protected edit(r: AccessReviewDetail): void {
+    void this.router.navigate(['/assets/access-reviews', r.id, 'edit']);
+  }
+
+  private scrollTo(id: string): void {
+    document.getElementById(id)?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
   }
 
   protected askHelp(): void {
