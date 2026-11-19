@@ -5,7 +5,7 @@ import { ModuleNav, ModuleNavItem } from '../../../shared/ui/module-nav/module-n
 export const AUDIT_SECTIONS = [
   { key: 'overview', path: '/audits', exact: true },
   { key: 'plans', path: '/audits/plans', exact: false },
-  // U37: daily work first; programmes and auditors are planning, under "Mer".
+  // U37: daily work first; programmes and auditors (planning) follow as tabs.
   { key: 'findings', path: '/audits/findings', exact: false },
   { key: 'certifications', path: '/audits/certifications', exact: false },
   { key: 'programmes', path: '/audits/programmes', exact: false },

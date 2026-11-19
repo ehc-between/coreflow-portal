@@ -165,12 +165,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
         [statuses]="exportStatuses()"
       />
 
-      <app-module-nav
-        nav
-        labelKey="modules.names.privacy"
-        moreLabelKey="privacy.nav.more"
-        [items]="nav()"
-      />
+      <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
       <app-privacy-group-switch nav [register]="def().key" />
       <app-fulfils-requirements help />
       <app-help-strip help scope="privacy" [page]="def().key" [lesson]="def().lesson" />

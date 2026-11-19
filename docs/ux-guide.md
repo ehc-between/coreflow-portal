@@ -46,7 +46,7 @@ app-page-header      breadcrumbs (Module › Sub-area › Record)
                      h1 (= nav label on module roots: modules.names.<key>)
                      one-line description
                      actions, right: [secondary] (≤ 2) · [primary] (1) · "Mer ⋯" [overflow] · ⚙ settingsLink
-app-module-nav       sub-pages as underline tabs, directly under the header (≤ 4 + "Mer")
+app-module-nav       sub-pages as underline tabs, directly under the header (all pages visible; scrolls)
 app-help-strip       intro + Omvisning + Leksjon · N min + Forklar denne siden (one row)
 …page content…
 ```
@@ -85,8 +85,10 @@ list             app-record-row-header + app-record-row … (or a table with the
 - U30 "list diet": search plus **two** filters chosen per register; everything else (sort,
   "mine", secondary dimensions) goes into `[more-filters]`. Pass `moreFiltersActive` so the
   button says "Flere filtre (2)".
-- `app-module-nav` shows at most **four** tabs; the rest sit under "Mer", whose button shows
-  the current page's name when that page is in the menu. Put the daily work first. Mark a tab
+- **All main pages in a module are visible tabs; overflow scrolls, it never hides pages behind
+  "Mer".** `app-module-nav` scrolls sideways with fade edges when the row is too narrow and keeps
+  the current tab in view. "Mer" holds actions and rarely used settings only. Overview first,
+  then the main registers; keep labels short. Mark a tab
   `empty: true` when it has no records: beginners do not see it (unless it is open).
 - Key-figure tiles go in `app-kpi-band` (the list frame does this for `[kpis]`; overview pages
   use it directly). It shows four tiles, the most useful first; the user can collapse it

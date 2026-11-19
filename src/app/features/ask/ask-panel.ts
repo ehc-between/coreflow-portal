@@ -583,14 +583,20 @@ export class AskPanel {
       const last = turns.at(-1);
       return `${turns.length}:${last?.text.length ?? 0}:${last?.links?.length ?? 0}:${last?.actions?.length ?? 0}:${this.panel.working()?.category ?? ''}`;
     });
+    // Also re-pin when the panel opens (the scroll container is (re)created then,
+    // and rendered markdown grows the height after the first frame).
     effect(() => {
       void progress();
-      queueMicrotask(() => {
-        const el = this.scrollRef()?.nativeElement;
-        if (el) {
-          el.scrollTop = el.scrollHeight;
-        }
-      });
+      void this.panel.open();
+      const el = this.scrollRef()?.nativeElement;
+      if (!el) {
+        return;
+      }
+      const pin = () => {
+        el.scrollTop = el.scrollHeight;
+      };
+      queueMicrotask(pin);
+      requestAnimationFrame(() => requestAnimationFrame(pin));
     });
   }
 
