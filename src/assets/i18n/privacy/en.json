@@ -328,7 +328,9 @@
     "employee_id": "Person record",
     "executed_at": "Carried out",
     "records_affected": "Records deleted",
-    "notes": "Notes"
+    "notes": "Notes",
+    "customer_id": "Customer (controller)",
+    "customer_ids": "Customers affected"
   },
   "options": {
     "ropaRole": {
@@ -537,7 +539,8 @@
     "mechanismHint": "Usual tool: {{ mechanism }}.",
     "addRecord": "Add a record…",
     "noRecords": "No records to choose from",
-    "crumbRecord": "{{ code }}"
+    "crumbRecord": "{{ code }}",
+    "removeCustomer": "Remove customer"
   },
   "common": {
     "loading": "Loading…",

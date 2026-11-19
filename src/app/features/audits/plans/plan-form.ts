@@ -19,6 +19,7 @@ import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
+import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../../shared/customers';
 import { AuditAccess } from '../data/audit-access';
 import {
   fromDateInput,
@@ -60,6 +61,9 @@ export interface PlanFormValue {
   certificationId: string;
   partyType: ExternalPartyType | '';
   partyName: string;
+  /** The customer (customer register) when the party is a customer; '' = none. */
+  customerId: string;
+  customer: CustomerRef | null;
   scope: string;
   criteria: string;
   criteriaDocuments: EntityRef[];
@@ -86,6 +90,8 @@ export function emptyPlanForm(): PlanFormValue {
     certificationId: '',
     partyType: '',
     partyName: '',
+    customerId: '',
+    customer: null,
     scope: '',
     criteria: '',
     criteriaDocuments: [],
@@ -132,6 +138,8 @@ export function planToForm(p: PlanDetail): PlanFormValue {
     certificationId: p.certification_id ?? '',
     partyType: p.external_party_type ?? '',
     partyName: p.external_party_name ?? '',
+    customerId: p.customer_id ?? '',
+    customer: p.customer ?? null,
     scope: p.scope ?? '',
     criteria: p.criteria ?? '',
     criteriaDocuments: [...documents],
@@ -161,6 +169,7 @@ export function planFormToInput(v: PlanFormValue, editing: boolean): PlanInput {
     certification_id: external ? v.certificationId || null : null,
     external_party_type: external ? v.partyType || null : null,
     external_party_name: external ? textOrNull(v.partyName) : null,
+    customer_id: external && v.partyType === 'customer' ? v.customerId || null : null,
     scope: textOrNull(v.scope),
     criteria: textOrNull(v.criteria),
     objectives: textOrNull(v.objectives),
@@ -211,10 +220,16 @@ export function planPrefill(
     }
   }
   const processTitle = q.get('processTitle');
+  // `?customer_id=` (the customer card's "+ Ny"): an external audit by that customer.
+  const customerId = q.get('customer_id')?.trim() ?? '';
   return {
     programmeId: q.get('programme') ?? '',
     certificationId: q.get('certification') ?? '',
-    kind: q.get('kind') === 'external' || q.get('certification') ? 'external' : 'internal',
+    kind:
+      q.get('kind') === 'external' || q.get('certification') || customerId
+        ? 'external'
+        : 'internal',
+    ...(customerId ? { customerId, partyType: 'customer' as const } : {}),
     clauseRefs: clauses,
     frameworks,
     processes: listParam(q.get('processes')).map((id) =>
@@ -238,6 +253,7 @@ export function planPrefill(
     AuditChoiceCheckboxes,
     AuditRecordSelect,
     AuditUserSelect,
+    CustomerPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -307,6 +323,22 @@ export function planPrefill(
               }
             </select>
           </app-audit-field>
+          @if (f().partyType === 'customer' && customers.enabled()) {
+            <app-audit-field
+              class="sm:col-span-2"
+              inputId="plan-customer"
+              labelKey="audits.fields.customer"
+            >
+              <app-customer-picker
+                inputId="plan-customer"
+                [value]="f().customerId || null"
+                [current]="f().customer"
+                (valueChange)="patch({ customerId: $event ?? '' })"
+                (refChange)="setCustomer($event)"
+                data-testid="plan-customer"
+              />
+            </app-audit-field>
+          }
           <app-audit-field inputId="plan-party-name" labelKey="audits.fields.partyName">
             <input
               id="plan-party-name"
@@ -543,6 +575,7 @@ export class PlanForm {
   private readonly frameworks = inject(AuditFrameworks);
   private readonly flows = inject(CreateFlowService);
   protected readonly access = inject(AuditAccess);
+  protected readonly customers = inject(CustomersAvailability);
 
   /** Route param on `/plans/:id/edit` (absent when creating). */
   readonly id = input<string | undefined>(undefined);
@@ -616,6 +649,28 @@ export class PlanForm {
       this.route.snapshot.queryParamMap.get('fromRequirement'),
     );
     this.f.update((v) => ({ ...v, ...prefill }));
+    // The customer card's create flow ("Ny kunderevisjon"): an external audit by the customer.
+    let flowApplied = false;
+    effect(() => {
+      const flow = this.flow();
+      if (!flow || flowApplied) {
+        return;
+      }
+      flowApplied = true;
+      const p = flow.prefill;
+      const str = (key: string) => (typeof p[key] === 'string' ? (p[key] as string) : '');
+      if (str('customer_id')) {
+        untracked(() =>
+          this.f.update((v) => ({
+            ...v,
+            kind: 'external',
+            partyType: 'customer',
+            customerId: v.customerId || str('customer_id'),
+            partyName: v.partyName || str('external_party_name'),
+          })),
+        );
+      }
+    });
     providePageContext(() => ({
       module: 'audits',
       entityType: 'audit_plan',
@@ -648,6 +703,15 @@ export class PlanForm {
 
   protected certTitle(c: Certification): string {
     return certificationTitle(c, (k, p) => this.language.translate(k, p));
+  }
+
+  /** A chosen customer also names the party (unless the user typed a name). */
+  protected setCustomer(ref: CustomerRef | null): void {
+    this.f.update((v) => ({
+      ...v,
+      customer: ref,
+      partyName: ref && !v.partyName.trim() ? ref.name : v.partyName,
+    }));
   }
 
   protected patch(change: Partial<PlanFormValue>): void {

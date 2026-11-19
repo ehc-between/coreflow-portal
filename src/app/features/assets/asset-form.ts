@@ -37,6 +37,7 @@ import {
 } from './data/asset.models';
 import { AssetDepartmentSelect, AssetUserSelect } from './shared/people-select';
 import { AssetSupplierSelect, SupplierOptionsService } from './shared/supplier-select';
+import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../shared/customers';
 
 /** What the form submits: the full field set, plus the first calibration (new) or the reason (edit). */
 export interface AssetFormValue {
@@ -66,6 +67,9 @@ export interface AssetDraft {
   location: string;
   vendor: string;
   supplier_id: string;
+  /** Customer property: the owning customer ('' = ours) and its ref (for the picker). */
+  customer_id: string;
+  customer: CustomerRef | null;
   model: string;
   serial_number: string;
   version: string;
@@ -106,6 +110,8 @@ export function assetDraftFrom(a: AssetDetail | null): AssetDraft {
     location: a?.location ?? '',
     vendor: a?.vendor ?? '',
     supplier_id: a?.supplier_id ?? '',
+    customer_id: a?.customer_id ?? '',
+    customer: a?.customer ?? null,
     model: a?.model ?? '',
     serial_number: a?.serial_number ?? '',
     version: a?.version ?? '',
@@ -150,6 +156,7 @@ export function assetFieldsFrom(d: AssetDraft): AssetFields {
     location: blankToNull(d.location),
     vendor: blankToNull(d.vendor),
     supplier_id: d.supplier_id || null,
+    customer_id: d.customer_id || null,
     model: blankToNull(d.model),
     serial_number: blankToNull(d.serial_number),
     version: blankToNull(d.version),
@@ -206,6 +213,7 @@ export function applySuggestion(d: AssetDraft, s: ClassificationSuggestion): Ass
 @Component({
   selector: 'app-asset-form',
   imports: [
+    CustomerPicker,
     TranslocoPipe,
     LocalDayPipe,
     AiAssistButton,
@@ -494,6 +502,18 @@ export function applySuggestion(d: AssetDraft, s: ClassificationSuggestion): Ass
                 [value]="d().supplier_id"
                 [currentLabel]="value()?.supplier?.name ?? null"
                 (valueChange)="set('supplier_id', $event)"
+              />
+            </app-form-field>
+          }
+          @if (customers.enabled()) {
+            <app-form-field [label]="'assets.fields.customer' | transloco" inputId="ast-customer">
+              <app-customer-picker
+                inputId="ast-customer"
+                [value]="d().customer_id || null"
+                [current]="d().customer"
+                (valueChange)="set('customer_id', $event ?? '')"
+                (refChange)="set('customer', $event)"
+                data-testid="asset-customer"
               />
             </app-form-field>
           }
@@ -830,9 +850,12 @@ export function applySuggestion(d: AssetDraft, s: ClassificationSuggestion): Ass
 export class AssetForm {
   private readonly language = inject(LanguageService);
   protected readonly suppliers = inject(SupplierOptionsService);
+  protected readonly customers = inject(CustomersAvailability);
 
   /** The asset being edited (null = a new asset). */
   readonly value = input<AssetDetail | null>(null);
+  /** A new asset owned by this customer (create-from-customer, `?customer_id=`). */
+  readonly customerId = input<string | null>(null);
   readonly busy = input(false);
   readonly submitted = output<AssetFormValue>();
   readonly cancelled = output<void>();
@@ -905,6 +928,12 @@ export class AssetForm {
         this.d.set(assetDraftFrom(value));
         this.overrideNext.set(false);
       });
+    });
+    effect(() => {
+      const id = this.customerId();
+      if (id && !this.value()) {
+        untracked(() => this.d.update((d) => (d.customer_id ? d : { ...d, customer_id: id })));
+      }
     });
   }
 

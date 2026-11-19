@@ -57,6 +57,7 @@ import { PrivacyRegisterExport } from './privacy-register-export';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
 import { PrivacyGroupSwitch } from './privacy-group-switch';
+import { CustomerFilter, customerIdFromRoute } from '../../shared/customers';
 
 const PAGE_SIZE = 25;
 
@@ -104,6 +105,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
 @Component({
   selector: 'app-privacy-register-list',
   imports: [
+    CustomerFilter,
     FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
@@ -185,6 +187,14 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
         </p>
       }
 
+      @if (def().customerFilter) {
+        <app-customer-filter
+          filters
+          [value]="customerId()"
+          (valueChange)="setCustomer($event)"
+          data-testid="filter-customer"
+        />
+      }
       <label filters class="sr-only" [for]="id('status')">
         {{ 'privacy.list.status' | transloco }}
       </label>
@@ -426,6 +436,10 @@ export class PrivacyRegisterList {
   );
 
   protected readonly q = signal('');
+  /** The Kunde filter (`?customer_id=`, the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(
+    customerIdFromRoute(inject(ActivatedRoute)),
+  );
   /** U24: `?attention=<key>`, the named filter behind an overview tile. */
   protected readonly attention = signal(
     inject(ActivatedRoute).snapshot.queryParamMap.get('attention') ?? '',
@@ -455,6 +469,7 @@ export class PrivacyRegisterList {
   protected readonly isFiltered = computed(
     () =>
       !!this.q() ||
+      !!this.customerId() ||
       this.status() !== 'open' ||
       !!this.owner() ||
       this.overdue() ||
@@ -524,7 +539,11 @@ export class PrivacyRegisterList {
         owner: this.owner() || undefined,
         sort: this.sort(),
         overdue: def.overdue && this.overdue() ? true : undefined,
-        extra: { ...this.extra(), attention: this.attention() || undefined },
+        extra: {
+          ...this.extra(),
+          attention: this.attention() || undefined,
+          customer_id: (def.customerFilter && this.customerId()) || undefined,
+        },
         limit: PAGE_SIZE,
         offset: this.offset(),
       };
@@ -625,6 +644,11 @@ export class PrivacyRegisterList {
   protected setOverdue(value: boolean): void {
     this.offset.set(0);
     this.overdue.set(value);
+  }
+
+  protected setCustomer(value: string | null): void {
+    this.offset.set(0);
+    this.customerId.set(value);
   }
 
   protected setExtra(param: string, value: string): void {

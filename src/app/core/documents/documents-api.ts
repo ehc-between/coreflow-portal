@@ -54,10 +54,10 @@ export class DocumentsApi {
 
   list(
     orgId: string,
-    filters: { status?: DocumentStatus; type?: string } = {},
+    filters: { status?: DocumentStatus; type?: string; customer_id?: string } = {},
   ): Observable<DocumentSummary[]> {
     return this.api.get<DocumentSummary[]>(`v1/orgs/${orgId}/documents`, {
-      params: { status: filters.status, type: filters.type },
+      params: { status: filters.status, type: filters.type, customer_id: filters.customer_id },
     });
   }
 
@@ -66,9 +66,11 @@ export class DocumentsApi {
    * whole (unpaged) list, so the review-due filter and paging are applied here.
    */
   listPage(orgId: string, query: DocumentListQuery = {}): Observable<DocumentPage> {
-    return this.list(orgId, { status: query.status, type: query.type }).pipe(
-      map((documents) => toDocumentPage(documents, query)),
-    );
+    return this.list(orgId, {
+      status: query.status,
+      type: query.type,
+      customer_id: query.customer_id,
+    }).pipe(map((documents) => toDocumentPage(documents, query)));
   }
 
   search(orgId: string, q: string, limit = 20): Observable<DocumentSearchResult[]> {

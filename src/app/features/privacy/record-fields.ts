@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { EntityChip, EntityChipRef } from '../../shared/kit/entity-chip';
+import type { CustomerRef } from '../../shared/customers';
 import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { locationName } from '../../shared/locale/countries';
 import { FieldItem } from '../../shared/ui/field-list/field-list';
@@ -259,6 +260,23 @@ export class PrivacyRecordFields {
             url: option?.url ?? null,
           };
         }),
+      };
+    }
+    if (f.kind === 'customer' || f.kind === 'customers') {
+      const record = this.record() as unknown as {
+        readonly customer?: CustomerRef | null;
+        readonly customers?: readonly CustomerRef[];
+      };
+      const refs = [...(record.customer ? [record.customer] : []), ...(record.customers ?? [])];
+      return {
+        ...base,
+        text: null,
+        chips: ids.map((id) => ({
+          entity_type: 'customer',
+          entity_id: id,
+          title: refs.find((r) => r.id === id)?.name ?? this.t('privacy.detail.linkedRecord'),
+          url: `/customers/${id}`,
+        })),
       };
     }
     if (f.kind === 'screening') {

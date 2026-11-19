@@ -50,6 +50,9 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
+import { FormField } from '../../shared/ui/form-field/form-field';
+import { CustomerChip, CustomerPicker, CustomersAvailability } from '../../shared/customers';
+import { documentErrorKey } from '../../core/documents/document-errors';
 import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
 import { DocumentControlApi } from './data/document-control-api';
@@ -93,6 +96,9 @@ const WIDE_QUERY = '(min-width: 1024px)';
 @Component({
   selector: 'app-document-detail',
   imports: [
+    CustomerChip,
+    CustomerPicker,
+    FormField,
     NgTemplateOutlet,
     RouterLink,
     TranslocoPipe,
@@ -367,6 +373,44 @@ const WIDE_QUERY = '(min-width: 1024px)';
                 <span class="mt-1 block text-ui leading-snug text-fg-muted whitespace-pre-line">{{
                   'documents.page.detail.lead.note' | transloco: { note }
                 }}</span>
+              }
+            </app-field-item>
+          }
+          @if (customers.enabled() && (doc.customer || (canManage() && canEditDoc()))) {
+            <app-field-item
+              size="lead"
+              labelKey="documents.link.customer"
+              data-testid="lead-customer"
+            >
+              @if (customerEditing()) {
+                <app-form-field inputId="doc-customer-edit">
+                  <app-customer-picker
+                    inputId="doc-customer-edit"
+                    [value]="doc.customer_id ?? null"
+                    [current]="doc.customer ?? null"
+                    [disabled]="customerSaving()"
+                    (valueChange)="saveCustomer($event)"
+                    data-testid="doc-customer-edit"
+                  />
+                </app-form-field>
+              } @else {
+                <span class="inline-flex flex-wrap items-baseline gap-2">
+                  @if (doc.customer) {
+                    <app-customer-chip [ref]="doc.customer" data-testid="doc-customer-chip" />
+                  } @else {
+                    <span class="text-fg-muted">{{ 'documents.link.noCustomer' | transloco }}</span>
+                  }
+                  @if (canManage() && canEditDoc()) {
+                    <button
+                      type="button"
+                      class="text-meta font-semibold text-accent hover:underline"
+                      (click)="customerEditing.set(true)"
+                      data-testid="doc-customer-change"
+                    >
+                      {{ 'documents.link.changeCustomer' | transloco }}
+                    </button>
+                  }
+                </span>
               }
             </app-field-item>
           }
@@ -713,6 +757,10 @@ export class DocumentDetail {
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
   protected readonly document = signal<DocumentDetailModel | null>(null);
+  protected readonly customers = inject(CustomersAvailability);
+  /** The Kunde field in "Hovedinformasjon" is being changed. */
+  protected readonly customerEditing = signal(false);
+  protected readonly customerSaving = signal(false);
   /** The requirements this document documents (mirrored from the panel, for the assistant). */
   protected readonly requirementLinks = signal<readonly RequirementLink[]>([]);
   protected readonly loading = signal(true);
@@ -779,6 +827,27 @@ export class DocumentDetail {
       (status === 'in_review' && this.permissions().includes('documents:approve'))
     );
   });
+  /** Set or clear the document's customer (owner or approver; the backend checks too). */
+  protected saveCustomer(customerId: string | null): void {
+    const orgId = this.orgId();
+    const doc = this.document();
+    if (!orgId || !doc || this.customerSaving()) {
+      return;
+    }
+    this.customerSaving.set(true);
+    this.api.updateControl(orgId, doc.id, { customer_id: customerId }).subscribe({
+      next: (updated) => {
+        this.customerSaving.set(false);
+        this.customerEditing.set(false);
+        this.document.set(updated);
+      },
+      error: (error: unknown) => {
+        this.customerSaving.set(false);
+        this.notifications.error(documentErrorKey(error, 'updateControl'));
+      },
+    });
+  }
+
   /** "Rediger" shows on the current (or draft) version of a document that is not obsolete. */
   protected readonly canEditDoc = computed(
     () => !this.viewingOldRevision() && this.document()?.status !== 'obsolete',

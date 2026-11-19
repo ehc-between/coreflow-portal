@@ -328,7 +328,9 @@
     "employee_id": "Personen i personregisteret",
     "executed_at": "Gjennomført",
     "records_affected": "Antall poster slettet",
-    "notes": "Notater"
+    "notes": "Notater",
+    "customer_id": "Kunde (behandlingsansvarlig)",
+    "customer_ids": "Berørte kunder"
   },
   "options": {
     "ropaRole": {
@@ -537,7 +539,8 @@
     "mechanismHint": "Vanlig grunnlag: {{ mechanism }}.",
     "addRecord": "Legg til en post …",
     "noRecords": "Ingen poster å velge",
-    "crumbRecord": "{{ code }}"
+    "crumbRecord": "{{ code }}",
+    "removeCustomer": "Fjern kunden"
   },
   "common": {
     "loading": "Laster …",

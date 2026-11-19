@@ -33,6 +33,8 @@ import { Icon } from '../ui/icon/icon';
 import { AssigneeSelect } from './assignee-select';
 import { TaskFieldHelp } from './guidance/task-field-help';
 import { RecurrencePicker } from './recurrence-picker';
+import { CustomerPicker } from '../customers/customer-picker';
+import { CustomersAvailability } from '../customers/customers-availability';
 import { parseRrule } from './rrule';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import {
@@ -94,6 +96,7 @@ let nextId = 0;
     AssigneeSelect,
     RecurrencePicker,
     TaskFieldHelp,
+    CustomerPicker,
   ],
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -130,6 +133,19 @@ let nextId = 0;
           </p>
         }
       </div>
+
+      @if (canPickCustomer()) {
+        <div>
+          <app-form-field [label]="'tasks.form.customer' | transloco" [inputId]="id('customer')">
+            <app-customer-picker
+              [inputId]="id('customer')"
+              [value]="customerId()"
+              (valueChange)="customerId.set($event)"
+              data-testid="task-customer"
+            />
+          </app-form-field>
+        </div>
+      }
 
       <div>
         <app-form-field
@@ -297,6 +313,7 @@ export class TaskForm {
   private readonly api = inject(TasksApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly titles = inject(LocalizedTitleResolver);
+  private readonly customers = inject(CustomersAvailability);
 
   readonly value = input<TaskFormValue | null>(null);
   readonly saved = output<TaskFormResult>();
@@ -317,6 +334,8 @@ export class TaskForm {
   protected readonly repeat = signal(false);
   protected readonly rrule = signal('FREQ=MONTHLY');
   protected readonly leadDays = signal(7);
+  /** A new task with no other record can be about a customer (`entity_type: customer`). */
+  protected readonly customerId = signal<string | null>(null);
 
   protected readonly saving = signal(false);
   protected readonly errorKey = signal<string | null>(null);
@@ -325,6 +344,10 @@ export class TaskForm {
   protected readonly isEdit = computed(() => !!this.value()?.task);
   protected readonly isSeries = computed(() => !!this.value()?.recurrence);
   protected readonly canRepeat = computed(() => !this.isEdit() && !this.isSeries());
+  protected readonly canPickCustomer = computed(
+    () =>
+      !this.isEdit() && !this.isSeries() && !this.value()?.entityType && this.customers.enabled(),
+  );
   /** The checklist is edited here for new tasks and series; a task's own checklist lives on its page. */
   protected readonly showChecklist = computed(() => !this.isEdit());
   protected readonly linkedLabel = computed(() => {
@@ -458,8 +481,8 @@ export class TaskForm {
     const body: CreateTaskRequest = {
       title,
       description,
-      entity_type: v?.entityType ?? null,
-      entity_id: v?.entityId ?? null,
+      entity_type: v?.entityType ?? (this.customerId() ? 'customer' : null),
+      entity_id: v?.entityId ?? this.customerId() ?? null,
       assignee,
       priority: this.priority(),
       due_at: dueAtFromDay(this.dueDay()),
@@ -493,5 +516,6 @@ export class TaskForm {
     this.repeat.set(!task && !rec && !!value?.recurring);
     this.rrule.set(rec?.rrule ?? 'FREQ=MONTHLY');
     this.leadDays.set(rec?.lead_days ?? 7);
+    this.customerId.set(null);
   }
 }

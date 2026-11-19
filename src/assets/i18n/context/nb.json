@@ -438,6 +438,11 @@
       "needs": "Beskriv hva de trenger og forventer",
       "howAddressed": "Beskriv hvordan dere ivaretar dem",
       "owner": "Velg en eier"
+    },
+    "customers": {
+      "requirementsHint": "Krav fra enkeltkunder registreres på kundekortet.",
+      "register": "Kunderegisteret",
+      "registerCount": "Kunderegisteret: {{count}} aktive kunder"
     }
   },
   "leadDetail": {
