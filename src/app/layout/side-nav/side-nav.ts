@@ -21,6 +21,7 @@ import {
 } from '../nav';
 import { NavDrawerService } from '../nav-drawer.service';
 import { OrgSwitcher } from '../org-switcher/org-switcher';
+import { ChatNavBadge } from '../../shared/chat/chat-nav-badge';
 
 /**
  * Sidebar navigation: org switcher, collapsible sections (remembered per org), the
@@ -43,6 +44,7 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
     Avatar,
     HasPermissionDirective,
     OrgSwitcher,
+    ChatNavBadge,
   ],
   host: { class: 'flex min-h-0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -152,6 +154,9 @@ import { OrgSwitcher } from '../org-switcher/org-switcher';
       >
         <span class="flex"><app-icon [name]="item.icon" [size]="18" /></span>
         <span class="flex-1 text-left">{{ item.labelKey | transloco }}</span>
+        @if (item.path === 'chat') {
+          <app-chat-nav-badge />
+        }
       </a>
     </ng-template>
 

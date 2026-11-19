@@ -21,6 +21,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { EntityTypesService } from '../../core/kit/entity-types.service';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { WatchButton } from '../activity/watch-button';
+import { DiscussButton } from '../chat/discuss-button';
 import { Attachments } from '../attachments/attachments';
 import { SupportsRequirements } from '../requirement-links/supports-requirements';
 import { Icon } from '../ui/icon/icon';
@@ -144,6 +145,7 @@ let nextId = 0;
     RevisionHistory,
     Timeline,
     WatchButton,
+    DiscussButton,
   ],
   // One connections store per page: the aside panel, the Related tab and its
   // count share it (P4). One page context: the kit pieces projected into the
@@ -166,6 +168,13 @@ let nextId = 0;
         <ng-container ngProjectAs="[lead]"><ng-content select="[header]" /></ng-container>
         <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
         <ng-container ngProjectAs="[secondary]">
+          <!-- §4.7 (chat): a quiet "Diskuter" on every record page (left of "Spør KI");
+               it hides itself without chat or chat:use. -->
+          <app-discuss-button
+            [entityType]="entityType()"
+            [entityId]="entityId()"
+            [title]="title()"
+          />
           @if (aiAvailable()) {
             <!-- §2.7: every assistant action of the page in one "Spør KI" menu. -->
             <app-overflow-menu

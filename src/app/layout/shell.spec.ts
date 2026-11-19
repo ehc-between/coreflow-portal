@@ -17,6 +17,7 @@ import { LanguageSwitcher } from '../shared/language-switcher/language-switcher'
 import { LEARNING_NAV_ITEM, NAV_ITEMS, NAV_SECTIONS } from './nav';
 import { NavDrawerService } from './nav-drawer.service';
 import { SideNav } from './side-nav/side-nav';
+import { ChatStore } from '../core/chat/chat-store';
 
 const ALL_READ = [
   'dashboard:view',
@@ -55,6 +56,7 @@ function configure(imports: unknown[], orgId = 'org-1', permissions: string[] = 
         },
       },
       { provide: ModuleService, useValue: { isEnabled: () => true } },
+      { provide: ChatStore, useValue: { available: signal(false), unreadBadge: signal(0) } },
       {
         provide: InboxService,
         useValue: {

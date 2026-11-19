@@ -112,6 +112,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/my-work/my-work.routes'),
       },
       {
+        // Chat (docs/chat-design.md §4.3): DMs, groups, team and topic channels.
+        path: 'chat',
+        title: 'modules.names.chat',
+        canActivate: [moduleGuard('chat'), permissionGuard('chat:use')],
+        loadChildren: () => import('./features/chat/chat.routes'),
+      },
+      {
         // Platform tasks (F2): all tasks, recurring series and task detail (`/tasks/<id>`).
         path: 'tasks',
         title: 'modules.names.tasks',

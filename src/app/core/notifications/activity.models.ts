@@ -105,6 +105,7 @@ export const BUILTIN_CATEGORIES = [
   'reminders',
   'workflow',
   'mentions',
+  'chat',
   'comments',
   'system',
 ] as const;

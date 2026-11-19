@@ -2292,6 +2292,7 @@
   "modules": {
     "names": {
       "tasks": "Oppgaver",
+      "chat": "Meldinger",
       "context": "Kontekst og ledelse",
       "processes": "Prosesser",
       "deviations": "Avvik",
@@ -2323,6 +2324,7 @@
     },
     "descriptions": {
       "tasks": "Tildel, følg opp og gjenta arbeid på tvers av alle moduler.",
+      "chat": "Direktemeldinger, gruppesamtaler og kanaler for team og temaer.",
       "context": "SWOT, interessenter, omfang, policyer og ansvar.",
       "processes": "Prosessregister og visuelle prosesskart.",
       "deviations": "Avvik, hendelser, korrigerende tiltak og forbedringer.",
@@ -2353,6 +2355,7 @@
     },
     "reasons": {
       "tasks": "Oppgaver sørger for at hver kontroll, gjennomgang og oppfølging er tildelt og blir gjort i tide.",
+      "chat": "Meldinger holder hverdagsspørsmålene nær arbeidet: diskuter et avvik eller en risiko med de involverte, uten lange e-posttråder.",
       "context": "Alle ISO-styringssystemer starter med kapittel 4 og 5: kontekst, interessenter, omfang og lederskap.",
       "processes": "Prosesstilnærmingen (ISO 9001 4.4) krever at organisasjonen definerer og styrer nøkkelprosessene.",
       "deviations": "Alle standardene organisasjonen har valgt, krever at avvik og hendelser håndteres (punkt 10.2).",
@@ -2381,6 +2384,8 @@
     },
     "entities": {
       "document": "Dokument",
+      "chat_conversation": "Samtale",
+      "chat_message": "Melding",
       "deviation": "Avvik",
       "deviation_action": "Avvikstiltak",
       "standard": "Standard",
