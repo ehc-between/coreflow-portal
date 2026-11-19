@@ -735,5 +735,20 @@
     "responsibilityOwnerChanged": "{{ actor_name }} endret hvem som vedlikeholder ansvaret",
     "responsibilityAssigned": "{{ actor_name }} tildelte nye personer, roller eller avdelinger",
     "responsibilityReviewed": "{{ actor_name }} merket ansvaret som gjennomgått"
+  },
+  "policyDocs": {
+    "type": {
+      "policy": "Bare policyer",
+      "scope": "Bare omfangsbeskrivelser",
+      "context_analysis": "Bare kontekstanalyser",
+      "other": "Filtrert på type"
+    },
+    "showAll": "Vis alle dokumenter",
+    "newPolicy": "Ny policy",
+    "missingTitle": "Standardene dine forventer disse policyene, men ingen er godkjent ennå",
+    "draft": "Lag utkast",
+    "openDocument": "Åpne det styrte dokumentet",
+    "documentHint": "Når den godkjennes, publiseres den som en revisjon i Dokumenter.",
+    "documentLabel": "Styrt dokument"
   }
 }
