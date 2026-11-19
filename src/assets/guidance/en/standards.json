@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "The standards and regulations you work to",
-        "body": "Here you see each standard and regulation your organisation follows, and how much of it is documented. The number in the ring is the **requirement coverage**: the share of requirements shown by evidence from the work you already do.",
+        "body": "Here you see each standard and regulation your organisation follows, and how much of it is documented. The number in the ring is the **[[requirement-coverage|requirement coverage]]**: the share of requirements shown by evidence from the work you already do.",
         "steps": [
           "Turn on the standards that apply to you. Start with the ones customers or authorities ask about.",
           "Open a standard and go through its requirements. Link risks, documents, suppliers and other records as **evidence**.",
@@ -18,7 +18,7 @@
     "readiness": {
       "intro": {
         "title": "What requirement coverage tells you",
-        "body": "Requirement coverage sums up how well prepared you are for an audit or an inspection. It only counts requirements that apply to you, and recent evidence counts more than old evidence.",
+        "body": "[[requirement-coverage|Requirement coverage]] sums up how well prepared you are for an audit or an inspection. It only counts requirements that apply to you, and recent evidence counts more than old evidence.",
         "steps": [
           "Look first at requirements nobody has started. Click the number to open them.",
           "Then renew evidence that is older than a year or still only a draft.",

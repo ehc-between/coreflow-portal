@@ -6,7 +6,7 @@
         "body": "Ett register for alt som ikke gikk som planlagt, og for ideer til å gjøre det bedre. Hver sak følges til årsaken er rettet og tiltaket har virket.",
         "steps": [
           "Registrer det som skjedde så snart du oppdager det, selv om det virker lite.",
-          "Finn rotårsaken med en 5 hvorfor- eller fiskebeinanalyse.",
+          "Finn [[root-cause|rotårsaken]] med en 5 hvorfor- eller fiskebeinanalyse.",
           "Planlegg tiltak og sett en dato for å sjekke at de virket."
         ]
       },
@@ -38,7 +38,7 @@
         "title": "Registrer et avvik",
         "body": "Beskriv hva som skjedde med vanlige ord. Årsak og tiltak legger du til på saken etterpå.",
         "steps": [
-          "Velg typen som passer best: et avvik, en klage, en hendelse eller en idé.",
+          "Velg typen som passer best: et [[nonconformity|avvik]], en klage, en hendelse eller en idé.",
           "Si hva som skjedde, hvor og når. Hold deg til fakta, ikke skyld.",
           "Sett alvorlighetsgrad ut fra konsekvensene, eller hva som kunne ha skjedd."
         ]
@@ -114,11 +114,11 @@
     "detail": {
       "intro": {
         "title": "Behandle avviket",
-        "body": "Flytt avviket gjennom arbeidsflyten: utred, finn rotårsaken, sett inn tiltak og sjekk effekten. Alle endringer lagres i historikken.",
+        "body": "Flytt [[nonconformity|avviket]] gjennom arbeidsflyten: utred, finn [[root-cause|rotårsaken]], sett inn tiltak og sjekk effekten. Alle endringer lagres i historikken.",
         "steps": [
-          "Bruk et 5 hvorfor- eller fiskebeinark for å komme fra symptomet til rotårsaken.",
-          "Legg til strakstiltak, korrigerende og forebyggende tiltak med ansvarlige og frister.",
-          "Sett en dato for effektivitetsvurdering på korrigerende tiltak, så kontrollen ikke glemmes."
+          "Bruk et 5 hvorfor- eller fiskebeinark for å komme fra symptomet til [[root-cause|rotårsaken]].",
+          "Legg til [[correction|strakstiltak]], [[corrective-action|korrigerende tiltak]] og [[preventive-action|forebyggende tiltak]] med ansvarlige og frister.",
+          "Sett en dato for [[effectiveness|effektivitetsvurdering]] på [[corrective-action|korrigerende tiltak]], så kontrollen ikke glemmes."
         ]
       },
       "why": {
@@ -201,7 +201,7 @@
     "types": {
       "intro": {
         "title": "Avvikstyper",
-        "body": "Hver type bestemmer hva som spørres om når noen registrerer et avvik, og hvordan det behandles. En type koblet til en posttype får egne felt, tilstander, godkjenninger og frister.",
+        "body": "Hver type bestemmer hva som spørres om når noen registrerer et [[nonconformity|avvik]], og hvordan det behandles. En type koblet til en posttype får egne felt, tilstander, godkjenninger og frister.",
         "steps": [
           "Start fra en mal, og tilpass feltene og arbeidsflyten til måten dere jobber på.",
           "Hold antall obligatoriske felt lavt, så det forblir enkelt å melde."
@@ -263,10 +263,10 @@
     "intakeInbox": {
       "intro": {
         "title": "Mottatte rapporter",
-        "body": "Rapporter fra den anonyme lenken havner her. Se på hver av dem, og registrer dem som avvik, eller lukk dem med en kort melding den som rapporterte kan lese.",
+        "body": "Rapporter fra den anonyme lenken havner her. Se på hver av dem, og registrer dem som [[nonconformity|avvik]], eller lukk dem med en kort melding den som rapporterte kan lese.",
         "steps": [
           "Start behandlingen av en ny rapport så andre ser at den blir tatt hånd om.",
-          "Registrer den som avvik når den trenger oppfølging.",
+          "Registrer den som [[nonconformity|avvik]] når den trenger oppfølging.",
           "Legg igjen en melding: den som rapporterte, ser den når de sjekker kvitteringskoden."
         ]
       },
@@ -282,10 +282,10 @@
     "intakeReport": {
       "intro": {
         "title": "Behandle en rapport",
-        "body": "Les rapporten, vurder om den trenger oppfølging, og registrer den som avvik eller lukk den. KI kan lage utkast til avviksfeltene fra teksten, som du sjekker.",
+        "body": "Les rapporten, vurder om den trenger oppfølging, og registrer den som [[nonconformity|avvik]] eller lukk den. KI kan lage utkast til avviksfeltene fra teksten, som du sjekker.",
         "steps": [
           "Ikke prøv å finne ut hvem som sendte en anonym rapport.",
-          "Registrer den som et avvik av typen som passer, eller lukk den med en melding."
+          "Registrer den som et [[nonconformity|avvik]] av typen som passer, eller lukk den med en melding."
         ]
       },
       "why": {
@@ -296,7 +296,7 @@
     "actions": {
       "intro": {
         "title": "Tiltak på tvers av alle avvik",
-        "body": "Alle åpne tiltak fra avvikene du har tilgang til, med nærmest frist først. Åpne avviket for å oppdatere et tiltak.",
+        "body": "Alle åpne tiltak fra [[nonconformity|avvikene]] du har tilgang til, med nærmest frist først. Åpne [[nonconformity|avviket]] for å oppdatere et tiltak.",
         "steps": [
           "Filtrer på dine egne tiltak med «Tildelt meg».",
           "Forfalte tiltak er merket og vises også i Mitt arbeid."
@@ -310,7 +310,7 @@
     "stats": {
       "intro": {
         "title": "Hvordan avvikene blir håndtert",
-        "body": "Tallene ledelsens gjennomgang og revisorer spør etter: hvor mange, hvor raskt de lukkes, og om tiltakene virker.",
+        "body": "Tallene [[management-review|ledelsens gjennomgang]] og revisorer spør etter: hvor mange, hvor raskt de lukkes, og om tiltakene virker.",
         "steps": [
           "Klikk på en stolpe for å se sakene bak den.",
           "Bruk «Etter krav» for å finne kravene som oftest svikter."

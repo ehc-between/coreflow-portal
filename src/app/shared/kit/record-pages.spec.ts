@@ -171,7 +171,7 @@ describe('RecordDetailLayout', () => {
     );
     expect(
       [...more.querySelectorAll('[role="menuitem"]')].map((t) => t.textContent?.trim()),
-    ).toEqual(['Comments', 'Attachments', 'Revisions', 'Tasks']);
+    ).toEqual(['Comments', 'Attachments', 'History', 'Tasks']);
     expect(el.querySelector('h1')?.textContent?.trim()).toBe('Details');
     expect(el.querySelector('[data-testid="details-slot"]')?.closest('[hidden]')).toBeNull();
     expect(el.querySelector('[data-testid="tasks-slot"]')?.closest('[hidden]')).not.toBeNull();

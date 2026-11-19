@@ -3,10 +3,10 @@
     "list": {
       "intro": {
         "title": "Vit hva dere har, og hvem som har ansvaret",
-        "body": "Eiendelsregisteret viser alt organisasjonen er avhengig av: **informasjon**, **systemer og programvare**, **utstyr**, **tjenester**, **lokaler** og ting folk har med seg, som bærbare PC-er og adgangskort. Hver eiendel har en **eier**, en **klassifisering** og en plass i **livsløpet**.",
+        "body": "Eiendelsregisteret viser alt organisasjonen er avhengig av: **informasjon**, **systemer og programvare**, **utstyr**, **tjenester**, **lokaler** og ting folk har med seg, som bærbare PC-er og adgangskort. Hver [[asset|eiendel]] har en **eier**, en **klassifisering** og en plass i **livsløpet**.",
         "steps": [
-          "Registrer de viktigste eiendelene først: systemene og informasjonen dere ikke kan arbeide uten.",
-          "Gi hver eiendel en eier og en klassifisering. Eieren bestemmer hvem som får tilgang, og hvordan den beskyttes.",
+          "Registrer de viktigste [[asset|eiendelene]] først: systemene og informasjonen dere ikke kan arbeide uten.",
+          "Gi hver [[asset|eiendel]] en eier og en klassifisering. Eieren bestemmer hvem som får tilgang, og hvordan den beskyttes.",
           "Merk måleutstyr som må kalibreres, og hold livsløpet oppdatert når ting tas ut av bruk eller avhendes."
         ]
       },
@@ -30,9 +30,9 @@
     "form": {
       "intro": {
         "title": "Beskriv eiendelen og hvordan den skal beskyttes",
-        "body": "Fyll ut hva eiendelen er, hvem som eier den og hvor den er. **Klassifiseringen** og de tre vurderingene (konfidensialitet, integritet og tilgjengelighet) sier hvor stor skaden blir hvis noe går galt, og dermed hvor godt den må beskyttes.",
+        "body": "Fyll ut hva [[asset|eiendelen]] er, hvem som eier den og hvor den er. **Klassifiseringen** og de tre vurderingene (konfidensialitet, integritet og tilgjengelighet) sier hvor stor skaden blir hvis noe går galt, og dermed hvor godt den må beskyttes.",
         "steps": [
-          "Gi eiendelen et navn og velg type.",
+          "Gi [[asset|eiendelen]] et navn og velg type.",
           "Velg en klassifisering. Er du usikker, kan du be om et forslag.",
           "Angi en eier og, for ting folk har med seg, forvalteren som har den."
         ]
@@ -113,10 +113,10 @@
     "detail": {
       "intro": {
         "title": "Alt om denne eiendelen på ett sted",
-        "body": "Kontroller at klassifiseringen og håndteringsreglene fortsatt stemmer, se endringene og tilgangsgjennomgangene som gjelder den, og registrer kalibreringer hvis det er måleutstyr.",
+        "body": "Kontroller at klassifiseringen og håndteringsreglene fortsatt stemmer, se endringene og tilgangsgjennomgangene som gjelder den, og registrer [[calibration|kalibreringer]] hvis det er måleutstyr.",
         "steps": [
           "Hold eier, forvalter og livsløp oppdatert.",
-          "Meld en endringsforespørsel før du gjør en vesentlig endring på eiendelen.",
+          "Meld en endringsforespørsel før du gjør en vesentlig endring på [[asset|eiendelen]].",
           "Koble til dokumenter, risikoer og leverandører under Relatert."
         ]
       },
@@ -144,11 +144,11 @@
     "detailInstrument": {
       "intro": {
         "title": "Hold instrumentet egnet til måling",
-        "body": "Registrer hver kalibrering med resultat og sertifikat. Er kalibreringen forfalt, skal instrumentet ikke brukes til kontroll før det er kalibrert, og en feilet kalibrering må vurderes.",
+        "body": "Registrer hver [[calibration|kalibrering]] med resultat og sertifikat. Er [[calibration|kalibreringen]] forfalt, skal instrumentet ikke brukes til kontroll før det er kalibrert, og en feilet [[calibration|kalibrering]] må vurderes.",
         "steps": [
-          "Registrer kalibreringen med laboratorium og sertifikat.",
-          "Merk instrumentet som ute av bruk når kalibreringen er forfalt.",
-          "Vurder konsekvensen av en feilet kalibrering, og registrer avvik hvis produkter er berørt."
+          "Registrer [[calibration|kalibreringen]] med laboratorium og sertifikat.",
+          "Merk instrumentet som ute av bruk når [[calibration|kalibreringen]] er forfalt.",
+          "Vurder konsekvensen av en feilet [[calibration|kalibrering]], og registrer [[nonconformity|avvik]] hvis produkter er berørt."
         ]
       },
       "why": {
@@ -175,11 +175,11 @@
     "calibration": {
       "intro": {
         "title": "Hold måleutstyret kalibrert",
-        "body": "Listen viser instrumenter som har **forfalt** eller har **snart forfall**. Åpne et instrument for å registrere kalibreringen og legge ved sertifikatet.",
+        "body": "Listen viser instrumenter som har **forfalt** eller har **snart forfall**. Åpne et instrument for å registrere [[calibration|kalibreringen]] og legge ved sertifikatet.",
         "steps": [
-          "Planlegg kalibreringer før de forfaller.",
-          "Registrer hver kalibrering med resultatet og sertifikatet.",
-          "Hvis en kalibrering ikke blir godkjent, vurder konsekvensene for tidligere målinger."
+          "Planlegg [[calibration|kalibreringer]] før de forfaller.",
+          "Registrer hver [[calibration|kalibrering]] med resultatet og sertifikatet.",
+          "Hvis en [[calibration|kalibrering]] ikke blir godkjent, vurder konsekvensene for tidligere målinger."
         ]
       },
       "why": {
@@ -296,7 +296,7 @@
         "body": "Si hva som skal endres, og hvorfor. Konsekvens- og risikovurderingen kan gjøres nå eller i vurderingssteget. Når endringen er godkjent, låses innholdet.",
         "steps": [
           "Gi en tydelig tittel, en beskrivelse og begrunnelsen.",
-          "Før opp de berørte eiendelene.",
+          "Før opp de berørte [[asset|eiendelene]].",
           "Vurder konsekvenser og risiko, og skriv gjennomførings- og tilbakeføringsplanen."
         ]
       },

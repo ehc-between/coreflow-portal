@@ -6,7 +6,7 @@
         "body": "Alle poster i CoreFlow har de samme delene: detaljene, postene den er koblet til, aktiviteten, diskusjonen, filene og, for styrte poster, revisjonshistorikken.",
         "steps": [
           "Fyll ut detaljene først, og lagre.",
-          "Åpne **Relatert** for å koble til dokumentene, avvikene, risikoene eller tiltakene posten henger sammen med.",
+          "Åpne **Relatert** for å koble til dokumentene, [[nonconformity|avvikene]], risikoene eller tiltakene posten henger sammen med.",
           "Bruk **Kommentarer** til å diskutere posten; skriv @ for å ta med en kollega.",
           "Se **Aktivitet** for å se hvem som gjorde hva, og når."
         ]
@@ -30,7 +30,7 @@
     "related": {
       "intro": {
         "title": "Relaterte poster",
-        "body": "Koblinger viser hvordan poster henger sammen. Hver kobling har en type, så den leses som en setning: dette avviket **er forårsaket av** den leverandøren, dette tiltaket **reduserer** den risikoen.",
+        "body": "Koblinger viser hvordan poster henger sammen. Hver kobling har en type, så den leses som en setning: dette [[nonconformity|avviket]] **er forårsaket av** den leverandøren, dette tiltaket **reduserer** den risikoen.",
         "steps": [
           "Velg **Koble til en post**.",
           "Velg relasjonen, og søk etter posten med kode eller tittel.",

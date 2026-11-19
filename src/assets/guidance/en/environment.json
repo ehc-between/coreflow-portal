@@ -5,7 +5,7 @@
         "title": "Environmental management at a glance",
         "body": "This page shows how your organisation affects the environment and what needs doing. Start with **Needs follow-up**: each line opens the records behind it.",
         "steps": [
-          "Register the environmental aspects of your main activities and score them.",
+          "Register the [[environmental-aspect|environmental aspects]] of your main activities and score them.",
           "Give every significant aspect controls, and every emergency situation a plan.",
           "Measure energy, water, waste and emissions, and compare them with your targets."
         ]
@@ -24,7 +24,7 @@
     "aspects": {
       "intro": {
         "title": "The register of aspects and impacts",
-        "body": "An **environmental aspect** is the part of an activity that interacts with the environment, such as fuel use or waste water. The **impact** is the change it causes, such as climate emissions or water pollution. Each aspect gets a score, so you see which ones are **significant** and must be controlled.",
+        "body": "An **[[environmental-aspect|environmental aspect]]** is the part of an activity that interacts with the environment, such as fuel use or waste water. The **impact** is the change it causes, such as climate emissions or water pollution. Each aspect gets a score, so you see which ones are **significant** and must be controlled.",
         "steps": [
           "Pick an activity and list its aspects in normal operation, abnormal operation and emergencies.",
           "Score each aspect with the assessment method.",
@@ -208,10 +208,10 @@
     "planDetail": {
       "intro": {
         "title": "Testing and improving the plan",
-        "body": "Record every drill, tabletop exercise and **real event**. If something did not work, tick \"The plan must be revised\": the owner then gets a task. Findings can become a deviation or a task with one click.",
+        "body": "Record every drill, tabletop exercise and **real event**. If something did not work, tick \"The plan must be revised\": the owner then gets a task. [[audit-finding|Findings]] can become a [[nonconformity|deviation]] or a task with one click.",
         "steps": [
           "Record drills and events with their outcome and who took part.",
-          "Create a deviation or a task from the findings.",
+          "Create a [[nonconformity|deviation]] or a task from the [[audit-finding|findings]].",
           "Mark the plan as reviewed when it has been updated."
         ]
       },
@@ -326,7 +326,7 @@
         "steps": [
           "Record values for each period, with their source.",
           "Attach the evidence to each measurement.",
-          "Link the indicator to an environmental objective or a KPI."
+          "Link the indicator to an environmental objective or a [[kpi|KPI]]."
         ]
       },
       "why": {

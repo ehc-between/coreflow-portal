@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "Standardene og regelverket dere arbeider etter",
-        "body": "Her ser dere hver standard og forordning organisasjonen følger, og hvor mye av den som er dokumentert. Tallet i ringen er **kravdekningen**: hvor stor del av kravene som er vist med dokumentasjon fra arbeidet dere allerede gjør.",
+        "body": "Her ser dere hver standard og forordning organisasjonen følger, og hvor mye av den som er dokumentert. Tallet i ringen er **[[requirement-coverage|kravdekningen]]**: hvor stor del av kravene som er vist med dokumentasjon fra arbeidet dere allerede gjør.",
         "steps": [
           "Aktiver standardene som gjelder dere. Begynn med dem kundene eller myndighetene spør om.",
           "Åpne en standard og gå gjennom kravene. Koble risikoer, dokumenter, leverandører og andre poster som **dokumentasjon**.",
@@ -18,7 +18,7 @@
     "readiness": {
       "intro": {
         "title": "Hva kravdekningen forteller dere",
-        "body": "Kravdekningen oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Den teller bare krav som gjelder dere, og fersk dokumentasjon teller mer enn gammel.",
+        "body": "[[requirement-coverage|Kravdekningen]] oppsummerer hvor godt forberedt dere er til en revisjon eller et tilsyn. Den teller bare krav som gjelder dere, og fersk dokumentasjon teller mer enn gammel.",
         "steps": [
           "Se først på krav som ikke er startet. Klikk på tallet for å åpne dem.",
           "Forny deretter dokumentasjon som er eldre enn ett år, eller som bare er utkast.",

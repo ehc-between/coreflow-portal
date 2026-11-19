@@ -355,10 +355,10 @@
       "equalsYears": "Det tilsvarer {{ count }} år."
     },
     "compare": {
-      "title": "Revisjonshistorikk: {{ title }}",
+      "title": "Historikk: {{ title }}",
       "back": "Tilbake til dokumentet",
-      "link": "Sammenlign revisjoner",
-      "history": "Revisjoner",
+      "link": "Sammenlign versjoner",
+      "history": "Historikk",
       "rev": "Rev. {{ rev }}",
       "current": "Gjeldende",
       "working": "Arbeidsutkast",

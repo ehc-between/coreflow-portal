@@ -5,10 +5,10 @@
         "title": "Your privacy work in one place",
         "body": "Start with **Start here** if you are new. **Needs action** shows only what is urgent, and **What is missing** shows gaps between the registers, each with a button that fixes it.",
         "steps": [
-          "Start with the records of processing: list each activity that uses personal data.",
-          "Screen new or risky processing for a DPIA.",
+          "Start with the [[ropa|records of processing]]: list each activity that uses personal data.",
+          "Screen new or risky processing for a [[dpia|DPIA]].",
           "Register requests and breaches the moment they arrive: both have legal deadlines.",
-          "Keep processors, transfers, retention rules and consents up to date."
+          "Keep [[processor|processors]], transfers, retention rules and consents up to date."
         ]
       },
       "why": {
@@ -107,12 +107,12 @@
     "dpia": {
       "intro": {
         "title": "Data protection impact assessments (Art. 35)",
-        "body": "A DPIA is needed before processing that is likely to result in a high risk to people. Screening against the nine EDPB criteria tells you whether one is required.",
+        "body": "A [[dpia|DPIA]] is needed before processing that is likely to result in a high risk to people. Screening against the nine EDPB criteria tells you whether one is required.",
         "steps": [
-          "Tick the screening criteria that apply. Two or more usually mean a DPIA is required.",
+          "Tick the screening criteria that apply. Two or more usually mean a [[dpia|DPIA]] is required.",
           "Assess necessity and proportionality.",
           "List the risks to the people affected and the measures that reduce them.",
-          "Ask the DPO for advice and send the DPIA for a decision."
+          "Ask the DPO for advice and send the [[dpia|DPIA]] for a decision."
         ]
       },
       "why": {
@@ -248,12 +248,12 @@
     "processor": {
       "intro": {
         "title": "Processors (Art. 28)",
-        "body": "A processor handles personal data on your instructions: cloud services, payroll bureaus, IT support. Each needs a data processing agreement with the Article 28(3) terms.",
+        "body": "A [[processor|processor]] handles personal data on your instructions: cloud services, payroll bureaus, IT support. Each needs a [[dpa|data processing agreement]] with the Article 28(3) terms.",
         "steps": [
           "Register each supplier that processes personal data for you.",
-          "Record the status of the data processing agreement.",
-          "Note sub-processors and the countries involved.",
-          "Review processors on a regular schedule."
+          "Record the status of the [[dpa|data processing agreement]].",
+          "Note sub-[[processor|processors]] and the countries involved.",
+          "Review [[processor|processors]] on a regular schedule."
         ]
       },
       "why": {
@@ -297,10 +297,10 @@
         "title": "International transfers (Chapter V)",
         "body": "Personal data may only leave the EEA with a valid transfer tool: an adequacy decision, standard contractual clauses, binding corporate rules or, exceptionally, an Article 49 derogation.",
         "steps": [
-          "Register each transfer and link it to the processing record and the processor.",
+          "Register each transfer and link it to the processing record and the [[processor|processor]].",
           "Choose the transfer tool.",
-          "For SCCs, BCRs and other tools, carry out a transfer impact assessment (TIA).",
-          "Add supplementary measures when the TIA calls for them."
+          "For [[scc|SCCs]], BCRs and other tools, carry out a transfer impact assessment ([[tia|TIA]]).",
+          "Add supplementary measures when the [[tia|TIA]] calls for them."
         ]
       },
       "why": {
@@ -455,7 +455,7 @@
     "settings": {
       "intro": {
         "title": "Who is responsible",
-        "body": "Name the controller and the data protection officer once. They head the exported record of processing and are what people and the authority need to contact you."
+        "body": "Name the controller and the data protection officer once. They head the exported [[ropa|record of processing]] and are what people and the authority need to contact you."
       },
       "fields": {
         "controller_name": {

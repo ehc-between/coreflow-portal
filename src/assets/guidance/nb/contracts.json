@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Ett register for alle avtaler",
-        "body": "Alle avtaler organisasjonen har inngått, med eier, parter og datoene som betyr noe. Registeret varsler deg før en oppsigelsesfrist går ut, og når en databehandleravtale eller en gjennomgang mangler.",
+        "body": "Alle avtaler organisasjonen har inngått, med eier, parter og datoene som betyr noe. Registeret varsler deg før en oppsigelsesfrist går ut, og når en [[dpa|databehandleravtale]] eller en gjennomgang mangler.",
         "steps": [
           "Registrer en kontrakt, eller lim inn teksten og la assistenten fylle ut opplysningene.",
           "Legg til viktige datoer og forpliktelsene kontrakten gir dere.",
@@ -76,7 +76,7 @@
     "detail": {
       "intro": {
         "title": "Ha kontroll på en kontrakt",
-        "body": "Alt om kontrakten på ett sted: hva som trenger oppfølging, godkjenningen, partene (koblet til leverandørregisteret), datoer, versjoner med signerte kopier og databehandleravtalen. Forpliktelsene har en egen fane.",
+        "body": "Alt om kontrakten på ett sted: hva som trenger oppfølging, godkjenningen, partene (koblet til leverandørregisteret), datoer, versjoner med signerte kopier og [[dpa|databehandleravtalen]]. Forpliktelsene har en egen fane.",
         "steps": [
           "Ta det som står under «Trenger oppfølging» først.",
           "Før kontrakten gjennom godkjenning med knappene i arbeidsflytkortet. Den som godkjenner, svarer på en kort gjennomgang av kravene.",

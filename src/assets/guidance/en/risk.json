@@ -5,7 +5,7 @@
         "title": "Risk management in one place",
         "body": "Risk management means deciding, on purpose, which uncertainties matter to the organisation and what to do about them. Here you see every risk on the **heat map**, the **treatments** that are under way, the **opportunities** you want to pursue and the progress of your **Statement of Applicability**.",
         "steps": [
-          "Start with the red and orange cells of the heat map: those are the risks above your risk appetite.",
+          "Start with the red and orange cells of the heat map: those are the risks above your [[risk-appetite|risk appetite]].",
           "Open a cell to see its risks, and check that each has an owner and a treatment plan.",
           "Use **Reviews overdue** to keep the periodic review cycle on track."
         ]
@@ -25,7 +25,7 @@
     "risks": {
       "intro": {
         "title": "Your risk register",
-        "body": "Each row is one risk: something that could happen and would affect what the organisation is trying to achieve. You can see how serious it was **before treatment** (inherent) and how serious it is expected to be **after treatment** (residual).",
+        "body": "Each row is one risk: something that could happen and would affect what the organisation is trying to achieve. You can see how serious it was **before treatment** ([[inherent-risk|inherent]]) and how serious it is expected to be **after treatment** (residual).",
         "steps": [
           "Filter by status, register or level, or tick **Mine** to see the risks you own.",
           "Sort by score to work on the most serious risks first.",
@@ -47,7 +47,7 @@
         "title": "Assessing a risk in three steps",
         "body": "A good risk description answers three questions: **what is at risk**, **what could happen** to it, and **what would the consequence be**. Then you rate it, and decide what to do about it.",
         "steps": [
-          "**Describe**: name the risk, choose the owner and say what is at risk. Link the real supplier, asset or process when there is one.",
+          "**Describe**: name the risk, choose the owner and say what is at risk. Link the real supplier, [[asset|asset]] or process when there is one.",
           "**Assess**: pick the cell on the matrix that fits the risk as it is today.",
           "**Treat**: choose a strategy, pick the controls from the catalogue, and rate the risk you expect after treatment."
         ]
@@ -117,7 +117,7 @@
     "detail": {
       "intro": {
         "title": "Following a risk through its life",
-        "body": "The risk moves from **identified** to **assessed**, through **treatment** and **monitoring**. If the residual risk is acceptable, someone with authority can **accept** it. Record a **review** at each periodic check.",
+        "body": "The risk moves from **identified** to **assessed**, through **treatment** and **monitoring**. If the [[residual-risk|residual risk]] is acceptable, someone with authority can **accept** it. Record a **review** at each periodic check.",
         "steps": [
           "Add treatments: each becomes a task for its owner in My Work.",
           "When the treatments are done, update the residual rating.",
@@ -205,7 +205,7 @@
     "soa": {
       "intro": {
         "title": "What a Statement of Applicability is",
-        "body": "The Statement of Applicability (SoA) lists every control in Annex A of ISO/IEC 27001 (or ISO/IEC 42001) and records, for each one, whether you apply it, **why**, and whether it is implemented. It ties your risk treatment to the controls you rely on.",
+        "body": "The [[statement-of-applicability|Statement of Applicability (SoA)]] lists every control in [[annex-a|Annex A]] of ISO/IEC 27001 (or ISO/IEC 42001) and records, for each one, whether you apply it, **why**, and whether it is implemented. It ties your [[risk-treatment|risk treatment]] to the controls you rely on.",
         "steps": [
           "Generate the statement for the standard you are working towards.",
           "Open it and decide, control by control, whether it is applicable.",
@@ -274,7 +274,7 @@
     "matrices": {
       "intro": {
         "title": "Your risk matrix",
-        "body": "The matrix defines the **likelihood** and **consequence** scales, how scores are grouped into **levels** (low, medium, high, critical) and your **risk appetite**: the highest score the organisation accepts without further treatment."
+        "body": "The matrix defines the **likelihood** and **consequence** scales, how scores are grouped into **levels** (low, medium, high, critical) and your **[[risk-appetite|risk appetite]]**: the highest score the organisation accepts without further treatment."
       },
       "why": {
         "body": "Risk criteria, including the criteria for accepting risk, must be established before you assess risks, so that repeated assessments produce consistent, valid and comparable results.",
@@ -292,7 +292,7 @@
         "body": "Describe each level so that two people would rate the same risk the same way. For example, 'major' might mean a loss above a set amount or an outage longer than a day.",
         "steps": [
           "Rename levels and add a short description of what each means.",
-          "Adjust the bands and colours, and set the risk appetite.",
+          "Adjust the bands and colours, and set the [[risk-appetite|risk appetite]].",
           "Override single cells only when a score alone gives the wrong level."
         ]
       },

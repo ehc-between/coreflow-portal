@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Planned checks that prove things work",
-        "body": "An **inspection** is a planned check of a workplace, a machine, a routine or an area, done with a **checklist**. Anything not in order becomes a **finding** that someone follows up. Serious findings become **deviations**, so the cause is found and corrected.",
+        "body": "An **inspection** is a planned check of a workplace, a machine, a routine or an area, done with a **checklist**. Anything not in order becomes a **[[audit-finding|finding]]** that someone follows up. Serious [[audit-finding|findings]] become **[[nonconformity|deviations]]**, so the cause is found and corrected.",
         "steps": [
           "Start with inspections marked **Overdue**, then the ones due soonest.",
           "Open an inspection and press **Start** or **Continue** to carry it out on a phone or tablet.",
@@ -23,11 +23,11 @@
     "findings": {
       "intro": {
         "title": "Everything inspections found",
-        "body": "A **finding** is created automatically for every answer that does not pass, and inspectors can add their own. Each finding has a severity, an owner and a due date. It is closed with a note on what was done, and later you check that the correction works.",
+        "body": "A **[[audit-finding|finding]]** is created automatically for every answer that does not pass, and inspectors can add their own. Each [[audit-finding|finding]] has a severity, an owner and a due date. It is closed with a note on what was done, and later you check that the correction works.",
         "steps": [
           "Filter on **Open**, or choose **Owned by me** under More filters, to see what is waiting for you.",
-          "Open a finding to add follow-up tasks, create a deviation or close it.",
-          "High and critical findings should become deviations, so the cause is found and corrected."
+          "Open a [[audit-finding|finding]] to add follow-up tasks, create a [[nonconformity|deviation]] or close it.",
+          "High and critical [[audit-finding|findings]] should become [[nonconformity|deviations]], so the cause is found and corrected."
         ]
       },
       "why": {
@@ -103,7 +103,7 @@
         "steps": [
           "Give the template a clear title and category.",
           "Add questions by type, or let the assistant draft them and review the result.",
-          "Decide the pass mark and whether findings should become deviations automatically, then save or publish."
+          "Decide the pass mark and whether [[audit-finding|findings]] should become [[nonconformity|deviations]] automatically, then save or publish."
         ]
       },
       "why": {
@@ -150,7 +150,7 @@
         "body": "Choose an active checklist, what is inspected and where, who carries it out and when it is due. The inspector is reminded as the due date gets close.",
         "steps": [
           "Choose the checklist; its questions are copied into the inspection.",
-          "Link the asset, process, supplier or risk being checked, if there is one.",
+          "Link the [[asset|asset]], process, supplier or risk being checked, if there is one.",
           "Choose the inspector and owner and set a due date, so it shows in My work."
         ]
       },
@@ -187,11 +187,11 @@
     "detail": {
       "intro": {
         "title": "An inspection and its results",
-        "body": "See what is inspected, the progress or result, every answer by section with the requirements it covers, and the findings. The result and score are worked out when the inspection is completed.",
+        "body": "See what is inspected, the progress or result, every answer by section with the requirements it covers, and the [[audit-finding|findings]]. The result and score are worked out when the inspection is completed.",
         "steps": [
           "Press **Start** or **Continue** to answer the checklist.",
-          "After completion, review the answers that did not pass and their findings.",
-          "Give findings an owner and tasks, create deviations for the serious ones, and download the report when needed."
+          "After completion, review the answers that did not pass and their [[audit-finding|findings]].",
+          "Give [[audit-finding|findings]] an owner and tasks, create [[nonconformity|deviations]] for the serious ones, and download the report when needed."
         ]
       },
       "why": {
@@ -223,7 +223,7 @@
     "run": {
       "intro": {
         "title": "Performing an inspection",
-        "body": "Answer the questions as you go. Answers are **saved automatically**, so you can stop and continue later. When something is not in order, write what you saw or take a photo: the finding is built from it.",
+        "body": "Answer the questions as you go. Answers are **saved automatically**, so you can stop and continue later. When something is not in order, write what you saw or take a photo: the [[audit-finding|finding]] is built from it.",
         "steps": [
           "Each question says what does not pass.",
           "Mark a question **Not applicable** only when it really does not apply here.",

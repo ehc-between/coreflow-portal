@@ -48,7 +48,7 @@
     "profile": {
       "intro": {
         "title": "Profilen beskriver konteksten deres",
-        "body": "ISO-styringssystemer starter med å forstå organisasjonen, interessentene og omfanget. Profilen er kortversjonen av den konteksten.",
+        "body": "ISO-[[management-system|styringssystemer]] starter med å forstå organisasjonen, [[interested-party|interessentene]] og omfanget. Profilen er kortversjonen av den konteksten.",
         "steps": [
           "Fyll inn bransje, størrelse og landene dere driver i.",
           "Kryss av standardene i omfang, og legg til sertifiseringsmål med datoer.",
@@ -65,7 +65,7 @@
         "title": "Snakk organisasjonens språk",
         "body": "Folk følger et system lettere når det bruker deres ord. Endre ordbruken her, så bruker CoreFlow den overalt.",
         "steps": [
-          "Velg begrepene dere kaller noe annet, for eksempel «uoverensstemmelse» for avvik.",
+          "Velg begrepene dere kaller noe annet, for eksempel «uoverensstemmelse» for [[nonconformity|avvik]].",
           "Fyll inn entall og flertall for hvert språk dere bruker.",
           "Lagre, og se på forhåndsvisningen over listen."
         ]
@@ -78,7 +78,7 @@
     "setup": {
       "intro": {
         "title": "Kom i gang på noen minutter",
-        "body": "Veiviseren tar deg gjennom det grunnleggende i et styringssystem: kontekst, omfang, riktige moduler, roller og de første oppgavene.",
+        "body": "Veiviseren tar deg gjennom det grunnleggende i et [[management-system|styringssystem]]: kontekst, omfang, riktige moduler, roller og de første oppgavene.",
         "steps": [
           "Beskriv organisasjonen og velg rammeverkene i omfang.",
           "Se gjennom de anbefalte modulene. Bruk «Spør hvorfor» hvis noe er uklart.",

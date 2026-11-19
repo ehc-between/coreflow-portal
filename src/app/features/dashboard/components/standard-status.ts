@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import {
@@ -80,8 +81,14 @@ import { FrameworkStatus, JourneySummary } from '../data/home.models';
                   [routerLink]="gap.link.path"
                   [queryParams]="gap.link.query"
                   class="group flex items-baseline gap-2 rounded-tile px-1 py-1 text-ui hover:bg-surface-2"
+                  [attr.title]="beginner() ? gap.number : null"
                 >
-                  <span class="flex-none font-mono text-meta text-fg-subtle">{{ gap.number }}</span>
+                  <!-- U39: beginners read the requirement's title; the number is on hover. -->
+                  @if (!beginner()) {
+                    <span class="flex-none font-mono text-meta text-fg-subtle">{{
+                      gap.number
+                    }}</span>
+                  }
                   <span class="min-w-0 flex-1 text-fg group-hover:underline">{{ gap.title }}</span>
                   <span class="flex-none text-meta text-fg-subtle">
                     {{
@@ -130,6 +137,7 @@ export class StandardStatus {
   readonly journey = input<JourneySummary | null>(null);
   readonly canStartJourney = input(false);
 
+  protected readonly beginner = inject(GuidanceService).isBeginner;
   protected readonly shortKey = computed(() => frameworkShortKey(this.status().framework));
   protected readonly trend = computed(() => trendParams(this.status().trend_30d));
   protected readonly allLink = computed(() => splitUrl(this.status().url));

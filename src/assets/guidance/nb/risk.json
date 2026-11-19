@@ -3,9 +3,9 @@
     "overview": {
       "intro": {
         "title": "Risikostyring samlet på ett sted",
-        "body": "Risikostyring handler om å bestemme, bevisst, hvilke usikkerheter som betyr noe for virksomheten, og hva dere skal gjøre med dem. Her ser du alle risikoene i **varmekartet**, **tiltakene** som pågår, **mulighetene** dere vil forfølge og hvor langt **anvendelseserklæringen** har kommet.",
+        "body": "Risikostyring handler om å bestemme, bevisst, hvilke usikkerheter som betyr noe for virksomheten, og hva dere skal gjøre med dem. Her ser du alle risikoene i **varmekartet**, **tiltakene** som pågår, **mulighetene** dere vil forfølge og hvor langt **[[statement-of-applicability|anvendelseserklæringen]]** har kommet.",
         "steps": [
-          "Start med de røde og oransje cellene i varmekartet: det er risikoene over risikoappetitten.",
+          "Start med de røde og oransje cellene i varmekartet: det er risikoene over [[risk-appetite|risikoappetitten]].",
           "Åpne en celle for å se risikoene, og sjekk at hver av dem har en eier og en tiltaksplan.",
           "Bruk **Forfalte gjennomganger** for å holde den periodiske gjennomgangen i rute."
         ]
@@ -25,7 +25,7 @@
     "risks": {
       "intro": {
         "title": "Risikoregisteret",
-        "body": "Hver rad er én risiko: noe som kan skje og påvirke det virksomheten prøver å oppnå. Du ser hvor alvorlig den var **før tiltak** (iboende) og hvor alvorlig den forventes å være **etter tiltak** (restrisiko).",
+        "body": "Hver rad er én risiko: noe som kan skje og påvirke det virksomheten prøver å oppnå. Du ser hvor alvorlig den var **før tiltak** ([[inherent-risk|iboende]]) og hvor alvorlig den forventes å være **etter tiltak** ([[residual-risk|restrisiko]]).",
         "steps": [
           "Filtrer på status, register eller nivå, eller kryss av for **Mine** for å se risikoene du eier.",
           "Sorter etter poeng for å jobbe med de mest alvorlige risikoene først.",
@@ -47,7 +47,7 @@
         "title": "Vurdere en risiko i tre steg",
         "body": "En god risikobeskrivelse svarer på tre spørsmål: **hva er utsatt**, **hva kan skje** med det, og **hva blir konsekvensen**. Deretter vurderer du risikoen og bestemmer hva som skal gjøres.",
         "steps": [
-          "**Beskriv**: gi risikoen et navn, velg eier og si hva som er utsatt. Koble til den faktiske leverandøren, eiendelen eller prosessen når det finnes en.",
+          "**Beskriv**: gi risikoen et navn, velg eier og si hva som er utsatt. Koble til den faktiske leverandøren, [[asset|eiendelen]] eller prosessen når det finnes en.",
           "**Vurder**: velg cellen i matrisen som passer risikoen slik den er i dag.",
           "**Behandle**: velg strategi, velg kontrollene fra katalogen, og vurder risikoen du forventer etter tiltakene."
         ]
@@ -117,10 +117,10 @@
     "detail": {
       "intro": {
         "title": "Følge en risiko gjennom livsløpet",
-        "body": "Risikoen går fra **identifisert** til **vurdert**, gjennom **behandling** og **overvåking**. Er restrisikoen akseptabel, kan noen med myndighet **akseptere** den. Registrer en **gjennomgang** ved hver periodiske kontroll.",
+        "body": "Risikoen går fra **identifisert** til **vurdert**, gjennom **behandling** og **overvåking**. Er [[residual-risk|restrisikoen]] akseptabel, kan noen med myndighet **akseptere** den. Registrer en **gjennomgang** ved hver periodiske kontroll.",
         "steps": [
           "Legg til tiltak: hvert tiltak blir en oppgave for eieren i Mitt arbeid.",
-          "Når tiltakene er gjennomført, oppdater restrisikoen.",
+          "Når tiltakene er gjennomført, oppdater [[residual-risk|restrisikoen]].",
           "Aksepter risikoen hvis den fortsatt er over appetitten og virksomheten velger å beholde den, med et notat som forklarer hvorfor."
         ]
       },
@@ -205,7 +205,7 @@
     "soa": {
       "intro": {
         "title": "Hva en anvendelseserklæring er",
-        "body": "Anvendelseserklæringen (SoA) lister alle kontrollene i vedlegg A til ISO/IEC 27001 (eller ISO/IEC 42001) og registrerer for hver av dem om dere bruker den, **hvorfor**, og om den er implementert. Den knytter risikobehandlingen til kontrollene dere bygger på.",
+        "body": "[[statement-of-applicability|Anvendelseserklæringen (SoA)]] lister alle kontrollene i [[annex-a|vedlegg A]] til ISO/IEC 27001 (eller ISO/IEC 42001) og registrerer for hver av dem om dere bruker den, **hvorfor**, og om den er implementert. Den knytter [[risk-treatment|risikobehandlingen]] til kontrollene dere bygger på.",
         "steps": [
           "Generer erklæringen for standarden dere jobber mot.",
           "Åpne den og ta stilling til hver kontroll: er den aktuell?",
@@ -274,7 +274,7 @@
     "matrices": {
       "intro": {
         "title": "Risikomatrisen",
-        "body": "Matrisen definerer skalaene for **sannsynlighet** og **konsekvens**, hvordan poeng grupperes i **nivåer** (lav, middels, høy, kritisk) og **risikoappetitten**: det høyeste poenget virksomheten aksepterer uten flere tiltak."
+        "body": "Matrisen definerer skalaene for **sannsynlighet** og **konsekvens**, hvordan poeng grupperes i **nivåer** (lav, middels, høy, kritisk) og **[[risk-appetite|risikoappetitten]]**: det høyeste poenget virksomheten aksepterer uten flere tiltak."
       },
       "why": {
         "body": "Risikokriteriene, også kriteriene for å akseptere risiko, må være fastsatt før dere vurderer risikoer, slik at gjentatte vurderinger gir konsistente, gyldige og sammenlignbare resultater.",
@@ -292,7 +292,7 @@
         "body": "Beskriv hvert nivå slik at to personer ville vurdert den samme risikoen likt. «Alvorlig» kan for eksempel bety et tap over et visst beløp eller et avbrudd på mer enn ett døgn.",
         "steps": [
           "Gi nivåene nye navn og en kort beskrivelse av hva de betyr.",
-          "Juster båndene og fargene, og sett risikoappetitten.",
+          "Juster båndene og fargene, og sett [[risk-appetite|risikoappetitten]].",
           "Overstyr enkeltceller bare når poenget alene gir feil nivå."
         ]
       },

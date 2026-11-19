@@ -128,6 +128,8 @@ export interface TourStep {
 export interface GlossaryEntry {
   readonly term: string;
   readonly definition: string;
+  /** Plain beginner form (simplify U39), shown first with the formal word in brackets. */
+  readonly beginner?: string;
   readonly clauses?: readonly string[];
 }
 

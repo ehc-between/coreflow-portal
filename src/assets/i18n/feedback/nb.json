@@ -888,5 +888,6 @@
   "allAnswers": {
     "title": "Svar fra undersøkelser",
     "subtitle": "Alle svar på undersøkelsene deres samlet, nyeste først. Lave score er merket, og alle svar kan bli en tilbakemelding eller et avvik."
-  }
+  },
+  "statusPair": "Ferdig dekker to statuser. Løst betyr at kunden har fått svar eller hjelp. Lukket betyr at saken er ferdig og bare kan leses, til noen åpner den igjen."
 }

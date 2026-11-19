@@ -62,6 +62,7 @@ import {
   warningKey,
 } from './data/contract-display';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { StatusLegend } from '../../shared/ui/status-legend/status-legend';
 
 const PAGE_SIZE = 25;
 /** Notice deadlines this close are called out on the row ("Notice deadline in 31 days"). */
@@ -116,6 +117,7 @@ const KPIS: readonly Kpi[] = [
 @Component({
   selector: 'app-contracts-list',
   imports: [
+    StatusLegend,
     FulfilsRequirements,
     TranslocoPipe,
     TeachingEmpty,
@@ -226,6 +228,7 @@ const KPIS: readonly Kpi[] = [
           </option>
         }
       </select>
+      <app-status-legend filters [text]="'contracts.statusPair' | transloco" />
       <label filters class="sr-only" for="cf-contract-attention">
         {{ 'contracts.filters.attention' | transloco }}
       </label>

@@ -339,7 +339,7 @@
     "checklistOffboarding": {
       "intro": {
         "title": "Avslutte når noen slutter",
-        "body": "Kryss av hvert punkt når det er gjort. Utstyr som er registrert på personen, vises under punktene og må leveres tilbake i Eiendeler først. Tilgangen til CoreFlow fjernes automatisk ved slutten av siste arbeidsdag.",
+        "body": "Kryss av hvert punkt når det er gjort. Utstyr som er registrert på personen, vises under punktene og må leveres tilbake i [[asset|Eiendeler]] først. Tilgangen til CoreFlow fjernes automatisk ved slutten av siste arbeidsdag.",
         "steps": [
           "Samle inn utstyr og fjern tilganger siste arbeidsdag.",
           "Minn personen på taushetsplikten, og registrer at personen bekreftet den.",

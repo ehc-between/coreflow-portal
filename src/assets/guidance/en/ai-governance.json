@@ -3,7 +3,7 @@
     "overview": {
       "intro": {
         "title": "Govern the AI you build and use",
-        "body": "AI governance means knowing **which AI systems** you have, **how risky** they are under the EU AI Act, and making sure the **duties that follow** are carried out. ISO/IEC 42001 adds the management system around it: policy, roles, impact assessments and monitoring.",
+        "body": "AI governance means knowing **which AI systems** you have, **how risky** they are under the EU AI Act, and making sure the **duties that follow** are carried out. ISO/IEC 42001 adds the [[management-system|management system]] around it: [[policy|policy]], roles, impact assessments and monitoring.",
         "steps": [
           "Register every AI system in the inventory, including tools bought from vendors.",
           "Classify each one with the wizard; each obligation becomes a task.",
@@ -41,7 +41,7 @@
         "body": "A clear **intended purpose** is the most important field: the AI Act classifies systems by what they are used for, not by the technology.",
         "steps": [
           "Write what the system is used for and who it affects.",
-          "Choose your role: provider if you build it, deployer if you use it.",
+          "Choose your role: provider if you build it, [[deployer|deployer]] if you use it.",
           "Name an owner who keeps the record and its obligations up to date."
         ]
       },
@@ -172,7 +172,7 @@
     "documentation": {
       "intro": {
         "title": "Structured documentation",
-        "body": "Write the governance documentation every AI system should have, and the nine points of the **Annex IV technical file**. Providers of high-risk systems must have the file; deployers get it from the provider.",
+        "body": "Write the governance documentation every AI system should have, and the nine points of the **Annex IV technical file**. Providers of high-risk systems must have the file; [[deployer|deployers]] get it from the provider.",
         "steps": [
           "Start with the general description and the human oversight design.",
           "Keep each part short and factual. If a part is already in a controlled document, link that document instead of writing the text again.",
@@ -214,7 +214,7 @@
     "assessmentNew": {
       "intro": {
         "title": "Start an assessment",
-        "body": "Choose the AI system and the kind of assessment. A classification opens the wizard; an impact assessment or FRIA starts as a draft you write section by section."
+        "body": "Choose the AI system and the kind of assessment. A classification opens the wizard; an impact assessment or [[fria|FRIA]] starts as a draft you write section by section."
       },
       "why": {
         "body": "An impact assessment looks at the consequences for people and society; a FRIA is the AI Act's specific check of fundamental rights before a high-risk system is used.",
@@ -291,7 +291,7 @@
     "settings": {
       "intro": {
         "title": "AI governance settings",
-        "body": "Link your AI policy, name the AI governance officer, and set how long AI literacy stays valid and how often AI systems are reviewed."
+        "body": "Link your AI [[policy|policy]], name the AI governance officer, and set how long AI literacy stays valid and how often AI systems are reviewed."
       },
       "why": {
         "body": "ISO/IEC 42001 requires a documented AI policy and defined roles and responsibilities for AI.",

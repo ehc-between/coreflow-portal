@@ -35,6 +35,7 @@ import {
   parseActionListQuery,
   toActionFilters,
 } from './actions-list-data';
+import { StatusLegend } from '../../../shared/ui/status-legend/status-legend';
 
 const PAGE_SIZE = 25;
 
@@ -47,6 +48,7 @@ const PAGE_SIZE = 25;
 @Component({
   selector: 'app-actions-list',
   imports: [
+    StatusLegend,
     TranslocoPipe,
     EmptyState,
     ErrorState,
@@ -85,6 +87,7 @@ const PAGE_SIZE = 25;
           [value]="query().owner === 'me' ? 'me' : ''"
           (valueChange)="onOwnerChange($any($event || 'all'))"
         />
+        <app-status-legend [text]="'deviations.statusPair.actions' | transloco" />
       </div>
 
       @if (failed()) {

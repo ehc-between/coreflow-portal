@@ -7,7 +7,7 @@
         "steps": [
           "Register feedback as soon as it arrives, in the customer's own words.",
           "Acknowledge it, assess it and log what you told the customer.",
-          "Link a justified complaint to a deviation, so the cause is fixed."
+          "Link a justified complaint to a [[nonconformity|deviation]], so the cause is fixed."
         ]
       },
       "why": {
@@ -73,7 +73,7 @@
     "detail": {
       "intro": {
         "title": "Handling a feedback record",
-        "body": "Take the record one step at a time with the button at the top. For a complaint, assess it, log what you told the customer and link a deviation when something in your own processes went wrong.",
+        "body": "Take the record one step at a time with the button at the top. For a complaint, assess it, log what you told the customer and link a [[nonconformity|deviation]] when something in your own processes went wrong.",
         "steps": [
           "Confirm receipt, so the customer knows you have it.",
           "Assess the complaint and log your reply to the customer.",
@@ -185,7 +185,7 @@
     "insights": {
       "intro": {
         "title": "Customer satisfaction at a glance",
-        "body": "These figures combine the feedback register and your surveys for the chosen period. Click a tile or a bar to see the records behind it, and take the figures to the management review.",
+        "body": "These figures combine the feedback register and your surveys for the chosen period. Click a tile or a bar to see the records behind it, and take the figures to the [[management-review|management review]].",
         "steps": [
           "Choose the period.",
           "Look at open and overdue complaints first, then how complaints are handled.",
@@ -203,7 +203,7 @@
         "body": "Correct the details, link what it is about, and for a complaint record the assessment and outcome. The reason for the change is kept in the revision history.",
         "steps": [
           "Change what was wrong or missing.",
-          "For a complaint: say whether it was justified and what the root cause was.",
+          "For a complaint: say whether it was justified and what the [[root-cause|root cause]] was.",
           "Write a short reason for the change and save."
         ]
       },

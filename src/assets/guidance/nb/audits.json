@@ -3,12 +3,12 @@
     "overview": {
       "intro": {
         "title": "Revisjoner holder styringssystemet ærlig",
-        "body": "En revisjon kontrollerer, med dokumentasjon, om det dere **sier** at dere gjør, er det dere **faktisk** gjør, og om det virker. Modulen dekker hele syklusen: et årlig **program**, enkeltvise **revisjoner** med team og sjekkliste, **funn** som følges opp, og **sertifiseringer** fra eksterne organer.",
+        "body": "En revisjon kontrollerer, med dokumentasjon, om det dere **sier** at dere gjør, er det dere **faktisk** gjør, og om det virker. Modulen dekker hele syklusen: et årlig **program**, enkeltvise **revisjoner** med team og sjekkliste, **[[audit-finding|funn]]** som følges opp, og **sertifiseringer** fra eksterne organer.",
         "steps": [
-          "Start med et revisjonsprogram for året, basert på risiko og tidligere resultater.",
+          "Start med et [[audit-programme|revisjonsprogram]] for året, basert på risiko og tidligere resultater.",
           "Planlegg hver revisjon: omfang, kriterier, datoer og et kompetent og uavhengig team.",
-          "Bruk sjekklisten under gjennomføringen, registrer funn, og skriv og godkjenn rapporten.",
-          "Følg opp funnene til svaret er verifisert."
+          "Bruk sjekklisten under gjennomføringen, registrer [[audit-finding|funn]], og skriv og godkjenn rapporten.",
+          "Følg opp [[audit-finding|funnene]] til svaret er verifisert."
         ]
       },
       "why": {
@@ -19,10 +19,10 @@
     "plans": {
       "intro": {
         "title": "Alle revisjoner, interne og eksterne",
-        "body": "Hver rad er én revisjon med omfang, datoer, ledende revisor, fremdrift i sjekklisten og funn. Eksterne revisjoner fra sertifiseringsorganer, kunder, leverandører eller myndigheter registreres også her, slik at alle funn følges opp på ett sted.",
+        "body": "Hver rad er én revisjon med omfang, datoer, ledende revisor, fremdrift i sjekklisten og [[audit-finding|funn]]. Eksterne revisjoner fra sertifiseringsorganer, kunder, leverandører eller myndigheter registreres også her, slik at alle [[audit-finding|funn]] følges opp på ett sted.",
         "steps": [
           "Filtrer på **Åpne revisjoner** for å se hva som er planlagt eller pågår.",
-          "Åpne en revisjon for å styre teamet, sjekklisten, funnene og rapporten.",
+          "Åpne en revisjon for å styre teamet, sjekklisten, [[audit-finding|funnene]] og rapporten.",
           "Lagre filtrene du bruker ofte, som en visning."
         ]
       },
@@ -39,7 +39,7 @@
     "programmes": {
       "intro": {
         "title": "Planlegg årets revisjoner",
-        "body": "Et revisjonsprogram er planen for alle revisjoner i en periode, vanligvis et år. Det viser hvilke prosesser og områder som revideres, hvor ofte, mot hvilke standarder og hvorfor.",
+        "body": "Et [[audit-programme|revisjonsprogram]] er planen for alle revisjoner i en periode, vanligvis et år. Det viser hvilke prosesser og områder som revideres, hvor ofte, mot hvilke standarder og hvorfor.",
         "steps": [
           "Opprett ett program per år og beskriv målene.",
           "Bruk **risikogrunnlaget** til å forklare hvorfor noen områder revideres oftere.",
@@ -59,11 +59,11 @@
     "findings": {
       "intro": {
         "title": "Funn fra alle revisjoner",
-        "body": "Et funn er det en revisjon konkluderer om et krav: et **større** eller **mindre avvik**, en **observasjon** eller en **forbedringsmulighet**. Avvik krever et svar med rotårsak og korreksjon, som en revisor deretter verifiserer.",
+        "body": "Et [[audit-finding|funn]] er det en revisjon konkluderer om et krav: et **større** eller **mindre [[nonconformity|avvik]]**, en **observasjon** eller en **forbedringsmulighet**. [[nonconformity|Avvik]] krever et svar med [[root-cause|rotårsak]] og korreksjon, som en revisor deretter verifiserer.",
         "steps": [
-          "Bruk **Tildelt meg** for å se funnene du skal svare på.",
+          "Bruk **Tildelt meg** for å se [[audit-finding|funnene]] du skal svare på.",
           "Kryss av for **Bare forfalte** for å følge opp svar som er forsinket.",
-          "Åpne et funn for å skrive svaret, legge til korrigerende tiltak eller koble et avvik."
+          "Åpne et [[audit-finding|funn]] for å skrive svaret, legge til [[corrective-action|korrigerende tiltak]] eller koble et [[nonconformity|avvik]]."
         ]
       },
       "why": {
@@ -99,7 +99,7 @@
     "auditors": {
       "intro": {
         "title": "Hvem kan revidere hva",
-        "body": "Revisorregisteret viser hvem som kan gjennomføre internrevisjoner, hvilke standarder de er kvalifisert for, om de kan lede en revisjon og hvor lenge kvalifikasjonen gjelder.",
+        "body": "Revisorregisteret viser hvem som kan gjennomføre [[internal-audit|internrevisjoner]], hvilke standarder de er kvalifisert for, om de kan lede en revisjon og hvor lenge kvalifikasjonen gjelder.",
         "steps": [
           "Legg til hver internrevisor med standardene de kan.",
           "Kryss av for **Kvalifisert til å lede revisjoner** for dem som kan lede et team.",
@@ -209,7 +209,7 @@
     "planDetail": {
       "intro": {
         "title": "Gjennomføre revisjonen",
-        "body": "Arbeid ovenfra og ned: sett sammen teamet, forbered sjekklisten og **start gjennomføringen**. Registrer svar og notater underveis, registrer funn og skriv rapporten. En annen enn den ledende revisoren godkjenner den.",
+        "body": "Arbeid ovenfra og ned: sett sammen teamet, forbered sjekklisten og **start gjennomføringen**. Registrer svar og notater underveis, registrer [[audit-finding|funn]] og skriv rapporten. En annen enn den ledende revisoren godkjenner den.",
         "steps": [
           "Tildel en ledende revisor. CoreFlow kontrollerer kompetanse og uavhengighet.",
           "Lag spørsmål fra kravene, eller la assistenten foreslå noen, og gå gjennom dem.",
@@ -252,7 +252,7 @@
         "body": "Beskriv hva programmet skal oppnå og hvordan dere har valgt hvor dere skal legge vekten. Legg deretter til revisjonene og få programmet godkjent.",
         "steps": [
           "Sett år og mål.",
-          "Forklar risikogrunnlaget: viktige prosesser, endringer og tidligere funn.",
+          "Forklar risikogrunnlaget: viktige prosesser, endringer og tidligere [[audit-finding|funn]].",
           "Velg standardene programmet dekker."
         ]
       },
@@ -281,10 +281,10 @@
     "findingForm": {
       "intro": {
         "title": "Skrive et tydelig funn",
-        "body": "Et godt funn angir **kravet**, hva du **observerte** og **dokumentasjonen**, slik at hvem som helst forstår det uten å ha vært der.",
+        "body": "Et godt [[audit-finding|funn]] angir **kravet**, hva du **observerte** og **dokumentasjonen**, slik at hvem som helst forstår det uten å ha vært der.",
         "steps": [
-          "Velg type: større eller mindre avvik, observasjon eller forbedringsmulighet.",
-          "Beskriv avviket fra kravet, og deretter den objektive dokumentasjonen du så.",
+          "Velg type: større eller mindre [[nonconformity|avvik]], observasjon eller forbedringsmulighet.",
+          "Beskriv [[nonconformity|avviket]] fra kravet, og deretter den objektive dokumentasjonen du så.",
           "Tildel den reviderte som skal svare, og sett en svarfrist."
         ]
       },
@@ -325,11 +325,11 @@
     "findingDetail": {
       "intro": {
         "title": "Fra funn til lukking",
-        "body": "Den reviderte beskriver **rotårsaken**, den umiddelbare **korreksjonen** og det **korrigerende tiltaket** som hindrer gjentakelse, og sender inn. En revisor, ikke den reviderte, verifiserer svaret og lukker funnet.",
+        "body": "Den reviderte beskriver **[[root-cause|rotårsaken]]**, den umiddelbare **korreksjonen** og det **[[corrective-action|korrigerende tiltaket]]** som hindrer gjentakelse, og sender inn. En revisor, ikke den reviderte, verifiserer svaret og lukker [[audit-finding|funnet]].",
         "steps": [
           "Spør hvorfor til du kommer til en årsak du kan gjøre noe med.",
-          "Legg til korrigerende tiltak som oppgaver med ansvarlig og frist.",
-          "Koble et avvik hvis saken også håndteres i avvikssystemet."
+          "Legg til [[corrective-action|korrigerende tiltak]] som oppgaver med ansvarlig og frist.",
+          "Koble et [[nonconformity|avvik]] hvis saken også håndteres i avvikssystemet."
         ]
       },
       "why": {
@@ -426,7 +426,7 @@
     "certificationDetail": {
       "intro": {
         "title": "Sertifiseringssyklusen",
-        "body": "Et sertifikat gjelder vanligvis i tre år, med oppfølgingsrevisjoner underveis og en resertifiseringsrevisjon før det utløper. Planlegg hver eksterne revisjon herfra slik at funnene kobles.",
+        "body": "Et sertifikat gjelder vanligvis i tre år, med oppfølgingsrevisjoner underveis og en resertifiseringsrevisjon før det utløper. Planlegg hver eksterne revisjon herfra slik at [[audit-finding|funnene]] kobles.",
         "steps": [
           "Planlegg neste eksterne revisjon med **Planlegg en ekstern revisjon**.",
           "Oppdater datoer og status etter hver revisjon."

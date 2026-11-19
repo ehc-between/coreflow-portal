@@ -254,7 +254,7 @@
         "body": "Choose the privacy notice candidates get, link the records that cover recruitment in Privacy and AI governance, and decide how long data is kept and which checks each risk level needs.",
         "steps": [
           "Choose the approved privacy notice in Documents.",
-          "Create or link the record of processing, and a DPIA when the page advises it.",
+          "Create or link the [[ropa|record of processing]], and a [[dpia|DPIA]] when the page advises it.",
           "Set the retention periods; the nightly run deletes candidates when they pass."
         ]
       },
@@ -292,7 +292,7 @@
         "steps": [
           "Start with the tiles that are not zero.",
           "Open a requisition to follow its candidates stage by stage.",
-          "Use the figures at the bottom in the management review."
+          "Use the figures at the bottom in the [[management-review|management review]]."
         ]
       },
       "why": {

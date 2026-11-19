@@ -711,5 +711,6 @@
       "title": "Coming up on {{ code }} {{ title }}",
       "why": "Due {{ date }}, in {{ days }} days."
     }
-  }
+  },
+  "statusPair": "Approved means the content is approved internally but not signed yet. Active means the contract is signed and in force now."
 }

@@ -211,6 +211,14 @@ Overdue always has text as well as colour ("Forfalt"), so colour is never the on
 1. **Plain Bokmål first.** Explain an ISO term once (wrap it in `<app-term>` on first use),
    then use it the same way everywhere. Sentences under 20 words. No anglicisms
    ("dashbord" → "oversikt", "gap" → "mangler").
+   In guidance intros (`assets/guidance/<lang>/*.json`) mark every jargon word and
+   abbreviation as a term token, `[[key|ordet slik det står]]` (`[[key|ord|=]]` when the
+   word is a modifier, as in "IKT-tjenester"). `<app-guidance-text>` renders it as
+   `<app-term>`, and beginners see the glossary's `beginner` form with it, plain words first
+   where the sentence allows ("grensen for hva dere godtar (risikoappetitten)"). The jargon
+   guard (`core/guidance/jargon-guard.spec.ts`, list in `src/testing/jargon-terms.json`)
+   fails on an unmarked term. Beginners see requirement titles, not bare clause numbers
+   (number on hover). The record history tab is "Historikk".
 2. **"du" to the user, "organisasjonen" for the company.** Use "dere" only when quoting a
    standard. ("Standardene organisasjonen følger", not "Rammeverkene dere har valgt".)
 3. **One concept, one word** (glossary below). Module objects use the org's terminology

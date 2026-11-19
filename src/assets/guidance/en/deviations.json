@@ -6,7 +6,7 @@
         "body": "One register for everything that did not go as planned, and for ideas to do better. Each case is followed until the cause is fixed and the fix has worked.",
         "steps": [
           "Register what happened as soon as you notice it, even if it seems small.",
-          "Find the root cause with a 5 Whys or fishbone analysis.",
+          "Find the [[root-cause|root cause]] with a 5 Whys or fishbone analysis.",
           "Plan actions and set a date to check that they worked."
         ]
       },
@@ -38,7 +38,7 @@
         "title": "Register a deviation",
         "body": "Describe what happened in plain words. You add the cause and the actions on the case afterwards.",
         "steps": [
-          "Choose the type that fits best: a nonconformity, a complaint, an incident or an idea.",
+          "Choose the type that fits best: a [[nonconformity|nonconformity]], a complaint, an incident or an idea.",
           "Say what happened, where and when. Stick to facts, not blame.",
           "Set the severity by the consequences, or what could have happened."
         ]
@@ -114,11 +114,11 @@
     "detail": {
       "intro": {
         "title": "Handle the deviation",
-        "body": "Move the deviation through its workflow: investigate, find the root cause, act and check the effect. Every change is recorded in the history.",
+        "body": "Move the [[nonconformity|deviation]] through its workflow: investigate, find the [[root-cause|root cause]], act and check the effect. Every change is recorded in the history.",
         "steps": [
-          "Use a 5 Whys or fishbone worksheet to get from the symptom to the root cause.",
-          "Add containment, corrective and preventive actions with owners and deadlines.",
-          "Set an effectiveness review date on corrective actions so the check is not forgotten."
+          "Use a 5 Whys or fishbone worksheet to get from the symptom to the [[root-cause|root cause]].",
+          "Add [[correction|containment]], [[corrective-action|corrective actions]] and [[preventive-action|preventive actions]] with owners and deadlines.",
+          "Set an [[effectiveness|effectiveness review|=]] date on [[corrective-action|corrective actions]] so the check is not forgotten."
         ]
       },
       "why": {
@@ -201,7 +201,7 @@
     "types": {
       "intro": {
         "title": "Deviation types",
-        "body": "Each type decides what is asked for when someone registers a deviation, and how it is handled. A type bound to a record type gets its own fields, states, approvals and deadlines.",
+        "body": "Each type decides what is asked for when someone registers a [[nonconformity|deviation]], and how it is handled. A type bound to a record type gets its own fields, states, approvals and deadlines.",
         "steps": [
           "Start from a template, then adjust the fields and workflow to how you work.",
           "Keep the number of required fields low, so reporting stays easy."
@@ -221,7 +221,7 @@
     "templates": {
       "intro": {
         "title": "Start from a template",
-        "body": "Each template sets up a deviation type with fields, a workflow, deadlines, automatic tasks and notifications based on common practice for that kind of event.",
+        "body": "Each template sets up a [[nonconformity|deviation|=]] type with fields, a workflow, deadlines, automatic tasks and notifications based on common practice for that kind of event.",
         "steps": [
           "Install the templates you need. They are written in your language.",
           "Open the record type designer to rename fields, add states or change who approves."
@@ -263,10 +263,10 @@
     "intakeInbox": {
       "intro": {
         "title": "Received reports",
-        "body": "Reports from the anonymous link land here. Look at each one, then register it as a deviation, or close it with a short note the reporter can read.",
+        "body": "Reports from the anonymous link land here. Look at each one, then register it as a [[nonconformity|deviation]], or close it with a short note the reporter can read.",
         "steps": [
           "Start handling a new report so others see it is being taken care of.",
-          "Register it as a deviation when it needs follow-up.",
+          "Register it as a [[nonconformity|deviation]] when it needs follow-up.",
           "Leave a note: the reporter sees it when they check their receipt code."
         ]
       },
@@ -282,10 +282,10 @@
     "intakeReport": {
       "intro": {
         "title": "Handle a report",
-        "body": "Read the report, decide whether it needs follow-up, and either register it as a deviation or close it. AI can draft the deviation fields from the text for you to check.",
+        "body": "Read the report, decide whether it needs follow-up, and either register it as a [[nonconformity|deviation]] or close it. AI can draft the [[nonconformity|deviation]] fields from the text for you to check.",
         "steps": [
           "Do not try to find out who sent an anonymous report.",
-          "Register it as a deviation of the type that fits, or close it with a note."
+          "Register it as a [[nonconformity|deviation]] of the type that fits, or close it with a note."
         ]
       },
       "why": {
@@ -296,7 +296,7 @@
     "actions": {
       "intro": {
         "title": "Actions across all deviations",
-        "body": "Every open action from the deviations you can see, soonest due first. Open the deviation to update an action.",
+        "body": "Every open action from the [[nonconformity|deviations]] you can see, soonest due first. Open the [[nonconformity|deviation]] to update an action.",
         "steps": [
           "Filter on your own actions with \"Assigned to me\".",
           "Overdue actions are marked and also show in My work."
@@ -310,7 +310,7 @@
     "stats": {
       "intro": {
         "title": "How deviations are handled",
-        "body": "The figures the management review and auditors ask for: how many, how fast they are closed, and whether the actions work.",
+        "body": "The figures the [[management-review|management review]] and auditors ask for: how many, how fast they are closed, and whether the actions work.",
         "steps": [
           "Click a bar to see the cases behind it.",
           "Use \"By requirement\" to find the requirements that fail most often."

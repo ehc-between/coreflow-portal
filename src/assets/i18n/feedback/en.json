@@ -888,5 +888,6 @@
   "allAnswers": {
     "title": "Survey answers",
     "subtitle": "Every answer to your surveys in one place, newest first. Low scores are flagged, and any answer can become feedback or a deviation."
-  }
+  },
+  "statusPair": "Done covers two statuses. Resolved means the customer has had an answer or help. Closed means the case is finished and read-only, until someone reopens it."
 }

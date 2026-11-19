@@ -254,7 +254,7 @@
         "body": "Velg personvernerklæringen kandidatene får, koble postene som dekker rekrutteringen i Personvern og KI-styring, og bestem hvor lenge opplysningene lagres og hvilke sjekker hvert risikonivå krever.",
         "steps": [
           "Velg den godkjente personvernerklæringen i Dokumenter.",
-          "Opprett eller koble behandlingsprotokollen, og en DPIA når siden anbefaler det.",
+          "Opprett eller koble [[ropa|behandlingsprotokollen]], og en [[dpia|DPIA]] når siden anbefaler det.",
           "Sett lagringstidene; den nattlige jobben sletter kandidater når fristen passeres."
         ]
       },
@@ -292,7 +292,7 @@
         "steps": [
           "Begynn med rutene som ikke viser null.",
           "Åpne et stillingsbehov for å følge kandidatene trinn for trinn.",
-          "Bruk tallene nederst i ledelsens gjennomgang."
+          "Bruk tallene nederst i [[management-review|ledelsens gjennomgang]]."
         ]
       },
       "why": {

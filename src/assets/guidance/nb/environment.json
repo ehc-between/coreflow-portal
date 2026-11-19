@@ -5,7 +5,7 @@
         "title": "Miljøstyring på ett blikk",
         "body": "Siden viser hvordan organisasjonen påvirker miljøet, og hva som må gjøres. Begynn med **Trenger oppfølging**: hver linje åpner postene det gjelder.",
         "steps": [
-          "Registrer miljøaspektene ved de viktigste aktivitetene og gi dem poeng.",
+          "Registrer [[environmental-aspect|miljøaspektene]] ved de viktigste aktivitetene og gi dem poeng.",
           "Gi hvert vesentlige aspekt driftskontroller, og hver nødsituasjon en beredskapsplan.",
           "Mål energi, vann, avfall og utslipp, og sammenlign med målene."
         ]
@@ -24,7 +24,7 @@
     "aspects": {
       "intro": {
         "title": "Registeret over aspekter og påvirkninger",
-        "body": "Et **miljøaspekt** er den delen av en aktivitet som samvirker med miljøet, for eksempel drivstofforbruk eller avløpsvann. **Påvirkningen** er endringen det fører til, for eksempel klimautslipp eller vannforurensning. Hvert aspekt får poeng, så du ser hvilke som er **vesentlige** og må styres.",
+        "body": "Et **[[environmental-aspect|miljøaspekt]]** er den delen av en aktivitet som samvirker med miljøet, for eksempel drivstofforbruk eller avløpsvann. **Påvirkningen** er endringen det fører til, for eksempel klimautslipp eller vannforurensning. Hvert aspekt får poeng, så du ser hvilke som er **vesentlige** og må styres.",
         "steps": [
           "Velg en aktivitet og list aspektene ved normal drift, unormal drift og i nødsituasjoner.",
           "Gi hvert aspekt poeng med vurderingsmetoden.",
@@ -208,10 +208,10 @@
     "planDetail": {
       "intro": {
         "title": "Teste og forbedre planen",
-        "body": "Registrer hver øvelse, skrivebordsøvelse og **reelle hendelse**. Hvis noe ikke fungerte, kryss av for «Planen må revideres»: eieren får da en oppgave. Funn kan bli et avvik eller en oppgave med ett klikk.",
+        "body": "Registrer hver øvelse, skrivebordsøvelse og **reelle hendelse**. Hvis noe ikke fungerte, kryss av for «Planen må revideres»: eieren får da en oppgave. [[audit-finding|Funn]] kan bli et [[nonconformity|avvik]] eller en oppgave med ett klikk.",
         "steps": [
           "Registrer øvelser og hendelser med resultat og hvem som deltok.",
-          "Opprett et avvik eller en oppgave fra funnene.",
+          "Opprett et [[nonconformity|avvik]] eller en oppgave fra [[audit-finding|funnene]].",
           "Merk planen som gjennomgått når den er oppdatert."
         ]
       },
@@ -326,7 +326,7 @@
         "steps": [
           "Registrer verdier for hver periode, med kilde.",
           "Legg ved dokumentasjon for hver måling.",
-          "Koble indikatoren til et miljømål eller et nøkkeltall (KPI)."
+          "Koble indikatoren til et miljømål eller et [[kpi|nøkkeltall (KPI)]]."
         ]
       },
       "why": {

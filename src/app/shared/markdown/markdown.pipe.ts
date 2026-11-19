@@ -20,3 +20,20 @@ export class MarkdownPipe implements PipeTransform {
     return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
   }
 }
+
+/**
+ * Inline markdown (bold, italics, code, links) as sanitized HTML, without a wrapping
+ * paragraph: for text runs inside a sentence (`<app-guidance-text>`).
+ */
+@Pipe({ name: 'appMarkdownInline' })
+export class MarkdownInlinePipe implements PipeTransform {
+  private readonly sanitizer = inject(DomSanitizer);
+
+  transform(text: string | null | undefined): string {
+    if (!text) {
+      return '';
+    }
+    const html = marked.parseInline(text, { async: false, gfm: true, breaks: true });
+    return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+  }
+}

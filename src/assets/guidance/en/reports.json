@@ -3,11 +3,11 @@
     "overview": {
       "intro": {
         "title": "About Reports",
-        "body": "Here you see the numbers management and auditors ask for first: **overdue deadlines** in every area, **open deviations and findings**, and how the figures have **developed** month by month. Requirement coverage per standard is under **Standards and requirements**. Everything follows your access: you only see figures for records you can read.",
+        "body": "Here you see the numbers management and auditors ask for first: **overdue deadlines** in every area, **open [[nonconformity|deviations]] and [[audit-finding|findings]]**, and how the figures have **developed** month by month. [[requirement-coverage|Requirement coverage]] per standard is under **Standards and requirements**. Everything follows your access: you only see figures for records you can read.",
         "steps": [
           "Choose a standard at the top to see only its figures, or keep «All standards».",
           "Start with the overdue deadlines. Choose «Create task» to share out the follow-up.",
-          "Use «Write the text» for a short status for management review, and read it through before you share it."
+          "Use «Write the text» for a short status for [[management-review|management review]], and read it through before you share it."
         ]
       },
       "why": {
@@ -18,7 +18,7 @@
     "calendar": {
       "intro": {
         "title": "Every deadline in one place",
-        "body": "The organisation calendar shows every open deadline you can see, from every area: tasks, document reviews, deviations and actions, audits, contract renewals, supplier evaluations, training expiry and more. The colour shows what the deadline needs.",
+        "body": "The organisation calendar shows every open deadline you can see, from every area: tasks, document reviews, [[nonconformity|deviations]] and actions, audits, contract renewals, supplier evaluations, training expiry and more. The colour shows what the deadline needs.",
         "steps": [
           "Move between months, or switch to the list view.",
           "Choose «My deadlines» to see what you are responsible for, or an area to plan one part of the system.",
@@ -37,7 +37,7 @@
     "registers": {
       "intro": {
         "title": "Download the registers the auditor asks for",
-        "body": "A register is a list of records of one type: risks, legal requirements, deviations, corrective actions, documents, training, suppliers, assets, audits, the records of processing, AI systems and more. Each register shows which requirements it is evidence for.",
+        "body": "A register is a list of records of one type: risks, legal requirements, [[nonconformity|deviations]], [[corrective-action|corrective actions]], documents, training, suppliers, [[asset|assets]], audits, the [[ropa|records of processing]], AI systems and more. Each register shows which requirements it is evidence for.",
         "steps": [
           "Choose a register.",
           "Narrow it down with filters and columns. The preview shows exactly what the file will hold.",
@@ -126,10 +126,10 @@
     "auditPacks": {
       "intro": {
         "title": "Everything the auditor asks for, in one file",
-        "body": "An audit pack is a zip file for one or more standards: a table of contents, the Statement of Applicability (SoA), the evidence index, requirement coverage, approved policies and the registers an auditor expects, such as the risk assessment, internal audits, management review, competence and suppliers. A checksum per file later shows the pack is unchanged.",
+        "body": "An audit pack is a zip file for one or more standards: a table of contents, the [[statement-of-applicability|Statement of Applicability (SoA)]], the evidence index, [[requirement-coverage|requirement coverage]], approved [[policy|policies]] and the registers an auditor expects, such as the risk assessment, [[internal-audit|internal audits]], [[management-review|management review]], competence and suppliers. A checksum per file later shows the pack is unchanged.",
         "steps": [
           "Choose «Create audit pack» and the standards. Link the pack to the audit it is for, if there is one.",
-          "Check the ticked registers, and whether policies go in.",
+          "Check the ticked registers, and whether [[policy|policies]] go in.",
           "Download the zip file and send it to the auditor, or keep it as a snapshot."
         ]
       },
@@ -161,7 +161,7 @@
     "auditPackDetail": {
       "intro": {
         "title": "What the pack holds",
-        "body": "Here you see the requirement coverage per standard when the pack was made, the audit it is for, and every file in the zip. The checksum identifies exactly this pack. Recompute it for the downloaded file to show nothing has changed."
+        "body": "Here you see the [[requirement-coverage|requirement coverage]] per standard when the pack was made, the audit it is for, and every file in the zip. The checksum identifies exactly this pack. Recompute it for the downloaded file to show nothing has changed."
       },
       "why": {
         "body": "Documented information must be protected against unintended changes (clause 7.5.3). The checksum and the stored copy let you show exactly what the auditor received.",
