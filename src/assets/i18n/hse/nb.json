@@ -363,6 +363,31 @@
       "controlsPrompt": "Hvilke tiltak vil virke mot disse farene? Sorter dem etter tiltakshierarkiet.",
       "askResidual": "Spør om restrisiko",
       "residualPrompt": "Hvordan vurderer jeg restrisikoen etter tiltakene, og når er det forsvarlig å starte arbeidet?"
+    },
+    "statusLine": {
+      "draft": "Utkast – analysen er ikke godkjent ennå. Arbeidet skal ikke starte før den er godkjent.",
+      "in_review": "Til godkjenning – arbeidet kan starte når analysen er godkjent.",
+      "approved": "Godkjent – arbeidet kan gjøres med tiltakene i analysen.",
+      "completed": "Fullført – jobben er gjort.",
+      "cancelled": "Avbrutt – analysen brukes ikke."
+    },
+    "lead": {
+      "job": "Hva skal gjøres",
+      "whereWhen": "Hvor og når",
+      "risk": "Risiko før og etter tiltak",
+      "before": "Før: {{ level }}",
+      "after": "Etter: {{ level }}",
+      "signed": "Gått gjennom av de som gjør jobben"
+    },
+    "missing": {
+      "steps": "Del jobben inn i steg med farer og tiltak",
+      "incomplete": "Legg til fare og tiltak i steg {{ steps }}",
+      "participants": "Legg til dem som skal gjøre jobben",
+      "emergency": "Beskriv hva dere gjør hvis noe går galt",
+      "owner": "Velg en ansvarlig",
+      "signOff": "{{ count }} deltakere har ikke signert",
+      "signOffOne": "1 deltaker har ikke signert",
+      "ppe": "Verneutstyr mangler i registeret ({{ count }})"
     }
   },
   "ppe": {
@@ -499,6 +524,28 @@
       "summarisePrompt": "Oppsummer verneutstyr {{ code }}: status, innehaver, kontrollhistorikk og hva som forfaller neste gang.",
       "askStandard": "Spør hvilken standard som gjelder",
       "standardPrompt": "Hvilken europeisk standard (EN) gjelder for denne typen personlig verneutstyr, og hva betyr den for kontrollen?"
+    },
+    "statusLine": {
+      "in_stock": "På lager – klart til å leveres ut.",
+      "issued": "Utlevert – i bruk.",
+      "issuedTo": "Utlevert – i bruk hos {{ name }}.",
+      "out_of_service": "Ute av drift – skal ikke brukes før det er kontrollert og godkjent.",
+      "inspectionOverdue": "Kontrollen har forfalt – ikke bruk eller lever ut utstyret før det er godkjent i en ny kontroll.",
+      "expired": "Utløpt – ta utstyret ut av bruk og bytt det.",
+      "retired": "Kassert – utstyret er tatt ut av bruk."
+    },
+    "lead": {
+      "holder": "Hvem har det",
+      "location": "Hvor det oppbevares",
+      "nextInspection": "Neste kontroll",
+      "lastInspection": "Siste kontroll"
+    },
+    "missing": {
+      "expired": "Bytt utstyret – det er utløpt",
+      "inspect": "Registrer en kontroll",
+      "deviation": "Opprett avvik for den underkjente kontrollen",
+      "plan": "Sett et kontrollintervall eller en dato for neste kontroll",
+      "owner": "Velg en ansvarlig"
     }
   },
   "consultation": {
@@ -597,6 +644,37 @@
       "summarisePrompt": "Oppsummer medvirkningsmøte {{ code }}: temaene, hva som ble besluttet og hvordan det går med oppgavene.",
       "askTopics": "Spør hva møtet bør ta opp",
       "topicsPrompt": "Hvilke tema bør et arbeidsmiljøutvalg eller sikkerhetsmøte ta opp på denne tiden av året?"
+    },
+    "statusLine": {
+      "planned": "Planlagt – sett en dato for møtet.",
+      "plannedOn": "Planlagt – møtet holdes {{ date }}.",
+      "passed": "Planlagt, men datoen er passert – registrer møtet som gjennomført, eller avlys det.",
+      "held": "Gjennomført – med verneombud eller tillitsvalgt til stede.",
+      "heldOn": "Gjennomført {{ date }} – med verneombud eller tillitsvalgt til stede.",
+      "heldNoRep": "Gjennomført uten verneombud – arbeidstakernes representanter skal være med der de finnes.",
+      "heldNoRepOn": "Gjennomført {{ date }} uten verneombud – arbeidstakernes representanter skal være med der de finnes.",
+      "cancelled": "Avlyst – møtet ble ikke holdt."
+    },
+    "lead": {
+      "topics": "Hva møtet skal ta opp",
+      "whenWhere": "Når og hvor",
+      "who": "Hvem deltar",
+      "whoHeld": "Hvem deltok",
+      "decisions": "Hva ble besluttet",
+      "tasks": "Oppgaver fra møtet",
+      "whoMore": "{{ names }} og {{ count }} til",
+      "reps": "verneombud/tillitsvalgte: {{ names }}"
+    },
+    "missing": {
+      "hold": "Registrer møtet som gjennomført",
+      "date": "Sett en dato for møtet",
+      "topics": "Skriv hva møtet skal ta opp",
+      "reps": "Inviter verneombud eller tillitsvalgte",
+      "outcome": "Skriv hva som ble besluttet",
+      "tasks": "Gjør beslutningene om til oppgaver",
+      "overdue": "{{ count }} oppgaver fra møtet har forfalt",
+      "overdueOne": "1 oppgave fra møtet har forfalt",
+      "owner": "Velg en arrangør"
     }
   },
   "rounds": {

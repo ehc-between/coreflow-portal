@@ -18,11 +18,21 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { OutputsPanel } from '../../../shared/outputs';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
@@ -33,11 +43,10 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
@@ -51,13 +60,12 @@ import {
   SjaStep,
   SjaWarning,
 } from '../data/hse.models';
-import { controlTypeOf, incompleteSteps, periodKind, ppeStatusValue } from '../hse-format';
+import { sjaMissing, sjaStatusSentence } from '../hse-anatomy';
+import { controlTypeOf, periodKind, ppeStatusValue } from '../hse-format';
 import {
   HSE_CRUMBS,
   HSE_MODULE,
-  HSE_NAV,
   HSE_ROOT_CRUMB,
-  HseAskButton,
   departmentName,
   injectHsePermissions,
 } from '../shared/hse-shared';
@@ -189,15 +197,16 @@ export function warningText(
 }
 
 /**
- * `/hse/sja/:id`: a safe job analysis. The page follows the route id (moving to
- * another SJA loads it, never shows the old one). Header: code, status and
- * residual risk; the next step as the one primary action, Edit, "Lag ny fra
- * denne" (deviation, risk, task, procedure) and the rest under "Mer". Body: the
- * checks that need attention, the job, participants and their sign-off, steps
- * with hazards and controls (hierarchy-of-controls tags, the member
- * responsible), required PPE matched to the PPE register, emergency measures.
- * Aside: the requirements it documents, connections, the approval trail
- * (created, submitted, approved with role, completed) and why it matters.
+ * `/hse/sja/:id`: a safe job analysis, on the detail-page anatomy
+ * (docs/ux-guide.md §2.7). The page follows the route id (moving to another SJA
+ * loads it, never shows the old one). Header: code · type · status; the next
+ * step as the one primary action, Edit, "Spør KI" and the rest under "Mer".
+ * "Hovedinformasjon": where the analysis stands, the job, where and when, the
+ * risk before and after the controls, and how many have signed. Details tab: the
+ * steps with hazards and controls, participants and their sign-off, required PPE
+ * matched to the PPE register, the other fields with the empty ones hidden. One
+ * "Oppfølging" card: what is missing, requirements, connections, and the approval
+ * trail (who created, submitted, approved with role, completed) as metadata.
  */
 @Component({
   selector: 'app-sja-detail',
@@ -214,21 +223,21 @@ export function warningText(
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     PromptDialog,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     EntityTasks,
     StatusBadge,
     SupportsRequirements,
     Term,
-    WatchButton,
     WhyItMatters,
-    HseAskButton,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -256,6 +265,7 @@ export function warningText(
         @if (sja(); as s) {
           @let placed = actions();
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="sja"
             [entityId]="s.id"
             [title]="s.title"
@@ -263,6 +273,7 @@ export function warningText(
             [tabs]="tabs"
             [canEdit]="perms.write()"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ s.code }}</span>
@@ -274,14 +285,6 @@ export function warningText(
                 [value]="s.status"
                 [labelKey]="'hse.sja.status.' + s.status"
               />
-              @if (s.residual_risk_level) {
-                <app-status-badge
-                  meaning="severity"
-                  [value]="s.residual_risk_level"
-                  labelKey="hse.sja.residualBadge"
-                  [labelParams]="{ level: ('hse.risk.' + s.residual_risk_level | transloco) }"
-                />
-              }
             </ng-container>
 
             @if (placed.primary; as action) {
@@ -334,7 +337,15 @@ export function warningText(
               </button>
             }
 
-            <app-module-nav nav class="mb-4 block" [items]="nav" labelKey="modules.names.hse" />
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'hse.common.summarise' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('check')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'hse.sja.ai.check' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="hse"
@@ -343,30 +354,42 @@ export function warningText(
               [subject]="s.title"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (notices().length) {
+            <app-record-lead record-lead [fillLink]="editable() ? editLink() : null">
+              @let line = statusLine();
+              <app-record-status-line status [tone]="line.tone">
+                {{ line.key | transloco: line.params }}
+              </app-record-status-line>
+              @if (warnings().length) {
                 <ul
-                  class="flex flex-col gap-1.5 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink"
+                  status
+                  class="-mt-2 mb-4 flex flex-col gap-1 text-ui text-warn-ink"
                   role="status"
                   data-testid="sja-warnings"
                 >
-                  @for (notice of notices(); track notice) {
+                  @for (w of warnings(); track w) {
                     <li class="flex gap-2">
-                      <app-icon name="alert" [size]="15" class="mt-0.5 flex-none" />
-                      <span>{{ notice }}</span>
+                      <app-icon name="alert" [size]="14" class="mt-0.5 flex-none" />
+                      <span>{{ w }}</span>
                     </li>
                   }
                 </ul>
               }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'hse.sja.detail.jobTitle' | transloco }}
-                </h2>
-                <app-field-list>
-                  <app-field-item labelKey="hse.sja.fields.location" [value]="s.location" />
-                  <app-field-item labelKey="hse.sja.fields.owner" [value]="s.owner?.name" />
-                  <app-field-item labelKey="hse.sja.detail.period">
+              <app-field-item
+                size="lead"
+                labelKey="hse.sja.lead.job"
+                [wide]="true"
+                data-testid="sja-lead-job"
+              >
+                @if (s.job_description) {
+                  <div class="cf-prose" [innerHTML]="s.job_description | appMarkdown"></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="hse.sja.lead.whereWhen">
+                @if (s.location || period() !== 'none') {
+                  @if (s.location) {
+                    <span class="block">{{ s.location }}</span>
+                  }
+                  <span class="block text-ui font-normal text-fg-muted">
                     @switch (period()) {
                       @case ('range') {
                         {{
@@ -391,35 +414,135 @@ export function warningText(
                         }}
                       }
                     }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.common.department" [value]="department()" />
-                  <app-field-item labelKey="hse.sja.fields.risk_level">
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="hse.sja.lead.risk" data-testid="sja-lead-risk">
+                @if (s.risk_level || s.residual_risk_level) {
+                  <span class="flex flex-wrap items-center gap-2">
                     @if (s.risk_level) {
                       <app-status-badge
                         meaning="severity"
                         [value]="s.risk_level"
-                        [labelKey]="'hse.risk.' + s.risk_level"
+                        labelKey="hse.sja.lead.before"
+                        [labelParams]="{ level: ('hse.risk.' + s.risk_level | transloco) }"
                       />
                     }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.sja.fields.residual_risk_level">
+                    @if (s.risk_level && s.residual_risk_level) {
+                      <app-icon name="arrow" [size]="14" class="text-fg-subtle" />
+                    }
                     @if (s.residual_risk_level) {
                       <app-status-badge
                         meaning="severity"
                         [value]="s.residual_risk_level"
-                        [labelKey]="'hse.risk.' + s.residual_risk_level"
+                        labelKey="hse.sja.lead.after"
+                        [labelParams]="{ level: ('hse.risk.' + s.residual_risk_level | transloco) }"
                       />
                     }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.sja.fields.job_description" [wide]="true">
-                    @if (s.job_description) {
-                      <div class="cf-prose" [innerHTML]="s.job_description | appMarkdown"></div>
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="hse.sja.lead.signed">
+                @if (s.sign_off; as so) {
+                  @if (so.expected > 0) {
+                    <span [class.text-warn-ink]="signable() && !so.complete">{{
+                      'hse.sja.signOff.progress'
+                        | transloco: { signed: so.signed, expected: so.expected }
+                    }}</span>
+                  }
+                }
+              </app-field-item>
+            </app-record-lead>
 
-              <app-card data-testid="sja-participants">
+            <div class="flex flex-col gap-6">
+              <section data-testid="sja-steps" aria-labelledby="sja-steps-title">
+                <h2
+                  id="sja-steps-title"
+                  class="mb-3 flex flex-wrap items-baseline gap-2 font-display text-card font-bold text-fg"
+                >
+                  {{ 'hse.sja.edit.stepsSection' | transloco }}
+                  <span class="text-meta font-semibold text-fg-muted">
+                    {{
+                      'hse.sja.list.counts'
+                        | transloco: { hazards: s.hazard_count, controls: s.control_count }
+                    }}
+                  </span>
+                </h2>
+                @if (s.steps.length) {
+                  <ol class="flex flex-col gap-3">
+                    @for (step of s.steps; track $index; let i = $index) {
+                      <li
+                        class="rounded-tile border border-border bg-surface p-3"
+                        [attr.data-testid]="'sja-step-' + i"
+                      >
+                        <div class="mb-2 flex flex-wrap items-center gap-2">
+                          <span
+                            class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-surface-2 text-meta font-bold text-fg-muted"
+                            >{{ i + 1 }}</span
+                          >
+                          <span class="min-w-0 flex-1 font-semibold text-fg">{{
+                            step.description
+                          }}</span>
+                          @if (step.risk_level) {
+                            <app-status-badge
+                              meaning="severity"
+                              [value]="step.risk_level"
+                              [labelKey]="'hse.risk.' + step.risk_level"
+                            />
+                          }
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 text-ui sm:grid-cols-2">
+                          <div>
+                            <h3 class="text-meta font-semibold text-fg-subtle">
+                              {{ 'hse.sja.detail.hazards' | transloco }}
+                            </h3>
+                            <ul class="mt-1 list-disc pl-5 text-fg">
+                              @for (h of step.hazards; track $index) {
+                                <li>{{ h }}</li>
+                              } @empty {
+                                <li class="list-none text-warn-ink">
+                                  {{ 'hse.sja.detail.noneYet' | transloco }}
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                          <div>
+                            <h3 class="text-meta font-semibold text-fg-subtle">
+                              {{ 'hse.sja.detail.controls' | transloco }}
+                            </h3>
+                            <ul class="mt-1 flex flex-col gap-1 text-fg">
+                              @for (c of step.controls; track $index; let ci = $index) {
+                                <li class="flex flex-wrap items-baseline gap-1.5">
+                                  <span aria-hidden="true" class="text-fg-subtle">•</span>
+                                  <span class="min-w-0 flex-1">{{ c }}</span>
+                                  @if (controlType(step, ci); as type) {
+                                    <app-badge [tone]="type === 'ppe' ? 'warn' : 'neutral'">{{
+                                      'hse.controlType.' + type | transloco
+                                    }}</app-badge>
+                                  }
+                                </li>
+                              } @empty {
+                                <li class="text-warn-ink">
+                                  {{ 'hse.sja.detail.noneYet' | transloco }}
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        </div>
+                        @if (responsibleName(step); as name) {
+                          <p class="mt-2 text-meta text-fg-muted">
+                            {{ 'hse.sja.detail.responsible' | transloco: { name } }}
+                          </p>
+                        }
+                      </li>
+                    }
+                  </ol>
+                } @else {
+                  <p class="text-ui text-fg-muted">{{ 'hse.sja.detail.noStepsYet' | transloco }}</p>
+                }
+              </section>
+
+              <app-card id="sja-participants" data-testid="sja-participants">
                 <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
                   <h2 class="font-display text-card font-bold text-fg">
                     {{ 'hse.sja.signOff.title' | transloco }}
@@ -530,89 +653,6 @@ export function warningText(
                 }
               </app-card>
 
-              <app-card>
-                <h2
-                  class="mb-3 flex flex-wrap items-center gap-2 font-display text-card font-bold text-fg"
-                >
-                  {{ 'hse.sja.edit.stepsSection' | transloco }}
-                  <span class="text-meta font-semibold text-fg-muted">
-                    {{
-                      'hse.sja.list.counts'
-                        | transloco: { hazards: s.hazard_count, controls: s.control_count }
-                    }}
-                  </span>
-                </h2>
-                @if (s.steps.length) {
-                  <ol class="flex flex-col gap-3">
-                    @for (step of s.steps; track $index; let i = $index) {
-                      <li
-                        class="rounded-tile border border-border p-3"
-                        [attr.data-testid]="'sja-step-' + i"
-                      >
-                        <div class="mb-2 flex flex-wrap items-center gap-2">
-                          <span class="text-meta font-bold text-fg-subtle">{{ i + 1 }}.</span>
-                          <span class="min-w-0 flex-1 font-semibold text-fg">{{
-                            step.description
-                          }}</span>
-                          @if (step.risk_level) {
-                            <app-status-badge
-                              meaning="severity"
-                              [value]="step.risk_level"
-                              [labelKey]="'hse.risk.' + step.risk_level"
-                            />
-                          }
-                        </div>
-                        <div class="grid grid-cols-1 gap-3 text-ui sm:grid-cols-2">
-                          <div>
-                            <h3 class="text-meta font-semibold text-fg-subtle">
-                              {{ 'hse.sja.detail.hazards' | transloco }}
-                            </h3>
-                            <ul class="mt-1 list-disc pl-5 text-fg">
-                              @for (h of step.hazards; track $index) {
-                                <li>{{ h }}</li>
-                              } @empty {
-                                <li class="list-none text-fg-subtle">
-                                  {{ 'hse.sja.detail.noneYet' | transloco }}
-                                </li>
-                              }
-                            </ul>
-                          </div>
-                          <div>
-                            <h3 class="text-meta font-semibold text-fg-subtle">
-                              {{ 'hse.sja.detail.controls' | transloco }}
-                            </h3>
-                            <ul class="mt-1 flex flex-col gap-1 text-fg">
-                              @for (c of step.controls; track $index; let ci = $index) {
-                                <li class="flex flex-wrap items-baseline gap-1.5">
-                                  <span aria-hidden="true" class="text-fg-subtle">•</span>
-                                  <span class="min-w-0 flex-1">{{ c }}</span>
-                                  @if (controlType(step, ci); as type) {
-                                    <app-badge [tone]="type === 'ppe' ? 'warn' : 'neutral'">{{
-                                      'hse.controlType.' + type | transloco
-                                    }}</app-badge>
-                                  }
-                                </li>
-                              } @empty {
-                                <li class="text-fg-subtle">
-                                  {{ 'hse.sja.detail.noneYet' | transloco }}
-                                </li>
-                              }
-                            </ul>
-                          </div>
-                        </div>
-                        @if (responsibleName(step); as name) {
-                          <p class="mt-2 text-meta text-fg-muted">
-                            {{ 'hse.sja.detail.responsible' | transloco: { name } }}
-                          </p>
-                        }
-                      </li>
-                    }
-                  </ol>
-                } @else {
-                  <p class="text-ui text-fg-muted">{{ 'hse.sja.detail.noStepsYet' | transloco }}</p>
-                }
-              </app-card>
-
               <app-card data-testid="sja-ppe">
                 <h2 class="mb-1 font-display text-card font-bold text-fg">
                   {{ 'hse.sja.fields.required_ppe' | transloco }}
@@ -653,12 +693,17 @@ export function warningText(
                                 <li
                                   class="flex flex-wrap items-center gap-x-2 gap-y-0.5 py-1.5 text-ui"
                                 >
+                                  <app-icon
+                                    name="hardhat"
+                                    [size]="14"
+                                    class="flex-none text-fg-subtle"
+                                  />
                                   <span class="font-mono text-meta text-fg-subtle">{{
                                     item.code
                                   }}</span>
                                   <a
                                     [routerLink]="item.url"
-                                    class="min-w-0 flex-1 truncate font-semibold text-fg hover:underline"
+                                    class="min-w-0 flex-1 truncate font-semibold text-fg hover:text-accent hover:underline"
                                     >{{ item.name }}</a
                                   >
                                   <span class="text-meta text-fg-muted">
@@ -702,48 +747,31 @@ export function warningText(
                 } @else {
                   <p class="text-ui text-fg-muted">{{ 'hse.sja.ppe.none' | transloco }}</p>
                 }
-                <h2 class="mt-5 mb-2 font-display text-card font-bold text-fg">
-                  {{ 'hse.sja.fields.emergency_measures' | transloco }}
-                </h2>
-                @if (s.emergency_measures) {
-                  <div
-                    class="cf-prose text-ui text-fg"
-                    [innerHTML]="s.emergency_measures | appMarkdown"
-                  ></div>
-                } @else {
-                  <p class="text-ui text-fg-muted">{{ 'hse.common.notSet' | transloco }}</p>
-                }
               </app-card>
 
-              <div
-                class="flex flex-wrap gap-2"
-                role="group"
-                [attr.aria-label]="'hse.common.askGroup' | transloco"
-              >
-                <app-hse-ask-button
-                  labelKey="hse.common.summarise"
-                  promptKey="hse.sja.ai.summarisePrompt"
-                  [params]="{ code: s.code }"
-                  [requirements]="confirmedRefs()"
-                />
-                <app-hse-ask-button
-                  labelKey="hse.sja.ai.check"
-                  promptKey="hse.sja.ai.checkPrompt"
-                  [params]="{ code: s.code }"
-                  [requirements]="confirmedRefs()"
-                />
-              </div>
-            </div>
+              <app-record-details [columns]="2" [fillLink]="editable() ? editLink() : null">
+                <app-field-item
+                  labelKey="hse.sja.fields.emergency_measures"
+                  [wide]="true"
+                  data-testid="sja-emergency"
+                >
+                  @if (s.emergency_measures) {
+                    <div class="cf-prose" [innerHTML]="s.emergency_measures | appMarkdown"></div>
+                  }
+                </app-field-item>
+                <app-field-item labelKey="hse.common.department" [value]="department()" />
+              </app-record-details>
 
-            <section class="mt-6" data-testid="sja-documents">
-              <h2 class="font-display text-card font-bold text-fg">
-                {{ 'hse.common.documentsTitle' | transloco }}
-              </h2>
-              <p class="mt-0.5 mb-3 text-ui text-fg-muted">
-                {{ 'hse.common.documentsHint' | transloco }}
-              </p>
-              <app-outputs-panel entityType="sja" [entityId]="s.id" />
-            </section>
+              <section data-testid="sja-documents">
+                <h2 class="font-display text-card font-bold text-fg">
+                  {{ 'hse.common.documentsTitle' | transloco }}
+                </h2>
+                <p class="mt-0.5 mb-3 text-ui text-fg-muted">
+                  {{ 'hse.common.documentsHint' | transloco }}
+                </p>
+                <app-outputs-panel entityType="sja" [entityId]="s.id" />
+              </section>
+            </div>
 
             <div tasks>
               <app-entity-tasks
@@ -763,63 +791,35 @@ export function warningText(
               (linksChange)="onLinks($event)"
             />
 
-            <div aside>
-              <app-card data-testid="sja-approval">
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'hse.sja.detail.approval' | transloco }}
-                  </h2>
-                  <app-watch-button entityType="sja" [entityId]="s.id" />
-                </div>
-                <ol class="flex flex-col gap-3">
-                  @for (step of trail(); track step.key) {
-                    <li class="flex gap-2.5">
-                      <span
-                        class="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full"
-                        [class]="
-                          step.done ? 'bg-pass-soft text-pass' : 'bg-surface-2 text-fg-subtle'
-                        "
-                        aria-hidden="true"
-                      >
-                        <app-icon [name]="step.done ? 'check' : 'clock'" [size]="11" />
-                      </span>
-                      <span class="min-w-0 text-ui">
-                        <span class="block font-semibold text-fg">{{
-                          'hse.sja.trail.' + step.key | transloco
-                        }}</span>
-                        <span class="block text-meta text-fg-muted">
-                          @if (step.done) {
-                            @if (step.by) {
-                              {{
-                                'hse.sja.trail.byOn'
-                                  | transloco: { name: step.by, date: (step.at | localDay) }
-                              }}
-                            } @else {
-                              {{ step.at | localDay }}
-                            }
-                          } @else {
-                            {{ 'hse.sja.trail.pending' | transloco }}
-                          }
-                        </span>
-                        @if (step.key === 'approved' && step.done && s.approver_role) {
-                          <span
-                            class="block text-meta text-fg-muted"
-                            data-testid="sja-approver-role"
-                          >
-                            {{ 'hse.sja.trail.role' | transloco: { role: s.approver_role } }}
-                          </span>
-                        }
-                        @if (step.key === 'approved' && s.self_approved) {
-                          <span class="block text-meta font-semibold text-warn-ink">
-                            {{ 'hse.sja.trail.selfApproved' | transloco }}
-                          </span>
-                        }
-                      </span>
-                    </li>
+            <app-record-meta follow-up-meta data-testid="sja-approval">
+              <app-field-item
+                layout="inline"
+                labelKey="hse.sja.fields.owner"
+                [value]="s.owner?.name"
+              />
+              @for (step of trail(); track step.key) {
+                <app-field-item layout="inline" [labelKey]="'hse.sja.trail.' + step.key">
+                  @if (step.by) {
+                    {{
+                      'hse.sja.trail.byOn'
+                        | transloco: { name: step.by, date: (step.at | localDay) }
+                    }}
+                  } @else {
+                    {{ step.at | localDay }}
                   }
-                </ol>
-              </app-card>
-            </div>
+                  @if (step.key === 'approved' && s.approver_role) {
+                    <span class="block text-fg-muted" data-testid="sja-approver-role">
+                      {{ 'hse.sja.trail.role' | transloco: { role: s.approver_role } }}
+                    </span>
+                  }
+                </app-field-item>
+              }
+              <app-field-item
+                layout="inline"
+                labelKey="hse.common.updated"
+                [value]="s.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters scope="hse" page="sja-detail" />
@@ -876,12 +876,12 @@ export class SjaDetail {
   private readonly auth = inject(AuthService);
   private readonly language = inject(LanguageService);
   private readonly directory = inject(AssigneeOptionsService);
+  private readonly ask = inject(AskPanelService);
 
   /** Route param (component input binding): follows navigation between SJAs. */
   readonly id = input.required<string>();
 
   protected readonly perms = injectHsePermissions();
-  protected readonly nav = HSE_NAV;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = SJA_FIELD_LABELS;
   protected readonly frameworks: readonly string[] = ['iso45001'];
@@ -938,32 +938,39 @@ export class SjaDetail {
     departmentName(this.directory, this.sja()?.department_id ?? null),
   );
 
-  /** Everything that needs attention: missing steps (drafts) and the backend's checks. */
-  protected readonly notices = computed(() => {
+  protected readonly editLink = computed<readonly unknown[]>(() => ['/hse/sja', this.id(), 'edit']);
+  protected readonly statusLine = computed(() =>
+    sjaStatusSentence(this.sja() ?? { status: 'draft' }),
+  );
+
+  /**
+   * The backend's checks an auditor would look for (residual risk, PPE-only
+   * controls, self-approval). Missing sign-offs are a to-do in "Oppfølging".
+   */
+  protected readonly warnings = computed(() => {
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(key, params);
+    return (this.sja()?.warnings ?? [])
+      .filter((w) => w.key !== 'sign_offs_missing')
+      .map((w) => warningText(w, t))
+      .filter((text) => !!text);
+  });
+
+  /** What the analysis still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
     const s = this.sja();
     if (!s) {
       return [];
     }
-    const t = (key: string, params?: Record<string, unknown>) =>
-      this.language.translate(key, params);
-    const out: string[] = [];
-    if (s.status === 'draft') {
-      if (!s.steps.length) {
-        out.push(t('hse.sja.detail.noSteps'));
-      } else {
-        const missing = incompleteSteps(s.steps).map((i) => i + 1);
-        if (missing.length) {
-          out.push(t('hse.sja.detail.incomplete', { steps: missing.join(', ') }));
-        }
-      }
-    }
-    for (const w of s.warnings ?? []) {
-      const text = warningText(w, t);
-      if (text) {
-        out.push(text);
-      }
-    }
-    return out;
+    return sjaMissing(s, {
+      editLink: this.editLink(),
+      editable: this.editable(),
+      canWrite: this.perms.write(),
+      showParticipants: () =>
+        document
+          .getElementById('sja-participants')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    });
   });
 
   /** Created → submitted → approved → completed, with who and when. */
@@ -988,12 +995,10 @@ export class SjaDetail {
       },
       { key: 'completed', done: !!s.completed_at, by: null, at: s.completed_at },
     ];
+    const done = steps.filter((x) => x.done);
     return s.status === 'cancelled'
-      ? [
-          ...steps.filter((x) => x.done),
-          { key: 'cancelled', done: true, by: null, at: s.updated_at },
-        ]
-      : steps;
+      ? [...done, { key: 'cancelled', done: true, by: null, at: s.updated_at }]
+      : done;
   });
 
   private request = new Subscription();
@@ -1061,6 +1066,17 @@ export class SjaDetail {
     const out: Record<string, string> = {};
     new URLSearchParams(search).forEach((v, k) => (out[k] = v));
     return out;
+  }
+
+  protected askAi(kind: 'summarise' | 'check'): void {
+    const s = this.sja();
+    if (!s) {
+      return;
+    }
+    const key = kind === 'check' ? 'hse.sja.ai.checkPrompt' : 'hse.sja.ai.summarisePrompt';
+    this.ask.askAbout(this.language.translate(key, { code: s.code }), undefined, {
+      requirements: this.confirmedRefs(),
+    });
   }
 
   protected onLinks(links: readonly RequirementLink[]): void {

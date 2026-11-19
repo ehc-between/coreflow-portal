@@ -17,11 +17,22 @@ import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
-import { WatchButton } from '../../../shared/activity/watch-button';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
@@ -31,24 +42,22 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { HseApi } from '../data/hse-api';
 import { hseErrorKey } from '../data/hse-errors';
 import { InspectionResult, LinkedRef, Ppe, PpeInspection, TrainingCheck } from '../data/hse.models';
+import { ppeMissing, ppeStatusSentence } from '../hse-anatomy';
 import { dayToWire, intervalText, ppeStatusValue, textOrNull } from '../hse-format';
 import {
   HSE_CRUMBS,
   HSE_MODULE,
-  HSE_NAV,
   HSE_ROOT_CRUMB,
-  HseAskButton,
   HseDirectorySelect,
   HseField,
   departmentName,
@@ -110,14 +119,17 @@ function chip(type: string, ref: LinkedRef) {
 }
 
 /**
- * `/hse/ppe/:id`: a PPE item. Follows the route id. Header: code, category,
- * status and a red badge when the inspection is overdue or it has expired; the
- * next step (issue, return, or inspect when it must not be used) as primary,
- * Edit, "Lag ny fra denne" (deviation, task) and the rest under "Mer". Body: what
- * it is (supplier and required course link to their modules), who holds it,
- * the inspection plan in plain words and the history; a failed inspection
- * offers "Opprett avvik". Issuing checks the holder's training and can split
- * part of a batch into its own record.
+ * `/hse/ppe/:id`: a PPE item, on the detail-page anatomy (docs/ux-guide.md
+ * §2.7). Follows the route id. Header: code, category, status and a red badge
+ * when the inspection is overdue or it has expired; the next step (issue, return,
+ * or inspect when it must not be used) as primary, Edit, "Spør KI" and the rest
+ * under "Mer". "Hovedinformasjon": whether it may be used, who has it (or where
+ * it is kept), the next and the last inspection and the expiry date. Details tab:
+ * the inspection history and the other fields (supplier and required course
+ * link to their modules), the empty ones hidden. "Oppfølging": an overdue
+ * inspection, "Opprett avvik" after a failed one, a missing plan or owner.
+ * Issuing checks the holder's training and can split part of a batch into its
+ * own record.
  */
 @Component({
   selector: 'app-ppe-detail',
@@ -132,21 +144,21 @@ function chip(type: string, ref: LinkedRef) {
     EntityChip,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     SlideOver,
     StatusBadge,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     EntityTasks,
     SupportsRequirements,
     Term,
-    WatchButton,
     WhyItMatters,
-    HseAskButton,
     HseDirectorySelect,
     HseField,
   ],
@@ -176,12 +188,14 @@ function chip(type: string, ref: LinkedRef) {
         @if (ppe(); as p) {
           @let placed = actions();
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="ppe_item"
             [entityId]="p.id"
             [title]="p.name"
             [breadcrumbs]="breadcrumbs()"
             [tabs]="tabs"
             [canEdit]="perms.write()"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ p.code }}</span>
@@ -259,7 +273,15 @@ function chip(type: string, ref: LinkedRef) {
               </button>
             }
 
-            <app-module-nav nav class="mb-4 block" [items]="nav" labelKey="modules.names.hse" />
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'hse.common.summarise' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('standard')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'hse.ppe.ai.askStandard' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="hse"
@@ -268,155 +290,79 @@ function chip(type: string, ref: LinkedRef) {
               [subject]="p.name"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (p.expired || p.inspection_overdue || p.overdue) {
-                <p
-                  class="flex gap-2 rounded-tile border border-fail/30 bg-fail-soft px-4 py-3 text-ui text-fail"
-                  role="status"
-                  data-testid="ppe-do-not-use"
-                >
-                  <app-icon name="alert" [size]="15" class="mt-0.5 flex-none" />
-                  <span>{{
-                    (p.expired ? 'hse.ppe.detail.expiredNotice' : 'hse.ppe.detail.overdueNotice')
-                      | transloco
-                  }}</span>
-                </p>
-              }
-              @if (lastFailed() && canDeviate()) {
-                <div
-                  class="flex flex-wrap items-center gap-3 rounded-tile border border-warn/40 bg-warn-soft px-4 py-3 text-ui text-warn-ink"
-                  role="status"
-                  data-testid="ppe-failed-callout"
-                >
-                  <span class="min-w-0 flex-1">{{
-                    'hse.ppe.detail.failedCallout' | transloco
-                  }}</span>
-                  <app-button
-                    size="sm"
-                    variant="secondary"
-                    [loading]="flowStarting()"
-                    (click)="createDeviation()"
-                  >
-                    {{ 'hse.ppe.detail.createDeviation' | transloco }}
-                  </app-button>
-                </div>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'hse.ppe.detail.aboutTitle' | transloco }}
-                </h2>
-                <app-field-list>
-                  <app-field-item
-                    labelKey="hse.ppe.fields.category"
-                    [value]="'hse.ppeCategory.' + p.category | transloco"
-                  />
-                  <app-field-item labelKey="hse.ppe.fields.standard_ref" [value]="p.standard_ref" />
-                  <app-field-item labelKey="hse.ppe.fields.supplier">
-                    @if (p.supplier; as s) {
-                      <app-entity-chip [ref]="chipOf('supplier', s)" [showType]="false" />
-                    } @else if (p.manufacturer) {
-                      {{ p.manufacturer }}
-                    }
-                  </app-field-item>
-                  @if (p.supplier && p.manufacturer) {
-                    <app-field-item
-                      labelKey="hse.ppe.fields.manufacturer"
-                      [value]="p.manufacturer"
-                    />
-                  }
-                  <app-field-item
-                    labelKey="hse.ppe.fields.serial_number"
-                    [value]="p.serial_number"
-                  />
-                  <app-field-item labelKey="hse.ppe.fields.quantity">
-                    {{ p.quantity }}
-                    @if (p.quantity > 1) {
-                      <span class="block text-meta text-fg-muted">{{
-                        'hse.ppe.detail.batchNote' | transloco
+            <app-record-lead record-lead [fillLink]="perms.write() ? editLink() : null">
+              @let line = statusLine();
+              <app-record-status-line
+                status
+                [tone]="line.tone"
+                [attr.data-testid]="line.tone === 'pass' ? null : 'ppe-do-not-use'"
+              >
+                {{ line.key | transloco: line.params }}
+              </app-record-status-line>
+              @if (p.status === 'issued') {
+                <app-field-item size="lead" labelKey="hse.ppe.lead.holder">
+                  @if (p.holder?.name || p.holder_name; as holder) {
+                    {{ holder }}
+                    @if (p.issued_at) {
+                      <span class="block text-ui font-normal text-fg-muted">{{
+                        'hse.ppe.detail.issuedOn' | transloco: { date: (p.issued_at | localDay) }
                       }}</span>
                     }
-                    @if (p.batch_id) {
-                      <a
-                        [routerLink]="['/hse/ppe', p.batch_id]"
-                        class="block text-meta font-semibold text-accent hover:underline"
-                        >{{ 'hse.ppe.detail.fromBatch' | transloco }}</a
-                      >
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.ppe.fields.location" [value]="p.location" />
-                  <app-field-item
-                    labelKey="hse.ppe.fields.responsible"
-                    [value]="p.responsible?.name"
-                  />
-                  <app-field-item labelKey="hse.common.department" [value]="department()" />
-                  <app-field-item labelKey="hse.ppe.detail.holder" empty="none">
-                    @if (p.holder?.name || p.holder_name; as holder) {
-                      {{ holder }}
-                      @if (p.issued_at) {
-                        <span class="block text-meta text-fg-muted">{{
-                          'hse.ppe.detail.issuedOn' | transloco: { date: (p.issued_at | localDay) }
-                        }}</span>
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.ppe.fields.required_course" empty="none">
-                    @if (p.required_course; as c) {
-                      <app-entity-chip [ref]="chipOf('course', c)" [showType]="false" />
-                    }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="hse.ppe.fields.description"
-                    [value]="p.description"
-                    [wide]="true"
-                    [multiline]="true"
-                  />
-                  @if (p.notes) {
-                    <app-field-item
-                      labelKey="hse.ppe.fields.notes"
-                      [value]="p.notes"
-                      [wide]="true"
-                      [multiline]="true"
-                    />
                   }
-                </app-field-list>
-              </app-card>
+                </app-field-item>
+              } @else {
+                <app-field-item size="lead" labelKey="hse.ppe.lead.location" [value]="p.location" />
+              }
+              <app-field-item size="lead" labelKey="hse.ppe.lead.nextInspection">
+                @if (p.next_inspection_at) {
+                  <span [class.text-warn-ink]="p.inspection_overdue || p.overdue">{{
+                    p.next_inspection_at | localDay
+                  }}</span>
+                  @if (interval(); as iv) {
+                    <span class="block text-ui font-normal text-fg-muted">{{
+                      iv.key | transloco: iv.params
+                    }}</span>
+                  }
+                } @else if (interval(); as iv) {
+                  {{ iv.key | transloco: iv.params }}
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="hse.ppe.lead.lastInspection">
+                @if (inspections()[0]; as last) {
+                  <span class="flex flex-wrap items-center gap-2">
+                    {{ last.inspected_at | localDay }}
+                    <app-status-badge
+                      meaning="lifecycle"
+                      [value]="last.result === 'pass' ? 'passed' : 'failed'"
+                      [labelKey]="'hse.ppe.inspection.result.' + last.result"
+                    />
+                  </span>
+                } @else if (p.last_inspected_at) {
+                  {{ p.last_inspected_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="hse.ppe.fields.expires_at">
+                @if (p.expires_at) {
+                  <span [class.text-fail]="p.expired">{{ p.expires_at | localDay }}</span>
+                }
+              </app-field-item>
+            </app-record-lead>
 
+            <div class="flex flex-col gap-6">
               <app-card data-testid="ppe-inspection-card">
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 class="font-display text-card font-bold text-fg">
                     {{ 'hse.ppe.detail.inspections' | transloco }}
                   </h2>
-                  @if (perms.write() && p.status !== 'retired') {
+                  @if (perms.write() && p.status !== 'retired' && placed.primary !== 'inspect') {
                     <app-button size="sm" variant="secondary" (click)="openInspect()">
                       <app-icon name="plus" [size]="14" />
                       {{ 'hse.ppe.actions.inspect' | transloco }}
                     </app-button>
                   }
                 </div>
-                <app-field-list [columns]="3">
-                  <app-field-item labelKey="hse.ppe.fields.inspection_interval">
-                    @if (interval(); as iv) {
-                      {{ iv.key | transloco: iv.params }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.ppe.fields.next_inspection_at">
-                    @if (p.next_inspection_at) {
-                      <span [class]="p.inspection_overdue ? 'font-semibold text-fail' : ''">
-                        {{ p.next_inspection_at | localDay }}
-                      </span>
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.ppe.fields.expires_at">
-                    @if (p.expires_at) {
-                      <span [class]="p.expired ? 'font-semibold text-fail' : ''">
-                        {{ p.expires_at | localDay }}
-                      </span>
-                    }
-                  </app-field-item>
-                </app-field-list>
                 @if (inspections().length) {
-                  <ul class="mt-4 divide-y divide-border" data-testid="ppe-inspections">
+                  <ul class="divide-y divide-border" data-testid="ppe-inspections">
                     @for (i of inspections(); track i.id) {
                       <li class="flex flex-wrap items-start gap-3 py-2.5 text-ui">
                         <app-status-badge
@@ -446,24 +392,60 @@ function chip(type: string, ref: LinkedRef) {
                     }
                   </ul>
                 } @else {
-                  <p class="mt-3 text-ui text-fg-muted">
+                  <p class="text-ui text-fg-muted">
                     {{ 'hse.ppe.detail.noInspections' | transloco }}
                   </p>
                 }
               </app-card>
 
-              <div
-                class="flex flex-wrap gap-2"
-                role="group"
-                [attr.aria-label]="'hse.common.askGroup' | transloco"
-              >
-                <app-hse-ask-button
-                  labelKey="hse.common.summarise"
-                  promptKey="hse.ppe.ai.summarisePrompt"
-                  [params]="{ code: p.code }"
-                  [requirements]="confirmedRefs()"
+              <app-record-details [columns]="2" [fillLink]="perms.write() ? editLink() : null">
+                <app-field-item labelKey="hse.ppe.fields.standard_ref" [value]="p.standard_ref" />
+                @if (p.supplier; as s) {
+                  <app-field-item labelKey="hse.ppe.fields.supplier">
+                    <app-entity-chip [ref]="chipOf('supplier', s)" />
+                  </app-field-item>
+                }
+                <app-field-item labelKey="hse.ppe.fields.manufacturer" [value]="p.manufacturer" />
+                <app-field-item labelKey="hse.ppe.fields.serial_number" [value]="p.serial_number" />
+                @if (p.quantity > 1 || p.batch_id) {
+                  <app-field-item labelKey="hse.ppe.fields.quantity">
+                    {{ p.quantity }}
+                    @if (p.quantity > 1) {
+                      <span class="block text-meta text-fg-muted">{{
+                        'hse.ppe.detail.batchNote' | transloco
+                      }}</span>
+                    }
+                    @if (p.batch_id) {
+                      <a
+                        [routerLink]="['/hse/ppe', p.batch_id]"
+                        class="block text-meta font-semibold text-accent hover:underline"
+                        >{{ 'hse.ppe.detail.fromBatch' | transloco }}</a
+                      >
+                    }
+                  </app-field-item>
+                }
+                @if (p.status === 'issued') {
+                  <app-field-item labelKey="hse.ppe.fields.location" [value]="p.location" />
+                }
+                <app-field-item labelKey="hse.common.department" [value]="department()" />
+                <app-field-item labelKey="hse.ppe.fields.required_course">
+                  @if (p.required_course; as c) {
+                    <app-entity-chip [ref]="chipOf('course', c)" />
+                  }
+                </app-field-item>
+                <app-field-item
+                  labelKey="hse.ppe.fields.description"
+                  [value]="p.description"
+                  [wide]="true"
+                  [multiline]="true"
                 />
-              </div>
+                <app-field-item
+                  labelKey="hse.ppe.fields.notes"
+                  [value]="p.notes"
+                  [wide]="true"
+                  [multiline]="true"
+                />
+              </app-record-details>
             </div>
 
             <div tasks>
@@ -484,37 +466,28 @@ function chip(type: string, ref: LinkedRef) {
               (linksChange)="onLinks($event)"
             />
 
-            <div aside>
-              <app-card>
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'hse.common.summaryTitle' | transloco }}
-                  </h2>
-                  <app-watch-button entityType="ppe_item" [entityId]="p.id" />
-                </div>
-                <app-field-list [columns]="1">
-                  <app-field-item labelKey="hse.ppe.fields.last_inspected_at">
-                    @if (p.last_inspected_at) {
-                      {{ p.last_inspected_at | localDay }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="hse.common.createdBy">
-                    {{
-                      'hse.common.byOn'
-                        | transloco
-                          : {
-                              name: p.created_by?.name || ('hse.common.unknown' | transloco),
-                              date: (p.created_at | localDay),
-                            }
-                    }}
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="hse.common.updated"
-                    [value]="p.updated_at | localDate"
-                  />
-                </app-field-list>
-              </app-card>
-            </div>
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="hse.ppe.fields.responsible"
+                [value]="p.responsible?.name"
+              />
+              <app-field-item layout="inline" labelKey="hse.common.createdBy">
+                {{
+                  'hse.common.byOn'
+                    | transloco
+                      : {
+                          name: p.created_by?.name || ('hse.common.unknown' | transloco),
+                          date: (p.created_at | localDay),
+                        }
+                }}
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="hse.common.updated"
+                [value]="p.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters scope="hse" page="ppe-detail" />
@@ -724,13 +697,14 @@ export class PpeDetail {
   private readonly notifications = inject(NotificationService);
   private readonly directory = inject(AssigneeOptionsService);
   private readonly flows = inject(CreateFlowService);
+  private readonly ask = inject(AskPanelService);
+  private readonly language = inject(LanguageService);
 
   /** Route param (component input binding): follows navigation between items. */
   readonly id = input.required<string>();
 
   protected readonly perms = injectHsePermissions();
   protected readonly canDeviate = this.perms.has('deviations:write');
-  protected readonly nav = HSE_NAV;
   protected readonly tabs = TABS;
   protected readonly frameworks: readonly string[] = ['iso45001'];
   protected readonly results: readonly InspectionResult[] = ['pass', 'fail'];
@@ -778,6 +752,30 @@ export class PpeDetail {
   );
   /** The newest inspection failed: offer to raise a deviation from the item. */
   protected readonly lastFailed = computed(() => this.inspections()[0]?.result === 'fail');
+  protected readonly editLink = computed<readonly unknown[]>(() => ['/hse/ppe', this.id(), 'edit']);
+  protected readonly statusLine = computed(() => {
+    const p = this.ppe();
+    return p
+      ? ppeStatusSentence(p)
+      : { key: 'hse.ppe.statusLine.in_stock', tone: 'neutral' as const, params: undefined };
+  });
+
+  /** What the item needs now ("Oppfølging", docs/ux-guide.md §2.7). */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const p = this.ppe();
+    if (!p) {
+      return [];
+    }
+    return ppeMissing(p, {
+      editLink: this.editLink(),
+      canWrite: this.perms.write(),
+      inspect: () => this.openInspect(),
+      deviation:
+        this.lastFailed() && this.canDeviate() && !this.flowStarting()
+          ? () => this.createDeviation()
+          : null,
+    });
+  });
   protected readonly quantityInvalid = computed(() => {
     const raw = this.issueQty().toString().trim();
     if (!raw) {
@@ -836,6 +834,17 @@ export class PpeDetail {
 
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.id());
+  }
+
+  protected askAi(kind: 'summarise' | 'standard'): void {
+    const p = this.ppe();
+    if (!p) {
+      return;
+    }
+    const key = kind === 'standard' ? 'hse.ppe.ai.standardPrompt' : 'hse.ppe.ai.summarisePrompt';
+    this.ask.askAbout(this.language.translate(key, { code: p.code }), undefined, {
+      requirements: this.confirmedRefs(),
+    });
   }
 
   protected onLinks(links: readonly RequirementLink[]): void {
