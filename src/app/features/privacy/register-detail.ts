@@ -68,6 +68,7 @@ import {
 } from './data/privacy-registers';
 import { BreachPanel, DecisionPanel, DpiaSteps, DsrPanel } from './detail-panels';
 import { NoticePanel } from '../../shared/notices/notice-panel';
+import { OutputsPanel } from '../../shared/outputs/outputs-panel';
 import { DsrHandling } from './dsr-handling';
 import { PrivacyGaps } from './privacy-gaps';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
@@ -137,6 +138,9 @@ export function nextStep(register: RegisterKey, record: PrivacyRecord): NextStep
   }
 }
 
+/** Registers whose records have their own documents (U14). */
+const RECORD_OUTPUT_REGISTERS: ReadonlySet<string> = new Set(['dpia', 'transfer', 'lba', 'dsr']);
+
 /** The breach's follow-up records (create-from-here), in the order they are usually made. */
 const BREACH_FLOWS = [
   { key: 'data_breach.to_deviation', permission: 'deviations:write', icon: 'alert' },
@@ -176,6 +180,7 @@ const BREACH_FLOWS = [
     StatusBadge,
     BreachPanel,
     NoticePanel,
+    OutputsPanel,
     DecisionPanel,
     DpiaSteps,
     DsrPanel,
@@ -429,6 +434,22 @@ const BREACH_FLOWS = [
                     (logged)="reload()"
                   />
                 }
+              }
+
+              @if (hasRecordOutputs()) {
+                <app-card data-testid="record-outputs">
+                  <h2 class="mb-1 font-display text-card font-bold text-fg">
+                    {{ 'privacy.detail.outputs.title' | transloco }}
+                  </h2>
+                  <p class="mb-3 text-ui text-fg-muted">
+                    {{ 'privacy.detail.outputs.hint' | transloco }}
+                  </p>
+                  <app-outputs-panel
+                    module="privacy"
+                    [entityType]="def().entityType"
+                    [entityId]="r.id"
+                  />
+                </app-card>
               }
 
               @if (countryStatus(); as cs) {
@@ -783,6 +804,8 @@ export class PrivacyRegisterDetail {
     return { status, name: locationName(code, this.language) };
   });
 
+  /** U14: records with their own documents (DPIA, TIA and LIA reports, request letters). */
+  protected readonly hasRecordOutputs = computed(() => RECORD_OUTPUT_REGISTERS.has(this.def().key));
   protected readonly breachFlows = computed(() =>
     this.def().key === 'breach' ? BREACH_FLOWS.filter((f) => this.perms().has(f.permission)) : [],
   );

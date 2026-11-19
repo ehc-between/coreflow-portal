@@ -26,6 +26,7 @@ import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { OutputsPanel } from '../../../shared/outputs';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
@@ -133,6 +134,7 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
     Badge,
     Button,
     Card,
+    OutputsPanel,
     ConfirmDialog,
     ErrorState,
     FieldItem,
@@ -454,6 +456,13 @@ export function asClassificationResult(result: unknown): ClassificationResult | 
                 }
               </app-card>
             }
+          }
+          @if (a.kind !== 'classification') {
+            <app-outputs-panel
+              entityType="ai_assessment"
+              [entityId]="a.id"
+              data-testid="assessment-outputs"
+            />
           }
         </div>
 

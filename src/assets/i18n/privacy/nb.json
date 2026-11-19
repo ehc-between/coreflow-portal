@@ -725,7 +725,11 @@
     "deleteMessage": "Posten fjernes fra registeret. Den blir værende i revisjonssporet.",
     "linkedRecord": "Koblet post",
     "setStatus": "Sett status: {{ status }}",
-    "missingArt30": "Mangler (kreves etter art. 30)"
+    "missingArt30": "Mangler (kreves etter art. 30)",
+    "outputs": {
+      "title": "Dokumenter",
+      "hint": "Lag en rapport eller et brev fra denne posten som Word eller PDF. Det som mangler, vises først."
+    }
   },
   "ai": {
     "ropaTitle": "Lag utkast fra en beskrivelse",
@@ -1243,7 +1247,37 @@
     "title": "Dokumenter og rapporter",
     "subtitle": "Protokollene og loggene Datatilsynet og revisor ber om, laget av det dere har registrert. Se først hva som mangler, og lag så dokumentet som PDF, Word eller Excel.",
     "registers": "Registrene som tabell",
-    "registersHint": "Hvert register som regneark eller PDF, med filtrene du velger."
+    "registersHint": "Hvert register som regneark eller PDF, med filtrene du velger.",
+    "notices": {
+      "title": "Personvernerklæringer",
+      "hint": "Det dere forteller kunder, ansatte og jobbsøkere om personopplysningene deres (personvernforordningen art. 13 og 14). Lag erklæringen over, les gjennom, og godkjenn den: da blir den et styrt dokument som sendes til godkjenning under Dokumenter.",
+      "audience": {
+        "customers": "Kunder",
+        "employees": "Ansatte",
+        "applicants": "Jobbsøkere"
+      },
+      "version": "Versjon {{version}}, laget {{date}}",
+      "noVersion": "Ingen versjon ennå. Lag erklæringen under Dokumenter og rapporter over.",
+      "draft": "Utkast – en person må kontrollere teksten",
+      "accept": "Godkjenn som dokument",
+      "acceptRevision": "Godkjenn som ny revisjon",
+      "accepted": "«{{title}}» er sendt til godkjenning under Dokumenter.",
+      "sourceChanged": "Kildedata endret – lag en ny versjon og godkjenn den som ny revisjon",
+      "upToDate": "Stemmer med registrerte data",
+      "builtFrom": "Behandlinger den bygger på ({{n}}):",
+      "noActivities": "Ingen aktive behandlinger gjelder denne gruppen ennå.",
+      "openRopa": "Åpne behandlingsprotokollen",
+      "docStatus": {
+        "draft": "Utkast",
+        "in_review": "Venter på godkjenning",
+        "approved": "Godkjent",
+        "obsolete": "Utgått"
+      },
+      "errors": {
+        "sourceChanged": "Dataene er endret siden denne versjonen. Lag en ny versjon først.",
+        "failed": "Erklæringen kunne ikke gjøres om til et dokument. Prøv igjen."
+      }
+    }
   },
   "path": {
     "title": "Få orden på personvernet",

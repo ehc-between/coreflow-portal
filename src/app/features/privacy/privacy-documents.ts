@@ -1,19 +1,21 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { OutputsPanel } from '../../shared/outputs/outputs-panel';
 import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
+import { PrivacyNotices } from './privacy-notices';
 
 /**
  * "Dokumenter og rapporter" for GDPR (`/privacy/documents`, U12): the protocols and logs
  * Datatilsynet asks for (Art. 30 controller and processor records, the processor list,
- * the breach log, the request log) as output cards (readiness, "Lag dokument"), then
+ * the breach log, the request log; U14: the privacy notices, which become controlled
+ * documents through `app-privacy-notices`) as output cards (readiness, "Lag dokument"), then
  * every privacy register as a table export.
  */
 @Component({
   selector: 'app-privacy-documents',
-  imports: [TranslocoPipe, OutputsPanel, ModuleNav, PageHeader],
+  imports: [TranslocoPipe, OutputsPanel, ModuleNav, PageHeader, PrivacyNotices],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
@@ -30,8 +32,11 @@ import { privacyNavItems, privacyPermissions } from './privacy-nav';
       <app-outputs-panel
         module="privacy"
         [excludeKinds]="registerExports"
+        (generated)="generated.update(bump)"
         data-testid="privacy-documents-outputs"
       />
+
+      <app-privacy-notices [refresh]="generated()" />
 
       <section class="mt-8" data-testid="privacy-documents-registers">
         <h2 class="font-display text-section font-bold text-fg">
@@ -47,5 +52,10 @@ import { privacyNavItems, privacyPermissions } from './privacy-nav';
 })
 export class PrivacyDocuments {
   protected readonly nav = privacyNavItems(privacyPermissions());
-  protected readonly registerExports = ['register_export'] as const;
+  /** Register exports have their own section; record reports (DPIA report, letters,
+   * breach notices) are made from their record's page (U14). */
+  protected readonly registerExports = ['register_export', 'record_report'] as const;
+  /** Bumped when a file is made, so the notices section shows the new version. */
+  protected readonly generated = signal(0);
+  protected readonly bump = (n: number): number => n + 1;
 }

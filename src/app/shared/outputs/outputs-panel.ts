@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -74,7 +75,7 @@ type State =
                       [standardKey]="standardKey()"
                       [entityId]="entityId()"
                       [standards]="standards()"
-                      (generated)="reload()"
+                      (generated)="onGenerated()"
                     />
                   }
                 </div>
@@ -89,7 +90,7 @@ type State =
                 [standardKey]="standardKey()"
                 [entityId]="entityId()"
                 [standards]="standards()"
-                (generated)="reload()"
+                (generated)="onGenerated()"
               />
             }
           </div>
@@ -116,6 +117,8 @@ export class OutputsPanel {
   /** Split into audience sections (the library). */
   readonly grouped = input(false);
   readonly standards = input<readonly StandardChoice[]>([]);
+  /** A file was made from one of the cards (lets a page refresh what depends on it). */
+  readonly generated = output<void>();
 
   protected readonly state = signal<State>({ status: 'loading' });
   private readonly reloads = signal(0);
@@ -167,6 +170,11 @@ export class OutputsPanel {
 
   protected reload(): void {
     this.reloads.update((n) => n + 1);
+  }
+
+  protected onGenerated(): void {
+    this.reload();
+    this.generated.emit();
   }
 
   private load(orgId: string, query: Parameters<OutputsApi['list']>[1]): void {

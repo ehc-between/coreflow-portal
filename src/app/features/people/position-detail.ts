@@ -22,6 +22,7 @@ import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-la
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
+import { OutputsPanel } from '../../shared/outputs';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
@@ -93,6 +94,7 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
     Badge,
     Button,
     Card,
+    OutputsPanel,
     ConfirmDialog,
     EmptyState,
     FieldItem,
@@ -360,6 +362,11 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
                   </ul>
                 }
               </app-card>
+              <app-outputs-panel
+                entityType="position"
+                [entityId]="p.id"
+                data-testid="position-outputs"
+              />
             </div>
 
             <ng-container ngProjectAs="[aside-learn]">

@@ -36,6 +36,7 @@ export const AI_GOV_ROOT: Breadcrumb = {
         [settingsLink]="settingsLink()"
         [backLink]="backLink()"
         [backLabelKey]="backLabelKey()"
+        [outputsModule]="outputsModule()"
       >
         <ng-container ngProjectAs="[meta]"><ng-content select="[meta]" /></ng-container>
         <ng-container ngProjectAs="[secondary]"><ng-content select="[secondary]" /></ng-container>
@@ -75,6 +76,8 @@ export class AiGovPage {
   readonly settingsLink = input<string | null>('/settings/modules/ai-governance');
   readonly backLink = input<string | readonly unknown[] | null>(null);
   readonly backLabelKey = input<string | null>(null);
+  /** "Dokumenter og rapporter" for this module (principle 8). */
+  readonly outputsModule = input<string | null>(null);
 
   protected readonly scope = AI_GOVERNANCE_SCOPE;
   protected readonly crumbs = computed<readonly Breadcrumb[]>(() => [

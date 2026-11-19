@@ -124,6 +124,7 @@ function legacyAttention(o: AiGovernanceOverview): AttentionItemDto[] {
       page="overview"
       tour="overview"
       lesson="ai-governance-intro"
+      outputsModule="ai_governance"
     >
       @if (store.canWrite()) {
         <a
