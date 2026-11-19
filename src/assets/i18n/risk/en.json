@@ -6,7 +6,8 @@
     "opportunities": "Opportunities",
     "soa": "Statement of Applicability",
     "registers": "Registers",
-    "matrices": "Matrices"
+    "matrices": "Matrices",
+    "treatments": "Actions"
   },
   "common": {
     "loading": "Loading…",
@@ -555,25 +556,26 @@
       "done": "{{ count }} controls changed."
     },
     "version": {
-      "approve": "Approve version",
-      "approveTitle": "Approve this version",
-      "approveMessage": "A fixed copy of {{ name }} is saved with your name and today's date. Later changes need a new version.",
+      "approve": "Approve and publish",
+      "approveTitle": "Approve and publish a new revision",
+      "approveMessage": "{{ name }} is published as a new revision (Rev A, B, …) with your name and today's date. Later changes need a new revision.",
       "approveConfirm": "Approve",
       "signer": "You approve as: {{ name }}",
       "note": "Note (optional)",
-      "approved": "Version {{ version }} approved.",
-      "latest": "Last approved: version {{ version }}, {{ date }} by {{ name }}",
+      "approved": "Revision {{ version }} is approved and published.",
+      "latest": "Last approved: revision {{ version }}, {{ date }} by {{ name }}",
       "none": "Not approved yet",
       "changed": "Changed since approval",
       "blocked": "Every control needs a justification before you can approve.",
-      "blockedHint": "{{ count }} controls still need a justification. When all are decided, you can approve a version.",
-      "history": "Version history",
-      "label": "Version {{ version }}",
+      "blockedHint": "{{ count }} controls still need a justification. When all are decided, you can approve and publish a revision.",
+      "history": "Revision history",
+      "label": "Revision {{ version }}",
       "approvedBy": "Approved by {{ name }} {{ date }}",
-      "empty": "No approved versions yet."
+      "empty": "No approved revisions yet."
     },
     "excludedDelta": "Each needs a justification",
-    "showMissingShort": "Show them"
+    "showMissingShort": "Show them",
+    "documents": "Documents and reports"
   },
   "registers": {
     "title": "Risk registers",

@@ -11,11 +11,12 @@ export const RISK_NAV_ITEMS: readonly ModuleNavItem[] = [
     link: '/risk/opportunities',
     testId: 'risk-nav-opportunities',
   },
-  { labelKey: 'risk.nav.soa', link: '/risk/soa', testId: 'risk-nav-soa' },
+  // U17: the treatment plan is a work tab; the SoA moved to the standard page.
+  { labelKey: 'risk.nav.treatments', link: '/risk/treatments', testId: 'risk-nav-treatments' },
 ];
 
 /**
- * Sub-navigation of the risk module: overview, risks, opportunities, SoA. Registers and
+ * Sub-navigation of the risk module: overview, risks, opportunities, treatments. Registers and
  * matrices are configuration (U10), behind the gear at /settings/modules/risk.
  */
 @Component({

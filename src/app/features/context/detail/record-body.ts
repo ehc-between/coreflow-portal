@@ -191,7 +191,7 @@ export function exclusionFramework(exclusion: ScopeExclusion, fallback: string):
               class="rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
             >
               {{ 'context.scope.soaMissing' | transloco }}
-              <a routerLink="/risk/soa" class="ml-1 font-semibold underline">{{
+              <a routerLink="/standards/soa" class="ml-1 font-semibold underline">{{
                 'context.scope.openSoa' | transloco
               }}</a>
             </p>

@@ -1,9 +1,14 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { RedirectFunction, Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const write = permissionGuard('risk:write', { redirectTo: '/risk' });
+
+/** `/risk/soa/<key>?control=…` -> `/standards/<key>/soa?control=…` (U17). */
+export const soaRedirect: RedirectFunction = ({ params, queryParams }) =>
+  inject(Router).createUrlTree(['/standards', params['key'], 'soa'], { queryParams });
 
 /**
  * M04 risk and opportunity management, and the Statement of Applicability
@@ -11,7 +16,7 @@ const write = permissionGuard('risk:write', { redirectTo: '/risk' });
  * `permissionGuard('risk:read')`). Entity URLs from the backend:
  * `/risk/risks/<id>` (`?treatment=<id>`), `/risk/opportunities/<id>`,
  * `/risk/matrices/<id>`, `/risk/registers/<id>` (both redirect to `/settings/modules/risk/…`),
- * `/risk/soa/<key>?control=<ref>`.
+ * `/risk/soa[/<key>]` redirects to `/standards/soa` / `/standards/<key>/soa` (U17).
  */
 export default [
   {
@@ -69,14 +74,9 @@ export default [
         loadComponent: () =>
           import('./opportunities/opportunity-form').then((m) => m.OpportunityFormPage),
       },
-      {
-        path: 'soa',
-        loadComponent: () => import('./soa/soa-index').then((m) => m.SoaIndexPage),
-      },
-      {
-        path: 'soa/:key',
-        loadComponent: () => import('./soa/soa-view').then((m) => m.SoaViewPage),
-      },
+      // U17: the Statement of Applicability moved to the standard page.
+      { path: 'soa', pathMatch: 'full', redirectTo: '/standards/soa' },
+      { path: 'soa/:key', redirectTo: soaRedirect },
       // U10: registers and matrices are configuration, under /settings/modules/risk.
       moduleConfigRedirect('registers', 'risk'),
       moduleConfigRedirect('registers/:id', 'risk'),

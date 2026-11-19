@@ -329,7 +329,8 @@
   },
   "workspace": {
     "onlyStale": "Old or weak evidence",
-    "noStale": "No requirements have old or weak evidence."
+    "noStale": "No requirements have old or weak evidence.",
+    "soa": "Statement of Applicability"
   },
   "licensed": {
     "copyright": "The standard’s own text is protected by copyright, so CoreFlow shows its own explanations. Upload the PDF you have bought to see the official text alongside them.",
