@@ -35,7 +35,7 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
-import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
+import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContextApi } from '../data/context-api';
@@ -203,6 +203,7 @@ export function placeActions(
     LoadingState,
     MenuItem,
     ModuleNav,
+    OverflowMenu,
     PromptDialog,
     StatusBadge,
     CommunicatePanel,
@@ -259,11 +260,6 @@ export function placeActions(
                   labelKey="context.detail.reviewOverdue"
                 />
               }
-              @if (controlled()?.status === 'approved' && r.can_edit) {
-                <span class="basis-full text-fg-subtle sm:basis-auto" data-testid="approved-note">
-                  {{ 'context.detail.approvedNote' | transloco }}
-                </span>
-              }
               @if (controlled()?.status === 'retired') {
                 <span class="basis-full text-fg-subtle sm:basis-auto">
                   {{ 'context.detail.retiredHint' | transloco }}
@@ -271,10 +267,28 @@ export function placeActions(
               }
             </ng-container>
 
+            @if (aiAvailable()) {
+              <app-overflow-menu
+                secondary
+                icon="spark"
+                labelKey="context.ai.menu"
+                triggerTestId="context-ai-menu"
+              >
+                <button appMenuItem type="button" (click)="askAi('summarise')">
+                  {{ 'context.ai.summarise' | transloco }}
+                </button>
+                <button appMenuItem type="button" (click)="askAi('improve')">
+                  {{ 'context.ai.improve.' + kind() | transloco }}
+                </button>
+                <button appMenuItem type="button" (click)="askAi('explain')">
+                  {{ 'context.ai.explain' | transloco }}
+                </button>
+              </app-overflow-menu>
+            }
             @if (placed().primary; as action) {
               <app-button
                 primary
-                [variant]="action === 'edit' ? 'secondary' : 'primary'"
+                variant="primary"
                 [loading]="busy() === action"
                 [disabled]="!!busy()"
                 (click)="run(action)"
@@ -334,26 +348,6 @@ export function placeActions(
             />
 
             <div class="flex flex-col gap-6">
-              @if (aiAvailable()) {
-                <div
-                  class="flex flex-wrap items-center gap-2"
-                  role="group"
-                  [attr.aria-label]="'context.ai.groupLabel' | transloco"
-                >
-                  <app-button variant="ghost" size="sm" (click)="askAi('summarise')">
-                    <app-icon name="spark" [size]="14" />
-                    {{ 'context.ai.summarise' | transloco }}
-                  </app-button>
-                  <app-button variant="ghost" size="sm" (click)="askAi('improve')">
-                    <app-icon name="spark" [size]="14" />
-                    {{ 'context.ai.improve.' + kind() | transloco }}
-                  </app-button>
-                  <app-button variant="ghost" size="sm" (click)="askAi('explain')">
-                    <app-icon name="spark" [size]="14" />
-                    {{ 'context.ai.explain' | transloco }}
-                  </app-button>
-                </div>
-              }
               <app-context-record-body
                 [kind]="kind()"
                 [record]="r"

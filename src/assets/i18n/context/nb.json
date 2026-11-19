@@ -335,9 +335,6 @@
       "medium": "Betydning: middels",
       "high": "Betydning: høy"
     },
-    "followUps": "Fulgt opp med",
-    "noFollowUp": "Ikke fulgt opp ennå",
-    "followUpMenu": "Følg opp",
     "followUp": {
       "risk": "Opprett risiko",
       "opportunity": "Opprett mulighet",
@@ -345,8 +342,47 @@
       "task": "Opprett oppgave",
       "deviation": "Opprett avvik"
     },
-    "removeFollowUp": "Fjern {{ name }} fra faktoren",
-    "followUpFailed": "Posten er lagret og koblet til analysen, men ikke til selve faktoren. Koble den fra analysen."
+    "followUpFailed": "Posten er lagret og koblet til analysen, men ikke til selve faktoren. Koble den fra analysen.",
+    "factorCount": "Antall faktorer: {{ count }}",
+    "quadrant": {
+      "internal": "Internt",
+      "external": "Eksternt",
+      "helpful": "Hjelper",
+      "harmful": "Skader"
+    },
+    "quadrantHints": {
+      "strength": "Det organisasjonen gjør godt og kan bygge videre på.",
+      "weakness": "Der organisasjonen kommer til kort eller er sårbar.",
+      "opportunity": "Endringer utenfor organisasjonen som den kan dra nytte av.",
+      "threat": "Endringer utenfor organisasjonen som kan skade den."
+    },
+    "state": {
+      "handled": "Fulgt opp med",
+      "open": "Må følges opp",
+      "none": "Ikke fulgt opp"
+    },
+    "makeInto": {
+      "risk": "Gjør til risiko",
+      "objective": "Gjør til mål",
+      "opportunity": "Gjør til mulighet",
+      "task": "Gjør til oppgave",
+      "deviation": "Gjør til avvik"
+    },
+    "factorMenu": "Flere oppfølginger for faktoren",
+    "linkMenu": "Valg for {{ name }}",
+    "openLink": "Åpne",
+    "unlink": "Fjern koblingen",
+    "filter": {
+      "showing": "Viser bare faktorene som ikke er fulgt opp ({{ count }}).",
+      "showAll": "Vis alle faktorer"
+    },
+    "facts": {
+      "followedUp": "Fulgt opp",
+      "ofTotal": "{{ done }} av {{ total }}",
+      "open": "{{ count }} ikke fulgt opp",
+      "showOpen": "Vis faktorene som ikke er fulgt opp",
+      "allDone": "Alle viktige faktorer er fulgt opp"
+    }
   },
   "party": {
     "obligationHint": "Lovkrav og avtalekrav fra denne interessenten bør registreres som egne forpliktelser, så de følges opp og dokumenteres (ISO 14001 og ISO 45001 punkt 6.1.3).",
@@ -517,7 +553,6 @@
     "notFound": "Elementet finnes ikke, eller du har ikke tilgang til det.",
     "summaryTitle": "Kort oppsummert",
     "reviewOverdue": "Gjennomgang forfalt",
-    "approvedNote": "Endrer du innholdet, starter en ny versjon som må godkjennes.",
     "retiredHint": "Utgått og kan bare leses.",
     "approved": "Godkjent",
     "approverRoles": "Rolle: {{ roles }}",
@@ -608,7 +643,8 @@
         "policy": "Gå gjennom policy {{ code }} «{{ title }}» mot punkt 5.2. Inneholder den de påkrevde forpliktelsene, og passer den formålet vårt?",
         "responsibility": "Gå gjennom ansvar {{ code }} «{{ title }}». Er det nøyaktig én som står ansvarlig, og er myndigheten tydelig?"
       }
-    }
+    },
+    "menu": "Spør KI"
   },
   "next": {
     "reviewOverdue": {

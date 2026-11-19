@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { codedErrorDetail } from '../../core/deviations/deviation-errors';
 import { httpErrorMessageKey } from '../../core/http/error.interceptor';
-import { ToneMeaning } from '../../shared/ui/tones';
+import { Tone, ToneMeaning } from '../../shared/ui/tones';
 import {
   AddressedStatus,
   AnalysisMethod,
@@ -167,20 +167,49 @@ export function priorityBadge(priority: PartyPriority | string): BadgeSpec {
 /** SWOT categories whose factors are bad news (impact is coloured as severity there). */
 const ADVERSE_CATEGORIES = new Set(['weakness', 'threat']);
 
+/** Significance colours: one weight scale in every quadrant (never an alarm colour). */
+const SIGNIFICANCE_TONE: Readonly<Record<Level, Tone>> = {
+  low: 'neutral',
+  medium: 'info',
+  high: 'accent',
+};
+
 /**
- * The impact of a SWOT / PESTEL factor. Weaknesses and threats use the severity
- * colours; strengths, opportunities and PESTEL factors show a neutral
- * "Betydning: Høy", so good news never looks like an alarm.
+ * The significance badge of a SWOT / PESTEL factor ("Betydning: høy"). The same
+ * colours in every quadrant: whether a factor needs action is shown by its
+ * follow-up state, not by its significance.
  */
-export function impactBadge(category: string, impact: Level | string): BadgeSpec {
-  return ADVERSE_CATEGORIES.has(category)
-    ? { meaning: 'severity', value: impact, labelKey: `context.analysis.impact.${impact}` }
-    : { meaning: 'lifecycle', value: 'draft', labelKey: `context.analysis.impact.${impact}` };
+export function significanceTone(impact: Level | string): Tone {
+  return SIGNIFICANCE_TONE[impact as Level] ?? 'neutral';
 }
 
 /** Whether a factor is something to act against (weakness / threat). */
 export function isAdverse(category: string): boolean {
   return ADVERSE_CATEGORIES.has(category);
+}
+
+/**
+ * Whether a factor still needs a decision (mirrors the API's `open_factors`):
+ * a SWOT weakness or threat, or a high-significance PESTEL factor, without a
+ * follow-up.
+ */
+export function needsFollowUp(
+  method: AnalysisMethod,
+  item: {
+    readonly category: string;
+    readonly impact: string;
+    readonly follow_ups?: readonly unknown[];
+  },
+): boolean {
+  if (item.follow_ups?.length) {
+    return false;
+  }
+  return method === 'pestle' ? item.impact === 'high' : ADVERSE_CATEGORIES.has(item.category);
+}
+
+/** Internal (strengths, weaknesses) or external (opportunities, threats, PESTEL). */
+export function isInternal(category: string): boolean {
+  return category === 'strength' || category === 'weakness';
 }
 
 /** The categories an analysis method uses, in display order. */
