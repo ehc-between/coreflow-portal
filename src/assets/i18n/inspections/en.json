@@ -229,7 +229,34 @@
     "inspectionCountLink": "{{ count }} inspections",
     "noInspections": "None yet",
     "covers": "Covers:",
-    "askImproveLabel": "Ask how to improve the questions"
+    "askImproveLabel": "Ask how to improve the questions",
+    "typeLabel": "Checklist",
+    "status": {
+      "active": "In use – version {{ version }} can be used for new inspections.",
+      "draft": "Draft – publish it before it can be used in inspections.",
+      "archived": "Archived – it can no longer be used for new inspections."
+    },
+    "lead": {
+      "purpose": "What it is for",
+      "checks": "What it checks",
+      "questionsCount": "{{ count }} questions",
+      "questionsInParts": "{{ count }} questions in {{ parts }} parts",
+      "standards": "Standards: {{ names }}",
+      "passes": "When an inspection passes",
+      "passesAt": "At {{ value }} of the points or more",
+      "passesAll": "Only when every answer is approved",
+      "deviations": "Deviations",
+      "deviationsAuto": "Findings rated {{ severity }} or higher become deviations automatically (type: {{ type }}).",
+      "deviationsManual": "Created by hand when a finding needs one."
+    },
+    "missing": {
+      "questions": "Add questions",
+      "publish": "Publish the checklist",
+      "description": "Describe what it is for"
+    },
+    "usedIn": "Used in {{ count }} inspections",
+    "usedInOne": "Used in 1 inspection",
+    "notUsedYet": "Not used in any inspection yet."
   },
   "library": {
     "title": "Template library",
@@ -380,7 +407,47 @@
     "findingLink": "Finding {{ code }}",
     "askResults": "Ask about the results",
     "report": "Download report (PDF)",
-    "notFoundTitle": "Inspection not found"
+    "notFoundTitle": "Inspection not found",
+    "typeLabel": "Inspection",
+    "status": {
+      "planned": "Planned – not started yet.",
+      "plannedDue": "Planned – to be carried out by {{ date }}.",
+      "overdue": "Overdue – should have been carried out by {{ date }}.",
+      "inProgress": "In progress – {{ answered }} of {{ total }} questions answered.",
+      "completed": "Completed.",
+      "passedScore": "Passed – scored {{ score }}; the pass mark is {{ threshold }}.",
+      "failedScore": "Not passed – scored {{ score }}, but the pass mark is {{ threshold }}.",
+      "passedAll": "Passed – every answer was approved.",
+      "failedAny": "Not passed – {{ count }} answers were not approved.",
+      "failedOne": "Not passed – 1 answer was not approved.",
+      "cancelled": "Cancelled – this inspection will not be carried out.",
+      "cancelledReason": "Cancelled – {{ reason }}"
+    },
+    "lead": {
+      "checklist": "Checklist",
+      "what": "What and where",
+      "doneBy": "Carried out by",
+      "summary": "Inspector's summary"
+    },
+    "doneBy": "{{ name }}, {{ date }}",
+    "missing": {
+      "overdue": "Start the inspection – it is overdue",
+      "inspector": "Choose who carries it out",
+      "unanswered": "{{ count }} questions are not answered",
+      "unansweredOne": "1 question is not answered",
+      "deviation": "{{ code }} is serious – create a deviation",
+      "openFindings": "{{ count }} findings are still open",
+      "openFindingOne": "{{ code }} is still open",
+      "owner": "Choose an owner"
+    },
+    "answersSummary": "{{ answered }} of {{ total }} answered · {{ failed }} not approved",
+    "answersSummaryOk": "{{ answered }} of {{ total }} answered",
+    "noPassMark": "None – every answer must be approved",
+    "autoDeviation": "Findings rated {{ severity }} or higher become deviations automatically",
+    "recurring": "Recurring",
+    "meta": {
+      "createdBy": "Planned by"
+    }
   },
   "run": {
     "back": "Back to the inspection",
@@ -502,7 +569,31 @@
       "xlsx": "Export (Excel)",
       "csv": "Export as CSV",
       "pdf": "Export as PDF"
-    }
+    },
+    "typeLabel": "Inspection finding",
+    "status": {
+      "open": "Open – needs follow-up.",
+      "openDue": "Open – to be followed up by {{ date }}.",
+      "overdue": "Overdue – should have been followed up by {{ date }}.",
+      "closedChecked": "Closed – the fix has been checked and works.",
+      "closedUnchecked": "Closed – but no one has checked that the fix works yet."
+    },
+    "lead": {
+      "what": "What was found",
+      "howClosed": "How it was fixed",
+      "deviation": "Followed up as",
+      "owner": "Responsible",
+      "source": "Source",
+      "registered": "Registered"
+    },
+    "missing": {
+      "deviation": "Create a deviation – the finding is serious",
+      "owner": "Choose who is responsible",
+      "due": "Set a due date",
+      "cause": "Describe the cause",
+      "effect": "Check that the fix works"
+    },
+    "askCauseLabel": "Ask about the cause"
   },
   "schedules": {
     "title": "Recurring inspections",
@@ -530,7 +621,10 @@
   "ai": {
     "summarise": "Summarise results",
     "summaryTitle": "Summary from the assistant",
-    "suggestActions": "Suggest actions"
+    "suggestActions": "Suggest actions",
+    "running": "Working on it …",
+    "failed": "The assistant could not answer. Try again.",
+    "suggestTitle": "Suggested actions"
   },
   "notices": {
     "planned": "Inspection {{ code }} planned.",

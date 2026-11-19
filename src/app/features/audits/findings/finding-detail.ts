@@ -13,14 +13,23 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
+import { EntityTypesService } from '../../../core/kit/entity-types.service';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
@@ -36,6 +45,7 @@ import {
   findingStatusBadge,
   findingTypeBadge,
   fromDateInput,
+  planStatusBadge,
   textOrNull,
 } from '../data/audit-display';
 import {
@@ -44,6 +54,7 @@ import {
   EntityRef,
   FindingAction,
   FindingDetail,
+  FindingStatus,
   NC_TYPES,
   REASON_REQUIRED,
 } from '../data/audit.models';
@@ -54,7 +65,9 @@ import { AuditClauseRefs } from '../shared/clause-refs';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
+import { AuditRecordLink, RecordLinkStatus } from '../shared/record-link';
 import { AuditRecordPicker } from '../shared/record-picker';
+import { showSection } from '../shared/show-section';
 import { AuditUserSelect } from '../shared/user-select';
 
 const TABS: readonly RecordTab[] = [
@@ -86,6 +99,13 @@ export const FINDING_FIELD_LABELS: Readonly<Record<string, string>> = {
   effectiveness: 'audits.fields.effectiveness',
 };
 
+/** Section ids on the finding page that "Oppfølging" lines point at. */
+export const FINDING_SECTIONS = {
+  response: 'finding-response',
+  verification: 'finding-verification',
+  actions: 'finding-actions',
+} as const;
+
 /** Whether the caller may write the auditee response (the finding owner, or `audits:write`). */
 export function canRespond(f: FindingDetail, userId: string | null, canWrite: boolean): boolean {
   return RESPONSE_OPEN.includes(f.status) && (canWrite || (!!userId && f.owner?.id === userId));
@@ -107,13 +127,87 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
   return { primary, rest: actions.filter((a) => a !== primary) };
 }
 
+/** Tone of the status sentence: open work is a to-do (amber), never red. */
+export function findingStatusTone(status: FindingStatus): StatusLineTone {
+  switch (status) {
+    case 'closed':
+      return 'pass';
+    case 'cancelled':
+      return 'neutral';
+    case 'pending_verification':
+      return 'info';
+    default:
+      return 'warn';
+  }
+}
+
+/** What a finding still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+export function findingMissing(
+  f: FindingDetail,
+  opts: {
+    readonly canEdit: boolean;
+    readonly respondable: boolean;
+    readonly verifiable: boolean;
+    readonly canAddAction: boolean;
+    readonly canCheckEffect: boolean;
+    readonly editLink: readonly unknown[];
+    readonly show: (section: string) => void;
+  },
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  const nc = isNonconformity(f);
+  const show = (key: string, labelKey: string, section: string) =>
+    items.push({ key, labelKey, action: () => opts.show(section) });
+  if (opts.canEdit && !f.description?.trim()) {
+    items.push({
+      key: 'description',
+      labelKey: 'audits.findingDetail.missing.description',
+      link: opts.editLink,
+    });
+  }
+  if (opts.canEdit && !f.owner) {
+    items.push({
+      key: 'owner',
+      labelKey: 'audits.findingDetail.missing.owner',
+      link: opts.editLink,
+    });
+  }
+  if (opts.canEdit && nc && !f.response_due_at && RESPONSE_OPEN.includes(f.status)) {
+    items.push({ key: 'due', labelKey: 'audits.findingDetail.missing.due', link: opts.editLink });
+  }
+  if (opts.respondable) {
+    const answered = nc ? !!f.root_cause?.trim() : !!(f.decision ?? f.corrective_action)?.trim();
+    if (!answered) {
+      show(
+        'response',
+        nc ? 'audits.findingDetail.missing.response' : 'audits.findingDetail.missing.decision',
+        FINDING_SECTIONS.response,
+      );
+    }
+  }
+  if (nc && opts.canAddAction && !f.actions.length && !f.deviations.length) {
+    show('actions', 'audits.findingDetail.missing.actions', FINDING_SECTIONS.actions);
+  }
+  if (nc && opts.verifiable) {
+    show('verify', 'audits.findingDetail.missing.verify', FINDING_SECTIONS.verification);
+  }
+  if (nc && opts.canCheckEffect && f.status === 'closed' && !f.effectiveness) {
+    show('effect', 'audits.findingDetail.missing.effectiveness', FINDING_SECTIONS.verification);
+  }
+  return items;
+}
+
 /**
- * `/audits/findings/:id`: a finding and what is done about it. A nonconformity
- * gets the auditee's response (root cause, correction, a summary of the corrective
- * action), corrective-action tasks or the deviation that holds them, verification
- * by the auditor and, after closure, the effectiveness check. An observation or
- * improvement suggestion only needs a decision. "Lag ny fra denne" in the header
- * creates a deviation or risk from the finding (linked both ways).
+ * `/audits/findings/:id`: a finding and what is done about it, on the
+ * detail-page anatomy (docs/ux-guide.md §2.7). "Hovedinformasjon": where the
+ * finding stands, what was found, the evidence and the requirement. Below: the
+ * auditee's response (root cause, correction, a summary of the corrective
+ * action; a decision for an observation or improvement suggestion), the
+ * auditor's verification and, after closure, the effectiveness check, and the
+ * corrective-action tasks. The "Oppfølging" card names what is missing, the
+ * audit the finding belongs to and the deviations that follow it up. "Lag ny
+ * fra denne" in "Mer" creates a deviation or risk from the finding (linked both
+ * ways).
  */
 @Component({
   selector: 'app-audit-finding-detail',
@@ -123,12 +217,12 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
     LocalDayPipe,
     LocalDatePipe,
     RecordDetailLayout,
-    WatchButton,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     AiAssistButton,
-    AskAbout,
     WhyItMatters,
-    EntityChip,
-    Alert,
     Badge,
     Button,
     Card,
@@ -144,6 +238,7 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
     AuditsNav,
     AuditClauseRefs,
     AuditLoadState,
+    AuditRecordLink,
     AuditRecordPicker,
     AuditUserSelect,
   ],
@@ -154,6 +249,7 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
       @let sb = statusBadge(f.status);
       @let acts = actions();
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="audit_finding"
         [entityId]="f.id"
         [title]="f.title"
@@ -167,33 +263,33 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
         [canEdit]="access.canWrite()"
         [includeAudit]="access.canReadAudit()"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
         backLink="/audits/findings"
         backLabelKey="audits.findings.back"
       >
         <ng-container ngProjectAs="[meta]">
           <span class="font-mono" data-testid="finding-code">{{ f.code }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge [meaning]="tb.meaning" [value]="tb.value" [labelKey]="tb.labelKey" />
+          <span aria-hidden="true">·</span>
           <app-status-badge [meaning]="sb.meaning" [value]="sb.value" [labelKey]="sb.labelKey" />
           @if (f.overdue) {
             <app-badge tone="warn">{{ 'common.status.overdue' | transloco }}</app-badge>
           }
-          <app-ask-about
-            [prompt]="'audits.findingDetail.askAbout' | transloco: { code: f.code }"
-            [requirements]="f.clause_ref ? [f.clause_ref] : null"
-          />
-          <app-watch-button entityType="audit_finding" [entityId]="f.id" />
         </ng-container>
 
         @if (acts.primary; as a) {
-          <app-button primary size="sm" [disabled]="saving.busy()" (click)="transition(a)">
+          <app-button primary [disabled]="saving.busy()" (click)="transition(a)">
             {{ 'audits.findingAction.' + a | transloco }}
           </app-button>
+        } @else if (canEdit()) {
+          <app-button primary (click)="edit()">{{ 'audits.common.edit' | transloco }}</app-button>
         }
-        @if (access.canWrite() && f.status !== 'closed' && f.status !== 'cancelled') {
+        @if (acts.primary && canEdit()) {
           <a
             secondary
-            [routerLink]="['/audits/findings', f.id, 'edit']"
-            class="inline-flex h-8 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            [routerLink]="editLink()"
+            class="inline-flex h-9 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             {{ 'audits.common.edit' | transloco }}
           </a>
@@ -209,98 +305,92 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
           </button>
         }
 
+        <button appMenuItem ask type="button" (click)="askAi('explain')">
+          <app-icon name="spark" [size]="15" />
+          {{ 'audits.detail.ask.finding' | transloco }}
+        </button>
+        <button appMenuItem ask type="button" (click)="askAi('response')">
+          <app-icon name="spark" [size]="15" />
+          {{ (nc() ? 'audits.detail.ask.rootCause' : 'audits.detail.ask.decision') | transloco }}
+        </button>
+
         <app-audits-nav nav />
         <app-help-strip help scope="audits" page="findingDetail" lesson="findings-and-capa" />
 
-        <div class="flex flex-col gap-5">
-          @if (f.status_reason) {
-            <app-alert tone="info">
-              {{ 'audits.planDetail.statusReason' | transloco: { reason: f.status_reason } }}
-            </app-alert>
-          }
-
-          <app-card data-testid="finding-next-step">
-            <p class="text-meta font-semibold tracking-wide text-fg-subtle uppercase">
-              {{ 'audits.planDetail.nowTitle' | transloco }}
-            </p>
-            <p class="mt-1 text-body text-fg">{{ nextStepKey() | transloco }}</p>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-4 font-display text-section font-bold text-fg">
-              {{ 'audits.findingDetail.about' | transloco }}
-            </h2>
-            <app-field-list>
-              <app-field-item
-                labelKey="audits.fields.description"
-                [value]="f.description"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item
-                labelKey="audits.fields.evidence"
-                [value]="f.evidence"
-                [wide]="true"
-                [multiline]="true"
-              />
-              <app-field-item labelKey="audits.fields.audit">
-                <a
-                  [routerLink]="['/audits/plans', f.plan.id]"
-                  class="font-semibold text-accent hover:underline"
-                >
-                  <span class="font-mono text-meta">{{ f.plan.code }}</span> {{ f.plan.title }}
-                </a>
-              </app-field-item>
-              <app-field-item labelKey="audits.fields.clauseRef" empty="notSet">
-                @if (f.clause_ref) {
-                  <app-audit-clause-refs [refs]="[f.clause_ref]" [suggested]="nc()" />
-                  @if (nc()) {
-                    <p class="mt-1 text-meta text-fg-muted">
-                      {{ 'audits.findingDetail.clauseWeak' | transloco }}
-                    </p>
-                  }
-                }
-              </app-field-item>
-              <app-field-item labelKey="audits.fields.findingOwner" [value]="f.owner?.name" />
-              <app-field-item labelKey="audits.fields.department" [value]="f.department_name" />
-              <app-field-item labelKey="audits.fields.responseDue">
-                @if (f.response_due_at) {
-                  <span [class]="f.overdue ? 'font-semibold text-warn-ink' : ''">
-                    {{ f.response_due_at | localDay }}
-                    @if (f.overdue) {
-                      · {{ 'common.status.overdue' | transloco }}
-                    }
-                  </span>
-                }
-              </app-field-item>
-              @if (f.plan.lead_auditor?.name) {
-                <app-field-item
-                  labelKey="audits.fields.leadAuditor"
-                  [value]="f.plan.lead_auditor?.name"
-                />
+        <app-record-lead record-lead [fillLink]="canEdit() ? editLink() : null">
+          <app-record-status-line status [tone]="statusTone()">
+            {{ nextStepKey() | transloco }}
+            @if (f.status_reason) {
+              <span class="mt-0.5 block font-normal">
+                {{ 'audits.planDetail.statusReason' | transloco: { reason: f.status_reason } }}
+              </span>
+            }
+          </app-record-status-line>
+          <app-field-item
+            size="lead"
+            [wide]="true"
+            labelKey="audits.findingDetail.lead.what"
+            [value]="f.description"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="audits.findingDetail.lead.evidence"
+            [value]="f.evidence"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            [labelKey]="
+              nc()
+                ? 'audits.findingDetail.lead.requirementNc'
+                : 'audits.findingDetail.lead.requirement'
+            "
+          >
+            @if (f.clause_ref) {
+              <app-audit-clause-refs [refs]="[f.clause_ref]" [suggested]="nc()" />
+              @if (nc()) {
+                <p class="mt-1.5 text-meta text-fg-muted">
+                  {{ 'audits.findingDetail.clauseWeak' | transloco }}
+                </p>
               }
-            </app-field-list>
-          </app-card>
+            }
+          </app-field-item>
+          @let pb = planBadge(f.plan.status ?? '');
+          <app-field-item size="lead" labelKey="audits.findingDetail.lead.audit">
+            <app-audit-record-link
+              class="mt-1"
+              icon="audit"
+              [type]="'audits.detail.types.plan' | transloco"
+              [code]="f.plan.code"
+              [title]="f.plan.title"
+              [status]="f.plan.status ? pb : null"
+              [link]="['/audits/plans', f.plan.id]"
+            />
+          </app-field-item>
+        </app-record-lead>
 
-          <app-card data-testid="finding-response">
-            <div class="mb-1 flex items-center gap-2">
-              <h2 class="font-display text-section font-bold text-fg">
-                {{
-                  (nc() ? 'audits.findingDetail.response' : 'audits.findingDetail.decisionTitle')
-                    | transloco
-                }}
-              </h2>
-              <app-ask-about
-                [field]="nc() ? 'root_cause' : 'decision'"
-                [fieldLabel]="
-                  (nc() ? 'audits.fields.rootCause' : 'audits.fields.decision') | transloco
-                "
-                [prompt]="
-                  (nc() ? 'audits.findingDetail.askRootCause' : 'audits.findingDetail.askDecision')
-                    | transloco: { code: f.code }
-                "
-              />
-            </div>
+        <div class="flex flex-col gap-6">
+          <app-record-details [columns]="3" [fillLink]="canEdit() ? editLink() : null">
+            <app-field-item labelKey="audits.fields.department" [value]="f.department_name" />
+            <app-field-item
+              labelKey="audits.fields.leadAuditor"
+              [value]="f.plan.lead_auditor?.name"
+            />
+          </app-record-details>
+
+          <app-card
+            [id]="sections.response"
+            tabindex="-1"
+            class="outline-none"
+            data-testid="finding-response"
+          >
+            <h2 class="mb-1 font-display text-section font-bold text-fg">
+              {{
+                (nc() ? 'audits.findingDetail.response' : 'audits.findingDetail.decisionTitle')
+                  | transloco
+              }}
+            </h2>
             <p class="mb-4 text-meta text-fg-muted">
               {{
                 (nc() ? 'audits.findingDetail.responseHint' : 'audits.findingDetail.decisionHint')
@@ -424,115 +514,12 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
           </app-card>
 
           @if (nc()) {
-            <app-card data-testid="finding-verification">
-              <h2 class="mb-1 font-display text-section font-bold text-fg">
-                {{ 'audits.findingDetail.verification' | transloco }}
-              </h2>
-              <p class="mb-4 text-meta text-fg-muted">
-                {{ 'audits.findingDetail.verificationHint' | transloco }}
-              </p>
-              @if (verifiable()) {
-                <app-audit-field
-                  inputId="fd-verify"
-                  labelKey="audits.fields.verificationNotes"
-                  helpPage="findingDetail"
-                  helpField="verificationNotes"
-                >
-                  <textarea
-                    id="fd-verify"
-                    rows="3"
-                    [value]="verificationNotes()"
-                    (input)="verificationNotes.set($any($event.target).value)"
-                  ></textarea>
-                </app-audit-field>
-                <div class="mt-2 flex justify-end">
-                  <app-button
-                    size="sm"
-                    variant="secondary"
-                    [disabled]="
-                      verificationNotes() === (f.verification_notes ?? '') || saving.busy()
-                    "
-                    (click)="saveVerification()"
-                  >
-                    {{ 'audits.findingDetail.saveNotes' | transloco }}
-                  </app-button>
-                </div>
-              } @else {
-                <app-field-list [columns]="1">
-                  <app-field-item
-                    labelKey="audits.fields.verificationNotes"
-                    [value]="f.verification_notes"
-                    [multiline]="true"
-                  />
-                </app-field-list>
-              }
-              @if (f.verified_at) {
-                <p class="mt-2 text-meta text-fg-muted">
-                  {{
-                    'audits.findingDetail.verifiedBy'
-                      | transloco
-                        : {
-                            name: f.verified_by?.name || ('audits.common.someone' | transloco),
-                            date: (f.verified_at | localDate),
-                          }
-                  }}
-                </p>
-              }
-
-              @if (f.status === 'closed') {
-                <div class="mt-4 border-t border-border pt-4" data-testid="finding-effectiveness">
-                  <h3 class="text-card font-bold text-fg">
-                    {{ 'audits.findingDetail.effectiveness' | transloco }}
-                  </h3>
-                  <p class="mt-0.5 mb-3 text-meta text-fg-muted">
-                    {{ 'audits.findingDetail.effectivenessHint' | transloco }}
-                  </p>
-                  @if (access.canWrite()) {
-                    <div
-                      class="flex flex-wrap gap-2"
-                      role="group"
-                      [attr.aria-label]="'audits.fields.effectiveness' | transloco"
-                    >
-                      @for (e of effectivenessResults; track e) {
-                        <app-button
-                          size="sm"
-                          [variant]="f.effectiveness === e ? 'primary' : 'secondary'"
-                          [attr.aria-pressed]="f.effectiveness === e"
-                          [disabled]="saving.busy()"
-                          (click)="setEffectiveness(e)"
-                        >
-                          {{ 'audits.effectiveness.' + e | transloco }}
-                        </app-button>
-                      }
-                    </div>
-                  } @else {
-                    <p class="text-body text-fg">
-                      {{
-                        f.effectiveness
-                          ? ('audits.effectiveness.' + f.effectiveness | transloco)
-                          : ('common.empty.notSet' | transloco)
-                      }}
-                    </p>
-                  }
-                  @if (f.effectiveness_checked_at) {
-                    <p class="mt-2 text-meta text-fg-muted">
-                      {{
-                        'audits.findingDetail.checkedBy'
-                          | transloco
-                            : {
-                                name:
-                                  f.effectiveness_checked_by?.name ||
-                                  ('audits.common.someone' | transloco),
-                                date: (f.effectiveness_checked_at | localDate),
-                              }
-                      }}
-                    </p>
-                  }
-                </div>
-              }
-            </app-card>
-
-            <app-card data-testid="finding-actions">
+            <app-card
+              [id]="sections.actions"
+              tabindex="-1"
+              class="outline-none"
+              data-testid="finding-actions"
+            >
               <h2 class="mb-1 font-display text-section font-bold text-fg">
                 {{ 'audits.findingDetail.actions' | transloco }}
               </h2>
@@ -640,38 +627,193 @@ export function splitFindingActions(actions: readonly FindingAction[]): {
                 }
               }
             </app-card>
-          }
 
-          <app-card data-testid="finding-deviations">
-            <h2 class="mb-1 font-display text-section font-bold text-fg">
-              {{ 'audits.findingDetail.deviations' | transloco }}
-            </h2>
-            <p class="mb-3 text-meta text-fg-muted">
-              {{ 'audits.findingDetail.deviationsHint' | transloco }}
-            </p>
-            @if (f.deviations.length) {
-              <div class="flex flex-wrap gap-2">
-                @for (d of f.deviations; track d.entity_id) {
-                  <app-entity-chip [ref]="d" [statusText]="true" />
-                }
-              </div>
-            } @else {
-              <p class="text-body text-fg-muted">
-                {{ 'audits.findingDetail.noDeviations' | transloco }}
+            <app-card
+              [id]="sections.verification"
+              tabindex="-1"
+              class="outline-none"
+              data-testid="finding-verification"
+            >
+              <h2 class="mb-1 font-display text-section font-bold text-fg">
+                {{ 'audits.findingDetail.verification' | transloco }}
+              </h2>
+              <p class="mb-4 text-meta text-fg-muted">
+                {{ 'audits.findingDetail.verificationHint' | transloco }}
               </p>
-            }
-            @if (canLinkDeviation()) {
-              <div class="mt-3">
-                <app-audit-record-picker
-                  [types]="['deviation']"
-                  [excluded]="deviationIds()"
-                  placeholderKey="audits.findingDetail.searchDeviation"
-                  (picked)="linkDeviation($event)"
-                />
-              </div>
-            }
-          </app-card>
+              @if (verifiable()) {
+                <app-audit-field
+                  inputId="fd-verify"
+                  labelKey="audits.fields.verificationNotes"
+                  helpPage="findingDetail"
+                  helpField="verificationNotes"
+                >
+                  <textarea
+                    id="fd-verify"
+                    rows="3"
+                    [value]="verificationNotes()"
+                    (input)="verificationNotes.set($any($event.target).value)"
+                  ></textarea>
+                </app-audit-field>
+                <div class="mt-2 flex justify-end">
+                  <app-button
+                    size="sm"
+                    variant="secondary"
+                    [disabled]="
+                      verificationNotes() === (f.verification_notes ?? '') || saving.busy()
+                    "
+                    (click)="saveVerification()"
+                  >
+                    {{ 'audits.findingDetail.saveNotes' | transloco }}
+                  </app-button>
+                </div>
+              } @else if (f.verification_notes) {
+                <app-field-list [columns]="1">
+                  <app-field-item
+                    labelKey="audits.fields.verificationNotes"
+                    [value]="f.verification_notes"
+                    [multiline]="true"
+                  />
+                </app-field-list>
+              }
+              @if (f.verified_at) {
+                <p class="mt-2 text-meta text-fg-muted">
+                  {{
+                    'audits.findingDetail.verifiedBy'
+                      | transloco
+                        : {
+                            name: f.verified_by?.name || ('audits.common.someone' | transloco),
+                            date: (f.verified_at | localDate),
+                          }
+                  }}
+                </p>
+              }
+
+              @if (f.status === 'closed') {
+                <div class="mt-4 border-t border-border pt-4" data-testid="finding-effectiveness">
+                  <h3 class="text-card font-bold text-fg">
+                    {{ 'audits.findingDetail.effectiveness' | transloco }}
+                  </h3>
+                  <p class="mt-0.5 mb-3 text-meta text-fg-muted">
+                    {{ 'audits.findingDetail.effectivenessHint' | transloco }}
+                  </p>
+                  @if (access.canWrite()) {
+                    <div
+                      class="flex flex-wrap gap-2"
+                      role="group"
+                      [attr.aria-label]="'audits.fields.effectiveness' | transloco"
+                    >
+                      @for (e of effectivenessResults; track e) {
+                        <app-button
+                          size="sm"
+                          [variant]="f.effectiveness === e ? 'primary' : 'secondary'"
+                          [attr.aria-pressed]="f.effectiveness === e"
+                          [disabled]="saving.busy()"
+                          (click)="setEffectiveness(e)"
+                        >
+                          {{ 'audits.effectiveness.' + e | transloco }}
+                        </app-button>
+                      }
+                    </div>
+                  } @else {
+                    <p class="text-body text-fg">
+                      {{
+                        f.effectiveness
+                          ? ('audits.effectiveness.' + f.effectiveness | transloco)
+                          : ('common.empty.notSet' | transloco)
+                      }}
+                    </p>
+                  }
+                  @if (f.effectiveness_checked_at) {
+                    <p class="mt-2 text-meta text-fg-muted">
+                      {{
+                        'audits.findingDetail.checkedBy'
+                          | transloco
+                            : {
+                                name:
+                                  f.effectiveness_checked_by?.name ||
+                                  ('audits.common.someone' | transloco),
+                                date: (f.effectiveness_checked_at | localDate),
+                              }
+                      }}
+                    </p>
+                  }
+                </div>
+              }
+            </app-card>
+          }
         </div>
+
+        <div
+          follow-up-connections
+          class="mt-4 flex flex-col gap-3 border-t border-border pt-3"
+          data-testid="finding-follow-up"
+        >
+          <h3 class="text-meta font-semibold text-fg-muted" data-testid="finding-deviations">
+            {{ 'audits.findingDetail.deviationsTitle' | transloco }}
+          </h3>
+          @for (d of f.deviations; track d.entity_id) {
+            <app-audit-record-link
+              icon="alert"
+              [type]="'audits.detail.types.deviation' | transloco"
+              [code]="d.code"
+              [title]="d.title"
+              [status]="deviationStatus(d.status)"
+              [link]="d.url || ['/deviations', d.entity_id]"
+            />
+          } @empty {
+            <p class="text-meta text-fg-muted">
+              {{ 'audits.findingDetail.noDeviations' | transloco }}
+            </p>
+          }
+          @if (canLinkDeviation()) {
+            @if (linkingDeviation()) {
+              <app-audit-record-picker
+                [types]="['deviation']"
+                [excluded]="deviationIds()"
+                placeholderKey="audits.findingDetail.searchDeviation"
+                (picked)="linkDeviation($event)"
+              />
+            } @else {
+              <button
+                type="button"
+                class="inline-flex min-h-6 items-center gap-1 self-start text-meta font-semibold text-accent hover:underline"
+                (click)="linkingDeviation.set(true)"
+                data-testid="finding-link-deviation"
+              >
+                <app-icon name="link" [size]="13" />
+                {{ 'audits.findingDetail.linkDeviation' | transloco }}
+              </button>
+            }
+          }
+        </div>
+
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="audits.fields.findingOwner"
+            [value]="f.owner?.name"
+          />
+          <app-field-item layout="inline" labelKey="audits.fields.responseDue">
+            @if (f.response_due_at) {
+              <span [class.text-warn-ink]="f.overdue">{{ f.response_due_at | localDay }}</span>
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="audits.findingDetail.meta.responded"
+            [value]="f.responded_at | localDate"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="audits.findingDetail.meta.closed"
+            [value]="f.closed_at | localDate"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="audits.detail.meta.updated"
+            [value]="f.updated_at | localDate"
+          />
+        </app-record-meta>
 
         <div aside-learn>
           <app-why-it-matters scope="audits" page="findingDetail" />
@@ -711,21 +853,26 @@ export class FindingDetailPage {
   private readonly api = inject(AuditsApi);
   private readonly router = inject(Router);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly types = inject(EntityTypesService);
   protected readonly access = inject(AuditAccess);
 
   readonly id = input.required<string>();
 
   protected readonly tabs = TABS;
+  protected readonly sections = FINDING_SECTIONS;
   protected readonly fieldLabels = FINDING_FIELD_LABELS;
   protected readonly effectivenessResults = EFFECTIVENESS_RESULTS;
   protected readonly typeBadge = findingTypeBadge;
   protected readonly statusBadge = findingStatusBadge;
+  protected readonly planBadge = planStatusBadge;
   protected readonly lang = this.language.active;
   protected readonly data = loadable<FindingDetail>();
   protected readonly saving = mutator();
   protected readonly pending = signal<FindingAction | null>(null);
   protected readonly deleting = signal(false);
   protected readonly addingAction = signal(false);
+  protected readonly linkingDeviation = signal(false);
 
   protected readonly rootCause = linkedSignal(() => this.data.value()?.root_cause ?? '');
   protected readonly correction = linkedSignal(() => this.data.value()?.correction ?? '');
@@ -748,6 +895,18 @@ export class FindingDetailPage {
   });
   protected readonly actions = computed(() =>
     splitFindingActions(this.data.value()?.available_actions ?? []),
+  );
+  protected readonly canEdit = computed(() => {
+    const status = this.data.value()?.status;
+    return this.access.canWrite() && status !== 'closed' && status !== 'cancelled';
+  });
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/audits/findings',
+    this.id(),
+    'edit',
+  ]);
+  protected readonly statusTone = computed(() =>
+    findingStatusTone(this.data.value()?.status ?? 'open'),
   );
   protected readonly nextStepKey = computed(() => {
     const f = this.data.value();
@@ -781,6 +940,21 @@ export class FindingDetailPage {
   protected readonly deviationIds = computed(() =>
     (this.data.value()?.deviations ?? []).map((d) => d.entity_id),
   );
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const f = this.data.value();
+    if (!f) {
+      return [];
+    }
+    return findingMissing(f, {
+      canEdit: this.canEdit(),
+      respondable: this.respondable(),
+      verifiable: this.verifiable(),
+      canAddAction: this.canAddAction(),
+      canCheckEffect: this.access.canWrite(),
+      editLink: this.editLink(),
+      show: (section) => showSection(this.router, section),
+    });
+  });
   protected readonly responseDirty = computed(() => {
     const f = this.data.value();
     if (!f) {
@@ -820,6 +994,32 @@ export class FindingDetailPage {
     if (orgId) {
       this.data.load(this.api.getFinding(orgId, this.id()), true);
     }
+  }
+
+  protected deviationStatus(status: string | null | undefined): RecordLinkStatus | null {
+    return status
+      ? { meaning: 'lifecycle', value: status, label: this.types.statusLabel(status, 'deviations') }
+      : null;
+  }
+
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
+  }
+
+  protected askAi(kind: 'explain' | 'response'): void {
+    const f = this.data.value();
+    if (!f) {
+      return;
+    }
+    const key =
+      kind === 'explain'
+        ? 'audits.findingDetail.askAbout'
+        : this.nc()
+          ? 'audits.findingDetail.askRootCause'
+          : 'audits.findingDetail.askDecision';
+    this.ask.askAbout(this.language.translate(key, { code: f.code }), undefined, {
+      requirements: f.clause_ref ? [f.clause_ref] : null,
+    });
   }
 
   private update(body: Parameters<AuditsApi['updateFinding']>[2], success: string): void {
@@ -941,7 +1141,10 @@ export class FindingDetailPage {
     }
     this.saving.run(this.api.linkDeviation(orgId, this.id(), ref.entity_id), {
       success: 'audits.notices.deviationLinked',
-      next: (f) => this.data.set(f),
+      next: (f) => {
+        this.linkingDeviation.set(false);
+        this.data.set(f);
+      },
     });
   }
 

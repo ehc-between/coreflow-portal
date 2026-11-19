@@ -49,18 +49,26 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RecordTypeVersion } from '../../core/records/record.models';
 import { RecordsApi } from '../../core/records/records-api';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../shared/ask/ask-about';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { EntityChip, EntityChipRef } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
 import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { DynamicForm } from '../../shared/records/dynamic-form';
-import { CompleteRecord } from '../../shared/forms/complete-record';
-import { CompleteGroup, fieldSpecGroups, isFilled } from '../../shared/forms/field-tier';
 import { parseClause } from '../../shared/requirement-links/clause-picker';
 import { fixedShortName, shortNameKey } from '../../shared/requirement-links/requirement-label';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
@@ -81,7 +89,7 @@ import { DeviationAccessEditor } from './access/deviation-access-editor';
 import { DeviationActions } from './actions/deviation-actions';
 import { DeviationClassificationFields } from './classification-fields';
 import { DeviationCaseHistory, HistoryRow } from './detail/case-history';
-import { DeviationClosureChecklist } from './detail/closure-checklist';
+import { STATE_TONE, deviationMissing, deviationState } from './detail/deviation-follow-up';
 import { DeviationReporting, ReportingSave } from './detail/reporting-panel';
 import {
   DEVIATIONS_ROOT_CRUMB,
@@ -95,6 +103,8 @@ import {
 import { buildDeviationPatch, editFormFrom } from './deviation-edit';
 import {
   ROOT_CAUSE_METHOD_OPTIONS,
+  actionStatusLabelKey,
+  actionStatusToneValue,
   SEVERITY_OPTIONS,
   SOURCE_OPTIONS,
   fieldErrorKeys,
@@ -181,28 +191,32 @@ interface ClauseChip {
 }
 
 /**
- * Deviation detail on the shared record frame (docs/ux-guide.md, "Detail"):
- * breadcrumbs, the title as h1 with code · type · status · severity in the meta
- * line, "Endre status" as the one primary action, Edit and Follow as secondary,
- * "Lag ny fra denne" (risk, task, training, document) from the frame, and Print /
- * Delete in "Mer". The Details tab tells the case in order: what happened (facts,
- * immediate action, where it came from, the requirements it affects with one-click
- * typical clauses), the authority notifications that apply, the type's fields,
- * the root cause and its analysis, the actions, and similar cases. The aside has
- * "Krav dette dokumenterer", the connections, the closing checklist and one
- * "Ansvar og tilgang" card. The Activity tab is the case history.
+ * Deviation detail on the detail-page anatomy (docs/ux-guide.md §2.7): the title
+ * as h1 with code · type · status · severity in the meta line, "Endre status" as
+ * the one primary action, Rediger as secondary, Følg / "Lag ny fra denne" / Print /
+ * Delete in "Mer", and every assistant action (summary, root cause, actions,
+ * compare) in "Spør KI". "Hovedinformasjon" comes first: a status sentence, what
+ * happened, what was done straight away, the root cause and the actions. The
+ * Details tab has the other facts (empty ones hidden), the authority
+ * notifications, the type's fields, then the case in order: why it happened, what
+ * we do, did it work, similar cases. The "Oppfølging" card lists what the case
+ * still needs before it can be closed (the closing checklist as actionable lines),
+ * the requirements (with the type's typical clauses one click away), the
+ * connections and owner / visibility / dates; managers change owner and access in
+ * a collapsed panel below it. The Activity tab is the case history.
  */
 @Component({
   selector: 'app-deviation-detail',
   imports: [
     TourStepDirective,
-    WatchButton,
-    AskAbout,
     AiAssistButton,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     MarkdownPipe,
     DynamicForm,
-    CompleteRecord,
     EntityTasks,
     EntityChip,
     SimilarCases,
@@ -231,7 +245,6 @@ interface ClauseChip {
     DeviationAccessEditor,
     DeviationClassificationFields,
     DeviationCaseHistory,
-    DeviationClosureChecklist,
     DeviationEventFacts,
     DeviationFormRow,
     DeviationReporting,
@@ -248,6 +261,7 @@ interface ClauseChip {
       </div>
     } @else if (deviation(); as dev) {
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="deviation"
         [entityId]="dev.id"
         [title]="dev.title"
@@ -259,13 +273,15 @@ interface ClauseChip {
         [fieldLabels]="fieldLabels"
         [customActivity]="true"
         [counts]="{ activity: events().length }"
+        [missing]="missing()"
       >
-        <ng-container meta>
+        <ng-container ngProjectAs="[meta]">
           <span class="font-mono" data-testid="deviation-code">{{ dev.code }}</span>
           @if (dev.type_name) {
             <span aria-hidden="true">·</span>
             <span>{{ dev.type_name }}</span>
           }
+          <span aria-hidden="true">·</span>
           <app-badge [tone]="statusLabels.tone(dev)" data-testid="status-badge">{{
             statusLabels.label(dev)
           }}</app-badge>
@@ -277,19 +293,59 @@ interface ClauseChip {
           @if (overdue(dev)) {
             <app-status-badge meaning="lifecycle" value="overdue" />
           }
-          @if (dev.visibility === 'restricted') {
-            <app-badge tone="neutral">
-              <app-icon name="lock" [size]="12" />
-              {{ 'deviations.visibility.restricted' | transloco }}
-            </app-badge>
-          }
-          @if (dev.record_type_version) {
-            <app-badge tone="neutral">{{
-              'deviations.wf.version' | transloco: { version: dev.record_type_version }
-            }}</app-badge>
-          }
-          <app-ask-about class="flex-none" />
         </ng-container>
+
+        <!-- §2.7: every assistant action of the case in the header's "Spør KI" menu. -->
+        <button
+          appMenuItem
+          ask
+          type="button"
+          data-testid="ai-summarise"
+          (click)="runAssist('summary')"
+        >
+          <app-icon name="spark" [size]="15" />
+          {{ 'deviations.page.ai.summarise' | transloco }}
+        </button>
+        @if (canEditThis() && !editing()) {
+          <ng-container ngProjectAs="[ask]">
+            <button
+              appMenuItem
+              ask
+              type="button"
+              data-testid="ai-root-cause"
+              (click)="runAssist('rootCause')"
+            >
+              <app-icon name="spark" [size]="15" />
+              {{ 'deviations.assist.suggestRootCause' | transloco }}
+            </button>
+            <button
+              appMenuItem
+              ask
+              type="button"
+              data-testid="ai-actions"
+              (click)="runAssist('actions')"
+            >
+              <app-icon name="spark" [size]="15" />
+              {{ 'deviations.assist.suggestActions' | transloco }}
+            </button>
+          </ng-container>
+        }
+        @if (similarCases()?.hasItems() && !editing()) {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            data-testid="ai-compare"
+            (click)="runAssist('similar')"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'deviations.page.ai.compare' | transloco }}
+          </button>
+        }
+        <button appMenuItem ask type="button" data-testid="ai-ask" (click)="askAboutCase(dev)">
+          <app-icon name="spark" [size]="15" />
+          {{ 'deviations.page.ai.ask' | transloco }}
+        </button>
 
         <ng-container ngProjectAs="[primary]">
           @if (!editing()) {
@@ -363,7 +419,6 @@ interface ClauseChip {
                 {{ 'deviations.detail.edit' | transloco }}
               </app-button>
             }
-            <app-watch-button entityType="deviation" [entityId]="dev.id" />
           } @else {
             <app-button variant="ghost" (click)="cancelEdit()">
               {{ 'deviations.detail.cancel' | transloco }}
@@ -399,8 +454,94 @@ interface ClauseChip {
           lesson="root-cause-analysis"
         />
 
+        <!-- §2.7 "Hovedinformasjon": what happened, what was done, why, and the actions. -->
+        @if (!editing()) {
+          <app-record-lead record-lead [fillLink]="canEditThis() ? editLink() : null">
+            <app-record-status-line status [tone]="statusTone()">{{
+              statusSentence()
+            }}</app-record-status-line>
+            <app-field-item
+              size="lead"
+              [wide]="true"
+              labelKey="deviations.page.lead.whatHappened"
+              [value]="dev.description"
+              [multiline]="true"
+            />
+            <app-field-item
+              size="lead"
+              labelKey="deviations.page.lead.immediateAction"
+              [value]="dev.immediate_action"
+              [multiline]="true"
+            />
+            <app-field-item
+              size="lead"
+              [labelKey]="
+                dev.root_cause_method === 'not_needed'
+                  ? 'deviations.page.lead.rootCauseNotNeeded'
+                  : 'deviations.page.lead.rootCause'
+              "
+              [value]="dev.root_cause"
+              [multiline]="true"
+            />
+            <app-field-item
+              size="lead"
+              [wide]="true"
+              labelKey="deviations.page.lead.actions"
+              [keepEmpty]="true"
+              emptyKey="deviations.page.lead.actionsNone"
+            >
+              @if (actionSummary(); as s) {
+                <span class="flex flex-col gap-1.5" data-testid="lead-actions">
+                  @for (a of s.top; track a.id) {
+                    <span class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="actionStatusToneValue(a.status)"
+                        [labelKey]="actionStatusLabelKey(a.status)"
+                      />
+                      <span class="min-w-0">{{ a.description }}</span>
+                      @if (a.owner_name || a.due_at) {
+                        <span class="text-meta font-normal text-fg-muted">
+                          {{ a.owner_name }}
+                          @if (a.owner_name && a.due_at) {
+                            ·
+                          }
+                          @if (a.due_at) {
+                            {{ 'deviations.actions.dueLabel' | transloco: { date: day(a.due_at) } }}
+                          }
+                        </span>
+                      }
+                    </span>
+                  }
+                  <button
+                    type="button"
+                    class="w-fit text-meta font-semibold text-accent hover:underline"
+                    (click)="scrollTo('dev-actions')"
+                  >
+                    {{
+                      'deviations.page.lead.seeActions'
+                        | transloco: { total: s.total, done: s.done }
+                    }}
+                    <span aria-hidden="true">↓</span>
+                  </button>
+                </span>
+              }
+            </app-field-item>
+          </app-record-lead>
+        }
+
         <!-- Details -->
         <div class="flex flex-col gap-5">
+          <app-ai-assist-button
+            #summaryAssist
+            class="empty:hidden"
+            [quiet]="true"
+            assist="deviations.summarise"
+            labelKey="deviations.page.ai.summarise"
+            entityType="deviation"
+            [entityId]="dev.id"
+            (text)="summary.set($event)"
+          />
           @if (summary()) {
             <app-card>
               <div class="flex items-start justify-between gap-3" aria-live="polite">
@@ -467,6 +608,8 @@ interface ClauseChip {
 
           @if (openObligations().length && !editing()) {
             <app-deviation-reporting
+              id="dev-reporting"
+              class="block scroll-mt-6"
               [obligations]="dev.reporting_obligations ?? []"
               [deviationId]="dev.id"
               [version]="dev"
@@ -478,16 +621,11 @@ interface ClauseChip {
 
           @if (!editing()) {
             <app-card appTourStep="deviations-meta">
-              <h2 class="mb-4 font-display text-section font-bold text-fg">
-                {{ 'deviations.detail.sections.what' | transloco }}
-              </h2>
-              <app-field-list [columns]="2">
-                <app-field-item
-                  labelKey="deviations.create.fields.description"
-                  [value]="dev.description"
-                  [wide]="true"
-                  [multiline]="true"
-                />
+              <app-record-details
+                [columns]="3"
+                [fillLink]="canEditThis() ? editLink() : null"
+                titleKey="deviations.page.details.title"
+              >
                 <app-field-item
                   labelKey="deviations.facts.occurredAt"
                   [value]="dateTime(dev.occurred_at)"
@@ -497,43 +635,23 @@ interface ClauseChip {
                   [value]="dateTime(dev.detected_at)"
                 />
                 <app-field-item labelKey="deviations.facts.location" [value]="dev.location" />
-                <app-field-item labelKey="deviations.detail.meta.source">
-                  <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <app-field-item labelKey="deviations.page.details.source">
+                  <span class="flex flex-col gap-1">
                     <span>{{ sourceLabelKey(dev.source) | transloco }}</span>
                     @if (originRef(); as ref) {
-                      <span class="text-fg-muted">·</span>
                       <span class="text-meta text-fg-muted">{{
-                        'deviations.detail.createdFrom' | transloco
+                        'deviations.page.details.createdFrom' | transloco
                       }}</span>
-                      <app-entity-chip [ref]="ref" data-testid="origin" />
+                      <app-entity-chip [ref]="ref" [stacked]="true" data-testid="origin" />
                     }
                   </span>
                 </app-field-item>
                 <app-field-item
-                  labelKey="deviations.facts.immediateAction"
-                  [value]="dev.immediate_action"
-                  [wide]="true"
-                  [multiline]="true"
+                  labelKey="deviations.create.fields.department"
+                  [value]="dev.department_id ? departmentName(dev.department_id) : null"
                 />
-                <app-field-item
-                  labelKey="deviations.detail.meta.raised"
-                  [value]="dateTime(dev.raised_at)"
-                />
-                <app-field-item labelKey="deviations.detail.meta.due" [value]="day(dev.due_at)" />
-                @if (dev.closed_at) {
-                  <app-field-item
-                    labelKey="deviations.detail.meta.closed"
-                    [value]="dateTime(dev.closed_at)"
-                  />
-                }
-                @if (dev.department_id) {
-                  <app-field-item
-                    labelKey="deviations.create.fields.department"
-                    [value]="departmentName(dev.department_id)"
-                  />
-                }
-                @if (dev.tags.length) {
-                  <app-field-item labelKey="deviations.create.fields.tags" [wide]="true">
+                <app-field-item labelKey="deviations.create.fields.tags" [wide]="true">
+                  @if (dev.tags.length) {
                     <span class="flex flex-wrap gap-1.5">
                       @for (t of dev.tags; track t) {
                         <span
@@ -542,64 +660,9 @@ interface ClauseChip {
                         >
                       }
                     </span>
-                  </app-field-item>
-                }
-              </app-field-list>
-
-              <div class="mt-5 border-t border-border pt-4" data-testid="cited-requirements">
-                <div class="mb-2 flex flex-wrap items-center gap-2">
-                  <h3 class="text-ui font-semibold text-fg">
-                    {{ 'deviations.form.requirements' | transloco }}
-                  </h3>
-                  @for (std of requirementStandards(); track std) {
-                    <app-badge tone="neutral">{{ standardLabelKey(std) | transloco }}</app-badge>
                   }
-                </div>
-                @if (citedChips().length) {
-                  <ul class="flex flex-wrap gap-1.5">
-                    @for (chip of citedChips(); track chip.ref) {
-                      <li
-                        class="inline-flex items-center gap-1 rounded-full border border-border-strong bg-surface px-2.5 py-0.5 text-meta font-semibold text-fg"
-                        [title]="chip.title"
-                      >
-                        <app-icon name="checkcircle" [size]="12" class="text-pass-ink" />
-                        {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} ·
-                        {{ chip.number }}
-                      </li>
-                    }
-                  </ul>
-                  <p class="mt-2 text-meta text-fg-muted">
-                    {{ 'deviations.detail.citedHint' | transloco }}
-                  </p>
-                } @else {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'deviations.detail.noRequirements' | transloco }}
-                  </p>
-                }
-                @if (typicalChips().length && canEditThis()) {
-                  <div
-                    class="mt-3 flex flex-wrap items-center gap-1.5"
-                    data-testid="suggested-clauses"
-                  >
-                    <span class="text-meta text-fg-muted">{{
-                      'deviations.detail.typicalForType' | transloco
-                    }}</span>
-                    @for (chip of typicalChips(); track chip.ref) {
-                      <button
-                        type="button"
-                        class="inline-flex min-h-7 items-center gap-1 rounded-full border border-dashed border-border-strong bg-surface px-2.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent disabled:opacity-60"
-                        [title]="chip.title"
-                        [disabled]="linkingClause() !== null"
-                        (click)="linkClause(chip.ref)"
-                      >
-                        <app-icon name="plus" [size]="12" />
-                        {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} ·
-                        {{ chip.number }}
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
+                </app-field-item>
+              </app-record-details>
             </app-card>
           } @else {
             <!-- Edit form -->
@@ -842,45 +905,28 @@ interface ClauseChip {
           }
 
           @if (!editing()) {
-            <app-card data-testid="card-why">
+            <app-card data-testid="card-why" id="dev-why" class="scroll-mt-6">
               <h2 class="font-display text-section font-bold text-fg">
                 {{ 'deviations.plain.why.title' | transloco }}
               </h2>
               <p class="mt-0.5 mb-3 text-meta text-fg-muted">
                 {{ 'deviations.plain.why.hint' | transloco }}
               </p>
-              <div
-                class="mb-4 rounded-tile bg-surface-2 px-3.5 py-3"
-                data-testid="root-cause-summary"
-              >
-                @if (dev.root_cause) {
-                  <p class="text-meta font-semibold text-fg-muted">
-                    {{
-                      (dev.root_cause_method === 'not_needed'
-                        ? 'deviations.detail.notNeededReason'
-                        : 'deviations.create.fields.rootCause'
-                      ) | transloco
-                    }}
-                    @if (dev.root_cause_method && dev.root_cause_method !== 'not_needed') {
-                      · {{ rootCauseMethodLabelKey(dev.root_cause_method) | transloco }}
-                    }
-                  </p>
-                  <p class="mt-1 text-ui whitespace-pre-line text-fg">{{ dev.root_cause }}</p>
-                } @else {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'deviations.detail.noRootCause' | transloco }}
-                  </p>
-                }
-              </div>
               <app-root-cause-panel
                 [deviationId]="dev.id"
                 [canEdit]="canEditThis()"
+                [quiet]="true"
                 [problem]="dev.description ?? ''"
                 (applied)="refreshDeviation()"
               />
             </app-card>
 
-            <app-card appTourStep="deviations-capa" data-testid="card-what">
+            <app-card
+              appTourStep="deviations-capa"
+              data-testid="card-what"
+              id="dev-actions"
+              class="scroll-mt-6"
+            >
               <app-deviation-actions
                 titleKey="deviations.plain.what.title"
                 introKey="deviations.plain.what.hint"
@@ -894,18 +940,23 @@ interface ClauseChip {
                 (stale)="refreshDeviation()"
               />
               @if (canEditThis()) {
-                <div class="mt-3 border-t border-border pt-3">
-                  <app-suggested-actions [deviationId]="dev.id" (added)="onActionAdded($event)" />
-                </div>
+                <app-suggested-actions
+                  class="mt-3 block empty:hidden"
+                  [deviationId]="dev.id"
+                  [quiet]="true"
+                  (added)="onActionAdded($event)"
+                />
               }
             </app-card>
 
-            <app-card data-testid="card-effect">
+            <app-card data-testid="card-effect" id="dev-effect" class="scroll-mt-6">
               <app-deviation-effect-check [actions]="actions()" />
             </app-card>
 
             @if (!openObligations().length && (dev.reporting_obligations ?? []).length) {
               <app-deviation-reporting
+                id="dev-reporting"
+                class="block scroll-mt-6"
                 [obligations]="dev.reporting_obligations ?? []"
                 [deviationId]="dev.id"
                 [version]="dev"
@@ -915,40 +966,112 @@ interface ClauseChip {
               />
             }
 
-            <app-card>
-              <app-similar-cases [deviationId]="dev.id" />
+            <app-card id="dev-similar" class="scroll-mt-6">
+              <app-similar-cases [deviationId]="dev.id" [quiet]="true" />
             </app-card>
-
-            <app-why-it-matters scope="deviations" page="detail" [frameworks]="whyFrameworks()" />
           }
         </div>
 
-        <!-- Aside -->
-        <ng-container aside-requirements>
+        <!-- Oppfølging: requirements (with the type's typical clauses one click away). -->
+        <ng-container ngProjectAs="[aside-requirements]">
           @if (canReadStandards()) {
             @for (key of [requirementsKey()]; track key) {
-              <app-card>
-                <app-supports-requirements
-                  entityType="deviation"
-                  [entityId]="dev.id"
-                  [canEdit]="canEditThis()"
-                  [actions]="actions()"
-                  [frameworks]="requirementFrameworks()"
-                />
-              </app-card>
+              <app-supports-requirements
+                entityType="deviation"
+                [entityId]="dev.id"
+                [canEdit]="canEditThis()"
+                [actions]="actions()"
+                [frameworks]="requirementFrameworks()"
+              />
             }
+          } @else {
+            <div data-testid="cited-requirements">
+              <h2 class="mb-2 font-semibold text-fg">
+                {{ 'deviations.form.requirements' | transloco }}
+              </h2>
+              @if (citedChips().length) {
+                <ul class="flex flex-wrap gap-1.5">
+                  @for (chip of citedChips(); track chip.ref) {
+                    <li
+                      class="inline-flex items-center gap-1 rounded-full border border-border-strong bg-surface px-2.5 py-0.5 text-meta font-semibold text-fg"
+                      [title]="chip.title"
+                    >
+                      <app-icon name="checkcircle" [size]="12" class="text-pass-ink" />
+                      {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} ·
+                      {{ chip.number }}
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="text-ui text-fg-muted">
+                  {{ 'deviations.page.noRequirements' | transloco }}
+                </p>
+              }
+            </div>
+          }
+          @if (typicalChips().length && canEditThis()) {
+            <div class="mt-3 flex flex-wrap items-center gap-1.5" data-testid="suggested-clauses">
+              <span class="w-full text-meta text-fg-muted">{{
+                'deviations.page.typicalForType' | transloco
+              }}</span>
+              @for (chip of typicalChips(); track chip.ref) {
+                <button
+                  type="button"
+                  class="inline-flex min-h-7 items-center gap-1 rounded-full border border-dashed border-border-strong bg-surface px-2.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent disabled:opacity-60"
+                  [title]="chip.title"
+                  [disabled]="linkingClause() !== null"
+                  (click)="linkClause(chip.ref)"
+                >
+                  <app-icon name="plus" [size]="12" />
+                  {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} ·
+                  {{ chip.number }}
+                </button>
+              }
+            </div>
           }
         </ng-container>
 
-        <div aside class="flex flex-col gap-4">
-          @if (!editing()) {
-            <app-complete-record
-              [groups]="completeGroups()"
-              [canEdit]="canEditThis()"
-              (fill)="startEdit(dev)"
-            />
-          }
+        <!-- Oppfølging: who owns the case, who can see it and the dates. -->
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="deviations.detail.owner"
+            [value]="dev.owner_name || access()?.owner_name"
+            [keepEmpty]="true"
+            emptyKey="deviations.page.meta.noOwner"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="deviations.page.meta.visibility"
+            [value]="visibilityLabelKey(dev.visibility) | transloco"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="deviations.detail.meta.due"
+            [keepEmpty]="true"
+            emptyKey="deviations.page.meta.noDue"
+            emptyActionKey="deviations.page.meta.setDue"
+            [emptyLink]="canEditThis() ? editLink() : null"
+          >
+            @if (dev.due_at) {
+              <span [class.text-warn-ink]="overdue(dev)" [class.font-semibold]="overdue(dev)">{{
+                day(dev.due_at)
+              }}</span>
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="deviations.detail.meta.raised"
+            [value]="day(dev.raised_at)"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="deviations.detail.meta.closed"
+            [value]="dev.closed_at ? day(dev.closed_at) : null"
+          />
+        </app-record-meta>
 
+        <div aside class="flex flex-col gap-4">
           @if (dev.workflow) {
             <app-deviation-workflow-panel
               appTourStep="deviations-workflow"
@@ -961,62 +1084,44 @@ interface ClauseChip {
             />
           }
 
-          @if ((dev.closure_checklist ?? []).length && dev.status !== 'cancelled') {
-            <app-deviation-closure-checklist [items]="dev.closure_checklist ?? []" />
-          }
-
-          <app-card>
-            <h2 class="mb-2 font-display text-card font-bold text-fg">
-              {{ 'deviations.detail.responsibility' | transloco }}
-            </h2>
-            @if (canManage() && access(); as acc) {
-              <app-deviation-access-editor
-                [deviationId]="dev.id"
-                [canManage]="canManage()"
-                [locked]="editLockKey() !== null"
-                [owner]="acc.owner_user_id ?? ''"
-                [ownerName]="acc.owner_name ?? ''"
-                [visibility]="acc.visibility"
-                [grants]="grants()"
-                (ownerChange)="onOwnerChange($event)"
-                (visibilityChange)="onVisibilityChange($event)"
-                (grantsChange)="grants.set($event)"
-                (stale)="refreshDeviation()"
-              />
-            } @else {
-              <app-field-list [columns]="1">
-                <app-field-item
-                  labelKey="deviations.detail.owner"
-                  [value]="dev.owner_name"
-                  empty="notSet"
+          @if (canManage() && access(); as acc) {
+            <details
+              id="dev-access"
+              class="group scroll-mt-6 rounded-card border border-border bg-surface shadow-card"
+              data-testid="access-panel"
+            >
+              <summary
+                class="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-display text-card font-bold text-fg [&::-webkit-details-marker]:hidden"
+              >
+                {{ 'deviations.page.access.title' | transloco }}
+                <app-icon
+                  name="chevron"
+                  [size]="14"
+                  class="text-fg-muted transition-transform group-open:rotate-180"
                 />
-                <app-field-item
-                  labelKey="deviations.wf.visibility"
-                  [value]="visibilityLabelKey(dev.visibility) | transloco"
+              </summary>
+              <div class="border-t border-border px-4 pt-3 pb-4">
+                <app-deviation-access-editor
+                  [deviationId]="dev.id"
+                  [canManage]="canManage()"
+                  [locked]="editLockKey() !== null"
+                  [owner]="acc.owner_user_id ?? ''"
+                  [ownerName]="acc.owner_name ?? ''"
+                  [visibility]="acc.visibility"
+                  [grants]="grants()"
+                  (ownerChange)="onOwnerChange($event)"
+                  (visibilityChange)="onVisibilityChange($event)"
+                  (grantsChange)="grants.set($event)"
+                  (stale)="refreshDeviation()"
                 />
-              </app-field-list>
-            }
-          </app-card>
-
-          @if (!editing()) {
-            <app-card>
-              <h2 class="mb-2 font-display text-card font-bold text-fg">
-                {{ 'deviations.assist.summaryCardTitle' | transloco }}
-              </h2>
-              <p class="mb-3 text-meta text-fg-muted">
-                {{ 'deviations.assist.summaryCardHint' | transloco }}
-              </p>
-              <app-ai-assist-button
-                assist="deviations.summarise"
-                labelKey="deviations.assist.summarise"
-                entityType="deviation"
-                [entityId]="dev.id"
-                (text)="summary.set($event)"
-              />
-            </app-card>
+              </div>
+            </details>
           }
         </div>
 
+        <div aside-learn>
+          <app-why-it-matters scope="deviations" page="detail" [frameworks]="whyFrameworks()" />
+        </div>
         <div activity>
           <app-deviation-case-history [rows]="history()" />
         </div>
@@ -1115,6 +1220,13 @@ export class DeviationDetail {
 
   protected readonly summary = signal('');
   protected readonly recordVersion = signal<RecordTypeVersion | null>(null);
+  protected readonly actionStatusLabelKey = actionStatusLabelKey;
+  protected readonly actionStatusToneValue = actionStatusToneValue;
+  private readonly ask = inject(AskPanelService);
+  private readonly summaryAssist = viewChild<AiAssistButton>('summaryAssist');
+  private readonly rootCausePanel = viewChild(RootCausePanel);
+  private readonly suggestedActions = viewChild(SuggestedActions);
+  protected readonly similarCases = viewChild(SimilarCases);
   protected readonly recordErrors = signal<Readonly<Record<string, string>>>({});
   protected readonly isWorkflow = computed(() => {
     const dev = this.deviation();
@@ -1185,6 +1297,53 @@ export class DeviationDetail {
   protected readonly data = signal<Record<string, unknown>>({});
   protected readonly dataErrors = signal<Record<string, string>>({});
   protected readonly titleError = signal(false);
+
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/deviations',
+    this.id(),
+    'edit',
+  ]);
+
+  /** Status sentence of "Hovedinformasjon": the status word, then what it means. */
+  protected readonly statusSentence = computed(() => {
+    const dev = this.deviation();
+    if (!dev) {
+      return '';
+    }
+    return this.language.translate(`deviations.page.status.${deviationState(dev)}`, {
+      status: this.statusLabels.label(dev),
+    });
+  });
+
+  protected readonly statusTone = computed<StatusLineTone>(() => {
+    const dev = this.deviation();
+    return dev ? STATE_TONE[deviationState(dev)] : 'neutral';
+  });
+
+  /** The actions in "Hovedinformasjon": the open ones first (at most three) and the counts. */
+  protected readonly actionSummary = computed(() => {
+    const list = this.actions().filter((a) => a.status !== 'cancelled');
+    if (!list.length) {
+      return null;
+    }
+    const isDone = (a: Action) => a.status === 'done' || a.status === 'verified';
+    const ordered = [...list.filter((a) => !isDone(a)), ...list.filter(isDone)];
+    return { top: ordered.slice(0, 3), total: list.length, done: list.filter(isDone).length };
+  });
+
+  /** "Oppfølging": what the open case still needs, each line leading to where it is done. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const dev = this.deviation();
+    if (!dev || !this.canEditThis() || this.editing()) {
+      return [];
+    }
+    return deviationMissing(dev, {
+      editLink: this.editLink(),
+      overdue: this.overdue(dev),
+      canManage: this.canManage() && this.access() !== null,
+      scrollTo: (id) => this.scrollTo(id),
+    });
+  });
 
   protected readonly breadcrumbs = computed(() => [
     DEVIATIONS_ROOT_CRUMB,
@@ -1295,50 +1454,6 @@ export class DeviationDetail {
     return dev ? editLockKey(dev) : null;
   });
   protected readonly canEditThis = computed(() => this.canWrite() && this.editLockKey() === null);
-  /** "Fullfør posten" (U31): what the open case still needs, by section, and why. */
-  protected readonly completeGroups = computed<CompleteGroup[]>(() => {
-    const dev = this.deviation();
-    if (!dev || dev.status_category === 'done' || dev.status_category === 'cancelled') {
-      return [];
-    }
-    const item = (key: string, label: string, value: unknown) => ({
-      key,
-      labelKey: `forms.complete.fields.${label}`,
-      done: isFilled(value),
-    });
-    const event = [
-      item('description', 'description', dev.description),
-      item('occurred_at', 'occurredAt', dev.occurred_at),
-      item('location', 'location', dev.location),
-      item('immediate_action', 'immediateAction', dev.immediate_action),
-    ];
-    const core = new Set(event.map((entry) => entry.key));
-    const version = this.recordVersion();
-    const typeGroups = version
-      ? fieldSpecGroups(version.fields, version.layout, dev.data ?? {}, this.language.active())
-          .map((group) => ({ ...group, items: group.items.filter((i) => !core.has(i.key)) }))
-          .filter((group) => group.items.length > 0)
-      : [];
-    return [
-      {
-        key: 'event',
-        titleKey: 'forms.complete.groups.event.title',
-        reasonKey: 'forms.complete.groups.event.reason',
-        items: event,
-      },
-      ...typeGroups,
-      {
-        key: 'followUp',
-        titleKey: 'forms.complete.groups.followUp.title',
-        reasonKey: 'forms.complete.groups.followUp.reason',
-        items: [
-          item('owner', 'owner', dev.owner_user_id),
-          item('due_at', 'dueAt', dev.due_at),
-          item('root_cause', 'rootCause', dev.root_cause),
-        ],
-      },
-    ];
-  });
   protected readonly statusLockedKey = computed(() => {
     const dev = this.deviation();
     return dev ? statusLockedKey(dev) : null;
@@ -1378,6 +1493,45 @@ export class DeviationDetail {
         });
       }
     });
+  }
+
+  /** Bring a section of the Details tab into view (open it first when collapsed). */
+  protected scrollTo(id: string): void {
+    const target = document.getElementById(id);
+    if (target instanceof HTMLDetailsElement) {
+      target.open = true;
+    }
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** A "Spør KI" menu item: run the assist where its answer is shown, and show it. */
+  protected runAssist(kind: 'summary' | 'rootCause' | 'actions' | 'similar'): void {
+    switch (kind) {
+      case 'summary':
+        this.summaryAssist()?.run();
+        return;
+      case 'rootCause':
+        this.rootCausePanel()?.suggest();
+        this.scrollTo('dev-why');
+        return;
+      case 'actions':
+        this.suggestedActions()?.run();
+        this.scrollTo('dev-actions');
+        return;
+      case 'similar':
+        this.similarCases()?.compare();
+        this.scrollTo('dev-similar');
+        return;
+    }
+  }
+
+  /** "Spør om saken": open the assistant with a question about this case. */
+  protected askAboutCase(dev: DeviationDetailModel): void {
+    this.ask.askAbout(
+      this.language.translate('deviations.page.ai.askPrompt', { code: dev.code, title: dev.title }),
+      undefined,
+      { requirements: clauseRefsOf(dev.clauses) },
+    );
   }
 
   protected overdue(dev: DeviationDetailModel): boolean {

@@ -255,6 +255,38 @@
       "bodyWhistle": "You may report censurable conditions at work. The report is handled confidentially, and you can stay anonymous.",
       "scan": "Scan the code with your phone camera, or type the address:",
       "file": "reporting-poster"
+    },
+    "page": {
+      "askLabel": "Ask AI",
+      "status": {
+        "new": "New – nobody has looked at the report yet. Read it and decide what happens next.",
+        "triaged": "Being handled – decide whether it becomes a deviation or is closed.",
+        "converted": "Registered as a deviation – the follow-up happens in the deviation.",
+        "dismissed": "Closed – the report did not lead to a deviation."
+      },
+      "lead": {
+        "description": "What was reported",
+        "occurredOn": "When it happened",
+        "location": "Where it happened"
+      },
+      "followUp": "Follow-up",
+      "connected": "Became",
+      "notConverted": "Not registered as a deviation yet.",
+      "deadline": {
+        "acknowledged": "Receipt confirmed {{ date }}"
+      },
+      "meta": {
+        "received": "Received",
+        "contact": "Contact",
+        "anonymous": "Anonymous",
+        "handledBy": "Handled by"
+      },
+      "dialog": {
+        "triageTitle": "Start handling the report?",
+        "triageMessage": "The report is marked as being handled. You can add a message that the reporter sees with their receipt code.",
+        "dismissTitle": "Close the report without a deviation?",
+        "dismissMessage": "The report is closed and does not become a deviation. Say why if you can – the reporter sees the message with their receipt code."
+      }
     }
   },
   "publicReport": {
@@ -622,6 +654,64 @@
         "worked": "Yes, it worked",
         "failed": "No, needs a new action"
       }
+    }
+  },
+  "page": {
+    "lead": {
+      "whatHappened": "What happened",
+      "immediateAction": "What was done straight away",
+      "rootCause": "Why it happened (root cause)",
+      "rootCauseNotNeeded": "Why no root cause analysis is needed",
+      "actions": "Actions",
+      "actionsNone": "No actions yet",
+      "seeActions": "See all actions ({{ done }} of {{ total }} done)"
+    },
+    "status": {
+      "open": "{{ status }} – the case is registered but not investigated yet.",
+      "in_progress": "{{ status }} – the case is being worked on.",
+      "overdue": "{{ status }} – the deadline has passed.",
+      "ready": "{{ status }} – everything required is done. The case can be closed.",
+      "done": "{{ status }} – the case is closed.",
+      "cancelled": "{{ status }} – the case was cancelled and is not followed up."
+    },
+    "details": {
+      "title": "More details",
+      "source": "Where the case came from",
+      "createdFrom": "Created from"
+    },
+    "noRequirements": "No requirements are linked to the case yet.",
+    "typicalForType": "Typical for this type – click to link:",
+    "missing": {
+      "description": "Describe what happened",
+      "due": "Set a deadline",
+      "overdue": "The deadline has passed – set a new one",
+      "owner": "Choose an owner",
+      "checks": {
+        "root_cause": "Find the root cause",
+        "corrective_action_planned": "Plan a corrective action",
+        "actions_done": "Finish the actions",
+        "effectiveness_reviewed": "Check whether the actions worked",
+        "authorities_notified": "Decide whether the authorities must be notified"
+      }
+    },
+    "meta": {
+      "visibility": "Who can see it",
+      "noOwner": "No owner",
+      "noDue": "Not set",
+      "setDue": "Set deadline"
+    },
+    "access": {
+      "title": "Change owner and access"
+    },
+    "ai": {
+      "summarise": "Summarise the case",
+      "compare": "Compare with similar cases",
+      "ask": "Ask about the case",
+      "askPrompt": "Explain deviation {{ code }} \"{{ title }}\": what happened, what has been done, and what is left before the case can be closed?"
+    },
+    "capa": {
+      "update": "Update",
+      "done": "Done"
     }
   }
 }

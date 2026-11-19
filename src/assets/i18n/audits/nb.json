@@ -368,22 +368,46 @@
     },
     "next": {
       "internal": {
-        "planned": "Sett sammen teamet (med en ledende revisor) og sjekklisten. Trykk «Start revisjonen» når dagen kommer.",
-        "in_progress": "Svar på hvert spørsmål i sjekklisten og koble dokumentasjonen du så. Registrer et funn når noe ikke er i orden.",
-        "reporting": "Skriv sammendraget og den samlede konklusjonen, og send rapporten til godkjenning.",
-        "report_review": "Rapporten venter på godkjenning fra noen som ikke skrev den.",
-        "closed": "Revisjonen er avsluttet. Følg opp de åpne funnene til de er verifisert.",
-        "cancelled": "Revisjonen er avlyst. Gjenåpne den hvis den likevel skal gjennomføres."
+        "planned": "Planlagt – sett sammen teamet med en ledende revisor, og lag sjekklisten. Start revisjonen når dagen kommer.",
+        "in_progress": "Pågår – svar på hvert spørsmål i sjekklisten, og koble til dokumentasjonen du så. Registrer et funn når noe ikke er i orden.",
+        "reporting": "Rapportering – skriv sammendraget og den samlede konklusjonen, og send rapporten til godkjenning.",
+        "report_review": "Rapport til godkjenning – rapporten venter på godkjenning fra noen som ikke skrev den.",
+        "closed": "Avsluttet – følg opp de åpne funnene til de er verifisert.",
+        "cancelled": "Avlyst – gjenåpne revisjonen hvis den likevel skal gjennomføres."
       },
       "external": {
-        "planned": "Forbered dere: del omfanget med revisoren og pek ut kontaktpersoner. Start revisjonen når den begynner.",
-        "in_progress": "Last opp rapporten fra revisoren når dere får den, og registrer funnene i den.",
-        "reporting": "Registrer de siste funnene og skriv et kort sammendrag til ledelsen.",
-        "report_review": "Sammendraget venter på godkjenning.",
-        "closed": "Revisjonen er avsluttet. Følg opp funnene og hold sertifikatet oppdatert.",
-        "cancelled": "Revisjonen er avlyst. Gjenåpne den hvis den likevel skal holdes."
+        "planned": "Planlagt – del omfanget med revisoren, og pek ut kontaktpersoner. Start revisjonen når den begynner.",
+        "in_progress": "Pågår – last opp rapporten fra revisoren når dere får den, og registrer funnene i den.",
+        "reporting": "Rapportering – registrer de siste funnene, og skriv et kort sammendrag til ledelsen.",
+        "report_review": "Rapport til godkjenning – sammendraget venter på godkjenning.",
+        "closed": "Avsluttet – følg opp funnene, og hold sertifikatet oppdatert.",
+        "cancelled": "Avlyst – gjenåpne revisjonen hvis den likevel skal holdes."
       }
-    }
+    },
+    "lead": {
+      "scope": "Hva som revideres",
+      "criteria": "Revideres mot",
+      "when": "Når",
+      "actualWhen": "Gjennomført",
+      "auditor": "Hvem som reviderer oss",
+      "progress": "Fremdrift"
+    },
+    "progress": {
+      "checklist": "Sjekkliste: {{ answered }} av {{ total }} besvart",
+      "noChecklist": "Ingen sjekkliste ennå",
+      "findings": "{{ total }} funn, {{ open }} åpne",
+      "noFindings": "Ingen funn"
+    },
+    "missing": {
+      "lead": "Velg en ledende revisor",
+      "scope": "Beskriv hva som revideres",
+      "dates": "Sett datoer for revisjonen",
+      "checklist": "Lag sjekklisten",
+      "report": "Skriv rapporten",
+      "openFindings": "Følg opp {{ count }} åpne funn",
+      "owner": "Velg hvem som er ansvarlig"
+    },
+    "closedDone": "Avsluttet – alle funnene er fulgt opp."
   },
   "team": {
     "empty": "Ingen er tildelt denne revisjonen ennå.",
@@ -559,19 +583,42 @@
     "deviationsHint": "Koble avviket som håndterer dette funnet, eller opprett et med «Lag ny fra denne».",
     "next": {
       "nc": {
-        "open": "Den ansvarlige finner rotårsaken og planlegger korreksjonen. Trykk «Start svaret».",
-        "in_progress": "Fyll ut rotårsak, korreksjon og korrigerende tiltak, og send inn svaret.",
-        "pending_verification": "Revisoren kontrollerer at tiltakene er gjennomført, og verifiserer funnet.",
-        "closed": "Funnet er lukket. Sjekk senere om tiltakene virket.",
-        "cancelled": "Funnet er avlyst."
+        "open": "Åpen – den ansvarlige finner rotårsaken og planlegger korreksjonen.",
+        "in_progress": "Svar under arbeid – fyll ut rotårsak, korreksjon og korrigerende tiltak, og send inn svaret.",
+        "pending_verification": "Venter på verifisering – revisoren kontrollerer at tiltakene er gjennomført.",
+        "closed": "Lukket – sjekk senere om tiltakene virket.",
+        "cancelled": "Avlyst – funnet følges ikke opp lenger."
       },
       "other": {
-        "open": "Bestem hva dere vil gjøre med forslaget, og skriv beslutningen.",
-        "in_progress": "Skriv beslutningen og send den inn.",
-        "pending_verification": "Revisoren leser beslutningen og lukker funnet.",
-        "closed": "Funnet er lukket.",
-        "cancelled": "Funnet er avlyst."
+        "open": "Åpen – bestem hva dere vil gjøre, og skriv beslutningen.",
+        "in_progress": "Svar under arbeid – skriv beslutningen og send den inn.",
+        "pending_verification": "Venter på verifisering – revisoren leser beslutningen og lukker funnet.",
+        "closed": "Lukket – beslutningen er registrert.",
+        "cancelled": "Avlyst – funnet følges ikke opp lenger."
       }
+    },
+    "lead": {
+      "what": "Hva som ble funnet",
+      "evidence": "Hva revisor så",
+      "requirementNc": "Krav som ikke er oppfylt",
+      "requirement": "Kravet det gjelder",
+      "audit": "Funnet i revisjonen"
+    },
+    "deviationsTitle": "Avvik som følger opp funnet",
+    "linkDeviation": "Koble til et avvik",
+    "missing": {
+      "description": "Beskriv hva som ble funnet",
+      "owner": "Velg hvem som skal svare",
+      "due": "Sett en svarfrist",
+      "response": "Skriv svaret",
+      "decision": "Skriv beslutningen",
+      "actions": "Legg inn tiltak eller koble et avvik",
+      "verify": "Kontroller at tiltakene er gjennomført",
+      "effectiveness": "Sjekk om tiltakene virket"
+    },
+    "meta": {
+      "responded": "Svar sendt inn",
+      "closed": "Lukket"
     }
   },
   "certifications": {
@@ -839,6 +886,44 @@
   },
   "programmeDetail": {
     "about": "Om programmet",
-    "askAbout": "Forklar revisjonsprogram {{ code }}: hva det dekker, hvor langt det har kommet og hvor hullene er."
+    "askAbout": "Forklar revisjonsprogram {{ code }}: hva det dekker, hvor langt det har kommet og hvor hullene er.",
+    "status": {
+      "draft": "Utkast – godkjenn programmet når årets revisjoner er planlagt.",
+      "approved": "Godkjent – revisjonene gjennomføres etter planen.",
+      "closed": "Avsluttet – programmet for dette året er ferdig."
+    },
+    "lead": {
+      "objectives": "Hva programmet skal oppnå",
+      "riskBasis": "Hvorfor disse områdene (risiko)",
+      "progress": "Fremdrift"
+    },
+    "progress": "{{ done }} av {{ total }} revisjoner er avsluttet",
+    "progressOpen": "{{ count }} er fortsatt åpne",
+    "missing": {
+      "audits": "Legg til den første revisjonen",
+      "objectives": "Skriv målene for programmet",
+      "owner": "Velg hvem som er ansvarlig",
+      "approve": "Godkjenn programmet"
+    }
+  },
+  "detail": {
+    "ask": {
+      "plan": "Forklar denne revisjonen",
+      "finding": "Forklar dette funnet",
+      "rootCause": "Hjelp meg å finne rotårsaken",
+      "decision": "Hjelp meg å bestemme hva vi gjør",
+      "programme": "Forklar dette programmet"
+    },
+    "belongsTo": "Hører til",
+    "types": {
+      "plan": "Revisjon",
+      "programme": "Revisjonsprogram",
+      "certification": "Sertifisering",
+      "deviation": "Avvik"
+    },
+    "meta": {
+      "created": "Opprettet",
+      "updated": "Sist endret"
+    }
   }
 }

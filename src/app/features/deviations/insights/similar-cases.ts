@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -39,6 +41,7 @@ import { DeviationStatusLabels, StatusSubject } from '../deviation-status';
             labelKey="deviations.assist.compareCases"
             entityType="deviation"
             [entityId]="deviationId()"
+            [quiet]="quiet()"
             (text)="analysis.set($event)"
           />
         }
@@ -98,10 +101,20 @@ export class SimilarCases {
   protected readonly labels = inject(DeviationStatusLabels);
 
   readonly deviationId = input.required<string>();
+  /** Compared from the page's "Spør KI" menu ({@link compare}): no button of its own. */
+  readonly quiet = input(false);
 
   protected readonly items = signal<readonly SimilarDeviation[]>([]);
   protected readonly loading = signal(false);
   protected readonly analysis = signal('');
+  /** Whether there are similar cases to compare with. */
+  readonly hasItems = computed(() => this.items().length > 0);
+  private readonly assist = viewChild(AiAssistButton);
+
+  /** Compare this case with the similar ones (the "Spør KI" menu). */
+  compare(): void {
+    this.assist()?.run();
+  }
 
   constructor() {
     effect(() => {

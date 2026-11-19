@@ -20,7 +20,13 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../../shared/kit/entity-chip';
+import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
+import {
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { RevisionHistory } from '../../../shared/kit/revision-history';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -30,6 +36,7 @@ import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
@@ -52,6 +59,7 @@ import {
   SoaBulkUpdate,
   SoaEntry,
   SoaEntryUpdate,
+  SoaRiskRef,
   SoaVersion,
 } from '../data/risk.models';
 import { PersonSelect } from '../shared/person-select';
@@ -59,6 +67,21 @@ import { RiskField } from '../shared/risk-field';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { SoaProgress } from '../shared/soa-progress';
 import { SubjectPicker } from '../shared/subject-picker';
+
+/** The status sentence of one control (docs/ux-guide.md §2.7): open work is `warn`. */
+export function soaEntryStatus(e: SoaEntry): { key: string; tone: StatusLineTone } {
+  if (!e.applicable) {
+    return e.justification?.trim()
+      ? { key: 'risk.soa.detail.status.excluded', tone: 'neutral' }
+      : { key: 'risk.soa.detail.status.excludedMissing', tone: 'warn' };
+  }
+  if (e.needs_justification) {
+    return { key: 'risk.soa.detail.status.missing', tone: 'warn' };
+  }
+  return e.implementation_status === 'implemented'
+    ? { key: 'risk.soa.detail.status.implemented', tone: 'pass' }
+    : { key: `risk.soa.detail.status.${e.implementation_status}`, tone: 'warn' };
+}
 
 export type ApplicableFilter = 'all' | 'yes' | 'no' | 'missing';
 
@@ -192,6 +215,10 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
     AiAssistButton,
     WhyItMatters,
     EntityChip,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    FieldItem,
     RevisionHistory,
     LocalDayPipe,
     Alert,
@@ -627,59 +654,170 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
       (closed)="close()"
     >
       @if (selected(); as e) {
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
-          <fieldset [disabled]="!perms.canManage()" class="flex flex-col gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="inline-flex min-h-8 items-center gap-2 text-body font-semibold text-fg">
-                <input
-                  type="checkbox"
-                  [checked]="form().applicable"
-                  (change)="set('applicable', $any($event.target).checked)"
-                />
-                {{ 'risk.soa.applicableLabel' | transloco }}
-              </label>
-              <p class="text-meta text-fg-muted">{{ 'risk.soa.applicableHint' | transloco }}</p>
-            </div>
+        @let st = entryStatus(e);
+        <div class="flex flex-col gap-5" data-testid="soa-entry">
+          <app-record-lead [columns]="1" data-testid="soa-entry-lead">
+            <app-record-status-line status [tone]="st.tone" data-testid="soa-entry-status">
+              {{ st.key | transloco }}
+            </app-record-status-line>
+            <app-field-item
+              size="lead"
+              [labelKey]="
+                e.applicable ? 'risk.soa.detail.whyIncluded' : 'risk.soa.detail.whyExcluded'
+              "
+              [value]="e.justification"
+              [multiline]="true"
+            />
+            @if (e.applicable) {
+              <app-field-item
+                size="lead"
+                labelKey="risk.soa.detail.reasons"
+                [value]="reasonsText(e)"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="risk.soa.detail.how"
+                [value]="e.implementation_notes"
+                [multiline]="true"
+              />
+            }
+          </app-record-lead>
 
-            <fieldset>
-              <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
-                {{ 'risk.soa.fields.reasons' | transloco }}
-              </legend>
-              <div class="flex flex-wrap gap-x-4 gap-y-1.5">
-                @for (r of reasons; track r) {
-                  <label class="inline-flex min-h-8 items-center gap-1.5 text-ui text-fg">
-                    <input
-                      type="checkbox"
-                      [checked]="form().inclusion_reasons.includes(r)"
-                      (change)="toggleReason(r, $any($event.target).checked)"
-                    />
-                    {{ 'risk.soa.reasons.' + r | transloco }}
-                  </label>
+          <section
+            class="rounded-card border border-border bg-surface p-4"
+            data-testid="soa-connections"
+            [attr.aria-label]="'risk.soa.detail.connections' | transloco"
+          >
+            <h3 class="mb-3 font-display text-ui font-bold text-fg">
+              {{ 'risk.soa.detail.connections' | transloco }}
+            </h3>
+            <div data-testid="soa-documentation">
+              <h4 class="mb-1.5 text-meta font-semibold text-fg-muted">
+                {{ 'risk.soa.fields.documentedIn' | transloco }}
+              </h4>
+              <ul class="mb-2 flex flex-col gap-1.5">
+                @for (d of e.documentation ?? []; track d.entity_type + d.entity_id) {
+                  <li><app-entity-chip [ref]="d" [statusText]="!!d.status" /></li>
+                } @empty {
+                  <li class="text-ui text-fg-muted">
+                    {{ 'risk.soa.documentation.none' | transloco }}
+                  </li>
                 }
-              </div>
-            </fieldset>
+              </ul>
+              @if (perms.canManage()) {
+                <app-risk-subject-picker
+                  [types]="documentationTypes"
+                  (picked)="linkDocument(e, $event)"
+                />
+              }
+            </div>
+            <div class="mt-4 border-t border-border pt-3" data-testid="soa-risks">
+              <h4 class="mb-1.5 text-meta font-semibold text-fg-muted">
+                {{ 'risk.soa.detail.risks' | transloco }}
+                @if (e.treatment_count) {
+                  <span class="font-normal">
+                    · {{ 'risk.soa.detail.treatments' | transloco: { count: e.treatment_count } }}
+                  </span>
+                }
+              </h4>
+              <ul class="flex flex-col gap-1.5">
+                @for (r of e.risks; track r.id) {
+                  <li><app-entity-chip [ref]="riskRef(r)" /></li>
+                } @empty {
+                  <li class="text-ui text-fg-muted">{{ 'risk.soa.noRisks' | transloco }}</li>
+                }
+              </ul>
+            </div>
+            <app-record-meta class="mt-4 border-t border-border pt-3">
+              <app-field-item
+                layout="inline"
+                labelKey="risk.fields.owner"
+                [value]="e.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="risk.soa.fields.reviewedAt"
+                [keepEmpty]="true"
+                emptyKey="risk.soa.detail.notReviewed"
+              >
+                @if (e.reviewed_at) {
+                  {{ e.reviewed_at | localDay }}
+                }
+              </app-field-item>
+            </app-record-meta>
+          </section>
 
-            <app-risk-field
-              inputId="soa-justification"
-              labelKey="risk.soa.fields.justification"
-              [required]="!form().applicable"
-              helpPage="soaView"
-              helpField="justification"
-              [error]="justificationMissing() ? 'risk.errors.justification_required' : null"
+          @if (perms.canManage() && !formOpen()) {
+            <div class="flex justify-end">
+              <app-button (click)="formOpen.set(true)" data-testid="soa-edit">
+                {{ 'risk.soa.detail.edit' | transloco }}
+              </app-button>
+            </div>
+          }
+
+          @if (perms.canManage() && formOpen()) {
+            <form
+              class="flex flex-col gap-4 border-t border-border pt-4"
+              (submit)="$event.preventDefault(); save()"
+              novalidate
+              data-testid="soa-entry-form"
             >
-              <textarea
-                id="soa-justification"
-                rows="4"
-                [value]="form().justification"
-                [attr.aria-invalid]="justificationMissing() || null"
-                (input)="set('justification', $any($event.target).value)"
-              ></textarea>
-            </app-risk-field>
-            @if (perms.canManage()) {
+              <h3 class="font-display text-card font-bold text-fg">
+                {{ 'risk.soa.detail.edit' | transloco }}
+              </h3>
+              <div class="flex flex-col gap-1">
+                <label
+                  class="inline-flex min-h-8 items-center gap-2 text-body font-semibold text-fg"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="form().applicable"
+                    (change)="set('applicable', $any($event.target).checked)"
+                  />
+                  {{ 'risk.soa.applicableLabel' | transloco }}
+                </label>
+                <p class="text-meta text-fg-muted">{{ 'risk.soa.applicableHint' | transloco }}</p>
+              </div>
+
+              <fieldset>
+                <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+                  {{ 'risk.soa.fields.reasons' | transloco }}
+                </legend>
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+                  @for (r of reasons; track r) {
+                    <label class="inline-flex min-h-8 items-center gap-1.5 text-ui text-fg">
+                      <input
+                        type="checkbox"
+                        [checked]="form().inclusion_reasons.includes(r)"
+                        (change)="toggleReason(r, $any($event.target).checked)"
+                      />
+                      {{ 'risk.soa.reasons.' + r | transloco }}
+                    </label>
+                  }
+                </div>
+              </fieldset>
+
+              <app-risk-field
+                inputId="soa-justification"
+                labelKey="risk.soa.fields.justification"
+                [required]="!form().applicable"
+                helpPage="soaView"
+                helpField="justification"
+                [error]="justificationMissing() ? 'risk.errors.justification_required' : null"
+              >
+                <textarea
+                  id="soa-justification"
+                  rows="4"
+                  [value]="form().justification"
+                  [attr.aria-invalid]="justificationMissing() || null"
+                  (input)="set('justification', $any($event.target).value)"
+                ></textarea>
+              </app-risk-field>
               <div>
                 <app-ai-assist-button
                   assist="risk.soa_justification"
                   labelKey="risk.ai.draftJustification"
+                  variant="ghost"
                   [input]="{ entry_id: e.id }"
                   entityType="soa_entry"
                   [entityId]="e.id"
@@ -689,129 +827,96 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
                   {{ 'risk.ai.justificationHint' | transloco }}
                 </p>
               </div>
-            }
 
-            <app-risk-field inputId="soa-impl-status" labelKey="risk.soa.fields.implementation">
-              <select
-                id="soa-impl-status"
-                (change)="set('implementation_status', $any($event.target).value)"
-              >
-                @for (i of implementationStatuses; track i) {
-                  <option [value]="i" [selected]="i === form().implementation_status">
-                    {{ 'risk.soa.implementation.' + i | transloco }}
-                  </option>
-                }
-              </select>
-            </app-risk-field>
-            <app-risk-field inputId="soa-notes" labelKey="risk.soa.fields.notes">
-              <textarea
-                id="soa-notes"
-                rows="3"
-                [value]="form().implementation_notes"
-                (input)="set('implementation_notes', $any($event.target).value)"
-              ></textarea>
-            </app-risk-field>
-            <app-risk-field inputId="soa-owner" labelKey="risk.fields.owner">
-              <app-person-select
-                inputId="soa-owner"
-                [value]="form().owner_user_id"
-                [currentName]="e.owner?.name ?? null"
-                (valueChange)="set('owner_user_id', $event)"
-              />
-            </app-risk-field>
-            <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                [checked]="form().reviewed"
-                (change)="set('reviewed', $any($event.target).checked)"
-              />
-              {{ 'risk.soa.markReviewed' | transloco }}
-              @if (e.reviewed_at) {
-                <span class="text-fg-subtle">
-                  ({{ 'risk.soa.lastReviewed' | transloco: { date: (e.reviewed_at | localDay) } }})
-                </span>
-              }
-            </label>
-            <app-risk-field inputId="soa-change-reason" labelKey="risk.fields.changeReason">
-              <input
-                id="soa-change-reason"
-                maxlength="2000"
-                [value]="form().change_reason"
-                (input)="set('change_reason', $any($event.target).value)"
-              />
-            </app-risk-field>
-          </fieldset>
-
-          @if (errorKey(); as key) {
-            <app-alert tone="error">{{ key | transloco }}</app-alert>
-          }
-          @if (perms.canManage()) {
-            <div class="flex flex-wrap justify-end gap-2">
-              @if (nextMissing(); as next) {
-                <app-button
-                  variant="secondary"
-                  [disabled]="saving()"
-                  (click)="save(next)"
-                  data-testid="soa-next-missing"
+              <app-risk-field inputId="soa-impl-status" labelKey="risk.soa.fields.implementation">
+                <select
+                  id="soa-impl-status"
+                  (change)="set('implementation_status', $any($event.target).value)"
                 >
-                  {{ 'risk.soa.saveNextMissing' | transloco }}
-                </app-button>
+                  @for (i of implementationStatuses; track i) {
+                    <option [value]="i" [selected]="i === form().implementation_status">
+                      {{ 'risk.soa.implementation.' + i | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-risk-field>
+              <app-risk-field inputId="soa-notes" labelKey="risk.soa.fields.notes">
+                <textarea
+                  id="soa-notes"
+                  rows="3"
+                  [value]="form().implementation_notes"
+                  (input)="set('implementation_notes', $any($event.target).value)"
+                ></textarea>
+              </app-risk-field>
+              <app-risk-field inputId="soa-owner" labelKey="risk.fields.owner">
+                <app-person-select
+                  inputId="soa-owner"
+                  [value]="form().owner_user_id"
+                  [currentName]="e.owner?.name ?? null"
+                  (valueChange)="set('owner_user_id', $event)"
+                />
+              </app-risk-field>
+              <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
+                <input
+                  type="checkbox"
+                  [checked]="form().reviewed"
+                  (change)="set('reviewed', $any($event.target).checked)"
+                />
+                {{ 'risk.soa.markReviewed' | transloco }}
+                @if (e.reviewed_at) {
+                  <span class="text-fg-subtle">
+                    ({{
+                      'risk.soa.lastReviewed' | transloco: { date: (e.reviewed_at | localDay) }
+                    }})
+                  </span>
+                }
+              </label>
+              <app-risk-field inputId="soa-change-reason" labelKey="risk.fields.changeReason">
+                <input
+                  id="soa-change-reason"
+                  maxlength="2000"
+                  [value]="form().change_reason"
+                  (input)="set('change_reason', $any($event.target).value)"
+                />
+              </app-risk-field>
+
+              @if (errorKey(); as key) {
+                <app-alert tone="error">{{ key | transloco }}</app-alert>
               }
-              <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-                {{ 'risk.common.save' | transloco }}
-              </app-button>
-            </div>
+              <div class="flex flex-wrap justify-end gap-2">
+                @if (nextMissing(); as next) {
+                  <app-button
+                    variant="secondary"
+                    [disabled]="saving()"
+                    (click)="save(next)"
+                    data-testid="soa-next-missing"
+                  >
+                    {{ 'risk.soa.saveNextMissing' | transloco }}
+                  </app-button>
+                }
+                <app-button type="submit" [loading]="saving()" [disabled]="saving()">
+                  {{ 'risk.common.save' | transloco }}
+                </app-button>
+              </div>
+            </form>
           }
 
-          <section class="border-t border-border pt-3" data-testid="soa-documentation">
-            <h3 class="mb-1 text-body font-semibold text-fg">
-              {{ 'risk.soa.documentation.title' | transloco }}
-            </h3>
-            <p class="mb-2 text-meta text-fg-muted">
-              {{ 'risk.soa.documentation.hint' | transloco }}
-            </p>
-            <ul class="mb-2 flex flex-col gap-1.5">
-              @for (d of e.documentation ?? []; track d.entity_type + d.entity_id) {
-                <li><app-entity-chip [ref]="d" /></li>
-              } @empty {
-                <li class="text-ui text-fg-muted">
-                  {{ 'risk.soa.documentation.none' | transloco }}
-                </li>
-              }
-            </ul>
-            @if (perms.canManage()) {
-              <app-risk-subject-picker
-                [types]="documentationTypes"
-                (picked)="linkDocument(e, $event)"
+          <details class="border-t border-border pt-3">
+            <summary
+              class="cursor-pointer text-ui font-semibold text-fg-muted hover:text-fg"
+              data-testid="soa-history-toggle"
+            >
+              {{ 'risk.soa.history' | transloco }}
+            </summary>
+            <div class="mt-3">
+              <app-revision-history
+                entityType="soa_entry"
+                [entityId]="e.id"
+                [fieldLabels]="fieldLabels"
               />
-            }
-          </section>
-
-          <section class="border-t border-border pt-3">
-            <h3 class="mb-2 text-body font-semibold text-fg">
-              {{ 'risk.soa.relatedRisks' | transloco: { treatments: e.treatment_count } }}
-            </h3>
-            <ul class="flex flex-col gap-1 text-ui">
-              @for (r of e.risks; track r.id) {
-                <li>
-                  <a [routerLink]="['/risk/risks', r.id]" class="text-accent hover:underline">
-                    <span class="font-mono">{{ r.code }}</span> {{ r.title }}
-                  </a>
-                </li>
-              } @empty {
-                <li class="text-fg-muted">{{ 'risk.soa.noRisks' | transloco }}</li>
-              }
-            </ul>
-          </section>
-
-          <section class="border-t border-border pt-3">
-            <app-revision-history
-              entityType="soa_entry"
-              [entityId]="e.id"
-              [fieldLabels]="fieldLabels"
-            />
-          </section>
-        </form>
+            </div>
+          </details>
+        </div>
       }
     </app-slide-over>
 
@@ -1015,6 +1120,9 @@ export class SoaViewPage {
   ]);
   protected readonly selected = signal<SoaEntry | null>(null);
   protected readonly form = signal<EntryForm>(EMPTY_ENTRY_FORM);
+  /** The control opens read-only; the form shows at once only when it still needs a decision. */
+  protected readonly formOpen = signal(false);
+  protected readonly entryStatus = soaEntryStatus;
   protected readonly saving = signal(false);
   protected readonly exporting = signal(false);
   protected readonly errorKey = signal<string | null>(null);
@@ -1187,6 +1295,22 @@ export class SoaViewPage {
     return this.language.active() === 'nb' && e.title_nb ? e.title_nb : e.title;
   }
 
+  protected reasonsText(e: SoaEntry): string {
+    return e.inclusion_reasons
+      .map((r) => this.language.translate(`risk.soa.reasons.${r}`))
+      .join(', ');
+  }
+
+  protected riskRef(r: SoaRiskRef): EntityChipRef {
+    return {
+      entity_type: 'risk',
+      entity_id: r.id,
+      code: r.code,
+      title: r.title,
+      url: `/risk/risks/${r.id}`,
+    };
+  }
+
   protected clearFilters(): void {
     this.q.set('');
     this.applicable.set('all');
@@ -1196,6 +1320,7 @@ export class SoaViewPage {
 
   protected open(e: SoaEntry, syncUrl = true): void {
     this.selected.set(e);
+    this.formOpen.set(e.needs_justification);
     this.form.set(entryToForm(e));
     this.errorKey.set(null);
     this.submitted.set(false);

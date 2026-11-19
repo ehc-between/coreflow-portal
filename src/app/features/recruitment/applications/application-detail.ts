@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,21 +16,28 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
@@ -42,6 +50,8 @@ import {
   needsScreening,
   offerBlockers,
   offerNeedsOverride,
+  pendingRequiredChecks,
+  requisitionToneValue,
   stageToneValue,
 } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
@@ -53,11 +63,7 @@ import {
   RequisitionDetail,
 } from '../data/recruitment.models';
 import { injectConfirmedRefs } from '../shared/confirmed-refs';
-import {
-  RECRUITMENT_CRUMB,
-  injectRecruitmentNav,
-  settingsLinkFor,
-} from '../shared/recruitment-nav';
+import { RECRUITMENT_CRUMB, settingsLinkFor } from '../shared/recruitment-nav';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
 import { StageMove } from '../shared/stage-move';
 import { ApplicationChecks } from './application-checks';
@@ -67,9 +73,9 @@ import { ApplicationScreening } from './application-screening';
 
 const TABS: readonly RecordTab[] = [
   'details',
-  'tasks',
   'related',
   'activity',
+  'tasks',
   'comments',
   'attachments',
 ];
@@ -77,26 +83,30 @@ const TABS: readonly RecordTab[] = [
 type Pending = ApplicationAction | 'delete' | null;
 
 /**
- * One candidate's application to one requisition: one next step in the header
- * (offer, record the answer, hire; "Gi tilbud" is disabled with the reasons while
- * something blocks it), structured screening, interviews, scorecards, background
- * checks, the offer and the hand-off to People. Visible only to the hiring team
- * (the API returns 404 to anyone else). The record documents ISO 27001 A.6.1
- * (screening) and GDPR art. 13 for this candidate.
+ * One candidate's application to one requisition, on the detail-page anatomy
+ * (docs/ux-guide.md §2.7): one next step in the header (offer, record the answer,
+ * hire; "Gi tilbud" is disabled while something blocks it) and the screening summary
+ * in "Spør KI"; "Hovedinformasjon" with a status sentence, the requisition and the
+ * candidate (linked), screening and background-check progress and the offer; the
+ * work sections (offer, screening, interviews, scorecards, checks) under the details;
+ * one "Oppfølging" card listing what blocks the offer (each line jumps to its place),
+ * the requirements, the connections (with the People record after a hire) and the
+ * metadata. Visible only to the hiring team (the API returns 404 to anyone else). The
+ * record documents ISO 27001 A.6.1 (screening) and GDPR art. 13 for this candidate.
  */
 @Component({
   selector: 'app-application-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    WatchButton,
     WhyItMatters,
-    EntityChip,
     RecordDetailLayout,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     LocalDatePipe,
     LocalDayPipe,
     EntityTasks,
-    Alert,
     Button,
     Card,
     ConfirmDialog,
@@ -104,8 +114,8 @@ type Pending = ApplicationAction | 'delete' | null;
     FieldItem,
     FieldList,
     HelpStrip,
+    Icon,
     LoadingState,
-    ModuleNav,
     MenuItem,
     PromptDialog,
     StatusBadge,
@@ -128,6 +138,7 @@ type Pending = ApplicationAction | 'delete' | null;
       </div>
     } @else if (app(); as a) {
       <app-record-detail-layout
+        [anatomy]="true"
         [entityType]="entityType"
         [entityId]="a.id"
         [title]="a.candidate_name"
@@ -136,42 +147,24 @@ type Pending = ApplicationAction | 'delete' | null;
         [tabs]="tabs"
         [canEdit]="a.can_edit"
         [requirementsPanel]="true"
+        [missing]="missing()"
       >
-        <span meta class="flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="app-meta">
-          <span class="font-mono font-semibold">{{ a.code }}</span>
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="app-meta">{{ a.code }}</span>
           <span aria-hidden="true">·</span>
-          <a
-            [routerLink]="['/recruitment/requisitions', a.requisition_id]"
-            class="hover:text-fg hover:underline"
-            >{{ a.requisition_code }} · {{ a.requisition_title }}</a
-          >
+          <span>{{ 'recruitment.detail.app.type' | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge
             meaning="lifecycle"
             [value]="stageValue(a.stage)"
             [labelKey]="'recruitment.stage.' + a.stage"
             data-testid="app-stage"
           />
-          @if (a.offer_status !== 'none') {
-            <app-status-badge
-              meaning="lifecycle"
-              [value]="a.offer_status === 'declined' ? 'withdrawn' : 'pending'"
-              [labelKey]="'recruitment.offerStatus.' + a.offer_status"
-            />
-          }
-          @if (screeningIncomplete()) {
-            <app-status-badge
-              meaning="lifecycle"
-              value="blocked"
-              labelKey="recruitment.application.screeningIncomplete"
-              data-testid="app-screening-incomplete"
-            />
-          }
-        </span>
+        </ng-container>
 
         @if (primary(); as action) {
           <app-button
             primary
-            size="sm"
             [disabled]="busy() || (action === 'offer' && offerBlocked())"
             [title]="action === 'offer' && offerBlocked() ? blockerSummary() : ''"
             (click)="pending.set(action)"
@@ -183,7 +176,6 @@ type Pending = ApplicationAction | 'delete' | null;
         @if (actions().includes('decline')) {
           <app-button
             secondary
-            size="sm"
             variant="secondary"
             [disabled]="busy()"
             (click)="pending.set('decline')"
@@ -219,79 +211,138 @@ type Pending = ApplicationAction | 'delete' | null;
             {{ 'recruitment.application.delete' | transloco }}
           </button>
         }
+        @if (perms().write && a.can_edit && a.criteria.length > 0) {
+          <button appMenuItem ask type="button" data-testid="ask-summarise" (click)="summarise()">
+            <app-icon name="spark" [size]="15" />
+            {{ 'recruitment.ai.summarise' | transloco }}
+          </button>
+        }
 
-        <app-module-nav nav [items]="nav()" labelKey="modules.names.recruitment" />
         <app-help-strip help scope="recruitment" page="application" lesson="fair-screening" />
 
-        <div class="flex flex-col gap-4">
-          @if (!a.privacy_notice_given) {
-            <app-alert tone="info">
-              {{ 'recruitment.application.noticeMissing' | transloco }}
-              <a
-                [routerLink]="['/recruitment/candidates', a.candidate_id]"
-                class="font-semibold underline"
-                >{{ 'recruitment.application.openCandidate' | transloco }}</a
-              >
-            </app-alert>
-          }
-          @if (a.screening_override; as o) {
-            <app-alert tone="info" data-testid="app-override">
-              {{
-                'recruitment.application.overrideNote'
-                  | transloco
-                    : {
-                        name: o.by?.name ?? ('recruitment.common.someone' | transloco),
-                        date: (o.at | localDate),
-                      }
-              }}
-              @if (o.reason) {
-                <span class="mt-1 block">{{
-                  'recruitment.application.overrideReason' | transloco: { reason: o.reason }
+        <app-record-lead record-lead>
+          <app-record-status-line status [tone]="status().tone" data-testid="app-status-line">
+            {{ status().text }}
+          </app-record-status-line>
+          <app-field-item size="lead" labelKey="recruitment.detail.app.requisition">
+            <a
+              [routerLink]="['/recruitment/requisitions', a.requisition_id]"
+              class="group inline-flex max-w-full items-start gap-2"
+              data-testid="app-requisition-link"
+            >
+              <app-icon name="userplus" [size]="18" class="mt-1 flex-none text-fg-muted" />
+              <span class="min-w-0">
+                <span class="font-mono text-meta text-fg-muted">{{ a.requisition_code }}</span>
+                <span class="block font-semibold group-hover:text-accent group-hover:underline">{{
+                  a.requisition_title
                 }}</span>
-              }
-            </app-alert>
-          }
-          @if (a.stage === 'rejected' && a.rejection_reason) {
-            <app-alert tone="error">
-              {{
-                'recruitment.application.rejectedBecause'
-                  | transloco: { reason: reasonLabel(a.rejection_reason) }
-              }}
-              @if (a.rejection_note) {
-                <span class="block">{{ a.rejection_note }}</span>
-              }
-            </app-alert>
-          }
-          @if (primary() === 'offer' && blockers().length > 0) {
-            <app-card data-testid="app-offer-blockers">
-              <h2 class="mb-1 text-card font-bold text-fg">
-                {{ 'recruitment.offerBlockers.title' | transloco }}
-              </h2>
-              <ul class="flex list-disc flex-col gap-1 pl-5 text-ui text-fg">
-                @for (b of blockers(); track b.code) {
-                  <li>
-                    {{ blockerText(b) }}
-                    @if (blockerAnchor(b); as anchor) {
-                      <a
-                        [href]="'#' + anchor"
-                        class="ml-1 font-semibold text-accent"
-                        (click)="scrollTo($event, anchor)"
-                        >{{ 'recruitment.offerBlockers.go' | transloco }}</a
-                      >
-                    }
-                  </li>
+                @if (requisition()?.status; as rs) {
+                  <app-status-badge
+                    class="mt-1 inline-block"
+                    meaning="lifecycle"
+                    [value]="requisitionTone(rs)"
+                    [labelKey]="'recruitment.requisitionStatus.' + rs"
+                  />
                 }
-              </ul>
-              @if (offerNeedsOverride()) {
-                <p class="mt-2 text-meta text-fg-muted">
-                  {{ 'recruitment.offerBlockers.overrideHint' | transloco }}
-                </p>
+              </span>
+            </a>
+          </app-field-item>
+          <app-field-item size="lead" labelKey="recruitment.detail.app.candidate">
+            <a
+              [routerLink]="['/recruitment/candidates', a.candidate_id]"
+              class="group inline-flex max-w-full items-start gap-2"
+              data-testid="app-candidate-link"
+            >
+              <app-icon name="people" [size]="18" class="mt-1 flex-none text-fg-muted" />
+              <span class="min-w-0">
+                <span class="font-mono text-meta text-fg-muted">{{ a.candidate_code }}</span>
+                <span class="block font-semibold group-hover:text-accent group-hover:underline">{{
+                  a.candidate_name
+                }}</span>
+                @if (!a.privacy_notice_given) {
+                  <app-status-badge
+                    class="mt-1 inline-block"
+                    meaning="lifecycle"
+                    value="blocked"
+                    labelKey="recruitment.candidates.noticeMissing"
+                  />
+                }
+              </span>
+            </a>
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="recruitment.screening.title"
+            data-testid="app-lead-screening"
+          >
+            @if (a.criteria.length === 0) {
+              <span class="text-fg-muted">{{
+                'recruitment.detail.app.noCriteria' | transloco
+              }}</span>
+            } @else {
+              <a
+                href="#app-screening"
+                class="hover:text-accent hover:underline"
+                [class.text-warn-ink]="screeningIncomplete()"
+                (click)="scrollTo($event, 'app-screening')"
+                >{{ 'recruitment.screening.progress' | transloco: screening() }}</a
+              >
+            }
+            @if (a.screening_override; as o) {
+              <span class="mt-1 block text-ui text-fg-muted" data-testid="app-override">
+                {{
+                  'recruitment.application.overrideNote'
+                    | transloco
+                      : {
+                          name: o.by?.name ?? ('recruitment.common.someone' | transloco),
+                          date: (o.at | localDate),
+                        }
+                }}
+                @if (o.reason) {
+                  {{ 'recruitment.application.overrideReason' | transloco: { reason: o.reason } }}
+                }
+              </span>
+            } @else if (primary() === 'offer' && offerNeedsOverride()) {
+              <span class="mt-1 block text-ui text-fg-muted">{{
+                'recruitment.offerBlockers.overrideHint' | transloco
+              }}</span>
+            }
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="recruitment.detail.app.checks"
+            data-testid="app-lead-checks"
+          >
+            @if (checks().total === 0) {
+              <span class="text-fg-muted">{{ 'recruitment.detail.app.noChecks' | transloco }}</span>
+            } @else {
+              <a
+                href="#app-checks"
+                class="hover:text-accent hover:underline"
+                [class.text-warn-ink]="checks().done < checks().total"
+                (click)="scrollTo($event, 'app-checks')"
+                >{{ 'recruitment.detail.app.checksDone' | transloco: checks() }}</a
+              >
+            }
+          </app-field-item>
+          @if (a.offer_status !== 'none' || a.hired_at) {
+            <app-field-item size="lead" [wide]="true" labelKey="recruitment.offer.title">
+              {{ 'recruitment.offerStatus.' + a.offer_status | transloco }}
+              @if (a.offer_start_date) {
+                ·
+                {{
+                  'recruitment.detail.app.startsOn'
+                    | transloco: { date: (a.offer_start_date | localDay) }
+                }}
               }
-            </app-card>
+            </app-field-item>
           }
+        </app-record-lead>
+
+        <div class="flex flex-col gap-4">
           @if (a.stage === 'offer' || a.hired_at) {
             <app-card>
-              <h2 class="mb-3 text-card font-bold text-fg">
+              <h2 class="mb-3 font-display text-card font-bold text-fg">
                 {{ 'recruitment.offer.title' | transloco }}
               </h2>
               <app-field-list>
@@ -324,20 +375,6 @@ type Pending = ApplicationAction | 'delete' | null;
                     labelKey="recruitment.offer.hiredAt"
                     [value]="a.hired_at | localDate"
                   />
-                  <app-field-item labelKey="recruitment.offer.employee" data-testid="app-employee">
-                    @if (employeeRef(); as ref) {
-                      <app-entity-chip [ref]="ref" />
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="recruitment.offer.onboardingTask">
-                    @if (a.onboarding_task_id) {
-                      <a
-                        [routerLink]="['/tasks', a.onboarding_task_id]"
-                        class="font-semibold text-accent"
-                        >{{ 'recruitment.offer.openOnboarding' | transloco }}</a
-                      >
-                    }
-                  </app-field-item>
                 }
               </app-field-list>
               @if (a.hired_at && !a.employee) {
@@ -382,42 +419,43 @@ type Pending = ApplicationAction | 'delete' | null;
           />
         </div>
 
-        <app-entity-tasks
-          tasks
-          [entityType]="entityType"
-          [entityId]="a.id"
-          [canCreate]="a.can_edit"
-        />
+        <div tasks>
+          <app-entity-tasks [entityType]="entityType" [entityId]="a.id" [canCreate]="a.can_edit" />
+        </div>
 
-        <ng-container aside>
-          <app-card>
-            <h2 class="mb-3 text-card font-bold text-fg">
-              {{ 'recruitment.application.facts' | transloco }}
-            </h2>
-            <app-field-list [columns]="1">
-              <app-field-item
-                labelKey="recruitment.fields.source"
-                [value]="'recruitment.source.' + a.source | transloco"
-              />
-              <app-field-item
-                labelKey="recruitment.application.appliedAt"
-                [value]="a.created_at | localDate"
-              />
-              <app-field-item
-                labelKey="recruitment.application.stageSince"
-                [value]="a.stage_changed_at ? (a.stage_changed_at | localDate) : null"
-              />
-              <app-field-item labelKey="recruitment.application.yourRole" empty="none">
-                @for (r of a.team_roles; track r; let last = $last) {
-                  {{ 'recruitment.teamRole.' + r | transloco }}{{ last ? '' : ', ' }}
-                }
-              </app-field-item>
-            </app-field-list>
-          </app-card>
-          <div class="flex justify-start">
-            <app-watch-button [entityType]="entityType" [entityId]="a.id" />
-          </div>
-        </ng-container>
+        @if (a.onboarding_task_id) {
+          <a
+            follow-up-connections
+            [routerLink]="['/tasks', a.onboarding_task_id]"
+            class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
+            data-testid="app-onboarding"
+            >{{ 'recruitment.offer.openOnboarding' | transloco }} →</a
+          >
+        }
+
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.fields.source"
+            [value]="'recruitment.source.' + a.source | transloco"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.application.appliedAt"
+            [value]="a.created_at | localDate"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.application.stageSince"
+            [value]="a.stage_changed_at ? (a.stage_changed_at | localDate) : null"
+          />
+          <app-field-item layout="inline" labelKey="recruitment.application.yourRole">
+            @for (r of a.team_roles; track r; let last = $last) {
+              {{ 'recruitment.teamRole.' + r | transloco }}{{ last ? '' : ', ' }}
+            }
+          </app-field-item>
+        </app-record-meta>
+
         <app-why-it-matters aside-learn scope="recruitment" page="application" />
       </app-record-detail-layout>
 
@@ -525,7 +563,6 @@ export class ApplicationDetailPage {
   private readonly language = inject(LanguageService);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
   private readonly auth = inject(AuthService);
   protected readonly userId = computed(() => this.auth.user()?.id ?? null);
@@ -533,6 +570,8 @@ export class ApplicationDetailPage {
   protected readonly entityType = ENTITY_APPLICATION;
   protected readonly tabs = TABS;
   protected readonly stageValue = stageToneValue;
+  protected readonly requisitionTone = requisitionToneValue;
+  private readonly screeningCard = viewChild(ApplicationScreening);
 
   private readonly id = toSignal(inject(ActivatedRoute).paramMap.pipe(map((p) => p.get('id'))), {
     initialValue: null,
@@ -587,11 +626,98 @@ export class ApplicationDetailPage {
       needsScreening(a.stage)
     );
   });
-  protected readonly employeeRef = computed(() => {
-    const e = this.app()?.employee;
-    return e
-      ? { entity_type: 'employee', entity_id: e.id, title: e.title, code: e.code, url: e.url }
-      : null;
+  /** Criteria with a result, out of all. */
+  protected readonly screening = computed(() => {
+    const a = this.app();
+    const total = a?.criteria.length ?? 0;
+    const missing = a?.screening_missing?.length;
+    const done =
+      missing !== undefined
+        ? total - missing
+        : (a?.screening.filter((s) => s.result !== 'unknown').length ?? 0);
+    return { done: Math.max(0, done), total };
+  });
+  /** Required background checks that are settled, out of all required. */
+  protected readonly checks = computed(() => {
+    const a = this.app();
+    if (!a) {
+      return { done: 0, total: 0 };
+    }
+    const types = new Set([
+      ...a.required_checks,
+      ...a.checks.filter((c) => c.required).map((c) => c.check_type),
+    ]);
+    const open = pendingRequiredChecks(a.required_checks, a.checks).length;
+    return { done: types.size - open, total: types.size };
+  });
+  /** The status sentence: where the application is and what it waits for. */
+  protected readonly status = computed<{ tone: StatusLineTone; text: string }>(() => {
+    const a = this.app();
+    if (!a) {
+      return { tone: 'neutral', text: '' };
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.language.translate(`recruitment.detail.app.status.${key}`, params);
+    const stage = this.language.translate(`recruitment.stage.${a.stage}`);
+    switch (a.stage) {
+      case 'hired':
+        return { tone: 'pass', text: t(a.employee ? 'hiredPeople' : 'hired') };
+      case 'rejected': {
+        const reason = a.rejection_reason ? this.reasonLabel(a.rejection_reason) : '';
+        const note = a.rejection_note ? ` ${a.rejection_note}` : '';
+        return {
+          tone: 'neutral',
+          text: t(reason ? 'rejected' : 'rejectedPlain', { reason }) + note,
+        };
+      }
+      case 'withdrawn':
+        return { tone: 'neutral', text: t('withdrawn') };
+      case 'offer':
+        return a.offer_status === 'accepted'
+          ? { tone: 'warn', text: t('offerAccepted') }
+          : { tone: 'warn', text: t('offerExtended') };
+    }
+    const count = this.primary() === 'offer' ? this.blockers().length : 0;
+    if (count > 0) {
+      return { tone: 'warn', text: t(count === 1 ? 'blockedOne' : 'blocked', { stage, count }) };
+    }
+    return this.primary() === 'offer'
+      ? { tone: 'pass', text: t('ready', { stage }) }
+      : { tone: 'neutral', text: t('active', { stage }) };
+  });
+  /** "Oppfølging": what blocks the offer, each line jumping to its place. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const a = this.app();
+    if (!a) {
+      return [];
+    }
+    const items: RecordMissingItem[] = [];
+    if (!a.privacy_notice_given) {
+      items.push({
+        key: 'notice',
+        labelKey: 'recruitment.detail.app.missing.notice',
+        link: ['/recruitment/candidates', a.candidate_id],
+      });
+    }
+    if (this.primary() === 'offer') {
+      for (const b of this.blockers()) {
+        if (b.code === 'privacy_notice_missing') {
+          continue;
+        }
+        const anchor = this.blockerAnchor(b);
+        items.push({
+          key: b.code,
+          labelKey: 'recruitment.detail.app.missing.text',
+          params: { text: this.blockerText(b) },
+          ...(anchor
+            ? { action: () => this.jumpTo(anchor) }
+            : b.code === 'requisition_not_open'
+              ? { link: ['/recruitment/requisitions', a.requisition_id] }
+              : { action: () => this.jumpTo('app-screening') }),
+        });
+      }
+    }
+    return items;
   });
 
   constructor() {
@@ -683,7 +809,17 @@ export class ApplicationDetailPage {
 
   protected scrollTo(event: Event, id: string): void {
     event.preventDefault();
+    this.jumpTo(id);
+  }
+
+  private jumpTo(id: string): void {
     document.getElementById(id)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** "Spør KI": summarise the application against the criteria, in the screening card. */
+  protected summarise(): void {
+    this.screeningCard()?.summarise();
+    this.jumpTo('app-screening');
   }
 
   protected extendOffer(): void {

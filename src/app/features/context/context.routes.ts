@@ -46,11 +46,14 @@ function kindRoutes(kind: ContextKind): Routes {
     {
       path: `${KINDS[kind].segment}/:id`,
       data,
-      // The interested party pilots the detail-page anatomy (docs/ux-guide.md §2.7).
+      // Detail-page anatomy (docs/ux-guide.md §2.7): the interested party (pilot) and
+      // the leadership records (scope, policy, RACI) have their own pages.
       loadComponent: () =>
         kind === 'party'
           ? import('./detail/party-detail').then((m) => m.PartyDetail)
-          : import('./detail/context-detail').then((m) => m.ContextDetail),
+          : kind === 'analysis'
+            ? import('./detail/context-detail').then((m) => m.ContextDetail)
+            : import('./detail/leadership-detail').then((m) => m.LeadershipDetail),
     },
     {
       path: `${KINDS[kind].segment}/:id/edit`,

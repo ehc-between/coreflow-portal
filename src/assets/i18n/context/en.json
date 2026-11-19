@@ -440,6 +440,64 @@
       "owner": "Choose an owner"
     }
   },
+  "leadDetail": {
+    "status": {
+      "scope": {
+        "draft": "Draft – the scope does not apply until it is approved. Send it for approval when it is ready.",
+        "in_review": "Awaiting approval – waiting for someone with authority to approve the scope.",
+        "approved": "Approved – this is the current scope for {{ framework }}.",
+        "retired": "Retired – the scope no longer applies and is read-only."
+      },
+      "policy": {
+        "draft": "Draft – the policy does not apply until it is approved. Send it for approval when it is ready.",
+        "in_review": "Awaiting approval – waiting for management to approve the policy.",
+        "approved": "Approved – this is the current policy. Make sure employees have read it.",
+        "retired": "Retired – the policy no longer applies and is read-only."
+      },
+      "responsibility": {
+        "ok": "Complete – someone does the work and one person is accountable for the result.",
+        "archived": "Archived – this responsibility is no longer in use."
+      }
+    },
+    "scope": {
+      "statement": "What the scope covers",
+      "productsServices": "Products and services included",
+      "boundaries": "Boundaries – what is in and what is left out",
+      "exclusions": "Requirements that do not apply",
+      "noExclusions": "None – every requirement in the standard applies.",
+      "framework": "Standard"
+    },
+    "policy": {
+      "statement": "What the policy says",
+      "acknowledged": "Read and confirmed by employees",
+      "kind": "Type of policy",
+      "frameworks": "Standards",
+      "available": "Can be shared with interested parties",
+      "links": "Connected to"
+    },
+    "raci": {
+      "assignments": "Who does what",
+      "description": "What the responsibility involves",
+      "authorities": "What they have authority to decide",
+      "process": "Process",
+      "area": "Area"
+    },
+    "missing": {
+      "review": "Review it and mark it as reviewed",
+      "soa": "Create the statement of applicability",
+      "scopeStatement": "Describe what the scope covers",
+      "products": "Describe the products and services included",
+      "processes": "Choose the processes included",
+      "policyStatement": "Write the policy text",
+      "document": "Link the policy document",
+      "communicate": "Ask employees to read and confirm the policy",
+      "accountable": "Choose who is accountable (A)",
+      "responsible": "Choose who does the work (R)",
+      "raciDescription": "Describe what the responsibility involves",
+      "owner": "Choose an owner",
+      "maintainer": "Choose who maintains the responsibility"
+    }
+  },
   "scope": {
     "noExclusions": "No requirements are excluded. Every requirement of the standard applies.",
     "exclusionsHint": "While the scope is approved, these requirements count as not applicable in the requirement coverage.",

@@ -299,7 +299,9 @@
     "missing": {
       "rating": "Vurder risikoen (sannsynlighet og konsekvens)",
       "owner": "Velg en eier",
-      "strategy": "Velg hvordan risikoen skal håndteres"
+      "strategy": "Velg hvordan risikoen skal håndteres",
+      "review": "Gjennomgangen er forfalt – registrer en gjennomgang",
+      "treatments": "Legg til tiltakene som skal redusere risikoen"
     },
     "review": "Registrer gjennomgang",
     "reviewTitle": "Registrer en periodisk gjennomgang",
@@ -333,7 +335,32 @@
     "acceptNoteHint": "Skriv hvorfor organisasjonen aksepterer en risiko over appetitten.",
     "acceptExpiryHint": "Satt til neste gjennomgang som forvalg. Aksepten må fornyes etter denne datoen.",
     "acceptanceUntilReview": "Gjelder til neste gjennomgang",
-    "controlsHint": "Kontrollene i vedlegg A (eller andre kontroller) som reduserer denne risikoen."
+    "controlsHint": "Kontrollene i vedlegg A (eller andre kontroller) som reduserer denne risikoen.",
+    "changeStatusAction": "Endre status",
+    "newStatus": "Ny status",
+    "reasonRequired": "Begrunnelse (påkrevd)",
+    "before": "Før tiltak",
+    "after": "Etter tiltak",
+    "lead": {
+      "what": "Hva kan skje",
+      "level": "Hvor alvorlig den er",
+      "handling": "Slik håndterer vi den",
+      "concerns": "Hva den gjelder"
+    },
+    "plain": {
+      "threat": "Hva som kan utløse den",
+      "vulnerability": "Svakheten den utnytter",
+      "consequence": "Hva som skjer hvis den inntreffer",
+      "properties": "Hva som står på spill",
+      "statusReason": "Begrunnelse for statusen"
+    },
+    "statusLine": {
+      "closed": "Lukket – risikoen følges ikke lenger opp.",
+      "unrated": "Ikke vurdert – sett sannsynlighet og konsekvens for å se hvor alvorlig risikoen er.",
+      "accepted": "Akseptert – {{ name }} har bestemt at vi beholder risikoen på dette nivået.",
+      "above": "Over risikoappetitten – reduser risikoen, eller la ledelsen akseptere den.",
+      "within": "Innenfor risikoappetitten – nivået er akseptabelt for organisasjonen."
+    }
   },
   "treatments": {
     "title": "Tiltaksplan",
@@ -357,6 +384,22 @@
       "blocked": "blokkert",
       "done": "fullført",
       "cancelled": "avbrutt"
+    },
+    "view": {
+      "what": "Hva som skal gjøres",
+      "owner": "Ansvarlig",
+      "noDue": "Ingen frist",
+      "connections": "Koblet til",
+      "controls": "Kontroller tiltaket innfører",
+      "edit": "Endre tiltaket",
+      "status": {
+        "planned": "Planlagt – ikke startet ennå.",
+        "in_progress": "Pågår – tiltaket er i gang.",
+        "overdue": "Forfalt – fristen er passert.",
+        "done": "Fullført – effekten er kontrollert.",
+        "doneUnchecked": "Fullført – kontroller at tiltaket virker.",
+        "cancelled": "Avbrutt – tiltaket gjennomføres ikke."
+      }
     }
   },
   "treatmentPlan": {
@@ -447,7 +490,27 @@
     },
     "actionPlanHint": "Legg inn de konkrete stegene som tiltak på muligheten etter at du har lagret.",
     "actionsHint": "Tiltak er oppgaver: de vises i Mitt arbeid hos den som har ansvaret. Bruk «Lag ny fra denne» for et mål eller et prosjekt.",
-    "openActions": "{{ count }} åpne tiltak"
+    "openActions": "{{ count }} åpne tiltak",
+    "lead": {
+      "what": "Hva muligheten går ut på",
+      "value": "Hvor verdifull den er",
+      "plan": "Slik tar vi den ut",
+      "concerns": "Hva den gjelder"
+    },
+    "statusLine": {
+      "identified": "Identifisert – vurder nytte og gjennomførbarhet, og bestem om dere skal gå videre.",
+      "evaluating": "Vurderes – bestem om dere skal gå videre.",
+      "planned": "Planlagt – tiltakene er bestemt, men ikke startet.",
+      "in_progress": "Pågår – tiltakene er i gang.",
+      "realised": "Realisert – gevinsten er tatt ut.",
+      "rejected": "Avvist – dere går ikke videre med den."
+    },
+    "missing": {
+      "overdue": "Fristen er passert – oppdater planen eller fristen",
+      "score": "Vurder nytte og gjennomførbarhet",
+      "plan": "Beskriv hvordan dere skal ta ut muligheten",
+      "owner": "Velg en eier"
+    }
   },
   "soa": {
     "title": "Anvendelseserklæring",
@@ -576,7 +639,27 @@
     },
     "excludedDelta": "Hver må begrunnes",
     "showMissingShort": "Vis dem",
-    "documents": "Dokumenter og rapporter"
+    "documents": "Dokumenter og rapporter",
+    "detail": {
+      "whyIncluded": "Hvorfor den gjelder",
+      "whyExcluded": "Hvorfor den er utelatt",
+      "reasons": "Grunner for å ta den med",
+      "how": "Slik er den implementert",
+      "connections": "Koblet til",
+      "risks": "Risikoer som bruker kontrollen",
+      "treatments": "{{ count }} tiltak",
+      "notReviewed": "Ikke gjennomgått",
+      "edit": "Endre vurderingen",
+      "status": {
+        "implemented": "Gjelder for oss – implementert.",
+        "partial": "Gjelder for oss – delvis implementert.",
+        "planned": "Gjelder for oss – planlagt, ikke implementert ennå.",
+        "not_started": "Gjelder for oss – ikke startet.",
+        "missing": "Gjelder for oss – begrunnelsen mangler.",
+        "excluded": "Utelatt – begrunnelsen står nedenfor.",
+        "excludedMissing": "Utelatt – begrunnelsen mangler."
+      }
+    }
   },
   "registers": {
     "title": "Risikoregistre",
@@ -665,7 +748,11 @@
     "expectedResidual": "Forventet restrisiko: sannsynlighet {{ likelihood }}, konsekvens {{ consequence }}",
     "applyResidual": "Bruk som restrisiko",
     "draftJustification": "Lag utkast til begrunnelse",
-    "justificationHint": "Utkastet bygger på den lagrede beslutningen. Les gjennom før du lagrer."
+    "justificationHint": "Utkastet bygger på den lagrede beslutningen. Les gjennom før du lagrer.",
+    "explainRating": "Forklar vurderingen",
+    "explainOpportunity": "Hjelp meg å vurdere muligheten",
+    "working": "Lager forslag …",
+    "failed": "Forslagene kunne ikke lages. Prøv igjen om litt."
   },
   "ask": {
     "inherent": "Hjelp meg å vurdere sannsynlighet og konsekvens for denne risikoen før tiltak.",

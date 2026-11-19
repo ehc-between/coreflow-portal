@@ -198,7 +198,12 @@ interface OwnerOption {
             >
               <div class="flex items-start gap-2.5">
                 <span class="min-w-0 flex-1">
-                  <span class="mb-1 flex flex-wrap items-center gap-1.5">
+                  <span
+                    class="block text-ui font-semibold whitespace-pre-line text-fg"
+                    data-testid="action-description"
+                    >{{ action.description }}</span
+                  >
+                  <span class="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <span class="text-meta font-semibold text-fg-muted">{{
                       actionKindLabelKey(action.kind) | transloco
                     }}</span>
@@ -215,9 +220,6 @@ interface OwnerOption {
                       />
                     }
                   </span>
-                  <span class="block text-ui whitespace-pre-line text-fg">{{
-                    action.description
-                  }}</span>
                   <span
                     class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-meta text-fg-subtle"
                   >
@@ -263,21 +265,34 @@ interface OwnerOption {
                 </span>
 
                 @if (canEdit()) {
-                  <button
-                    type="button"
-                    [attr.aria-label]="
-                      'deviations.actions.deleteNamed' | transloco: { action: action.description }
-                    "
-                    [title]="'deviations.actions.delete' | transloco"
-                    [disabled]="busyId() === action.id"
-                    (click)="confirmRemove.set(action)"
-                    class="flex flex-none items-center gap-1 rounded-lg px-2 py-1.5 text-meta font-semibold text-fg-muted hover:bg-fail-soft hover:text-fail-ink disabled:opacity-60"
-                  >
-                    <app-icon name="trash" [size]="14" />
-                    <span class="hidden sm:inline">{{
-                      'deviations.actions.delete' | transloco
-                    }}</span>
-                  </button>
+                  <span class="flex flex-none items-center gap-1">
+                    <app-button
+                      variant="secondary"
+                      size="sm"
+                      [attr.aria-expanded]="isOpen(action)"
+                      (click)="toggleOpen(action.id)"
+                      data-testid="action-update"
+                    >
+                      {{
+                        (isOpen(action)
+                          ? 'deviations.page.capa.done'
+                          : 'deviations.page.capa.update'
+                        ) | transloco
+                      }}
+                    </app-button>
+                    <button
+                      type="button"
+                      [attr.aria-label]="
+                        'deviations.actions.deleteNamed' | transloco: { action: action.description }
+                      "
+                      [title]="'deviations.actions.delete' | transloco"
+                      [disabled]="busyId() === action.id"
+                      (click)="confirmRemove.set(action)"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg text-fg-muted hover:bg-fail-soft hover:text-fail-ink disabled:opacity-60"
+                    >
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </span>
                 }
               </div>
 
@@ -296,8 +311,11 @@ interface OwnerOption {
                 [compact]="true"
               />
 
-              @if (canEdit()) {
-                <div class="mt-3 flex flex-wrap items-end gap-3 border-t border-border pt-3">
+              @if (canEdit() && isOpen(action)) {
+                <div
+                  class="mt-3 flex flex-wrap items-end gap-3 border-t border-border pt-3"
+                  data-testid="action-controls"
+                >
                   <div class="flex flex-col gap-1">
                     <span class="text-micro font-semibold text-fg-subtle">{{
                       'deviations.actions.fields.status' | transloco
@@ -459,6 +477,8 @@ export class DeviationActions {
   readonly canEdit = input(false);
   /** Action ids to highlight (e.g. the ones blocking a status change). */
   readonly highlighted = input<readonly string[]>([]);
+  /** The action whose update controls (status, effect, notes) are open. */
+  protected readonly openId = signal<string | null>(null);
 
   /** Emits the new full actions list whenever one is added / changed / removed. */
   readonly actionsChange = output<readonly Action[]>();
@@ -508,6 +528,15 @@ export class DeviationActions {
     if (action) {
       this.remove(action);
     }
+  }
+
+  /** Update controls are shown for the opened action and for actions blocking a status change. */
+  protected isOpen(action: Action): boolean {
+    return this.openId() === action.id || this.highlighted().includes(action.id);
+  }
+
+  protected toggleOpen(id: string): void {
+    this.openId.update((open) => (open === id ? null : id));
   }
 
   protected overdue(action: Action): boolean {

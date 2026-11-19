@@ -267,7 +267,7 @@ describe('inspection detail', () => {
       { id: 'i-1', finding: 'f-1' },
     );
     await render();
-    expect(byTestId('result-badge')?.textContent).toContain('inspections.result.failed');
+    expect(byTestId('result-badge')?.textContent).toContain('inspections.detail.status.failed');
     expect(byTestId('response-q1')?.textContent).toContain('Pallet in the way');
     expect(byTestId('finding-list')?.textContent).toContain('FND-0001');
     expect(document.querySelector('[data-testid="finding-panel"]')).not.toBeNull();
