@@ -37,10 +37,10 @@ export interface VisibleIf {
   readonly equals: unknown;
 }
 
-/** One field definition (contracts 7.1). */
 /** U31: how much a form asks for a field (see `shared/forms/field-tier`). */
 export type FieldTier = 'quick' | 'audit_relevant' | 'advanced';
 
+/** One field definition (contracts 7.1). */
 export interface FieldSpec {
   readonly key: string;
   readonly label: LocalizedText;

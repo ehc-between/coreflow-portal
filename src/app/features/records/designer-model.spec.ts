@@ -174,4 +174,9 @@ describe('designer model: fields', () => {
       placeholder: { en: 'x' },
     });
   });
+
+  it('keeps the field tier when publishing (U31)', () => {
+    const [clean] = cleanFields([f('a', { tier: 'advanced' })]);
+    expect(clean.tier).toBe('advanced');
+  });
 });

@@ -470,6 +470,8 @@ export function cleanFields(fields: readonly FieldSpec[]): FieldSpec[] {
     if (field.type === 'calculated') out['formula'] = field.formula;
     if (field.visible_if?.field) out['visible_if'] = field.visible_if;
     if (field.requirements?.length) out['requirements'] = [...field.requirements];
+    // U31: keep the template's tier so republishing does not unfold advanced fields.
+    if (field.tier) out['tier'] = field.tier;
     if (
       field.default !== null &&
       field.default !== undefined &&
