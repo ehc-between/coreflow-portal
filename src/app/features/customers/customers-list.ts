@@ -51,7 +51,6 @@ import { CustomerOwnerSelect } from './data/owner-select';
 
 const PAGE_SIZE = 25;
 const DEFAULT_SORT: CustomerSort = 'name';
-const RENEWAL_SOON_DAYS = 60;
 
 /**
  * The customer register (`/customers`, docs/customer-register-design.md §3.1):
@@ -260,7 +259,6 @@ const RENEWAL_SOON_DAYS = 60;
                     [owner]="c.owner?.name"
                     [date]="c.next_renewal?.date ?? null"
                     dateKind="next"
-                    [overdue]="renewalSoon(c)"
                   >
                     <span coverage class="block max-w-full min-w-0 overflow-hidden">
                       <app-coverage-chip [entityType]="entityType" [entityId]="c.id" />
@@ -464,11 +462,6 @@ export class CustomersList {
       );
     }
     return parts.join(' · ');
-  }
-
-  protected renewalSoon(c: CustomerListItem): boolean {
-    const days = c.next_renewal?.days;
-    return days !== undefined && days !== null && days >= 0 && days <= RENEWAL_SOON_DAYS;
   }
 
   protected claimsKey(count: number): string {

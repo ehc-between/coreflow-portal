@@ -260,6 +260,8 @@ describe('CustomersList', () => {
     expect(row.textContent).toContain('CUS-0001');
     expect(row.textContent).toContain('Org. no. 999 000 001');
     expect(row.textContent).toContain('renews in 45 days');
+    // An upcoming renewal is not overdue.
+    expect(row.textContent).not.toContain('Overdue');
     expect(row.querySelector('[data-testid="row-claims"]')?.textContent).toContain('2 open claims');
     expect(row.querySelector('[data-testid="row-also-supplier"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="pending-banner"]')?.textContent).toContain(
