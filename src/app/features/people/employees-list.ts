@@ -156,6 +156,7 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
     <app-record-list-page
       titleKey="modules.names.people"
       descriptionKey="people.employees.subtitle"
+      outputsModule="people"
       [settingsLink]="settingsLink"
       scope="people"
       page="list"

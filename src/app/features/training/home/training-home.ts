@@ -95,6 +95,8 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
           { labelKey: 'modules.names.training', link: '/training/courses' },
           { labelKey: 'training.nav.mine' },
         ]"
+        outputsModule="training"
+
       >
         <app-button
           secondary

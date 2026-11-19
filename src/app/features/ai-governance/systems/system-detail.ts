@@ -29,6 +29,7 @@ import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { OutputsPanel } from '../../../shared/outputs';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
@@ -128,6 +129,7 @@ export const SYSTEM_FIELD_LABELS: Readonly<Record<string, string>> = {
     Badge,
     Button,
     Card,
+    OutputsPanel,
     ConfirmDialog,
     ErrorState,
     FieldItem,
@@ -648,6 +650,11 @@ export const SYSTEM_FIELD_LABELS: Readonly<Record<string, string>> = {
             [canWrite]="store.canWrite()"
             [starting]="flows.starting() === 'ai_system.to_incident'"
             (report)="startFlow('ai_system.to_incident', s)"
+          />
+          <app-outputs-panel
+            entityType="ai_system"
+            [entityId]="s.id"
+            data-testid="system-outputs"
           />
         </div>
 
