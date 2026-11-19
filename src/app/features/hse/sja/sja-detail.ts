@@ -18,6 +18,7 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
+import { OutputsPanel } from '../../../shared/outputs';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
@@ -201,6 +202,7 @@ export function warningText(
 @Component({
   selector: 'app-sja-detail',
   imports: [
+    OutputsPanel,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -732,6 +734,16 @@ export function warningText(
                 />
               </div>
             </div>
+
+            <section class="mt-6" data-testid="sja-documents">
+              <h2 class="font-display text-card font-bold text-fg">
+                {{ 'hse.common.documentsTitle' | transloco }}
+              </h2>
+              <p class="mt-0.5 mb-3 text-ui text-fg-muted">
+                {{ 'hse.common.documentsHint' | transloco }}
+              </p>
+              <app-outputs-panel entityType="sja" [entityId]="s.id" />
+            </section>
 
             <div tasks>
               <app-entity-tasks

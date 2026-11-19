@@ -139,6 +139,7 @@ export function attentionItems(o: EnvironmentOverview): AttentionItem[] {
       <app-page-header
         titleKey="modules.names.environment"
         descriptionKey="environment.overview.subtitle"
+        outputsModule="environment"
         [settingsLink]="perms.settingsLink()"
       >
         @if (perms.write()) {

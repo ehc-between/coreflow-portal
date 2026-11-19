@@ -40,6 +40,8 @@
     "updated": "Sist endret",
     "byOn": "{{ name }}, {{ date }}",
     "summaryTitle": "Sammendrag",
+    "documentsTitle": "Dokumenter og rapporter",
+    "documentsHint": "Skriv ut eller del denne posten som et ferdig dokument.",
     "saved": "{{ code }} er lagret.",
     "deleted": "{{ code }} er slettet.",
     "willLink": "Den nye registreringen blir koblet til det du kom fra.",
