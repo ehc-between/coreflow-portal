@@ -735,5 +735,20 @@
     "responsibilityOwnerChanged": "{{ actor_name }} changed who maintains the responsibility",
     "responsibilityAssigned": "{{ actor_name }} assigned new people, roles or departments",
     "responsibilityReviewed": "{{ actor_name }} marked the responsibility as reviewed"
+  },
+  "policyDocs": {
+    "type": {
+      "policy": "Only policies",
+      "scope": "Only scope statements",
+      "context_analysis": "Only context analyses",
+      "other": "Filtered by type"
+    },
+    "showAll": "Show all documents",
+    "newPolicy": "New policy",
+    "missingTitle": "Your standards expect these policies, but none is approved yet",
+    "draft": "Create draft",
+    "openDocument": "Open the controlled document",
+    "documentHint": "Approving publishes this as a revision in Documents.",
+    "documentLabel": "Controlled document"
   }
 }

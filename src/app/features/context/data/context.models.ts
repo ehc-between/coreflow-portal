@@ -167,6 +167,8 @@ export interface ControlledFields {
   readonly last_reviewed_at: string | null;
   readonly review_overdue: boolean;
   readonly can_approve: boolean;
+  /** U16: the controlled document the record is published as (Documents). */
+  readonly document_id?: string | null;
 }
 
 export interface ListResponse<T> {
