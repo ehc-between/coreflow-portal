@@ -4,7 +4,7 @@
     "overview": "Oversikt",
     "plans": "Revisjoner",
     "programmes": "Programmer",
-    "findings": "Funn",
+    "findings": "Det revisjonen fant",
     "certifications": "Sertifiseringer",
     "auditors": "Revisorer"
   },
@@ -199,7 +199,7 @@
   "checklistResult": {
     "unanswered": "Ikke besvart",
     "conforming": "I samsvar",
-    "nonconforming": "Avvik",
+    "nonconforming": "Krav ikke oppfylt",
     "observation": "Observasjon",
     "not_applicable": "Ikke relevant"
   },
@@ -209,10 +209,10 @@
     "ai": "Foreslått av assistenten"
   },
   "findingType": {
-    "major_nc": "Større avvik",
-    "minor_nc": "Mindre avvik",
-    "observation": "Observasjon",
-    "ofi": "Forbedringsmulighet"
+    "major_nc": "Alvorlig brudd på krav (større avvik)",
+    "minor_nc": "Brudd på krav (mindre avvik)",
+    "observation": "Kan bli et problem (observasjon)",
+    "ofi": "Forslag til forbedring"
   },
   "findingTypeHelp": {
     "major_nc": "Et krav er ikke oppfylt i det hele tatt, eller svikten setter systemets resultater i fare.",
@@ -499,7 +499,7 @@
     "fix": "Kunne ikke lagre. Fyll ut tittel og et år mellom 2000 og 2100."
   },
   "findings": {
-    "title": "Revisjonsfunn",
+    "title": "Det revisjonene fant (funn)",
     "search": "Søk etter kode eller tittel",
     "new": "Registrer et funn",
     "back": "Alle funn",
@@ -509,7 +509,7 @@
       "-created_at": "Nyeste først",
       "code": "Etter kode"
     },
-    "subtitle": "Alle funn fra interne og eksterne revisjoner, og hvor langt oppfølgingen har kommet.",
+    "subtitle": "Alt revisjonene har funnet: krav som ikke er oppfylt (avvik), ting som kan bli et problem, og forslag til forbedring. Det som må rettes, følges opp her eller i et koblet avvik.",
     "raiseFromAudit": "Funn registreres fra en revisjon",
     "fromAudit": "Fra {{ audit }}"
   },

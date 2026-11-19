@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -20,6 +21,7 @@ import { activityErrorKey } from '../../../core/notifications/activity-errors';
 import { NotificationRulesApi } from '../../../core/notifications/notification-rules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { OrgRole } from '../../../core/org/org.models';
+import { relevantRoles } from '../../../core/org/roles';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
@@ -99,7 +101,7 @@ import { Switch } from '../../../shared/ui/switch/switch';
             aria-describedby="escalation-role-help"
           >
             <option [ngValue]="null">{{ 'activity.reminders.noRole' | transloco }}</option>
-            @for (role of roles(); track role.key) {
+            @for (role of shownRoles(); track role.key) {
               <option [ngValue]="role.key">{{ roleLabel(role) }}</option>
             }
           </select>
@@ -148,6 +150,11 @@ export class ReminderSettingsForm {
   readonly roleName = input<(role: OrgRole) => string>((role) => role.name);
   readonly saved = output<NotificationSettings>();
 
+  /** U37: the named roles (plus the one already chosen), not the whole global catalogue. */
+  protected readonly shownRoles = computed(() => {
+    const chosen = this.settings()?.escalation_role_key;
+    return relevantRoles(this.roles(), chosen ? [chosen] : []);
+  });
   protected readonly reminderMax = REMINDER_DAYS_MAX;
   protected readonly escalationMin = ESCALATION_DAYS_MIN;
   protected readonly escalationMax = ESCALATION_DAYS_MAX;

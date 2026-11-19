@@ -24,7 +24,6 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AssigneeIn } from '../../core/tasks/task.models';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
@@ -90,6 +89,9 @@ import {
   textOrNull,
   toneValue,
 } from './management-review-display';
+
+/** Open inputs shown before "Vis N flere" (U37: at most a handful of controls). */
+const OPEN_INPUTS_SHOWN = 3;
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -280,7 +282,6 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
     TranslocoPipe,
     LocalDatePipe,
     LocalDayPipe,
-    WatchButton,
     AiAssistButton,
     TourStepDirective,
     WhyItMatters,
@@ -382,7 +383,6 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
               <app-icon name="documents" [size]="14" />
               {{ 'managementReview.detail.report' | transloco }}
             </a>
-            <app-watch-button secondary entityType="management_review" [entityId]="r.id" />
 
             @if (r.can_edit) {
               <button appMenuItem overflow (click)="edit()">
@@ -630,89 +630,138 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
                             }
                           </p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                          @if (r.can_edit) {
-                            <label class="inline-flex min-h-9 items-center gap-1.5 text-ui text-fg">
-                              <input
-                                type="checkbox"
-                                [checked]="onlyOpen()"
-                                (change)="onlyOpen.set($any($event.target).checked)"
-                                data-testid="mr-only-open"
-                              />
-                              {{ 'managementReview.inputs.onlyOpen' | transloco }}
-                            </label>
-                          }
-                          @if (allowed('compile')) {
-                            <app-button
-                              size="sm"
-                              variant="secondary"
-                              appTourStep="mr-compile"
-                              [disabled]="busy()"
-                              (click)="runAction('compile')"
-                            >
-                              <app-icon name="history" [size]="14" />
-                              {{ actionKey('compile') | transloco }}
-                            </app-button>
-                          }
-                        </div>
+                        @if (allowed('compile')) {
+                          <app-button
+                            size="sm"
+                            variant="secondary"
+                            appTourStep="mr-compile"
+                            [disabled]="busy()"
+                            (click)="runAction('compile')"
+                          >
+                            <app-icon name="history" [size]="14" />
+                            {{ actionKey('compile') | transloco }}
+                          </app-button>
+                        }
                       </div>
                       @if (r.can_edit) {
                         <p class="mb-3 text-ui text-fg-muted">
                           {{ 'managementReview.inputs.intro' | transloco }}
                         </p>
                       }
-                      <ul class="flex flex-col gap-2" data-testid="review-inputs">
-                        @for (i of shownInputs(); track i.id) {
-                          <li>
-                            <app-mr-input-row
-                              [item]="i"
-                              [frameworks]="r.frameworks"
-                              [canEdit]="r.can_edit"
-                              [canCompile]="allowed('compile')"
-                              [busy]="busy()"
-                              [saving]="savingInput() === i.id"
-                              [initiallyOpen]="i.id === firstOpenInput()"
-                              (changed)="onInputChange(i, $event)"
-                            />
-                          </li>
-                        } @empty {
-                          <li class="text-body text-fg-muted">
-                            {{
-                              (onlyOpen()
-                                ? 'managementReview.inputs.allDone'
-                                : 'managementReview.inputs.empty'
-                              ) | transloco
-                            }}
-                          </li>
-                        }
-                      </ul>
-                      @if (r.can_edit) {
-                        <form
-                          class="mt-3 flex flex-wrap items-center gap-2"
-                          (submit)="$event.preventDefault(); addInput()"
-                        >
-                          <label class="sr-only" for="mr-custom-input">{{
-                            'managementReview.inputs.customTitle' | transloco
-                          }}</label>
-                          <input
-                            id="mr-custom-input"
-                            type="text"
-                            maxlength="255"
-                            class="h-10 min-w-0 flex-1 basis-60 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                            [placeholder]="'managementReview.inputs.customTitle' | transloco"
-                            [value]="customTitle()"
-                            (input)="customTitle.set($any($event.target).value)"
-                          />
+                      <!-- U37: what is left first (a few at a time), finished inputs folded. -->
+                      <div data-testid="review-inputs">
+                        <ul class="flex flex-col gap-2">
+                          @for (i of visibleOpenInputs(); track i.id) {
+                            <li>
+                              <app-mr-input-row
+                                [item]="i"
+                                [frameworks]="r.frameworks"
+                                [canEdit]="r.can_edit"
+                                [canCompile]="allowed('compile')"
+                                [busy]="busy()"
+                                [saving]="savingInput() === i.id"
+                                [initiallyOpen]="i.id === firstOpenInput()"
+                                (changed)="onInputChange(i, $event)"
+                              />
+                            </li>
+                          } @empty {
+                            <li class="text-body text-fg-muted" data-testid="mr-inputs-empty">
+                              {{
+                                (r.inputs.length
+                                  ? 'managementReview.inputs.allDone'
+                                  : 'managementReview.inputs.empty'
+                                ) | transloco
+                              }}
+                            </li>
+                          }
+                        </ul>
+                        @if (hiddenOpenCount() > 0) {
                           <app-button
+                            class="mt-2 inline-block"
                             size="sm"
-                            variant="secondary"
-                            type="submit"
-                            [disabled]="!customTitle().trim() || busy()"
+                            variant="ghost"
+                            data-testid="mr-inputs-more"
+                            (click)="showAllOpen.set(true)"
+                          >
+                            {{
+                              'managementReview.inputs.showMore'
+                                | transloco: { count: hiddenOpenCount() }
+                            }}
+                          </app-button>
+                        }
+                        @if (doneInputs().length) {
+                          <details class="group mt-3" data-testid="mr-done-inputs">
+                            <summary
+                              class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg [&::-webkit-details-marker]:hidden"
+                            >
+                              <span
+                                class="flex -rotate-90 transition-transform group-open:rotate-0"
+                                aria-hidden="true"
+                                ><app-icon name="chevron" [size]="14"
+                              /></span>
+                              {{
+                                'managementReview.inputs.doneFold'
+                                  | transloco: { count: doneInputs().length }
+                              }}
+                            </summary>
+                            <ul class="mt-2 flex flex-col gap-2">
+                              @for (i of doneInputs(); track i.id) {
+                                <li>
+                                  <app-mr-input-row
+                                    [item]="i"
+                                    [frameworks]="r.frameworks"
+                                    [canEdit]="r.can_edit"
+                                    [canCompile]="allowed('compile')"
+                                    [busy]="busy()"
+                                    [saving]="savingInput() === i.id"
+                                    (changed)="onInputChange(i, $event)"
+                                  />
+                                </li>
+                              }
+                            </ul>
+                          </details>
+                        }
+                      </div>
+                      @if (r.can_edit) {
+                        @if (addingCustom()) {
+                          <form
+                            class="mt-3 flex flex-wrap items-center gap-2"
+                            (submit)="$event.preventDefault(); addInput()"
+                          >
+                            <label class="sr-only" for="mr-custom-input">{{
+                              'managementReview.inputs.customTitle' | transloco
+                            }}</label>
+                            <input
+                              id="mr-custom-input"
+                              type="text"
+                              maxlength="255"
+                              class="h-10 min-w-0 flex-1 basis-60 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+                              [placeholder]="'managementReview.inputs.customTitle' | transloco"
+                              [value]="customTitle()"
+                              (input)="customTitle.set($any($event.target).value)"
+                            />
+                            <app-button
+                              size="sm"
+                              variant="secondary"
+                              type="submit"
+                              [disabled]="!customTitle().trim() || busy()"
+                            >
+                              <app-icon name="plus" [size]="13" />
+                              {{ 'managementReview.inputs.addCustom' | transloco }}
+                            </app-button>
+                          </form>
+                        } @else {
+                          <app-button
+                            class="mt-3 inline-block"
+                            size="sm"
+                            variant="ghost"
+                            data-testid="mr-add-custom"
+                            (click)="addingCustom.set(true)"
                           >
                             <app-icon name="plus" [size]="13" />
-                            {{ 'managementReview.inputs.addCustom' | transloco }}
+                            {{ 'managementReview.inputs.addOwn' | transloco }}
                           </app-button>
-                        </form>
+                        }
                       }
                     </app-card>
 
@@ -1245,7 +1294,10 @@ export class ReviewDetailPage {
   protected readonly signStatement = signal('');
   protected readonly reasonFor = signal<'return' | 'cancel' | null>(null);
   protected readonly customTitle = signal('');
-  protected readonly onlyOpen = signal(false);
+  /** All open inputs shown (else the first {@link OPEN_INPUTS_SHOWN}). */
+  protected readonly showAllOpen = signal(false);
+  /** The "add your own input" field is open. */
+  protected readonly addingCustom = signal(false);
   protected readonly suggestions = signal<SuggestedOutputs['decisions']>([]);
   /** Missing items reported by a failed submit (else the server's list). */
   private readonly submitMissing = signal<readonly SubmitRequirement[] | null>(null);
@@ -1322,10 +1374,20 @@ export class ReviewDetailPage {
   protected readonly inputsDone = computed(
     () => this.review()?.inputs.filter((i) => inputDone(i)).length ?? 0,
   );
-  protected readonly shownInputs = computed<readonly ReviewInput[]>(() => {
-    const inputs = this.review()?.inputs ?? [];
-    return this.onlyOpen() ? inputs.filter((i) => !inputDone(i)) : inputs;
-  });
+  /** Inputs with work left, in order (U37: what is left comes first). */
+  private readonly openInputs = computed<readonly ReviewInput[]>(() =>
+    (this.review()?.inputs ?? []).filter((i) => !inputDone(i)),
+  );
+  protected readonly visibleOpenInputs = computed<readonly ReviewInput[]>(() =>
+    this.showAllOpen() ? this.openInputs() : this.openInputs().slice(0, OPEN_INPUTS_SHOWN),
+  );
+  protected readonly hiddenOpenCount = computed(
+    () => this.openInputs().length - this.visibleOpenInputs().length,
+  );
+  /** Finished inputs (reviewed or not relevant), folded under one disclosure. */
+  protected readonly doneInputs = computed<readonly ReviewInput[]>(() =>
+    (this.review()?.inputs ?? []).filter((i) => inputDone(i)),
+  );
   /** The first input that still needs work opens by itself. */
   protected readonly firstOpenInput = computed(
     () => this.review()?.inputs.find((i) => !inputDone(i))?.id ?? null,
@@ -1438,7 +1500,7 @@ export class ReviewDetailPage {
   protected goToMissing(item: SubmitRequirement): void {
     const target = MISSING_TARGET[item];
     if (item === 'inputs_reviewed') {
-      this.onlyOpen.set(true);
+      this.showAllOpen.set(true);
     }
     this.goTo(target.section, target.anchor);
   }
@@ -1606,7 +1668,10 @@ export class ReviewDetailPage {
     this.mutate(
       (o, id) => this.api.addInput(o, id, { title }),
       'managementReview.notices.inputAdded',
-      () => this.customTitle.set(''),
+      () => {
+        this.customTitle.set('');
+        this.addingCustom.set(false);
+      },
     );
   }
 

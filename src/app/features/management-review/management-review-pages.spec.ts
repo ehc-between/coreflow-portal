@@ -666,6 +666,31 @@ describe('ReviewDetailPage', () => {
     expect(checklist).toContain('managementReview.missing.top_management_present.done');
   });
 
+  it('shows three open inputs at a time and folds the finished ones (U37)', async () => {
+    const base = makeDetail().inputs[0];
+    const inputs = Array.from({ length: 6 }, (_, n) => ({
+      ...base,
+      id: `in-${n}`,
+      position: n,
+      reviewed: n === 5,
+    }));
+    const { fixture, el } = setup(makeDetail({ inputs }));
+    await flush();
+    fixture.detectChanges();
+    const list = el.querySelector('[data-testid="review-inputs"]')!;
+    const open = () => list.querySelectorAll(':scope > ul > li app-mr-input-row').length;
+    expect(open()).toBe(3);
+    const more = el.querySelector('[data-testid="mr-inputs-more"] button') as HTMLButtonElement;
+    expect(more.textContent).toContain('managementReview.inputs.showMore');
+    expect(el.querySelectorAll('[data-testid="mr-done-inputs"] app-mr-input-row').length).toBe(1);
+    expect(el.querySelector('[data-testid="mr-only-open"]')).toBeNull();
+    expect(el.querySelector('#mr-custom-input')).toBeNull();
+    more.click();
+    fixture.detectChanges();
+    expect(open()).toBe(5);
+    expect(el.querySelector('[data-testid="mr-inputs-more"]')).toBeNull();
+  });
+
   it('saves notes when the field is left, and marks an input not relevant with a reason', async () => {
     const updateInput = vi.fn(() => of(makeDetail()));
     const { fixture, el } = setup(makeDetail(), { updateInput });
