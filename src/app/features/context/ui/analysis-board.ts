@@ -6,19 +6,22 @@ import {
   effect,
   inject,
   input,
+  model,
   output,
   signal,
   untracked,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { KitApi } from '../../../core/kit/kit-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { EntityChip } from '../../../shared/kit/entity-chip';
+import { Badge } from '../../../shared/ui/badge/badge';
+import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
-import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContextApi } from '../data/context-api';
 import {
   AnalysisItem,
@@ -27,8 +30,20 @@ import {
   EntityRef,
   FollowUpType,
 } from '../data/context.models';
-import { FactorFollowUps, factorFlowKey, factorTargets } from '../data/factor-follow-ups';
-import { categoriesFor, contextErrorKey, impactBadge, isAdverse } from '../context-kinds';
+import {
+  FactorFollowUps,
+  factorFlowKey,
+  factorTargets,
+  splitFactorTargets,
+} from '../data/factor-follow-ups';
+import {
+  categoriesFor,
+  contextErrorKey,
+  isAdverse,
+  isInternal,
+  needsFollowUp,
+  significanceTone,
+} from '../context-kinds';
 
 export interface BoardColumn {
   readonly category: string;
@@ -46,104 +61,246 @@ export function boardColumns(
   }));
 }
 
+/** Icon of a linked record, by type (falls back to a link). */
+const TYPE_ICONS: Readonly<Record<string, string>> = {
+  risk: 'risk',
+  opportunity: 'flag',
+  objective: 'target',
+  task: 'checkcircle',
+  deviation: 'alert',
+};
+
+/** The state of a factor card: handled, needs a decision, or simply not followed up. */
+export type FactorState = 'handled' | 'open' | 'none';
+
+export function factorState(method: AnalysisMethod, item: AnalysisItem): FactorState {
+  if (item.follow_ups?.length) {
+    return 'handled';
+  }
+  return needsFollowUp(method, item) ? 'open' : 'none';
+}
+
 /**
- * The SWOT (2 x 2) or PESTEL (3 x 2) board of an analysis. Each factor shows
- * what it led to (risks, opportunities, objectives, tasks) and, for users who
- * may write, a "Følg opp" menu that creates the natural next record prefilled
- * with the factor and attaches it (HS 4.1 -> 6.1 / 6.2). Weaknesses and threats
- * without a follow-up are marked, so open issues are visible at a glance.
+ * The SWOT (2 x 2) or PESTEL (3 x 2) board of an analysis. Each quadrant says
+ * whether it is internal or external and helpful or harmful. Each factor card
+ * shows its state at a glance: followed up (the linked records as chips with
+ * type, code, title and status), needs a follow-up (a subtle warning and ONE
+ * action: "Gjør til risiko" / "Gjør til mål"), or not followed up. Everything
+ * else (other follow-ups, unlinking) is in small "⋯" menus (HS 4.1 -> 6.1 / 6.2).
  */
 @Component({
   selector: 'app-context-analysis-board',
-  imports: [TranslocoPipe, EntityChip, Icon, MenuItem, OverflowMenu, StatusBadge],
+  imports: [TranslocoPipe, EntityChip, Badge, Button, Icon, MenuItem, OverflowMenu],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (onlyOpen()) {
+      <div
+        class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+        role="status"
+        data-testid="board-filter"
+      >
+        <span class="flex items-center gap-1.5">
+          <app-icon name="alert" [size]="14" />
+          {{ 'context.analysis.filter.showing' | transloco: { count: openCount() } }}
+        </span>
+        <button
+          type="button"
+          class="rounded-md px-1 font-semibold underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          data-testid="board-show-all"
+          (click)="onlyOpen.set(false)"
+        >
+          {{ 'context.analysis.filter.showAll' | transloco }}
+        </button>
+      </div>
+    }
     <div
-      class="grid grid-cols-1 gap-3 sm:grid-cols-2"
-      [class.lg:grid-cols-3]="analysis().method === 'pestle'"
+      class="grid grid-cols-1 gap-4 md:grid-cols-2"
+      [class.xl:grid-cols-3]="analysis().method === 'pestle'"
       data-testid="analysis-board"
     >
-      @for (column of columns(); track column.category) {
+      @for (column of visibleColumns(); track column.category) {
+        @let swot = analysis().method === 'swot';
+        @let harmful = swot && adverse(column.category);
         <section
-          class="rounded-card border border-border bg-surface p-3"
+          class="flex flex-col rounded-card border border-border border-t-4 bg-surface p-4"
+          [class.border-t-info]="swot && !harmful"
+          [class.border-t-warn]="harmful"
+          [class.border-t-border-strong]="!swot"
           [attr.aria-labelledby]="'cat-' + column.category"
+          [attr.data-testid]="'quadrant-' + column.category"
         >
-          <h3 [id]="'cat-' + column.category" class="font-display text-card font-bold text-fg">
-            {{ 'context.categories.' + column.category | transloco }}
-            <span class="ml-1 text-meta font-semibold text-fg-subtle">{{
-              column.items.length
-            }}</span>
-          </h3>
-          <p class="mb-2 text-meta text-fg-muted">
-            {{ 'context.categoryHints.' + column.category | transloco }}
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h3
+              [id]="'cat-' + column.category"
+              class="flex items-baseline gap-2 font-display text-card font-bold text-fg"
+            >
+              {{ 'context.categories.' + column.category | transloco }}
+              <span
+                class="rounded-full bg-surface-2 px-2 text-meta font-semibold text-fg-muted"
+                [attr.aria-label]="
+                  'context.analysis.factorCount' | transloco: { count: column.items.length }
+                "
+                >{{ column.items.length }}</span
+              >
+            </h3>
+            @if (swot) {
+              <span class="text-micro font-semibold tracking-[0.04em] text-fg-subtle uppercase">
+                {{
+                  'context.analysis.quadrant.' +
+                    (internal(column.category) ? 'internal' : 'external') | transloco
+                }}
+                ·
+                {{ 'context.analysis.quadrant.' + (harmful ? 'harmful' : 'helpful') | transloco }}
+              </span>
+            }
+          </div>
+          <p class="mt-0.5 mb-3 text-meta text-fg-subtle">
+            {{
+              (swot ? 'context.analysis.quadrantHints.' : 'context.categoryHints.') +
+                column.category | transloco
+            }}
           </p>
           @if (column.items.length) {
-            <ul class="flex flex-col gap-2">
+            <ul class="flex flex-col gap-2.5">
               @for (item of column.items; track item.id ?? $index) {
+                @let state = stateOf(item);
+                @let targets = split(column.category);
                 <li
-                  class="rounded-tile border border-border bg-bg p-2.5"
+                  class="rounded-tile border p-3"
+                  [class]="
+                    state === 'open' ? 'border-warn/50 bg-warn-soft/40' : 'border-border bg-bg'
+                  "
                   [attr.data-testid]="'factor-' + (item.id ?? $index)"
+                  [attr.data-state]="state"
                 >
-                  <div class="flex items-start justify-between gap-2">
-                    <span class="min-w-0 text-ui break-words text-fg">{{ item.text }}</span>
-                    @let impact = impactOf(column.category, item);
-                    <app-status-badge
-                      class="flex-none"
-                      [meaning]="impact.meaning"
-                      [value]="impact.value"
-                      [labelKey]="impact.labelKey"
-                    />
-                  </div>
-                  @if (followUps(item).length) {
-                    <ul
-                      class="mt-2 flex flex-col gap-1"
-                      [attr.aria-label]="'context.analysis.followUps' | transloco"
-                    >
-                      @for (ref of followUps(item); track ref.entity_type + ref.entity_id) {
-                        <li class="flex min-w-0 items-center gap-1">
-                          <span class="flex-none text-fg-subtle" aria-hidden="true">→</span>
-                          <app-entity-chip [ref]="ref" class="min-w-0" />
-                          @if (canWrite() && item.id) {
-                            <button
-                              type="button"
-                              class="ml-auto flex h-6 w-6 flex-none items-center justify-center rounded-md text-fg-subtle hover:bg-surface-2 hover:text-fail focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                              [attr.aria-label]="
-                                'context.analysis.removeFollowUp'
-                                  | transloco: { name: ref.code || ref.title }
-                              "
-                              [disabled]="busy()"
-                              (click)="remove(item, ref)"
-                            >
-                              <app-icon name="x" [size]="12" />
-                            </button>
-                          }
-                        </li>
-                      }
-                    </ul>
-                  } @else if (adverse(column.category)) {
-                    <p class="mt-1.5 text-meta text-warn-ink">
-                      {{ 'context.analysis.noFollowUp' | transloco }}
+                  <div class="flex items-start gap-2">
+                    <p class="min-w-0 flex-1 text-ui font-medium break-words text-fg">
+                      {{ item.text }}
                     </p>
-                  }
-                  @if (canWrite() && item.id && targetsFor(column.category).length) {
-                    <div class="mt-2">
+                    <app-badge class="mt-0.5 flex-none" [tone]="tone(item)">{{
+                      'context.analysis.impact.' + item.impact | transloco
+                    }}</app-badge>
+                    @if (
+                      canWrite() &&
+                      item.id &&
+                      (state === 'handled' ? targets.all : targets.rest).length
+                    ) {
                       <app-overflow-menu
-                        labelKey="context.analysis.followUpMenu"
-                        align="start"
-                        [attr.data-testid]="'follow-up-' + item.id"
+                        class="-my-1.5 -mr-2 flex-none"
+                        variant="ghost"
+                        [iconOnly]="true"
+                        labelKey="context.analysis.factorMenu"
+                        [triggerTestId]="'follow-up-' + item.id"
                       >
-                        @for (target of targetsFor(column.category); track target) {
+                        @for (
+                          target of state === 'handled' ? targets.all : targets.rest;
+                          track target
+                        ) {
                           <button
                             appMenuItem
                             type="button"
                             [disabled]="busy()"
                             (click)="start(item, target)"
                           >
+                            <app-icon [name]="iconFor(target)" [size]="15" />
                             {{ 'context.analysis.followUp.' + target | transloco }}
                           </button>
                         }
                       </app-overflow-menu>
-                    </div>
+                    }
+                  </div>
+
+                  @switch (state) {
+                    @case ('handled') {
+                      <div class="mt-2.5">
+                        <p
+                          class="flex items-center gap-1 text-micro font-semibold text-pass-ink"
+                          [id]="'fu-' + item.id"
+                        >
+                          <app-icon name="check" [size]="12" />
+                          {{ 'context.analysis.state.handled' | transloco }}
+                        </p>
+                        <ul
+                          class="mt-1.5 flex flex-col gap-1.5"
+                          [attr.aria-labelledby]="'fu-' + item.id"
+                        >
+                          @for (ref of item.follow_ups; track ref.entity_type + ref.entity_id) {
+                            <li
+                              class="flex min-w-0 items-center gap-2 rounded-tile border border-border bg-surface py-1 pr-1 pl-2.5"
+                              data-testid="follow-up-link"
+                            >
+                              <app-icon
+                                class="flex-none text-fg-muted"
+                                [name]="iconFor(ref.entity_type)"
+                                [size]="15"
+                              />
+                              <app-entity-chip
+                                class="min-w-0 flex-1 py-1"
+                                [ref]="ref"
+                                [statusText]="true"
+                                [stacked]="true"
+                              />
+                              @if (canWrite() && item.id) {
+                                <app-overflow-menu
+                                  class="flex-none"
+                                  variant="ghost"
+                                  [iconOnly]="true"
+                                  [label]="
+                                    'context.analysis.linkMenu'
+                                      | transloco: { name: ref.code || ref.title }
+                                  "
+                                  triggerTestId="follow-up-link-menu"
+                                >
+                                  @if (ref.url) {
+                                    <button appMenuItem type="button" (click)="open(ref)">
+                                      <app-icon name="arrow" [size]="15" />
+                                      {{ 'context.analysis.openLink' | transloco }}
+                                    </button>
+                                  }
+                                  <button
+                                    appMenuItem
+                                    type="button"
+                                    [danger]="true"
+                                    [disabled]="busy()"
+                                    data-testid="follow-up-unlink"
+                                    (click)="remove(item, ref)"
+                                  >
+                                    <app-icon name="x" [size]="15" />
+                                    {{ 'context.analysis.unlink' | transloco }}
+                                  </button>
+                                </app-overflow-menu>
+                              }
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                    @default {
+                      <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
+                        <p
+                          class="flex items-center gap-1 text-micro font-semibold"
+                          [class.text-warn-ink]="state === 'open'"
+                          [class.text-fg-subtle]="state !== 'open'"
+                        >
+                          @if (state === 'open') {
+                            <app-icon name="alert" [size]="12" />
+                          }
+                          {{ 'context.analysis.state.' + state | transloco }}
+                        </p>
+                        @if (canWrite() && item.id && targets.primary; as target) {
+                          <app-button
+                            size="sm"
+                            [variant]="state === 'open' ? 'primary' : 'secondary'"
+                            [disabled]="busy()"
+                            [attr.data-testid]="'make-' + target + '-' + item.id"
+                            (click)="start(item, target)"
+                          >
+                            <app-icon [name]="iconFor(target)" [size]="14" />
+                            {{ 'context.analysis.makeInto.' + target | transloco }}
+                          </app-button>
+                        }
+                      </div>
+                    }
                   }
                 </li>
               }
@@ -159,6 +316,7 @@ export function boardColumns(
 export class AnalysisBoard {
   private readonly kit = inject(KitApi);
   private readonly api = inject(ContextApi);
+  private readonly router = inject(Router);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly followUpService = inject(FactorFollowUps);
@@ -166,6 +324,8 @@ export class AnalysisBoard {
   readonly analysis = input.required<ContextAnalysis>();
   /** The user may add and remove follow-ups (`context:write`). */
   readonly canWrite = input(false);
+  /** Show only the factors that still need a follow-up ("1 ikke fulgt opp"). */
+  readonly onlyOpen = model(false);
   /** The analysis after a follow-up was removed. */
   readonly changed = output<ContextAnalysis>();
 
@@ -175,6 +335,24 @@ export class AnalysisBoard {
   protected readonly columns = computed(() =>
     boardColumns(this.analysis().method, this.analysis().items),
   );
+  protected readonly openCount = computed(
+    () =>
+      this.analysis().items.filter((item) => needsFollowUp(this.analysis().method, item)).length,
+  );
+  /** With the filter on: only the open factors, and only the quadrants that have one. */
+  protected readonly visibleColumns = computed(() => {
+    const columns = this.columns();
+    if (!this.onlyOpen()) {
+      return columns;
+    }
+    const method = this.analysis().method;
+    return columns
+      .map((column) => ({
+        ...column,
+        items: column.items.filter((item) => needsFollowUp(method, item)),
+      }))
+      .filter((column) => column.items.length);
+  });
 
   private sub: Subscription | null = null;
 
@@ -185,25 +363,50 @@ export class AnalysisBoard {
       const canWrite = this.canWrite();
       untracked(() => this.loadFlows(orgId, id, canWrite));
     });
+    // Nothing left to show: drop the filter so the board never looks empty.
+    effect(() => {
+      if (this.onlyOpen() && this.openCount() === 0) {
+        untracked(() => this.onlyOpen.set(false));
+      }
+    });
     inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
   }
 
-  protected impactOf(category: string, item: AnalysisItem) {
-    return impactBadge(category, item.impact);
+  protected stateOf(item: AnalysisItem): FactorState {
+    return factorState(this.analysis().method, item);
+  }
+
+  protected tone(item: AnalysisItem) {
+    return significanceTone(item.impact);
   }
 
   protected adverse(category: string): boolean {
     return isAdverse(category);
   }
 
-  protected followUps(item: AnalysisItem): readonly EntityRef[] {
-    return item.follow_ups ?? [];
+  protected internal(category: string): boolean {
+    return isInternal(category);
   }
 
-  /** The follow-up targets of a category the user can actually start. */
-  protected targetsFor(category: string): readonly FollowUpType[] {
+  protected iconFor(type: string): string {
+    return TYPE_ICONS[type] ?? 'link';
+  }
+
+  /** The follow-up targets of a category the user can start: the primary one and the rest. */
+  protected split(category: string): {
+    primary: FollowUpType | null;
+    rest: readonly FollowUpType[];
+    all: readonly FollowUpType[];
+  } {
     const enabled = this.enabledFlows();
-    return factorTargets(category).filter((target) => enabled.has(factorFlowKey(target)));
+    const all = factorTargets(category).filter((target) => enabled.has(factorFlowKey(target)));
+    return { ...splitFactorTargets(category, all), all };
+  }
+
+  protected open(ref: EntityRef): void {
+    if (ref.url) {
+      void this.router.navigateByUrl(ref.url);
+    }
   }
 
   protected start(item: AnalysisItem, target: FollowUpType): void {

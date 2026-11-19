@@ -106,14 +106,23 @@ export interface EntityChipRef {
           <span class="flex-none font-mono">{{ r.code }}</span>
         }
         @if (r.status) {
-          <span
-            class="h-2 w-2 flex-none rounded-full"
-            [class]="dotClass()"
-            role="img"
-            [attr.aria-label]="statusLabel()"
-            [title]="statusLabel()"
-            data-testid="entity-chip-status"
-          ></span>
+          @if (statusText()) {
+            <span
+              class="inline-flex flex-none items-center gap-1 font-semibold text-fg-muted normal-case"
+              data-testid="entity-chip-status"
+              ><span aria-hidden="true" class="h-2 w-2 rounded-full" [class]="dotClass()"></span
+              >{{ statusLabel() }}</span
+            >
+          } @else {
+            <span
+              class="h-2 w-2 flex-none rounded-full"
+              [class]="dotClass()"
+              role="img"
+              [attr.aria-label]="statusLabel()"
+              [title]="statusLabel()"
+              data-testid="entity-chip-status"
+            ></span>
+          }
         }
       </span>
       <span

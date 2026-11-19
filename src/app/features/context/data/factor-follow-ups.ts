@@ -32,6 +32,28 @@ export function factorTargets(category: string): readonly FollowUpType[] {
   return FACTOR_TARGETS[category] ?? PESTLE_TARGETS;
 }
 
+/** The one obvious next step per category: a risk for bad news, an objective for good news. */
+const PRIMARY_TARGET: Readonly<Record<string, FollowUpType>> = {
+  weakness: 'risk',
+  threat: 'risk',
+  strength: 'objective',
+  opportunity: 'objective',
+};
+
+/**
+ * Split the targets a factor offers (already narrowed to the enabled flows) into
+ * the one primary action ("Gjør til risiko" / "Gjør til mål") and the rest, for
+ * the factor's "⋯" menu. Falls back to the first enabled target.
+ */
+export function splitFactorTargets(
+  category: string,
+  enabled: readonly FollowUpType[],
+): { primary: FollowUpType | null; rest: readonly FollowUpType[] } {
+  const preferred = PRIMARY_TARGET[category] ?? 'risk';
+  const primary = enabled.includes(preferred) ? preferred : (enabled[0] ?? null);
+  return { primary, rest: enabled.filter((target) => target !== primary) };
+}
+
 /** Flow key of a factor follow-up (`context_analysis.to_risk`). */
 export function factorFlowKey(target: FollowUpType): string {
   return `context_analysis.to_${target}`;

@@ -12,7 +12,8 @@ import {
   contextErrorKey,
   dayOf,
   dayToWire,
-  impactBadge,
+  needsFollowUp,
+  significanceTone,
   intervalOptions,
   isPastDay,
   lifecycleActions,
@@ -24,6 +25,7 @@ import {
   statusBadge,
   withoutTitleHeading,
 } from './context-kinds';
+import { splitFactorTargets } from './data/factor-follow-ups';
 import { draftRaciWarnings } from './form/raci-editor';
 import { rowBadges } from './list/context-list';
 import {
@@ -293,11 +295,10 @@ describe('view helpers', () => {
     expect(toneFor(addressedBadge('addressed').meaning, addressedBadge('addressed').value)).toBe(
       'pass',
     );
-    const strength = impactBadge('strength', 'high');
-    expect(toneFor(strength.meaning, strength.value)).toBe('neutral');
-    expect(strength.labelKey).toBe('context.analysis.impact.high');
-    const threat = impactBadge('threat', 'high');
-    expect(toneFor(threat.meaning, threat.value)).toBe('fail');
+    // Significance uses one weight scale in every quadrant: never an alarm colour.
+    expect(significanceTone('high')).toBe('accent');
+    expect(significanceTone('low')).toBe('neutral');
+    expect(['fail', 'pass']).not.toContain(significanceTone('medium'));
     expect(
       toneFor(priorityBadge('manage_closely').meaning, priorityBadge('manage_closely').value),
     ).not.toBe('fail');
@@ -306,6 +307,29 @@ describe('view helpers', () => {
       value: 'in_review',
       labelKey: 'context.status.in_review',
     });
+  });
+
+  it('flags the factors that still need a follow-up like the API does', () => {
+    const ref = { entity_type: 'risk', entity_id: 'r1' };
+    expect(needsFollowUp('swot', { category: 'threat', impact: 'low' })).toBe(true);
+    expect(needsFollowUp('swot', { category: 'threat', impact: 'high', follow_ups: [ref] })).toBe(
+      false,
+    );
+    expect(needsFollowUp('swot', { category: 'strength', impact: 'high' })).toBe(false);
+    expect(needsFollowUp('pestle', { category: 'legal', impact: 'high' })).toBe(true);
+    expect(needsFollowUp('pestle', { category: 'legal', impact: 'medium' })).toBe(false);
+  });
+
+  it('offers one obvious follow-up per factor: a risk for bad news, an objective for good news', () => {
+    expect(splitFactorTargets('threat', ['risk', 'task'])).toEqual({
+      primary: 'risk',
+      rest: ['task'],
+    });
+    expect(splitFactorTargets('opportunity', ['opportunity', 'objective', 'task']).primary).toBe(
+      'objective',
+    );
+    expect(splitFactorTargets('strength', ['task'])).toEqual({ primary: 'task', rest: [] });
+    expect(splitFactorTargets('legal', []).primary).toBeNull();
   });
 
   it('orders frameworks with the adopted ones first', () => {

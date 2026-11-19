@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -7,6 +15,7 @@ import { EntityChip } from '../../../shared/kit/entity-chip';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import {
   ContextAnalysis,
@@ -18,7 +27,12 @@ import {
   ScopeExclusion,
   ScopeStatement,
 } from '../data/context.models';
-import { addressedBadge, priorityBadge, withoutTitleHeading } from '../context-kinds';
+import {
+  addressedBadge,
+  needsFollowUp,
+  priorityBadge,
+  withoutTitleHeading,
+} from '../context-kinds';
 import { AnalysisBoard } from '../ui/analysis-board';
 import { RaciChips } from '../ui/raci-chips';
 import { PartyRegisters } from './party-registers';
@@ -56,6 +70,7 @@ export function exclusionFramework(exclusion: ScopeExclusion, fallback: string):
     MarkdownPipe,
     FieldItem,
     FieldList,
+    Icon,
     StatusBadge,
     AnalysisBoard,
     RaciChips,
@@ -68,35 +83,104 @@ export function exclusionFramework(exclusion: ScopeExclusion, fallback: string):
     @switch (kind()) {
       @case ('analysis') {
         @if (analysis(); as r) {
-          <app-field-list [columns]="3">
-            <app-field-item
-              labelKey="context.fields.method"
-              [value]="'context.methods.' + r.method | transloco"
-            />
-            <app-field-item
-              labelKey="context.fields.framework"
-              [value]="
-                (r.framework ? 'context.frameworks.' + r.framework : 'context.fields.allFrameworks')
-                  | transloco
-              "
-            />
-            <app-field-item labelKey="context.fields.openFactors" [value]="r.open_factors ?? 0" />
-            <app-field-item labelKey="context.fields.summary" [wide]="true">
-              @if (r.summary?.trim()) {
-                <div class="cf-prose text-body text-fg" [innerHTML]="r.summary | appMarkdown"></div>
+          @let stats = analysisStats();
+          <section
+            class="rounded-card border border-border bg-surface p-5"
+            aria-labelledby="ctx-summary-title"
+            data-testid="analysis-lead"
+          >
+            <h2
+              id="ctx-summary-title"
+              class="text-micro font-semibold tracking-[0.04em] text-fg-subtle uppercase"
+            >
+              {{ 'context.fields.summary' | transloco }}
+            </h2>
+            @if (r.summary?.trim()) {
+              <div
+                class="cf-prose mt-1.5 text-card leading-relaxed text-fg"
+                [innerHTML]="r.summary | appMarkdown"
+              ></div>
+            } @else {
+              <p class="mt-1.5 text-ui text-fg-subtle">{{ 'common.empty.notSet' | transloco }}</p>
+            }
+            <dl
+              class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-4 text-ui"
+              data-testid="analysis-facts"
+            >
+              <div class="flex items-baseline gap-1.5">
+                <dt class="text-fg-muted">{{ 'context.fields.method' | transloco }}</dt>
+                <dd class="font-semibold text-fg">
+                  {{ 'context.methods.' + r.method | transloco }}
+                </dd>
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <dt class="text-fg-muted">{{ 'context.fields.framework' | transloco }}</dt>
+                <dd class="font-semibold text-fg">
+                  {{
+                    (r.framework
+                      ? 'context.frameworks.' + r.framework
+                      : 'context.fields.allFrameworks'
+                    ) | transloco
+                  }}
+                </dd>
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <dt class="text-fg-muted">{{ 'context.fields.items' | transloco }}</dt>
+                <dd class="font-semibold text-fg">{{ stats.total }}</dd>
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <dt class="text-fg-muted">{{ 'context.analysis.facts.followedUp' | transloco }}</dt>
+                <dd class="font-semibold text-fg" data-testid="analysis-followed">
+                  {{
+                    'context.analysis.facts.ofTotal'
+                      | transloco: { done: stats.handled, total: stats.total }
+                  }}
+                </dd>
+              </div>
+              @if (stats.open) {
+                <div class="sm:ml-auto">
+                  <dt class="sr-only">{{ 'context.fields.openFactors' | transloco }}</dt>
+                  <dd>
+                    <button
+                      type="button"
+                      class="inline-flex h-8 items-center gap-1.5 rounded-full border border-warn/50 bg-warn-soft px-3 text-ui font-semibold text-warn-ink hover:border-warn focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      [attr.aria-pressed]="onlyOpen()"
+                      [title]="'context.analysis.facts.showOpen' | transloco"
+                      data-testid="analysis-open-factors"
+                      (click)="showOpen()"
+                    >
+                      <app-icon name="alert" [size]="14" />
+                      {{ 'context.analysis.facts.open' | transloco: { count: stats.open } }}
+                      <app-icon name="arrow" [size]="13" />
+                    </button>
+                  </dd>
+                </div>
+              } @else if (stats.total) {
+                <div class="flex items-center gap-1.5 font-semibold text-pass-ink sm:ml-auto">
+                  <dt class="sr-only">{{ 'context.fields.openFactors' | transloco }}</dt>
+                  <dd class="flex items-center gap-1.5">
+                    <app-icon name="checkcircle" [size]="15" />
+                    {{ 'context.analysis.facts.allDone' | transloco }}
+                  </dd>
+                </div>
               }
-            </app-field-item>
-          </app-field-list>
+            </dl>
+          </section>
           <section aria-labelledby="ctx-factors-title">
-            <h2 id="ctx-factors-title" class="font-display text-section font-bold text-fg">
+            <h2
+              id="ctx-factors-title"
+              tabindex="-1"
+              class="scroll-mt-4 font-display text-section font-bold text-fg outline-none"
+            >
               {{ 'context.fields.items' | transloco }}
             </h2>
-            <p class="mt-0.5 mb-3 text-ui text-fg-muted">
+            <p class="mt-0.5 mb-3 text-meta text-fg-muted">
               {{ 'context.analysis.boardHint' | transloco }}
             </p>
             <app-context-analysis-board
               [analysis]="r"
               [canWrite]="canWrite()"
+              [(onlyOpen)]="onlyOpen"
               (changed)="changed.emit($event)"
             />
           </section>
@@ -369,6 +453,20 @@ export class RecordBody {
   protected readonly analysis = computed(() =>
     this.kind() === 'analysis' ? (this.record() as ContextAnalysis) : null,
   );
+  /** Show only the factors that still need a follow-up (the strip's warning). */
+  protected readonly onlyOpen = signal(false);
+
+  /** The key facts of an analysis: factors, how many are followed up, how many must be. */
+  protected readonly analysisStats = computed(() => {
+    const r = this.analysis();
+    const items = r?.items ?? [];
+    return {
+      total: items.length,
+      handled: items.filter((item) => item.follow_ups?.length).length,
+      open: r ? items.filter((item) => needsFollowUp(r.method, item)).length : 0,
+    };
+  });
+
   protected readonly party = computed(() =>
     this.kind() === 'party' ? (this.record() as InterestedParty) : null,
   );
@@ -381,6 +479,14 @@ export class RecordBody {
   protected readonly raci = computed(() =>
     this.kind() === 'responsibility' ? (this.record() as Responsibility) : null,
   );
+
+  /** "1 ikke fulgt opp": filter the board to those factors and scroll to it. */
+  protected showOpen(): void {
+    this.onlyOpen.set(true);
+    const heading = document.getElementById('ctx-factors-title');
+    heading?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    heading?.focus({ preventScroll: true });
+  }
 
   protected priority(r: InterestedParty) {
     return priorityBadge(r.priority);

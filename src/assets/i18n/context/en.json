@@ -335,9 +335,6 @@
       "medium": "Significance: medium",
       "high": "Significance: high"
     },
-    "followUps": "Followed up by",
-    "noFollowUp": "Not followed up yet",
-    "followUpMenu": "Follow up",
     "followUp": {
       "risk": "Create risk",
       "opportunity": "Create opportunity",
@@ -345,8 +342,47 @@
       "task": "Create task",
       "deviation": "Create deviation"
     },
-    "removeFollowUp": "Remove {{ name }} from the factor",
-    "followUpFailed": "The record was saved and linked to the analysis, but not to the factor itself. Link it from the analysis."
+    "followUpFailed": "The record was saved and linked to the analysis, but not to the factor itself. Link it from the analysis.",
+    "factorCount": "Number of factors: {{ count }}",
+    "quadrant": {
+      "internal": "Internal",
+      "external": "External",
+      "helpful": "Helpful",
+      "harmful": "Harmful"
+    },
+    "quadrantHints": {
+      "strength": "What the organisation does well and can build on.",
+      "weakness": "Where the organisation falls short or is vulnerable.",
+      "opportunity": "Changes outside the organisation it can benefit from.",
+      "threat": "Changes outside the organisation that could harm it."
+    },
+    "state": {
+      "handled": "Followed up by",
+      "open": "Needs a follow-up",
+      "none": "Not followed up"
+    },
+    "makeInto": {
+      "risk": "Make it a risk",
+      "objective": "Make it an objective",
+      "opportunity": "Make it an opportunity",
+      "task": "Make it a task",
+      "deviation": "Make it a deviation"
+    },
+    "factorMenu": "More follow-ups for this factor",
+    "linkMenu": "Options for {{ name }}",
+    "openLink": "Open",
+    "unlink": "Remove the link",
+    "filter": {
+      "showing": "Showing only the factors that are not followed up ({{ count }}).",
+      "showAll": "Show all factors"
+    },
+    "facts": {
+      "followedUp": "Followed up",
+      "ofTotal": "{{ done }} of {{ total }}",
+      "open": "{{ count }} not followed up",
+      "showOpen": "Show the factors that are not followed up",
+      "allDone": "All key factors are followed up"
+    }
   },
   "party": {
     "obligationHint": "Legal and contractual requirements from this party should be recorded as obligations of their own, so they are followed up and evidenced (ISO 14001 and ISO 45001 clause 6.1.3).",
@@ -517,7 +553,6 @@
     "notFound": "The item does not exist, or you do not have access to it.",
     "summaryTitle": "At a glance",
     "reviewOverdue": "Review overdue",
-    "approvedNote": "Changing the content starts a new version that must be approved.",
     "retiredHint": "Retired and read-only.",
     "approved": "Approved",
     "approverRoles": "Role: {{ roles }}",
@@ -608,7 +643,8 @@
         "policy": "Review policy {{ code }} “{{ title }}” against clause 5.2. Does it contain the required commitments, and does it suit our purpose?",
         "responsibility": "Review responsibility {{ code }} “{{ title }}”. Is exactly one person accountable, and is the authority clear?"
       }
-    }
+    },
+    "menu": "Ask AI"
   },
   "next": {
     "reviewOverdue": {
