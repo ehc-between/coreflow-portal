@@ -9,6 +9,7 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -142,6 +143,8 @@ export function requestSteps(r: DataSubjectRequest): readonly DsrStep[] {
             @if (s.key === 'draft_reply' && canWrite() && !closed()) {
               <div class="mt-2 pl-7">
                 <app-ai-assist-button
+                  #assist
+                  [quiet]="true"
                   assist="privacy.draft_dsr_reply"
                   entityType="data_subject_request"
                   [entityId]="r.id"
@@ -181,6 +184,9 @@ export class DsrHandling {
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly reply = signal<string | null>(null);
+  private readonly assist = viewChild<AiAssistButton>('assist');
+  /** The reply can be drafted now (the request is open and the user may write). */
+  readonly canDraft = computed(() => this.canWrite() && !this.closed());
   protected readonly systems = signal<readonly DsrSystem[]>([]);
   protected readonly systemsLoaded = signal(false);
 
@@ -197,6 +203,11 @@ export class DsrHandling {
       const id = this.requestId();
       untracked(() => this.loadSystems(orgId, id));
     });
+  }
+
+  /** Draft the reply with the assistant ("Spør KI" menu of the page). */
+  draftReply(): void {
+    this.assist()?.run();
   }
 
   protected toggle(step: DsrStepKey, done: boolean): void {

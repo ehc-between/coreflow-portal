@@ -141,40 +141,38 @@ export class PrivacyGaps {
     return shown.map((gap) => ({
       gap,
       kindKey: gapKindKey(gap.kind),
-      params: this.params(gap),
+      params: gapParams(gap, this.language),
       fix: splitRoute(gap.fix.url),
       open: splitRoute(gap.url),
     }));
   });
+}
 
-  /** The text params of a gap: code, title, article and the kind's own details. */
-  private params(gap: PrivacyGap): Record<string, unknown> {
-    const t = (key: string) => this.language.translate(key);
-    const p = gap.params ?? {};
-    const list = (v: unknown) => (Array.isArray(v) ? (v as unknown[]).map(String) : []);
-    const fields = list(p['fields'])
-      .map((f) => t(`privacy.fields.${f}`))
-      .join(', ');
-    const reasons = list(p['reasons'])
-      .map((r) => t(`privacy.gaps.reasons.${r}`))
-      .join(', ');
-    const countries = list(p['countries'])
-      .filter(Boolean)
-      .map((c) => locationName(c, this.language))
-      .join(', ');
-    const dueAt = typeof p['due_at'] === 'string' ? (p['due_at'] as string) : null;
-    return {
-      code: gap.code,
-      title: gap.title,
-      article: articleNumber(gap.article),
-      fields,
-      reasons,
-      countries: countries || t('privacy.gaps.unknownCountry'),
-      dpaStatus:
-        typeof p['dpa_status'] === 'string'
-          ? t(`privacy.options.dpaStatus.${p['dpa_status']}`)
-          : '',
-      due: dueAt ? formatLocalDay(dueAt, 'mediumDate', this.language.locale()) : '',
-    };
-  }
+/** The text params of a gap: code, title, article and the kind's own details. */
+export function gapParams(gap: PrivacyGap, language: LanguageService): Record<string, unknown> {
+  const t = (key: string) => language.translate(key);
+  const p = gap.params ?? {};
+  const list = (v: unknown) => (Array.isArray(v) ? (v as unknown[]).map(String) : []);
+  const fields = list(p['fields'])
+    .map((f) => t(`privacy.fields.${f}`))
+    .join(', ');
+  const reasons = list(p['reasons'])
+    .map((r) => t(`privacy.gaps.reasons.${r}`))
+    .join(', ');
+  const countries = list(p['countries'])
+    .filter(Boolean)
+    .map((c) => locationName(c, language))
+    .join(', ');
+  const dueAt = typeof p['due_at'] === 'string' ? (p['due_at'] as string) : null;
+  return {
+    code: gap.code,
+    title: gap.title,
+    article: articleNumber(gap.article),
+    fields,
+    reasons,
+    countries: countries || t('privacy.gaps.unknownCountry'),
+    dpaStatus:
+      typeof p['dpa_status'] === 'string' ? t(`privacy.options.dpaStatus.${p['dpa_status']}`) : '',
+    due: dueAt ? formatLocalDay(dueAt, 'mediumDate', language.locale()) : '',
+  };
 }
