@@ -16,18 +16,28 @@ import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe } from '../../shared/locale/locale-pipes';
-import { Badge } from '../../shared/ui/badge/badge';
+import { EntityChip, EntityChipRef } from '../../shared/kit/entity-chip';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
+import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Button } from '../../shared/ui/button/button';
 import { OutputsPanel } from '../../shared/outputs';
-import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -43,9 +53,8 @@ import {
 } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
 import { PeopleLookups } from './data/people-lookups';
-import { Employee, PERM_MANAGE, PositionDetail } from './data/people.models';
+import { DocumentRef, Employee, PERM_MANAGE, PositionDetail } from './data/people.models';
 import { PositionRequirements } from './position-requirements';
-import { PeopleAsk } from './ui/people-ask';
 import { PeopleField } from './ui/people-field';
 import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
 
@@ -76,35 +85,96 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
 };
 
 /**
- * A position (`/people/positions/:id`): what the role is for, its responsibilities
- * and authorities (HS 5.3), the job description document, its security risk (high
- * means a background check is required, A.6.1), the competence requirements (HS 7.2)
- * and who holds it. "Merk som gjennomgått" records the yearly review and schedules
- * the next one (it feeds the management review).
+ * The status sentence of a position: retired, review overdue, incomplete (no
+ * responsibilities, authorities or competence requirements) or in order.
+ */
+export function positionStatusLine(p: PositionDetail): { key: string; tone: StatusLineTone } {
+  const base = 'people.positionDetail.status.';
+  if (p.status === 'retired') {
+    return { key: base + 'retired', tone: 'neutral' };
+  }
+  if (p.review_due) {
+    return { key: base + 'reviewDue', tone: 'warn' };
+  }
+  if (!p.responsibilities || !p.authorities || p.requirements.length === 0) {
+    return { key: base + 'incomplete', tone: 'warn' };
+  }
+  return { key: base + 'active', tone: 'pass' };
+}
+
+/**
+ * What a position still needs ("Oppfølging", docs/ux-guide.md §2.7): an overdue
+ * review, the role description fields, the competence requirements, an owner and
+ * the job description, each a link to the edit page or an action.
+ */
+export function positionMissing(
+  p: PositionDetail,
+  editLink: readonly unknown[],
+  review: () => void,
+  requirements: () => void,
+): RecordMissingItem[] {
+  const base = 'people.positionDetail.missing.';
+  const out: RecordMissingItem[] = [];
+  if (p.status === 'retired') {
+    return out;
+  }
+  if (p.review_due) {
+    out.push({ key: 'review', labelKey: base + 'review', action: review });
+  }
+  if (!p.responsibilities) {
+    out.push({ key: 'responsibilities', labelKey: base + 'responsibilities', link: editLink });
+  }
+  if (!p.authorities) {
+    out.push({ key: 'authorities', labelKey: base + 'authorities', link: editLink });
+  }
+  if (p.requirements.length === 0) {
+    out.push({ key: 'requirements', labelKey: base + 'requirements', action: requirements });
+  }
+  if (!p.owner) {
+    out.push({ key: 'owner', labelKey: base + 'owner', link: editLink });
+  }
+  if (!p.job_description) {
+    out.push({ key: 'jobDescription', labelKey: base + 'jobDescription', link: editLink });
+  }
+  return out;
+}
+
+/**
+ * A position (`/people/positions/:id`), built on the detail-page anatomy
+ * (docs/ux-guide.md §2.7). "Hovedinformasjon": a status sentence, what the role
+ * is for, its responsibilities and authorities (HS 5.3) and its security risk
+ * (high means a background check is required, A.6.1). Details: department,
+ * reports to and the job description (linked), then the competence requirements
+ * (HS 7.2). The "Oppfølging" card lists what is missing, the requirements it
+ * documents, its connections with the people who hold it, and the review cycle.
+ * "Merk som gjennomgått" records the yearly review and schedules the next one (it
+ * feeds the management review).
  */
 @Component({
   selector: 'app-people-position-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
+    LocalDatePipe,
     LocalDayPipe,
-    WatchButton,
     WhyItMatters,
     RecordDetailLayout,
-    Badge,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    EntityChip,
     Button,
-    Card,
     OutputsPanel,
     ConfirmDialog,
     EmptyState,
     FieldItem,
-    FieldList,
     HelpStrip,
+    Icon,
     LoadingState,
     MenuItem,
     StatusBadge,
     PositionRequirements,
-    PeopleAsk,
     PeopleField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -142,6 +212,8 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
             [canEdit]="canManage()"
             [requirementsPanel]="true"
             [fieldLabels]="fieldLabels"
+            [anatomy]="true"
+            [missing]="missing()"
           >
             <ng-container ngProjectAs="[meta]">
               @if (p.code) {
@@ -153,21 +225,12 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
                 >
                 <span aria-hidden="true">·</span>
               }
-              <span>{{
-                countKey('people.positions.holders', p.employee_count)
-                  | transloco: { count: p.employee_count }
-              }}</span>
-              @if (p.status !== 'active') {
-                <app-status-badge
-                  meaning="lifecycle"
-                  [value]="p.status"
-                  [labelKey]="'people.recordStatus.' + p.status"
-                />
-              }
+              <span>{{ 'people.positionDetail.type' | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
-                meaning="severity"
-                [value]="p.risk_level"
-                [labelKey]="'people.riskLevels.' + p.risk_level"
+                meaning="lifecycle"
+                [value]="p.status === 'active' ? 'approved' : p.status"
+                [labelKey]="'people.recordStatus.' + p.status"
               />
               @if (p.review_due) {
                 <app-status-badge
@@ -181,40 +244,36 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
             </ng-container>
 
             @if (canManage()) {
-              <ng-container ngProjectAs="[primary]">
-                <app-button (click)="openReview()" data-testid="position-reviewed">
-                  {{ 'people.positions.markReviewed' | transloco }}
-                </app-button>
-              </ng-container>
+              <app-button primary (click)="openReview()" data-testid="position-reviewed">
+                {{ 'people.positions.markReviewed' | transloco }}
+              </app-button>
+            }
+            @if (canManage()) {
+              <a secondary [routerLink]="editLink()" data-testid="position-edit">
+                <app-button variant="secondary">{{ 'people.common.edit' | transloco }}</app-button>
+              </a>
+            }
+            @if (canManage()) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="deleting.set(true)"
+                data-testid="position-delete"
+              >
+                {{ 'people.common.delete' | transloco }}
+              </button>
             }
 
-            <ng-container ngProjectAs="[secondary]">
-              @if (canManage()) {
-                <a [routerLink]="['/people/positions', p.id, 'edit']" data-testid="position-edit">
-                  <app-button variant="secondary">{{
-                    'people.common.edit' | transloco
-                  }}</app-button>
-                </a>
-              }
-              <app-watch-button entityType="position" [entityId]="p.id" />
-            </ng-container>
-
-            <ng-container ngProjectAs="[overflow]">
-              <button appMenuItem type="button" (click)="summarise()">
-                {{ 'people.positions.summarise' | transloco }}
-              </button>
-              @if (canManage()) {
-                <button
-                  appMenuItem
-                  type="button"
-                  [danger]="true"
-                  (click)="deleting.set(true)"
-                  data-testid="position-delete"
-                >
-                  {{ 'people.common.delete' | transloco }}
-                </button>
-              }
-            </ng-container>
+            <button appMenuItem ask type="button" (click)="summarise()" data-testid="summarise">
+              <app-icon name="spark" [size]="15" />
+              {{ 'people.positions.summarise' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askRole()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'people.positionDetail.askRole' | transloco }}
+            </button>
 
             <app-help-strip
               help
@@ -223,151 +282,171 @@ export const POSITION_FIELD_LABELS: Readonly<Record<string, string>> = {
               lesson="roles-and-responsibilities"
             />
 
-            <div class="flex flex-col gap-5">
-              <app-card>
-                <h2 class="mb-3 text-card font-bold text-fg">
-                  {{ 'people.positions.about' | transloco }}
-                </h2>
-                @if (p.description) {
-                  <p class="mb-4 text-body whitespace-pre-line text-fg">{{ p.description }}</p>
-                }
-                <app-field-list [columns]="2">
-                  <app-field-item
-                    labelKey="people.fields.department"
-                    [value]="p.department?.name"
+            <app-record-lead record-lead [fillLink]="canManage() ? editLink() : null">
+              <app-record-status-line status [tone]="statusLine().tone">
+                {{ statusLine().key | transloco }}
+              </app-record-status-line>
+              <app-field-item
+                size="lead"
+                labelKey="people.positionDetail.lead.purpose"
+                [value]="p.description"
+                [multiline]="true"
+                [wide]="true"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="people.positionDetail.lead.responsibilities"
+                [value]="p.responsibilities"
+                [multiline]="true"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="people.positionDetail.lead.authorities"
+                [value]="p.authorities"
+                [multiline]="true"
+              />
+              <app-field-item size="lead" labelKey="people.positionDetail.lead.risk" [wide]="true">
+                <span class="flex flex-wrap items-center gap-2">
+                  <app-status-badge
+                    meaning="severity"
+                    [value]="p.risk_level"
+                    [labelKey]="'people.riskLevels.' + p.risk_level"
                   />
-                  <app-field-item labelKey="people.fields.reportsTo" empty="none">
-                    @if (p.reports_to; as r) {
-                      <a
-                        [routerLink]="['/people/positions', r.id]"
-                        class="font-semibold text-accent hover:underline"
-                        >{{ r.name }}</a
-                      >
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="people.fields.owner" [value]="p.owner?.name">
-                    @if (p.owner?.name; as owner) {
-                      {{ owner }}
-                      <span class="block text-meta text-fg-muted">{{
-                        'people.positions.ownerHint' | transloco
-                      }}</span>
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="people.fields.riskLevel">
-                    {{ 'people.riskLevels.' + p.risk_level | transloco }}
-                    <span class="block text-meta text-fg-muted" data-testid="position-screening">{{
-                      ((p.screening_required ?? p.risk_level === 'high')
-                        ? 'people.positions.screeningRequired'
-                        : 'people.positions.screeningNotRequired'
-                      ) | transloco
-                    }}</span>
-                  </app-field-item>
-                  <app-field-item labelKey="people.fields.jobDescription" empty="none">
-                    @if (p.job_description; as doc) {
-                      <a
-                        [routerLink]="doc.url"
-                        class="font-semibold text-accent hover:underline"
-                        data-testid="job-description"
-                      >
-                        @if (doc.code) {
-                          <span class="font-mono text-meta">{{ doc.code }}</span>
-                        }
-                        {{ doc.title }}
-                      </a>
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="people.fields.nextReviewOn">
-                    @if (p.next_review_on) {
-                      <span
-                        [class.font-semibold]="p.review_due"
-                        [class.text-warn-ink]="p.review_due"
-                        >{{ p.next_review_on | localDay }}</span
-                      >
-                      @if (p.last_reviewed_on) {
-                        <span class="block text-meta text-fg-muted">{{
-                          'people.positions.lastReviewed'
-                            | transloco: { date: (p.last_reviewed_on | localDay) }
-                        }}</span>
-                      }
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
+                  <span class="text-ui text-fg-muted" data-testid="position-screening">{{
+                    (screeningRequired()
+                      ? 'people.positions.screeningRequired'
+                      : 'people.positions.screeningNotRequired'
+                    ) | transloco
+                  }}</span>
+                </span>
+              </app-field-item>
+            </app-record-lead>
 
-              <app-card>
-                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="text-card font-bold text-fg">
-                    {{ 'people.fields.responsibilities' | transloco }}
-                  </h2>
-                  <app-people-ask
-                    [prompt]="'people.ask.summarisePosition' | transloco"
-                    [field]="'people.fields.responsibilities' | transloco"
-                    [requirements]="['hs:5.3']"
-                  />
-                </div>
-                <p class="text-body whitespace-pre-line text-fg">
-                  {{ p.responsibilities ?? ('people.positions.noResponsibilities' | transloco) }}
-                </p>
-                <h2 class="mt-4 mb-2 text-card font-bold text-fg">
-                  {{ 'people.fields.authorities' | transloco }}
-                </h2>
-                <p class="text-body whitespace-pre-line text-fg">
-                  {{ p.authorities ?? ('people.positions.noAuthorities' | transloco) }}
-                </p>
-              </app-card>
+            <div class="flex flex-col gap-6">
+              <app-record-details [columns]="3" [fillLink]="canManage() ? editLink() : null">
+                <app-field-item labelKey="people.fields.department" [value]="p.department?.name" />
+                <app-field-item labelKey="people.fields.reportsTo">
+                  @if (p.reports_to; as r) {
+                    <a
+                      [routerLink]="['/people/positions', r.id]"
+                      class="font-semibold text-accent hover:underline"
+                      >{{ r.name }}</a
+                    >
+                  }
+                </app-field-item>
+                <app-field-item labelKey="people.fields.jobDescription">
+                  @if (p.job_description; as doc) {
+                    <app-entity-chip
+                      [ref]="documentRef(doc)"
+                      [showType]="false"
+                      [statusText]="true"
+                      data-testid="job-description"
+                    />
+                  }
+                </app-field-item>
+              </app-record-details>
 
-              <app-card>
+              <section class="border-t border-border pt-5" id="requirements">
                 <app-people-position-requirements
                   [position]="p"
                   [canManage]="canManage()"
                   (saved)="position.set($event)"
                 />
-              </app-card>
+              </section>
 
-              <app-card>
-                <h2 class="mb-2 text-card font-bold text-fg">
-                  {{ 'people.positions.holdersTitle' | transloco }}
-                </h2>
-                @if (holders().length === 0) {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'people.positions.noHolders' | transloco }}
-                  </p>
-                } @else {
-                  <ul class="divide-y divide-border" data-testid="position-holders">
-                    @for (e of holders(); track e.id) {
-                      <li class="flex flex-wrap items-center gap-2 py-2 text-ui">
-                        <a
-                          [routerLink]="['/people/employees', e.id]"
-                          class="min-w-0 flex-1 font-semibold text-fg hover:underline"
-                          >{{ e.full_name }}</a
-                        >
-                        @if (e.gap_count > 0) {
-                          <app-badge tone="warn">{{
-                            countKey('people.employees.gapCount', e.gap_count)
-                              | transloco: { count: e.gap_count }
-                          }}</app-badge>
-                        }
-                        @if ((e.flags ?? []).includes('screening_missing')) {
-                          <app-badge tone="warn">{{
-                            'people.flags.screening_missing' | transloco
-                          }}</app-badge>
-                        }
-                        <app-status-badge
-                          [meaning]="employeeLook(e.status).meaning"
-                          [value]="employeeLook(e.status).value"
-                          [labelKey]="'people.status.' + e.status"
-                        />
-                      </li>
-                    }
-                  </ul>
-                }
-              </app-card>
               <app-outputs-panel
                 entityType="position"
                 [entityId]="p.id"
                 data-testid="position-outputs"
               />
             </div>
+
+            <section follow-up-connections class="mt-4 block" aria-labelledby="cf-pos-holders-h">
+              <h3 id="cf-pos-holders-h" class="mb-2 text-ui font-semibold text-fg">
+                {{ 'people.positions.holdersTitle' | transloco }}
+                @if (holders().length > 0) {
+                  <span class="font-normal text-fg-muted">({{ holders().length }})</span>
+                }
+              </h3>
+              @if (holders().length === 0) {
+                <p class="text-meta text-fg-muted">
+                  {{ 'people.positions.noHolders' | transloco }}
+                </p>
+              } @else {
+                <ul class="flex flex-col gap-1.5" data-testid="position-holders">
+                  @for (e of shownHolders(); track e.id) {
+                    <li class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-ui">
+                      <a
+                        [routerLink]="['/people/employees', e.id]"
+                        class="min-w-0 truncate font-medium text-fg hover:text-accent hover:underline"
+                        >{{ e.full_name }}</a
+                      >
+                      @if (e.gap_count > 0) {
+                        <span class="text-micro font-semibold text-warn-ink">{{
+                          countKey('people.employees.gapCount', e.gap_count)
+                            | transloco: { count: e.gap_count }
+                        }}</span>
+                      } @else if ((e.flags ?? []).includes('screening_missing')) {
+                        <span class="text-micro font-semibold text-warn-ink">{{
+                          'people.flags.screening_missing' | transloco
+                        }}</span>
+                      }
+                      @if (e.status !== 'active') {
+                        <app-status-badge
+                          [meaning]="employeeLook(e.status).meaning"
+                          [value]="employeeLook(e.status).value"
+                          [labelKey]="'people.status.' + e.status"
+                        />
+                      }
+                    </li>
+                  }
+                </ul>
+                @if (holders().length > holderLimit && !allHolders()) {
+                  <button
+                    type="button"
+                    class="mt-2 text-meta font-semibold text-accent hover:underline"
+                    (click)="allHolders.set(true)"
+                  >
+                    {{
+                      'people.positionDetail.showAllHolders'
+                        | transloco: { count: holders().length }
+                    }}
+                  </button>
+                }
+              }
+            </section>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="people.fields.owner"
+                [value]="p.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="people.fields.nextReviewOn"
+                [keepEmpty]="true"
+                emptyKey="kit.detail.meta.notPlanned"
+                emptyActionKey="kit.detail.meta.plan"
+                [emptyLink]="canManage() ? editLink() : null"
+              >
+                @if (p.next_review_on) {
+                  <span [class.text-warn-ink]="p.review_due">{{
+                    p.next_review_on | localDay
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="people.fields.lastReviewedOn">
+                @if (p.last_reviewed_on) {
+                  {{ p.last_reviewed_on | localDay }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="people.positionDetail.updated"
+                [value]="p.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <ng-container ngProjectAs="[aside-learn]">
               <app-why-it-matters scope="people" page="positionDetail" />
@@ -448,6 +527,9 @@ export class PositionDetailPage {
   protected readonly employeeLook = employeeStatusLook;
   protected readonly countKey = countKey;
   protected readonly today = todayIso();
+  /** People shown in the "Oppfølging" card before "Vis alle". */
+  protected readonly holderLimit = 5;
+  protected readonly allHolders = signal(false);
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly errorKey = signal('people.common.loadFailed');
@@ -461,6 +543,35 @@ export class PositionDetailPage {
 
   protected readonly canManage = computed(() =>
     hasPerm(this.selectedOrg.currentOrg()?.permissions, PERM_MANAGE),
+  );
+
+  protected readonly editLink = computed(() => ['/people/positions', this.id(), 'edit']);
+
+  protected readonly statusLine = computed(() => {
+    const p = this.position();
+    return p ? positionStatusLine(p) : { key: '', tone: 'neutral' as StatusLineTone };
+  });
+
+  protected readonly screeningRequired = computed(() => {
+    const p = this.position();
+    return !!p && (p.screening_required ?? p.risk_level === 'high');
+  });
+
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const p = this.position();
+    if (!p || !this.canManage()) {
+      return [];
+    }
+    return positionMissing(
+      p,
+      this.editLink(),
+      () => this.openReview(),
+      () => this.scrollToRequirements(),
+    );
+  });
+
+  protected readonly shownHolders = computed(() =>
+    this.allHolders() ? this.holders() : this.holders().slice(0, this.holderLimit),
   );
 
   private request = new Subscription();
@@ -488,6 +599,30 @@ export class PositionDetailPage {
 
   protected summarise(): void {
     this.ask.askAbout(this.language.translate('people.ask.summarisePosition'));
+  }
+
+  protected askRole(): void {
+    this.ask.askAbout(
+      this.language.translate('people.ask.positionRole'),
+      { field: this.language.translate('people.fields.responsibilities') },
+      { requirements: ['hs:5.3'] },
+    );
+  }
+
+  protected documentRef(doc: DocumentRef): EntityChipRef {
+    return {
+      entity_type: 'document',
+      entity_id: doc.id,
+      title: doc.title,
+      code: doc.code,
+      url: doc.url,
+      status: doc.status,
+      module: 'documents',
+    };
+  }
+
+  private scrollToRequirements(): void {
+    document.getElementById('requirements')?.scrollIntoView?.({ block: 'start' });
   }
 
   protected openReview(): void {

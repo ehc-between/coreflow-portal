@@ -298,6 +298,43 @@
       "offboarding": "Open the leaving checklist"
     }
   },
+  "employeeDetail": {
+    "type": "Person",
+    "askTerms": "What should the terms say about security and confidentiality?",
+    "ownTitle": "Own title: {{ title }}",
+    "lastDay": "Last working day {{ date }}",
+    "account": "User account",
+    "updated": "Last changed",
+    "lead": {
+      "position": "Position",
+      "manager": "Manager",
+      "department": "Department",
+      "started": "Started"
+    },
+    "status": {
+      "plain": "{{ status }}",
+      "inOrder": "{{ status }} – everything required for this person is in order.",
+      "open": "{{ status }} – {{ count }} requirements for this person are not in order.",
+      "openOne": "{{ status }} – 1 requirement for this person is not in order.",
+      "former": "{{ status }} – the record is kept for the history."
+    },
+    "missing": {
+      "confidentiality": "Record the confidentiality agreement",
+      "security_terms": "Record that the security terms are accepted",
+      "screening": "Record the background check",
+      "competence": "Assess competence – {{ count }} short of the position",
+      "awareness": "Record that the person knows the policies",
+      "post_employment": "Record that the duties after leaving are confirmed",
+      "access_revoked": "Remove access",
+      "equipment_returned": "Get the equipment back",
+      "position": "Choose a position",
+      "manager": "Choose a manager",
+      "expiring": "{{ count }} competences expire soon",
+      "expiringOne": "1 competence expires soon",
+      "checklists": "{{ count }} open checklists",
+      "checklistsOne": "1 open checklist"
+    }
+  },
   "competences": {
     "title": "Competences",
     "subtitle": "The catalogue of skills, knowledge, qualifications and certificates your positions require.",
@@ -382,6 +419,32 @@
     "reviewNote": "Note (optional)",
     "reviewNotePlaceholder": "E.g. requirement for first aid added",
     "summarise": "Summarise this position"
+  },
+  "positionDetail": {
+    "type": "Position",
+    "askRole": "What should responsibilities and authorities say?",
+    "updated": "Last changed",
+    "showAllHolders": "Show all ({{ count }})",
+    "lead": {
+      "purpose": "What the role is for",
+      "responsibilities": "What the role is responsible for",
+      "authorities": "What the role may decide",
+      "risk": "Security risk"
+    },
+    "status": {
+      "active": "In use – responsibilities, authorities and competence requirements are described.",
+      "incomplete": "In use – the description is not complete yet. See Follow-up.",
+      "reviewDue": "Review overdue – check that the role description still fits.",
+      "retired": "Retired – the position is no longer in use."
+    },
+    "missing": {
+      "review": "Review the position (overdue)",
+      "responsibilities": "Describe what the role is responsible for",
+      "authorities": "Describe what the role may decide",
+      "requirements": "Add the competence the role needs",
+      "owner": "Choose who keeps the position up to date",
+      "jobDescription": "Link the job description"
+    }
   },
   "positionForm": {
     "newTitle": "New position",
@@ -629,7 +692,8 @@
     "checklist": "Which items on this checklist matter most for information security, and why?",
     "gaps": "Which competence gaps should we close first, and how?",
     "label": "Ask",
-    "gapsLabel": "Ask about the gaps"
+    "gapsLabel": "Ask about the gaps",
+    "positionRole": "What should the responsibilities and authorities of this position say, and is anything missing?"
   },
   "lessons": {
     "link": "Lesson: {{ title }} ({{ minutes }} min)"
