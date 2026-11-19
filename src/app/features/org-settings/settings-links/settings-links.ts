@@ -197,6 +197,14 @@ export const SETTINGS_HUB_CARDS: readonly SettingsLink[] = [
     group: 'advanced',
   },
   {
+    path: '/settings/chat',
+    labelKey: 'modules.names.chat',
+    hintKey: 'modules.descriptions.chat',
+    icon: 'comment',
+    permission: 'chat:admin',
+    group: 'advanced',
+  },
+  {
     path: '/settings/attachment-deletions',
     labelKey: 'settings.hub.cards.attachmentDeletions',
     hintKey: 'settings.hub.cards.attachmentDeletionsHint',

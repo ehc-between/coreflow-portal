@@ -151,6 +151,10 @@
       "label": "Omtaler",
       "hint": "Når noen nevner deg."
     },
+    "chat": {
+      "label": "Meldinger",
+      "hint": "Direktemeldinger og når du blir lagt til i en samtale. Aktivitet i kanaler gir ikke varsel."
+    },
     "comments": {
       "label": "Kommentarer",
       "hint": "Nye kommentarer på poster du følger."

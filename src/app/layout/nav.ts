@@ -78,6 +78,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         agentName: 'Iris',
         agentRole: 'Work Planner',
       },
+      // Chat (docs/chat-design.md §4.5): unread badge in the side nav.
+      {
+        path: 'chat',
+        module: 'chat',
+        labelKey: 'modules.names.chat',
+        icon: 'comment',
+        permission: 'chat:use',
+      },
     ],
   },
   {

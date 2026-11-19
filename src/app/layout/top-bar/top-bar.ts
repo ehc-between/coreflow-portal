@@ -11,6 +11,7 @@ import { AccountMenu } from '../account-menu/account-menu';
 import { HelpMenu } from '../help-menu/help-menu';
 import { NavDrawerService } from '../nav-drawer.service';
 import { NotificationBell } from '../notification-bell/notification-bell';
+import { ChatTopButton } from '../../shared/chat/chat-top-button';
 
 /**
  * Application top bar (58 px): menu button (below `lg`), brand, the search button
@@ -31,6 +32,7 @@ import { NotificationBell } from '../notification-bell/notification-bell';
     AccountMenu,
     HelpMenu,
     NotificationBell,
+    ChatTopButton,
   ],
   viewProviders: [provideSharedScope('shell')],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -138,6 +140,7 @@ import { NotificationBell } from '../notification-bell/notification-bell';
           <app-language-switcher class="hidden md:block" />
         }
 
+        <app-chat-top-button />
         <app-notification-bell />
 
         <app-account-menu [v2]="v2()" />

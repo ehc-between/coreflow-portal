@@ -1,0 +1,428 @@
+{
+  "title": "Meldinger",
+  "nav": {
+    "label": "Meldinger",
+    "unread": "Meldinger, {{count}} uleste"
+  },
+  "kind": {
+    "dm": "Direktemelding",
+    "group": "Gruppe",
+    "channel": "Kanal"
+  },
+  "names": {
+    "unnamedGroup": "Gruppesamtale",
+    "recordDiscussion": "Diskusjon om en post",
+    "unknownUser": "ukjent",
+    "you": "deg"
+  },
+  "presence": {
+    "online": "Pålogget",
+    "away": "Borte",
+    "offline": "Frakoblet",
+    "withName": "{{name}}, {{status}}"
+  },
+  "page": {
+    "pickTitle": "Velg en samtale",
+    "pickBody": "Velg en samtale til venstre, eller start en ny. Meldinger er for det daglige pratet – beslutninger og funn hører fortsatt hjemme i selve posten.",
+    "back": "Tilbake til samtalene",
+    "liveOne": "Ny melding fra {{name}}",
+    "liveMany": "{{count}} nye meldinger i {{name}}",
+    "notFoundTitle": "Samtalen er ikke tilgjengelig",
+    "notFoundBody": "Den kan være fjernet, eller så er du ikke lenger med i den."
+  },
+  "connection": {
+    "reconnecting": "Kobler til igjen … nye meldinger kan komme litt forsinket.",
+    "offline": "Du er frakoblet. Meldinger kan ikke sendes før du er på nett igjen."
+  },
+  "list": {
+    "label": "Samtaler",
+    "new": "Ny samtale",
+    "browse": "Finn kanaler",
+    "filter": "Filtrer samtaler",
+    "sections": {
+      "dms": "Direktemeldinger",
+      "groups": "Grupper",
+      "teams": "Team-kanaler",
+      "channels": "Kanaler"
+    },
+    "unread": "{{count}} uleste",
+    "mentions": "{{count}} omtaler av deg",
+    "muted": "Varsler av",
+    "archived": "Arkivert",
+    "you": "Du: {{text}}",
+    "attachment": "Sendte en fil",
+    "deleted": "Meldingen er slettet",
+    "noMessages": "Ingen meldinger ennå",
+    "empty": {
+      "title": "Ingen samtaler ennå",
+      "body": "Send en direktemelding til en kollega, lag en gruppe for en oppgave, eller finn kanalen til teamet ditt."
+    },
+    "noMatch": "Ingen samtaler passer med «{{q}}».",
+    "loadError": "Kunne ikke hente samtalene dine.",
+    "retry": "Prøv igjen"
+  },
+  "header": {
+    "members": "{{count}} medlemmer",
+    "membersButton": "Medlemmer",
+    "back": "Tilbake til samtalene",
+    "more": "Valg for samtalen",
+    "notify": {
+      "label": "Varsler",
+      "all": "Alle meldinger",
+      "mentions": "Bare omtaler",
+      "none": "Ingen varsler"
+    },
+    "rename": "Gi nytt navn",
+    "renamePrompt": "Nytt navn",
+    "topic": "Endre tema",
+    "topicPrompt": "Tema",
+    "leave": "Forlat samtalen",
+    "archive": "Arkiver",
+    "unarchive": "Gjenopprett",
+    "openInChat": "Åpne i Meldinger",
+    "private": "Privat",
+    "public": "Offentlig",
+    "archivedBanner": "Samtalen er arkivert. Du kan lese den, men ikke skrive.",
+    "readOnly": "Du kan ikke lenger skrive i denne samtalen.",
+    "joinHint": "Du leser denne kanalen. Bli med for å skrive og få varsler.",
+    "join": "Bli med i kanalen",
+    "about": "Om"
+  },
+  "messages": {
+    "feedLabel": "Meldinger i {{name}}",
+    "today": "I dag",
+    "yesterday": "I går",
+    "newDivider": "Nye meldinger",
+    "jumpLatest": "Hopp til nyeste",
+    "loadingOlder": "Henter eldre meldinger …",
+    "beginning": "Her begynner samtalen.",
+    "emptyTitle": "Si hei",
+    "emptyBody": "Skriv den første meldingen nedenfor. Skriv @ for å nevne noen, # for å legge til et emne, og bruk «Koble til post» for å vise til et avvik, en risiko eller et dokument.",
+    "edited": "(redigert)",
+    "deleted": "Meldingen er slettet",
+    "sending": "Sender …",
+    "failed": "Ikke sendt.",
+    "retry": "Prøv igjen",
+    "discard": "Fjern",
+    "replies": "{{count}} svar",
+    "reply": "1 svar",
+    "lastReply": "siste {{when}}",
+    "articleLabel": "{{name}}, {{time}}",
+    "loadError": "Kunne ikke hente meldingene.",
+    "linkCopied": "Lenken er kopiert.",
+    "actions": {
+      "react": "Reager",
+      "reply": "Svar i tråd",
+      "copyLink": "Kopier lenke",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "more": "Flere valg for meldingen"
+    },
+    "deleteConfirm": {
+      "title": "Slette meldingen?",
+      "body": "Meldingen fjernes for alle i samtalen, sammen med filene i den.",
+      "confirm": "Slett",
+      "cancel": "Avbryt"
+    },
+    "system": {
+      "created": "{{actor}} opprettet samtalen",
+      "member_added": "{{actor}} la til {{users}}",
+      "member_removed": "{{actor}} fjernet {{users}}",
+      "renamed": "{{actor}} ga samtalen nytt navn: «{{name}}»",
+      "archived": "{{actor}} arkiverte samtalen",
+      "unarchived": "{{actor}} gjenopprettet samtalen",
+      "someone": "Noen"
+    },
+    "deleteErrors": {
+      "generic": "Meldingen kunne ikke slettes."
+    }
+  },
+  "attachments": {
+    "scanning": "Sjekkes …",
+    "blocked": "Blokkert",
+    "blockedHint": "Filen ble stoppet av viruskontrollen og kan ikke åpnes.",
+    "removed": "Filen er fjernet",
+    "open": "Åpne {{name}}",
+    "image": "Bilde: {{name}}",
+    "downloadError": "Kunne ikke åpne filen."
+  },
+  "record": {
+    "noAccess": "Ingen tilgang til denne posten",
+    "loading": "Henter posten …"
+  },
+  "reactions": {
+    "label": "Reager med {{emoji}}, {{count}} personer",
+    "labelOne": "Reager med {{emoji}}, 1 person",
+    "add": "Legg til reaksjon",
+    "picker": "Velg en emoji",
+    "recent": "Nylig brukt",
+    "all": "Emoji",
+    "close": "Lukk"
+  },
+  "composer": {
+    "label": "Melding til {{name}}",
+    "placeholder": "Skriv en melding …",
+    "placeholderThread": "Svar i tråden …",
+    "send": "Send",
+    "sendHint": "Enter sender · Shift+Enter gir ny linje",
+    "editing": "Redigerer melding",
+    "cancelEdit": "Avbryt",
+    "save": "Lagre",
+    "attach": "Legg ved filer",
+    "linkRecord": "Koble til post",
+    "emoji": "Sett inn emoji",
+    "toolbar": "Formatering",
+    "format": {
+      "bold": "Fet",
+      "italic": "Kursiv",
+      "code": "Kode",
+      "list": "Punktliste",
+      "link": "Sett inn lenke"
+    },
+    "linkPrompt": {
+      "title": "Sett inn lenke",
+      "label": "Nettadresse (https://…)",
+      "confirm": "Sett inn",
+      "cancel": "Avbryt"
+    },
+    "upload": {
+      "progress": "Laster opp {{name}} – {{percent}} %",
+      "scanning": "Sjekker {{name}}",
+      "ready": "{{name}} er klar",
+      "failed": "{{name}} kunne ikke lastes opp",
+      "remove": "Fjern {{name}}",
+      "retry": "Prøv igjen"
+    },
+    "dropHint": "Slipp filene for å legge dem ved",
+    "tooLong": "Meldingen er for lang ({{count}} av {{max}} tegn).",
+    "tooManyFiles": "Du kan legge ved opptil {{max}} filer.",
+    "tooManyLinks": "Du kan koble til opptil {{max}} poster.",
+    "suggest": {
+      "people": "Personer",
+      "teams": "Team",
+      "tags": "Emner",
+      "newTag": "Nytt emne #{{tag}}",
+      "teamDetail": "{{count}} medlemmer",
+      "none": "Ingen treff"
+    },
+    "linkedRecords": "Tilkoblede poster",
+    "removeRecord": "Fjern koblingen",
+    "warnings": {
+      "mentionNotMember": "{{names}} ser ikke denne samtalen og fikk ikke varsel.",
+      "addThem": "Legg til i samtalen",
+      "dismiss": "Lukk"
+    },
+    "errors": {
+      "generic": "Meldingen kunne ikke sendes.",
+      "network": "Ingen forbindelse. Prøv igjen når du er på nett.",
+      "conversation_archived": "Samtalen er arkivert.",
+      "conversation_read_only": "Du kan ikke lenger skrive i denne samtalen.",
+      "body_too_long": "Meldingen er for lang.",
+      "empty_message": "Skriv noe eller legg ved en fil.",
+      "too_many_links": "For mange tilkoblede poster.",
+      "entity_link_no_access": "Du har ikke tilgang til en av de tilkoblede postene.",
+      "unsupported_entity_type": "En av postene kan ikke kobles til.",
+      "invalid_mentions": "En av personene du nevnte, er ikke i organisasjonen.",
+      "invalid_attachments": "En av filene kan ikke legges ved. Fjern den og prøv igjen.",
+      "rate_limited": "Du sender mye akkurat nå. Vent litt og prøv igjen."
+    }
+  },
+  "picker": {
+    "title": "Koble til en post",
+    "search": "Søk etter en post",
+    "hint": "Bare poster du kan åpne, vises. De i samtalen som ikke kan åpne en post, ser bare at den er skjult.",
+    "empty": "Ingen poster passer.",
+    "start": "Skriv for å søke i avvik, risikoer, dokumenter og mer.",
+    "link": "Koble til"
+  },
+  "thread": {
+    "title": "Tråd",
+    "close": "Lukk tråden",
+    "follow": "Følg tråden",
+    "unfollow": "Slutt å følge",
+    "empty": "Ingen svar ennå.",
+    "loadError": "Kunne ikke hente tråden."
+  },
+  "typing": {
+    "one": "{{name}} skriver …",
+    "two": "{{a}} og {{b}} skriver …",
+    "many": "Flere skriver …"
+  },
+  "create": {
+    "title": "Ny samtale",
+    "tabs": {
+      "dm": "Direktemelding",
+      "group": "Gruppe",
+      "channel": "Kanal"
+    },
+    "people": "Personer",
+    "peopleSearch": "Søk etter navn",
+    "dmHint": "Velg én person å skrive til.",
+    "groupHint": "Legg til opptil 49 personer. Passer for en oppgave eller et lite team.",
+    "channelHint": "Kanaler er for et tema eller et team. Offentlige kanaler kan alle finne og bli med i.",
+    "remove": "Fjern {{name}}",
+    "name": "Navn",
+    "nameOptional": "Navn (valgfritt)",
+    "channelName": "Kanalnavn",
+    "topic": "Tema (valgfritt)",
+    "visibility": {
+      "label": "Hvem kan finne den",
+      "public": "Offentlig – alle i organisasjonen kan finne og bli med",
+      "private": "Privat – bare de som legges til"
+    },
+    "subject": "Gjelder",
+    "submit": "Start samtale",
+    "cancel": "Avbryt",
+    "noPeople": "Fant ingen personer.",
+    "errors": {
+      "generic": "Samtalen kunne ikke opprettes.",
+      "name_taken": "Det finnes allerede en kanal med dette navnet.",
+      "invalid_members": "En av personene kan ikke bruke meldinger.",
+      "member_no_record_access": "Noen av personene kan ikke åpne denne posten og kan ikke legges til.",
+      "rate_limited": "Du har opprettet mange samtaler. Prøv igjen senere."
+    }
+  },
+  "members": {
+    "title": "Medlemmer",
+    "add": "Legg til personer",
+    "addSubmit": "Legg til",
+    "you": "(deg)",
+    "roles": {
+      "owner": "Eier",
+      "admin": "Administrator",
+      "member": "Medlem"
+    },
+    "actions": "Valg for medlemmet",
+    "makeOwner": "Gjør til eier",
+    "makeAdmin": "Gjør til administrator",
+    "makeMember": "Gjør til medlem",
+    "remove": "Fjern fra samtalen",
+    "departmentNote": "Medlemmene følger avdelingen. Endre hvem som er med under Innstillinger → Avdelinger.",
+    "removeConfirm": {
+      "title": "Fjerne {{name}}?",
+      "body": "{{name}} ser ikke lenger nye meldinger i denne samtalen.",
+      "confirm": "Fjern"
+    },
+    "leaveConfirm": {
+      "title": "Forlate samtalen?",
+      "body": "Du får ikke lenger meldingene herfra. Du kan legges til igjen senere.",
+      "confirm": "Forlat"
+    },
+    "archiveConfirm": {
+      "title": "Arkivere samtalen?",
+      "body": "Medlemmene kan fortsatt lese den, men ingen kan skrive. Du kan gjenopprette den senere.",
+      "confirm": "Arkiver"
+    },
+    "errors": {
+      "generic": "Endringen kunne ikke lagres.",
+      "last_owner": "Samtalen må ha minst én eier.",
+      "department_channel": "Medlemmene i team-kanaler følger avdelingen.",
+      "member_no_record_access": "Personen kan ikke åpne posten samtalen gjelder."
+    }
+  },
+  "search": {
+    "label": "Søk i meldinger",
+    "placeholder": "Søk i meldinger",
+    "clear": "Tøm søket",
+    "from": "Fra",
+    "fromAnyone": "Hvem som helst",
+    "has": {
+      "label": "Inneholder",
+      "any": "Alt",
+      "file": "Fil",
+      "image": "Bilde",
+      "link": "Tilkoblet post"
+    },
+    "tag": "#{{tag}}",
+    "removeTag": "Fjern filteret #{{tag}}",
+    "none": "Fant ingen meldinger.",
+    "noneBody": "Prøv andre ord, eller fjern et filter.",
+    "error": "Søket feilet. Prøv igjen.",
+    "in": "i {{name}}",
+    "more": "Vis flere",
+    "results": "Søkeresultater"
+  },
+  "browse": {
+    "title": "Finn kanaler",
+    "search": "Søk i kanaler",
+    "join": "Bli med",
+    "members": "{{count}} medlemmer",
+    "empty": {
+      "title": "Ingen kanaler å bli med i",
+      "body": "Du er allerede med i alle offentlige kanaler, eller så finnes det ingen ennå. Lag en med «Ny samtale»."
+    },
+    "error": "Kunne ikke hente kanalene."
+  },
+  "discuss": {
+    "button": "Diskuter",
+    "aria": "Diskuter denne posten med kolleger",
+    "ariaCount": "Diskuter denne posten, {{count}} diskusjoner",
+    "title": "Diskusjoner om {{title}}",
+    "titleFallback": "Diskusjoner om denne posten",
+    "intro": "Snakk med kolleger om denne posten. Alle du legger til, må kunne åpne den.",
+    "existing": "Diskusjoner",
+    "startNew": "Start en ny diskusjon",
+    "back": "Alle diskusjoner",
+    "openFull": "Åpne i Meldinger →",
+    "submit": "Start diskusjon",
+    "loadError": "Kunne ikke hente diskusjonene.",
+    "noAccess": "Du kan ikke åpne diskusjoner for denne posten."
+  },
+  "notifications": {
+    "mentioned": "{{sender_name}} nevnte deg i en samtale",
+    "direct": "Ny melding fra {{sender_name}}",
+    "added": "{{sender_name}} la deg til i en samtale"
+  },
+  "admin": {
+    "title": "Meldinger",
+    "intro": "Lagringstid, juridisk bevaring og innsynskrav for meldinger. Her ser du opplysninger om samtalene, aldri innholdet.",
+    "error": "Noe gikk galt. Prøv igjen.",
+    "retention": {
+      "title": "Behold meldinger i",
+      "always": "Alltid",
+      "days": "{{count}} dager",
+      "custom": "Egendefinert",
+      "customLabel": "Antall dager (30–3650)",
+      "save": "Lagre",
+      "saved": "Lagringstiden er lagret.",
+      "hint": "Meldinger som er eldre enn dette, slettes hver natt. Samtaler med juridisk bevaring beholdes.",
+      "updatedBy": "Sist endret av {{name}}",
+      "invalid": "Velg mellom 30 og 3650 dager."
+    },
+    "conversations": {
+      "title": "Samtaler",
+      "search": "Søk i samtaler",
+      "name": "Samtale",
+      "kind": "Type",
+      "members": "Medlemmer",
+      "messages": "Meldinger",
+      "legalHold": "Juridisk bevaring",
+      "legalHoldFor": "Juridisk bevaring for {{name}}",
+      "archived": "Arkivert",
+      "empty": "Ingen samtaler."
+    },
+    "people": {
+      "title": "Innsynskrav for én person",
+      "hint": "Eksporter eller slett alt en person har skrevet i meldinger (GDPR).",
+      "search": "Finn en person",
+      "export": "Eksporter meldinger",
+      "erase": "Slett meldinger",
+      "exported": "Eksporten er lastet ned.",
+      "erased": "{{count}} meldinger er slettet.",
+      "eraseConfirm": {
+        "title": "Slette alle meldinger fra {{name}}?",
+        "body": "Alt {{name}} har skrevet i meldinger i denne organisasjonen, slettes for alle, med filer og reaksjoner. Dette kan ikke angres.",
+        "typeName": "Skriv «{{name}}» for å bekrefte",
+        "confirm": "Slett meldinger"
+      }
+    },
+    "orgExport": {
+      "title": "Eksporter alle meldinger",
+      "hint": "Laster ned alle meldinger i perioden som én fil (høyst 366 dager).",
+      "after": "Fra",
+      "before": "Til",
+      "submit": "Eksporter",
+      "invalid": "Velg en periode på høyst 366 dager."
+    }
+  }
+}
