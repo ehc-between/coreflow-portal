@@ -79,7 +79,8 @@
       "evaluate": "Significance",
       "obligations": "Laws and regulations that apply",
       "control": "Control and ownership",
-      "preparedness": "Emergency preparedness"
+      "preparedness": "Emergency preparedness",
+      "evaluateHow": "How the significance was scored"
     },
     "notices": {
       "controls": "This aspect is significant, but nothing controls it yet. Link a procedure, process or objective, or describe the controls.",
@@ -134,7 +135,35 @@
     "noPlan": "No emergency plan covers this aspect.",
     "ownership": "Ownership and review",
     "deleteTitle": "Delete this aspect?",
-    "deleteMessage": "{{ code }} is removed from the register and its open tasks are cancelled. The history is kept."
+    "deleteMessage": "{{ code }} is removed from the register and its open tasks are cancelled. The history is kept.",
+    "reviewOverdue": "Review overdue",
+    "statusLine": {
+      "significant": "Significant – the aspect must be kept under control and followed up.",
+      "notSignificant": "Not significant – the score is below the threshold, so it is enough to keep an eye on it.",
+      "unscored": "Not evaluated – score the aspect to see whether it is significant.",
+      "retired": "Retired – the aspect no longer applies."
+    },
+    "lead": {
+      "activity": "What we do",
+      "impact": "What it does to the environment",
+      "controls": "How we keep it under control",
+      "obligations": "Laws and requirements that apply"
+    },
+    "linkControlMore": "Link a procedure or process",
+    "details": {
+      "impactType": "Kind of impact",
+      "condition": "When it happens",
+      "controlLevel": "How much we control it",
+      "site": "Where"
+    },
+    "missing": {
+      "review": "The review is overdue – mark it as reviewed",
+      "controls": "Significant, but nothing controls it – link a procedure or process",
+      "plan": "Can happen in an emergency – make an emergency plan",
+      "unscored": "Score the aspect",
+      "obligations": "Add the laws and requirements that apply",
+      "owner": "Choose an owner"
+    }
   },
   "plans": {
     "title": "Emergency plans",
@@ -284,7 +313,35 @@
     "measurementCount": "Measurements",
     "retiredNotice": "This indicator is retired. Its measurements are kept, but new ones cannot be recorded.",
     "deleteTitle": "Delete this indicator?",
-    "deleteMessage": "{{ code }} and its reminders are removed. The history is kept."
+    "deleteMessage": "{{ code }} and its reminders are removed. The history is kept.",
+    "typeLine": "Indicator · {{ category }}",
+    "statusLine": {
+      "on_track": "On track – the last 12 months are within the target.",
+      "off_track": "Off track – the last 12 months are outside the target.",
+      "no_target": "No target – set a target to see whether things are moving the right way.",
+      "no_data": "Too little data – record more values to compare with the target.",
+      "retired": "Retired – the values are kept, but new ones cannot be recorded."
+    },
+    "lead": {
+      "last12": "Last 12 months",
+      "target": "The target",
+      "thisYear": "So far this year",
+      "objectives": "Objectives it measures"
+    },
+    "previousYearFull": "Last year: {{ value }} {{ unit }}",
+    "details": {
+      "scope": "Emission category",
+      "factor": "Emission factor",
+      "site": "Where"
+    },
+    "lastValue": "Latest value up to",
+    "missing": {
+      "first": "Record the first value",
+      "target": "Set a target",
+      "objective": "Not linked to an objective – make an environmental objective",
+      "owner": "Choose an owner",
+      "reminders": "Set up reminders to record values"
+    }
   },
   "measurement": {
     "record": "Record value",
@@ -299,7 +356,8 @@
     "files": "Files ({{ count }})",
     "delete": "Delete measurement",
     "deleteTitle": "Delete this measurement?",
-    "deleteMessage": "The value is removed from the trend and the emission figures."
+    "deleteMessage": "The value is removed from the trend and the emission figures.",
+    "addFile": "Add file"
   },
   "emissions": {
     "title": "Greenhouse gas emissions",
@@ -676,7 +734,8 @@
     "actions": "Actions",
     "never": "Never",
     "unknown": "Unknown",
-    "tonnes": "{{ value }} t CO₂e"
+    "tonnes": "{{ value }} t CO₂e",
+    "updated": "Last changed"
   },
   "ask": {
     "label": "Ask about this",
@@ -697,7 +756,11 @@
     "methodField": "How should we measure this indicator reliably, and what should we write down about the method?",
     "targetField": "What would be a realistic yearly target for this indicator, and how do I set a baseline?",
     "emissionFactor": "Which emission factor (kg CO₂e per {{ unit }}) should I use for this indicator, and where do I find a reliable source?",
-    "scoringMethod": "How should we set up the method for assessing the significance of environmental aspects? Suggest criteria, a scale and a threshold."
+    "scoringMethod": "How should we set up the method for assessing the significance of environmental aspects? Suggest criteria, a scale and a threshold.",
+    "explainSignificanceLabel": "Explain the significance",
+    "controlsLabel": "Suggest operational controls",
+    "targetLabel": "Suggest a target",
+    "methodLabel": "How should we measure this?"
   },
   "notices": {
     "created": "{{ code }} is created.",

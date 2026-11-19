@@ -310,12 +310,17 @@
     }
   },
   "ask": {
-    "title": "Spør CoreFlow",
     "explain": "Forklar denne forpliktelsen med enkle ord: hva den krever av oss, og hvordan vi kan vise at vi oppfyller den.",
     "missingEvidence": "Hvilke plikter i denne forpliktelsen mangler dokumentasjon eller er ikke vurdert?",
     "nextStep": "Hva bør vi gjøre nå for å være i samsvar med denne forpliktelsen?",
     "applicability": "Hjelp meg å beskrive hvordan denne forpliktelsen gjelder organisasjonen, og hva som er innenfor og utenfor.",
-    "applicabilityLabel": "Få hjelp til å beskrive hvordan den gjelder"
+    "applicabilityLabel": "Få hjelp til å beskrive hvordan den gjelder",
+    "menu": {
+      "explain": "Forklar hva den krever av oss",
+      "missingEvidence": "Hvilke plikter mangler dokumentasjon?",
+      "nextStep": "Hva bør vi gjøre nå?",
+      "applicability": "Hjelp meg å beskrive hvordan den gjelder oss"
+    }
   },
   "proposal": {
     "run": "Foreslå plikter",
@@ -331,82 +336,60 @@
     "applied": "Forslagene ble lagt inn i skjemaet. Gå gjennom dem før du lagrer."
   },
   "summarise": {
-    "run": "Forklar med enkle ord"
+    "run": "Forklar med enkle ord",
+    "title": "Med enkle ord",
+    "dismiss": "Lukk forklaringen"
   },
   "detail": {
-    "about": "Om forpliktelsen",
-    "renewalBadge": "Fornyelse nærmer seg",
     "retire": "Sett som utgått",
     "reactivate": "Gjør aktiv igjen",
-    "noEnd": "Ingen sluttdato",
     "endsIn": "om {{ days }} dager",
     "endedAgo": "utløp for {{ days }} dager siden",
     "validUntilWithDays": "{{ date }} ({{ days }})",
-    "noApplicability": "Ikke beskrevet ennå.",
-    "schedule": "Vurderingsplan",
-    "noSchedule": "Ingen vurderingsplan",
     "nextDue": "Neste vurdering forfaller {{ date }}",
     "overdueSince": "Vurderingen har vært forfalt siden {{ date }}",
     "lastEvaluated": "Sist vurdert",
-    "never": "Aldri",
-    "latestResult": "Siste resultat",
-    "evaluationCount": "Registrerte vurderinger",
-    "openChanges": "Endringer som må håndteres",
     "deleteTitle": "Slette {{ code }}?",
     "deleteMessage": "Sletting fjerner forpliktelsen fra registeret, avbryter de åpne oppgavene og stopper vurderingsplanen. Slett bare en forpliktelse som ble registrert ved en feil.",
     "deleteAnyway": "Slett likevel",
     "retireInstead": "Gjelder ikke forpliktelsen lenger? Sett den som utgått i stedet. Historikken og vurderingene tas vare på for revisor.",
-    "retireInsteadAction": "Sett som utgått i stedet"
-  },
-  "next": {
-    "retired": {
-      "title": "Denne forpliktelsen er utgått",
-      "body": "Den tas vare på for dokumentasjonens skyld, men vurderes ikke lenger. Gjør den aktiv igjen hvis den gjelder på nytt."
+    "retireInsteadAction": "Sett som utgått i stedet",
+    "evaluationOverdue": "Vurdering forfalt",
+    "notEvaluated": "Ikke vurdert ennå",
+    "readLaw": "Les teksten på {{ host }}",
+    "showEvaluation": "Se vurderingen",
+    "showEvaluations": "Se alle {{ count }} vurderingene",
+    "lead": {
+      "requires": "Hva den krever",
+      "appliesToUs": "Hvordan den gjelder oss",
+      "source": "Hvor den kommer fra",
+      "latestEvaluation": "Siste samsvarsvurdering"
     },
-    "draft": {
-      "title": "Denne forpliktelsen er et utkast",
-      "body": "Gjør den aktiv når pliktene og eieren er bekreftet. Bare aktive forpliktelser blir vurdert."
+    "meta": {
+      "schedule": "Vurderes",
+      "updated": "Sist endret"
     },
-    "overdue": {
-      "title": "Vurderingen er forfalt (frist {{ date }})",
-      "body": "Sjekk om organisasjonen fortsatt oppfyller hver plikt, og registrer resultatet med dokumentasjon."
+    "sentence": {
+      "compliant": "I samsvar – siste vurdering viste at pliktene er oppfylt.",
+      "partially_compliant": "Delvis i samsvar – siste vurdering fant mangler som må følges opp.",
+      "non_compliant": "Ikke i samsvar – siste vurdering viste at kravene ikke er oppfylt.",
+      "not_evaluated": "Ikke vurdert ennå – vi vet ikke om vi oppfyller kravene før den første vurderingen er registrert.",
+      "not_applicable": "Ikke relevant – siste vurdering konkluderte med at forpliktelsen ikke gjelder oss nå.",
+      "draft": "Utkast – forpliktelsen blir ikke vurdert før den er gjort aktiv.",
+      "retired": "Utgått – forpliktelsen vurderes ikke lenger, men historikken er tatt vare på."
     },
-    "firstEvaluation": {
-      "title": "Ikke vurdert ennå",
-      "body": "Registrer den første samsvarsvurderingen: gå gjennom pliktene og noter hva som er på plass."
+    "todo": {
+      "draft": "Gjør forpliktelsen aktiv når pliktene og eieren er bekreftet",
+      "expired": "Gyldigheten utløp {{ date }} – oppdater den eller sett forpliktelsen som utgått",
+      "overdue": "Registrer samsvarsvurderingen – fristen var {{ date }}",
+      "firstEvaluation": "Registrer den første samsvarsvurderingen",
+      "noFollowUp": "Følg opp manglene fra siste vurdering – registrer et avvik",
+      "noSchedule": "Planlegg en årlig samsvarsvurdering",
+      "renewal": "Søk om fornyelse innen {{ date }}",
+      "changes": "Håndter endringene i regelverket ({{ count }})",
+      "owner": "Velg hvem som eier forpliktelsen"
     },
-    "noFollowUp": {
-      "title": "Siste vurdering fant mangler uten oppfølging",
-      "body": "Registrer et avvik eller en oppfølgingsoppgave så mangelen blir lukket, eller begrunn hvorfor ingenting trengs."
-    },
-    "noSchedule": {
-      "title": "Ingen vurderingsplan",
-      "body": "Ingen blir påminnet om å sjekke samsvaret. ISO 14001 og ISO 45001 forventer vurdering med planlagte mellomrom."
-    },
-    "renewal": {
-      "title": "Søk om fornyelse innen {{ date }}",
-      "body": "Tillatelsen eller avtalen utløper snart. Eieren har en oppgave om fornyelse i Mitt arbeid."
-    },
-    "expired": {
-      "title": "Gyldigheten utløp {{ date }}",
-      "body": "Oppdater gyldigheten hvis den er fornyet, eller sett forpliktelsen som utgått."
-    },
-    "changes": {
-      "title": "Endringer som må håndteres: {{ count }}",
-      "body": "Vurder hva endringen betyr for dere, og oppdater pliktene før den trer i kraft."
-    },
-    "ok": {
-      "title": "Alt er i orden",
-      "body": "Forpliktelsen er vurdert, fulgt opp og har en plan. Neste vurdering forfaller {{ date }}."
-    },
-    "actions": {
-      "evaluate": "Registrer vurdering",
-      "createDeviation": "Registrer avvik",
-      "planYearly": "Planlegg årlig vurdering",
-      "activate": "Gjør aktiv",
-      "updateValidity": "Oppdater gyldigheten",
-      "showChanges": "Vis endringene"
-    }
+    "validity": "Gyldighet"
   },
   "duties": {
     "title": "Plikter",
@@ -510,7 +493,10 @@
     "linkDeviation": "Koble avvik",
     "linkAction": "Koble",
     "removeTitle": "Slette denne vurderingen?",
-    "removeMessage": "Slett bare en vurdering som ble registrert ved en feil. Samsvarsstatusen går tilbake til den siste vurderingen som er igjen."
+    "removeMessage": "Slett bare en vurdering som ble registrert ved en feil. Samsvarsstatusen går tilbake til den siste vurderingen som er igjen.",
+    "latest": "Siste",
+    "checked": "Hva som ble sjekket",
+    "findings": "Funn"
   },
   "actions": {
     "title": "Planlagte vurderinger og oppgaver",

@@ -205,7 +205,7 @@ describe('ProjectDetailPage', () => {
     expect(el.querySelector('[data-testid="project-reopen"]')).toBeNull();
   });
 
-  it('lists affected records once: as picker chips when editable, read-only otherwise', async () => {
+  it('lists affected records once, as connection rows; the picker only adds', async () => {
     const process = {
       entity_type: 'process',
       entity_id: 'pr-1',
@@ -223,10 +223,11 @@ describe('ProjectDetailPage', () => {
     };
 
     const editable = await withLinks(makeProjectDetail());
-    expect(editable.querySelector('[data-testid="affected"]')).toBeNull();
-    expect(
-      editable.querySelector('[data-testid="detail-pick-affected-picked"]')?.textContent,
-    ).toContain('Sales and order handling');
+    expect(editable.querySelector('[data-testid="affected"]')?.textContent).toContain(
+      'Sales and order handling',
+    );
+    expect(editable.querySelector('[data-testid="detail-pick-affected-picked"]')).toBeNull();
+    expect(editable.querySelector('[data-testid="detail-pick-affected-search"]')).toBeTruthy();
 
     TestBed.resetTestingModule();
     const readOnly = await withLinks(makeProjectDetail({ can_edit: false }));

@@ -37,6 +37,17 @@ interface FlowAction {
   readonly primary?: boolean;
 }
 
+/** The icon of each group of the hub (the module's icon, so a connection reads at a glance). */
+export const GROUP_ICONS: Readonly<Record<string, string>> = {
+  contracts: 'contract',
+  processors: 'shield',
+  transfers: 'send',
+  ai_systems: 'spark',
+  assets: 'devices',
+  risks: 'risk',
+  deviations: 'alert',
+};
+
 /** The simple record groups of the hub, in display order. */
 const RECORD_GROUPS = ['ai_systems', 'assets', 'risks', 'deviations'] as const;
 type RecordGroup = (typeof RECORD_GROUPS)[number];
@@ -75,6 +86,7 @@ export function hubIsEmpty(a: SupplierAgreements): boolean {
     StatusBadge,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { id: 'supplier-agreements', class: 'block scroll-mt-24' },
   template: `
     <app-card>
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -165,13 +177,16 @@ export function hubIsEmpty(a: SupplierAgreements): boolean {
             }
 
             @if (a.contracts.length) {
-              <h3 class="mt-1 mb-1.5 text-meta font-semibold text-fg-muted">
+              <h3
+                class="mt-1 mb-1.5 flex items-center gap-1.5 text-meta font-semibold text-fg-muted"
+              >
+                <app-icon name="contract" [size]="13" />
                 {{ 'suppliers.agreements.groups.contracts' | transloco }}
               </h3>
               <ul class="mb-3 flex flex-col gap-1.5" data-testid="hub-contracts">
                 @for (c of a.contracts; track c.record.entity_id) {
                   <li class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <app-entity-chip [ref]="c.record" [showType]="false" />
+                    <app-entity-chip [ref]="c.record" [showType]="false" [statusText]="true" />
                     @if (c.is_dpa) {
                       <span
                         class="rounded-full bg-accent-soft px-2 py-0.5 text-micro font-semibold text-accent"
@@ -203,13 +218,16 @@ export function hubIsEmpty(a: SupplierAgreements): boolean {
             }
 
             @if (a.processors.length) {
-              <h3 class="mt-1 mb-1.5 text-meta font-semibold text-fg-muted">
+              <h3
+                class="mt-1 mb-1.5 flex items-center gap-1.5 text-meta font-semibold text-fg-muted"
+              >
+                <app-icon name="shield" [size]="13" />
                 {{ 'suppliers.agreements.groups.processors' | transloco }}
               </h3>
               <ul class="mb-3 flex flex-col gap-1.5">
                 @for (p of a.processors; track p.record.entity_id) {
                   <li class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <app-entity-chip [ref]="p.record" [showType]="false" />
+                    <app-entity-chip [ref]="p.record" [showType]="false" [statusText]="true" />
                     @if (p.dpa_status) {
                       <span class="text-meta text-fg-subtle">
                         {{ 'suppliers.agreements.processorDpa.' + p.dpa_status | transloco }}
@@ -221,13 +239,16 @@ export function hubIsEmpty(a: SupplierAgreements): boolean {
             }
 
             @if (a.transfer_assessments.length) {
-              <h3 class="mt-1 mb-1.5 text-meta font-semibold text-fg-muted">
+              <h3
+                class="mt-1 mb-1.5 flex items-center gap-1.5 text-meta font-semibold text-fg-muted"
+              >
+                <app-icon name="send" [size]="13" />
                 {{ 'suppliers.agreements.groups.transfers' | transloco }}
               </h3>
               <ul class="mb-3 flex flex-col gap-1.5">
                 @for (t of a.transfer_assessments; track t.record.entity_id) {
                   <li class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <app-entity-chip [ref]="t.record" [showType]="false" />
+                    <app-entity-chip [ref]="t.record" [showType]="false" [statusText]="true" />
                     @if (t.destination_country) {
                       <span class="text-meta text-fg-subtle">{{
                         t.destination_country | countryName
@@ -240,12 +261,17 @@ export function hubIsEmpty(a: SupplierAgreements): boolean {
 
             @for (g of groups; track g) {
               @if (a[g].length) {
-                <h3 class="mt-1 mb-1.5 text-meta font-semibold text-fg-muted">
+                <h3
+                  class="mt-1 mb-1.5 flex items-center gap-1.5 text-meta font-semibold text-fg-muted"
+                >
+                  <app-icon [name]="icons[g]" [size]="13" />
                   {{ 'suppliers.agreements.groups.' + g | transloco: { open: openCount(a, g) } }}
                 </h3>
-                <ul class="mb-3 flex flex-wrap gap-1.5" [attr.data-testid]="'hub-' + g">
+                <ul class="mb-3 flex flex-col gap-1.5" [attr.data-testid]="'hub-' + g">
                   @for (r of a[g]; track r.record.entity_id) {
-                    <li><app-entity-chip [ref]="r.record" [showType]="false" /></li>
+                    <li>
+                      <app-entity-chip [ref]="r.record" [showType]="false" [statusText]="true" />
+                    </li>
                   }
                 </ul>
               }
@@ -323,6 +349,7 @@ export class SupplierAgreementsCard {
   readonly changed = output<void>();
 
   protected readonly groups = RECORD_GROUPS;
+  protected readonly icons = GROUP_ICONS;
   protected readonly dpa = dpaBadge;
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly data = signal<SupplierAgreements | null>(null);
