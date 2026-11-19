@@ -5,6 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../core/config/app-config';
+import { GuidanceLevel } from '../../core/guidance/guidance.models';
+import { provideFakeGuidance } from '../../core/guidance/guidance.testing';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RecordPageContext } from '../kit/record-page-context';
 import {
@@ -85,6 +87,7 @@ async function setup(
     canEdit?: boolean;
     langs?: Record<string, object>;
     recordPage?: RecordPageContext;
+    level?: GuidanceLevel;
   } = {},
 ) {
   TestBed.configureTestingModule({
@@ -114,6 +117,7 @@ async function setup(
         },
       },
       ...(options.recordPage ? [{ provide: RecordPageContext, useValue: options.recordPage }] : []),
+      ...provideFakeGuidance({}, options.level ?? 'standard').providers,
     ],
   });
   const fixture = TestBed.createComponent(SupportsRequirements);
@@ -261,6 +265,60 @@ describe('SupportsRequirements', () => {
     el.querySelector<HTMLElement>('[data-testid="supports-more"]')!.click();
     await render();
     expect(el.querySelector('[data-compact]')).toBeNull();
+  });
+
+  it('a beginner record shows one summary line and no suggestions to decide (U40)', async () => {
+    const page = new RecordPageContext();
+    const { http, render, el } = await setup(['standards:read', 'standards:manage'], {
+      recordPage: page,
+      level: 'beginner',
+      langs: {
+        en: {},
+        'standards/en': {
+          reqs: {
+            countsFor: 'Counts toward {{ count }} requirements in {{ standard }}',
+            countsForOne: 'Counts toward 1 requirement in {{ standard }}',
+            countsAlso: 'and {{ count }} in {{ standard }}',
+          },
+        },
+      },
+    });
+    http
+      .expectOne(isList())
+      .flush([
+        link({ id: 'l-1', clause_number: '5.1' }),
+        link({ id: 'l-2', clause_number: '6.1' }),
+        link({ id: 'l-3', clause_number: '7.1', origin: 'field', origin_field: 'control_refs' }),
+        link({ id: 'l-6', clause_number: '10.1', status: 'suggested', source: 'ai', origin: 'ai' }),
+      ]);
+    await render(SUGGEST_DELAY_MS + 20);
+    http.expectNone(`${ROOT}/requirement-links/suggest`);
+    const summary = el.querySelector('[data-testid="supports-summary"]');
+    expect(summary?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Counts toward 3 requirements in ISO 27001',
+    );
+    expect(el.querySelector('[data-testid="supports-chips"]')).toBeNull();
+    // Nothing waits on the beginner: the confirm queue is the compliance owner's.
+    expect(page.requirements()?.pending).toBe(0);
+    expect(page.requirements()?.suggestMore).toBeNull();
+
+    (summary as HTMLElement).click();
+    await render();
+    expect(el.querySelector('[data-testid="suggested-requirements"]')).toBeNull();
+    expect(el.querySelector('[data-testid="row-confirm"]')).toBeNull();
+    expect(el.querySelector('[data-testid="row-reject"]')).toBeNull();
+    expect(el.querySelector('[data-testid="find-more"]')).toBeNull();
+  });
+
+  it('a beginner with nothing linked is not asked to pick suggestions (U40)', async () => {
+    const { http, render, el } = await setup(['standards:read', 'standards:manage'], {
+      level: 'beginner',
+    });
+    http.expectOne(isList()).flush([]);
+    await render(SUGGEST_DELAY_MS + 20);
+    http.expectNone(`${ROOT}/requirement-links/suggest`);
+    expect(el.querySelector('[data-testid="supports-none"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="row-confirm"]')).toBeNull();
   });
 
   it('read-only users see links and stored suggestions without actions or suggest calls', async () => {

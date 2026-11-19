@@ -127,6 +127,9 @@
   },
   "reqs": {
     "title": "Requirements this documents",
+    "countsFor": "Counts toward {{ count }} requirements in {{ standard }}",
+    "countsForOne": "Counts toward 1 requirement in {{ standard }}",
+    "countsAlso": "and {{ count }} in {{ standard }}",
     "add": "Add requirement",
     "none": "Not linked to any requirements yet.",
     "noneHint": "Link this record to the requirements it documents so it counts towards requirement coverage.",

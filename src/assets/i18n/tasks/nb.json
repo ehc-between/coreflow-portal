@@ -432,7 +432,8 @@
       "project_design_review": "Gjennomgang i prosjekt",
       "training_due": "Opplæring",
       "other": "Annet",
-      "document_periodic_review": "Dokument til periodisk gjennomgang"
+      "document_periodic_review": "Dokument til periodisk gjennomgang",
+      "requirement_suggestions": "Foreslåtte krav å bekrefte"
     },
     "why": {
       "overdue": "Fristen gikk ut for {{ days }} dager siden",
@@ -444,6 +445,9 @@
       "acknowledge": "Les det, og bekreft at du har gjort det",
       "owner": "Du er ansvarlig",
       "assigned": "Tildelt deg"
+    },
+    "titles": {
+      "requirementSuggestions": "Bekreft foreslåtte krav ({{ count }})"
     }
   }
 }

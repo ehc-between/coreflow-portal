@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -369,7 +369,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             </span>
                             @if (row.item.url) {
                               <a
-                                [routerLink]="row.item.url"
+                                [routerLink]="itemLink(row.item.url)"
                                 class="block text-body font-semibold text-fg [overflow-wrap:anywhere] hover:underline"
                               >
                                 {{ row.item | localizedTitle }}
@@ -453,7 +453,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             </div>
                             @if (item.url) {
                               <a
-                                [routerLink]="item.url"
+                                [routerLink]="itemLink(item.url)"
                                 class="block text-ui font-semibold text-fg hover:underline"
                               >
                                 {{ item | localizedTitle }}
@@ -577,7 +577,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                             ) {
                               @if (item.url) {
                                 <a
-                                  [routerLink]="item.url"
+                                  [routerLink]="itemLink(item.url)"
                                   class="mb-0.5 block truncate rounded-tile px-1.5 py-0.5 text-micro font-semibold hover:underline"
                                   [class.bg-warn-soft]="item.overdue"
                                   [class.text-warn-ink]="item.overdue"
@@ -627,7 +627,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                         @for (item of entry.items; track item.source + item.id) {
                           @if (item.url) {
                             <a
-                              [routerLink]="item.url"
+                              [routerLink]="itemLink(item.url)"
                               class="block py-0.5 text-ui hover:underline"
                               [class.text-warn-ink]="item.overdue"
                               [class.text-fg]="!item.overdue"
@@ -666,7 +666,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                       @for (item of dayItems().get(day) ?? []; track item.source + item.id) {
                         @if (item.url) {
                           <a
-                            [routerLink]="item.url"
+                            [routerLink]="itemLink(item.url)"
                             class="block py-0.5 text-ui text-fg hover:underline"
                           >
                             {{ item | localizedTitle }}
@@ -747,6 +747,10 @@ export class MyWork {
   protected readonly weekdayKeys = WEEKDAY_KEYS;
   protected readonly cellLimit = CELL_LIMIT;
   protected readonly sourceLabelKey = sourceLabelKey;
+  /** Item URLs may carry a query (`?requirements=review`, U40): route them as a tree. */
+  protected itemLink(url: string): UrlTree {
+    return this.router.parseUrl(url);
+  }
   protected readonly sourceIcon = sourceIcon;
   protected readonly priorityKey = taskPriorityKey;
   protected readonly statusKey = taskStatusKey;
