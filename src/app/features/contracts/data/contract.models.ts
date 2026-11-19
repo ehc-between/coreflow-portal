@@ -5,6 +5,7 @@
  */
 
 import { AssigneeIn, RecurrenceSpec, TaskPriority } from '../../../core/tasks/task.models';
+import type { CustomerRef } from '../../../shared/customers';
 
 export const CONTRACT_TYPES = [
   'customer',
@@ -198,6 +199,9 @@ export interface ContractListItem {
   readonly counterparties: readonly string[];
   /** Supplier-register records among the parties. */
   readonly supplier_ids?: readonly string[];
+  /** The customer (customer register): the first external party linked to a customer. */
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly value_amount: string | null;
   readonly currency: string | null;
   readonly value_period: ValuePeriod | null;
@@ -237,6 +241,8 @@ export interface PartyIn {
   readonly org_number?: string | null;
   /** Link to a supplier-register record (null unlinks on PATCH). */
   readonly supplier_id?: string | null;
+  /** Link to a customer-register record (a party is a supplier or a customer, not both). */
+  readonly customer_id?: string | null;
   readonly contact_name?: string | null;
   readonly contact_email?: string | null;
 }
@@ -263,6 +269,8 @@ export interface Party {
   readonly org_number: string | null;
   readonly supplier_id?: string | null;
   readonly supplier?: SupplierRef | null;
+  readonly customer_id?: string | null;
+  readonly customer?: CustomerRef | null;
   readonly contact_name: string | null;
   readonly contact_email: string | null;
   readonly position: number;
@@ -445,11 +453,15 @@ export interface ContractCreate extends ContractFields {
   readonly dpa_clauses?: readonly DpaClauseIn[];
   /** Link the counterparty to this supplier (create-from-supplier flow). */
   readonly supplier_id?: string | null;
+  /** The customer: the counterparty party becomes (or is added as) this customer. */
+  readonly customer_id?: string | null;
 }
 
 export interface ContractUpdate extends ContractFields {
   readonly title?: string;
   readonly contract_type?: ContractType;
+  /** Set (or, with null, clear) the customer of the counterparty party. */
+  readonly customer_id?: string | null;
   readonly change_reason?: string | null;
 }
 
@@ -478,6 +490,7 @@ export interface ContractListQuery {
   readonly processes_personal_data?: boolean;
   readonly personal_data_role?: readonly PersonalDataRole[];
   readonly supplier_id?: string;
+  readonly customer_id?: string;
   /** Any of these warnings. */
   readonly warning?: readonly ContractWarning[];
   readonly dpa_missing?: boolean;

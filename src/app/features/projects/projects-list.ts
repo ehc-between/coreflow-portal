@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -55,6 +55,7 @@ import {
 } from './data/project-display';
 import { ProjectsApi } from './data/projects-api';
 import { GanttChart } from './gantt-chart';
+import { CustomerFilter, customerIdFromRoute } from '../../shared/customers';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 
 const PAGE_SIZE = 25;
@@ -127,6 +128,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
     RecordRowHeader,
     StatusBadge,
     GanttChart,
+    CustomerFilter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -204,6 +206,12 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
         }
       </div>
 
+      <app-customer-filter
+        filters
+        [value]="customerId()"
+        (valueChange)="setCustomer($event)"
+        data-testid="project-customer-filter"
+      />
       <label filters class="sr-only" for="cf-project-status">
         {{ 'projects.filters.status' | transloco }}
       </label>
@@ -441,6 +449,7 @@ export class ProjectsList {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly statusFilters = STATUS_FILTERS;
   protected readonly peopleFilters = PEOPLE_FILTERS;
@@ -457,6 +466,8 @@ export class ProjectsList {
   );
 
   protected readonly q = signal('');
+  /** The Kunde filter (`?customer_id=`, e.g. from the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(customerIdFromRoute(this.route));
   protected readonly status = signal<string>('open');
   protected readonly people = signal<(typeof PEOPLE_FILTERS)[number]>('');
   protected readonly kind = signal<ProjectKind | ''>('');
@@ -479,6 +490,7 @@ export class ProjectsList {
   protected readonly isFiltered = computed(
     () =>
       !!this.q() ||
+      !!this.customerId() ||
       (this.status() !== 'open' && this.status() !== 'all') ||
       !!this.people() ||
       !!this.kind() ||
@@ -582,6 +594,7 @@ export class ProjectsList {
     focus: this.focus(),
     sort: this.sort(),
     view: this.view(),
+    customer: this.customerId() ?? '',
   }));
 
   private request = new Subscription();
@@ -617,6 +630,7 @@ export class ProjectsList {
         owner: people === 'owner' ? 'me' : undefined,
         member: people === 'member' ? 'me' : undefined,
         kind: this.kind() || undefined,
+        customer_id: this.customerId() || undefined,
         overdue: this.overdue() ? true : undefined,
         sort: this.sort(),
         limit: atRisk ? AT_RISK_LIMIT : PAGE_SIZE,
@@ -629,7 +643,7 @@ export class ProjectsList {
   protected subtitle(p: Project): string {
     const kind = this.language.translate(`projects.kinds.${p.kind}`);
     const members = this.language.translate('projects.list.members', { count: p.member_count });
-    return `${kind} · ${members}`;
+    return [p.customer?.name, kind, members].filter(Boolean).join(' · ');
   }
 
   protected statusFilterKey(filter: string): string {
@@ -673,6 +687,19 @@ export class ProjectsList {
     this.kind.set('');
     this.overdue.set(false);
     this.focus.set('');
+    this.setCustomer(null);
+  }
+
+  /** Filter on one customer and keep `?customer_id=` in the address (shareable). */
+  protected setCustomer(id: string | null): void {
+    this.offset.set(0);
+    this.customerId.set(id);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { customer_id: id },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   protected setQuery(value: string): void {
@@ -720,6 +747,7 @@ export class ProjectsList {
     this.focus.set(isOneOf(FOCUS_FILTERS, f['focus']) ? f['focus'] : '');
     this.setSort(f['sort'] ?? '-updated_at');
     this.setView(f['view'] ?? 'list');
+    this.setCustomer(f['customer'] || null);
   }
 
   protected newProject(): void {

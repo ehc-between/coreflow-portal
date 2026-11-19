@@ -89,7 +89,8 @@
     "distribution": "Report goes to",
     "location": "Location",
     "reportOutcome": "Overall conclusion",
-    "reportLimitations": "Limitations of the audit"
+    "reportLimitations": "Limitations of the audit",
+    "customer": "Customer"
   },
   "filters": {
     "status": "Status",

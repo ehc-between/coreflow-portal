@@ -48,6 +48,7 @@ import { AuditsNav } from '../shared/audits-nav';
 import { AuditLoadState } from '../shared/load-state';
 import { loadable } from '../shared/loadable';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
+import { CustomerFilter, customerIdFromRoute } from '../../../shared/customers';
 
 const PAGE_SIZE = 25;
 
@@ -85,6 +86,7 @@ export function planStatusParam(filter: string): string | undefined {
     WhyItMatters,
     AuditsNav,
     AuditLoadState,
+    CustomerFilter,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -117,6 +119,11 @@ export function planStatusParam(filter: string): string | undefined {
       <app-help-strip help scope="audits" page="plans" lesson="internal-audits" />
 
       <ng-container filters>
+        <app-customer-filter
+          [value]="customerId()"
+          (valueChange)="customerId.set($event); offset.set(0)"
+          data-testid="plan-customer-filter"
+        />
         <label class="sr-only" for="plan-status">{{ 'audits.filters.status' | transloco }}</label>
         <select
           id="plan-status"
@@ -247,8 +254,11 @@ export class PlanList {
   protected readonly risk = riskBadge;
   protected readonly lead = leadAuditorName;
 
-  private readonly initial = inject(ActivatedRoute).snapshot.queryParamMap;
+  private readonly route = inject(ActivatedRoute);
+  private readonly initial = this.route.snapshot.queryParamMap;
   protected readonly q = signal(this.initial.get('q') ?? '');
+  /** The Kunde filter (`?customer_id=`, e.g. the customer card's "Se alle"). */
+  protected readonly customerId = signal<string | null>(customerIdFromRoute(this.route));
   protected readonly status = signal<PlanStatusFilter>(
     pick(this.initial.get('status') === 'open' ? 'unresolved' : this.initial.get('status'), [
       ...PLAN_STATUS_FILTERS,
@@ -271,6 +281,7 @@ export class PlanList {
       this.data.state() === 'ready' &&
       (this.data.value()?.total ?? 0) === 0 &&
       !this.q() &&
+      !this.customerId() &&
       this.status() === 'all' &&
       !this.kind(),
   );
@@ -287,6 +298,7 @@ export class PlanList {
       this.q();
       this.status();
       this.kind();
+      this.customerId();
       this.sort();
       this.offset();
       untracked(() => this.load());
@@ -304,6 +316,7 @@ export class PlanList {
         status: planStatusParam(this.status()),
         signed: this.status() === 'signed' || undefined,
         kind: this.kind() || undefined,
+        customer_id: this.customerId() || undefined,
         sort: this.sort(),
         limit: PAGE_SIZE,
         offset: this.offset(),
@@ -343,6 +356,7 @@ export class PlanList {
 
   protected clearFilters(): void {
     this.q.set('');
+    this.customerId.set(null);
     this.status.set('all');
     this.kind.set('');
     this.sort.set('planned_start');

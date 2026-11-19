@@ -34,6 +34,8 @@ export interface DeviationEditForm {
   readonly tags: readonly string[];
   /** Department id, or empty for none. */
   readonly departmentId: string;
+  /** The Kunde field (customer register), or empty for none. */
+  readonly customerId?: string;
   readonly data: Record<string, unknown>;
 }
 
@@ -54,6 +56,7 @@ export function editFormFrom(dev: DeviationDetail): DeviationEditForm {
     refs: clauseRefsOf(dev.clauses),
     tags: [...dev.tags],
     departmentId: dev.department_id ?? '',
+    customerId: dev.customer_id ?? '',
     data: { ...dev.data },
   };
 }
@@ -125,6 +128,9 @@ export function buildDeviationPatch(
   }
   if (form.departmentId !== (dev.department_id ?? '')) {
     patch['department_id'] = form.departmentId || null;
+  }
+  if (form.customerId !== undefined && form.customerId !== (dev.customer_id ?? '')) {
+    patch['customer_id'] = form.customerId || null;
   }
   if (JSON.stringify(dev.data) !== JSON.stringify(form.data)) {
     patch['data'] = form.data;

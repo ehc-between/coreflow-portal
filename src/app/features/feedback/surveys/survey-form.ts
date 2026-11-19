@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { CustomerPicker, CustomersAvailability } from '../../../shared/customers';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -57,7 +58,17 @@ const TEXTAREA =
  */
 @Component({
   selector: 'app-survey-form',
-  imports: [TranslocoPipe, FieldHelp, Alert, Button, Card, FormField, Icon, SurveyQuestion],
+  imports: [
+    TranslocoPipe,
+    FieldHelp,
+    Alert,
+    Button,
+    Card,
+    FormField,
+    Icon,
+    SurveyQuestion,
+    CustomerPicker,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
@@ -220,6 +231,21 @@ const TEXTAREA =
               }
             </select>
           </app-form-field>
+          @if (customers.enabled()) {
+            <app-form-field
+              [label]="'feedback.fields.customer' | transloco"
+              inputId="cf-sv-customer"
+            >
+              <app-customer-picker
+                inputId="cf-sv-customer"
+                [value]="form().customer_id || null"
+                [current]="form().customer"
+                (valueChange)="set('customer_id', $event ?? '')"
+                (refChange)="set('customer', $event)"
+                data-testid="survey-customer"
+              />
+            </app-form-field>
+          }
           <div class="sm:col-span-2">
             <label for="cf-sv-thanks" class="mb-1.5 block text-ui font-semibold text-fg-muted">
               {{ 'feedback.surveyFields.thankYouMessage' | transloco }}
@@ -517,6 +543,7 @@ const TEXTAREA =
 })
 export class SurveyForm {
   private readonly assignees = inject(AssigneeOptionsService);
+  protected readonly customers = inject(CustomersAvailability);
   private readonly language = inject(LanguageService);
 
   readonly value = input.required<SurveyFormValue>();

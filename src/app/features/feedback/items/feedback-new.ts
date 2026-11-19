@@ -18,6 +18,7 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
+import { CustomerRef, customerIdFromRoute } from '../../../shared/customers';
 import { emptyFeedbackForm, toCreateRequest } from '../data/feedback-form-model';
 import { FEEDBACK_ENTITY } from '../data/feedback.models';
 import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
@@ -66,11 +67,16 @@ export class FeedbackNew {
   private readonly flows = inject(CreateFlowService);
   private readonly formCmp = viewChild(FeedbackForm);
 
-  protected readonly seed = emptyFeedbackForm();
+  /** `?customer_id=` (the customer card's "+ Ny") pre-fills the Kunde field. */
+  protected readonly seed = {
+    ...emptyFeedbackForm(),
+    customer_id: customerIdFromRoute(inject(ActivatedRoute)) ?? '',
+  };
   protected readonly saving = signal(false);
   protected readonly settingsLink = FEEDBACK_SETTINGS_LINK;
   /** A create-from-here flow or `?fromRequirement=` the form was opened with. */
-  protected readonly flow = this.flows.consume(inject(ActivatedRoute), {
+  private readonly route = inject(ActivatedRoute);
+  protected readonly flow = this.flows.consume(this.route, {
     targetType: FEEDBACK_ENTITY,
   });
 
@@ -88,6 +94,9 @@ export class FeedbackNew {
         const p = flow.prefill;
         const str = (v: unknown) => (typeof v === 'string' ? v : undefined);
         form.patchEmpty({ title: str(p['title']), description: str(p['description']) });
+        const customerId = str(p['customer_id']) ?? null;
+        const ref = (p['customer'] as CustomerRef | undefined) ?? null;
+        form.patchCustomer(customerId, ref?.id === customerId ? ref : null);
       }
     });
   }

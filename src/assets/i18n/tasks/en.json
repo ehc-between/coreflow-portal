@@ -165,7 +165,8 @@
     "leadDays": "Create each task this many days before it is due",
     "linkedTo": "Linked to {{ record }}",
     "create": "Create task",
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "customer": "Customer (optional)"
   },
   "fields": {
     "assignee": "Assignee",

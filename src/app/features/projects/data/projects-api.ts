@@ -67,6 +67,7 @@ export function projectListParams(query: ProjectListQuery): QueryParams {
     member: query.member || undefined,
     kind: query.kind || undefined,
     department_id: query.department_id || undefined,
+    customer_id: query.customer_id || undefined,
     overdue: query.overdue,
     sort: query.sort,
     limit: query.limit,

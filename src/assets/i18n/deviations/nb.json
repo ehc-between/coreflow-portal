@@ -48,7 +48,9 @@
     "text_required": "Beskriv først hva som skjedde.",
     "deviation_required": "Åpne et avvik først.",
     "invalid_event_times": "Sjekk tidspunktene: de kan ikke være fram i tid, og det kan ikke være oppdaget før det skjedde.",
-    "invalid_reporting_value": "Sjekk tidspunktet for meldingen: det må være en dato og ikke fram i tid."
+    "invalid_reporting_value": "Sjekk tidspunktet for meldingen: det må være en dato og ikke fram i tid.",
+    "customer_required": "Velg kunden: denne typen avvik må ha en kunde.",
+    "invalid_customer": "Velg en kunde fra kunderegisteret."
   },
   "rootCauses": {
     "title": "Årsaksanalyse",
@@ -420,6 +422,9 @@
       "typeFields": "Mer om saken ({{ type }})",
       "who": "Ansvar",
       "whoHint": "Hvem som følger opp, og innen når."
+    },
+    "fields": {
+      "customer": "Kunde"
     }
   },
   "detail": {

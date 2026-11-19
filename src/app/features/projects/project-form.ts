@@ -12,6 +12,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
+import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../shared/customers';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { FormField } from '../../shared/ui/form-field/form-field';
@@ -59,7 +60,17 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
  */
 @Component({
   selector: 'app-project-form',
-  imports: [TranslocoPipe, AskAbout, FieldHelp, Button, Card, FormField, Icon, ProjectRecordPicker],
+  imports: [
+    TranslocoPipe,
+    AskAbout,
+    FieldHelp,
+    Button,
+    Card,
+    FormField,
+    Icon,
+    ProjectRecordPicker,
+    CustomerPicker,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
@@ -423,6 +434,23 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
               </select>
             </app-form-field>
           </div>
+          @if (customers.enabled()) {
+            <div>
+              <app-form-field
+                [label]="'projects.fields.customer' | transloco"
+                inputId="cf-p-customer"
+              >
+                <app-customer-picker
+                  inputId="cf-p-customer"
+                  [value]="form().customer_id || null"
+                  [current]="form().customer"
+                  (valueChange)="set('customer_id', $event ?? '')"
+                  (refChange)="set('customer', $event)"
+                  data-testid="project-customer"
+                />
+              </app-form-field>
+            </div>
+          }
         </div>
 
         @if (mode() === 'create') {
@@ -584,6 +612,7 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
 })
 export class ProjectForm {
   private readonly assignees = inject(AssigneeOptionsService);
+  protected readonly customers = inject(CustomersAvailability);
 
   readonly value = input.required<ProjectFormValue>();
   readonly mode = input<'create' | 'edit'>('create');
@@ -744,6 +773,14 @@ export class ProjectForm {
       }
       return next as unknown as ProjectFormValue;
     });
+  }
+
+  /** Prefill the Kunde field (create-from-customer, `?customer_id=`) unless already set. */
+  patchCustomer(id: string | null, ref: CustomerRef | null = null): void {
+    if (!id) {
+      return;
+    }
+    this.form.update((f) => (f.customer_id ? f : { ...f, customer_id: id, customer: ref }));
   }
 
   protected submit(): void {

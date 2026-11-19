@@ -2320,7 +2320,8 @@
       "standards": "Standards and requirements",
       "guidance": "Guidance and learning",
       "records": "Record types and workflows",
-      "platform": "Platform and settings"
+      "platform": "Platform and settings",
+      "customers": "Customers"
     },
     "descriptions": {
       "tasks": "Assign, track and repeat work across every module.",
@@ -2351,7 +2352,8 @@
       "documents": "Controlled documents with review, approval and acknowledgement.",
       "standards": "Standards catalogue, applicability and evidence per requirement.",
       "guidance": "Lessons, tours and quizzes that teach each module and record competence.",
-      "records": "Design your own record types, forms and approval workflows."
+      "records": "Design your own record types, forms and approval workflows.",
+      "customers": "Customer register: contacts, contracts, claims, projects and satisfaction per customer."
     },
     "reasons": {
       "tasks": "Tasks keep every control, review and follow-up assigned and on time.",
@@ -2380,7 +2382,8 @@
       "feedback": "ISO 9001 9.1.2 asks you to monitor customer satisfaction.",
       "reports": "Reports and audit packs make it quick to show evidence to auditors.",
       "documents": "Documented information must be controlled (clause 7.5) in every ISO standard.",
-      "standards": "The standards workspace shows how each requirement of your standards is met."
+      "standards": "The standards workspace shows how each requirement of your standards is met.",
+      "customers": "ISO 9001 8.2 and 9.1.2 require you to communicate with customers, review their requirements and monitor their satisfaction."
     },
     "entities": {
       "document": "Document",
@@ -2464,7 +2467,9 @@
       "retention_rule": "Retention rule",
       "audit_certification": "Certification",
       "audit_auditor_profile": "Auditor profile",
-      "generated_output": "Generated document"
+      "generated_output": "Generated document",
+      "customer": "Customer",
+      "customer_contact": "Contact person"
     },
     "links": {
       "title": "Organisation",

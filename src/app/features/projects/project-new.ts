@@ -23,6 +23,7 @@ import { projectErrorKey } from './data/project-errors';
 import { emptyProjectForm, toCreateRequest } from './data/project-form-model';
 import { ProjectsApi } from './data/projects-api';
 import { ProjectForm, ProjectFormSubmit } from './project-form';
+import { CustomerRef, customerIdFromRoute } from '../../shared/customers';
 
 /**
  * Start a project (`/projects/new`). The assistant can draft one from a short
@@ -94,7 +95,8 @@ export class ProjectNew {
   protected readonly seed = emptyProjectForm();
   protected readonly saving = signal(false);
   /** A create-from-here flow or `?fromRequirement=` the form was opened with. */
-  protected readonly flow = this.flows.consume(inject(ActivatedRoute), { targetType: 'project' });
+  private readonly route = inject(ActivatedRoute);
+  protected readonly flow = this.flows.consume(this.route, { targetType: 'project' });
 
   constructor() {
     providePageContext(() => ({
@@ -116,6 +118,17 @@ export class ProjectNew {
           scope: str(p['scope']),
         });
       }
+    });
+    // The Kunde field: from the customer card's create flow or `?customer_id=`.
+    effect(() => {
+      const form = this.formCmp();
+      if (!form) {
+        return;
+      }
+      const p = this.flow()?.prefill ?? {};
+      const id = typeof p['customer_id'] === 'string' ? p['customer_id'] : null;
+      const ref = (p['customer'] as CustomerRef | undefined) ?? null;
+      form.patchCustomer(id ?? customerIdFromRoute(this.route), id ? ref : null);
     });
   }
 

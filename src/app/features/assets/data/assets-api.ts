@@ -71,6 +71,7 @@ export class AssetsApi {
         contains_personal_data: query.contains_personal_data,
         custodian: query.custodian || undefined,
         supplier_id: query.supplier_id || undefined,
+        customer_id: query.customer_id || undefined,
         review_overdue: query.review_overdue,
         attention:
           query.attention === 'any' ? 'any' : csv(query.attention as readonly string[] | undefined),

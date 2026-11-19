@@ -177,7 +177,8 @@
     "createdBy": "Registered by",
     "acknowledgedAt": "Acknowledged",
     "resolvedAt": "Resolved",
-    "closedAt": "Closed"
+    "closedAt": "Closed",
+    "customer": "Customer"
   },
   "form": {
     "newTitle": "Register customer feedback",
@@ -661,7 +662,8 @@
     "invalid_privacy_notice_url": "Use a full web address starting with https://.",
     "feedback_exists": "This answer is already a feedback record.",
     "feedback_not_found": "This feedback no longer exists.",
-    "nothing_to_do": "Choose a new status or an owner first."
+    "nothing_to_do": "Choose a new status or an owner first.",
+    "invalid_customer": "Choose a customer from the customer register."
   },
   "notifications": {
     "feedbackCreated": "Feedback registered: {{ code }} {{ title }}",

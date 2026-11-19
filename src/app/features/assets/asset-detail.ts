@@ -58,6 +58,7 @@ import {
 import { assetErrorKey } from './data/asset-errors';
 import { AssetDetail, AttentionCode, ChangeRequest, SYSTEM_ASSET_TYPES } from './data/asset.models';
 import { AssetsApi } from './data/assets-api';
+import { CustomerChip } from '../../shared/customers';
 import { AssetCalibrationPanel } from './detail/calibration-panel';
 import { AssetOptionsService } from './shared/asset-select';
 
@@ -276,6 +277,7 @@ export function assetMissing(
 @Component({
   selector: 'app-asset-detail',
   imports: [
+    CustomerChip,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -569,6 +571,11 @@ export function assetMissing(
                     {{ a.vendor }}
                   }
                 </app-field-item>
+                @if (a.customer; as c) {
+                  <app-field-item labelKey="assets.fields.customer">
+                    <app-customer-chip [ref]="c" data-testid="asset-customer-chip" />
+                  </app-field-item>
+                }
                 @for (key of profileFields; track key.field) {
                   <app-field-item
                     [labelKey]="'assets.fields.' + key.label"

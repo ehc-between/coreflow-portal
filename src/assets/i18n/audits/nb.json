@@ -89,7 +89,8 @@
     "distribution": "Rapporten sendes til",
     "location": "Sted",
     "reportOutcome": "Samlet konklusjon",
-    "reportLimitations": "Begrensninger ved revisjonen"
+    "reportLimitations": "Begrensninger ved revisjonen",
+    "customer": "Kunde"
   },
   "filters": {
     "status": "Status",

@@ -165,7 +165,8 @@
     "leadDays": "Opprett hver oppgave så mange dager før fristen",
     "linkedTo": "Koblet til {{ record }}",
     "create": "Opprett oppgave",
-    "saveChanges": "Lagre endringer"
+    "saveChanges": "Lagre endringer",
+    "customer": "Kunde (valgfritt)"
   },
   "fields": {
     "assignee": "Ansvarlig",

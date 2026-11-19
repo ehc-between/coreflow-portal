@@ -70,6 +70,7 @@ import { ObligationActions } from './obligation-actions';
 import { ObligationChanges } from './obligation-changes';
 import { ObligationDuties } from './obligation-duties';
 import { ObligationEvaluations } from './obligation-evaluations';
+import { CustomerChip } from '../../shared/customers';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -164,6 +165,7 @@ const SECTIONS = {
     ObligationChanges,
     ObligationDuties,
     ObligationEvaluations,
+    CustomerChip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -351,6 +353,15 @@ const SECTIONS = {
                   }
                 }
               </app-field-item>
+              @if (o.customer) {
+                <app-field-item
+                  size="lead"
+                  labelKey="obligations.fields.customer"
+                  data-testid="lead-customer"
+                >
+                  <app-customer-chip [ref]="o.customer" />
+                </app-field-item>
+              }
               <app-field-item
                 size="lead"
                 labelKey="obligations.detail.lead.latestEvaluation"

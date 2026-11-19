@@ -3,6 +3,7 @@
  * backend schemas in `app/modules/assets/schemas.py`. Calendar dates are
  * `YYYY-MM-DD`; timestamps are naive UTC.
  */
+import type { CustomerRef } from '../../../shared/customers';
 
 export const ASSET_TYPES = [
   'information',
@@ -178,6 +179,8 @@ export interface Items<T> {
 
 /** The editable fields of an asset (create body; PATCH accepts any subset). */
 export interface AssetFields {
+  /** Customer property (ISO 9001 8.5.3): the customer that owns the item. */
+  readonly customer_id?: string | null;
   readonly name: string;
   readonly asset_type: AssetType;
   readonly classification: Classification;
@@ -226,6 +229,7 @@ export interface Asset extends AssetFields {
   readonly id: string;
   readonly org_id: string;
   readonly code: string;
+  readonly customer?: CustomerRef | null;
   readonly owner: UserRef | null;
   readonly custodian: UserRef | null;
   readonly last_calibrated_on: string | null;
@@ -276,6 +280,8 @@ export interface ConfirmReviewRequest {
 
 export interface AssetListQuery {
   readonly q?: string;
+  /** Customer property of one customer (`?customer_id=`). */
+  readonly customer_id?: string;
   readonly type?: readonly AssetType[];
   readonly classification?: readonly Classification[];
   readonly lifecycle?: readonly LifecycleStatus[];

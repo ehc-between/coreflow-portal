@@ -138,7 +138,8 @@
     "involvesAiSystem": "Gjelder et KI-system",
     "flags": "I tillegg",
     "lastReviewed": "Sist gjennomgått",
-    "approvalReview": "Gjennomgang av kravene"
+    "approvalReview": "Gjennomgang av kravene",
+    "customer": "Kunde"
   },
   "form": {
     "newTitle": "Ny kontrakt",
@@ -554,7 +555,9 @@
     "invalid_review_answer": "Velg ja, nei eller ikke relevant for hvert spørsmål.",
     "invalid_supplier": "Den leverandøren finnes ikke i leverandørregisteret.",
     "not_a_dpa": "Velg en databehandleravtale.",
-    "link_exists": "Den avtalen er allerede koblet til."
+    "link_exists": "Den avtalen er allerede koblet til.",
+    "invalid_customer": "Velg en kunde fra kunderegisteret.",
+    "party_supplier_and_customer": "En part er enten leverandør eller kunde, ikke begge deler."
   },
   "notifications": {
     "ownerChanged": "Du eier nå kontrakten {{ code }}: {{ title }}",

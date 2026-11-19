@@ -40,6 +40,7 @@ import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { CustomerChip } from '../../../shared/customers';
 import { AuditAccess } from '../data/audit-access';
 import {
   certificationStatusBadge,
@@ -255,6 +256,7 @@ export function planMissing(
 @Component({
   selector: 'app-audit-plan-detail',
   imports: [
+    CustomerChip,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -448,7 +450,10 @@ export function planMissing(
           />
           @if (p.kind === 'external') {
             <app-field-item size="lead" labelKey="audits.planDetail.lead.auditor">
-              @if (p.external_party_name || p.external_party_type) {
+              @if (p.customer) {
+                <app-customer-chip [ref]="p.customer" data-testid="plan-customer-chip" />
+                <span class="text-fg-muted">({{ 'audits.partyType.customer' | transloco }})</span>
+              } @else if (p.external_party_name || p.external_party_type) {
                 {{ p.external_party_name }}
                 @if (p.external_party_type) {
                   <span class="text-fg-muted"

@@ -439,6 +439,11 @@
       "needs": "Describe what they need and expect",
       "howAddressed": "Describe how you meet them",
       "owner": "Choose an owner"
+    },
+    "customers": {
+      "requirementsHint": "Requirements from individual customers are recorded on the customer card.",
+      "register": "Customer register",
+      "registerCount": "Customer register: {{count}} active customers"
     }
   },
   "leadDetail": {
