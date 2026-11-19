@@ -59,6 +59,8 @@ import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-la
 import { formatLocalDate, formatLocalDay } from '../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { DynamicForm } from '../../shared/records/dynamic-form';
+import { CompleteRecord } from '../../shared/forms/complete-record';
+import { CompleteGroup, fieldSpecGroups, isFilled } from '../../shared/forms/field-tier';
 import { parseClause } from '../../shared/requirement-links/clause-picker';
 import { fixedShortName, shortNameKey } from '../../shared/requirement-links/requirement-label';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
@@ -199,6 +201,7 @@ interface ClauseChip {
     RecordDetailLayout,
     MarkdownPipe,
     DynamicForm,
+    CompleteRecord,
     EntityTasks,
     EntityChip,
     SimilarCases,
@@ -923,6 +926,14 @@ interface ClauseChip {
         </ng-container>
 
         <div aside class="flex flex-col gap-4">
+          @if (!editing()) {
+            <app-complete-record
+              [groups]="completeGroups()"
+              [canEdit]="canEditThis()"
+              (fill)="startEdit(dev)"
+            />
+          }
+
           @if (dev.workflow) {
             <app-deviation-workflow-panel
               appTourStep="deviations-workflow"
@@ -1269,6 +1280,50 @@ export class DeviationDetail {
     return dev ? editLockKey(dev) : null;
   });
   protected readonly canEditThis = computed(() => this.canWrite() && this.editLockKey() === null);
+  /** "Fullfør posten" (U31): what the open case still needs, by section, and why. */
+  protected readonly completeGroups = computed<CompleteGroup[]>(() => {
+    const dev = this.deviation();
+    if (!dev || dev.status_category === 'done' || dev.status_category === 'cancelled') {
+      return [];
+    }
+    const item = (key: string, label: string, value: unknown) => ({
+      key,
+      labelKey: `forms.complete.fields.${label}`,
+      done: isFilled(value),
+    });
+    const event = [
+      item('description', 'description', dev.description),
+      item('occurred_at', 'occurredAt', dev.occurred_at),
+      item('location', 'location', dev.location),
+      item('immediate_action', 'immediateAction', dev.immediate_action),
+    ];
+    const core = new Set(event.map((entry) => entry.key));
+    const version = this.recordVersion();
+    const typeGroups = version
+      ? fieldSpecGroups(version.fields, version.layout, dev.data ?? {}, this.language.active())
+          .map((group) => ({ ...group, items: group.items.filter((i) => !core.has(i.key)) }))
+          .filter((group) => group.items.length > 0)
+      : [];
+    return [
+      {
+        key: 'event',
+        titleKey: 'forms.complete.groups.event.title',
+        reasonKey: 'forms.complete.groups.event.reason',
+        items: event,
+      },
+      ...typeGroups,
+      {
+        key: 'followUp',
+        titleKey: 'forms.complete.groups.followUp.title',
+        reasonKey: 'forms.complete.groups.followUp.reason',
+        items: [
+          item('owner', 'owner', dev.owner_user_id),
+          item('due_at', 'dueAt', dev.due_at),
+          item('root_cause', 'rootCause', dev.root_cause),
+        ],
+      },
+    ];
+  });
   protected readonly statusLockedKey = computed(() => {
     const dev = this.deviation();
     return dev ? statusLockedKey(dev) : null;
