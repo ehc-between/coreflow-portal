@@ -48,7 +48,7 @@
     "profile": {
       "intro": {
         "title": "The profile describes your context",
-        "body": "ISO management systems start with understanding the organisation, the interested parties and the scope. The profile is the short version of that context.",
+        "body": "ISO [[management-system|management systems]] start with understanding the organisation, the [[interested-party|interested parties]] and the scope. The profile is the short version of that context.",
         "steps": [
           "Fill in industry, size and the countries you operate in.",
           "Tick the standards in scope and add certification targets with dates.",
@@ -65,7 +65,7 @@
         "title": "Speak your organisation's language",
         "body": "People follow a system more easily when it uses their words. Change the wording here and CoreFlow uses it everywhere.",
         "steps": [
-          "Pick the terms you call something else, for example \"nonconformity\" for deviation.",
+          "Pick the terms you call something else, for example \"[[nonconformity|nonconformity]]\" for [[nonconformity|deviation]].",
           "Fill in the singular and the plural for each language you use.",
           "Save, and check the preview above the list."
         ]
@@ -78,7 +78,7 @@
     "setup": {
       "intro": {
         "title": "Set up in a few minutes",
-        "body": "The wizard walks you through the basics of a management system: context, scope, the right modules, roles and the first tasks.",
+        "body": "The wizard walks you through the basics of a [[management-system|management system]]: context, scope, the right modules, roles and the first tasks.",
         "steps": [
           "Describe the organisation and choose the frameworks in scope.",
           "Review the recommended modules. Use \"Ask why\" if something is unclear.",

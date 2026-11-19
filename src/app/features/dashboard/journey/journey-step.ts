@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { ClauseTitlesService } from '../../../core/standards/clause-titles.service';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import {
@@ -213,6 +215,8 @@ const STATE_ICON: Record<string, string> = {
 })
 export class JourneyStepRow {
   private readonly language = inject(LanguageService);
+  private readonly guidance = inject(GuidanceService);
+  private readonly titles = inject(ClauseTitlesService);
 
   readonly step = input.required<JourneyStep>();
   /** The next step of the journey: drawn in the accent colour. */
@@ -247,7 +251,12 @@ export class JourneyStepRow {
   protected readonly refs = computed(() => {
     const t = (key: string, params?: Record<string, unknown>) =>
       this.language.translate(key, params);
-    return this.step().requirement_refs.map((ref) => clauseLabel(ref, t));
+    // U39: beginners read the requirement's plain title instead of "ISO 27001 · 4.2".
+    const beginner = this.guidance.isBeginner();
+    const labels = this.step().requirement_refs.map(
+      (ref) => (beginner ? this.titles.read(ref)?.title : null) || clauseLabel(ref, t),
+    );
+    return [...new Set(labels)];
   });
   protected readonly firstRef = computed(() => this.refs()[0] ?? '');
   protected readonly progress = computed(() =>

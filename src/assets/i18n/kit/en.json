@@ -166,7 +166,7 @@
     "count": "{{ count }} comments"
   },
   "revisions": {
-    "title": "Revision history",
+    "title": "History",
     "empty": "No revisions recorded yet.",
     "emptyHint": "Each saved change to a controlled record creates a revision: who changed what, when and why. ISO standards call this keeping documented information under control.",
     "revision": "Revision {{ no }}",
@@ -213,7 +213,18 @@
     "commentDeleted": "{{ actor_name }} deleted a comment",
     "linkCreated": "{{ actor_name }} linked a {{ other_type_label }} ({{ link_type_label }})",
     "linkDeleted": "{{ actor_name }} removed the link to a {{ other_type_label }} ({{ link_type_label }})",
-    "flowCompleted": "{{ actor_name }} created this record from another record ({{ source_type_label }})"
+    "flowCompleted": "{{ actor_name }} created this record from another record ({{ source_type_label }})",
+    "auditAction": "{{ actor }} {{ action }}: {{ entity }}",
+    "auditVerbs": {
+      "created": "created",
+      "updated": "updated",
+      "deleted": "deleted",
+      "archived": "archived",
+      "restored": "restored",
+      "approved": "approved",
+      "closed": "closed",
+      "changed": "changed"
+    }
   },
   "notifications": {
     "commentCreated": "{{ actor_name }} commented on a record you follow",
@@ -248,7 +259,7 @@
       "activity": "Activity",
       "comments": "Comments",
       "attachments": "Attachments",
-      "revisions": "Revisions",
+      "revisions": "History",
       "tasks": "Tasks"
     },
     "more": "More",

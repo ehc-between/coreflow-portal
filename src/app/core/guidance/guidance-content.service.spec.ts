@@ -14,7 +14,7 @@ const PLATFORM: GuidanceFile = {
 };
 const GLOSSARY: GuidanceFile = {
   glossary: {
-    risk: { term: 'Risk', definition: 'Effect of uncertainty' },
+    risk: { term: 'Risk', definition: 'Effect of uncertainty', beginner: 'what could go wrong' },
     audit: { term: 'Audit', definition: 'A check' },
   },
 };
@@ -72,6 +72,8 @@ describe('GuidanceContentService', () => {
     http.expectOne('/assets/guidance/en/platform.json').flush(PLATFORM);
     http.expectOne('/assets/guidance/en/glossary.json').flush(GLOSSARY);
     expect(service.readTerm('risk', 'platform')?.term).toBe('Platform risk');
+    // A scope entry borrows the shared beginner form (U39).
+    expect(service.readTerm('risk', 'platform')?.beginner).toBe('what could go wrong');
     expect(service.readTerm('risk')?.term).toBe('Risk');
     expect(service.glossaryTerm('audit', 'platform')()?.definition).toBe('A check');
     expect(service.readTerm('unknown')).toBeNull();

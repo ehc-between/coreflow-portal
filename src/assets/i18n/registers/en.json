@@ -1,0 +1,46 @@
+{
+  "title": "Registers",
+  "description": "Every list your organisation keeps, grouped by area of work. Open a list to see and add entries. Pin the ones you use most and they appear in the menu.",
+  "search": {
+    "label": "Search registers",
+    "placeholder": "Search, e.g. calibration or near miss",
+    "hits": "Matches: {{count}}",
+    "noneTitle": "No register matches “{{query}}”",
+    "noneBody": "Try another word, or open the register from its module."
+  },
+  "pinned": {
+    "title": "Pinned to the menu"
+  },
+  "pin": {
+    "add": "Pin {{name}} to the menu",
+    "remove": "Unpin {{name}} from the menu",
+    "full": "You can pin up to {{max}} registers. Unpin one first."
+  },
+  "groups": {
+    "governance": "Governance",
+    "risk": "Risk and legal requirements",
+    "improvement": "Incidents and improvement",
+    "suppliersAssets": "Suppliers and assets",
+    "people": "People",
+    "privacy": "Privacy",
+    "ai": "AI",
+    "environmentHse": "Environment and health and safety",
+    "continuity": "Preparedness",
+    "documents": "Documents and reports",
+    "other": "Other registers"
+  },
+  "more": {
+    "title": "More registers ({{count}})",
+    "hint": "Empty registers that none of your standards need, and setup lists such as types and templates."
+  },
+  "row": {
+    "count": "{{count}} entries",
+    "countOne": "1 entry",
+    "empty": "Empty",
+    "updated": "Updated {{when}}"
+  },
+  "empty": {
+    "title": "No registers yet",
+    "body": "Registers appear here when a module is switched on and you have access to it."
+  }
+}

@@ -36,7 +36,8 @@
       "link": "Link to requirement",
       "openJourney": "Open the journey",
       "startJourney": "Start the journey",
-      "document": "Document it"
+      "document": "Document it",
+      "reviewSuggestions": "Go through"
     },
     "overdue": {
       "title": "Overdue: {{ label }}",
@@ -74,7 +75,7 @@
     },
     "journey_step": {
       "title": "Next step: {{ step }}",
-      "why": "{{ journey }} · {{ done }} of {{ total }} steps done ({{ percent }} %)."
+      "why": "{{ journey }} · step {{ done }} of {{ total }}."
     },
     "journey_link": {
       "title": "Link to the requirement: {{ step }}",
@@ -89,8 +90,13 @@
       "why": "A step-by-step path that shows what to do, where to do it and which requirements each step covers."
     },
     "gap": {
-      "title": "{{ standard }} · {{ number }} has no evidence yet",
-      "why": "“{{ title }}”. Requirements still missing evidence: {{ missing }}. Link a record that shows the requirement is met."
+      "title": "{{ standard }}: “{{ title }}” has no evidence yet",
+      "why": "Requirements still missing evidence: {{ missing }}. Link a record that shows the requirement is met."
+    },
+    "suggestions": {
+      "title": "Confirm {{ requirements }} suggested requirements",
+      "titleMixed": "Go through {{ count }} suggestions",
+      "why": "The system thinks {{ records }} records may document requirements. Nothing counts until you confirm it."
     }
   },
   "setupSteps": {
@@ -120,7 +126,8 @@
     "continue": "Continue the journey",
     "view": "See the journey",
     "emptyBody": "A journey takes you step by step towards a standard, from the first scope statement to the certification audit.",
-    "start": "Start a journey"
+    "start": "Start a journey",
+    "steps": "Step {{ done }}/{{ total }}"
   },
   "status": {
     "title": "How the organisation is doing",
@@ -135,11 +142,18 @@
     "missing": "{{ missing }} of {{ total }} missing",
     "noGaps": "Every requirement has evidence.",
     "seeAll": "See all requirements",
-    "continueJourney": "Continue the journey ({{ percent }} %)",
     "startJourney": "Start the journey",
     "emptyTitle": "No standards are turned on yet",
     "emptyBody": "Choose the standards your organisation follows. Then you see the requirement coverage here and what to do next.",
-    "emptyCta": "Choose standards"
+    "emptyCta": "Choose standards",
+    "remaining": "{{ count }} things left",
+    "remainingNone": "Nothing left",
+    "target": "Target {{ date }}",
+    "targetCertified": "Certified",
+    "showOthers": "Show all standards ({{ count }})",
+    "hideOthers": "Show only target standards",
+    "steps": "Step {{ done }}/{{ total }}",
+    "continueSteps": "Continue the journey (step {{ done }}/{{ total }})"
   },
   "reports": {
     "hint": "Looking for key figures, exports or audit packs?",
@@ -289,6 +303,53 @@
       "completed": "The journey is complete",
       "archived": "{{ actor_name }} archived the journey",
       "reactivated": "{{ actor_name }} reactivated the journey"
+    }
+  },
+  "quick": {
+    "title": "What do you want to do?",
+    "report_issue": "Report a deviation or incident",
+    "suggest_improvement": "Suggest an improvement",
+    "find_document": "Find a document or procedure",
+    "prepare_audit": "Prepare an audit",
+    "export_document": "Get a document or report",
+    "audit_pack": "Put together an audit pack",
+    "standards": "See all standards"
+  },
+  "employee": {
+    "intro": "Report something, suggest an improvement or find what you need. Your own to-dos are below.",
+    "tasks": "Your tasks",
+    "acknowledge": "Read and confirm",
+    "training": "Courses to take",
+    "upToDate": "You are up to date.",
+    "showAll": "Show everything",
+    "showAllHint": "See the full home page with standards and next steps."
+  },
+  "workspace": {
+    "back": "Back to my home page",
+    "previewing": "You are seeing the full home page.",
+    "names": {
+      "employee": "Employee",
+      "owner": "Owner",
+      "quality_lead": "Quality lead",
+      "management": "Management",
+      "auditor": "Auditor"
+    },
+    "settings": {
+      "title": "Home page per role",
+      "hint": "Choose which home page each role starts on. Everyone can still choose “Show everything”.",
+      "role": "Role",
+      "template": "Home page",
+      "default": "(default)",
+      "saved": "Home page for {{ role }} saved.",
+      "saveFailed": "Could not save the home page. Try again.",
+      "loadError": "Could not load the home pages per role.",
+      "descriptions": {
+        "employee": "Three buttons and your own to-dos.",
+        "owner": "Your next steps and the standards you work towards.",
+        "quality_lead": "Everything: next steps, standards and journeys.",
+        "management": "Where the standards stand and what is left.",
+        "auditor": "Standards, audit packs and documents."
+      }
     }
   }
 }

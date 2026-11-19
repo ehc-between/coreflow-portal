@@ -355,10 +355,10 @@
       "equalsYears": "That is {{ count }} years."
     },
     "compare": {
-      "title": "Revision history: {{ title }}",
+      "title": "History: {{ title }}",
       "back": "Back to the document",
-      "link": "Compare revisions",
-      "history": "Revisions",
+      "link": "Compare versions",
+      "history": "History",
       "rev": "Rev. {{ rev }}",
       "current": "Current",
       "working": "Working draft",

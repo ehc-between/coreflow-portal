@@ -16,6 +16,7 @@
     "dashboard": "Oversikt",
     "organizations": "Organisasjoner",
     "myWork": "Mitt arbeid",
+    "registers": "Registre",
     "review": "Trenger din gjennomgang",
     "inspections": "Inspeksjoner",
     "deviations": "Avvik",
@@ -137,8 +138,8 @@
     "noResults": "Ingen dokumenter samsvarer med søket ditt.",
     "notFound": "Vi fant ikke dokumentet.",
     "backToList": "Alle dokumenter",
-    "history": "Revisjonshistorikk",
-    "noRevisions": "Ingen revisjoner ennå.",
+    "history": "Historikk",
+    "noRevisions": "Ingen versjoner ennå.",
     "noContent": "Dette dokumentet har ikke noe innhold ennå.",
     "revShort": "Rev {{rev}}",
     "viewingRevision": "Viser Rev {{rev}}",
@@ -292,7 +293,7 @@
       "changesRequestedToast": "Endringer etterspurt. Dokumentet er tilbake som utkast.",
       "obsolete": "Gjør utgått",
       "obsoleteTitle": "Gjøre dette dokumentet utgått?",
-      "obsoleteBody": "Det trekkes tilbake fra bruk og kan ikke lenger redigeres. Revisjonshistorikken beholdes.",
+      "obsoleteBody": "Det trekkes tilbake fra bruk og kan ikke lenger redigeres. Historikken beholdes.",
       "reasonLabel": "Begrunnelse",
       "obsoletePlaceholder": "Hvorfor trekkes dokumentet tilbake?",
       "obsoletedToast": "Dokumentet er satt som utgått.",
@@ -308,8 +309,8 @@
       "approvedRev": "Godkjent · Rev {{rev}}",
       "draftRev": "Utkast · Rev {{rev}}",
       "changeReasonTitle": "Endringsbegrunnelse",
-      "changeReasonBodyRequired": "Beskriv hva som er endret og hvorfor. Dette lagres i revisjonshistorikken.",
-      "changeReasonBodyOptional": "Beskriv gjerne endringen. Den lagres i revisjonshistorikken.",
+      "changeReasonBodyRequired": "Beskriv hva som er endret og hvorfor. Dette lagres i historikken.",
+      "changeReasonBodyOptional": "Beskriv gjerne endringen. Den lagres i historikken.",
       "changeReasonLabel": "Endringsbegrunnelse",
       "changeReasonPlaceholder": "For eksempel: oppdatert godkjenningstrinnene etter revisjonen",
       "errors": {
@@ -327,13 +328,13 @@
     "delete": {
       "title": "Slett dokument",
       "action": "Slett",
-      "hint": "Fjerner dokumentet og revisjonshistorikken.",
+      "hint": "Fjerner dokumentet og historikken.",
       "hintObsolete": "Fjerner dette utgåtte dokumentet. Du blir bedt om en begrunnelse. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
       "blockedHint": "Godkjente dokumenter kan ikke slettes. Gjør dokumentet utgått i stedet; en administrator kan deretter slette det.",
       "adminOnlyHint": "Bare en administrator for organisasjonen kan slette utgåtte dokumenter.",
       "confirmTitle": "Slette {{code}}?",
-      "confirmBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres.",
-      "reasonBody": "Dokumentet og revisjonshistorikken fjernes. Dette kan ikke angres. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
+      "confirmBody": "Dokumentet og historikken fjernes. Dette kan ikke angres.",
+      "reasonBody": "Dokumentet og historikken fjernes. Dette kan ikke angres. Begrunnelsen lagres sammen med det slettede dokumentet og er synlig for administratorer.",
       "reasonLabel": "Begrunnelse for sletting",
       "reasonPlaceholder": "Hvorfor slettes dokumentet?",
       "deletedToast": "Dokumentet er slettet.",
@@ -1567,7 +1568,7 @@
       "notFound": "Dette avviket finnes ikke, eller du har ikke tilgang til det.",
       "notProvided": "Ikke satt",
       "owner": "Eier",
-      "auditTrail": "Revisjonsspor",
+      "auditTrail": "Historikk",
       "noEvents": "Ingenting har skjedd i saken ennå.",
       "meta": {
         "raised": "Registrert",
@@ -1585,7 +1586,7 @@
       "blockingActions": "Blokkerende tiltak",
       "dismiss": "Lukk",
       "reasonTitle": "Endre status til {{ status }}",
-      "reasonPrompt": "Denne endringen krever en begrunnelse. Den lagres i revisjonssporet.",
+      "reasonPrompt": "Denne endringen krever en begrunnelse. Den lagres i historikken.",
       "reasonLabel": "Begrunnelse",
       "reasonConfirm": "Endre status",
       "reasonCount": "{{ count }}/{{ max }}",
@@ -1775,7 +1776,7 @@
       "subtitle": "Tall på tvers av avvikene dine. Filtrer for å avgrense, og klikk på en stolpe for å se sakene bak.",
       "link": "Statistikk",
       "empty": "Ingen avvik samsvarer med disse filtrene ennå.",
-      "noData": "Ingen data.",
+      "noData": "Ingen avvik i dette utvalget.",
       "unknownDepartment": "Ukjent avdeling",
       "cards": {
         "total": "Totalt",
@@ -2605,7 +2606,11 @@
       "title": "Ingenting her ennå",
       "noResults": "Ingen treff",
       "noResultsBody": "Prøv andre ord, eller fjern filtrene.",
-      "clearFilters": "Fjern filtrene"
+      "clearFilters": "Fjern filtrene",
+      "cleared": "Du er à jour",
+      "clearedBody": "Ingenting venter på deg akkurat nå.",
+      "firstBody": "Ingenting er registrert her ennå.",
+      "fromTemplate": "Fyll ut fra mal"
     },
     "error": {
       "title": "Kunne ikke laste innholdet",
@@ -2649,6 +2654,20 @@
       "title": "Nøkkeltall",
       "showAll": "Vis alle ({{count}})",
       "showFewer": "Vis færre"
+    },
+    "dateInput": {
+      "placeholder": "dd.mm.åååå",
+      "pick": "Velg dato i kalenderen"
+    },
+    "due": {
+      "by": "innen {{ date }}",
+      "overdueSince": "forfalt {{ date }}"
+    },
+    "plainStatus": {
+      "open": "Åpen",
+      "inProgress": "Pågår",
+      "overdue": "Forfalt",
+      "closed": "Lukket"
     }
   },
   "account": {

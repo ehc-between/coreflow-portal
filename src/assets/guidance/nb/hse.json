@@ -3,12 +3,12 @@
     "overview": {
       "intro": {
         "title": "HMS – helse og sikkerhet",
-        "body": "Her planlegger du risikofylt arbeid på en trygg måte, holder oversikt over verneutstyr, dokumenterer medvirkning og følger opp vernerunder. Uønskede hendelser og nestenulykker meldes i **Avvik** og vises her; HMS-risikoer ligger i **Risiko**. Stoffkartoteket (sikkerhetsdatablader) holder du som styrte dokumenter i **Dokumenter**.",
+        "body": "Her planlegger du risikofylt arbeid på en trygg måte, holder oversikt over verneutstyr, dokumenterer [[participation|medvirkning]] og følger opp vernerunder. Uønskede hendelser og nestenulykker meldes i **Avvik** og vises her; HMS-risikoer ligger i **Risiko**. Stoffkartoteket (sikkerhetsdatablader) holder du som styrte dokumenter i **Dokumenter**.",
         "steps": [
-          "Før en risikofylt jobb lager du en **sikker jobbanalyse** (SJA) sammen med dem som gjør jobben, og får den godkjent.",
+          "Før en risikofylt jobb lager du en **sikker jobbanalyse** ([[sja|SJA]]) sammen med dem som gjør jobben, og får den godkjent.",
           "Registrer **verneutstyr**, hvem det er utlevert til og når det skal kontrolleres.",
-          "Dokumenter **medvirkning**: møter i arbeidsmiljøutvalget, sikkerhetsmøter og forslag, med beslutningene som oppgaver.",
-          "Gjennomfør faste **vernerunder** med sjekkliste; hvert funn kan bli et avvik."
+          "Dokumenter **[[participation|medvirkning]]**: møter i arbeidsmiljøutvalget, sikkerhetsmøter og forslag, med beslutningene som oppgaver.",
+          "Gjennomfør faste **vernerunder** med sjekkliste; hvert [[audit-finding|funn]] kan bli et [[nonconformity|avvik]]."
         ]
       },
       "why": {
@@ -40,11 +40,11 @@
     "sja-detail": {
       "intro": {
         "title": "Les og godkjenn en sikker jobbanalyse",
-        "body": "Sjekk at hvert steg har realistiske farer og tiltak, at restrisikoen kan aksepteres, og at verneutstyr og beredskap er tydelig. Godkjenning låser analysen; skal den endres senere, må du **revidere** den, og da går den gjennom godkjenning på nytt.",
+        "body": "Sjekk at hvert steg har realistiske farer og tiltak, at [[residual-risk|restrisikoen]] kan aksepteres, og at verneutstyr og beredskap er tydelig. Godkjenning låser analysen; skal den endres senere, må du **revidere** den, og da går den gjennom godkjenning på nytt.",
         "steps": [
           "Den ansvarlige sender analysen til godkjenning når hvert steg har en fare og et tiltak.",
           "Den som godkjenner, godkjenner eller sender tilbake med en begrunnelse. En annen enn den ansvarlige bør godkjenne.",
-          "Hver deltaker bekrefter at de har gått gjennom den, og **Lag ny fra denne** oppretter et avvik, en risiko eller en oppgave som er koblet til den."
+          "Hver deltaker bekrefter at de har gått gjennom den, og **Lag ny fra denne** oppretter et [[nonconformity|avvik]], en risiko eller en oppgave som er koblet til den."
         ]
       },
       "why": {
@@ -120,7 +120,7 @@
         "steps": [
           "Legg til utstyret med kategori, standard, leverandør og kontrollintervall.",
           "Lever det ut til en person, og returner det når det kommer tilbake. Utstyr med forfalt kontroll kan ikke leveres ut.",
-          "Registrer hver kontroll. En underkjent kontroll tar utstyret ut av drift og kan bli et avvik."
+          "Registrer hver kontroll. En underkjent kontroll tar utstyret ut av drift og kan bli et [[nonconformity|avvik]]."
         ]
       },
       "why": {
@@ -206,7 +206,7 @@
     "consultations": {
       "intro": {
         "title": "Medvirkning",
-        "body": "Dokumenter hvordan arbeidstakerne og verneombudet tar del i HMS-arbeidet: møter i arbeidsmiljøutvalget (AMU), sikkerhetsmøter, undersøkelser og forslag.",
+        "body": "Dokumenter hvordan arbeidstakerne og verneombudet tar del i HMS-arbeidet: møter i arbeidsmiljøutvalget ([[amu|AMU]]), sikkerhetsmøter, undersøkelser og forslag.",
         "steps": [
           "Planlegg møtet med tema og verneombud.",
           "Etterpå registrerer du det som gjennomført, med oppsummering og beslutninger.",
@@ -283,10 +283,10 @@
     "safety-rounds": {
       "intro": {
         "title": "Vernerunder",
-        "body": "En vernerunde er en planlagt gjennomgang av et arbeidsområde med sjekkliste. Gjennomfør den i **Inspeksjoner**, så blir hvert funn registrert og kan bli et avvik. Planlagte runder minner rett person på når neste runde skal gjøres.",
+        "body": "En vernerunde er en planlagt gjennomgang av et arbeidsområde med sjekkliste. Gjennomfør den i **Inspeksjoner**, så blir hvert [[audit-finding|funn]] registrert og kan bli et [[nonconformity|avvik]]. Planlagte runder minner rett person på når neste runde skal gjøres.",
         "steps": [
           "Klikk **Gjennomfør en vernerunde** og gå gjennom sjekklisten på stedet.",
-          "Registrer funn med bilde; alvorlige funn blir avvik.",
+          "Registrer [[audit-finding|funn]] med bilde; alvorlige [[audit-finding|funn]] blir [[nonconformity|avvik]].",
           "Planlegg faste runder, for eksempel månedlig sammen med verneombudet."
         ]
       },

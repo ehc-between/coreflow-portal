@@ -3,7 +3,7 @@
     "assistant": {
       "intro": {
         "title": "Your compliance assistant",
-        "body": "Ask CoreFlow knows which page you are on, so you can say \"this deviation\" or \"this document\". It searches everything you are allowed to see and links to the records it uses.",
+        "body": "Ask CoreFlow knows which page you are on, so you can say \"this [[nonconformity|deviation]]\" or \"this document\". It searches everything you are allowed to see and links to the records it uses.",
         "steps": [
           "Open the assistant with the spark button, the floating button, or Ctrl+J (⌘J on Mac).",
           "Ask in plain language, for example \"What does clause 7.5 require?\".",
@@ -34,7 +34,7 @@
     "palette": {
       "intro": {
         "title": "Find anything quickly",
-        "body": "Press Ctrl+K (⌘K on Mac) and start typing. CoreFlow searches documents, deviations, actions and the requirements of your standards, and only shows records you are allowed to see.",
+        "body": "Press Ctrl+K (⌘K on Mac) and start typing. CoreFlow searches documents, [[nonconformity|deviations]], actions and the requirements of your standards, and only shows records you are allowed to see.",
         "steps": [
           "Type at least two letters of a title, code or word from the text.",
           "Use the arrow keys to move and Enter to open a result.",

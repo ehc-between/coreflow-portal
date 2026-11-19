@@ -40,7 +40,7 @@
     "dueOn": "Frist {{ date }}",
     "registers": "Registre",
     "reportBreach": "Registrer et personvernbrudd",
-    "attention": "Krever handling",
+    "attention": "Må følges opp nå",
     "nothingUrgent": "Ingenting krever handling akkurat nå: ingen personvernbrudd med løpende frist, ingen henvendelser over frist og ingen manglende avtaler.",
     "overdueSince": "Over frist siden {{ date }}",
     "stats": "Nøkkeltall",

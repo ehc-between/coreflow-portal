@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -10,6 +10,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { ModuleService } from '../../core/modules/module.service';
 import { roleLabel } from '../../core/org/roles';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RegisterCatalogService } from '../../core/registers/register-catalog.service';
 import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
 import { RegistrerService } from '../../shared/registrer/registrer.service';
 import { Avatar } from '../../shared/ui/avatar/avatar';
@@ -18,13 +19,13 @@ import { ADMIN_SECTION, MODULE_NAV_ITEMS } from '../nav';
 import {
   LIBRARY_MODULES,
   NAV_DESTINATIONS,
-  PIN_TARGETS,
   REGISTER_ACTIONS,
   defaultPins,
   hasShellRoute,
   isAllowed,
   navWorkspace,
   registerGroups,
+  resolvePin,
 } from '../nav-v2';
 import { NavDrawerService } from '../nav-drawer.service';
 import { OrgSwitcher } from '../org-switcher/org-switcher';
@@ -34,6 +35,8 @@ interface NavLink {
   readonly key: string;
   readonly path: string;
   readonly labelKey: string;
+  /** Ready text (a register named by the locations registry); wins over `labelKey`. */
+  readonly label?: string;
   readonly icon: string;
   /** Paths (without leading slash) that count as "inside" this link. */
   readonly owns: readonly string[];
@@ -150,7 +153,7 @@ interface NavLink {
         [class]="active ? '!bg-accent-soft !text-accent' : 'text-fg-muted'"
       >
         <span class="flex"><app-icon [name]="link.icon" [size]="18" /></span>
-        <span class="flex-1 text-left">{{ link.labelKey | transloco }}</span>
+        <span class="flex-1 text-left">{{ link.label ?? (link.labelKey | transloco) }}</span>
       </a>
     </ng-template>
   `,
@@ -267,17 +270,25 @@ export class SideNavV2 {
     return fallback ? { ...dest, path: fallback.path, owns: [fallback.path] } : null;
   }
 
-  /** Pins: the user's own, else the role defaults; unknown or closed targets drop out. */
+  private readonly catalog = inject(RegisterCatalogService);
+  private readonly pinKeys = computed(() => this.prefs.pins() ?? defaultPins(this.roles()));
+
+  /**
+   * Pins: the user's own, else the role defaults; unknown or closed targets drop out.
+   * A register pinned in Registre that the menu does not know by heart is named from
+   * the locations registry, loaded only when such a pin exists.
+   */
   protected readonly pins = computed<readonly NavLink[]>(() => {
-    const keys = this.prefs.pins() ?? defaultPins(this.roles());
-    return keys.flatMap((key) => {
-      const target = PIN_TARGETS.get(key);
+    const catalog = this.catalog.entries();
+    return this.pinKeys().flatMap((key) => {
+      const target = resolvePin(key, catalog);
       return target && this.allowed(target)
         ? [
             {
               key: `pin:${key}`,
               path: target.path,
               labelKey: target.labelKey,
+              label: target.label,
               icon: target.icon,
               owns: [target.path],
             },
@@ -285,6 +296,14 @@ export class SideNavV2 {
         : [];
     });
   });
+
+  constructor() {
+    effect(() => {
+      if (this.auth.isAuthenticated() && this.pinKeys().some((k) => !resolvePin(k, null))) {
+        this.catalog.ensure();
+      }
+    });
+  }
 
   /** The link of the current page: the most specific match, pins before destinations. */
   protected readonly activeKey = computed(() => {

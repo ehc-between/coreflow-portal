@@ -3,7 +3,7 @@
     "myWork": {
       "intro": {
         "title": "Your personal work queue",
-        "body": "My Work gathers everything that is waiting on **you** in this organisation: tasks, corrective actions, deviations you own, documents to approve and documents to read and acknowledge.",
+        "body": "My Work gathers everything that is waiting on **you** in this organisation: tasks, [[corrective-action|corrective actions]], [[nonconformity|deviations]] you own, documents to approve and documents to read and acknowledge.",
         "steps": [
           "Start with the **Overdue** tab, then **This week**.",
           "**Awaiting review** holds documents, change proposals and reports that need your approval.",
@@ -27,7 +27,7 @@
         "steps": [
           "Use **Show** to switch between your own tasks and everything you can see.",
           "Filter by status, search by title, and sort by due date or priority.",
-          "Each task links to the record it belongs to, such as a deviation or a document."
+          "Each task links to the record it belongs to, such as a [[nonconformity|deviation]] or a document."
         ]
       },
       "why": {

@@ -76,11 +76,11 @@
     "detail": {
       "intro": {
         "title": "One person's requirements, role and competence",
-        "body": "\"Requirements for this person\" shows what the standards expect for everyone who works here and what is still missing. Below are the role, competence against the position, training, awareness and the onboarding and offboarding checklists.",
+        "body": "\"Requirements for this person\" shows what the standards expect for everyone who works here and what is still missing. Below are the role, competence against the position, training, [[awareness|awareness]] and the [[onboarding|onboarding|=]] and [[offboarding|offboarding|=]] checklists.",
         "steps": [
           "Fix anything marked missing in \"Requirements for this person\".",
           "Use \"Close the gap\" on competence gaps, then record a new assessment.",
-          "Start the offboarding as soon as you know someone is leaving."
+          "Start the [[offboarding|offboarding]] as soon as you know someone is leaving."
         ]
       },
       "why": {
@@ -284,7 +284,7 @@
     "checklists": {
       "intro": {
         "title": "Joining and leaving, done the same way every time",
-        "body": "Onboarding and offboarding checklists make sure nothing is forgotten when people start or leave: access, equipment, confidentiality, training and documentation.",
+        "body": "[[onboarding|Onboarding|=]] and [[offboarding|offboarding|=]] checklists make sure nothing is forgotten when people start or leave: access, equipment, confidentiality, training and documentation.",
         "steps": [
           "Start a checklist from the person's page.",
           "Tick off items as they are done; some also update the person's record.",
@@ -339,7 +339,7 @@
     "checklistOffboarding": {
       "intro": {
         "title": "Closing down when someone leaves",
-        "body": "Tick each item when it is done. Equipment registered to the person is listed below the items and must be returned in Assets first. Access to CoreFlow is removed automatically at the end of the last working day.",
+        "body": "Tick each item when it is done. Equipment registered to the person is listed below the items and must be returned in [[asset|Assets]] first. Access to CoreFlow is removed automatically at the end of the last working day.",
         "steps": [
           "Collect equipment and remove access on the last working day.",
           "Remind the person of their confidentiality duties and record that they confirmed them.",
@@ -354,7 +354,7 @@
     "settings": {
       "intro": {
         "title": "Your own joiner and leaver checklists",
-        "body": "Each new onboarding or offboarding starts from these items. Write them in your own words, in Norwegian and English, and choose which items also record something on the person.",
+        "body": "Each new [[onboarding|onboarding|=]] or [[offboarding|offboarding|=]] starts from these items. Write them in your own words, in Norwegian and English, and choose which items also record something on the person.",
         "steps": [
           "Choose the checklist and the language.",
           "Edit, add, reorder or remove items.",

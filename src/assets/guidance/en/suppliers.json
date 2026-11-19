@@ -7,7 +7,7 @@
         "steps": [
           "Register a supplier and tick what it does for you: personal data, system access, cloud or AI. That decides which assessments it needs.",
           "Start an **initial evaluation**. When it is decided, the supplier is approved, approved with conditions or rejected.",
-          "Click **Needs follow-up** to see what is missing: approvals, re-evaluation dates, data processing agreements or certificates."
+          "Click **Needs follow-up** to see what is missing: approvals, re-evaluation dates, [[dpa|data processing agreements]] or certificates."
         ]
       },
       "why": {
@@ -33,7 +33,7 @@
         "body": "Give the supplier a name, a category and a criticality, and choose who owns the relationship. The risk profile decides which assessments you need.",
         "steps": [
           "Set the criticality by asking: what happens to us if this supplier fails?",
-          "Tick the risk flags that apply. Personal data means you probably need a data processing agreement.",
+          "Tick the risk flags that apply. Personal data means you probably need a [[dpa|data processing agreement]].",
           "Leave the re-evaluation interval empty to use the default for the criticality."
         ]
       },
@@ -98,7 +98,7 @@
         "steps": [
           "Work through **Needs follow-up** at the top: each item has the action that closes it.",
           "Complete the **required assessments**. A decided evaluation documents the requirements its questions check.",
-          "Keep **Agreements and data processing** complete: the contract, the data processing agreement and the systems the supplier runs."
+          "Keep **Agreements and data processing** complete: the contract, the [[dpa|data processing agreement]] and the systems the supplier runs."
         ]
       },
       "why": {

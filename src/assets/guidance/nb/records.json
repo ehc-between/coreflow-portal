@@ -3,7 +3,7 @@
     "list": {
       "intro": {
         "title": "Tilpass registreringene til hvordan dere jobber",
-        "body": "En **registertype** bestemmer hva folk fyller ut når de registrerer noe (et avvik, en klage, en hendelse). En **arbeidsflyt** bestemmer stegene den går gjennom: hvem som kan flytte den videre, hva som må fylles ut først, hvem som godkjenner og hvor raskt.",
+        "body": "En **registertype** bestemmer hva folk fyller ut når de registrerer noe (et [[nonconformity|avvik]], en klage, en hendelse). En **arbeidsflyt** bestemmer stegene den går gjennom: hvem som kan flytte den videre, hva som må fylles ut først, hvem som godkjenner og hvor raskt.",
         "steps": [
           "Start fra en mal, eller beskriv prosessen og la assistenten lage et utkast.",
           "Juster feltene, og velg eller utform arbeidsflyten.",

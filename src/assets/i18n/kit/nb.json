@@ -166,7 +166,7 @@
     "count": "{{ count }} kommentarer"
   },
   "revisions": {
-    "title": "Versjoner",
+    "title": "Historikk",
     "empty": "Ingen versjoner lagret ennå.",
     "emptyHint": "Hver lagrede endring av en styrt post gir en ny versjon: hvem som endret hva, når og hvorfor. ISO-standardene kaller dette å holde dokumentert informasjon under kontroll.",
     "revision": "Versjon {{ no }}",
@@ -213,7 +213,18 @@
     "commentDeleted": "{{ actor_name }} slettet en kommentar",
     "linkCreated": "{{ actor_name }} koblet til: {{ other_type_label }} ({{ link_type_label }})",
     "linkDeleted": "{{ actor_name }} fjernet koblingen til: {{ other_type_label }} ({{ link_type_label }})",
-    "flowCompleted": "{{ actor_name }} opprettet posten fra en annen post ({{ source_type_label }})"
+    "flowCompleted": "{{ actor_name }} opprettet posten fra en annen post ({{ source_type_label }})",
+    "auditAction": "{{ actor }} {{ action }}: {{ entity }}",
+    "auditVerbs": {
+      "created": "opprettet",
+      "updated": "endret",
+      "deleted": "slettet",
+      "archived": "arkiverte",
+      "restored": "gjenopprettet",
+      "approved": "godkjente",
+      "closed": "lukket",
+      "changed": "endret"
+    }
   },
   "notifications": {
     "commentCreated": "{{ actor_name }} kommenterte en post du følger",
@@ -248,7 +259,7 @@
       "activity": "Aktivitet",
       "comments": "Kommentarer",
       "attachments": "Vedlegg",
-      "revisions": "Versjoner",
+      "revisions": "Historikk",
       "tasks": "Oppgaver"
     },
     "more": "Mer",

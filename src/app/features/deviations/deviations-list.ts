@@ -57,6 +57,7 @@ import { DeviationFilter, FilterGroup, FilterOption } from './ui/filter-select';
 import { DeviationsNavService } from './ui/deviations-nav';
 import { DeviationKpiBand } from './stats/deviation-kpi-band';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { StatusLegend } from '../../shared/ui/status-legend/status-legend';
 
 const PAGE_SIZE = 25;
 const WIDE_QUERY = '(min-width: 640px)';
@@ -189,6 +190,7 @@ export function filtersFromParams(params: {
 @Component({
   selector: 'app-deviations-list',
   imports: [
+    StatusLegend,
     FulfilsRequirements,
     RouterLink,
     TranslocoPipe,
@@ -275,6 +277,7 @@ export function filtersFromParams(params: {
         testId="filter-state"
         (valueChange)="setFilter('state', $event)"
       />
+      <app-status-legend filters [text]="'deviations.statusPair.list' | transloco" />
       <app-deviation-filter
         filters
         [style.display]="wide() ? null : 'none'"

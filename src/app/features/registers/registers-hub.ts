@@ -1,254 +1,239 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Subscription } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
+import { LocationsApi } from '../../core/locations/locations-api';
 import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { MAX_PINS } from '../../core/shell/shell-preferences.models';
-import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
-import { MODULE_NAV_ITEMS } from '../../layout/nav';
-import {
-  PIN_TARGETS,
-  PinTarget,
-  defaultPins,
-  hasShellRoute,
-  isAllowed,
-  registerGroups,
-} from '../../layout/nav-v2';
+import { RegisterCatalogService } from '../../core/registers/register-catalog.service';
+import { isAllowed, resolvePin } from '../../layout/nav-v2';
 import { Card } from '../../shared/ui/card/card';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { Icon } from '../../shared/ui/icon/icon';
+import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { RegisterRow, arrangeRows, searchRows, toRows } from './register-groups';
+import { RegisterList } from './register-list';
+import { RegisterPinState } from './register-pins';
 
-/** One register row. */
-interface RegisterRow {
-  readonly key: string;
-  readonly path: string;
-  readonly labelKey: string;
-  readonly descriptionKey: string;
-  readonly icon: string;
-}
-
-interface GroupView {
-  readonly key: string;
-  readonly labelKey: string;
-  readonly rows: readonly RegisterRow[];
-}
+type LoadState = 'loading' | 'error' | 'ready';
 
 /**
- * Registre (U03): one list of every register the user can open, grouped by job
- * area (simplify-plan §3.1), with a filter box and "Fest i menyen" per row (at most
- * five pins, stored on the server per user and org). Each row opens today's list
- * route, so record URLs never move. Only enabled modules the user may read appear.
+ * Registre (`/registers`, simplify plan U04): every list the org keeps, in one place,
+ * grouped by job area instead of by module. Each row is a door to the list, with its
+ * count and when it last changed. Pinned registers sit on top; registers no enabled
+ * standard needs and that hold nothing fold away under "More registers (N)". The
+ * search also matches everyday words ("kalibrering", "nestenulykke", "databehandler")
+ * and looks inside the folded part. Data: `GET /locations/counts`.
+ *
+ * Shell v2 (U03) owns the route and the menu; the pins are the same pins as the
+ * menu's "Festet" (`ShellPreferencesService`, keyed by route path).
  */
 @Component({
   selector: 'app-registers-hub',
-  imports: [RouterLink, TranslocoPipe, Card, EmptyState, Icon, PageHeader],
+  imports: [
+    TranslocoPipe,
+    Card,
+    EmptyState,
+    ErrorState,
+    Icon,
+    LoadingState,
+    PageHeader,
+    RegisterList,
+  ],
+  providers: [RegisterPinState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <app-page-header
-        titleKey="shell.registers.title"
-        descriptionKey="shell.registers.description"
-      />
+    <div class="mx-auto max-w-[880px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header titleKey="registers.title" descriptionKey="registers.description" />
 
-      <div class="mb-5 max-w-[420px]">
-        <label for="register-filter" class="sr-only">{{
-          'shell.registers.filterLabel' | transloco
+      <div
+        class="mb-5 flex h-11 items-center gap-2 rounded-tile border border-border bg-bg px-3 focus-within:border-accent"
+        role="search"
+      >
+        <app-icon name="search" [size]="16" class="text-fg-subtle" />
+        <label for="registers-search" class="sr-only">{{
+          'registers.search.label' | transloco
         }}</label>
-        <div
-          class="flex h-10 items-center gap-2 rounded-tile border border-border bg-surface px-3 focus-within:ring-2 focus-within:ring-accent"
-        >
-          <span class="flex text-fg-subtle"><app-icon name="search" [size]="16" /></span>
-          <input
-            id="register-filter"
-            type="search"
-            data-testid="register-filter"
-            class="min-w-0 flex-1 bg-transparent text-ui text-fg outline-none placeholder:text-fg-subtle"
-            [placeholder]="'shell.registers.filterPlaceholder' | transloco"
-            [value]="query()"
-            (input)="query.set($any($event.target).value)"
-          />
-        </div>
+        <input
+          id="registers-search"
+          type="search"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+          [placeholder]="'registers.search.placeholder' | transloco"
+          class="h-full flex-1 bg-transparent text-ui text-fg outline-none"
+          autocomplete="off"
+          data-testid="registers-search"
+        />
       </div>
 
-      @if (pinned().length > 0) {
-        <section class="mb-6" aria-labelledby="registers-pinned" data-testid="registers-pinned">
-          <h2
-            id="registers-pinned"
-            class="mb-2 text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase"
-          >
-            {{
-              'shell.registers.pinnedHeading' | transloco: { count: pinned().length, max: maxPins }
-            }}
-          </h2>
-          <ul class="flex flex-wrap gap-2">
-            @for (pin of pinned(); track pin.key) {
-              <li
-                class="flex items-center gap-1 rounded-full border border-accent-border bg-accent-soft py-0.5 pr-1 pl-3 text-ui font-semibold text-accent"
-              >
-                <a [routerLink]="'/' + pin.path" class="hover:underline">{{
-                  pin.labelKey | transloco
-                }}</a>
-                <button
-                  type="button"
-                  class="flex h-7 w-7 items-center justify-center rounded-full hover:bg-surface focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-60"
-                  [disabled]="!canEditPins()"
-                  [attr.aria-label]="
-                    'shell.registers.unpin' | transloco: { name: (pin.labelKey | transloco) }
-                  "
-                  [attr.data-testid]="'unpin-' + pin.key"
-                  (click)="togglePin(pin.key)"
-                >
-                  <app-icon name="x" [size]="14" />
-                </button>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-      @if (groups().length === 0) {
-        <app-empty-state
-          icon="search"
-          titleKey="shell.registers.emptyTitle"
-          bodyKey="shell.registers.emptyBody"
-        />
-      } @else {
-        <div class="grid gap-4 md:grid-cols-2">
-          @for (group of groups(); track group.key) {
-            <section
-              [attr.aria-labelledby]="'group-' + group.key"
-              [attr.data-testid]="'register-group-' + group.key"
-            >
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-state [rows]="6" />
+        }
+        @case ('error') {
+          <app-error-state (retry)="reload()" />
+        }
+        @default {
+          @if (rows().length === 0) {
+            <app-empty-state
+              icon="grid"
+              titleKey="registers.empty.title"
+              bodyKey="registers.empty.body"
+            />
+          } @else if (searching()) {
+            <p class="mb-2 text-meta text-fg-muted" aria-live="polite" data-testid="registers-hits">
+              {{ 'registers.search.hits' | transloco: { count: hits().length } }}
+            </p>
+            @if (hits().length) {
               <app-card [padded]="false">
-                <h2
-                  [id]="'group-' + group.key"
-                  class="border-b border-border px-4 pt-3.5 pb-2.5 font-display text-section font-bold tracking-[-0.02em] text-fg"
-                >
-                  {{ group.labelKey | transloco }}
-                </h2>
-                <ul class="divide-y divide-border">
-                  @for (row of group.rows; track row.key) {
-                    @let pinnedRow = isPinned(row.key);
-                    <li class="flex items-center gap-2 px-2 py-1.5">
-                      <a
-                        [routerLink]="'/' + row.path"
-                        [attr.data-testid]="'register-' + row.key"
-                        class="flex min-w-0 flex-1 items-start gap-3 rounded-tile px-2 py-2 hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                      >
-                        <span class="flex pt-0.5 text-fg-subtle"
-                          ><app-icon [name]="row.icon" [size]="18"
-                        /></span>
-                        <span class="min-w-0">
-                          <span class="block text-ui font-semibold text-fg">{{
-                            row.labelKey | transloco
-                          }}</span>
-                          <span class="block text-meta text-fg-muted">{{
-                            row.descriptionKey | transloco
-                          }}</span>
-                        </span>
-                      </a>
-                      <button
-                        type="button"
-                        class="flex h-9 w-9 flex-none items-center justify-center rounded-tile hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-40"
-                        [class]="pinnedRow ? 'text-accent' : 'text-fg-subtle'"
-                        [attr.aria-pressed]="pinnedRow"
-                        [attr.aria-label]="
-                          (pinnedRow ? 'shell.registers.unpin' : 'shell.registers.pin')
-                            | transloco: { name: (row.labelKey | transloco) }
-                        "
-                        [title]="
-                          (pinnedRow
-                            ? 'shell.registers.unpin'
-                            : pinsFull()
-                              ? 'shell.registers.pinsFull'
-                              : 'shell.registers.pin'
-                          ) | transloco: { name: (row.labelKey | transloco), max: maxPins }
-                        "
-                        [disabled]="!canEditPins() || (!pinnedRow && pinsFull())"
-                        [attr.data-testid]="'pin-' + row.key"
-                        (click)="togglePin(row.key)"
-                      >
-                        <app-icon name="pin" [size]="17" />
-                      </button>
-                    </li>
-                  }
-                </ul>
+                <app-register-list [rows]="hits()" />
               </app-card>
-            </section>
+            } @else {
+              <app-empty-state
+                icon="search"
+                titleKey="registers.search.noneTitle"
+                [titleParams]="{ query: query().trim() }"
+                bodyKey="registers.search.noneBody"
+                [compact]="true"
+              />
+            }
+          } @else {
+            @if (sections().pinned.length) {
+              <section class="mb-6" data-testid="registers-pinned">
+                <h2 class="mb-2 text-card font-semibold text-fg">
+                  {{ 'registers.pinned.title' | transloco }}
+                </h2>
+                <app-card [padded]="false">
+                  <app-register-list [rows]="sections().pinned" />
+                </app-card>
+              </section>
+            }
+            @for (group of sections().groups; track group.key) {
+              <section class="mb-6" data-testid="registers-group" [attr.data-group]="group.key">
+                <h2 class="mb-2 text-card font-semibold text-fg">
+                  {{ 'registers.groups.' + group.key | transloco }}
+                </h2>
+                <app-card [padded]="false">
+                  <app-register-list [rows]="group.rows" />
+                </app-card>
+              </section>
+            }
+            @if (sections().folded.length) {
+              <details class="group" data-testid="registers-folded">
+                <summary
+                  class="flex cursor-pointer list-none items-center gap-2 py-2 text-card font-semibold text-fg-muted hover:text-fg"
+                >
+                  <app-icon
+                    name="chevron"
+                    [size]="14"
+                    class="-rotate-90 transition-transform group-open:rotate-0"
+                  />
+                  {{ 'registers.more.title' | transloco: { count: sections().folded.length } }}
+                </summary>
+                <p class="mb-2 text-meta text-fg-muted">{{ 'registers.more.hint' | transloco }}</p>
+                <app-card [padded]="false">
+                  <app-register-list [rows]="sections().folded" />
+                </app-card>
+              </details>
+            }
           }
-        </div>
+        }
       }
     </div>
   `,
 })
 export class RegistersHub {
-  private readonly modules = inject(ModuleService);
+  private readonly api = inject(LocationsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
-  private readonly prefs = inject(ShellPreferencesService);
   private readonly language = inject(LanguageService);
-  private readonly hasLibrary = hasShellRoute(inject(Router).config, 'library');
+  private readonly catalog = inject(RegisterCatalogService);
+  private readonly modules = inject(ModuleService);
+  private readonly pins = inject(RegisterPinState);
 
-  protected readonly maxPins = MAX_PINS;
+  protected readonly state = signal<LoadState>('loading');
+  protected readonly rows = signal<readonly RegisterRow[]>([]);
   protected readonly query = signal('');
 
-  private readonly granted = computed(() => this.selectedOrg.currentOrg()?.permissions);
-  private readonly roles = computed(() => this.selectedOrg.currentOrg()?.roles ?? []);
-
-  private allowed(entry: Pick<PinTarget, 'module' | 'permission'>): boolean {
-    return isAllowed(entry, this.granted(), (m) => this.modules.isEnabled(m));
-  }
-
-  /** Every group with the registers this user may open, filtered by the query. */
-  protected readonly groups = computed<readonly GroupView[]>(() => {
-    const query = this.query().trim().toLocaleLowerCase();
-    const matches = (row: RegisterRow): boolean =>
-      !query ||
-      this.language.translate(row.labelKey).toLocaleLowerCase().includes(query) ||
-      this.language.translate(row.descriptionKey).toLocaleLowerCase().includes(query);
-    return registerGroups(this.hasLibrary)
-      .map((group) => ({
-        key: group.key,
-        labelKey: group.labelKey,
-        rows: group.modules
-          .map((key) => MODULE_NAV_ITEMS.find((item) => item.module === key))
-          .filter((item) => !!item && this.allowed(item))
-          .map((item) => ({
-            key: item!.path,
-            path: item!.path,
-            labelKey: item!.labelKey,
-            descriptionKey: `modules.descriptions.${item!.module}`,
-            icon: item!.icon,
-          }))
-          .filter(matches),
-      }))
-      .filter((group) => group.rows.length > 0);
-  });
-
-  /** Effective pin keys: the user's own, else the role defaults. */
-  private readonly pinKeys = computed(() => this.prefs.pins() ?? defaultPins(this.roles()));
-
-  protected readonly pinned = computed(() =>
-    this.pinKeys().flatMap((key) => {
-      const target = PIN_TARGETS.get(key);
-      return target && this.allowed(target) ? [target] : [];
-    }),
+  protected readonly searching = computed(() => this.query().trim().length > 0);
+  protected readonly hits = computed(() => searchRows(this.rows(), this.query()));
+  protected readonly sections = computed(() =>
+    arrangeRows(this.rows(), this.pins.keys(), (key) => this.pinOnly(key)),
   );
 
-  protected readonly pinsFull = computed(() => this.pinKeys().length >= MAX_PINS);
-  protected readonly canEditPins = computed(() => this.prefs.loaded() && !this.prefs.saving());
+  private sub: Subscription | null = null;
+  /** The org whose rows are on screen. */
+  private shownOrg: string | null = null;
 
-  protected isPinned(key: string): boolean {
-    return this.pinKeys().includes(key);
+  constructor() {
+    effect(() => {
+      const orgId = this.selectedOrg.currentOrgId();
+      const lang = this.language.active();
+      untracked(() => this.load(orgId, lang));
+    });
+    inject(DestroyRef).onDestroy(() => this.sub?.unsubscribe());
+    this.pins.connect(computed(() => this.sections().pinned.map((row) => row.pinKey)));
   }
 
-  protected togglePin(key: string): void {
-    const keys = this.pinKeys();
-    if (keys.includes(key)) {
-      this.prefs.setPins(keys.filter((k) => k !== key));
-    } else if (keys.length < MAX_PINS) {
-      this.prefs.setPins([...keys, key]);
+  /** A pin that is not one of the hub's registers (a module's start page), if open. */
+  private pinOnly(key: string): RegisterRow | null {
+    const target = resolvePin(key, null);
+    const granted = this.selectedOrg.currentOrg()?.permissions;
+    if (!target || !isAllowed(target, granted, (m) => this.modules.isEnabled(m))) {
+      return null;
     }
+    const title = target.label ?? this.language.translate(target.labelKey);
+    return {
+      key: `pin:${key}`,
+      pinKey: key,
+      title,
+      area: null,
+      group: 'other',
+      route: `/${target.path}`,
+      query: {},
+      count: null,
+      lastUpdatedAt: null,
+      folded: false,
+      search: [title.toLocaleLowerCase(), '', ''],
+    };
+  }
+
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.language.active());
+  }
+
+  private load(orgId: string | null, lang: string): void {
+    this.sub?.unsubscribe();
+    if (!orgId) {
+      this.rows.set([]);
+      this.state.set('ready');
+      return;
+    }
+    // Keep the rows on screen while a language switch reloads them, but never show the
+    // previous org's registers while another org's load.
+    if (!this.rows().length || this.shownOrg !== orgId) {
+      this.rows.set([]);
+      this.state.set('loading');
+    }
+    this.sub = this.api.counts(orgId, lang, ['register', 'page', 'settings']).subscribe({
+      next: (res) => {
+        // The menu names registers pinned here from the same data.
+        this.catalog.remember(orgId, lang, res.items);
+        this.shownOrg = orgId;
+        this.rows.set(toRows(res.items));
+        this.state.set('ready');
+      },
+      error: () => this.state.set('error'),
+    });
   }
 }

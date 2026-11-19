@@ -136,7 +136,7 @@
     "types": {
       "intro": {
         "title": "Typer dokumenter",
-        "body": "En dokumenttype (prosedyre, arbeidsinstruks, policy, skjema) gir nye dokumenter en automatisk kode og fornuftige standardverdier: hvor ofte de gjennomgås, om leserne må bekrefte dem, og hvor lenge de oppbevares.",
+        "body": "En dokumenttype (prosedyre, arbeidsinstruks, [[policy|policy]], skjema) gir nye dokumenter en automatisk kode og fornuftige standardverdier: hvor ofte de gjennomgås, om leserne må bekrefte dem, og hvor lenge de oppbevares.",
         "steps": [
           "Lag en type for hver type dokument dere har.",
           "Gi den et prefiks som **PR**, så blir kodene PR-001, PR-002 og så videre.",
@@ -322,7 +322,7 @@
     "list": {
       "intro": {
         "title": "De styrte dokumentene deres",
-        "body": "Alle policyer, prosedyrer og instrukser organisasjonen jobber etter, med status, eier og neste gjennomgang. Åpne et dokument for å lese det, godkjenne det eller se hvilke krav det dokumenterer.",
+        "body": "Alle [[policy|policyer]], prosedyrer og instrukser organisasjonen jobber etter, med status, eier og neste gjennomgang. Åpne et dokument for å lese det, godkjenne det eller se hvilke krav det dokumenterer.",
         "steps": [
           "Bruk **Nytt dokument** for å skrive et dokument, starte fra en mal eller la KI lage et utkast.",
           "Filtrer på **Uten kravkobling** for å finne dokumenter som ikke teller for noen standard ennå.",

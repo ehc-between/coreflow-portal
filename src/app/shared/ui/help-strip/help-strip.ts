@@ -17,12 +17,13 @@ import {
   PageWhyEntry,
   firstSentence,
 } from '../../../core/guidance/page-help.registry';
+import { termKeys } from '../../../core/guidance/term-tokens';
 import { TutorService } from '../../../core/guidance/tutor.service';
 import { RecordPageContext } from '../../kit/record-page-context';
+import { GuidanceText } from '../../guidance/guidance-text';
 import { LessonView } from '../../guidance/lesson';
 import { TourService } from '../../guidance/tour.service';
 import { WhyItMatters } from '../../guidance/why-it-matters';
-import { MarkdownPipe } from '../../markdown/markdown.pipe';
 import { Icon } from '../icon/icon';
 import { SlideOver } from '../slide-over/slide-over';
 
@@ -49,7 +50,7 @@ import { SlideOver } from '../slide-over/slide-over';
  */
 @Component({
   selector: 'app-help-strip',
-  imports: [TranslocoPipe, MarkdownPipe, Icon, SlideOver, LessonView, WhyItMatters],
+  imports: [TranslocoPipe, Icon, SlideOver, LessonView, WhyItMatters, GuidanceText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class]': "inRecordPage ? 'contents' : 'mb-4 block empty:hidden'" },
   template: `
@@ -70,7 +71,16 @@ import { SlideOver } from '../slide-over/slide-over';
             class="line-clamp-2 min-w-0 flex-1 text-ui text-fg sm:line-clamp-1"
             [class.font-semibold]="!beginner()"
           >
-            {{ lead() || ('ui.help.title' | transloco) }}
+            @if (lead(); as text) {
+              <app-guidance-text
+                [text]="text"
+                [scope]="scope()"
+                [inline]="true"
+                [tooltips]="false"
+              />
+            } @else {
+              {{ 'ui.help.title' | transloco }}
+            }
           </p>
           <button
             type="button"
@@ -118,14 +128,22 @@ import { SlideOver } from '../slide-over/slide-over';
             <div data-testid="help-panel" class="flex flex-col gap-5">
               @if (intro(); as i) {
                 <div>
-                  <div
+                  <app-guidance-text
                     class="cf-prose text-ui text-fg-muted"
-                    [innerHTML]="i.body | appMarkdown"
-                  ></div>
+                    [text]="i.body"
+                    [scope]="scope()"
+                  />
                   @if (i.steps?.length) {
                     <ol class="mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-ui text-fg">
                       @for (step of i.steps; track $index) {
-                        <li class="cf-prose" [innerHTML]="step | appMarkdown"></li>
+                        <li class="cf-prose">
+                          <app-guidance-text
+                            [text]="step"
+                            [scope]="scope()"
+                            [inline]="true"
+                            [seen]="stepSeen()[$index]"
+                          />
+                        </li>
                       }
                     </ol>
                   }
@@ -254,6 +272,16 @@ export class HelpStrip {
     return this.beginner() ? firstSentence(intro.body) || intro.title : intro.title;
   });
   protected readonly panelTitle = computed(() => this.intro()?.title ?? '');
+  /** Per step: the term keys already explained in the body and the steps above it. */
+  protected readonly stepSeen = computed<string[][]>(() => {
+    const intro = this.intro();
+    const seen = termKeys(intro?.body);
+    return (intro?.steps ?? []).map((step) => {
+      const before = [...seen];
+      seen.push(...termKeys(step));
+      return before;
+    });
+  });
   protected readonly hasTour = computed(() => {
     const tour = this.tour();
     return !!tour && this.content.readTour(this.scope(), tour).length > 0;

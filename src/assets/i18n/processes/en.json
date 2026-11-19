@@ -153,7 +153,7 @@
       "at_risk": "Watch",
       "off_track": "Off track",
       "no_target": "No target",
-      "none": "No data"
+      "none": "Not measured yet"
     }
   },
   "ai": {

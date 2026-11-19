@@ -151,7 +151,7 @@
     "assignments": {
       "intro": {
         "title": "Who takes which course",
-        "body": "An assignment asks one person to complete one course by a due date. Assignments come from rules, new-hire onboarding, renewals before expiry, a new revision of a document, or someone assigning the course directly.",
+        "body": "An assignment asks one person to complete one course by a due date. Assignments come from rules, new-hire [[onboarding|onboarding]], renewals before expiry, a new revision of a document, or someone assigning the course directly.",
         "steps": [
           "Choose **Overdue** to follow up missed due dates.",
           "Tick several assignments to send a reminder, move the due date or cancel them together.",
@@ -240,7 +240,7 @@
         "steps": [
           "Filter by category, department or job position to focus on one area.",
           "Click a cell to open the record or assignment behind it, or a name for the person's training profile.",
-          "Print or export the matrix for management review and audits."
+          "Print or export the matrix for [[management-review|management review]] and audits."
         ]
       },
       "why": {

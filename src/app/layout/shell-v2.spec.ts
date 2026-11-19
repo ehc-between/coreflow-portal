@@ -9,6 +9,7 @@ import shellNb from '../../assets/i18n/shell/nb.json';
 import { AuthService } from '../core/auth/auth.service';
 import { ModuleService } from '../core/modules/module.service';
 import { SelectedOrgService } from '../core/org/selected-org.service';
+import { RegisterCatalogService, RegisterEntry } from '../core/registers/register-catalog.service';
 import { ShellPreferencesService } from '../core/shell/shell-preferences.service';
 import { LEARNING_NAV_ITEM, MODULE_NAV_ITEMS, NAV_ITEMS, SETTINGS_NAV_ITEM } from './nav';
 import {
@@ -65,7 +66,10 @@ function render(opts: {
   showAll?: boolean;
   routes?: Routes;
   url?: string;
+  catalog?: ReadonlyMap<string, RegisterEntry> | null;
+  signedIn?: boolean;
 }) {
+  const ensure = vi.fn();
   TestBed.configureTestingModule({
     imports: [
       SideNavV2,
@@ -97,9 +101,13 @@ function render(opts: {
         useValue: {
           isSuperuser: signal(false),
           displayName: signal('Kari Nordmann'),
-          isAuthenticated: signal(false),
+          isAuthenticated: signal(opts.signedIn ?? false),
           user: signal(null),
         },
+      },
+      {
+        provide: RegisterCatalogService,
+        useValue: { entries: signal(opts.catalog ?? null).asReadonly(), ensure },
       },
       {
         provide: ShellPreferencesService,
@@ -118,7 +126,7 @@ function render(opts: {
   ).filter((a) => !a.dataset['testid']!.startsWith('nav-v2-pin:'));
   const pins = Array.from(el.querySelectorAll<HTMLAnchorElement>('[data-testid^="nav-v2-pin:"]'));
   const registrer = el.querySelector('[data-testid="nav-registrer"]');
-  return { fixture, el, destinations, pins, registrer };
+  return { fixture, el, destinations, pins, registrer, ensure };
 }
 
 describe('Shell v2 navigation data', () => {
@@ -159,9 +167,9 @@ describe('Shell v2 navigation data', () => {
     expect(defaultPins(['dpo', 'hse_manager', 'quality_manager'])).toEqual([
       'privacy/ropa',
       'privacy/breaches',
+      'privacy/data-subject-requests',
+      'privacy/processors',
       'hse/sja',
-      'deviations',
-      'audits',
     ]);
     expect(defaultPins(['admin'])).toEqual([]);
   });
@@ -266,6 +274,8 @@ describe('SideNavV2', () => {
     expect(dpo.pins.map((a) => a.getAttribute('href'))).toEqual([
       '/privacy/ropa',
       '/privacy/breaches',
+      '/privacy/data-subject-requests',
+      '/privacy/processors',
     ]);
     expect(dpo.pins[0].textContent).toContain('Record of processing');
     TestBed.resetTestingModule();
@@ -280,6 +290,44 @@ describe('SideNavV2', () => {
 
     const none = render({ roles: ['dpo'], permissions: ADMIN_PERMISSIONS, pins: [] });
     expect(none.pins).toHaveLength(0);
+  });
+
+  it('names a register pinned in Registre from the locations registry (U04)', () => {
+    const pins = ['assets/calibration', 'deviations'];
+    const unloaded = render({
+      roles: ['ciso'],
+      permissions: ADMIN_PERMISSIONS,
+      pins,
+      signedIn: true,
+    });
+    // Unknown until the names arrive: asked for once, the known pin shows meanwhile.
+    expect(unloaded.ensure).toHaveBeenCalled();
+    expect(unloaded.pins.map((a) => a.getAttribute('href'))).toEqual(['/deviations']);
+    TestBed.resetTestingModule();
+
+    const catalog = new Map<string, RegisterEntry>([
+      [
+        'assets/calibration',
+        { path: 'assets/calibration', title: 'Kalibrering', module: 'assets' },
+      ],
+    ]);
+    const named = render({ roles: ['ciso'], permissions: ADMIN_PERMISSIONS, pins, catalog });
+    expect(named.pins.map((a) => a.getAttribute('href'))).toEqual([
+      '/assets/calibration',
+      '/deviations',
+    ]);
+    expect(named.pins[0].textContent).toContain('Kalibrering');
+    TestBed.resetTestingModule();
+
+    // Gated like its module.
+    const closed = render({ roles: ['ciso'], permissions: ['deviations:read'], pins, catalog });
+    expect(closed.pins.map((a) => a.getAttribute('href'))).toEqual(['/deviations']);
+    TestBed.resetTestingModule();
+
+    // Only the role defaults: all known by heart, nothing to load.
+    const defaults = render({ roles: ['ciso'], permissions: ADMIN_PERMISSIONS, signedIn: true });
+    expect(defaults.ensure).not.toHaveBeenCalled();
+    expect(defaults.pins).toHaveLength(4);
   });
 
   it('marks Registre as current inside a register, and a pin over its module', async () => {

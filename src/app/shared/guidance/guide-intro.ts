@@ -9,9 +9,9 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { GuidanceContentService } from '../../core/guidance/guidance-content.service';
 import { GuidanceService } from '../../core/guidance/guidance.service';
-import { MarkdownPipe } from '../markdown/markdown.pipe';
 import { Icon } from '../ui/icon/icon';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
+import { GuidanceText } from './guidance-text';
 import { TeachMe } from './teach-me';
 
 let nextId = 0;
@@ -23,7 +23,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-guide-intro',
-  imports: [TranslocoPipe, MarkdownPipe, Icon, TeachMe],
+  imports: [TranslocoPipe, Icon, TeachMe, GuidanceText],
   viewProviders: [provideSharedScope('guidance')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
@@ -70,14 +70,17 @@ let nextId = 0;
           </button>
           @if (expanded()) {
             <div [id]="panelId" class="px-4 pb-4 pl-[52px]">
-              <div
+              <app-guidance-text
                 class="cf-prose text-ui leading-relaxed text-fg-muted"
-                [innerHTML]="intro.body | appMarkdown"
-              ></div>
+                [text]="intro.body"
+                [scope]="scope()"
+              />
               @if (intro.steps?.length) {
                 <ol class="mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-ui text-fg">
                   @for (step of intro.steps; track $index) {
-                    <li class="cf-prose" [innerHTML]="step | appMarkdown"></li>
+                    <li class="cf-prose">
+                      <app-guidance-text [text]="step" [scope]="scope()" [inline]="true" />
+                    </li>
                   }
                 </ol>
               }

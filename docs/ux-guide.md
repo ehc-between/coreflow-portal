@@ -211,6 +211,14 @@ Overdue always has text as well as colour ("Forfalt"), so colour is never the on
 1. **Plain Bokmål first.** Explain an ISO term once (wrap it in `<app-term>` on first use),
    then use it the same way everywhere. Sentences under 20 words. No anglicisms
    ("dashbord" → "oversikt", "gap" → "mangler").
+   In guidance intros (`assets/guidance/<lang>/*.json`) mark every jargon word and
+   abbreviation as a term token, `[[key|ordet slik det står]]` (`[[key|ord|=]]` when the
+   word is a modifier, as in "IKT-tjenester"). `<app-guidance-text>` renders it as
+   `<app-term>`, and beginners see the glossary's `beginner` form with it, plain words first
+   where the sentence allows ("grensen for hva dere godtar (risikoappetitten)"). The jargon
+   guard (`core/guidance/jargon-guard.spec.ts`, list in `src/testing/jargon-terms.json`)
+   fails on an unmarked term. Beginners see requirement titles, not bare clause numbers
+   (number on hover). The record history tab is "Historikk".
 2. **"du" to the user, "organisasjonen" for the company.** Use "dere" only when quoting a
    standard. ("Standardene organisasjonen følger", not "Rammeverkene dere har valgt".)
 3. **One concept, one word** (glossary below). Module objects use the org's terminology
@@ -314,14 +322,19 @@ Top bar: Finn eller spør (Ctrl K) · ? Hjelp og læring (Mine leksjoner, Spør 
 ```
 
 - Defined in `src/app/layout/nav-v2.ts` (labels in the `shell` scope); `nav.ts` stays the
-  data source for the old menu and for Registre (`/registers`, grouped by job area).
+  data source for the old menu. Registre (`/registers`, U04) lists every register from
+  the locations registry (`GET /locations/counts`), grouped by job area, with counts,
+  "Oppdatert …", synonym search and "Flere registre (N)"; the old menu has no entry for it.
 - Off by default. An admin turns it on in Innstillinger → Meny (`nav_v2` in org settings);
   each member can switch back, or opt in early, in the account menu (`/me/orgs/{org}/preferences`).
 - Role decides what shows: an employee (only the `member` role) gets Registrer, Hjem, Mitt
   arbeid and Dokumenter og rapporter; "Vis alt" in the account menu shows the rest.
   Permissions and enabled modules always apply.
-- Pins: the user's own (stored on the server), else role defaults (DPO: Behandlingsprotokoll,
-  Personvernbrudd; HMS: SJA, Avvik; …). Pin and unpin on Registre.
+- Pins: one list, keyed by route path (`privacy/ropa`, `assets/calibration`): the user's own
+  (stored on the server), else role defaults (`ROLE_DEFAULT_PINS`; DPO: Behandlingsprotokoll,
+  Personvernbrudd, Henvendelser, Databehandlere; HMS: SJA, Avvik, Verneutstyr; …). Pin and
+  unpin on Registre; the menu names any register it does not know by heart from the
+  locations registry (`RegisterCatalogService`).
 - Theme and language live in the account menu at every width.
 
 ## 9. Mobile and accessibility rules

@@ -142,8 +142,9 @@ export const routes: Routes = [
         loadChildren: () => import('./features/account/account.routes'),
       },
       {
-        // Registre (shell v2, U03): every register the user can open, by job area.
+        // Registre (shell v2 U03, hub U04): every register the user can open, by job area.
         path: 'registers',
+        title: 'nav.registers',
         loadChildren: () => import('./features/registers/registers.routes'),
       },
       {

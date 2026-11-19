@@ -78,6 +78,7 @@ import { FEEDBACK_NAV, FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackStatsPanel } from '../insights/feedback-stats-panel';
 import { ComplaintDeviations } from './complaint-deviations';
 import { FeedbackBulkBar } from './feedback-bulk-bar';
+import { StatusLegend } from '../../../shared/ui/status-legend/status-legend';
 
 const PAGE_SIZE = 25;
 const DEFAULT_SORT: FeedbackSort = '-received_on';
@@ -242,6 +243,7 @@ interface BandTile {
   selector: 'app-feedback-list',
   imports: [
     RouterLink,
+    StatusLegend,
     FulfilsRequirements,
     TranslocoPipe,
     LocalDayPipe,
@@ -364,6 +366,7 @@ interface BandTile {
           </option>
         }
       </select>
+      <app-status-legend filters [text]="'feedback.statusPair' | transloco" />
       <label filters class="sr-only" for="cf-fb-source">
         {{ 'feedback.filters.source' | transloco }}
       </label>

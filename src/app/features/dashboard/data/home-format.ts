@@ -124,6 +124,7 @@ const ACTION_CTA: Record<string, string> = {
   enable_standard: 'home.next.cta.chooseStandards',
   confirm_suggestions: 'home.next.cta.confirm',
   confirm_connections: 'home.next.cta.confirm',
+  suggestions: 'home.next.cta.reviewSuggestions',
   journey_step: 'home.next.cta.doStep',
   journey_link: 'home.next.cta.link',
   journey_enable_module: 'home.next.cta.openJourney',
@@ -185,6 +186,11 @@ function actionKeys(action: NextAction): { title: string; why: string } {
   const why = scopedKey(action.why_key);
   if (actionName(action) === 'review' && Number(action.params['count']) === 1) {
     return { title: `${title}One`, why: `${why}One` };
+  }
+  // U07: the one system-suggestion row names requirements, unless it also holds
+  // suggested connections ("Gå gjennom 15 forslag").
+  if (actionName(action) === 'suggestions' && Number(action.params['connections']) > 0) {
+    return { title: `${title.replace(/\.title$/, '')}.titleMixed`, why };
   }
   return { title, why };
 }

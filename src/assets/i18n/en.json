@@ -16,6 +16,7 @@
     "dashboard": "Overview",
     "organizations": "Organizations",
     "myWork": "My Work",
+    "registers": "Registers",
     "review": "Needs your review",
     "inspections": "Inspections",
     "deviations": "Deviations",
@@ -137,8 +138,8 @@
     "noResults": "No documents match your search.",
     "notFound": "We couldn't find that document.",
     "backToList": "All documents",
-    "history": "Revision history",
-    "noRevisions": "No revisions yet.",
+    "history": "History",
+    "noRevisions": "No versions yet.",
     "noContent": "This document has no content yet.",
     "revShort": "Rev {{rev}}",
     "viewingRevision": "Viewing Rev {{rev}}",
@@ -292,7 +293,7 @@
       "changesRequestedToast": "Changes requested. The document is back in draft.",
       "obsolete": "Make obsolete",
       "obsoleteTitle": "Make this document obsolete?",
-      "obsoleteBody": "It is withdrawn from use and can no longer be edited. The revision history is kept.",
+      "obsoleteBody": "It is withdrawn from use and can no longer be edited. The history is kept.",
       "reasonLabel": "Reason",
       "obsoletePlaceholder": "Why is this document being withdrawn?",
       "obsoletedToast": "Document made obsolete.",
@@ -308,8 +309,8 @@
       "approvedRev": "Approved · Rev {{rev}}",
       "draftRev": "Draft · Rev {{rev}}",
       "changeReasonTitle": "Reason for change",
-      "changeReasonBodyRequired": "Describe what changed and why. This is recorded in the revision history.",
-      "changeReasonBodyOptional": "Optionally describe this change. It is recorded in the revision history.",
+      "changeReasonBodyRequired": "Describe what changed and why. This is recorded in the history.",
+      "changeReasonBodyOptional": "Optionally describe this change. It is recorded in the history.",
       "changeReasonLabel": "Reason for change",
       "changeReasonPlaceholder": "For example: updated the approval steps after the audit",
       "errors": {
@@ -327,13 +328,13 @@
     "delete": {
       "title": "Delete document",
       "action": "Delete",
-      "hint": "Removes this document and its revision history.",
+      "hint": "Removes this document and its history.",
       "hintObsolete": "Removes this obsolete document. You'll be asked for a reason. The reason is kept with the deleted document's record for administrators.",
       "blockedHint": "Approved documents can't be deleted. Make it obsolete instead; an organization administrator can then delete it.",
       "adminOnlyHint": "Only an organization administrator can delete obsolete documents.",
       "confirmTitle": "Delete {{code}}?",
-      "confirmBody": "The document and its revision history are removed. This can't be undone.",
-      "reasonBody": "The document and its revision history are removed. This can't be undone. The reason is kept with the deleted document's record for administrators.",
+      "confirmBody": "The document and its history are removed. This can't be undone.",
+      "reasonBody": "The document and its history are removed. This can't be undone. The reason is kept with the deleted document's record for administrators.",
       "reasonLabel": "Reason for deletion",
       "reasonPlaceholder": "Why is this document being deleted?",
       "deletedToast": "Document deleted.",
@@ -1567,7 +1568,7 @@
       "notFound": "This deviation could not be found, or you do not have access to it.",
       "notProvided": "Not set",
       "owner": "Owner",
-      "auditTrail": "Audit trail",
+      "auditTrail": "History",
       "noEvents": "Nothing has happened on this case yet.",
       "meta": {
         "raised": "Raised",
@@ -1585,7 +1586,7 @@
       "blockingActions": "Blocking actions",
       "dismiss": "Dismiss",
       "reasonTitle": "Change status to {{ status }}",
-      "reasonPrompt": "This change needs a reason. It is recorded in the audit trail.",
+      "reasonPrompt": "This change needs a reason. It is recorded in the history.",
       "reasonLabel": "Reason",
       "reasonConfirm": "Change status",
       "reasonCount": "{{ count }}/{{ max }}",
@@ -1775,7 +1776,7 @@
       "subtitle": "Aggregate metrics across your deviations. Filter to focus, click a bar to drill in.",
       "link": "Statistics",
       "empty": "No deviations match these filters yet.",
-      "noData": "No data.",
+      "noData": "No deviations in this selection.",
       "unknownDepartment": "Unknown department",
       "cards": {
         "total": "Total",
@@ -2605,7 +2606,11 @@
       "title": "Nothing here yet",
       "noResults": "No matches",
       "noResultsBody": "Try other words, or clear the filters.",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "cleared": "You're all caught up",
+      "clearedBody": "Nothing is waiting for you right now.",
+      "firstBody": "Nothing has been registered here yet.",
+      "fromTemplate": "Fill in from a template"
     },
     "error": {
       "title": "Couldn't load this",
@@ -2649,6 +2654,20 @@
       "title": "Key figures",
       "showAll": "Show all ({{count}})",
       "showFewer": "Show fewer"
+    },
+    "dateInput": {
+      "placeholder": "mm/dd/yyyy",
+      "pick": "Pick a date from the calendar"
+    },
+    "due": {
+      "by": "by {{ date }}",
+      "overdueSince": "overdue since {{ date }}"
+    },
+    "plainStatus": {
+      "open": "Open",
+      "inProgress": "In progress",
+      "overdue": "Overdue",
+      "closed": "Closed"
     }
   },
   "account": {

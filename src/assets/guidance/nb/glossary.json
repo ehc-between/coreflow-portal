@@ -3,6 +3,7 @@
     "management-system": {
       "term": "Styringssystem",
       "definition": "Retningslinjene, prosessene, rollene og registreringene en organisasjon bruker for å sette mål og nå dem.",
+      "beginner": "systemet dere har for å holde orden",
       "clauses": ["hs:4.4"]
     },
     "harmonised-structure": {
@@ -18,6 +19,7 @@
     "interested-party": {
       "term": "Interessent",
       "definition": "En person eller organisasjon som kan påvirke, bli påvirket av eller oppfatte seg som påvirket av en beslutning eller aktivitet, for eksempel kunder, ansatte eller myndigheter.",
+      "beginner": "de som stiller krav til dere",
       "clauses": ["hs:4.2"]
     },
     "scope": {
@@ -28,11 +30,13 @@
     "top-management": {
       "term": "Toppledelsen",
       "definition": "Personen eller gruppen som leder og styrer organisasjonen på høyeste nivå og har ansvaret for styringssystemet.",
+      "beginner": "daglig leder og ledergruppen",
       "clauses": ["hs:5.1"]
     },
     "policy": {
       "term": "Policy",
       "definition": "Organisasjonens intensjoner og retning, formelt uttrykt av toppledelsen.",
+      "beginner": "ledelsens løfte eller regel",
       "clauses": ["hs:5.2"]
     },
     "objective": {
@@ -58,11 +62,13 @@
     "risk-treatment": {
       "term": "Risikohåndtering",
       "definition": "Prosessen med å endre en risiko: unngå den, redusere den med tiltak, dele den eller akseptere den.",
+      "beginner": "det dere gjør med risikoen",
       "clauses": ["iso27001:6.1.3", "iso27001:8.3"]
     },
     "residual-risk": {
       "term": "Restrisiko",
       "definition": "Risikoen som gjenstår etter håndtering. Risikoeieren må akseptere den.",
+      "beginner": "risiko etter tiltak",
       "clauses": ["iso27001:6.1.3"]
     },
     "risk-owner": {
@@ -73,11 +79,13 @@
     "control": {
       "term": "Tiltak (kontroll)",
       "definition": "Et tiltak som opprettholder eller endrer risiko, for eksempel en prosedyre, en teknisk sikring eller en fysisk barriere.",
+      "beginner": "sikkerhetstiltak",
       "clauses": ["iso27001:6.1.3"]
     },
     "statement-of-applicability": {
       "term": "Anvendelseserklæring (SoA)",
       "definition": "Dokumentet som lister tiltakene i vedlegg A til ISO/IEC 27001, om hvert av dem er tatt i bruk, og begrunnelsen for å ta det med eller utelate det.",
+      "beginner": "listen over sikkerhetstiltak dere bruker",
       "clauses": ["iso27001:6.1.3"]
     },
     "competence": {
@@ -88,6 +96,7 @@
     "awareness": {
       "term": "Bevissthet",
       "definition": "At folk kjenner policyen, sitt eget bidrag til styringssystemet og konsekvensene av å ikke følge det.",
+      "beginner": "at alle kjenner til reglene",
       "clauses": ["hs:7.3", "iso27001:A.6.3"]
     },
     "ai-literacy": {
@@ -113,16 +122,19 @@
     "process": {
       "term": "Prosess",
       "definition": "Et sett av sammenhengende aktiviteter som bruker innsatsfaktorer for å levere et tilsiktet resultat.",
+      "beginner": "slik dere jobber",
       "clauses": ["hs:4.4", "hs:8.1"]
     },
     "process-approach": {
       "term": "Prosesstilnærming",
       "definition": "Å styre aktiviteter som sammenhengende prosesser med tydelige innsatsfaktorer, resultater, eiere og måltall, i stedet for som separate avdelinger.",
+      "beginner": "å se arbeidet som prosesser som henger sammen",
       "clauses": ["iso9001:4.4"]
     },
     "pdca": {
       "term": "Planlegg-utfør-kontroller-forbedre (PDCA)",
       "definition": "Forbedringssirkelen bak alle styringssystemer: planlegg, utfør, kontroller resultatene og forbedre ut fra det du lærer.",
+      "beginner": "planlegg, utfør, kontroller, forbedre",
       "clauses": []
     },
     "monitoring": {
@@ -133,11 +145,13 @@
     "kpi": {
       "term": "Nøkkeltall (KPI)",
       "definition": "En målbar verdi som viser hvor godt en prosess eller et mål presterer.",
+      "beginner": "det dere måler",
       "clauses": ["hs:9.1"]
     },
     "internal-audit": {
       "term": "Internrevisjon",
       "definition": "En systematisk og uavhengig kontroll, utført av eller for organisasjonen, av om styringssystemet oppfyller kravene og fungerer effektivt.",
+      "beginner": "egenkontroll av systemet",
       "clauses": ["hs:9.2"]
     },
     "audit-criteria": {
@@ -148,16 +162,19 @@
     "audit-finding": {
       "term": "Revisjonsfunn",
       "definition": "Resultatet av å sammenligne revisjonsbevis med revisjonskriteriene: samsvar, avvik eller en forbedringsmulighet.",
+      "beginner": "det kontrollen fant, som må rettes",
       "clauses": ["hs:9.2"]
     },
     "management-review": {
       "term": "Ledelsens gjennomgåelse",
       "definition": "En planlagt gjennomgang der toppledelsen vurderer om styringssystemet fortsatt er egnet, tilstrekkelig og effektivt.",
+      "beginner": "årlig ledermøte om systemet",
       "clauses": ["hs:9.3"]
     },
     "nonconformity": {
       "term": "Avvik",
       "definition": "Manglende oppfyllelse av et krav, enten fra en standard, loven, en kunde eller egne prosedyrer.",
+      "beginner": "noe som gikk galt, eller kunne ha gått galt",
       "clauses": ["hs:10.2"]
     },
     "major-nonconformity": {
@@ -168,16 +185,19 @@
     "correction": {
       "term": "Korreksjon",
       "definition": "Handling for å rette et oppdaget avvik, for eksempel å omarbeide et produkt. Den fjerner ikke årsaken.",
+      "beginner": "det dere gjør med en gang",
       "clauses": ["hs:10.2"]
     },
     "corrective-action": {
       "term": "Korrigerende tiltak",
       "definition": "Handling for å fjerne årsaken til et avvik og hindre at det skjer igjen.",
+      "beginner": "tiltak så det ikke skjer igjen",
       "clauses": ["hs:10.2"]
     },
     "root-cause": {
       "term": "Rotårsak",
       "definition": "Den underliggende grunnen til at et problem oppsto. Når den fjernes, kommer ikke problemet tilbake.",
+      "beginner": "hvorfor det egentlig skjedde",
       "clauses": ["hs:10.2"]
     },
     "continual-improvement": {
@@ -188,6 +208,7 @@
     "effectiveness": {
       "term": "Effektivitet (virkning)",
       "definition": "I hvilken grad planlagte aktiviteter blir utført og planlagte resultater oppnådd.",
+      "beginner": "en sjekk senere av at tiltaket virket",
       "clauses": ["hs:10.2"]
     },
     "outsourced-process": {
@@ -213,6 +234,7 @@
     "asset": {
       "term": "Verdi (eiendel)",
       "definition": "Alt som har verdi for organisasjonen, for eksempel informasjon, programvare, utstyr, tjenester eller folks kunnskap.",
+      "beginner": "utstyr, systemer og informasjon",
       "clauses": ["iso27001:A.5.9"]
     },
     "personal-data": {
@@ -228,26 +250,31 @@
     "processor": {
       "term": "Databehandler",
       "definition": "En organisasjon som behandler personopplysninger på vegne av en behandlingsansvarlig, etter en databehandleravtale.",
+      "beginner": "leverandør som behandler persondata for dere",
       "clauses": ["gdpr:28"]
     },
     "lawful-basis": {
       "term": "Behandlingsgrunnlag",
       "definition": "Ett av de seks rettslige grunnlagene som gjør det lov å behandle personopplysninger, for eksempel samtykke, en avtale eller en rettslig forpliktelse.",
+      "beginner": "hvorfor dere har lov",
       "clauses": ["gdpr:6"]
     },
     "ropa": {
       "term": "Protokoll over behandlingsaktiviteter",
       "definition": "Oversikten over hvordan og hvorfor en organisasjon behandler personopplysninger, som GDPR krever.",
+      "beginner": "oversikten over persondata dere bruker",
       "clauses": ["gdpr:30"]
     },
     "dpia": {
       "term": "Personvernkonsekvensvurdering (DPIA)",
       "definition": "En vurdering av risikoen for folks rettigheter før man starter en behandling som sannsynligvis vil gi høy risiko.",
+      "beginner": "risikovurdering før noe nytt med persondata",
       "clauses": ["gdpr:35"]
     },
     "personal-data-breach": {
       "term": "Brudd på personopplysningssikkerheten",
       "definition": "Et sikkerhetsbrudd som fører til at personopplysninger går tapt, blir ødelagt, endret eller utlevert uten tillatelse. Det må som regel meldes til tilsynsmyndigheten innen 72 timer.",
+      "beginner": "persondata på avveie",
       "clauses": ["gdpr:33", "gdpr:34"]
     },
     "ai-system": {
@@ -263,6 +290,7 @@
     "deployer": {
       "term": "Idriftsetter (bruker)",
       "definition": "En organisasjon som bruker et KI-system under sin myndighet i yrkesmessig virksomhet.",
+      "beginner": "virksomheten som bruker KI-en",
       "clauses": ["eu_ai_act:3", "eu_ai_act:26"]
     },
     "human-oversight": {
@@ -278,6 +306,7 @@
     "environmental-aspect": {
       "term": "Miljøaspekt",
       "definition": "En del av organisasjonens aktiviteter, produkter eller tjenester som påvirker miljøet, for eksempel energibruk eller avfall.",
+      "beginner": "det i driften som påvirker miljøet",
       "clauses": ["iso14001:6.1.2"]
     },
     "hazard": {
@@ -293,6 +322,222 @@
     "certification-audit": {
       "term": "Sertifiseringsrevisjon",
       "definition": "En revisjon utført av et uavhengig sertifiseringsorgan som avgjør om organisasjonens styringssystem kan sertifiseres etter en standard.",
+      "clauses": []
+    },
+    "requirement-coverage": {
+      "term": "Kravdekning",
+      "definition": "Hvor stor del av kravene i en standard dere kan vise at dere oppfyller, med dokumentasjon.",
+      "beginner": "hvor langt dere har kommet",
+      "clauses": []
+    },
+    "missing-evidence": {
+      "term": "Mangler dokumentasjon",
+      "definition": "Dere har ennå ikke vist, med en post eller et dokument, at dere gjør det kravet ber om.",
+      "beginner": "ikke er vist i praksis ennå",
+      "clauses": []
+    },
+    "scope-statement": {
+      "term": "Omfangserklæring",
+      "definition": "En kort tekst om hva styringssystemet dekker: steder, aktiviteter, produkter og tjenester, og hva som er holdt utenfor og hvorfor.",
+      "beginner": "beskrivelsen av hva systemet gjelder for",
+      "clauses": []
+    },
+    "context-analysis": {
+      "term": "Kontekstanalyse",
+      "definition": "En gjennomgang av forholdene i og rundt virksomheten som påvirker hva dere kan oppnå, ofte som SWOT eller PESTEL.",
+      "beginner": "gjennomgangen av styrker, svakheter og trusler",
+      "clauses": []
+    },
+    "annex-a": {
+      "term": "Vedlegg A",
+      "definition": "Listen over 93 sikkerhetstiltak bakerst i ISO 27001. Dere velger hvilke som passer, og forklarer valget i anvendelseserklæringen.",
+      "beginner": "listen over sikkerhetstiltak i ISO 27001",
+      "clauses": []
+    },
+    "risk-appetite": {
+      "term": "Risikoappetitt",
+      "definition": "Hvor mye risiko virksomheten er villig til å leve med. Risikoer over grensen må behandles.",
+      "beginner": "grensen for hva dere godtar",
+      "clauses": []
+    },
+    "inherent-risk": {
+      "term": "Iboende risiko",
+      "definition": "Hvor alvorlig risikoen er før dere har gjort noe med den.",
+      "beginner": "risiko før tiltak",
+      "clauses": []
+    },
+    "preventive-action": {
+      "term": "Forebyggende tiltak",
+      "definition": "Tiltak som fjerner årsaken til et mulig problem før det har skjedd.",
+      "beginner": "tiltak så det ikke skjer i det hele tatt",
+      "clauses": []
+    },
+    "audit-programme": {
+      "term": "Revisjonsprogram",
+      "definition": "Planen for hvilke internrevisjoner dere skal gjøre, når, og hvem som gjør dem.",
+      "beginner": "planen for årets kontroller",
+      "clauses": []
+    },
+    "turtle-diagram": {
+      "term": "Skilpaddediagram",
+      "definition": "Et ark som beskriver én prosess: hva som går inn og ut, hvem som gjør den, hva som trengs og hvordan dere måler den.",
+      "beginner": "prosessark",
+      "clauses": []
+    },
+    "process-map": {
+      "term": "Samspillskart",
+      "definition": "Et kart som viser hvordan prosessene gir hverandre resultater og informasjon.",
+      "beginner": "kart over hvordan arbeidet henger sammen",
+      "clauses": []
+    },
+    "data-subject-request": {
+      "term": "Henvendelse fra registrert",
+      "definition": "Når en person ber om innsyn i, retting av eller sletting av opplysninger dere har om dem. Dere må svare innen en måned.",
+      "beginner": "når noen spør om egne opplysninger",
+      "clauses": []
+    },
+    "dpa": {
+      "term": "Databehandleravtale",
+      "definition": "Avtalen med en leverandør som behandler personopplysninger for dere. GDPR artikkel 28 sier hva den må inneholde.",
+      "beginner": "avtalen med leverandøren om persondata",
+      "clauses": []
+    },
+    "third-country": {
+      "term": "Tredjeland",
+      "definition": "Et land utenfor EU og EØS. Å sende personopplysninger dit krever et eget grunnlag, for eksempel EUs standardavtale.",
+      "beginner": "land utenfor EU/EØS",
+      "clauses": []
+    },
+    "tia": {
+      "term": "Vurdering av overføring (TIA)",
+      "definition": "En vurdering av om lovene i mottakerlandet gir personopplysningene god nok beskyttelse.",
+      "beginner": "vurdering av mottakerlandet",
+      "clauses": []
+    },
+    "scc": {
+      "term": "Standard personvernbestemmelser (SCC)",
+      "definition": "Ferdige avtalevilkår fra EU-kommisjonen som gjør det lovlig å sende personopplysninger ut av EU/EØS.",
+      "beginner": "EUs standardavtale",
+      "clauses": []
+    },
+    "participation": {
+      "term": "Medvirkning",
+      "definition": "At ansatte og verneombud er med på å planlegge og forbedre arbeidsmiljøet.",
+      "beginner": "innspill fra ansatte, verneombud og arbeidsmiljøutvalget",
+      "clauses": []
+    },
+    "calibration": {
+      "term": "Kalibrering",
+      "definition": "Å sammenligne et måleinstrument med en kjent standard, slik at dere vet at målingene stemmer.",
+      "beginner": "kontroll av måleutstyr",
+      "clauses": []
+    },
+    "onboarding": {
+      "term": "Onboarding",
+      "definition": "Det som skjer når noen begynner: tilganger, utstyr, opplæring og dokumenter de må lese.",
+      "beginner": "oppstart for nyansatte",
+      "clauses": []
+    },
+    "offboarding": {
+      "term": "Offboarding",
+      "definition": "Det som skjer når noen slutter: tilganger stenges og utstyr leveres tilbake.",
+      "beginner": "når noen slutter",
+      "clauses": []
+    },
+    "compliance-evaluation": {
+      "term": "Samsvarsvurdering",
+      "definition": "En jevnlig sjekk av om dere faktisk følger lovene og kravene dere har forpliktet dere til.",
+      "beginner": "sjekk av om dere følger kravene",
+      "clauses": []
+    },
+    "swot": {
+      "term": "SWOT",
+      "definition": "En enkel analyse med fire felt: styrker og svakheter internt, muligheter og trusler utenfra.",
+      "beginner": "styrker, svakheter, muligheter og trusler",
+      "clauses": []
+    },
+    "pestel": {
+      "term": "PESTEL",
+      "definition": "En analyse av forhold utenfor virksomheten: politiske, økonomiske, sosiale, teknologiske, miljømessige og juridiske.",
+      "beginner": "politiske, økonomiske, sosiale, teknologiske, miljømessige og juridiske forhold",
+      "clauses": []
+    },
+    "bia": {
+      "term": "Konsekvensanalyse (BIA)",
+      "definition": "En analyse av hvor ille det blir hvis en aktivitet stopper, og hvor fort den må være i gang igjen.",
+      "beginner": "analyse av hva som skjer hvis noe stopper",
+      "clauses": []
+    },
+    "rto": {
+      "term": "Gjenopprettingstid (RTO)",
+      "definition": "Hvor lang tid det maksimalt kan ta før en aktivitet eller et system er i gang igjen.",
+      "beginner": "hvor fort det må være oppe igjen",
+      "clauses": []
+    },
+    "rpo": {
+      "term": "Gjenopprettingspunkt (RPO)",
+      "definition": "Hvor mye data, målt i tid, dere tåler å miste. En RPO på 4 timer betyr sikkerhetskopi minst hver fjerde time.",
+      "beginner": "hvor mye data dere tåler å miste",
+      "clauses": []
+    },
+    "mtpd": {
+      "term": "Lengste tålte avbrudd (MTPD)",
+      "definition": "Hvor lenge en aktivitet kan stå stille før skaden blir uakseptabel.",
+      "beginner": "hvor lenge dere tåler at det står stille",
+      "clauses": []
+    },
+    "sja": {
+      "term": "Sikker jobbanalyse (SJA)",
+      "definition": "En gjennomgang før risikofylt arbeid: dere deler jobben i steg, finner farene og avtaler hvordan dere unngår dem.",
+      "beginner": "sjekk før farlig arbeid",
+      "clauses": []
+    },
+    "ppe": {
+      "term": "Personlig verneutstyr (PVU)",
+      "definition": "Utstyr som beskytter den som har det på, for eksempel hjelm, vernebriller, hørselvern og vernesko.",
+      "beginner": "verneutstyr",
+      "clauses": []
+    },
+    "raci": {
+      "term": "RACI",
+      "definition": "En ansvarsfordeling per oppgave: hvem som utfører (R), eier (A), rådspørres (C) og informeres (I).",
+      "beginner": "hvem som gjør, eier, rådspørres og informeres",
+      "clauses": []
+    },
+    "nps": {
+      "term": "Netto anbefalingsscore (NPS)",
+      "definition": "Et tall fra -100 til 100 som viser hvor villige kundene er til å anbefale dere til andre.",
+      "beginner": "hvor gjerne kundene anbefaler dere",
+      "clauses": []
+    },
+    "ict": {
+      "term": "IKT",
+      "definition": "Informasjons- og kommunikasjonsteknologi: datasystemer, nettverk, telefoni og skytjenester.",
+      "beginner": "IT-systemer og nettverk",
+      "clauses": []
+    },
+    "fria": {
+      "term": "Vurdering av grunnleggende rettigheter (FRIA)",
+      "definition": "En vurdering, før et høyrisiko KI-system tas i bruk, av hvordan det kan påvirke menneskers grunnleggende rettigheter.",
+      "beginner": "vurdering av hvordan KI-en påvirker folks rettigheter",
+      "clauses": []
+    },
+    "nis2": {
+      "term": "NIS2",
+      "definition": "EU-direktivet om cybersikkerhet for viktige og vesentlige virksomheter.",
+      "beginner": "EUs regler for cybersikkerhet",
+      "clauses": []
+    },
+    "amu": {
+      "term": "Arbeidsmiljøutvalg (AMU)",
+      "definition": "Et utvalg med like mange fra ledelsen og de ansatte som skal jobbe for et fullt forsvarlig arbeidsmiljø.",
+      "beginner": "arbeidsmiljøutvalget",
+      "clauses": []
+    },
+    "dsar": {
+      "term": "Innsynsbegjæring (DSAR)",
+      "definition": "En forespørsel fra en person om å få se opplysningene dere har om dem.",
+      "beginner": "når noen spør om egne opplysninger",
       "clauses": []
     }
   }

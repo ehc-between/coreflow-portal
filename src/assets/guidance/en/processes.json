@@ -7,7 +7,7 @@
         "steps": [
           "Start with the few processes that create value for customers (core), then add those that steer the organisation (management) and those that keep it running (support).",
           "Give each process an owner, a purpose and a review interval.",
-          "Draw the map and fill in \"Process on a page\", and link risks, KPIs and procedures.",
+          "Draw the map and fill in \"Process on a page\", and link risks, [[kpi|KPIs]] and procedures.",
           "Open the **Interaction map** to see how the processes deliver to each other and to customers."
         ]
       },
@@ -24,11 +24,11 @@
     "detail": {
       "intro": {
         "title": "One process, the whole picture",
-        "body": "Everything about the process: how complete it is, the **map** of its steps, the **process on a page** with linked risks, KPIs and procedures, and the controlled **description document**. Tasks, connections, history and comments are in the tabs.",
+        "body": "Everything about the process: how complete it is, the **map** of its steps, the **process on a page** with linked risks, [[kpi|KPIs]] and procedures, and the controlled **description document**. Tasks, connections, history and comments are in the tabs.",
         "steps": [
           "Look at \"Is the process complete?\" and fix what is missing.",
-          "Link real records to the process: risks, KPIs, procedures, equipment and courses.",
-          "Add the interactions with other processes and with interested parties such as customers.",
+          "Link real records to the process: risks, [[kpi|KPIs]], procedures, equipment and courses.",
+          "Add the interactions with other processes and with [[interested-party|interested parties]] such as customers.",
           "Record a review once the owner has checked that the process still works."
         ]
       },
@@ -66,7 +66,7 @@
         "steps": [
           "Name the process after what it achieves, for example *Handle customer complaints*.",
           "Choose the category and owner, and which standards the process supports.",
-          "Fill in at least inputs, outputs and one KPI. \"Suggest content\" can help with the rest."
+          "Fill in at least inputs, outputs and one [[kpi|KPI]]. \"Suggest content\" can help with the rest."
         ]
       },
       "why": {
@@ -189,7 +189,7 @@
     "interactionMap": {
       "intro": {
         "title": "How the processes connect",
-        "body": "The interaction map shows each process in its band (management, core, support), interested parties on top and the arrows between them: what is delivered to whom. Gaps and loose ends are easy to spot here.",
+        "body": "The [[process-map|interaction map]] shows each process in its band (management, core, support), [[interested-party|interested parties]] on top and the arrows between them: what is delivered to whom. Gaps and loose ends are easy to spot here.",
         "steps": [
           "Hover over or focus a box to highlight its interactions.",
           "Add missing interactions from the process page with \"Edit interactions\".",

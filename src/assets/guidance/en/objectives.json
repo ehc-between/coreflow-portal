@@ -3,11 +3,11 @@
     "list": {
       "intro": {
         "title": "Objectives say where the organisation is heading",
-        "body": "An **objective** is a result the organisation commits to, such as fewer customer complaints or faster handling of security incidents. Each one has an owner, a measurable result, a plan and a deadline. **Key performance indicators (KPIs)** are the figures that show whether you are on track.",
+        "body": "An **objective** is a result the organisation commits to, such as fewer customer complaints or faster handling of security incidents. Each one has an owner, a measurable result, a plan and a deadline. **[[kpi|Key performance indicators (KPIs)]]** are the figures that show whether you are on track.",
         "steps": [
           "Create the two or three objectives that matter most this year, and give each an owner and a deadline.",
-          "Link each objective to the policy, risk or opportunity it comes from.",
-          "Add a KPI to each objective, so progress is calculated from measured data."
+          "Link each objective to the [[policy|policy]], risk or opportunity it comes from.",
+          "Add a [[kpi|KPI]] to each objective, so progress is calculated from measured data."
         ]
       },
       "why": {
@@ -23,9 +23,9 @@
     "kpis": {
       "intro": {
         "title": "KPIs show whether you are on track",
-        "body": "A **KPI** (key performance indicator) is a figure you record regularly, for example complaints per month or the share of staff who have completed training. Each KPI has a unit, says whether a higher or a lower value is better, and has a target value and an optional warning limit.",
+        "body": "A **[[kpi|KPI|=]]** ([[kpi|key performance indicator]]) is a figure you record regularly, for example complaints per month or the share of staff who have completed training. Each [[kpi|KPI]] has a unit, says whether a higher or a lower value is better, and has a target value and an optional warning limit.",
         "steps": [
-          "Link each KPI to the objective it measures.",
+          "Link each [[kpi|KPI]] to the objective it measures.",
           "Set a target value, and a warning limit to get an early signal before you miss it.",
           "Choose how often it is measured; the person who records it gets a recurring task."
         ]
@@ -43,10 +43,10 @@
     "detail": {
       "intro": {
         "title": "Following up an objective",
-        "body": "The top of the page tells you the next step. Progress is calculated from the KPIs, so keep the measurements up to date. When the deadline comes, use **Close objective** and record whether it was achieved.",
+        "body": "The top of the page tells you the next step. Progress is calculated from the [[kpi|KPIs]], so keep the measurements up to date. When the deadline comes, use **Close objective** and record whether it was achieved.",
         "steps": [
           "Use **Tasks** to share out the actions in the plan.",
-          "The policy and risks the objective comes from go under **Where the objective comes from**; other records under **Related**.",
+          "The [[policy|policy]] and risks the objective comes from go under **Where the objective comes from**; other records under **Related**.",
           "Every change is saved as a revision, with the reason you give."
         ]
       },
@@ -61,7 +61,7 @@
         "body": "The chart shows each recorded period against the target value (dashed line) and the warning limit (dotted line), as they were at the time. Each point is marked **on track**, **at risk** or **off track**.",
         "steps": [
           "Record a measurement when the period is over; the open measurement task is then completed.",
-          "If the KPI is at risk or off track, create a deviation or a task from the box at the top.",
+          "If the [[kpi|KPI]] is at risk or off track, create a [[nonconformity|deviation]] or a task from the box at the top.",
           "Correct a value if it was wrong; the correction is kept in the history."
         ]
       },
@@ -75,7 +75,7 @@
         "title": "How to write a good objective",
         "body": "Make the objective **SMART**: specific, measurable, achievable, relevant and time-bound. Describe the plan so someone else could carry it out.",
         "steps": [
-          "Choose the management systems the objective belongs to.",
+          "Choose the [[management-system|management systems]] the objective belongs to.",
           "Write a measurable result with a figure and a date.",
           "Describe the actions, the resources and how you will evaluate the result."
         ]

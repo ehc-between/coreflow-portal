@@ -5,10 +5,10 @@
         "title": "Hold virksomheten i gang når noe går galt",
         "body": "Kontinuitetsstyring handler om å vite hvilke aktiviteter som betyr mest, hvor lenge organisasjonen klarer seg uten dem, og å ha testede planer for å få dem tilbake. Denne siden viser hvor godt forberedt organisasjonen er.",
         "steps": [
-          "Begynn med en **konsekvensanalyse** (BIA) for hver kritisk aktivitet: hva skjer hvis den stopper, og hvor raskt må den være tilbake.",
+          "Begynn med en **konsekvensanalyse** ([[bia|BIA]]) for hver kritisk aktivitet: hva skjer hvis den stopper, og hvor raskt må den være tilbake.",
           "Skriv en **kontinuitetsplan** som dekker aktivitetene og når gjenopprettingsmålene i dem.",
           "**Øv** planene jevnlig, registrer erfaringene og følg dem opp.",
-          "Kontroller at hver **IKT-tjeneste** kan gjenopprettes så raskt som aktivitetene trenger, og hold **krisekontaktlisten** oppdatert."
+          "Kontroller at hver **[[ict|IKT|=]]-tjeneste** kan gjenopprettes så raskt som aktivitetene trenger, og hold **krisekontaktlisten** oppdatert."
         ]
       },
       "why": {
@@ -25,10 +25,10 @@
     "bias": {
       "intro": {
         "title": "Konsekvensanalyser",
-        "body": "En **konsekvensanalyse** (BIA) ser på én aktivitet og spør: hvis den stopper, hvor ille blir det over tid, og hvor raskt må den gjenopprettes? Svarene blir gjenopprettingsmålene planene må oppfylle.",
+        "body": "En **konsekvensanalyse** ([[bia|BIA]]) ser på én aktivitet og spør: hvis den stopper, hvor ille blir det over tid, og hvor raskt må den gjenopprettes? Svarene blir gjenopprettingsmålene planene må oppfylle.",
         "steps": [
-          "Lag en BIA per kritisk aktivitet, for eksempel *Lønn*, *Kundestøtte* eller *Produksjonslinje 2*.",
-          "Vurder konsekvensene og sett **MTPD**, **RTO** og **RPO**.",
+          "Lag en [[bia|BIA]] per kritisk aktivitet, for eksempel *Lønn*, *Kundestøtte* eller *Produksjonslinje 2*.",
+          "Vurder konsekvensene og sett **[[mtpd|MTPD]]**, **[[rto|RTO]]** og **[[rpo|RPO]]**.",
           "Send den til godkjenning, og dekk den med en kontinuitetsplan. Rader merket *Ingen plan* trenger fortsatt en."
         ]
       },
@@ -47,9 +47,9 @@
         "title": "Analysere en aktivitet",
         "body": "Beskriv aktiviteten, vurder hvordan et avbrudd påvirker den, og bestem gjenopprettingsmålene. Assistenten kan foreslå vurderinger og mål som utgangspunkt.",
         "steps": [
-          "Vurder hver konsekvenskategori for et avbrudd som varer opp til MTPD.",
-          "Sett MTPD først, deretter en RTO som er kortere, og en RPO for hvor mye data som kan gå tapt.",
-          "List opp hva aktiviteten er avhengig av: personer, lokaler, IKT-tjenester, leverandører, utstyr og informasjon."
+          "Vurder hver konsekvenskategori for et avbrudd som varer opp til [[mtpd|MTPD]].",
+          "Sett [[mtpd|MTPD]] først, deretter en [[rto|RTO]] som er kortere, og en [[rpo|RPO]] for hvor mye data som kan gå tapt.",
+          "List opp hva aktiviteten er avhengig av: personer, lokaler, [[ict|IKT]]-tjenester, leverandører, utstyr og informasjon."
         ]
       },
       "why": {
@@ -138,7 +138,7 @@
         "steps": [
           "Velg plantype og konsekvensanalysene den dekker.",
           "La assistenten lage et utkast, og tilpass det til virksomheten.",
-          "Legg til steg per fase med ansvarlig rolle og en måltid som passer innenfor RTO."
+          "Legg til steg per fase med ansvarlig rolle og en måltid som passer innenfor [[rto|RTO]]."
         ]
       },
       "why": {
@@ -209,9 +209,9 @@
     "exercises": {
       "intro": {
         "title": "Øvelser og tester",
-        "body": "Øvelser viser at planene virker og at folk kjenner rollene sine. Tester viser at IKT-tjenester kan gjenopprettes i tide. Hver øvelse avsluttes med erfaringer og oppfølgingstiltak.",
+        "body": "Øvelser viser at planene virker og at folk kjenner rollene sine. Tester viser at [[ict|IKT]]-tjenester kan gjenopprettes i tide. Hver øvelse avsluttes med erfaringer og oppfølgingstiltak.",
         "steps": [
-          "Planlegg en øvelse for en plan eller en IKT-tjeneste, med dato og scenario.",
+          "Planlegg en øvelse for en plan eller en [[ict|IKT]]-tjeneste, med dato og scenario.",
           "Gjennomfør den, og registrer utfallet, oppnådd gjenopprettingstid og erfaringene.",
           "Gjør erfaringene om til oppfølgingstiltak med ansvarlig og frist."
         ]
@@ -231,7 +231,7 @@
         "title": "Planlegge en øvelse",
         "body": "Velg hva som øves, typen og datoen. Et godt scenario er realistisk og har hendelser underveis som tester planens svake punkter.",
         "steps": [
-          "Velg planen og, for en gjenopprettingstest, IKT-tjenesten.",
+          "Velg planen og, for en gjenopprettingstest, [[ict|IKT]]-tjenesten.",
           "La assistenten lage et utkast til scenario med hendelser og suksesskriterier.",
           "List opp deltakerne og målene."
         ]
@@ -293,9 +293,9 @@
     "ict": {
       "intro": {
         "title": "IKT-beredskap",
-        "body": "Hver IKT-tjeneste sammenlignes med det virksomheten trenger: **oppnåelig** RTO og RPO mot det som er **påkrevd** av konsekvensanalysene som er avhengige av den, og om den er testet nylig.",
+        "body": "Hver [[ict|IKT]]-tjeneste sammenlignes med det virksomheten trenger: **oppnåelig** [[rto|RTO]] og [[rpo|RPO]] mot det som er **påkrevd** av konsekvensanalysene som er avhengige av den, og om den er testet nylig.",
         "steps": [
-          "Registrer IKT-tjenestene de kritiske aktivitetene er avhengige av.",
+          "Registrer [[ict|IKT]]-tjenestene de kritiske aktivitetene er avhengige av.",
           "Registrer hvor raskt hver kan gjenopprettes og hvor mye data som kan gå tapt.",
           "Koble dem som avhengigheter i konsekvensanalysene, og test gjenoppretting etter en syklus."
         ]
@@ -315,7 +315,7 @@
         "title": "Registrere en IKT-tjeneste",
         "body": "Beskriv tjenesten og hva den klarer når den svikter. Vær ærlig: en ukjent evne er bedre enn en optimistisk gjetning.",
         "steps": [
-          "Oppgi oppnåelig RTO og RPO, helst fra en reell test.",
+          "Oppgi oppnåelig [[rto|RTO]] og [[rpo|RPO]], helst fra en reell test.",
           "Beskriv strategiene for gjenoppretting og sikkerhetskopi.",
           "Angi hvor ofte gjenoppretting testes."
         ]
@@ -357,9 +357,9 @@
         "title": "En IKT-tjeneste",
         "body": "Beredskapskortet viser om tjenesten kan oppfylle det virksomheten krever, og lister opp det som må rettes.",
         "steps": [
-          "Lukk avvikene som er listet under beredskap.",
+          "Lukk [[nonconformity|avvikene]] som er listet under beredskap.",
           "Planlegg en gjenopprettingstest når testen forfaller.",
-          "Koble tjenesten til eiendelen eller leverandøren under Relatert."
+          "Koble tjenesten til [[asset|eiendelen]] eller leverandøren under Relatert."
         ]
       },
       "why": {

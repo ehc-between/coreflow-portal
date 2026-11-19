@@ -5,10 +5,10 @@
         "title": "Personvernarbeidet samlet",
         "body": "Er du ny, begynner du med **Start her**. **Krever handling** viser bare det som haster, og **Mangler** viser hull mellom registrene, hver med en knapp som løser dem.",
         "steps": [
-          "Start med behandlingsprotokollen: før opp hver aktivitet som bruker personopplysninger.",
-          "Forhåndsvurder ny eller risikofylt behandling for DPIA.",
+          "Start med [[ropa|behandlingsprotokollen]]: før opp hver aktivitet som bruker personopplysninger.",
+          "Forhåndsvurder ny eller risikofylt behandling for [[dpia|DPIA]].",
           "Registrer henvendelser og brudd straks de kommer inn: begge har lovpålagte frister.",
-          "Hold databehandlere, overføringer, lagringsregler og samtykker oppdatert."
+          "Hold [[processor|databehandlere]], overføringer, lagringsregler og samtykker oppdatert."
         ]
       },
       "why": {
@@ -39,7 +39,7 @@
         "body": "Én post per behandlingsaktivitet, for eksempel lønn, rekruttering, kundestøtte eller nyhetsbrev. Hver post sier hvilke opplysninger dere bruker, om hvem, hvorfor, på hvilket grunnlag, hvem som mottar dem og hvor lenge de lagres.",
         "steps": [
           "Beskriv aktiviteten med en setning eller to, eller la assistenten lage et utkast.",
-          "Velg behandlingsgrunnlag og før opp kategoriene av opplysninger og personer.",
+          "Velg [[lawful-basis|behandlingsgrunnlag]] og før opp kategoriene av opplysninger og personer.",
           "Legg til mottakere, systemer, lagringstid og sikkerhetstiltak.",
           "Sett posten til aktiv når opplysningene etter artikkel 30 er komplette."
         ]
@@ -107,12 +107,12 @@
     "dpia": {
       "intro": {
         "title": "Konsekvensvurderinger (art. 35)",
-        "body": "En DPIA trengs før behandling som sannsynligvis medfører høy risiko for personene. En forhåndsvurdering mot de ni kriteriene fra EDPB viser om den er påkrevd.",
+        "body": "En [[dpia|DPIA]] trengs før behandling som sannsynligvis medfører høy risiko for personene. En forhåndsvurdering mot de ni kriteriene fra EDPB viser om den er påkrevd.",
         "steps": [
-          "Kryss av for kriteriene som gjelder. To eller flere betyr som regel at DPIA er påkrevd.",
+          "Kryss av for kriteriene som gjelder. To eller flere betyr som regel at [[dpia|DPIA]] er påkrevd.",
           "Vurder nødvendighet og forholdsmessighet.",
           "Før opp risikoene for de registrerte og tiltakene som reduserer dem.",
-          "Be om råd fra personvernombudet og send DPIA-en til beslutning."
+          "Be om råd fra personvernombudet og send [[dpia|DPIA-en]] til beslutning."
         ]
       },
       "why": {
@@ -248,12 +248,12 @@
     "processor": {
       "intro": {
         "title": "Databehandlere (art. 28)",
-        "body": "En databehandler behandler personopplysninger etter deres instrukser: skytjenester, lønnsbyrå, IT-drift. Hver trenger en databehandleravtale med vilkårene i artikkel 28 nr. 3.",
+        "body": "En [[processor|databehandler]] behandler personopplysninger etter deres instrukser: skytjenester, lønnsbyrå, IT-drift. Hver trenger en [[dpa|databehandleravtale]] med vilkårene i artikkel 28 nr. 3.",
         "steps": [
           "Registrer hver leverandør som behandler personopplysninger for dere.",
-          "Registrer status for databehandleravtalen.",
+          "Registrer status for [[dpa|databehandleravtalen]].",
           "Noter underdatabehandlere og landene som er involvert.",
-          "Gå gjennom databehandlerne jevnlig."
+          "Gå gjennom [[processor|databehandlerne]] jevnlig."
         ]
       },
       "why": {
@@ -295,11 +295,11 @@
     "transfer": {
       "intro": {
         "title": "Overføringer til tredjeland (kapittel V)",
-        "body": "Personopplysninger kan bare forlate EØS med et gyldig overføringsgrunnlag: en beslutning om tilstrekkelig beskyttelse, standard personvernbestemmelser (SCC), bindende virksomhetsregler (BCR) eller, unntaksvis, et unntak etter artikkel 49.",
+        "body": "Personopplysninger kan bare forlate EØS med et gyldig overføringsgrunnlag: en beslutning om tilstrekkelig beskyttelse, standard personvernbestemmelser ([[scc|SCC]]), bindende virksomhetsregler (BCR) eller, unntaksvis, et unntak etter artikkel 49.",
         "steps": [
-          "Registrer hver overføring og koble den til behandlingen og databehandleren.",
+          "Registrer hver overføring og koble den til behandlingen og [[processor|databehandleren]].",
           "Velg overføringsgrunnlag.",
-          "For SCC, BCR og andre grunnlag: gjennomfør en vurdering av overføringen (TIA).",
+          "For [[scc|SCC]], BCR og andre grunnlag: gjennomfør en vurdering av overføringen ([[tia|TIA]]).",
           "Legg til supplerende tiltak når vurderingen krever det."
         ]
       },
@@ -418,7 +418,7 @@
         "body": "Dokumenter hvorfor en behandling er lovlig. For berettiget interesse er vurderingen en tretrinnstest: formål, nødvendighet og interesseavveining.",
         "steps": [
           "Koble vurderingen til behandlingen.",
-          "Velg behandlingsgrunnlag og skriv begrunnelsen.",
+          "Velg [[lawful-basis|behandlingsgrunnlag]] og skriv begrunnelsen.",
           "For berettiget interesse: fullfør formålstesten, nødvendighetstesten og interesseavveiningen.",
           "Beskriv garantiene og send vurderingen til beslutning."
         ]
@@ -455,7 +455,7 @@
     "settings": {
       "intro": {
         "title": "Hvem som er ansvarlig",
-        "body": "Angi behandlingsansvarlig og personvernombud én gang. De står øverst i den eksporterte behandlingsprotokollen, og det er dem de registrerte og Datatilsynet skal kontakte."
+        "body": "Angi behandlingsansvarlig og personvernombud én gang. De står øverst i den eksporterte [[ropa|behandlingsprotokollen]], og det er dem de registrerte og Datatilsynet skal kontakte."
       },
       "fields": {
         "controller_name": {

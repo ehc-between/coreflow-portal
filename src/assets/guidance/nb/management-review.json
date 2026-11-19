@@ -3,10 +3,10 @@
     "list": {
       "intro": {
         "title": "Ledelsens gjennomgang: toppledelsen sjekker at systemet virker",
-        "body": "**Ledelsens gjennomgang** er et planlagt møte der toppledelsen ser på hvordan styringssystemet fungerer, og bestemmer hva som skal endres. CoreFlow henter tallene fra de andre modulene, registrerer møtet og gjør beslutninger til oppgaver.",
+        "body": "**[[management-review|Ledelsens gjennomgang]]** er et planlagt møte der [[top-management|toppledelsen]] ser på hvordan [[management-system|styringssystemet]] fungerer, og bestemmer hva som skal endres. CoreFlow henter tallene fra de andre modulene, registrerer møtet og gjør beslutninger til oppgaver.",
         "steps": [
           "Planlegg en gjennomgang for perioden, vanligvis én gang i året. Standardene organisasjonen følger, velges for deg.",
-          "Gå gjennom grunnlaget, hold møtet med toppledelsen og registrer beslutningene.",
+          "Gå gjennom grunnlaget, hold møtet med [[top-management|toppledelsen]] og registrer beslutningene.",
           "Vurder om systemet er egnet, tilstrekkelig og effektivt, og send til signering. Den signerte rapporten tas vare på som dokumentasjon."
         ]
       },
@@ -46,7 +46,7 @@
         "body": "Gjennomgangen har fire steg, som knapper over innholdet: **Grunnlag**, **Møtet**, **Resultater** og **Signering**. Et steg får en hake når ingenting mangler.",
         "steps": [
           "Grunnlag: åpne hver rad, se på tallene CoreFlow har hentet, skriv hva du ser og huk av for gjennomgått, eller merk raden som ikke relevant med en begrunnelse.",
-          "Møtet: registrer hvem som deltok (merk toppledelsen), skriv og godkjenn referatet, og registrer beslutninger. Tiltak får en oppfølgingsoppgave.",
+          "Møtet: registrer hvem som deltok (merk [[top-management|toppledelsen]]), skriv og godkjenn referatet, og registrer beslutninger. Tiltak får en oppfølgingsoppgave.",
           "Resultater: skriv konklusjonene og vurder hvert punkt i 9.3. Signering viser det som fortsatt mangler, med lenke dit."
         ]
       },
@@ -124,7 +124,7 @@
         "body": "CoreFlow fyller inn standardene organisasjonen følger og perioden siden forrige signerte gjennomgang. Møtet opprettes sammen med gjennomgangen, med standardagendaen.",
         "steps": [
           "Sjekk standardene og perioden. Hver standard legger til grunnlaget den krever.",
-          "Inviter toppledelsen og dem som skal legge fram grunnlaget.",
+          "Inviter [[top-management|toppledelsen]] og dem som skal legge fram grunnlaget.",
           "Lagre. Tallene hentes med en gang."
         ]
       },
@@ -210,7 +210,7 @@
     "settings": {
       "intro": {
         "title": "Hvor ofte gjennomgangen holdes",
-        "body": "Neste ledelsens gjennomgang skal holdes ett intervall etter forrige signerte gjennomgang. Fra påminnelsen starter, vises den på oversikten og i Mitt arbeid."
+        "body": "Neste [[management-review|ledelsens gjennomgang]] skal holdes ett intervall etter forrige signerte gjennomgang. Fra påminnelsen starter, vises den på oversikten og i Mitt arbeid."
       },
       "why": {
         "body": "ISO krever at toppledelsen gjennomgår styringssystemet med **planlagte mellomrom**. Et fast intervall med påminnelse sørger for at gjennomgangen ikke blir glemt.",

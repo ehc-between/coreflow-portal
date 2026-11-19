@@ -36,7 +36,8 @@
       "link": "Koble til kravet",
       "openJourney": "Åpne reisen",
       "startJourney": "Start reisen",
-      "document": "Dokumenter det"
+      "document": "Dokumenter det",
+      "reviewSuggestions": "Gå gjennom"
     },
     "overdue": {
       "title": "Forfalt: {{ label }}",
@@ -74,7 +75,7 @@
     },
     "journey_step": {
       "title": "Neste steg: {{ step }}",
-      "why": "{{ journey }} · {{ done }} av {{ total }} steg er fullført ({{ percent }} %)."
+      "why": "{{ journey }} · steg {{ done }} av {{ total }}."
     },
     "journey_link": {
       "title": "Koble til kravet: {{ step }}",
@@ -89,8 +90,13 @@
       "why": "En trinnvis vei som viser hva du skal gjøre, hvor du gjør det og hvilke krav hvert steg dekker."
     },
     "gap": {
-      "title": "{{ standard }} · {{ number }} mangler dokumentasjon",
-      "why": "«{{ title }}». Krav uten dokumentasjon: {{ missing }}. Koble en registrering som viser at kravet er oppfylt."
+      "title": "{{ standard }}: «{{ title }}» mangler dokumentasjon",
+      "why": "Krav uten dokumentasjon: {{ missing }}. Koble en registrering som viser at kravet er oppfylt."
+    },
+    "suggestions": {
+      "title": "Bekreft {{ requirements }} foreslåtte krav",
+      "titleMixed": "Gå gjennom {{ count }} forslag",
+      "why": "Systemet tror at {{ records }} registreringer kan dokumentere krav. Ingenting teller før du har bekreftet det."
     }
   },
   "setupSteps": {
@@ -120,7 +126,8 @@
     "continue": "Fortsett reisen",
     "view": "Se reisen",
     "emptyBody": "En reise tar deg steg for steg mot en standard, fra den første avgrensningen til sertifiseringsrevisjonen.",
-    "start": "Start en reise"
+    "start": "Start en reise",
+    "steps": "Steg {{ done }}/{{ total }}"
   },
   "status": {
     "title": "Slik står organisasjonen",
@@ -135,11 +142,18 @@
     "missing": "{{ missing }} av {{ total }} mangler",
     "noGaps": "Alle kravene har dokumentasjon.",
     "seeAll": "Se alle krav",
-    "continueJourney": "Fortsett reisen ({{ percent }} %)",
     "startJourney": "Start reisen",
     "emptyTitle": "Ingen standarder er slått på ennå",
     "emptyBody": "Velg standardene organisasjonen følger. Da ser du kravdekningen her, og hva du bør gjøre videre.",
-    "emptyCta": "Velg standarder"
+    "emptyCta": "Velg standarder",
+    "remaining": "{{ count }} ting gjenstår",
+    "remainingNone": "Ingenting gjenstår",
+    "target": "Mål {{ date }}",
+    "targetCertified": "Sertifisert",
+    "showOthers": "Vis alle standarder ({{ count }})",
+    "hideOthers": "Vis bare målstandardene",
+    "steps": "Steg {{ done }}/{{ total }}",
+    "continueSteps": "Fortsett reisen (steg {{ done }}/{{ total }})"
   },
   "reports": {
     "hint": "Ser du etter nøkkeltall, eksport eller revisjonspakker?",
@@ -289,6 +303,53 @@
       "completed": "Reisen er fullført",
       "archived": "{{ actor_name }} arkiverte reisen",
       "reactivated": "{{ actor_name }} aktiverte reisen igjen"
+    }
+  },
+  "quick": {
+    "title": "Hva vil du gjøre?",
+    "report_issue": "Meld avvik eller hendelse",
+    "suggest_improvement": "Foreslå en forbedring",
+    "find_document": "Finn et dokument eller en prosedyre",
+    "prepare_audit": "Forbered revisjon",
+    "export_document": "Hent ut et dokument eller en rapport",
+    "audit_pack": "Sett sammen en revisjonspakke",
+    "standards": "Se alle standarder"
+  },
+  "employee": {
+    "intro": "Meld noe, foreslå en forbedring eller finn det du trenger. Det du selv skal gjøre, står under.",
+    "tasks": "Dine oppgaver",
+    "acknowledge": "Les og bekreft",
+    "training": "Kurs du må ta",
+    "upToDate": "Du er à jour.",
+    "showAll": "Vis alt",
+    "showAllHint": "Se hele forsiden med standarder og neste steg."
+  },
+  "workspace": {
+    "back": "Tilbake til min startside",
+    "previewing": "Du ser hele forsiden.",
+    "names": {
+      "employee": "Ansatt",
+      "owner": "Eier",
+      "quality_lead": "Kvalitetsleder",
+      "management": "Ledelse",
+      "auditor": "Revisor"
+    },
+    "settings": {
+      "title": "Startside per rolle",
+      "hint": "Velg hvilken startside hver rolle får. Alle kan fortsatt velge «Vis alt».",
+      "role": "Rolle",
+      "template": "Startside",
+      "default": "(standard)",
+      "saved": "Startsiden for {{ role }} er lagret.",
+      "saveFailed": "Kunne ikke lagre startsiden. Prøv igjen.",
+      "loadError": "Kunne ikke hente startsidene per rolle.",
+      "descriptions": {
+        "employee": "Tre knapper og det du selv skal gjøre.",
+        "owner": "Dine neste steg og standardene dere jobber mot.",
+        "quality_lead": "Alt: neste steg, standarder og reiser.",
+        "management": "Hvor standardene står, og hva som gjenstår.",
+        "auditor": "Standarder, revisjonspakker og dokumenter."
+      }
     }
   }
 }

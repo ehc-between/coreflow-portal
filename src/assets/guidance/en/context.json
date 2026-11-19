@@ -3,12 +3,12 @@
     "overview": {
       "intro": {
         "title": "Context is the foundation of every ISO standard",
-        "body": "Before you can manage quality, security, the environment or AI, you need to know **who you are, what affects you and what you are managing**. Every ISO management system standard starts in the same place: clauses 4 and 5 of the Harmonised Structure.",
+        "body": "Before you can manage quality, security, the environment or AI, you need to know **who you are, what affects you and what you are managing**. Every ISO [[management-system|management system|=]] standard starts in the same place: clauses 4 and 5 of the Harmonised Structure.",
         "steps": [
-          "Analyse your internal and external issues with a SWOT or PESTLE analysis.",
-          "Register the interested parties that matter and what they need from you.",
-          "Write a scope statement for each management system: what is in, what is out and why.",
-          "Set the policies leadership stands behind, and make clear who is responsible for what."
+          "Analyse your internal and external issues with a [[swot|SWOT]] or [[pestel|PESTLE]] analysis.",
+          "Register the [[interested-party|interested parties]] that matter and what they need from you.",
+          "Write a [[scope-statement|scope statement]] for each [[management-system|management system]]: what is in, what is out and why.",
+          "Set the [[policy|policies]] leadership stands behind, and make clear who is responsible for what."
         ]
       },
       "why": {
@@ -19,9 +19,9 @@
     "analyses-list": {
       "intro": {
         "title": "Understand your internal and external issues",
-        "body": "A **context analysis** lists the issues that affect your ability to achieve the intended results of your management system. Use **SWOT** for strengths, weaknesses, opportunities and threats, or **PESTLE** for the political, economic, social, technological, legal and environmental landscape.",
+        "body": "A **[[context-analysis|context analysis]]** lists the issues that affect your ability to achieve the intended results of your [[management-system|management system]]. Use **[[swot|SWOT|=]]** for strengths, weaknesses, opportunities and threats, or **[[pestel|PESTLE|=]]** for the political, economic, social, technological, legal and environmental landscape.",
         "steps": [
-          "Start with one SWOT for the whole organisation; add a PESTLE when the outside world changes fast.",
+          "Start with one [[swot|SWOT]] for the whole organisation; add a [[pestel|PESTLE]] when the outside world changes fast.",
           "Keep factors short and concrete, and rate their impact.",
           "Submit the analysis for approval and review it at least once a year."
         ]
@@ -39,7 +39,7 @@
     "analyses-detail": {
       "intro": {
         "title": "About this context analysis",
-        "body": "Internal factors (strengths and weaknesses) are things the organisation controls. External factors (opportunities and threats, or the PESTLE areas) are things it has to deal with. Use **Follow up** on a factor to create the risk, opportunity or objective it leads to."
+        "body": "Internal factors (strengths and weaknesses) are things the organisation controls. External factors (opportunities and threats, or the [[pestel|PESTLE]] areas) are things it has to deal with. Use **Follow up** on a factor to create the risk, opportunity or objective it leads to."
       },
       "why": {
         "body": "An approved, periodically reviewed analysis is your evidence that issues are determined, monitored and reviewed as clause 4.1 requires.",
@@ -90,9 +90,9 @@
     "parties-list": {
       "intro": {
         "title": "Who has a stake in what you do?",
-        "body": "**Interested parties** are people and organisations that can affect, be affected by, or believe they are affected by your decisions: customers, employees, owners, regulators, suppliers, neighbours. Record what they need and expect, and whether you address it.",
+        "body": "**[[interested-party|Interested parties]]** are people and organisations that can affect, be affected by, or believe they are affected by your decisions: customers, employees, owners, regulators, suppliers, neighbours. Record what they need and expect, and whether you address it.",
         "steps": [
-          "List the parties that are relevant to your management systems; skip those that are not.",
+          "List the parties that are relevant to your [[management-system|management systems]]; skip those that are not.",
           "Write their needs and expectations, and mark which become compliance obligations.",
           "Rate influence and interest to decide how closely to manage each party."
         ]
@@ -186,10 +186,10 @@
     "scopes-list": {
       "intro": {
         "title": "Set the boundaries of each management system",
-        "body": "A **scope statement** says what a management system covers: the products and services, the sites, the processes and any requirements that do not apply, with a reason. The organisation needs one approved scope per standard it follows.",
+        "body": "A **[[scope-statement|scope statement]]** says what a [[management-system|management system]] covers: the products and services, the sites, the processes and any requirements that do not apply, with a reason. The organisation needs one approved scope per standard it follows.",
         "steps": [
-          "Create one scope statement per standard (ISO 9001, ISO/IEC 27001 and so on).",
-          "Base it on your context analysis and interested parties.",
+          "Create one [[scope-statement|scope statement]] per standard (ISO 9001, ISO/IEC 27001 and so on).",
+          "Base it on your [[context-analysis|context analysis]] and [[interested-party|interested parties]].",
           "Approve it. Approving a new version automatically retires the previous one."
         ]
       },
@@ -206,7 +206,7 @@
     "scopes-detail": {
       "intro": {
         "title": "About this scope statement",
-        "body": "Only one scope per standard is approved at a time. Requirements that do not apply need a reason an auditor accepts. While the scope is approved, they count as not applicable in the requirement coverage."
+        "body": "Only one scope per standard is approved at a time. Requirements that do not apply need a reason an auditor accepts. While the scope is approved, they count as not applicable in the [[requirement-coverage|requirement coverage]]."
       },
       "why": {
         "body": "A clear, approved scope tells everyone, including the certification body, exactly what is being certified.",
@@ -271,9 +271,9 @@
     "policies-list": {
       "intro": {
         "title": "The commitments leadership stands behind",
-        "body": "A **policy** states the intentions and direction of the organisation, signed off by top management: quality, information security, environment, AI, privacy, health and safety. Each standard expects its own policy, or one combined policy that covers them all.",
+        "body": "A **[[policy|policy]]** states the intentions and direction of the organisation, signed off by [[top-management|top management]]: quality, information security, environment, AI, privacy, health and safety. Each standard expects its own [[policy|policy]], or one combined [[policy|policy]] that covers them all.",
         "steps": [
-          "Draft the policy (the assistant can help), then submit it for approval.",
+          "Draft the [[policy|policy]] (the assistant can help), then submit it for approval.",
           "Link the controlled document that carries the approved text.",
           "Communicate it: ask employees to read and acknowledge it."
         ]
@@ -291,7 +291,7 @@
     "policies-detail": {
       "intro": {
         "title": "About this policy",
-        "body": "Once the policy is approved, use **Communicate** to ask staff to read and confirm it. You see here who has confirmed. Set objectives from the policy, and link the controlled document with the policy text."
+        "body": "Once the [[policy|policy]] is approved, use **Communicate** to ask staff to read and confirm it. You see here who has confirmed. Set objectives from the [[policy|policy]], and link the controlled document with the [[policy|policy]] text."
       },
       "why": {
         "body": "Auditors check that the policy is approved by top management, communicated and understood, and reviewed for continuing suitability.",
@@ -301,7 +301,7 @@
     "policies-form": {
       "intro": {
         "title": "Write the policy",
-        "body": "Keep it short and specific to your organisation. A good policy says what you commit to, not how you do it; procedures describe the how."
+        "body": "Keep it short and specific to your organisation. A good [[policy|policy]] says what you commit to, not how you do it; procedures describe the how."
       },
       "why": {
         "body": "The policy text must include the commitments the standard asks for, for example to satisfy applicable requirements and to improve continually.",
@@ -342,11 +342,11 @@
     "responsibilities-list": {
       "intro": {
         "title": "Who does what, and who decides",
-        "body": "Record the **roles, responsibilities and authorities** for your management systems and key processes. Each responsibility has a **RACI**: who is **R**esponsible for doing the work, who is **A**ccountable for the outcome, who is **C**onsulted and who is **I**nformed.",
+        "body": "Record the **roles, responsibilities and authorities** for your [[management-system|management systems]] and key processes. Each responsibility has a **[[raci|RACI|=]]**: who is **R**esponsible for doing the work, who is **A**ccountable for the outcome, who is **C**onsulted and who is **I**nformed.",
         "steps": [
           "Add one responsibility per process or area.",
           "Assign exactly one A and at least one R.",
-          "Use the RACI matrix to spot gaps and overload."
+          "Use the [[raci|RACI]] matrix to spot gaps and overload."
         ]
       },
       "why": {
@@ -372,7 +372,7 @@
     "responsibilities-form": {
       "intro": {
         "title": "Describe the responsibility",
-        "body": "Choose the process the responsibility belongs to, add the people, roles or departments with their RACI letter, and write down the authority: what they can decide or approve."
+        "body": "Choose the process the responsibility belongs to, add the people, roles or departments with their [[raci|RACI|=]] letter, and write down the authority: what they can decide or approve."
       },
       "why": {
         "body": "Responsibilities and authorities must be assigned, communicated and understood.",

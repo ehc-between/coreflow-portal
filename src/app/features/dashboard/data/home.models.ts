@@ -25,11 +25,22 @@ export interface FrameworkStatus {
   readonly name: string;
   /** `standard` (ISO) or `regulation` (GDPR, NIS2, AI Act). */
   readonly kind: string;
-  /** Requirement coverage 0-100. */
+  /** The one readiness number (U07): requirement coverage 0-100, equal to `percent`. */
   readonly score: number;
+  readonly percent: number;
   readonly covered: number;
   readonly partial: number;
   readonly applicable: number;
+  /** Applicable requirements not covered yet ("N ting gjenstår"). */
+  readonly remaining: number;
+  /** Portal page listing what is still missing (`/standards/gaps/<key>`). */
+  readonly remaining_url: string;
+  /** A certification target of the org (every enabled standard when none is set). */
+  readonly is_target: boolean;
+  /** ISO date of the target certification, when set. */
+  readonly target_date: string | null;
+  /** `planned` | `in_progress` | `certified`. */
+  readonly target_status: string | null;
   /** Change of the covered share over 30 days, in percentage points. */
   readonly trend_30d: number;
   /** Clauses with at least one open requirement. */
@@ -70,6 +81,49 @@ export interface MyWorkSummary {
   readonly later: number;
   readonly awaiting_review: number;
   readonly total: number;
+  /** U07 employee counters: documents to read and acknowledge, training due, the rest. */
+  readonly acknowledge: number;
+  readonly training: number;
+  readonly tasks: number;
+}
+
+/** U07 home templates, resolved by the API from the caller's RBAC roles. */
+export type WorkspaceKey = 'employee' | 'owner' | 'quality_lead' | 'management' | 'auditor';
+
+export const WORKSPACE_KEYS: readonly WorkspaceKey[] = [
+  'employee',
+  'owner',
+  'quality_lead',
+  'management',
+  'auditor',
+];
+
+export interface HomeWorkspace {
+  readonly key: WorkspaceKey;
+  /** `role` from the roles, `requested` via `?workspace=`, `default` from permissions. */
+  readonly source: 'role' | 'requested' | 'default';
+  readonly roles: readonly string[];
+}
+
+/** One "Hva vil du gjøre?" button; labelled by `home.quick.<key>`. */
+export interface QuickAction {
+  readonly key: string;
+  readonly url: string;
+  readonly module: string | null;
+}
+
+/** `GET` / `PUT /home/workspaces`: the home template per RBAC role (`org:manage`). */
+export interface RoleWorkspace {
+  readonly role: string;
+  readonly name: string;
+  readonly workspace: WorkspaceKey;
+  readonly default_workspace: WorkspaceKey;
+  readonly overridden: boolean;
+}
+
+export interface WorkspaceSettings {
+  readonly workspaces: readonly WorkspaceKey[];
+  readonly roles: readonly RoleWorkspace[];
 }
 
 /** The next open step of a journey (`url` is the requirement page when it only needs a link). */
@@ -110,6 +164,8 @@ export interface SetupSummary {
 }
 
 export interface HomeResponse {
+  readonly workspace: HomeWorkspace;
+  readonly quick_actions: readonly QuickAction[];
   readonly frameworks: readonly FrameworkStatus[];
   readonly next_actions: readonly NextAction[];
   readonly my_work: MyWorkSummary;

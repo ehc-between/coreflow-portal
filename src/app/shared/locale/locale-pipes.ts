@@ -90,6 +90,36 @@ export class LocalDayPipe implements PipeTransform {
   }
 }
 
+/**
+ * A deadline as a short date (copy rule U41: deadlines are dates, never "needs action"):
+ * the day and month in the current year (nb "3. des.", en "Dec 3"), with the year
+ * otherwise (nb "3. des. 2027"). Date-only, no timezone shift; '' for empty input.
+ * Pair it with `ui.due.by` ("innen {{ date }}") or `ui.due.overdueSince`.
+ */
+export function formatDueDay(
+  value: string | null | undefined,
+  locale: string,
+  today: Date = new Date(),
+): string {
+  const day = value?.match(/^(\d{4})-\d{2}-\d{2}/);
+  if (!day) {
+    return '';
+  }
+  const sameYear = Number(day[1]) === today.getFullYear();
+  const format = sameYear ? (locale === 'nb' ? 'd. MMM' : 'MMM d') : 'mediumDate';
+  return formatLocalDay(day[0], format, locale);
+}
+
+/** `{{ due_date | localDue }}` — {@link formatDueDay} in the active UI language. */
+@Pipe({ name: 'localDue', pure: false })
+export class LocalDuePipe implements PipeTransform {
+  private readonly language = inject(LanguageService);
+
+  transform(value: string | null | undefined): string {
+    return formatDueDay(value, this.language.locale());
+  }
+}
+
 /** `{{ count | localNumber }}` — digit grouping / decimals in the active UI language. */
 @Pipe({ name: 'localNumber', pure: false })
 export class LocalNumberPipe implements PipeTransform {

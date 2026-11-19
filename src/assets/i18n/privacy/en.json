@@ -40,7 +40,7 @@
     "dueOn": "Due {{ date }}",
     "registers": "Registers",
     "reportBreach": "Report a personal data breach",
-    "attention": "Needs action",
+    "attention": "To follow up now",
     "nothingUrgent": "Nothing needs action right now: no breaches on the clock, no overdue requests and no missing agreements.",
     "overdueSince": "Overdue since {{ date }}",
     "stats": "Key figures",
