@@ -8,6 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { formatPercent } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AiAvailability } from '../../../core/ai/ai-availability';
@@ -15,24 +16,32 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import {
   LocalDatePipe,
   LocalDayPipe,
   LocalNumberPipe,
   LocalPercentPipe,
+  formatLocalDay,
 } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -43,13 +52,17 @@ import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { ClauseRefs } from '../components/clause-refs';
+import { DeviationLink } from '../components/deviation-link';
 import { groupBySection } from '../data/answer-model';
 import {
+  StatusSentence,
+  inspectionMissing,
+  inspectionStatusSentence,
+} from '../data/inspection-anatomy';
+import {
   INSPECTIONS_SETTINGS_LINK,
-  distinctTemplateTitle,
   findingStatusKey,
   inspectionStatusKey,
-  resultKey,
   saveBlob,
   severityKey,
 } from '../data/inspection-display';
@@ -67,6 +80,7 @@ import {
   Signature,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { TextAssist } from '../data/text-assist';
 import { FindingForm } from '../findings/finding-form';
 import { FindingPanel } from '../findings/finding-panel';
 
@@ -104,36 +118,37 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
 
 /**
  * An inspection (`/inspections/:id`; `?finding=<id>` or `/findings/<id>` opens a
- * finding): the header says what it is (code · checklist · status · result) with one
- * primary action (start, continue, or download the report once completed); the
- * details show what it checks and who does it, every answer by section with the
- * clauses it covers, notes and photos, and the findings with their deviations and
- * follow-up. The aside shows the requirements it documents, its connections, the
- * progress or result (with how the score works) and the sign-off. Editors change
- * the plan or cancel it; managers delete it (both under "Mer").
+ * finding), on the detail-page anatomy (docs/ux-guide.md §2.7). The header is
+ * code · type · status with one primary action (start, continue, or the report once
+ * completed) and the assistant in "Spør KI". "Hovedinformasjon" says how it went in
+ * one sentence (result, score and pass mark, or how far it is) and shows the
+ * checklist, what and where it checks, and who does it (or did it). The Details tab
+ * lists the findings (each with its deviation as a link), every answer by section and
+ * the other fields with the empty ones hidden. The "Oppfølging" card lists what is
+ * still open, the requirements it documents, its connections and the metadata.
  */
 @Component({
   selector: 'app-inspection-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    WatchButton,
-    AiAssistButton,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     LocalDatePipe,
     LocalDayPipe,
     LocalNumberPipe,
     LocalPercentPipe,
     MarkdownPipe,
-    Alert,
     Button,
     Card,
     ConfirmDialog,
     EmptyState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
@@ -143,13 +158,16 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
     SlideOver,
     StatusBadge,
     ClauseRefs,
+    DeviationLink,
     FindingForm,
     FindingPanel,
   ],
+  providers: [TextAssist],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (inspection(); as ins) {
       <app-record-detail-layout
+        [anatomy]="true"
         [entityType]="entityType"
         [entityId]="ins.id"
         [title]="ins.title"
@@ -162,40 +180,22 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
         [requirementsPanel]="true"
         [canEdit]="ins.permissions.can_edit || ins.permissions.can_perform"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
         backLink="/inspections"
         backLabelKey="inspections.list.back"
       >
         <ng-container ngProjectAs="[meta]">
           <span class="font-mono" data-testid="inspection-code">{{ ins.code }}</span>
-          @if (metaTemplate(); as t) {
-            <span aria-hidden="true">·</span>
-            <a
-              [routerLink]="['/settings/modules/inspections/templates', t.id]"
-              class="hover:text-accent hover:underline"
-              >{{ t.title }}</a
-            >
-          }
+          <span aria-hidden="true">·</span>
+          <span>{{ 'inspections.detail.typeLabel' | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge
             meaning="lifecycle"
             [value]="ins.status"
             [labelKey]="statusKey(ins.status)"
           />
-          @if (ins.result) {
-            <app-status-badge
-              meaning="lifecycle"
-              [value]="ins.result"
-              [labelKey]="resultKey(ins.result)"
-              data-testid="result-badge"
-            />
-          }
           @if (ins.is_overdue) {
             <app-status-badge meaning="lifecycle" value="overdue" />
-          }
-          @if (ins.schedule_id) {
-            <span class="inline-flex items-center gap-1">
-              <app-icon name="calendar" [size]="12" />
-              {{ 'inspections.detail.scheduled' | transloco }}
-            </span>
           }
           <span class="sr-only" data-testid="inspection-title">{{ ins.title }}</span>
         </ng-container>
@@ -204,7 +204,7 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
           <ng-container ngProjectAs="[primary]">
             @if (action === 'report') {
               <app-button [loading]="downloading()" (click)="downloadReport()" data-testid="report">
-                <app-icon name="upload" [size]="15" class="rotate-180" />
+                <app-icon name="download" [size]="15" />
                 {{ 'inspections.detail.report' | transloco }}
               </app-button>
             } @else {
@@ -223,16 +223,13 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
           </ng-container>
         }
 
-        <ng-container ngProjectAs="[secondary]">
-          @if (isOpen() && ins.permissions.can_edit) {
-            <a [routerLink]="['/inspections', ins.id, 'edit']">
-              <app-button variant="secondary" data-testid="edit-inspection">
-                {{ 'inspections.actions.edit' | transloco }}
-              </app-button>
-            </a>
-          }
-          <app-watch-button [entityType]="entityType" [entityId]="ins.id" />
-        </ng-container>
+        @if (editLink(); as link) {
+          <a secondary [routerLink]="link">
+            <app-button variant="secondary" data-testid="edit-inspection">
+              {{ 'inspections.actions.edit' | transloco }}
+            </app-button>
+          </a>
+        }
 
         <ng-container ngProjectAs="[overflow]">
           @if (primaryAction() !== 'report' && ins.status !== 'planned') {
@@ -258,117 +255,220 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
           }
         </ng-container>
 
+        @if (hasResults()) {
+          <ng-container ngProjectAs="[ask]">
+            <button
+              appMenuItem
+              type="button"
+              [disabled]="assist.running()"
+              (click)="summarise()"
+              data-testid="summarise"
+            >
+              <app-icon name="spark" [size]="15" />
+              {{ 'inspections.ai.summarise' | transloco }}
+            </button>
+            <button appMenuItem type="button" (click)="askResults()" data-testid="ask-results">
+              <app-icon name="spark" [size]="15" />
+              {{ 'inspections.detail.askResults' | transloco }}
+            </button>
+          </ng-container>
+        }
+
         <app-help-strip help scope="inspections" page="detail" lesson="inspection-basics" />
 
-        <div class="flex flex-col gap-5">
-          @if (summaryText()) {
+        <app-record-lead record-lead [fillLink]="editLink()">
+          @let line = statusLine();
+          <app-record-status-line status [tone]="line.tone" data-testid="result-badge">
+            {{ line.key | transloco: line.params }}
+          </app-record-status-line>
+          @if (ins.status === 'in_progress') {
+            <div class="sm:col-span-full">
+              <app-progress-bar
+                [value]="ins.question_count ? (100 * ins.answered_count) / ins.question_count : 0"
+                [label]="'inspections.run.progressLabel' | transloco"
+              />
+            </div>
+          }
+          @if (ins.status === 'completed') {
+            <p class="-mt-2 text-meta text-fg-muted sm:col-span-full" data-testid="score-rule">
+              @if (ins.score_possible) {
+                {{
+                  'inspections.detail.points'
+                    | transloco
+                      : {
+                          earned: (ins.score_earned | localNumber: '1.0-1'),
+                          possible: (ins.score_possible | localNumber: '1.0-1'),
+                        }
+                }}.
+              }
+              {{
+                ins.pass_threshold === null
+                  ? ('inspections.detail.ruleAnyFail' | transloco)
+                  : ('inspections.detail.ruleThreshold'
+                    | transloco: { value: (ins.pass_threshold | localPercent) })
+              }}
+            </p>
+          }
+          <app-field-item size="lead" labelKey="inspections.detail.lead.checklist">
+            @if (ins.template; as t) {
+              <a
+                [routerLink]="['/settings/modules/inspections/templates', t.id]"
+                class="font-semibold text-accent hover:underline"
+                data-testid="template-link"
+                >{{ t.title }}</a
+              >
+              <span class="text-ui text-fg-muted">
+                · {{ 'inspections.templates.versionShort' | transloco: { version: t.version } }}
+              </span>
+            }
+          </app-field-item>
+          <app-field-item size="lead" labelKey="inspections.detail.lead.what">
+            @if (ins.subject; as subject) {
+              <span class="block"><app-entity-chip [ref]="subject" [statusText]="true" /></span>
+            }
+            @if (ins.location) {
+              <span class="flex items-center gap-1.5">
+                <app-icon name="pin" [size]="15" class="text-fg-subtle" />{{ ins.location }}
+              </span>
+            }
+          </app-field-item>
+          @if (ins.status === 'completed') {
+            <app-field-item
+              size="lead"
+              labelKey="inspections.detail.lead.doneBy"
+              [value]="doneBy()"
+            />
+            @if (ins.summary) {
+              <app-field-item
+                size="lead"
+                labelKey="inspections.detail.lead.summary"
+                [value]="ins.summary"
+                [wide]="true"
+                [multiline]="true"
+              />
+            }
+          } @else {
+            <app-field-item
+              size="lead"
+              labelKey="inspections.fields.inspector"
+              [value]="ins.inspector?.name"
+            />
+            <app-field-item
+              size="lead"
+              labelKey="inspections.fields.dueAt"
+              [value]="ins.due_at ? (ins.due_at | localDay) : null"
+            />
+          }
+        </app-record-lead>
+
+        <div class="flex flex-col gap-6">
+          @if (assist.text() || assist.running()) {
             <app-card>
-              <h2 class="mb-1 flex items-center gap-1.5 text-card font-bold text-fg">
-                <app-icon name="spark" [size]="14" />
-                {{ 'inspections.ai.summaryTitle' | transloco }}
-              </h2>
-              <div class="text-body text-fg" [innerHTML]="summaryText() | appMarkdown"></div>
+              <div class="mb-1 flex items-start justify-between gap-2">
+                <h2 class="flex items-center gap-1.5 text-card font-bold text-fg">
+                  <app-icon name="spark" [size]="14" />
+                  {{ 'inspections.ai.summaryTitle' | transloco }}
+                </h2>
+                <app-button variant="ghost" size="sm" (click)="assist.clear()">
+                  {{ 'inspections.actions.close' | transloco }}
+                </app-button>
+              </div>
+              @if (assist.text()) {
+                <div
+                  class="text-body text-fg"
+                  data-testid="summary-text"
+                  [innerHTML]="assist.text() | appMarkdown"
+                ></div>
+              } @else {
+                <p class="text-ui text-fg-muted">{{ 'inspections.ai.running' | transloco }}</p>
+              }
             </app-card>
           }
-          @if (ins.status === 'cancelled') {
-            <app-alert tone="info">
-              {{ 'inspections.detail.cancelledNotice' | transloco }}
-              @if (ins.cancel_reason) {
-                {{ 'inspections.detail.cancelReason' | transloco: { reason: ins.cancel_reason } }}
-              }
-            </app-alert>
+
+          @if (showFindings()) {
+            <app-card>
+              <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-card font-bold text-fg">
+                  {{ 'inspections.detail.findings' | transloco: { count: ins.findings.length } }}
+                </h2>
+                @if (canRaise()) {
+                  <app-button
+                    size="sm"
+                    variant="secondary"
+                    (click)="findingFormOpen.set(true)"
+                    data-testid="add-finding"
+                  >
+                    <app-icon name="plus" [size]="14" />
+                    {{ 'inspections.findings.add' | transloco }}
+                  </app-button>
+                }
+              </div>
+              <p class="mb-2 text-meta text-fg-muted">
+                {{ 'inspections.detail.findingsHint' | transloco }}
+              </p>
+              <ul class="flex flex-col divide-y divide-border" data-testid="finding-list">
+                @for (f of ins.findings; track f.id) {
+                  <li class="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2.5">
+                    <button
+                      type="button"
+                      class="group flex min-w-0 flex-1 basis-[240px] items-center gap-2 text-left focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      (click)="openFinding(f.id)"
+                      [attr.data-testid]="'finding-row-' + f.code"
+                    >
+                      <app-icon name="flag" [size]="14" class="flex-none text-fg-subtle" />
+                      <span class="flex-none font-mono text-meta text-fg-muted">{{ f.code }}</span>
+                      <span
+                        class="min-w-0 truncate text-body font-semibold text-fg group-hover:text-accent group-hover:underline"
+                        >{{ f.title }}</span
+                      >
+                    </button>
+                    <span class="flex flex-wrap items-center gap-1.5">
+                      <app-status-badge
+                        meaning="severity"
+                        [value]="f.severity"
+                        [labelKey]="severityKey(f.severity)"
+                      />
+                      <app-status-badge
+                        meaning="lifecycle"
+                        [value]="f.status"
+                        [labelKey]="findingStatusKey(f.status)"
+                      />
+                      @if (f.is_overdue) {
+                        <app-status-badge meaning="lifecycle" value="overdue" />
+                      }
+                      @if (f.deviation; as dev) {
+                        <app-deviation-link [deviation]="dev" />
+                      }
+                    </span>
+                  </li>
+                } @empty {
+                  <li class="py-2 text-ui text-fg-muted">
+                    {{ 'inspections.detail.noFindings' | transloco }}
+                  </li>
+                }
+              </ul>
+            </app-card>
           }
 
           <app-card>
-            <h2 class="mb-3 text-card font-bold text-fg">
-              {{ 'inspections.detail.overview' | transloco }}
-            </h2>
-            <app-field-list>
-              <app-field-item labelKey="inspections.fields.template">
-                @if (ins.template; as t) {
-                  <a
-                    [routerLink]="['/settings/modules/inspections/templates', t.id]"
-                    class="text-accent hover:underline"
-                    >{{ t.title }}</a
-                  >
-                  <span class="text-fg-muted">
-                    ·
-                    {{ 'inspections.templates.versionShort' | transloco: { version: t.version } }}
-                  </span>
-                }
-              </app-field-item>
-              <app-field-item labelKey="inspections.subject.label" empty="none">
-                @if (ins.subject; as subject) {
-                  <app-entity-chip [ref]="subject" />
-                }
-              </app-field-item>
-              <app-field-item labelKey="inspections.fields.location" [value]="ins.location" />
-              <app-field-item
-                labelKey="inspections.fields.dueAt"
-                [value]="ins.due_at ? (ins.due_at | localDay) : null"
-              />
-              <app-field-item
-                labelKey="inspections.fields.inspector"
-                [value]="ins.inspector?.name ?? ('inspections.list.unassigned' | transloco)"
-              />
-              <app-field-item labelKey="inspections.fields.owner" [value]="ins.owner?.name" />
-              <app-field-item labelKey="inspections.fields.department" [value]="departmentName()" />
-              @if (ins.started_at) {
-                <app-field-item
-                  labelKey="inspections.fields.startedAt"
-                  [value]="ins.started_at | localDate"
-                />
-              }
-              @if (ins.completed_at) {
-                <app-field-item
-                  labelKey="inspections.fields.completedAt"
-                  [value]="
-                    ins.completed_by?.name
-                      ? ('inspections.detail.completedBy'
-                        | transloco
-                          : { date: (ins.completed_at | localDate), name: ins.completed_by?.name })
-                      : (ins.completed_at | localDate)
-                  "
-                />
-              }
-              @if (ins.notes) {
-                <app-field-item
-                  labelKey="inspections.fields.notes"
-                  [value]="ins.notes"
-                  [wide]="true"
-                  [multiline]="true"
-                />
-              }
-            </app-field-list>
-          </app-card>
-
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h2 class="text-card font-bold text-fg">
                 {{ 'inspections.detail.answers' | transloco }}
               </h2>
-              @if (ins.status !== 'planned' && ins.status !== 'cancelled') {
-                <span class="flex flex-wrap items-center gap-1.5">
-                  <app-ai-assist-button
-                    [assist]="summariseAssist"
-                    labelKey="inspections.ai.summarise"
-                    [input]="{ inspection_id: ins.id }"
-                    [entityType]="entityType"
-                    [entityId]="ins.id"
-                    (text)="summaryText.set($event)"
-                    data-testid="summarise"
-                  />
-                  @if (askAvailable()) {
-                    <app-button
-                      variant="ghost"
-                      size="sm"
-                      (click)="askResults()"
-                      data-testid="ask-results"
-                    >
-                      <app-icon name="spark" [size]="14" />
-                      {{ 'inspections.detail.askResults' | transloco }}
-                    </app-button>
-                  }
+              @if (ins.status !== 'planned') {
+                <span class="text-meta text-fg-muted" data-testid="answers-summary">
+                  {{
+                    (ins.failed_count > 0
+                      ? 'inspections.detail.answersSummary'
+                      : 'inspections.detail.answersSummaryOk'
+                    )
+                      | transloco
+                        : {
+                            answered: ins.answered_count,
+                            total: ins.question_count,
+                            failed: ins.failed_count,
+                          }
+                  }}
                 </span>
               }
             </div>
@@ -462,156 +562,49 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
             }
           </app-card>
 
-          <app-card>
-            <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-card font-bold text-fg">
-                {{ 'inspections.detail.findings' | transloco: { count: ins.findings.length } }}
-              </h2>
-              @if (canRaise()) {
-                <app-button
-                  size="sm"
-                  variant="secondary"
-                  (click)="findingFormOpen.set(true)"
-                  data-testid="add-finding"
-                >
-                  <app-icon name="plus" [size]="14" />
-                  {{ 'inspections.findings.add' | transloco }}
-                </app-button>
-              }
-            </div>
-            <p class="mb-2 text-meta text-fg-muted">
-              {{ 'inspections.detail.findingsHint' | transloco }}
-            </p>
-            <ul class="flex flex-col divide-y divide-border" data-testid="finding-list">
-              @for (f of ins.findings; track f.id) {
-                <li>
-                  <button
-                    type="button"
-                    class="flex w-full flex-wrap items-center gap-2 py-2.5 text-left hover:bg-surface-2"
-                    (click)="openFinding(f.id)"
-                  >
-                    <span class="w-[84px] flex-none font-mono text-meta text-fg-subtle">{{
-                      f.code
-                    }}</span>
-                    <span
-                      class="min-w-0 flex-1 basis-[180px] truncate text-body font-semibold text-fg"
-                      >{{ f.title }}</span
-                    >
-                    <app-status-badge
-                      meaning="severity"
-                      [value]="f.severity"
-                      [labelKey]="severityKey(f.severity)"
-                    />
-                    <app-status-badge
-                      meaning="lifecycle"
-                      [value]="f.status"
-                      [labelKey]="findingStatusKey(f.status)"
-                    />
-                    @if (f.deviation; as dev) {
-                      <app-status-badge
-                        meaning="lifecycle"
-                        value="submitted"
-                        labelKey="inspections.findings.deviationBadge"
-                        [labelParams]="{ code: dev.code }"
-                      />
-                    }
-                  </button>
-                </li>
-              } @empty {
-                <li class="py-2 text-ui text-fg-muted">
-                  {{ 'inspections.detail.noFindings' | transloco }}
-                </li>
-              }
-            </ul>
-          </app-card>
-          <app-why-it-matters scope="inspections" page="detail" />
-        </div>
-
-        <ng-container ngProjectAs="[aside]">
-          <app-card>
-            <h2 class="mb-2 text-card font-bold text-fg">
-              {{
-                (ins.status === 'completed'
-                  ? 'inspections.detail.result'
-                  : 'inspections.detail.progress'
-                ) | transloco
-              }}
-            </h2>
+          <app-record-details [columns]="2" [fillLink]="editLink()">
             @if (ins.status === 'completed') {
-              <p
-                class="font-display text-page leading-none font-bold"
-                [class.text-pass-ink]="ins.result === 'passed'"
-                [class.text-fail-ink]="ins.result === 'failed'"
-                data-testid="score"
-              >
-                {{
-                  ins.score_pct === null
-                    ? ('inspections.detail.noScore' | transloco)
-                    : (ins.score_pct | localPercent)
-                }}
-              </p>
-              @if (ins.score_possible) {
-                <p class="mt-1 text-meta text-fg-muted">
-                  {{
-                    'inspections.detail.points'
-                      | transloco
-                        : {
-                            earned: (ins.score_earned | localNumber: '1.0-1'),
-                            possible: (ins.score_possible | localNumber: '1.0-1'),
-                          }
-                  }}
-                </p>
-              }
-            } @else {
-              <app-progress-bar
-                [value]="ins.question_count ? (100 * ins.answered_count) / ins.question_count : 0"
-                [label]="'inspections.run.progressLabel' | transloco"
+              <app-field-item
+                labelKey="inspections.fields.inspector"
+                [value]="ins.inspector?.name"
               />
-              <p class="mt-1.5 text-meta text-fg-muted">
-                {{
-                  'inspections.run.progress'
-                    | transloco: { answered: ins.answered_count, total: ins.question_count }
-                }}
-              </p>
+              <app-field-item
+                labelKey="inspections.fields.dueAt"
+                [value]="ins.due_at ? (ins.due_at | localDay) : null"
+              />
             }
-            <dl class="mt-3 flex flex-col gap-1.5 text-ui">
-              <div class="flex justify-between gap-2">
-                <dt class="text-fg-muted">{{ 'inspections.detail.passMark' | transloco }}</dt>
-                <dd class="text-right text-fg">
-                  {{
-                    ins.pass_threshold === null
-                      ? ('inspections.templates.noPassMarkShort' | transloco)
-                      : (ins.pass_threshold | localPercent)
-                  }}
-                </dd>
-              </div>
-              <div class="flex justify-between gap-2">
-                <dt class="text-fg-muted">{{ 'inspections.detail.failedAnswers' | transloco }}</dt>
-                <dd class="text-fg">{{ ins.failed_count }}</dd>
-              </div>
-              <div class="flex justify-between gap-2">
-                <dt class="text-fg-muted">{{ 'inspections.detail.openFindings' | transloco }}</dt>
-                <dd class="text-fg">{{ ins.open_finding_count }}</dd>
-              </div>
-            </dl>
-            <p class="mt-3 text-meta text-fg-muted" data-testid="score-rule">
+            <app-field-item labelKey="inspections.fields.department" [value]="departmentName()" />
+            <app-field-item
+              labelKey="inspections.fields.startedAt"
+              [value]="ins.started_at ? (ins.started_at | localDate) : null"
+            />
+            <app-field-item labelKey="inspections.detail.passMark">
               {{
                 ins.pass_threshold === null
-                  ? ('inspections.detail.ruleAnyFail' | transloco)
-                  : ('inspections.detail.ruleThreshold'
-                    | transloco: { value: (ins.pass_threshold | localPercent) })
+                  ? ('inspections.detail.noPassMark' | transloco)
+                  : (ins.pass_threshold | localPercent)
               }}
-            </p>
-          </app-card>
-          @if (ins.summary || ins.signature) {
-            <app-card>
-              <h2 class="mb-2 text-card font-bold text-fg">
-                {{ 'inspections.detail.signOff' | transloco }}
-              </h2>
-              @if (ins.summary) {
-                <p class="mb-3 text-ui whitespace-pre-line text-fg">{{ ins.summary }}</p>
-              }
-              @if (ins.signature; as sig) {
+            </app-field-item>
+            @if (ins.auto_deviation) {
+              <app-field-item
+                labelKey="inspections.findings.deviation"
+                [value]="
+                  'inspections.detail.autoDeviation'
+                    | transloco
+                      : {
+                          severity: (severityKey(ins.deviation_min_severity ?? 'high') | transloco),
+                        }
+                "
+              />
+            }
+            @if (ins.schedule_id) {
+              <app-field-item
+                labelKey="inspections.detail.recurring"
+                [value]="'inspections.detail.scheduled' | transloco"
+              />
+            }
+            @if (ins.signature; as sig) {
+              <app-field-item labelKey="inspections.fields.signature" [wide]="true">
                 @if (sig.image) {
                   <img
                     [src]="sig.image"
@@ -619,18 +612,44 @@ export const INSPECTION_FIELD_LABELS: Readonly<Record<string, string>> = {
                     class="mb-1 h-16 rounded-tile border border-border bg-white"
                   />
                 }
-                <p class="text-ui text-fg">
+                <span class="block">
                   {{ 'inspections.detail.signedBy' | transloco: { name: sig.name } }}
                   @if (sig.signed_at) {
-                    <span class="block text-meta text-fg-muted">{{
-                      sig.signed_at | localDate
-                    }}</span>
+                    <span class="text-fg-muted"> · {{ sig.signed_at | localDate }}</span>
                   }
-                </p>
-              }
-            </app-card>
-          }
-        </ng-container>
+                </span>
+              </app-field-item>
+            }
+            <app-field-item
+              labelKey="inspections.fields.notes"
+              [value]="ins.notes"
+              [wide]="true"
+              [multiline]="true"
+            />
+          </app-record-details>
+        </div>
+
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.fields.owner"
+            [value]="ins.owner?.name"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.detail.meta.createdBy"
+            [value]="ins.created_by?.name"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.fields.updatedAt"
+            [value]="ins.updated_at | localDate"
+          />
+        </app-record-meta>
+
+        <div aside-learn>
+          <app-why-it-matters scope="inspections" page="detail" />
+        </div>
       </app-record-detail-layout>
 
       <app-slide-over
@@ -718,6 +737,7 @@ export class InspectionDetailPage {
   private readonly language = inject(LanguageService);
   private readonly askPanel = inject(AskPanelService);
   private readonly ai = inject(AiAvailability);
+  protected readonly assist = inject(TextAssist);
 
   readonly id = input.required<string>();
   /** `?finding=<id>` or the `/findings/<id>` path opens it in the side panel. */
@@ -727,9 +747,7 @@ export class InspectionDetailPage {
   protected readonly tabs = TABS;
   protected readonly fieldLabels = INSPECTION_FIELD_LABELS;
   protected readonly settingsLink = INSPECTIONS_SETTINGS_LINK;
-  protected readonly summariseAssist = ASSIST_SUMMARISE_RESULTS;
   protected readonly statusKey = inspectionStatusKey;
-  protected readonly resultKey = resultKey;
   protected readonly severityKey = severityKey;
   protected readonly findingStatusKey = findingStatusKey;
 
@@ -740,22 +758,25 @@ export class InspectionDetailPage {
   protected readonly cancelOpen = signal(false);
   protected readonly confirmDelete = signal(false);
   protected readonly findingFormOpen = signal(false);
-  protected readonly summaryText = signal('');
   protected readonly openFindingId = signal<string | null>(null);
-
-  protected readonly askAvailable = computed(() => !this.ai.unavailable());
-
-  /** The checklist in the meta line, unless the title already names it. */
-  protected readonly metaTemplate = computed(() => {
-    const ins = this.inspection();
-    return ins?.template && distinctTemplateTitle(ins.title, ins.template.title)
-      ? ins.template
-      : null;
-  });
 
   protected readonly isOpen = computed(() => {
     const s = this.inspection()?.status;
     return s === 'planned' || s === 'in_progress';
+  });
+
+  /** There are answers to summarise or ask about ("Spør KI"). */
+  protected readonly hasResults = computed(() => {
+    const s = this.inspection()?.status;
+    return !this.ai.unavailable() && (s === 'in_progress' || s === 'completed');
+  });
+
+  /** The plan can still be changed: the edit page ("Rediger", "Fyll ut"). */
+  protected readonly editLink = computed<readonly unknown[] | null>(() => {
+    const ins = this.inspection();
+    return ins && this.isOpen() && ins.permissions.can_edit
+      ? ['/inspections', ins.id, 'edit']
+      : null;
   });
 
   /** The one primary action: start / continue for the inspector, else the report. */
@@ -778,6 +799,53 @@ export class InspectionDetailPage {
       (ins.permissions.can_perform || ins.permissions.can_edit) &&
       (this.selectedOrg.currentOrg()?.permissions.includes('inspections:write') ?? false)
     );
+  });
+
+  /** Findings make sense once the inspection is under way (or when there are some). */
+  protected readonly showFindings = computed(() => {
+    const ins = this.inspection();
+    return (
+      !!ins &&
+      (ins.findings.length > 0 || ins.status === 'in_progress' || ins.status === 'completed')
+    );
+  });
+
+  /** "Ikke godkjent – 63 % av poengene, grensen er 80 %." */
+  protected readonly statusLine = computed<StatusSentence>(() => {
+    const ins = this.inspection();
+    const locale = this.language.locale();
+    if (!ins) {
+      return { key: 'inspections.detail.status.planned', tone: 'neutral' };
+    }
+    return inspectionStatusSentence(ins, {
+      percent: (v) => formatPercent(v / 100, locale, '1.0-0'),
+      day: (v) => formatLocalDay(v, 'mediumDate', locale),
+    });
+  });
+
+  /** "Emma Kristiansen, 15. nov. 2026". */
+  protected readonly doneBy = computed(() => {
+    const ins = this.inspection();
+    if (!ins?.completed_at) {
+      return null;
+    }
+    const name = ins.completed_by?.name ?? ins.inspector?.name;
+    const date = formatLocalDay(ins.completed_at, 'mediumDate', this.language.locale());
+    return name ? this.language.translate('inspections.detail.doneBy', { name, date }) : date;
+  });
+
+  /** The "Oppfølging" card's to-dos. */
+  protected readonly missing = computed<RecordMissingItem[]>(() => {
+    const ins = this.inspection();
+    if (!ins) {
+      return [];
+    }
+    return inspectionMissing(ins, {
+      editLink: this.editLink(),
+      runLink:
+        this.isOpen() && ins.permissions.can_perform ? ['/inspections', ins.id, 'run'] : null,
+      openFinding: (id) => this.openFinding(id),
+    });
   });
 
   protected readonly sections = computed(() => groupBySection(this.inspection()?.questions ?? []));
@@ -895,6 +963,14 @@ export class InspectionDetailPage {
     return value === 'yes' || value === 'no'
       ? this.language.translate(`inspections.answers.${value}`)
       : value;
+  }
+
+  /** "Spør KI" → "Oppsummer resultatene": the summary shows at the top of Details. */
+  protected summarise(): void {
+    const ins = this.inspection();
+    if (ins) {
+      this.assist.run(ASSIST_SUMMARISE_RESULTS, { inspection_id: ins.id }, this.entityType, ins.id);
+    }
   }
 
   protected askResults(): void {

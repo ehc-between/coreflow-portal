@@ -7,18 +7,22 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AiAvailability } from '../../../core/ai/ai-availability';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
+import { AskPanelService } from '../../ask/ask-panel.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { ConnectionsPanel } from '../../../shared/kit/connections-panel';
+import { ConnectionsStore } from '../../../shared/kit/connections-store';
 import { CreateFromHere } from '../../../shared/kit/create-from-here';
+import { provideKitScope } from '../../../shared/kit/kit-scope';
+import { RecordPageContext } from '../../../shared/kit/record-page-context';
+import { RecordLead, RecordMeta, RecordStatusLine } from '../../../shared/kit/record-sections';
 import { Timeline } from '../../../shared/kit/timeline';
-import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { LocalDatePipe, LocalDayPipe, formatLocalDay } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { AssigneeSelect } from '../../../shared/tasks/assignee-select';
@@ -26,12 +30,15 @@ import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ClauseRefs } from '../components/clause-refs';
+import { DeviationLink } from '../components/deviation-link';
 import { RefSelect } from '../components/ref-select';
+import { findingMissing, findingStatusSentence } from '../data/inspection-anatomy';
 import {
   dateInputToIso,
   findingStatusKey,
@@ -53,6 +60,7 @@ import {
   Signature,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { TextAssist } from '../data/text-assist';
 
 interface FindingEdit {
   readonly title: string;
@@ -86,24 +94,29 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
 }
 
 /**
- * One finding, in a side panel of its inspection, laid out as the follow-up an auditor
- * expects (ISO 9001 / 45001 10.2): what was found (with the failed answer, its note,
- * photos and the clauses it concerns), what was done at once, the cause, follow-up
- * tasks, the deviation, closing with a note on what was done, and a later check that
- * the correction works. Serious findings (high, critical) without a deviation make
- * "Opprett avvik" the primary action. "Lag ny fra denne" creates a risk, task,
- * training need or document change from it, linked back. People with edit rights edit,
- * close, reopen and add tasks; managers delete it.
+ * One finding, in a side panel of its inspection, on the detail-page anatomy
+ * (docs/ux-guide.md §2.7) and laid out as the follow-up an auditor expects
+ * (ISO 9001 / 45001 10.2). The top says what it is (type · severity · status), its
+ * title and the next step (serious findings without a deviation: "Opprett avvik";
+ * open: close it; closed: confirm the fix works), with the assistant in "Spør KI"
+ * and "Lag ny fra denne" / delete under "Mer". "Hovedinformasjon" starts with a
+ * status sentence and shows what was found (with the failed answer, its note and
+ * the clauses it concerns), what was done at once, the cause, how it was closed and
+ * the deviation it became. One "Oppfølging" card lists what is still missing, the
+ * follow-up tasks, the requirements, the connections and the metadata; the
+ * activity is last. People with edit rights edit, close, reopen and add tasks;
+ * managers delete it.
  */
 @Component({
   selector: 'app-finding-panel',
   imports: [
-    RouterLink,
     TranslocoPipe,
-    AiAssistButton,
-    AskAbout,
     FieldHelp,
+    ConnectionsPanel,
     CreateFromHere,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     Timeline,
     LocalDatePipe,
     LocalDayPipe,
@@ -115,31 +128,164 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
     Button,
     ConfirmDialog,
     FieldItem,
-    FieldList,
     FormField,
     Icon,
+    MenuItem,
+    OverflowMenu,
     StatusBadge,
     ClauseRefs,
+    DeviationLink,
     RefSelect,
   ],
+  // Its own record context: the requirements and connections render as the compact
+  // parts of an "Oppfølging" card (the panel sits outside the inspection's layout).
+  providers: [ConnectionsStore, RecordPageContext, TextAssist],
+  viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = finding();
     <div class="flex flex-col gap-5" data-testid="finding-panel">
-      <div class="flex flex-wrap items-center gap-1.5">
-        <app-status-badge
-          meaning="severity"
-          [value]="f.severity"
-          [labelKey]="severityKey(f.severity)"
-        />
-        <app-status-badge meaning="lifecycle" [value]="f.status" [labelKey]="statusKey(f.status)" />
-        @if (f.is_overdue) {
-          <app-status-badge meaning="lifecycle" value="overdue" />
+      <header class="flex flex-col gap-2">
+        <p class="flex flex-wrap items-center gap-1.5 text-meta text-fg-muted">
+          <span>{{ 'inspections.findings.typeLabel' | transloco }}</span>
+          <span aria-hidden="true">·</span>
+          <app-status-badge
+            meaning="severity"
+            [value]="f.severity"
+            [labelKey]="severityKey(f.severity)"
+          />
+          <app-status-badge
+            meaning="lifecycle"
+            [value]="f.status"
+            [labelKey]="statusKey(f.status)"
+          />
+          @if (f.is_overdue) {
+            <app-status-badge meaning="lifecycle" value="overdue" />
+          }
+        </p>
+        <h3 class="text-section font-bold text-fg" data-testid="finding-title">{{ f.title }}</h3>
+
+        @if (!editing() && !closing() && !checkingEffect()) {
+          <div class="flex flex-wrap items-center gap-2" data-testid="finding-actions">
+            @if (canEdit()) {
+              @if (f.status === 'open') {
+                @if (escalateFirst()) {
+                  <app-button
+                    size="sm"
+                    [loading]="busy()"
+                    (click)="escalate()"
+                    data-testid="escalate"
+                  >
+                    <app-icon name="alert" [size]="14" />
+                    {{ 'inspections.findings.escalate' | transloco }}
+                  </app-button>
+                  <app-button
+                    variant="secondary"
+                    size="sm"
+                    (click)="startClose()"
+                    data-testid="close-finding"
+                  >
+                    {{ 'inspections.findings.close' | transloco }}
+                  </app-button>
+                } @else {
+                  <app-button size="sm" (click)="startClose()" data-testid="close-finding">
+                    {{ 'inspections.findings.close' | transloco }}
+                  </app-button>
+                  @if (!f.deviation && canEscalate()) {
+                    <app-button
+                      variant="secondary"
+                      size="sm"
+                      [loading]="busy()"
+                      (click)="escalate()"
+                      data-testid="escalate"
+                    >
+                      <app-icon name="alert" [size]="14" />
+                      {{ 'inspections.findings.escalate' | transloco }}
+                    </app-button>
+                  }
+                }
+              } @else {
+                @if (!f.effectiveness_checked_at) {
+                  <app-button
+                    size="sm"
+                    (click)="checkingEffect.set(true)"
+                    data-testid="check-effect"
+                  >
+                    <app-icon name="checkcircle" [size]="14" />
+                    {{ 'inspections.findings.checkEffect' | transloco }}
+                  </app-button>
+                }
+                <app-button
+                  variant="secondary"
+                  size="sm"
+                  [loading]="busy()"
+                  (click)="reopen()"
+                  data-testid="reopen"
+                >
+                  {{ 'inspections.findings.reopen' | transloco }}
+                </app-button>
+              }
+              <app-button
+                variant="secondary"
+                size="sm"
+                (click)="startEdit()"
+                data-testid="edit-finding"
+              >
+                {{ 'inspections.actions.edit' | transloco }}
+              </app-button>
+            }
+            @if (aiAvailable()) {
+              <app-overflow-menu
+                icon="spark"
+                [label]="'kit.detail.ask.label' | transloco"
+                triggerTestId="finding-ask-menu"
+              >
+                <button
+                  appMenuItem
+                  type="button"
+                  [disabled]="assist.running()"
+                  (click)="suggestActions()"
+                  data-testid="suggest-actions"
+                >
+                  <app-icon name="spark" [size]="15" />
+                  {{ 'inspections.ai.suggestActions' | transloco }}
+                </button>
+                <button appMenuItem type="button" (click)="askCause()" data-testid="ask-cause">
+                  <app-icon name="spark" [size]="15" />
+                  {{ 'inspections.findings.askCauseLabel' | transloco }}
+                </button>
+              </app-overflow-menu>
+            }
+            @if (canEdit() || permissions().can_manage) {
+              <app-overflow-menu triggerTestId="finding-more">
+                @if (canEdit()) {
+                  <app-create-from-here
+                    variant="items"
+                    [entityType]="entityType"
+                    [entityId]="f.id"
+                  />
+                }
+                @if (permissions().can_manage) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    [danger]="true"
+                    (click)="confirmDelete.set(true)"
+                    data-testid="delete-finding"
+                  >
+                    {{ 'inspections.findings.delete' | transloco }}
+                  </button>
+                }
+              </app-overflow-menu>
+            }
+          </div>
+          @if (canEdit() && escalateFirst()) {
+            <p class="text-meta text-fg-muted">
+              {{ 'inspections.findings.escalateHint' | transloco }}
+            </p>
+          }
         }
-        <span class="text-meta text-fg-subtle">{{
-          'inspections.findings.source.' + f.source | transloco
-        }}</span>
-      </div>
+      </header>
 
       @if (editing()) {
         <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); saveEdit()">
@@ -152,7 +298,7 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
               (input)="patchEdit({ title: $any($event.target).value })"
             />
           </app-form-field>
-          <app-form-field [label]="'inspections.fields.description' | transloco" inputId="fp-desc">
+          <app-form-field [label]="'inspections.findings.lead.what' | transloco" inputId="fp-desc">
             <textarea
               id="fp-desc"
               rows="3"
@@ -171,7 +317,10 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
                 }
               </select>
             </app-form-field>
-            <app-form-field [label]="'inspections.fields.owner' | transloco" inputId="fp-owner">
+            <app-form-field
+              [label]="'inspections.findings.lead.owner' | transloco"
+              inputId="fp-owner"
+            >
               <app-ref-select
                 inputId="fp-owner"
                 [options]="references.users()"
@@ -227,436 +376,467 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
             </app-button>
           </div>
         </form>
-      } @else {
-        <section
-          class="flex flex-col gap-2"
-          [attr.aria-label]="'inspections.findings.what' | transloco"
+      }
+
+      @if (closing()) {
+        <form
+          class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
+          (submit)="$event.preventDefault(); close()"
+          data-testid="close-form"
         >
-          <h3 class="text-section font-bold text-fg" data-testid="finding-title">{{ f.title }}</h3>
-          @if (showQuestion()) {
-            <p class="text-meta text-fg-muted">
-              {{ 'inspections.findings.fromQuestion' | transloco: { question: f.question_text } }}
-            </p>
+          <h3 class="text-card font-bold text-fg">
+            {{ 'inspections.findings.closeTitle' | transloco }}
+          </h3>
+          @if ((f.open_action_count ?? 0) > 0) {
+            <app-alert tone="info">{{
+              'inspections.findings.openTasksWarning' | transloco: { count: f.open_action_count }
+            }}</app-alert>
           }
-          @if (f.description) {
-            <p class="text-body whitespace-pre-line text-fg">{{ f.description }}</p>
-          }
-          @if (f.answer; as a) {
-            <div
-              class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui"
-              data-testid="finding-answer"
-            >
-              <p class="font-semibold text-fg">
-                {{ 'inspections.findings.answerWas' | transloco: { answer: answerText() } }}
-              </p>
-              @if (a.note && a.note.trim() !== (f.description ?? '').trim()) {
-                <p class="mt-1 whitespace-pre-line text-fg-muted">{{ a.note }}</p>
-              }
-              @if (a.attachment_ids.length) {
-                <p class="mt-1 text-meta text-fg-muted">
-                  {{ 'inspections.detail.photos' | transloco: { count: a.attachment_ids.length } }}
-                </p>
-              }
-            </div>
-          }
-          <app-clause-refs
-            [refs]="f.question_clause_refs"
-            labelKey="inspections.findings.concerns"
-          />
-        </section>
-
-        @if (canEdit() && !closing()) {
-          <div class="flex flex-wrap gap-2" data-testid="finding-actions">
-            @if (f.status === 'open') {
-              @if (escalateFirst()) {
-                <app-button
-                  size="sm"
-                  [loading]="busy()"
-                  (click)="escalate()"
-                  data-testid="escalate"
-                >
-                  <app-icon name="flag" [size]="14" />
-                  {{ 'inspections.findings.escalate' | transloco }}
-                </app-button>
-                <app-button
-                  variant="secondary"
-                  size="sm"
-                  (click)="startClose()"
-                  data-testid="close-finding"
-                >
-                  {{ 'inspections.findings.close' | transloco }}
-                </app-button>
-              } @else {
-                <app-button size="sm" (click)="startClose()" data-testid="close-finding">
-                  {{ 'inspections.findings.close' | transloco }}
-                </app-button>
-                @if (!f.deviation && canEscalate()) {
-                  <app-button
-                    variant="secondary"
-                    size="sm"
-                    [loading]="busy()"
-                    (click)="escalate()"
-                    data-testid="escalate"
-                  >
-                    <app-icon name="flag" [size]="14" />
-                    {{ 'inspections.findings.escalate' | transloco }}
-                  </app-button>
-                }
-              }
-            } @else {
-              @if (!f.effectiveness_checked_at) {
-                <app-button size="sm" (click)="checkingEffect.set(true)" data-testid="check-effect">
-                  <app-icon name="checkcircle" [size]="14" />
-                  {{ 'inspections.findings.checkEffect' | transloco }}
-                </app-button>
-              }
-              <app-button
-                variant="secondary"
-                size="sm"
-                [loading]="busy()"
-                (click)="reopen()"
-                data-testid="reopen"
-              >
-                {{ 'inspections.findings.reopen' | transloco }}
-              </app-button>
-            }
-            <app-button variant="secondary" size="sm" (click)="startEdit()">
-              {{ 'inspections.actions.edit' | transloco }}
-            </app-button>
-            <app-create-from-here [entityType]="entityType" [entityId]="f.id" />
-          </div>
           @if (escalateFirst()) {
-            <p class="-mt-3 text-meta text-fg-muted">
-              {{ 'inspections.findings.escalateHint' | transloco }}
-            </p>
+            <app-alert tone="info">{{
+              'inspections.findings.seriousWarning' | transloco
+            }}</app-alert>
           }
-        }
-
-        @if (closing()) {
-          <form
-            class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
-            (submit)="$event.preventDefault(); close()"
-            data-testid="close-form"
+          <app-form-field
+            [label]="'inspections.findings.closureNote' | transloco"
+            inputId="fp-closure"
           >
-            <h3 class="text-card font-bold text-fg">
-              {{ 'inspections.findings.closeTitle' | transloco }}
-            </h3>
-            @if ((f.open_action_count ?? 0) > 0) {
-              <app-alert tone="info">{{
-                'inspections.findings.openTasksWarning' | transloco: { count: f.open_action_count }
-              }}</app-alert>
-            }
-            @if (escalateFirst()) {
-              <app-alert tone="info">{{
-                'inspections.findings.seriousWarning' | transloco
-              }}</app-alert>
-            }
-            <app-form-field
-              [label]="'inspections.findings.closureNote' | transloco"
-              inputId="fp-closure"
-            >
-              <textarea
-                id="fp-closure"
-                rows="3"
-                maxlength="20000"
-                required
-                [attr.aria-invalid]="closeAttempted() && !closeDraft().closureNote.trim()"
-                [attr.aria-describedby]="'fp-closure-hint'"
-                [placeholder]="'inspections.findings.closureNotePlaceholder' | transloco"
-                [value]="closeDraft().closureNote"
-                (input)="patchClose({ closureNote: $any($event.target).value })"
-                data-testid="closure-note"
-              ></textarea>
-            </app-form-field>
-            <p
-              id="fp-closure-hint"
-              class="-mt-2 text-meta"
-              [class.text-fail]="closeAttempted() && !closeDraft().closureNote.trim()"
-              [class.text-fg-muted]="!(closeAttempted() && !closeDraft().closureNote.trim())"
-            >
-              {{ 'inspections.findings.closureNoteHint' | transloco }}
-            </p>
-            <app-form-field
-              [label]="'inspections.findings.immediateCorrection' | transloco"
-              inputId="fp-close-correction"
-            >
-              <textarea
-                id="fp-close-correction"
-                rows="2"
-                maxlength="20000"
-                [value]="closeDraft().immediateCorrection"
-                (input)="patchClose({ immediateCorrection: $any($event.target).value })"
-              ></textarea>
-            </app-form-field>
-            <app-form-field
-              [label]="'inspections.findings.rootCause' | transloco"
-              inputId="fp-close-cause"
-            >
-              <textarea
-                id="fp-close-cause"
-                rows="2"
-                maxlength="20000"
-                [value]="closeDraft().rootCause"
-                (input)="patchClose({ rootCause: $any($event.target).value })"
-              ></textarea>
-            </app-form-field>
-            <label class="inline-flex min-h-8 items-start gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
-                [checked]="closeDraft().effective"
-                (change)="patchClose({ effective: $any($event.target).checked })"
-                data-testid="effective"
-              />
-              <span>
-                {{ 'inspections.findings.effectiveNow' | transloco }}
-                <span class="block text-meta text-fg-muted">{{
-                  'inspections.findings.effectiveHint' | transloco
-                }}</span>
-              </span>
-            </label>
-            @if (closeDraft().effective) {
-              <app-form-field
-                [label]="'inspections.findings.effectivenessNote' | transloco"
-                inputId="fp-close-effect"
-              >
-                <textarea
-                  id="fp-close-effect"
-                  rows="2"
-                  maxlength="20000"
-                  [value]="closeDraft().effectivenessNote"
-                  (input)="patchClose({ effectivenessNote: $any($event.target).value })"
-                ></textarea>
-              </app-form-field>
-            }
-            <div class="flex justify-end gap-2">
-              <app-button variant="secondary" size="sm" (click)="closing.set(false)">
-                {{ 'inspections.actions.cancel' | transloco }}
-              </app-button>
-              <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-close">
-                {{ 'inspections.findings.close' | transloco }}
-              </app-button>
-            </div>
-          </form>
-        }
-
-        @if (checkingEffect()) {
-          <form
-            class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
-            (submit)="$event.preventDefault(); checkEffect()"
+            <textarea
+              id="fp-closure"
+              rows="3"
+              maxlength="20000"
+              required
+              [attr.aria-invalid]="closeAttempted() && !closeDraft().closureNote.trim()"
+              [attr.aria-describedby]="'fp-closure-hint'"
+              [placeholder]="'inspections.findings.closureNotePlaceholder' | transloco"
+              [value]="closeDraft().closureNote"
+              (input)="patchClose({ closureNote: $any($event.target).value })"
+              data-testid="closure-note"
+            ></textarea>
+          </app-form-field>
+          <p
+            id="fp-closure-hint"
+            class="-mt-2 text-meta"
+            [class.text-fail]="closeAttempted() && !closeDraft().closureNote.trim()"
+            [class.text-fg-muted]="!(closeAttempted() && !closeDraft().closureNote.trim())"
           >
-            <h3 class="text-card font-bold text-fg">
-              {{ 'inspections.findings.checkEffectTitle' | transloco }}
-            </h3>
-            <p class="text-ui text-fg-muted">
-              {{ 'inspections.findings.effectiveHint' | transloco }}
-            </p>
+            {{ 'inspections.findings.closureNoteHint' | transloco }}
+          </p>
+          <app-form-field
+            [label]="'inspections.findings.immediateCorrection' | transloco"
+            inputId="fp-close-correction"
+          >
+            <textarea
+              id="fp-close-correction"
+              rows="2"
+              maxlength="20000"
+              [value]="closeDraft().immediateCorrection"
+              (input)="patchClose({ immediateCorrection: $any($event.target).value })"
+            ></textarea>
+          </app-form-field>
+          <app-form-field
+            [label]="'inspections.findings.rootCause' | transloco"
+            inputId="fp-close-cause"
+          >
+            <textarea
+              id="fp-close-cause"
+              rows="2"
+              maxlength="20000"
+              [value]="closeDraft().rootCause"
+              (input)="patchClose({ rootCause: $any($event.target).value })"
+            ></textarea>
+          </app-form-field>
+          <label class="inline-flex min-h-8 items-start gap-2 text-ui text-fg">
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+              [checked]="closeDraft().effective"
+              (change)="patchClose({ effective: $any($event.target).checked })"
+              data-testid="effective"
+            />
+            <span>
+              {{ 'inspections.findings.effectiveNow' | transloco }}
+              <span class="block text-meta text-fg-muted">{{
+                'inspections.findings.effectiveHint' | transloco
+              }}</span>
+            </span>
+          </label>
+          @if (closeDraft().effective) {
             <app-form-field
               [label]="'inspections.findings.effectivenessNote' | transloco"
-              inputId="fp-effect-note"
+              inputId="fp-close-effect"
             >
               <textarea
-                id="fp-effect-note"
+                id="fp-close-effect"
                 rows="2"
                 maxlength="20000"
-                [value]="effectNote()"
-                (input)="effectNote.set($any($event.target).value)"
+                [value]="closeDraft().effectivenessNote"
+                (input)="patchClose({ effectivenessNote: $any($event.target).value })"
               ></textarea>
             </app-form-field>
-            <div class="flex justify-end gap-2">
-              <app-button variant="secondary" size="sm" (click)="checkingEffect.set(false)">
-                {{ 'inspections.actions.cancel' | transloco }}
-              </app-button>
-              <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-effect">
-                {{ 'inspections.findings.checkEffectConfirm' | transloco }}
-              </app-button>
-            </div>
-          </form>
-        }
+          }
+          <div class="flex justify-end gap-2">
+            <app-button variant="secondary" size="sm" (click)="closing.set(false)">
+              {{ 'inspections.actions.cancel' | transloco }}
+            </app-button>
+            <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-close">
+              {{ 'inspections.findings.close' | transloco }}
+            </app-button>
+          </div>
+        </form>
+      }
 
-        <section [attr.aria-label]="'inspections.findings.followUp' | transloco">
-          <app-field-list [columns]="2">
-            <app-field-item
-              labelKey="inspections.fields.owner"
-              [value]="f.owner?.name ?? ('inspections.findings.noOwner' | transloco)"
-            />
-            <app-field-item
-              labelKey="inspections.fields.dueAt"
-              [value]="f.due_at ? (f.due_at | localDay) : null"
-            />
-            <app-field-item labelKey="inspections.findings.deviation" empty="none">
-              @if (f.deviation; as dev) {
-                <a [routerLink]="dev.url" class="font-semibold text-accent hover:underline">{{
-                  dev.code
-                }}</a>
-                <app-status-badge class="ml-1.5" meaning="lifecycle" [value]="dev.status" />
-              }
-            </app-field-item>
-            <app-field-item labelKey="inspections.findings.tasks" [value]="tasksText()" />
-            <app-field-item
-              labelKey="inspections.findings.immediateCorrection"
-              [value]="f.immediate_correction"
-              [wide]="true"
-              [multiline]="true"
-            />
-            <app-field-item
-              labelKey="inspections.findings.rootCause"
-              [value]="f.root_cause"
-              [wide]="true"
-              [multiline]="true"
-            />
-            @if (f.status === 'closed' || f.closure_note) {
-              <app-field-item
-                labelKey="inspections.findings.closureNote"
-                [value]="f.closure_note"
-                [wide]="true"
-                [multiline]="true"
-              />
-              @if (f.closed_at) {
-                <app-field-item
-                  labelKey="inspections.findings.closedAt"
-                  [value]="
-                    f.closed_by?.name
-                      ? ('inspections.detail.completedBy'
-                        | transloco: { date: (f.closed_at | localDate), name: f.closed_by?.name })
-                      : (f.closed_at | localDate)
-                  "
+      @if (checkingEffect()) {
+        <form
+          class="flex flex-col gap-3 rounded-card border border-border bg-surface p-4"
+          (submit)="$event.preventDefault(); checkEffect()"
+        >
+          <h3 class="text-card font-bold text-fg">
+            {{ 'inspections.findings.checkEffectTitle' | transloco }}
+          </h3>
+          <p class="text-ui text-fg-muted">
+            {{ 'inspections.findings.effectiveHint' | transloco }}
+          </p>
+          <app-form-field
+            [label]="'inspections.findings.effectivenessNote' | transloco"
+            inputId="fp-effect-note"
+          >
+            <textarea
+              id="fp-effect-note"
+              rows="2"
+              maxlength="20000"
+              [value]="effectNote()"
+              (input)="effectNote.set($any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+          <div class="flex justify-end gap-2">
+            <app-button variant="secondary" size="sm" (click)="checkingEffect.set(false)">
+              {{ 'inspections.actions.cancel' | transloco }}
+            </app-button>
+            <app-button type="submit" size="sm" [loading]="busy()" data-testid="confirm-effect">
+              {{ 'inspections.findings.checkEffectConfirm' | transloco }}
+            </app-button>
+          </div>
+        </form>
+      }
+
+      @if (!editing()) {
+        <app-record-lead [fillAction]="canEdit() ? editFn : null">
+          @let line = statusLine();
+          <app-record-status-line status [tone]="line.tone" data-testid="finding-status-line">
+            {{ line.key | transloco: line.params }}
+          </app-record-status-line>
+          <app-field-item size="lead" labelKey="inspections.findings.lead.what" [wide]="true">
+            @if (f.description) {
+              <span class="block whitespace-pre-line">{{ f.description }}</span>
+            }
+            @if (f.answer; as a) {
+              <span
+                class="mt-2 block rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui"
+                data-testid="finding-answer"
+              >
+                @if (showQuestion()) {
+                  <span class="block text-meta text-fg-muted">
+                    {{
+                      'inspections.findings.fromQuestion' | transloco: { question: f.question_text }
+                    }}
+                  </span>
+                }
+                <span class="block font-semibold text-fg">
+                  {{ 'inspections.findings.answerWas' | transloco: { answer: answerText() } }}
+                </span>
+                @if (a.note && a.note.trim() !== (f.description ?? '').trim()) {
+                  <span class="mt-1 block whitespace-pre-line text-fg-muted">{{ a.note }}</span>
+                }
+                @if (a.attachment_ids.length) {
+                  <span class="mt-1 block text-meta text-fg-muted">
+                    {{
+                      'inspections.detail.photos' | transloco: { count: a.attachment_ids.length }
+                    }}
+                  </span>
+                }
+              </span>
+            }
+            @if (f.question_clause_refs?.length) {
+              <span class="mt-2 flex flex-wrap items-center gap-1 text-ui">
+                <app-clause-refs
+                  [refs]="f.question_clause_refs ?? []"
+                  labelKey="inspections.findings.concerns"
                 />
-              }
-              <app-field-item labelKey="inspections.findings.effectiveness">
-                @if (f.effectiveness_checked_at) {
-                  <span class="text-pass-ink">{{
-                    'inspections.findings.effectChecked'
-                      | transloco
-                        : {
-                            date: (f.effectiveness_checked_at | localDate),
-                            name: f.effectiveness_checked_by?.name ?? '',
-                          }
-                  }}</span>
-                  @if (f.effectiveness_note) {
-                    <span class="mt-0.5 block text-ui whitespace-pre-line text-fg-muted">{{
-                      f.effectiveness_note
-                    }}</span>
-                  }
-                } @else {
-                  <span class="text-warn-ink">{{
-                    'inspections.findings.effectNotChecked' | transloco
+              </span>
+            }
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="inspections.findings.immediateCorrection"
+            [value]="f.immediate_correction"
+            [multiline]="true"
+          />
+          <app-field-item
+            size="lead"
+            labelKey="inspections.findings.rootCause"
+            [value]="f.root_cause"
+            [multiline]="true"
+          />
+          @if (f.status === 'closed') {
+            <app-field-item
+              size="lead"
+              labelKey="inspections.findings.lead.howClosed"
+              [value]="f.closure_note"
+              [wide]="true"
+              [multiline]="true"
+            />
+            @if (f.effectiveness_checked_at) {
+              <app-field-item
+                size="lead"
+                labelKey="inspections.findings.effectiveness"
+                [wide]="true"
+              >
+                <span class="text-pass-ink">{{
+                  'inspections.findings.effectChecked'
+                    | transloco
+                      : {
+                          date: (f.effectiveness_checked_at | localDate),
+                          name: f.effectiveness_checked_by?.name ?? '',
+                        }
+                }}</span>
+                @if (f.effectiveness_note) {
+                  <span class="mt-0.5 block text-ui whitespace-pre-line text-fg-muted">{{
+                    f.effectiveness_note
                   }}</span>
                 }
               </app-field-item>
             }
-          </app-field-list>
-          <div class="mt-3 flex items-start gap-1.5">
+          }
+          @if (f.deviation; as dev) {
+            <app-field-item
+              size="lead"
+              labelKey="inspections.findings.lead.deviation"
+              [wide]="true"
+            >
+              <app-deviation-link [deviation]="dev" />
+            </app-field-item>
+          }
+        </app-record-lead>
+        @if (f.status === 'open' && !f.deviation) {
+          <div class="-mt-2 flex items-start gap-1.5">
             <p class="text-meta text-fg-muted">
               {{ 'inspections.findings.vsDeviation' | transloco }}
             </p>
             <app-field-help scope="inspections" page="detail" field="finding" />
           </div>
-        </section>
-
-        @if (permissions().can_manage) {
-          <div>
-            <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
-              <app-icon name="trash" [size]="14" />
-              {{ 'inspections.findings.delete' | transloco }}
-            </app-button>
-          </div>
         }
       }
 
-      <app-supports-requirements
-        [entityType]="entityType"
-        [entityId]="f.id"
-        [canEdit]="canEdit()"
-      />
+      @if (assist.text() || assist.running()) {
+        <div
+          class="rounded-card border border-accent-border bg-accent-soft p-3 text-ui text-fg"
+          data-testid="suggestion"
+        >
+          <div class="mb-1 flex items-center justify-between gap-2">
+            <p class="flex items-center gap-1.5 font-semibold">
+              <app-icon name="spark" [size]="14" />
+              {{ 'inspections.ai.suggestTitle' | transloco }}
+            </p>
+            <app-button variant="ghost" size="sm" (click)="assist.clear()">
+              {{ 'inspections.actions.close' | transloco }}
+            </app-button>
+          </div>
+          @if (assist.text()) {
+            <div [innerHTML]="assist.text() | appMarkdown"></div>
+          } @else {
+            <p class="text-fg-muted">{{ 'inspections.ai.running' | transloco }}</p>
+          }
+        </div>
+      }
 
-      <section class="border-t border-border pt-4">
-        <div class="mb-1 flex justify-end gap-1.5">
-          <app-ai-assist-button
-            [assist]="suggestAssist"
-            labelKey="inspections.ai.suggestActions"
-            [input]="{ finding_id: f.id }"
+      <section
+        class="flex flex-col rounded-card border border-border bg-surface shadow-card"
+        aria-labelledby="fp-follow-up"
+        data-testid="finding-follow-up"
+      >
+        <h2 id="fp-follow-up" class="px-4 pt-4 pb-1 font-display text-card font-bold text-fg">
+          {{ 'kit.detail.followUp.title' | transloco }}
+        </h2>
+        @if (missing().length > 0) {
+          <ul class="flex flex-col gap-2 px-4 pt-2 pb-4" data-testid="finding-missing">
+            @for (item of missing(); track item.key) {
+              <li class="flex gap-2">
+                <span
+                  aria-hidden="true"
+                  class="mt-1.5 h-2 w-2 flex-none rounded-full bg-warn"
+                ></span>
+                <button
+                  type="button"
+                  class="inline-flex min-h-6 items-start gap-1 text-left text-ui font-semibold text-fg hover:text-accent hover:underline"
+                  (click)="item.action?.()"
+                >
+                  {{ item.labelKey | transloco: item.params }}
+                  <span aria-hidden="true" class="text-accent">→</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="border-t border-border px-4 py-4">
+          @for (rev of [tasksRev()]; track rev) {
+            <app-entity-tasks
+              [entityType]="entityType"
+              [entityId]="f.id"
+              [canCreate]="false"
+              [entityLabel]="f.code + ' ' + f.title"
+            />
+          }
+          @if (canEdit() && f.status === 'open') {
+            @if (addingAction()) {
+              <form
+                class="mt-3 flex flex-col gap-2 rounded-card border border-border p-3"
+                (submit)="$event.preventDefault(); addAction()"
+              >
+                <app-form-field
+                  [label]="'inspections.findings.actionTitle' | transloco"
+                  inputId="fp-action"
+                >
+                  <input
+                    id="fp-action"
+                    maxlength="255"
+                    [value]="actionTitle()"
+                    [placeholder]="'inspections.findings.actionPlaceholder' | transloco"
+                    (input)="actionTitle.set($any($event.target).value)"
+                    data-testid="action-title"
+                  />
+                </app-form-field>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <app-form-field
+                    [label]="'inspections.findings.actionAssignee' | transloco"
+                    inputId="fp-assignee"
+                  >
+                    <app-assignee-select
+                      inputId="fp-assignee"
+                      [value]="actionAssignee()"
+                      (valueChange)="actionAssignee.set($event)"
+                    />
+                  </app-form-field>
+                  <app-form-field
+                    [label]="'inspections.fields.dueAt' | transloco"
+                    inputId="fp-action-due"
+                  >
+                    <input
+                      id="fp-action-due"
+                      type="date"
+                      [value]="actionDue()"
+                      (input)="actionDue.set($any($event.target).value)"
+                    />
+                  </app-form-field>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <app-button variant="secondary" size="sm" (click)="addingAction.set(false)">
+                    {{ 'inspections.actions.cancel' | transloco }}
+                  </app-button>
+                  <app-button
+                    type="submit"
+                    size="sm"
+                    [loading]="busy()"
+                    [disabled]="!actionTitle().trim()"
+                  >
+                    {{ 'inspections.findings.addAction' | transloco }}
+                  </app-button>
+                </div>
+              </form>
+            } @else {
+              <button
+                type="button"
+                class="mt-2 inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
+                (click)="addingAction.set(true)"
+                data-testid="add-action"
+              >
+                <app-icon name="plus" [size]="13" />
+                {{ 'inspections.findings.addAction' | transloco }}
+              </button>
+            }
+          }
+        </div>
+
+        <div
+          class="border-t border-border px-4 py-4 empty:hidden [&_h2]:font-display [&_h2]:text-ui"
+          data-testid="finding-requirements"
+        >
+          <app-supports-requirements
             [entityType]="entityType"
             [entityId]="f.id"
-            (text)="suggestion.set($event)"
+            [canEdit]="canEdit()"
           />
-          <app-ask-about
-            [prompt]="'inspections.findings.askCause' | transloco: { code: f.code }"
-            field="root_cause"
-            [fieldLabel]="'inspections.findings.rootCause' | transloco"
-            [requirements]="f.question_clause_refs ?? []"
+          @if (pendingRequirements(); as reqs) {
+            <button
+              type="button"
+              class="mt-2 inline-flex min-h-6 items-center gap-1 text-meta font-semibold text-accent hover:underline"
+              (click)="reqs.review()"
+            >
+              {{
+                (reqs.pending === 1
+                  ? 'kit.detail.followUp.confirmOne'
+                  : 'kit.detail.followUp.confirm'
+                ) | transloco: { count: reqs.pending }
+              }}
+              <span aria-hidden="true">→</span>
+            </button>
+          }
+        </div>
+
+        <div class="border-t border-border px-4 py-4">
+          <app-connections-panel
+            [entityType]="entityType"
+            [entityId]="f.id"
+            [canEdit]="canEdit()"
+            [relatedTab]="false"
+            [compact]="true"
+            variant="section"
           />
         </div>
-        @if (suggestion()) {
-          <div
-            class="mb-3 rounded-card border border-accent-border bg-accent-soft p-3 text-ui text-fg"
-            data-testid="suggestion"
-            [innerHTML]="suggestion() | appMarkdown"
-          ></div>
-        }
-        @for (rev of [tasksRev()]; track rev) {
-          <app-entity-tasks
-            [entityType]="entityType"
-            [entityId]="f.id"
-            [canCreate]="false"
-            [entityLabel]="f.code + ' ' + f.title"
+
+        <app-record-meta
+          class="rounded-b-card border-t border-border bg-surface-2/50 px-4 py-3"
+          data-testid="finding-meta"
+        >
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.findings.lead.owner"
+            [value]="f.owner?.name"
           />
-        }
-        @if (canEdit() && f.status === 'open') {
-          <form
-            class="mt-3 flex flex-col gap-2 rounded-card border border-border p-3"
-            (submit)="$event.preventDefault(); addAction()"
-          >
-            <app-form-field
-              [label]="'inspections.findings.actionTitle' | transloco"
-              inputId="fp-action"
-            >
-              <input
-                id="fp-action"
-                maxlength="255"
-                [value]="actionTitle()"
-                [placeholder]="'inspections.findings.actionPlaceholder' | transloco"
-                (input)="actionTitle.set($any($event.target).value)"
-                data-testid="action-title"
-              />
-            </app-form-field>
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <app-form-field
-                [label]="'inspections.findings.actionAssignee' | transloco"
-                inputId="fp-assignee"
-              >
-                <app-assignee-select
-                  inputId="fp-assignee"
-                  [value]="actionAssignee()"
-                  (valueChange)="actionAssignee.set($event)"
-                />
-              </app-form-field>
-              <app-form-field
-                [label]="'inspections.fields.dueAt' | transloco"
-                inputId="fp-action-due"
-              >
-                <input
-                  id="fp-action-due"
-                  type="date"
-                  [value]="actionDue()"
-                  (input)="actionDue.set($any($event.target).value)"
-                />
-              </app-form-field>
-            </div>
-            <div class="flex justify-end">
-              <app-button
-                type="submit"
-                size="sm"
-                variant="secondary"
-                [loading]="busy()"
-                [disabled]="!actionTitle().trim()"
-              >
-                <app-icon name="plus" [size]="14" />
-                {{ 'inspections.findings.addAction' | transloco }}
-              </app-button>
-            </div>
-          </form>
-        }
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.fields.dueAt"
+            [value]="f.due_at ? (f.due_at | localDay) : null"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.findings.lead.source"
+            [value]="'inspections.findings.source.' + f.source | transloco"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="inspections.findings.lead.registered"
+            [value]="
+              f.created_by?.name
+                ? ('inspections.detail.completedBy'
+                  | transloco: { date: (f.created_at | localDay), name: f.created_by?.name })
+                : (f.created_at | localDay)
+            "
+          />
+          @if (f.closed_at) {
+            <app-field-item
+              layout="inline"
+              labelKey="inspections.findings.closedAt"
+              [value]="
+                f.closed_by?.name
+                  ? ('inspections.detail.completedBy'
+                    | transloco: { date: (f.closed_at | localDay), name: f.closed_by?.name })
+                  : (f.closed_at | localDay)
+              "
+            />
+          }
+        </app-record-meta>
       </section>
 
       <section class="border-t border-border pt-4">
@@ -682,6 +862,10 @@ export class FindingPanel {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   protected readonly references = inject(InspectionReferences);
+  private readonly ai = inject(AiAvailability);
+  private readonly askPanel = inject(AskPanelService);
+  private readonly page = inject(RecordPageContext);
+  protected readonly assist = inject(TextAssist);
 
   readonly finding = input.required<Finding>();
   /** Rights on the finding's inspection. */
@@ -693,7 +877,6 @@ export class FindingPanel {
   readonly deleted = output<string>();
 
   protected readonly entityType = FINDING_ENTITY_TYPE;
-  protected readonly suggestAssist = ASSIST_SUGGEST_ACTIONS;
   protected readonly severities = SEVERITIES;
   protected readonly severityKey = severityKey;
   protected readonly statusKey = findingStatusKey;
@@ -721,7 +904,7 @@ export class FindingPanel {
   protected readonly effectNote = signal('');
   protected readonly busy = signal(false);
   protected readonly confirmDelete = signal(false);
-  protected readonly suggestion = signal('');
+  protected readonly addingAction = signal(false);
   protected readonly actionTitle = signal('');
   protected readonly actionAssignee = signal('');
   protected readonly actionDue = signal('');
@@ -761,6 +944,36 @@ export class FindingPanel {
   });
 
   protected readonly showQuestion = computed(() => showsQuestion(this.finding()));
+
+  protected readonly aiAvailable = computed(() => !this.ai.unavailable());
+
+  /** "Fyll ut" in Hovedinformasjon: the inline editor. */
+  protected readonly editFn = () => this.startEdit();
+
+  /** "Åpent – må følges opp innen 26. nov." / "Lukket – tiltaket er kontrollert …". */
+  protected readonly statusLine = computed(() => {
+    const locale = this.language.locale();
+    return findingStatusSentence(this.finding(), {
+      day: (v) => formatLocalDay(v, 'mediumDate', locale),
+    });
+  });
+
+  /** The "Oppfølging" card's to-dos. */
+  protected readonly missing = computed(() =>
+    findingMissing(this.finding(), {
+      canEdit: this.canEdit(),
+      canEscalate: this.canEscalate(),
+      edit: () => this.startEdit(),
+      escalate: () => this.escalate(),
+      checkEffect: () => this.checkingEffect.set(true),
+    }),
+  );
+
+  /** Suggested requirements waiting for a decision ("Bekreft 2 forslag"). */
+  protected readonly pendingRequirements = computed(() => {
+    const reqs = this.page.requirements();
+    return reqs && reqs.pending > 0 && !reqs.expanded ? reqs : null;
+  });
 
   /** "Nei" / "3 av 5" / "12 stk": the failed answer in words. */
   protected readonly answerText = computed(() => {
@@ -802,6 +1015,22 @@ export class FindingPanel {
 
   constructor() {
     this.references.ensurePeople();
+  }
+
+  /** "Spør KI" → "Foreslå tiltak": the answer shows under Hovedinformasjon. */
+  protected suggestActions(): void {
+    const f = this.finding();
+    this.assist.run(ASSIST_SUGGEST_ACTIONS, { finding_id: f.id }, this.entityType, f.id);
+  }
+
+  /** "Spør KI" → "Spør om årsaken". */
+  protected askCause(): void {
+    const f = this.finding();
+    this.askPanel.askAbout(
+      this.language.translate('inspections.findings.askCause', { code: f.code }),
+      { field: this.language.translate('inspections.findings.rootCause') },
+      { requirements: f.question_clause_refs ?? [] },
+    );
   }
 
   protected startEdit(): void {
@@ -948,6 +1177,7 @@ export class FindingPanel {
       .subscribe({
         next: () => {
           this.busy.set(false);
+          this.addingAction.set(false);
           this.actionTitle.set('');
           this.actionAssignee.set('');
           this.actionDue.set('');
