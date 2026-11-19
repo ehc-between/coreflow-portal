@@ -471,20 +471,49 @@
     "detail": {
       "askCovers": "Which requirements does this document cover?",
       "deleteDraft": "Delete draft",
-      "lifecycle": "Where the document is in its life",
       "writtenBy": "Written by {{name}}, {{date}}",
       "approvedByOn": "Approved by {{name}}, {{date}}",
       "approvedOn": "Approved {{date}}",
-      "draftRevision": "{{rev}} (draft)"
+      "status": {
+        "approved": "Approved – this is the version everyone should follow.",
+        "revising": "Approved – a new version is being written.",
+        "draft": "Draft – not approved yet. Readers cannot see it until it is approved.",
+        "inReview": "Waiting for approval – {{name}} has been asked to approve it.",
+        "inReviewAny": "Waiting for approval – any approver can approve it.",
+        "obsolete": "Obsolete – no longer to be used.",
+        "stillApplies": "Rev {{rev}} applies until then.",
+        "submitted": "Sent {{date}}."
+      },
+      "lead": {
+        "version": "Version in force",
+        "versionFrom": "Rev {{rev}}, in force from {{date}}",
+        "versionNone": "None yet – Rev {{rev}} is a draft",
+        "approvedByValue": "{{name}}, {{date}}",
+        "approvedOnValue": "{{date}}",
+        "note": "“{{note}}”"
+      },
+      "meta": {
+        "interval": "Reviewed",
+        "change": "Change",
+        "updated": "Last changed",
+        "notPlanned": "Not planned",
+        "plan": "Plan"
+      },
+      "versions": "Versions",
+      "missing": {
+        "changes": "Make the changes the approver asked for",
+        "review": "The review is overdue – plan a new date"
+      },
+      "ask": {
+        "summarise": "Summarise the document",
+        "summarisePrompt": "Summarise the document {{code}} {{title}} in a few sentences: what it is for, who it applies to and what they must do."
+      }
     },
     "fields": {
       "owner": "Owner",
       "approvedBy": "Approved by",
-      "approvedOn": "Approved on",
-      "effectiveFrom": "In force from",
-      "nextReview": "Next periodic review",
-      "changeReason": "Reason for this revision",
-      "approvalNote": "Approval note"
+      "nextReview": "Next review",
+      "changeReason": "What changed"
     },
     "new": {
       "about": "About the document",
