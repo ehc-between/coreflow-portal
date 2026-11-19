@@ -43,6 +43,7 @@ import { DocumentsNav } from './shared/documents-nav';
 import { DocumentsPageGuide } from './shared/documents-page-guide';
 import { ReviewState, reviewLabelKey, reviewState } from './workflow/document-review';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { PolicyDocsBar } from './policy-docs-bar';
 
 /** Rows per page of the documents list. */
 export const DOCUMENTS_PAGE_SIZE = 25;
@@ -99,6 +100,7 @@ interface Row {
     WhyItMatters,
     DocumentsNav,
     DocumentsPageGuide,
+    PolicyDocsBar,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -187,6 +189,9 @@ interface Row {
         </button>
       </div>
 
+      @if (type()) {
+        <app-policy-docs-bar [type]="type()" (clear)="clearType()" />
+      }
       @if (loading()) {
         <app-loading-state [rows]="6" />
       } @else if (failed()) {
@@ -296,6 +301,8 @@ export class DocumentsList {
   protected readonly reviewDue = signal(false);
   /** Only documents without a confirmed requirement link. */
   protected readonly unlinked = signal(false);
+  /** U16: `?type=` (e.g. `policy`: the one list of policies). */
+  protected readonly type = signal('');
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canReadStandards = computed(() =>
@@ -316,7 +323,12 @@ export class DocumentsList {
 
   /** Any filter or search narrowing the list. */
   protected readonly filtered = computed(
-    () => !!this.query().trim() || !!this.status() || this.reviewDue() || this.unlinked(),
+    () =>
+      !!this.query().trim() ||
+      !!this.status() ||
+      this.reviewDue() ||
+      this.unlinked() ||
+      !!this.type(),
   );
   /** The org has no documents at all: the teaching empty state replaces the list. */
   protected readonly registerEmpty = computed(
@@ -327,6 +339,7 @@ export class DocumentsList {
     status: this.status(),
     review: this.reviewDue() ? 'due' : '',
     requirements: this.unlinked() ? 'none' : '',
+    type: this.type(),
   }));
 
   private readonly search$ = new Subject<{ orgId: string; q: string }>();
@@ -368,6 +381,7 @@ export class DocumentsList {
         this.status.set(this.initialStatus());
         this.reviewDue.set(this.route.snapshot.queryParamMap.get('review') === 'due');
         this.unlinked.set(this.route.snapshot.queryParamMap.get('requirements') === 'none');
+        this.type.set(this.route.snapshot.queryParamMap.get('type') ?? '');
         this.offset.set(0);
         this.searching.set(false);
         this.rows.set([]);
@@ -452,6 +466,19 @@ export class DocumentsList {
     this.status.set('');
     this.reviewDue.set(false);
     this.unlinked.set(false);
+    this.type.set('');
+    this.resetAndLoad();
+  }
+
+  /** Drop the `?type=` filter (U16 policy view): show every document again. */
+  protected clearType(): void {
+    this.type.set('');
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { type: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
     this.resetAndLoad();
   }
 
@@ -461,6 +488,7 @@ export class DocumentsList {
     this.status.set(status);
     this.reviewDue.set(filters['review'] === 'due');
     this.unlinked.set(filters['requirements'] === 'none');
+    this.type.set(filters['type'] ?? '');
     if (!this.query().trim()) {
       this.resetAndLoad();
     }
@@ -505,6 +533,7 @@ export class DocumentsList {
     this.listRequest = this.api
       .listPage(orgId, {
         status: this.status() || undefined,
+        type: this.type() || undefined,
         review_due: this.reviewDue() || undefined,
         unlinked: (this.canReadStandards() && this.unlinked()) || undefined,
         limit: this.pageSize,

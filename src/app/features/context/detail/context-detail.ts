@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { AiAvailability } from '../../../core/ai/ai-availability';
@@ -182,6 +182,7 @@ export function placeActions(
 @Component({
   selector: 'app-context-detail',
   imports: [
+    RouterLink,
     TranslocoPipe,
     WatchButton,
     Term,
@@ -398,6 +399,20 @@ export function placeActions(
                     [value]="r.owner?.name"
                   />
                   @if (controlled(); as c) {
+                    @if (c.document_id) {
+                      <app-field-item labelKey="context.policyDocs.documentLabel">
+                        <a
+                          [routerLink]="['/documents', c.document_id]"
+                          class="font-semibold text-accent hover:underline"
+                          data-testid="published-document"
+                        >
+                          {{ 'context.policyDocs.openDocument' | transloco }} →
+                        </a>
+                        <span class="mt-0.5 block text-meta text-fg-muted">
+                          {{ 'context.policyDocs.documentHint' | transloco }}
+                        </span>
+                      </app-field-item>
+                    }
                     @if (c.approved_at) {
                       <app-field-item labelKey="context.detail.approved">
                         {{

@@ -763,5 +763,20 @@
     "scopeTitle": "Scope for {{ framework }}",
     "createOne": "Create 1 draft",
     "createdOne": "1 draft was created. Open it to check and approve it."
+  },
+  "policyDocs": {
+    "type": {
+      "policy": "Only policies",
+      "scope": "Only scope statements",
+      "context_analysis": "Only context analyses",
+      "other": "Filtered by type"
+    },
+    "showAll": "Show all documents",
+    "newPolicy": "New policy",
+    "missingTitle": "Your standards expect these policies, but none is approved yet",
+    "draft": "Create draft",
+    "openDocument": "Open the controlled document",
+    "documentHint": "Approving publishes this as a revision in Documents.",
+    "documentLabel": "Controlled document"
   }
 }

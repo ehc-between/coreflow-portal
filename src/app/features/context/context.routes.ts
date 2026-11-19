@@ -1,10 +1,31 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
+import { ModuleService } from '../../core/modules/module.service';
+import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { ContextKind } from './data/context.models';
 import { KINDS, KIND_ORDER } from './context-kinds';
 
 const toOverview = { redirectTo: '/context' };
+
+/**
+ * U16 — one policy concept: policies are controlled documents, so the policy list is
+ * the documents list filtered by type. Falls back to the context list when the
+ * documents module is off or the user cannot read documents.
+ */
+export const policiesToDocuments: CanActivateFn = (route) => {
+  const modules = inject(ModuleService);
+  const permissions = inject(SelectedOrgService).currentOrg()?.permissions ?? [];
+  if (modules.isEnabled('documents') && permissions.includes('documents:read')) {
+    // Keep the list filters of the link (e.g. `?status=approved` from an overview tile).
+    const status = route.queryParamMap.get('status');
+    return inject(Router).createUrlTree(['/documents'], {
+      queryParams: { type: 'policy', ...(status ? { status } : {}) },
+    });
+  }
+  return true;
+};
 
 /** list, new, :id, :id/edit for one record kind. */
 function kindRoutes(kind: ContextKind): Routes {
@@ -13,6 +34,7 @@ function kindRoutes(kind: ContextKind): Routes {
     {
       path: KINDS[kind].segment,
       data,
+      ...(kind === 'policy' ? { canActivate: [policiesToDocuments] } : {}),
       loadComponent: () => import('./list/context-list').then((m) => m.ContextList),
     },
     {
