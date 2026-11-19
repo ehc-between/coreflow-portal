@@ -26,6 +26,7 @@ import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-la
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
+import { OutputsPanel } from '../../shared/outputs';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
@@ -138,6 +139,7 @@ export function primaryActionFor(e: Employee): PrimaryAction | null {
     Alert,
     Button,
     Card,
+    OutputsPanel,
     ConfirmDialog,
     EmptyState,
     FieldItem,
@@ -467,6 +469,12 @@ export function primaryActionFor(e: Employee): PrimaryAction | null {
                   <app-people-employee-disciplinary [employeeId]="e.id" />
                 </app-card>
               }
+
+              <app-outputs-panel
+                entityType="employee"
+                [entityId]="e.id"
+                data-testid="employee-outputs"
+              />
             </div>
 
             <ng-container ngProjectAs="[aside]">

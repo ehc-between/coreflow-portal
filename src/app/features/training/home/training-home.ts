@@ -97,6 +97,7 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
         titleKey="modules.names.training"
         descriptionKey="training.home.subtitle"
         [breadcrumbs]="[{ labelKey: 'modules.names.training' }]"
+        outputsModule="training"
       >
         <app-button
           secondary
