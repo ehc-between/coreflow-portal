@@ -160,10 +160,10 @@ describe('ObligationDetail', () => {
       'Measure noise every quarter',
     );
     expect(el.querySelector('[data-testid="duty-rows"]')?.textContent).toContain('OB-0001-2');
-    expect(el.querySelector('[data-testid="next-step"]')?.getAttribute('data-kind')).toBe('ok');
-    expect(el.querySelector('[data-testid="obligation-compliance"]')?.textContent).toContain(
-      'Compliant',
-    );
+    expect(
+      el.querySelector('[data-testid="obligation-compliance"]')?.getAttribute('data-kind'),
+    ).toBe('compliant');
+    expect(el.querySelector('[data-testid="record-missing-item"]')).toBeNull();
     expect(el.querySelector('[data-testid="evaluation-rows"]')?.textContent).toContain(
       'Noise within limits.',
     );
@@ -220,15 +220,15 @@ describe('ObligationDetail', () => {
     expect(notify.success).toHaveBeenCalledWith('obligations.notices.evaluated', {
       code: 'OB-0001',
     });
-    expect(el.querySelector('[data-testid="obligation-compliance"]')?.textContent).toContain(
-      'Non compliant',
-    );
+    expect(
+      el.querySelector('[data-testid="obligation-compliance"]')?.getAttribute('data-kind'),
+    ).toBe('non_compliant');
   });
 
   it('hides recording for a retired obligation', async () => {
     const { el } = await loaded(makeObligation({ status: 'retired' }));
     expect(el.querySelector('[data-testid="evaluation-add"]')).toBeNull();
-    expect(el.textContent).toContain('obligations.next.retired.title');
+    expect(el.textContent).toContain('obligations.detail.sentence.retired');
   });
 
   it('shows a coded error when the obligation cannot be loaded', async () => {
