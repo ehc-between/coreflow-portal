@@ -127,6 +127,9 @@
   },
   "reqs": {
     "title": "Krav dette dokumenterer",
+    "countsFor": "Teller for {{ count }} krav i {{ standard }}",
+    "countsForOne": "Teller for 1 krav i {{ standard }}",
+    "countsAlso": "og {{ count }} i {{ standard }}",
     "add": "Legg til krav",
     "none": "Ikke koblet til noen krav ennå.",
     "noneHint": "Koble posten til kravene den dokumenterer, så teller den med i kravdekningen.",

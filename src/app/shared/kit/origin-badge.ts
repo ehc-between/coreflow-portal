@@ -7,9 +7,9 @@ import { provideKitScope } from './kit-scope';
 
 /**
  * How a connection came about, as a small badge with an explanation on hover:
- * "Automatic" (a rule linked them), "Via field" (a form field relates them),
- * "Source" / "Created from here" (a create-from-here flow), "AI suggestion".
- * Plain links made by a person show nothing.
+ * "Automatic" (a rule linked them), "Source" / "Created from here" (a
+ * create-from-here flow), "AI suggestion". Plain links made by a person and field
+ * relations show nothing (U40: "Via felt" is bookkeeping, hidden for everyone).
  */
 @Component({
   selector: 'app-origin-badge',
@@ -41,12 +41,6 @@ export class OriginBadge {
     switch (origin) {
       case 'auto':
         return { text: t('auto'), hint: t('autoHint'), cls: 'border-info/30 text-info-ink' };
-      case 'structural':
-        return {
-          text: t('structural'),
-          hint: t('structuralHint'),
-          cls: 'border-border text-fg-muted',
-        };
       case 'ai':
         return { text: t('ai'), hint: t('aiHint'), cls: 'border-accent-border text-accent' };
       case 'flow': {

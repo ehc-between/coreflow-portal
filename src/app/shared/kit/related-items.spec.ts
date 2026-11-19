@@ -151,7 +151,8 @@ describe('RelatedItems', () => {
     const badges = [...el.querySelectorAll('[data-testid="origin-badge"]')].map((b) =>
       b.textContent?.split('.')[0].trim(),
     );
-    expect(badges).toEqual(['Via field', 'Created from here']);
+    // U40: field relations carry no "Via field" badge.
+    expect(badges).toEqual(['Created from here']);
     // Read-only: no add / remove controls.
     expect(el.querySelector('[data-testid="related-add"]')).toBeNull();
     expect(el.querySelector('[aria-label^="Remove the link"]')).toBeNull();

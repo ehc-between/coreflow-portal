@@ -12,8 +12,10 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, Subscription, catchError, forkJoin, map, of, timer } from 'rxjs';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
@@ -72,6 +74,8 @@ export const CONFIRMED_PREVIEW = 8;
 export const COMPACT_CHIPS = 3;
 /** Wait after the links load before asking for suggestions (debounce per record visit). */
 export const SUGGEST_DELAY_MS = 400;
+/** Query param the My Work confirm queue (U40) opens a record with: show its suggestions. */
+export const REVIEW_PARAM = 'requirements';
 /** Poll interval of an AI `record_map` job. */
 const JOB_POLL_MS = 2000;
 
@@ -276,6 +280,11 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
  * The suggestions waiting for a decision are listed in the page's "Hva mangler"
  * box, and "Foreslå flere krav" sits in its "Mer ⋯" menu (both through
  * {@link RecordPageContext}).
+ *
+ * Beginners (U40) do no requirement bookkeeping: no suggestions, no Bekreft/Avvis and
+ * no automatic suggest call; the compact panel is one line ("Teller for 3 krav i ISO
+ * 9001"). The confirm queue is one My Work item for the compliance owner; it opens the
+ * record with `?requirements=review`, which shows the suggestions for any level.
  */
 @Component({
   selector: 'app-supports-requirements',
@@ -322,6 +331,24 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
           <p class="text-meta text-fg-muted" data-testid="supports-none">
             {{ 'standards.reqs.none' | transloco }}
           </p>
+        } @else if (beginner()) {
+          <button
+            type="button"
+            class="text-left text-meta text-fg-muted hover:text-accent hover:underline"
+            data-testid="supports-summary"
+            (click)="expand()"
+          >
+            @for (part of summary(); track part.standard; let first = $first) {
+              @if (first) {
+                {{
+                  (part.count === 1 ? 'standards.reqs.countsForOne' : 'standards.reqs.countsFor')
+                    | transloco: part
+                }}
+              } @else {
+                {{ 'standards.reqs.countsAlso' | transloco: part }}
+              }
+            }
+          </button>
         } @else {
           <div class="flex flex-wrap items-center gap-1.5" data-testid="supports-chips">
             @for (row of compactChips(); track row.key) {
@@ -478,7 +505,9 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
                 }
               </ul>
             </div>
-          } @else if (canManage() && confirmed().length > 0 && !suggestRequested() && !recordPage) {
+          } @else if (
+            canManage() && !quiet() && confirmed().length > 0 && !suggestRequested() && !recordPage
+          ) {
             <button
               type="button"
               class="mt-1 inline-flex items-center gap-1 text-meta font-semibold text-fg-muted hover:text-accent"
@@ -614,6 +643,9 @@ export class SupportsRequirements {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly transloco = inject(TranslocoService);
   private readonly coverage = inject(RequirementCoverageService);
+  private readonly guidance = inject(GuidanceService);
+  /** Opened from the My Work confirm queue (`?requirements=review`, U40). */
+  private readonly reviewing = this.reviewRequested();
   /** The record page this panel sits on (U29), if any. */
   protected readonly recordPage = inject(RecordPageContext, { optional: true });
 
@@ -654,7 +686,7 @@ export class SupportsRequirements {
   protected readonly adding = signal(false);
   protected readonly showAll = signal(false);
   /** Record pages: the full panel was opened ("Endre", "+N", "Hva mangler"). */
-  protected readonly expanded = signal(false);
+  protected readonly expanded = signal(this.reviewing);
   protected readonly compact = computed(() => !!this.recordPage && !this.expanded());
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
@@ -662,6 +694,10 @@ export class SupportsRequirements {
   protected readonly canManage = computed(
     () => this.canRead() && (this.permissions().includes('standards:manage') || !!this.canEdit()),
   );
+  /** U40: the user is a beginner. */
+  protected readonly beginner = computed(() => this.guidance.isBeginner());
+  /** U40: no suggestions for a beginner, unless they came to confirm them. */
+  protected readonly quiet = computed(() => this.beginner() && !this.reviewing);
 
   /** Links not rejected (what the record shows and the host mirrors). */
   private readonly visible = computed(() => this.links().filter((l) => l.status !== 'rejected'));
@@ -699,10 +735,22 @@ export class SupportsRequirements {
   );
 
   protected readonly suggestions = computed(() => {
+    if (this.quiet()) {
+      return [] as PanelRow[];
+    }
     const stored = this.visible()
       .filter((l) => l.status === 'suggested')
       .map((l) => linkRow(l, this.shortOf));
     return sortRows(mergeSuggestions(stored, this.suggested(), this.knownRefs(), this.entityId()));
+  });
+
+  /** "Teller for 3 krav i ISO 9001 og 2 i ISO 27001": confirmed requirements per standard. */
+  protected readonly summary = computed(() => {
+    const counts = new Map<string, number>();
+    for (const row of this.confirmed()) {
+      counts.set(row.label.short, (counts.get(row.label.short) ?? 0) + 1);
+    }
+    return [...counts].map(([standard, count]) => ({ standard, count }));
   });
 
   /** Suggestions, one row per clause. */
@@ -755,6 +803,7 @@ export class SupportsRequirements {
         const pending = manage ? this.suggestionClauses().length : 0;
         const offerMore =
           manage &&
+          !this.quiet() &&
           !this.loading() &&
           this.confirmed().length > 0 &&
           this.suggestions().length === 0 &&
@@ -815,7 +864,7 @@ export class SupportsRequirements {
   /** Ask for suggestions now (also run automatically when nothing is confirmed). */
   protected suggest(): void {
     const orgId = this.selectedOrg.currentOrgId();
-    if (!orgId || !this.canManage()) {
+    if (!orgId || !this.canManage() || this.quiet()) {
       return;
     }
     this.suggestSub?.unsubscribe();
@@ -1023,7 +1072,7 @@ export class SupportsRequirements {
           this.links.set(links);
           this.loading.set(false);
           // Nothing confirmed yet: offer suggestions without being asked (once per visit).
-          if (this.canManage() && !links.some((l) => l.status === 'confirmed')) {
+          if (this.canManage() && !this.quiet() && !links.some((l) => l.status === 'confirmed')) {
             this.suggestSub = timer(SUGGEST_DELAY_MS).subscribe(() => this.suggest());
           }
         },
@@ -1065,6 +1114,11 @@ export class SupportsRequirements {
           .pipe(catchError(() => of([] as RequirementLink[]))),
       ),
     ).subscribe((lists) => this.actionLinks.set(lists.flat()));
+  }
+
+  private reviewRequested(): boolean {
+    const router = inject(Router, { optional: true });
+    return !!router && router.parseUrl(router.url).queryParams[REVIEW_PARAM] === 'review';
   }
 
   /** Short standard name for a link without a backend label. */
