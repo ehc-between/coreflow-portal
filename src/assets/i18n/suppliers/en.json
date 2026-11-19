@@ -555,7 +555,7 @@
     "adequacy": "Adequacy decision",
     "third_country": "Third country"
   },
-  "criticalityLabel": "Criticality: {{ level }}",
+  "criticalityLabel": "How critical: {{ level }}",
   "taskStatus": {
     "open": "open",
     "in_progress": "in progress",

@@ -555,7 +555,7 @@
     "adequacy": "Beslutning om tilstrekkelig beskyttelse",
     "third_country": "Tredjeland"
   },
-  "criticalityLabel": "Kritikalitet: {{ level }}",
+  "criticalityLabel": "Hvor kritisk: {{ level }}",
   "taskStatus": {
     "open": "åpen",
     "in_progress": "pågår",

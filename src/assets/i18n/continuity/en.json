@@ -2,10 +2,10 @@
   "nav": {
     "label": "Business continuity sections",
     "overview": "Overview",
-    "bias": "Impact analyses",
+    "bias": "If something stops",
     "plans": "Plans",
     "exercises": "Exercises and tests",
-    "ict": "ICT readiness",
+    "ict": "IT and backups",
     "contacts": "Crisis contacts"
   },
   "common": {
@@ -50,7 +50,7 @@
     "title": "Business continuity",
     "subtitle": "Know what must keep running, how fast it must be back, and prove the plans work.",
     "tiles": {
-      "bias": "Impact analyses",
+      "bias": "If something stops (BIA)",
       "biasDelta": "{{ approved }} approved · {{ uncovered }} without a plan",
       "plans": "Continuity plans",
       "plansDelta": "{{ approved }} approved · {{ overdue }} overdue",
@@ -105,8 +105,8 @@
     }
   },
   "bias": {
-    "title": "Impact analyses",
-    "subtitle": "What happens if an activity stops, and how quickly it must be back. One business impact analysis (BIA) per activity.",
+    "title": "What happens if something stops?",
+    "subtitle": "What happens if an activity stops, how fast must it be running again, and how much data can you afford to lose? One analysis per activity (business impact analysis, BIA).",
     "searchPlaceholder": "Search impact analyses",
     "new": "New impact analysis",
     "create": "Create impact analysis",
@@ -212,21 +212,21 @@
     "outcomeConflict": "Marked successful, but the recovery time missed the target. Check the outcome.",
     "targetSource": {
       "exercise": "Set for this exercise",
-      "plan": "From the plan's RTO",
+      "plan": "From the plan: how fast it must be back up",
       "ict_requirement": "From what the business requires of the ICT service"
     }
   },
   "ict": {
-    "title": "ICT readiness",
-    "subtitle": "Can each ICT service be recovered as fast as the organisation needs it?",
+    "title": "IT systems and backups",
+    "subtitle": "Can each IT system be back up as fast as the business needs it? Record backup restore tests here too.",
     "searchPlaceholder": "Search ICT services",
     "new": "New ICT service",
     "create": "Register ICT service",
     "newTitle": "Register an ICT service",
     "editTitle": "Edit {{ code }} {{ title }}",
-    "back": "Back to ICT readiness",
+    "back": "Back to IT systems and backups",
     "created": "{{ code }} was registered.",
-    "rtoVsRequired": "RTO achievable / required",
+    "rtoVsRequired": "Back up within: can / must (RTO)",
     "dependentBias": "{{ count }} dependent impact analyses",
     "lastTested": "Tested {{ date }}",
     "neverTested": "Never tested",
@@ -378,7 +378,7 @@
       "-code": "Code (descending)",
       "title": "Title (A–Z)",
       "-title": "Title (Z–A)",
-      "rto_minutes": "Shortest RTO first",
+      "rto_minutes": "Must be back up soonest first",
       "next_review_on": "Next review",
       "-updated_at": "Recently updated",
       "-created_at": "Recently created",
@@ -399,13 +399,13 @@
     "criticality": "Criticality",
     "impacts": "Impact ratings",
     "impactNotes": "Notes on the impacts",
-    "mtpd": "Maximum tolerable period of disruption (MTPD)",
+    "mtpd": "Longest stop you can tolerate (MTPD)",
     "mtpdShort": "MTPD",
-    "rto": "Recovery time objective (RTO)",
+    "rto": "How fast it must be back up (RTO)",
     "rtoShort": "RTO",
-    "rpo": "Recovery point objective (RPO)",
+    "rpo": "How much data you can afford to lose (RPO)",
     "rpoShort": "RPO",
-    "mbco": "Minimum business continuity objective (MBCO)",
+    "mbco": "Minimum level you must keep running (MBCO)",
     "peakPeriods": "Peak periods",
     "workarounds": "Workarounds",
     "dependencies": "Dependencies",
@@ -436,8 +436,8 @@
     "results": "Results",
     "lessonsLearned": "Lessons learned",
     "provider": "Provider",
-    "achievableRto": "Achievable RTO",
-    "achievableRpo": "Achievable RPO",
+    "achievableRto": "How fast it can actually be back up (RTO)",
+    "achievableRpo": "How much data you could actually lose (RPO)",
     "recoveryStrategy": "Recovery strategy",
     "backupStrategy": "Backup strategy",
     "testInterval": "Test every (months)",
@@ -496,7 +496,7 @@
       "interval": "Enter a whole number of months between 1 and 120.",
       "dependencyName": "Give every dependency a name, or choose the ICT service.",
       "stepTitle": "Give every step a title.",
-      "rtoExceedsMtpd": "The RTO cannot be longer than the MTPD.",
+      "rtoExceedsMtpd": "The time to be back up (RTO) cannot be longer than the longest stop you can tolerate (MTPD).",
       "timelineDecreasing": "The impact cannot get smaller as time goes on."
     },
     "processPlaceholder": "Search the process register",
@@ -512,7 +512,7 @@
       "information": "Document, asset or processing record",
       "other": "Record in CoreFlow (optional)"
     },
-    "targetHint": "Leave empty to use the plan's RTO.",
+    "targetHint": "Leave empty to use the plan’s target for how fast it must be back up.",
     "membersHint": "Taking part counts as training for each person.",
     "assetHint": "The server, cloud service or system in the asset register the service runs on."
   },
@@ -686,10 +686,10 @@
     "retired": "Retired"
   },
   "readinessIssue": {
-    "rto_gap": "RTO too long",
-    "rpo_gap": "RPO too long",
-    "rto_capability_unknown": "RTO unknown",
-    "rpo_capability_unknown": "RPO unknown",
+    "rto_gap": "Not back up fast enough",
+    "rpo_gap": "Could lose too much data",
+    "rto_capability_unknown": "Unknown how fast it comes back up",
+    "rpo_capability_unknown": "Unknown how much data could be lost",
     "never_tested": "Never tested",
     "test_overdue": "Test overdue",
     "last_test_failed": "Last test failed",
@@ -699,7 +699,7 @@
     "plan_rpo_gap": "Loses too much data for the plan"
   },
   "readinessIssueHelp": {
-    "rto_gap": "The service takes longer to recover than the business can tolerate. Improve the recovery strategy or agree a longer RTO.",
+    "rto_gap": "The service takes longer to come back up than the business can tolerate. Improve the recovery, or agree that it may take longer (RTO).",
     "rpo_gap": "More data could be lost than the business accepts. Back up or replicate more often.",
     "rto_capability_unknown": "Nobody has recorded how fast the service can be recovered. Find out, ideally by testing it.",
     "rpo_capability_unknown": "Nobody has recorded how much data could be lost. Check the backup or replication interval.",
@@ -746,7 +746,7 @@
     "note_required": "Add a note explaining the decision.",
     "plan_required": "Choose the plan to exercise first.",
     "record_retired": "This record is retired. Restore it before you change it.",
-    "rto_exceeds_mtpd": "The RTO cannot be longer than the MTPD.",
+    "rto_exceeds_mtpd": "The time to be back up (RTO) cannot be longer than the longest stop you can tolerate (MTPD).",
     "text_required": "Enter a title or description first.",
     "too_many_contacts": "This list has reached the maximum number of contacts.",
     "too_many_dependencies": "An impact analysis can have at most 50 dependencies.",
@@ -867,7 +867,7 @@
   },
   "legend": {
     "lead": "Recovery targets in the rows:",
-    "rto": "RTO = back within",
+    "rto": "RTO = must be back up within",
     "rpo": "RPO = most data you can lose",
     "mtpd": "MTPD = longest it can be down"
   },

@@ -2,10 +2,10 @@
   "nav": {
     "label": "Deler av kontinuitetsstyring",
     "overview": "Oversikt",
-    "bias": "Konsekvensanalyser",
+    "bias": "Hvis noe stopper",
     "plans": "Planer",
     "exercises": "Øvelser og tester",
-    "ict": "IKT-beredskap",
+    "ict": "IT og sikkerhetskopi",
     "contacts": "Krisekontakter"
   },
   "common": {
@@ -50,7 +50,7 @@
     "title": "Kontinuitet og beredskap",
     "subtitle": "Vit hva som må holdes i gang, hvor raskt det må være tilbake, og vis at planene virker.",
     "tiles": {
-      "bias": "Konsekvensanalyser",
+      "bias": "Hvis noe stopper (BIA)",
       "biasDelta": "{{ approved }} godkjent · {{ uncovered }} uten plan",
       "plans": "Kontinuitetsplaner",
       "plansDelta": "{{ approved }} godkjent · {{ overdue }} forfalt",
@@ -105,8 +105,8 @@
     }
   },
   "bias": {
-    "title": "Konsekvensanalyser",
-    "subtitle": "Hva skjer hvis en aktivitet stopper, og hvor raskt den må være tilbake? Én konsekvensanalyse (BIA) per aktivitet.",
+    "title": "Hva skjer hvis noe stopper?",
+    "subtitle": "Hva skjer hvis en aktivitet stopper, hvor fort må den være i gang igjen, og hvor mye data tåler dere å miste? Én analyse per aktivitet (konsekvensanalyse, BIA).",
     "searchPlaceholder": "Søk i konsekvensanalyser",
     "new": "Ny konsekvensanalyse",
     "create": "Opprett konsekvensanalyse",
@@ -212,21 +212,21 @@
     "outcomeConflict": "Merket som vellykket, men gjenopprettingstiden nådde ikke målet. Sjekk utfallet.",
     "targetSource": {
       "exercise": "Satt for denne øvelsen",
-      "plan": "Fra planens RTO",
+      "plan": "Fra planen: hvor fort det må være oppe igjen",
       "ict_requirement": "Fra kravet virksomheten stiller til IKT-tjenesten"
     }
   },
   "ict": {
-    "title": "IKT-beredskap",
-    "subtitle": "Kan hver IKT-tjeneste gjenopprettes så raskt som organisasjonen trenger?",
+    "title": "IT-systemer og sikkerhetskopi",
+    "subtitle": "Kan hvert IT-system komme opp igjen så fort som virksomheten trenger? Registrer også tester av gjenoppretting fra sikkerhetskopi.",
     "searchPlaceholder": "Søk i IKT-tjenester",
     "new": "Ny IKT-tjeneste",
     "create": "Registrer IKT-tjeneste",
     "newTitle": "Registrer en IKT-tjeneste",
     "editTitle": "Rediger {{ code }} {{ title }}",
-    "back": "Tilbake til IKT-beredskap",
+    "back": "Tilbake til IT-systemer og sikkerhetskopi",
     "created": "{{ code }} ble registrert.",
-    "rtoVsRequired": "RTO oppnåelig / påkrevd",
+    "rtoVsRequired": "Oppe igjen innen: klarer / må (RTO)",
     "dependentBias": "{{ count }} konsekvensanalyser er avhengige av den",
     "lastTested": "Testet {{ date }}",
     "neverTested": "Aldri testet",
@@ -378,7 +378,7 @@
       "-code": "Kode (synkende)",
       "title": "Tittel (A–Å)",
       "-title": "Tittel (Å–A)",
-      "rto_minutes": "Korteste RTO først",
+      "rto_minutes": "Må være oppe igjen raskest først",
       "next_review_on": "Neste gjennomgang",
       "-updated_at": "Sist oppdatert",
       "-created_at": "Sist opprettet",
@@ -399,13 +399,13 @@
     "criticality": "Kritikalitet",
     "impacts": "Konsekvensvurderinger",
     "impactNotes": "Merknader til konsekvensene",
-    "mtpd": "Maksimal akseptabel avbruddstid (MTPD)",
+    "mtpd": "Lengste stans dere tåler (MTPD)",
     "mtpdShort": "MTPD",
-    "rto": "Mål for gjenopprettingstid (RTO)",
+    "rto": "Hvor fort det må være oppe igjen (RTO)",
     "rtoShort": "RTO",
-    "rpo": "Mål for gjenopprettingspunkt (RPO)",
+    "rpo": "Hvor mye data dere tåler å miste (RPO)",
     "rpoShort": "RPO",
-    "mbco": "Minimumsnivå for drift (MBCO)",
+    "mbco": "Minste drift dere må holde i gang (MBCO)",
     "peakPeriods": "Toppbelastningsperioder",
     "workarounds": "Midlertidige løsninger",
     "dependencies": "Avhengigheter",
@@ -436,8 +436,8 @@
     "results": "Resultater",
     "lessonsLearned": "Erfaringer",
     "provider": "Leverandør",
-    "achievableRto": "Oppnåelig RTO",
-    "achievableRpo": "Oppnåelig RPO",
+    "achievableRto": "Hvor fort det faktisk kan være oppe igjen (RTO)",
+    "achievableRpo": "Hvor mye data dere faktisk kan miste (RPO)",
     "recoveryStrategy": "Gjenopprettingsstrategi",
     "backupStrategy": "Sikkerhetskopistrategi",
     "testInterval": "Test hver (måneder)",
@@ -496,7 +496,7 @@
       "interval": "Oppgi et helt antall måneder mellom 1 og 120.",
       "dependencyName": "Gi hver avhengighet et navn, eller velg IKT-tjenesten.",
       "stepTitle": "Gi hvert steg en tittel.",
-      "rtoExceedsMtpd": "RTO kan ikke være lengre enn MTPD.",
+      "rtoExceedsMtpd": "Tiden det tar å komme opp igjen (RTO) kan ikke være lengre enn den lengste stansen dere tåler (MTPD).",
       "timelineDecreasing": "Konsekvensen kan ikke bli mindre etter hvert som tiden går."
     },
     "processPlaceholder": "Søk i prosessregisteret",
@@ -512,7 +512,7 @@
       "information": "Dokument, eiendel eller behandlingsaktivitet",
       "other": "Post i CoreFlow (valgfritt)"
     },
-    "targetHint": "La stå tomt for å bruke planens RTO.",
+    "targetHint": "La stå tomt for å bruke planens mål for hvor fort det må være oppe igjen.",
     "membersHint": "Deltakelsen teller som opplæring for hver person.",
     "assetHint": "Serveren, skytjenesten eller systemet i eiendelsregisteret som tjenesten kjører på."
   },
@@ -686,10 +686,10 @@
     "retired": "Faset ut"
   },
   "readinessIssue": {
-    "rto_gap": "RTO for lang",
-    "rpo_gap": "RPO for lang",
-    "rto_capability_unknown": "RTO ukjent",
-    "rpo_capability_unknown": "RPO ukjent",
+    "rto_gap": "Kommer ikke opp igjen fort nok",
+    "rpo_gap": "Kan miste for mye data",
+    "rto_capability_unknown": "Ukjent hvor fort det kommer opp igjen",
+    "rpo_capability_unknown": "Ukjent hvor mye data som kan gå tapt",
     "never_tested": "Aldri testet",
     "test_overdue": "Test forfalt",
     "last_test_failed": "Siste test feilet",
@@ -699,7 +699,7 @@
     "plan_rpo_gap": "Mister for mye data for planen"
   },
   "readinessIssueHelp": {
-    "rto_gap": "Tjenesten bruker lengre tid på å gjenopprettes enn virksomheten tåler. Forbedre gjenopprettingsstrategien eller avtal en lengre RTO.",
+    "rto_gap": "Tjenesten bruker lengre tid på å komme opp igjen enn virksomheten tåler. Forbedre gjenopprettingen, eller avtal at det kan ta lengre tid (RTO).",
     "rpo_gap": "Mer data kan gå tapt enn virksomheten aksepterer. Ta sikkerhetskopi eller repliker oftere.",
     "rto_capability_unknown": "Ingen har registrert hvor raskt tjenesten kan gjenopprettes. Finn det ut, helst ved å teste.",
     "rpo_capability_unknown": "Ingen har registrert hvor mye data som kan gå tapt. Sjekk intervallet for sikkerhetskopi eller replikering.",
@@ -746,7 +746,7 @@
     "note_required": "Legg til en merknad som forklarer beslutningen.",
     "plan_required": "Velg planen som skal øves først.",
     "record_retired": "Denne posten er faset ut. Gjenopprett den før du endrer den.",
-    "rto_exceeds_mtpd": "RTO kan ikke være lengre enn MTPD.",
+    "rto_exceeds_mtpd": "Tiden det tar å komme opp igjen (RTO) kan ikke være lengre enn den lengste stansen dere tåler (MTPD).",
     "text_required": "Oppgi en tittel eller beskrivelse først.",
     "too_many_contacts": "Listen har nådd maksimalt antall kontakter.",
     "too_many_dependencies": "En konsekvensanalyse kan ha høyst 50 avhengigheter.",
@@ -867,7 +867,7 @@
   },
   "legend": {
     "lead": "Målene i radene:",
-    "rto": "RTO = tilbake innen",
+    "rto": "RTO = må være oppe igjen innen",
     "rpo": "RPO = mest data som kan gå tapt",
     "mtpd": "MTPD = lengste tillatte stans"
   },

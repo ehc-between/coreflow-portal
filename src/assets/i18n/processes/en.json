@@ -16,14 +16,14 @@
     "title": "Processes",
     "subtitle": "An overview of how the organisation works: which processes you have, who owns them and how you know they work.",
     "searchPlaceholder": "Search processes",
-    "interactionMap": "Interaction map",
+    "interactionMap": "How the work fits together",
     "new": "New process",
     "noMatches": "No processes match the search or filters.",
     "partOf": "Part of {{ code }}",
-    "steps": "{{ count }} steps in the map",
-    "stepsOne": "1 step in the map",
+    "steps": "{{ count }} steps in the workflow",
+    "stepsOne": "1 step in the workflow",
     "noOwner": "No owner",
-    "noMap": "No map yet",
+    "noMap": "No workflow drawn yet",
     "noMatchesTitle": "No matches",
     "clearFilters": "Clear the filters"
   },
@@ -98,7 +98,7 @@
     "create": "Create process",
     "sections": {
       "register": "Process basics",
-      "turtle": "Process on a page (turtle diagram)",
+      "turtle": "Process sheet (in, out, who, with what and how we measure)",
       "review": "Review",
       "basics": "Process basics"
     },
@@ -224,21 +224,21 @@
     "notFoundBody": "The process does not exist, has been deleted or you do not have access to it."
   },
   "turtle": {
-    "title": "Process on a page (turtle diagram)",
-    "label": "Process on a page",
-    "failed": "The process on a page could not be loaded.",
+    "title": "Process sheet (turtle diagram)",
+    "label": "Process sheet",
+    "failed": "The process sheet could not be loaded.",
     "none": "Nothing recorded yet",
     "owner": "Owner: {{ name }}",
     "upstream": "Receives from",
     "downstream": "Provides to",
     "resources": "With what (resources)",
     "competence": "With whom (competence)",
-    "inputs": "Inputs",
-    "outputs": "Outputs",
+    "inputs": "In (what the process receives)",
+    "outputs": "Out (what the process delivers)",
     "methods": "How (methods and procedures)",
     "kpis": "How measured (KPIs)",
     "risks": "Risks and opportunities",
-    "titleLead": "Process on a page",
+    "titleLead": "Process sheet",
     "titleTerm": "turtle diagram",
     "intro": "Everything the process needs and delivers in one place. Link real records so the process connects to the rest of the management system.",
     "link": "Link",
@@ -273,7 +273,7 @@
   },
   "interactions": {
     "title": "Interactions",
-    "openMap": "Open the interaction map",
+    "openMap": "See how the work fits together",
     "direction": {
       "outgoing": "Provides to",
       "incoming": "Receives from"
@@ -392,7 +392,7 @@
   },
   "interactionMap": {
     "back": "Back to processes",
-    "title": "Interaction map",
+    "title": "How the work fits together",
     "includeRetired": "Show retired processes",
     "empty": "No processes yet. Add processes and their interactions to see the map.",
     "svgLabel": "Map of all processes and how they interact",
@@ -555,7 +555,7 @@
   },
   "nav": {
     "register": "Process register",
-    "interactionMap": "Interaction map"
+    "interactionMap": "How the work fits together"
   },
   "frameworks": {
     "iso9001": "ISO 9001",
