@@ -27,7 +27,6 @@ import { RiskApi } from '../data/risk-api';
 import { standardDisplayName } from '../data/risk-display';
 import { riskErrorKey } from '../data/risk-errors';
 import { SoaStandard } from '../data/risk.models';
-import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { SoaProgress } from '../shared/soa-progress';
 
@@ -53,7 +52,6 @@ import { SoaProgress } from '../shared/soa-progress';
     HelpStrip,
     LoadingState,
     PageHeader,
-    RiskNav,
     SoaProgress,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,11 +61,10 @@ import { SoaProgress } from '../shared/soa-progress';
         titleKey="risk.soa.title"
         descriptionKey="risk.soa.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
+          { labelKey: 'modules.names.standards', link: '/standards' },
           { labelKey: 'risk.soa.title' },
         ]"
       />
-      <app-risk-nav />
       <app-help-strip scope="risk" page="soa" lesson="statement-of-applicability" />
 
       @switch (state()) {
@@ -97,7 +94,7 @@ import { SoaProgress } from '../shared/soa-progress';
                       'risk.soa.version.latest'
                         | transloco
                           : {
-                              version: v.version_no,
+                              version: v.revision,
                               date: (v.approved_at | localDay),
                               name: v.approved_by?.name ?? ('risk.common.unknown' | transloco),
                             }
@@ -137,7 +134,7 @@ import { SoaProgress } from '../shared/soa-progress';
                 <div class="mt-4 flex flex-wrap gap-2">
                   @if (s.entry_count > 0) {
                     <a
-                      [routerLink]="['/risk/soa', s.standard_key]"
+                      [routerLink]="['/standards', s.standard_key, 'soa']"
                       class="inline-flex h-8 items-center rounded-tile bg-accent px-3 text-ui font-semibold text-white hover:opacity-90"
                     >
                       {{ 'risk.soa.open' | transloco }}
@@ -240,7 +237,7 @@ export class SoaIndexPage {
       next: (res) => {
         this.generating.set(null);
         this.toasts.success('risk.soa.generated', { count: res.created });
-        void this.router.navigate(['/risk/soa', s.standard_key]);
+        void this.router.navigate(['/standards', s.standard_key, 'soa']);
       },
       error: (e: unknown) => {
         this.generating.set(null);

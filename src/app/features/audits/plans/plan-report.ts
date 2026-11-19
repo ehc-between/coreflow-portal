@@ -33,6 +33,7 @@ import { AuditReport, CHECKLIST_RESULTS, FINDING_TYPES } from '../data/audit.mod
 import { AuditsApi } from '../data/audits-api';
 import { AuditClauseRefs } from '../shared/clause-refs';
 import { AuditLoadState } from '../shared/load-state';
+import { OutputsPanel } from '../../../shared/outputs';
 import { loadable } from '../shared/loadable';
 
 /** File name of the downloaded report: `AUD-2026-002-revisjonsrapport.pdf`. */
@@ -65,6 +66,7 @@ export function reportFileName(code: string, suffix: string): string {
     StatusBadge,
     AuditClauseRefs,
     AuditLoadState,
+    OutputsPanel,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -87,6 +89,12 @@ export function reportFileName(code: string, suffix: string): string {
             {{ 'audits.report.print' | transloco }}
           </app-button>
         </app-page-header>
+        <app-outputs-panel
+          class="mb-4"
+          entityType="audit_plan"
+          [entityId]="id()"
+          data-testid="report-snapshots"
+        />
       </div>
       <app-audit-load-state [state]="data.state()" [rows]="8" (retry)="load()" />
       @if (data.value(); as r) {

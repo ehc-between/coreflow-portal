@@ -23,6 +23,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { TrainingApi } from '../data/training-api';
 import { TRAINING_MODULE, trainingErrorKey } from '../data/training-display';
 import { Certificate } from '../data/training.models';
+import { OutputsPanel } from '../../../shared/outputs';
 import { PrintChrome } from '../shared/print-chrome';
 
 /** The absolute verification URL of a certificate (`<origin>/verify/certificate/<code>`). */
@@ -54,6 +55,7 @@ export function verifyUrl(
     PageHeader,
     PrintChrome,
     QrCode,
+    OutputsPanel,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -75,6 +77,12 @@ export function verifyUrl(
             </app-button>
           }
         </app-page-header>
+        <app-outputs-panel
+          class="mb-4"
+          entityType="training_record"
+          [entityId]="id()"
+          data-testid="report-snapshots"
+        />
       </div>
 
       @if (certificate(); as c) {

@@ -6,7 +6,8 @@
     "opportunities": "Muligheter",
     "soa": "Anvendelseserklæring",
     "registers": "Registre",
-    "matrices": "Matriser"
+    "matrices": "Matriser",
+    "treatments": "Tiltak"
   },
   "common": {
     "loading": "Laster …",
@@ -555,25 +556,26 @@
       "done": "{{ count }} kontroller er endret."
     },
     "version": {
-      "approve": "Godkjenn versjon",
-      "approveTitle": "Godkjenn denne versjonen",
-      "approveMessage": "En fast kopi av {{ name }} lagres med ditt navn og dagens dato. Senere endringer krever en ny versjon.",
+      "approve": "Godkjenn og publiser",
+      "approveTitle": "Godkjenn og publiser en ny revisjon",
+      "approveMessage": "{{ name }} publiseres som en ny revisjon (rev. A, B, …) med ditt navn og dagens dato. Senere endringer krever en ny revisjon.",
       "approveConfirm": "Godkjenn",
       "signer": "Du godkjenner som: {{ name }}",
       "note": "Notat (valgfritt)",
-      "approved": "Versjon {{ version }} er godkjent.",
-      "latest": "Sist godkjent: versjon {{ version }}, {{ date }} av {{ name }}",
+      "approved": "Revisjon {{ version }} er godkjent og publisert.",
+      "latest": "Sist godkjent: revisjon {{ version }}, {{ date }} av {{ name }}",
       "none": "Ikke godkjent ennå",
       "changed": "Endret etter godkjenning",
       "blocked": "Alle kontroller må ha en begrunnelse før du kan godkjenne.",
-      "blockedHint": "{{ count }} kontroller mangler fortsatt begrunnelse. Når alle er tatt stilling til, kan du godkjenne en versjon.",
-      "history": "Versjonshistorikk",
-      "label": "Versjon {{ version }}",
+      "blockedHint": "{{ count }} kontroller mangler fortsatt begrunnelse. Når alle er tatt stilling til, kan du godkjenne og publisere en revisjon.",
+      "history": "Revisjonshistorikk",
+      "label": "Revisjon {{ version }}",
       "approvedBy": "Godkjent av {{ name }} {{ date }}",
-      "empty": "Ingen godkjente versjoner ennå."
+      "empty": "Ingen godkjente revisjoner ennå."
     },
     "excludedDelta": "Hver må begrunnes",
-    "showMissingShort": "Vis dem"
+    "showMissingShort": "Vis dem",
+    "documents": "Dokumenter og rapporter"
   },
   "registers": {
     "title": "Risikoregistre",

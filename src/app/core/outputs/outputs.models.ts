@@ -95,6 +95,10 @@ export interface Output {
   readonly has_preflight: boolean;
   /** False for own-flow outputs: they cannot be generated here. */
   readonly generates: boolean;
+  /** Register exports (U15): the filters the register accepts (`q`, `status`, `from`, `to`). */
+  readonly filter_params?: readonly string[];
+  /** Register exports: the status values the `status` filter accepts. */
+  readonly statuses?: readonly string[];
   /** Null until the subject is known (standard_key / entity_id). */
   readonly readiness: OutputReadiness | null;
   readonly last: LastGenerated | null;

@@ -1,0 +1,37 @@
+{
+  "more": {
+    "title": "Flere felt ({{ count }})",
+    "hint": "Valgfritt. Fyll dem ut nå eller senere."
+  },
+  "complete": {
+    "title": "Fullfør posten",
+    "progress": "{{ done }} av {{ total }} utfylt",
+    "groupProgress": "{{ done }} av {{ total }}",
+    "fill": "Fyll ut",
+    "doneSr": "utfylt",
+    "otherSection": "Andre opplysninger",
+    "reason": {
+      "audit": "Dette ser en revisor etter for å sjekke at saken ble fulgt opp riktig.",
+      "quick": "Trengs for å følge opp saken."
+    },
+    "groups": {
+      "event": {
+        "title": "Hva skjedde",
+        "reason": "Viser hva som skjedde, hvor, og hva som ble gjort med en gang."
+      },
+      "followUp": {
+        "title": "Oppfølging",
+        "reason": "Noen må eie saken, ha en frist og finne årsaken før den kan lukkes."
+      }
+    },
+    "fields": {
+      "description": "Beskrivelse",
+      "occurredAt": "Når det skjedde",
+      "location": "Hvor det skjedde",
+      "immediateAction": "Strakstiltak",
+      "owner": "Ansvarlig",
+      "dueAt": "Frist",
+      "rootCause": "Årsak"
+    }
+  }
+}

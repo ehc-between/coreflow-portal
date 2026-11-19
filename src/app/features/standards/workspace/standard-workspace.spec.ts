@@ -6,6 +6,7 @@ import { Router, provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AuthService } from '../../../core/auth/auth.service';
 import { APP_CONFIG } from '../../../core/config/app-config';
+import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { computeRollup } from '../../../core/standards/standards-data';
 import {
@@ -138,6 +139,8 @@ describe('StandardWorkspace', () => {
           provide: AuthService,
           useValue: { orgs: signal({}).asReadonly(), isAuthenticated: () => true },
         },
+        // U17: the SoA link asks whether the risk module is on.
+        { provide: ModuleService, useValue: { isEnabled: () => true } },
         {
           provide: SelectedOrgService,
           useValue: {
@@ -203,6 +206,11 @@ describe('StandardWorkspace', () => {
         ),
       );
     flushLocationRequests(http); // requirement-locations (L4)
+    // U12: the standard's "Dokumenter og rapporter" cards.
+    http
+      .match((r) => r.url.endsWith('/outputs'))
+      .filter((r) => !r.cancelled)
+      .forEach((r) => r.flush({ items: [], audiences: [], kinds: [] }));
     http.verify();
     vi.restoreAllMocks();
   });

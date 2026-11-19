@@ -166,6 +166,7 @@ export function toInspectionQuery(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="inspections"
       titleKey="modules.names.inspections"
       descriptionKey="inspections.list.subtitle"
       scope="inspections"

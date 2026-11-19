@@ -5,3 +5,9 @@ export { OutputsLink, LIBRARY_PATH } from './outputs-link';
 export { LibraryNav, LIBRARY_SECTIONS } from './library-nav';
 export * from './output-display';
 export { GeneratedRow } from './generated-row';
+export {
+  RegisterExport,
+  registerExportFilters,
+  registerOutputKey,
+  type ListFilters,
+} from './register-export';

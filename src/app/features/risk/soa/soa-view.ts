@@ -38,6 +38,7 @@ import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
+import { OutputsPanel } from '../../../shared/outputs';
 import { RiskApi } from '../data/risk-api';
 import { implementationValue, saveBlob, standardDisplayName } from '../data/risk-display';
 import { riskErrorKey } from '../data/risk-errors';
@@ -55,7 +56,6 @@ import {
 } from '../data/risk.models';
 import { PersonSelect } from '../shared/person-select';
 import { RiskField } from '../shared/risk-field';
-import { RiskNav } from '../shared/risk-nav';
 import { RiskPermissions } from '../shared/risk-permissions';
 import { SoaProgress } from '../shared/soa-progress';
 import { SubjectPicker } from '../shared/subject-picker';
@@ -211,7 +211,7 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
     StatusBadge,
     PersonSelect,
     RiskField,
-    RiskNav,
+    OutputsPanel,
     SoaProgress,
     SubjectPicker,
   ],
@@ -223,8 +223,8 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
         [titleKey]="'risk.soa.title'"
         descriptionKey="risk.soa.viewSubtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.risk', link: '/risk' },
-          { labelKey: 'risk.soa.title', link: '/risk/soa' },
+          { labelKey: 'modules.names.standards', link: '/standards' },
+          { labelKey: 'risk.soa.title', link: '/standards/soa' },
           { label: name() },
         ]"
       >
@@ -236,7 +236,7 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
                   'risk.soa.version.latest'
                     | transloco
                       : {
-                          version: v.version_no,
+                          version: v.revision,
                           date: (v.approved_at | localDay),
                           name: v.approved_by?.name ?? ('risk.common.unknown' | transloco),
                         }
@@ -286,7 +286,6 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
           </button>
         }
       </app-page-header>
-      <app-risk-nav />
       <app-help-strip scope="risk" page="soaView" lesson="statement-of-applicability" tour="soa" />
 
       @if (state() === 'error') {
@@ -309,6 +308,14 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
               }}
             </p>
           }
+          <!-- U17: the SoA as a controlled document (branded PDF / Word of the approved
+               revision), with the treatment plan and the risk assessment report. -->
+          <section class="mb-4" data-testid="soa-documents">
+            <h2 class="mb-2.5 font-display text-section font-bold text-fg">
+              {{ 'risk.soa.documents' | transloco }}
+            </h2>
+            <app-outputs-panel module="risk" kind="compiled_controlled" [standardKey]="key()" />
+          </section>
           <div class="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
             <app-card>
               <app-soa-progress
@@ -944,7 +951,7 @@ const SOA_FIELD_LABELS: Readonly<Record<string, string>> = {
         @for (v of versions(); track v.id) {
           <li class="py-3">
             <p class="text-body font-semibold text-fg">
-              {{ 'risk.soa.version.label' | transloco: { version: v.version_no } }}
+              {{ 'risk.soa.version.label' | transloco: { version: v.revision } }}
             </p>
             <p class="text-meta text-fg-muted">
               {{
@@ -1377,7 +1384,7 @@ export class SoaViewPage {
       next: (v) => {
         this.saving.set(false);
         this.approveOpen.set(false);
-        this.toasts.success('risk.soa.version.approved', { version: v.version_no });
+        this.toasts.success('risk.soa.version.approved', { version: v.revision });
         this.load(orgId, this.key());
       },
       error: (e: unknown) => {

@@ -591,6 +591,8 @@ export interface SoaVersion {
   readonly id: string;
   readonly standard_key: string;
   readonly version_no: number;
+  /** U17: the revision letter ("A", "B", …; version 1 = Rev A). */
+  readonly revision: string;
   readonly note: string | null;
   readonly approved_by: UserRef | null;
   readonly approved_at: string;

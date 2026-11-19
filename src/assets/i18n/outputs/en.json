@@ -77,6 +77,7 @@
   },
   "actions": {
     "make": "Make document",
+    "export": "Export",
     "makeAnyway": "Make it anyway",
     "download": "Download",
     "openVersion": "Open the saved version",

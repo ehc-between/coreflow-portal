@@ -178,6 +178,7 @@ export function kpiTiles(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="kpis"
       titleKey="objectives.kpiList.title"
       descriptionKey="objectives.kpiList.description"
       [breadcrumbs]="breadcrumbs"

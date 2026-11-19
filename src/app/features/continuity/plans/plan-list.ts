@@ -132,6 +132,7 @@ const SELECT =
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="continuity_plans"
       titleKey="continuity.nav.plans"
       descriptionKey="continuity.plans.subtitle"
       scope="continuity"

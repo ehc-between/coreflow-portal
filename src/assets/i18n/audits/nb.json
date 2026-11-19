@@ -108,6 +108,7 @@
     "planStatus": {
       "unresolved": "Åpne revisjoner",
       "all": "Alle statuser",
+      "signed": "Signert (rapport godkjent)",
       "planned": "Planlagt",
       "in_progress": "Pågår",
       "reporting": "Rapportering",

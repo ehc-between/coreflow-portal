@@ -35,6 +35,7 @@ import {
 } from '../../../core/standards/standards-display';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { OutputsLink } from '../../../shared/outputs/outputs-link';
+import { OutputsPanel } from '../../../shared/outputs/outputs-panel';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -42,6 +43,7 @@ import { pluralKey } from '../../../shared/i18n/plural';
 import { fixedShortName, frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { AiAvailability, isAiNotConfigured } from '../../../core/ai/ai-availability';
 import { HasPermissionDirective } from '../../../core/auth/has-permission.directive';
+import { ModuleService } from '../../../core/modules/module.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { StandardsApi } from '../../../core/standards/standards-api';
@@ -170,6 +172,7 @@ function clampWidth(width: number): number {
   imports: [
     RouterLink,
     OutputsLink,
+    OutputsPanel,
     TranslocoPipe,
     HasPermissionDirective,
     Attachments,
@@ -383,6 +386,18 @@ function clampWidth(width: number): number {
                   }}</span>
                 </a>
               }
+              @if (hasSoa(std.key)) {
+                <!-- U17: the Statement of Applicability lives on the standard page. -->
+                <a
+                  *appHasPermission="'risk:read'"
+                  [routerLink]="['/standards', std.key, 'soa']"
+                  class="inline-flex h-8 items-center gap-1.5 rounded-tile border border-border bg-surface px-2.5 text-meta font-semibold text-fg hover:border-border-strong hover:bg-surface-2"
+                  data-testid="workspace-soa-link"
+                >
+                  <app-icon name="shield" [size]="14" />
+                  {{ 'standards.workspace.soa' | transloco }}
+                </a>
+              }
               @if (std.org_standard_id) {
                 <app-button variant="secondary" size="sm" (click)="openLicensedPanel()">
                   <app-icon name="lock" [size]="14" />
@@ -538,6 +553,13 @@ function clampWidth(width: number): number {
                 @if (std.enabled) {
                   <!-- U11: "Dokumenter du kan hente ut" for this standard (the library, filtered). -->
                   <app-outputs-link class="mt-3 inline-block" [standard]="std.key" />
+                  <!-- U12: the standard's documents right here ("Lag dokument" in one click). -->
+                  <app-outputs-panel
+                    class="mt-3"
+                    [standardKey]="std.key"
+                    [excludeKinds]="registerExportKinds"
+                    data-testid="standard-outputs"
+                  />
                 }
                 @if (!std.enabled) {
                   <div
@@ -687,6 +709,8 @@ function clampWidth(width: number): number {
   `,
 })
 export class StandardWorkspace {
+  /** Register tables stay in the library; the standard page shows its documents. */
+  protected readonly registerExportKinds = ['register_export'] as const;
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
@@ -749,6 +773,12 @@ export class StandardWorkspace {
   protected readonly suggesting = signal(false);
   protected readonly exporting = signal(false);
   protected readonly exportFormats: readonly ExportFormat[] = ['xlsx', 'csv', 'pdf'];
+  private readonly modules = inject(ModuleService);
+
+  /** U17: standards with an Annex A Statement of Applicability (kept by the risk module). */
+  protected hasSoa(key: string): boolean {
+    return /^iso(27001|42001)(-|$)/.test(key) && this.modules.isEnabled('risk');
+  }
   private readonly dismissedBanners = signal<ReadonlySet<string>>(new Set());
   private readonly notifications = inject(NotificationService);
   private readonly attachmentsApi = inject(AttachmentsApi);

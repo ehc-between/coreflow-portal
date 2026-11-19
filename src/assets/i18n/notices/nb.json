@@ -1,0 +1,27 @@
+{
+  "title": "Varsling",
+  "intro": "Utkast til meldingene denne saken krever, laget fra det du har registrert. Kopier hver del inn i skjemaet i Altinn.",
+  "to": "Til: {{ recipient }}",
+  "due": "Frist: {{ date }}",
+  "withoutDelay": "Sendes uten ugrunnet opphold",
+  "sentOn": "Sendt {{ date }}",
+  "reference": "Referanse {{ ref }}",
+  "showDraft": "Vis utkast",
+  "hideDraft": "Skjul utkast",
+  "missingCount": "{{ count }} mangler",
+  "missing": "Mangler. Fyll ut dette på saken først.",
+  "optional": "Ikke fylt ut (valgfritt)",
+  "copy": "Kopier",
+  "copyPart": "Kopier {{ part }}",
+  "copyAll": "Kopier alt",
+  "copied": "Kopiert",
+  "save": "Lagre som dokument",
+  "saveFailed": "Kunne ikke åpne dokumentet. Prøv igjen.",
+  "status": {
+    "pending": "Ikke sendt",
+    "overdue": "Forfalt",
+    "sent": "Sendt",
+    "not_required": "Ikke påkrevd",
+    "closed_unreported": "Lukket uten melding"
+  }
+}

@@ -67,6 +67,7 @@ import {
   revisionFieldLabels,
 } from './data/privacy-registers';
 import { BreachPanel, DecisionPanel, DpiaSteps, DsrPanel } from './detail-panels';
+import { NoticePanel } from '../../shared/notices/notice-panel';
 import { DsrHandling } from './dsr-handling';
 import { PrivacyGaps } from './privacy-gaps';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
@@ -174,6 +175,7 @@ const BREACH_FLOWS = [
     PromptDialog,
     StatusBadge,
     BreachPanel,
+    NoticePanel,
     DecisionPanel,
     DpiaSteps,
     DsrPanel,
@@ -346,6 +348,12 @@ const BREACH_FLOWS = [
                 }
                 @case ('breach') {
                   <app-privacy-breach-panel [breach]="asBreach()" [canWrite]="canWrite()" />
+                  <app-notice-panel
+                    [path]="'privacy/breaches/' + asBreach().id + '/notices'"
+                    [entityId]="asBreach().id"
+                    [version]="asBreach().updated_at"
+                    [canSave]="canWrite()"
+                  />
                   @if (breachFlows().length) {
                     <app-card>
                       <h2 class="mb-1 font-display text-card font-bold text-fg">

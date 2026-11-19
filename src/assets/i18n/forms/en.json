@@ -1,0 +1,37 @@
+{
+  "more": {
+    "title": "More fields ({{ count }})",
+    "hint": "Optional. Fill them in now or later."
+  },
+  "complete": {
+    "title": "Complete the record",
+    "progress": "{{ done }} of {{ total }} filled in",
+    "groupProgress": "{{ done }} of {{ total }}",
+    "fill": "Fill in",
+    "doneSr": "filled in",
+    "otherSection": "Other details",
+    "reason": {
+      "audit": "An auditor looks for this when checking that the case was handled properly.",
+      "quick": "Needed to follow the case up."
+    },
+    "groups": {
+      "event": {
+        "title": "What happened",
+        "reason": "Shows what happened, where, and what was done straight away."
+      },
+      "followUp": {
+        "title": "Follow-up",
+        "reason": "Someone must own the case, have a deadline and find the cause before it can be closed."
+      }
+    },
+    "fields": {
+      "description": "Description",
+      "occurredAt": "When it happened",
+      "location": "Where it happened",
+      "immediateAction": "Immediate action",
+      "owner": "Owner",
+      "dueAt": "Deadline",
+      "rootCause": "Root cause"
+    }
+  }
+}

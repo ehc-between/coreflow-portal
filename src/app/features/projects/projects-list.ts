@@ -131,6 +131,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="projects"
       titleKey="modules.names.projects"
       descriptionKey="projects.list.subtitle"
       [breadcrumbs]="[{ labelKey: 'modules.names.projects' }]"

@@ -320,13 +320,13 @@ export function departmentIdOf(value: string): string | null {
   return value.startsWith('department:') ? value.slice(11) || null : null;
 }
 
-/** Portal route of a SoA control (`/risk/soa/<key>?control=<ref>`) as router parts. */
+/** Portal route of a SoA control (`/standards/<key>/soa?control=<ref>`) as router parts. */
 export function soaLink(ref: string): { path: string[]; control: string } | null {
   const at = ref.indexOf(':');
   if (at <= 0) {
     return null;
   }
-  return { path: ['/risk/soa', ref.slice(0, at)], control: ref.slice(at + 1) };
+  return { path: ['/standards', ref.slice(0, at), 'soa'], control: ref.slice(at + 1) };
 }
 
 // --- what the numbers on a risk mean ---------------------------------------------

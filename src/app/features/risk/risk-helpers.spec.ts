@@ -66,7 +66,7 @@ describe('risk display helpers', () => {
     expect(fromDateInput('2026-11-12')).toBe('2026-11-12T00:00:00');
     expect(fromDateInput('')).toBeNull();
     expect(soaLink('iso27001-2022:A.5.15')).toEqual({
-      path: ['/risk/soa', 'iso27001-2022'],
+      path: ['/standards', 'iso27001-2022', 'soa'],
       control: 'A.5.15',
     });
     expect(soaLink('bad')).toBeNull();
@@ -244,7 +244,7 @@ describe('A06 connected-risk helpers', () => {
     const [row] = controlsOf({ control_refs: ['iso27001-2022:A.8.13'] });
     expect(row.ref).toBe('iso27001:A.8.13');
     expect(row.number).toBe('A.8.13');
-    expect(row.url).toBe('/risk/soa/iso27001-2022?control=A.8.13');
+    expect(row.url).toBe('/standards/iso27001-2022/soa?control=A.8.13');
   });
 
   it('judges the current rating and the appetite like the backend', () => {

@@ -215,6 +215,7 @@ interface Summary {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="assets"
       titleKey="modules.names.assets"
       descriptionKey="assets.list.subtitle"
       scope="assets"

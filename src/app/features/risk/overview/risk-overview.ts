@@ -348,14 +348,14 @@ type LoadState = 'loading' | 'ready' | 'error';
                         }}</app-term>
                       </h2>
                       <a
-                        routerLink="/risk/soa"
+                        routerLink="/standards/soa"
                         class="text-meta font-semibold text-accent hover:underline"
                         >{{ 'risk.overview.seeAll' | transloco }}</a
                       >
                     </div>
                     @for (s of o.soa; track s.standard_key) {
                       <a
-                        [routerLink]="['/risk/soa', s.standard_key]"
+                        [routerLink]="['/standards', s.standard_key, 'soa']"
                         class="mb-4 block rounded-tile p-1 last:mb-0 hover:bg-surface-2"
                       >
                         <p class="mb-2 text-ui font-semibold text-fg">
@@ -373,7 +373,7 @@ type LoadState = 'loading' | 'ready' | 'error';
                         {{ 'risk.overview.noSoa' | transloco }}
                       </p>
                       <a
-                        routerLink="/risk/soa"
+                        routerLink="/standards/soa"
                         class="mt-2 inline-block text-ui font-semibold text-accent hover:underline"
                         >{{ 'risk.overview.openSoa' | transloco }}</a
                       >

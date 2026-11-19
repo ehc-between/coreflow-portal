@@ -109,6 +109,7 @@ export function sjaSortKey(sort: SjaSort): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="safe_job_analyses"
       titleKey="hse.sja.list.title"
       descriptionKey="hse.sja.list.subtitle"
       scope="hse"
