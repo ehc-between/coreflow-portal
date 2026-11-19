@@ -34,8 +34,6 @@ import {
   standardName,
 } from '../../../core/standards/standards-display';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
-import { OutputsLink } from '../../../shared/outputs/outputs-link';
-import { OutputsPanel } from '../../../shared/outputs/outputs-panel';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -68,6 +66,8 @@ import { requirementAnchorId } from '../requirement-card';
 import { ClauseSection, LicensedState, SectionLink } from './clause-section';
 import { MappingStatus } from './mapping-status';
 import { StandardToc } from './standard-toc';
+import { HubTab, STANDARD_TABS, StandardHub, StandardTab, initialTab } from './standard-hub';
+import { hasJourney, journeyUrl } from '../../dashboard/data/home-format';
 import {
   RenderUnit,
   SectionView,
@@ -171,8 +171,6 @@ function clampWidth(width: number): number {
   selector: 'app-standard-workspace',
   imports: [
     RouterLink,
-    OutputsLink,
-    OutputsPanel,
     TranslocoPipe,
     HasPermissionDirective,
     Attachments,
@@ -189,6 +187,7 @@ function clampWidth(width: number): number {
     ClauseSection,
     MappingStatus,
     StandardToc,
+    StandardHub,
     NearViewport,
   ],
   providers: [WorkspaceScroll],
@@ -218,45 +217,47 @@ function clampWidth(width: number): number {
             (click)="closeDrawer()"
           ></button>
         }
-        <aside
-          #tocAside
-          id="standard-toc"
-          class="flex-col border-r border-border bg-surface outline-none"
-          tabindex="-1"
-          [class]="tocClasses()"
-          [style.width.px]="isDesktop() ? tocWidth() : null"
-          [attr.inert]="tocInert() ? '' : null"
-          [attr.role]="drawerModal() ? 'dialog' : null"
-          [attr.aria-modal]="drawerModal() ? 'true' : null"
-          [attr.aria-label]="drawerModal() ? ('standards.workspace.contents' | transloco) : null"
-          (keydown)="onDrawerKeydown($event)"
-        >
-          <app-standard-toc
-            class="block h-full"
-            [rows]="tocRows()"
-            [standardKey]="std.key"
-            [standardName]="std.name"
-            [active]="active()"
-            [activePath]="activePathSet()"
-            [query]="tocQuery()"
-            [gapsOnly]="gapsOnly()"
-            [gapCount]="gapCount()"
-            [suggestionsOnly]="suggestionsOnly()"
-            [suggestionCount]="suggestionCount()"
-            [staleOnly]="staleOnly()"
-            [staleCount]="staleCount()"
-            [drawer]="!isDesktop()"
-            (queryChange)="tocQuery.set($event)"
-            (gapsOnlyChange)="setGapsOnly($event)"
-            (suggestionsOnlyChange)="setSuggestionsOnly($event)"
-            (staleOnlyChange)="setStaleOnly($event)"
-            (nodeToggled)="toggleTocNode($event)"
-            (navigate)="onNavigate($event)"
-            (collapseAll)="collapseToc()"
-            (hide)="hideToc()"
-          />
-        </aside>
-        @if (isDesktop() && !tocHidden()) {
+        @if (view() === 'requirements') {
+          <aside
+            #tocAside
+            id="standard-toc"
+            class="flex-col border-r border-border bg-surface outline-none"
+            tabindex="-1"
+            [class]="tocClasses()"
+            [style.width.px]="isDesktop() ? tocWidth() : null"
+            [attr.inert]="tocInert() ? '' : null"
+            [attr.role]="drawerModal() ? 'dialog' : null"
+            [attr.aria-modal]="drawerModal() ? 'true' : null"
+            [attr.aria-label]="drawerModal() ? ('standards.workspace.contents' | transloco) : null"
+            (keydown)="onDrawerKeydown($event)"
+          >
+            <app-standard-toc
+              class="block h-full"
+              [rows]="tocRows()"
+              [standardKey]="std.key"
+              [standardName]="std.name"
+              [active]="active()"
+              [activePath]="activePathSet()"
+              [query]="tocQuery()"
+              [gapsOnly]="gapsOnly()"
+              [gapCount]="gapCount()"
+              [suggestionsOnly]="suggestionsOnly()"
+              [suggestionCount]="suggestionCount()"
+              [staleOnly]="staleOnly()"
+              [staleCount]="staleCount()"
+              [drawer]="!isDesktop()"
+              (queryChange)="tocQuery.set($event)"
+              (gapsOnlyChange)="setGapsOnly($event)"
+              (suggestionsOnlyChange)="setSuggestionsOnly($event)"
+              (staleOnlyChange)="setStaleOnly($event)"
+              (nodeToggled)="toggleTocNode($event)"
+              (navigate)="onNavigate($event)"
+              (collapseAll)="collapseToc()"
+              (hide)="hideToc()"
+            />
+          </aside>
+        }
+        @if (view() === 'requirements' && isDesktop() && !tocHidden()) {
           <div
             role="separator"
             tabindex="0"
@@ -277,7 +278,7 @@ function clampWidth(width: number): number {
           <header
             class="flex flex-none items-center gap-3 border-b border-border bg-surface px-3 py-2 sm:px-4"
           >
-            @if (!isDesktop() || tocHidden()) {
+            @if (view() === 'requirements' && (!isDesktop() || tocHidden())) {
               <button
                 #tocButton
                 type="button"
@@ -315,59 +316,63 @@ function clampWidth(width: number): number {
                       : { covered: completeness().covered, total: completeness().applicable }
                 }}</span>
               </div>
-              <nav [attr.aria-label]="'standards.workspace.breadcrumb' | transloco">
-                <ol class="flex min-w-0 items-center gap-1 text-meta text-fg-muted">
-                  @for (crumb of breadcrumb(); track crumb.number; let last = $last) {
-                    <li
-                      class="min-w-0 items-center gap-1"
-                      [class]="last ? 'flex' : 'hidden sm:flex'"
-                    >
-                      @if (last) {
-                        <span class="truncate font-medium text-fg"
-                          ><span class="font-mono text-fg-subtle">{{ crumb.label }}</span>
-                          {{ text(crumb.title) }}</span
-                        >
-                      } @else {
-                        <a
-                          [routerLink]="['/standards', std.key, crumb.segment]"
-                          class="max-w-[180px] truncate hover:text-accent"
-                          (click)="onNavigateLink($event, crumb.number)"
-                          ><span class="font-mono">{{ crumb.label }}</span>
-                          {{ text(crumb.title) }}</a
-                        >
-                        <span class="flex-none text-fg-subtle" aria-hidden="true">›</span>
-                      }
-                    </li>
-                  }
-                </ol>
-              </nav>
+              @if (view() === 'requirements') {
+                <nav [attr.aria-label]="'standards.workspace.breadcrumb' | transloco">
+                  <ol class="flex min-w-0 items-center gap-1 text-meta text-fg-muted">
+                    @for (crumb of breadcrumb(); track crumb.number; let last = $last) {
+                      <li
+                        class="min-w-0 items-center gap-1"
+                        [class]="last ? 'flex' : 'hidden sm:flex'"
+                      >
+                        @if (last) {
+                          <span class="truncate font-medium text-fg"
+                            ><span class="font-mono text-fg-subtle">{{ crumb.label }}</span>
+                            {{ text(crumb.title) }}</span
+                          >
+                        } @else {
+                          <a
+                            [routerLink]="['/standards', std.key, crumb.segment]"
+                            class="max-w-[180px] truncate hover:text-accent"
+                            (click)="onNavigateLink($event, crumb.number)"
+                            ><span class="font-mono">{{ crumb.label }}</span>
+                            {{ text(crumb.title) }}</a
+                          >
+                          <span class="flex-none text-fg-subtle" aria-hidden="true">›</span>
+                        }
+                      </li>
+                    }
+                  </ol>
+                </nav>
+              }
             </div>
 
             <div class="flex flex-none items-center gap-1">
-              <a
-                class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
-                [class.pointer-events-none]="!nav().prev"
-                [class.opacity-40]="!nav().prev"
-                [attr.aria-disabled]="!nav().prev"
-                [routerLink]="nav().prev ? ['/standards', std.key, segmentOf(nav().prev)] : null"
-                [attr.aria-label]="'standards.workspace.previous' | transloco"
-                [title]="('standards.workspace.previous' | transloco) + ' (k)'"
-                (click)="onNavigateLink($event, nav().prev)"
-              >
-                <app-icon name="chevron" [size]="17" class="rotate-180" />
-              </a>
-              <a
-                class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
-                [class.pointer-events-none]="!nav().next"
-                [class.opacity-40]="!nav().next"
-                [attr.aria-disabled]="!nav().next"
-                [routerLink]="nav().next ? ['/standards', std.key, segmentOf(nav().next)] : null"
-                [attr.aria-label]="'standards.workspace.next' | transloco"
-                [title]="('standards.workspace.next' | transloco) + ' (j)'"
-                (click)="onNavigateLink($event, nav().next)"
-              >
-                <app-icon name="chevron" [size]="17" />
-              </a>
+              @if (view() === 'requirements') {
+                <a
+                  class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+                  [class.pointer-events-none]="!nav().prev"
+                  [class.opacity-40]="!nav().prev"
+                  [attr.aria-disabled]="!nav().prev"
+                  [routerLink]="nav().prev ? ['/standards', std.key, segmentOf(nav().prev)] : null"
+                  [attr.aria-label]="'standards.workspace.previous' | transloco"
+                  [title]="('standards.workspace.previous' | transloco) + ' (k)'"
+                  (click)="onNavigateLink($event, nav().prev)"
+                >
+                  <app-icon name="chevron" [size]="17" class="rotate-180" />
+                </a>
+                <a
+                  class="flex rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+                  [class.pointer-events-none]="!nav().next"
+                  [class.opacity-40]="!nav().next"
+                  [attr.aria-disabled]="!nav().next"
+                  [routerLink]="nav().next ? ['/standards', std.key, segmentOf(nav().next)] : null"
+                  [attr.aria-label]="'standards.workspace.next' | transloco"
+                  [title]="('standards.workspace.next' | transloco) + ' (j)'"
+                  (click)="onNavigateLink($event, nav().next)"
+                >
+                  <app-icon name="chevron" [size]="17" />
+                </a>
+              }
               @if (std.enabled && gapCount() > 0) {
                 <a
                   [routerLink]="['/standards/gaps', std.key]"
@@ -486,161 +491,207 @@ function clampWidth(width: number): number {
             </div>
           }
 
-          <!-- Document -->
-          <div #scroller class="min-h-0 flex-1 overflow-y-auto" tabindex="-1">
-            <article class="mx-auto w-full max-w-[800px] px-5 pt-8 pb-[40vh] sm:px-10">
-              <div class="border-b border-border pb-6">
-                <div class="mb-1 flex flex-wrap items-center gap-2">
-                  <app-badge [tone]="legalFormTone(form())">{{
-                    legalFormKey(form()) | transloco
-                  }}</app-badge>
-                  <span class="text-meta font-semibold text-fg-subtle">{{
-                    editionKey(form()) | transloco: { edition: std.edition }
-                  }}</span>
-                </div>
-                <h1 class="font-display text-page leading-tight font-bold text-fg">
-                  {{ stdName() }}
-                </h1>
-                <p class="mt-2 text-body text-fg-muted">
-                  <span [title]="'standards.scoreHint' | transloco"
-                    >{{ 'standards.scoreLine' | transloco: { pct: headline() } }} ·</span
-                  >
-                  {{
-                    'standards.view.coveredOf'
-                      | transloco
-                        : { covered: completeness().covered, total: completeness().applicable }
-                  }}
-                  @if (gapsOnly()) {
-                    ·
-                    <app-badge tone="warn">{{
-                      'standards.workspace.onlyGaps' | transloco
-                    }}</app-badge>
-                  }
-                  @if (staleOnly()) {
-                    ·
-                    <app-badge tone="warn">{{
-                      'standards.workspace.onlyStale' | transloco
-                    }}</app-badge>
-                  }
-                  @if (suggestionsOnly()) {
-                    ·
-                    <app-badge tone="accent">{{
-                      'standards.workspace.hasAiSuggestions' | transloco
-                    }}</app-badge>
-                  }
-                </p>
-                @if (std.certification; as cert) {
-                  <p class="mt-1.5 text-meta text-fg-muted" data-testid="workspace-certification">
-                    <a
-                      [href]="cert.url"
-                      class="font-semibold text-accent hover:underline"
-                      (click)="navigateTo($event, cert.url)"
-                      >{{
-                        'standards.cert.label' | transloco: { body: cert.certification_body }
-                      }}</a
-                    >
-                    · {{ certStatusKey(cert.status) | transloco }}
-                    @if (cert.next_surveillance_at) {
-                      ·
-                      {{
-                        'standards.cert.nextSurveillance'
-                          | transloco
-                            : { date: (cert.next_surveillance_at | localDate: 'mediumDate') }
-                      }}
-                    }
-                  </p>
-                }
-                @if (std.enabled) {
-                  <!-- U11: "Dokumenter du kan hente ut" for this standard (the library, filtered). -->
-                  <app-outputs-link class="mt-3 inline-block" [standard]="std.key" />
-                  <!-- U12: the standard's documents right here ("Lag dokument" in one click). -->
-                  <app-outputs-panel
-                    class="mt-3"
-                    [standardKey]="std.key"
-                    [excludeKinds]="registerExportKinds"
-                    data-testid="standard-outputs"
-                  />
-                }
-                @if (!std.enabled) {
-                  <div
-                    class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg-muted"
-                  >
-                    {{ 'standards.view.notEnabled' | transloco }}
-                  </div>
-                }
-              </div>
+          @if (std.enabled) {
+            <!-- U19: the standard's tabs -->
+            <nav
+              class="flex flex-none gap-1 overflow-x-auto border-b border-border bg-surface px-3 sm:px-4"
+              [attr.aria-label]="'standards.hub.tabsLabel' | transloco"
+              data-testid="standard-tabs"
+            >
+              @for (t of tabs; track t) {
+                <a
+                  [routerLink]="['/standards', std.key]"
+                  [queryParams]="{ tab: t }"
+                  class="-mb-px flex-none border-b-2 px-3 py-2.5 text-ui font-semibold whitespace-nowrap"
+                  [class]="
+                    view() === t
+                      ? 'border-accent text-fg'
+                      : 'border-transparent text-fg-muted hover:text-fg'
+                  "
+                  [attr.aria-current]="view() === t ? 'page' : null"
+                  [attr.data-testid]="'standard-tab-' + t"
+                  >{{ 'standards.hub.tabs.' + t | transloco }}</a
+                >
+              }
+              @if (journeyLink(); as journey) {
+                <a
+                  [routerLink]="journey"
+                  class="-mb-px flex-none border-b-2 border-transparent px-3 py-2.5 text-ui font-semibold whitespace-nowrap text-fg-muted hover:text-fg"
+                  data-testid="standard-tab-journey"
+                  >{{ 'standards.hub.tabs.journey' | transloco }}</a
+                >
+              }
+            </nav>
+          }
 
-              <div class="mt-6">
-                <app-help-strip
-                  scope="standards"
-                  page="workspace"
-                  lesson="requirements-and-evidence"
+          @if (hubTab(); as hub) {
+            <div class="min-h-0 flex-1 overflow-y-auto">
+              <div class="mx-auto w-full max-w-[900px] px-5 pt-6 pb-16 sm:px-10">
+                <p class="mb-5 text-body text-fg-muted" data-testid="hub-headline">
+                  <span [title]="'standards.scoreHint' | transloco">{{
+                    'standards.scoreLine' | transloco: { pct: headline() }
+                  }}</span>
+                  ·
+                  {{
+                    plural('standards.hub.remaining', gapCount()) | transloco: { count: gapCount() }
+                  }}
+                </p>
+                <app-standard-hub
+                  [standard]="std"
+                  [tab]="hub"
+                  [exporting]="exporting()"
+                  (exportMatrix)="exportMatrix($event)"
+                  (tabChange)="openTab($event)"
                 />
               </div>
-
-              @if (nextStep(); as step) {
-                <div
-                  class="flex flex-col gap-2 rounded-card border border-accent-border bg-accent-soft/40 px-4 py-3 sm:flex-row sm:items-center"
-                  data-testid="next-step"
-                >
-                  <span class="min-w-0 flex-1">
-                    <span class="block text-micro font-bold tracking-wide text-accent uppercase">{{
-                      'standards.nextStep.title' | transloco
+            </div>
+          } @else {
+            <!-- Document -->
+            <div #scroller class="min-h-0 flex-1 overflow-y-auto" tabindex="-1">
+              <article class="mx-auto w-full max-w-[800px] px-5 pt-8 pb-[40vh] sm:px-10">
+                <div class="border-b border-border pb-6">
+                  <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <app-badge [tone]="legalFormTone(form())">{{
+                      legalFormKey(form()) | transloco
+                    }}</app-badge>
+                    <span class="text-meta font-semibold text-fg-subtle">{{
+                      editionKey(form()) | transloco: { edition: std.edition }
                     }}</span>
-                    <span class="block text-ui text-fg">{{
-                      'standards.nextStep.' + step.kind | transloco: step.params
-                    }}</span>
-                  </span>
-                  <app-button size="sm" variant="secondary" (click)="takeNextStep(step)">
-                    {{ 'standards.nextStep.' + step.kind + 'Action' | transloco }}
-                    <app-icon name="arrow" [size]="13" />
-                  </app-button>
-                </div>
-              }
-
-              @if (units().length === 0) {
-                <p class="py-16 text-center text-body text-fg-muted">
-                  {{ emptyKey() | transloco }}
-                </p>
-              }
-              @for (unit of units(); track unit.key) {
-                @if (renderedUnits().has(unit.key)) {
-                  @for (section of unit.sections; track section.number) {
-                    <app-clause-section
-                      [section]="section"
-                      [standardKey]="std.key"
-                      [canManage]="canManage()"
-                      [hasLicensedText]="std.has_licensed_text"
-                      [licensed]="licensed().get(section.number)"
-                      [licensedOpen]="openLicensed().has(section.number)"
-                      [guidanceOpen]="openGuidance().has(section.number)"
-                      [expandedRefs]="expandedRefs()"
-                      [highlightRef]="highlightRef()"
-                      [standardEnabled]="std.enabled"
-                      [prev]="links().get(section.number)?.prev ?? null"
-                      [next]="links().get(section.number)?.next ?? null"
-                      [showSectionNav]="sectionNavVisible(section.number)"
-                      (guidanceToggled)="toggleIn(openGuidance, section.number)"
-                      (licensedToggled)="toggleLicensed(section.number)"
-                      (requirementToggled)="toggleIn(expandedRefs, $event)"
-                      (requirementUpdated)="onRequirementUpdated($event)"
-                      (linksChanged)="onLinksChanged($event)"
-                      (navigate)="onNavigate($event)"
-                    />
+                  </div>
+                  <h1 class="font-display text-page leading-tight font-bold text-fg">
+                    {{ stdName() }}
+                  </h1>
+                  <p class="mt-2 text-body text-fg-muted">
+                    <span [title]="'standards.scoreHint' | transloco"
+                      >{{ 'standards.scoreLine' | transloco: { pct: headline() } }} ·</span
+                    >
+                    {{
+                      'standards.view.coveredOf'
+                        | transloco
+                          : { covered: completeness().covered, total: completeness().applicable }
+                    }}
+                    @if (gapsOnly()) {
+                      ·
+                      <app-badge tone="warn">{{
+                        'standards.workspace.onlyGaps' | transloco
+                      }}</app-badge>
+                    }
+                    @if (staleOnly()) {
+                      ·
+                      <app-badge tone="warn">{{
+                        'standards.workspace.onlyStale' | transloco
+                      }}</app-badge>
+                    }
+                    @if (suggestionsOnly()) {
+                      ·
+                      <app-badge tone="accent">{{
+                        'standards.workspace.hasAiSuggestions' | transloco
+                      }}</app-badge>
+                    }
+                  </p>
+                  @if (std.certification; as cert) {
+                    <p class="mt-1.5 text-meta text-fg-muted" data-testid="workspace-certification">
+                      <a
+                        [href]="cert.url"
+                        class="font-semibold text-accent hover:underline"
+                        (click)="navigateTo($event, cert.url)"
+                        >{{
+                          'standards.cert.label' | transloco: { body: cert.certification_body }
+                        }}</a
+                      >
+                      · {{ certStatusKey(cert.status) | transloco }}
+                      @if (cert.next_surveillance_at) {
+                        ·
+                        {{
+                          'standards.cert.nextSurveillance'
+                            | transloco
+                              : { date: (cert.next_surveillance_at | localDate: 'mediumDate') }
+                        }}
+                      }
+                    </p>
                   }
-                } @else {
+                  @if (!std.enabled) {
+                    <div
+                      class="mt-4 rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg-muted"
+                    >
+                      {{ 'standards.view.notEnabled' | transloco }}
+                    </div>
+                  }
+                </div>
+
+                <div class="mt-6">
+                  <app-help-strip
+                    scope="standards"
+                    page="workspace"
+                    lesson="requirements-and-evidence"
+                  />
+                </div>
+
+                @if (nextStep(); as step) {
                   <div
-                    class="pt-8"
-                    [style.height.px]="unit.estimate"
-                    aria-hidden="true"
-                    (appNearViewport)="renderUnit(unit.key)"
+                    class="flex flex-col gap-2 rounded-card border border-accent-border bg-accent-soft/40 px-4 py-3 sm:flex-row sm:items-center"
+                    data-testid="next-step"
                   >
-                    <div class="h-6 w-2/3 rounded bg-surface-2"></div>
+                    <span class="min-w-0 flex-1">
+                      <span
+                        class="block text-micro font-bold tracking-wide text-accent uppercase"
+                        >{{ 'standards.nextStep.title' | transloco }}</span
+                      >
+                      <span class="block text-ui text-fg">{{
+                        'standards.nextStep.' + step.kind | transloco: step.params
+                      }}</span>
+                    </span>
+                    <app-button size="sm" variant="secondary" (click)="takeNextStep(step)">
+                      {{ 'standards.nextStep.' + step.kind + 'Action' | transloco }}
+                      <app-icon name="arrow" [size]="13" />
+                    </app-button>
                   </div>
                 }
-              }
-            </article>
-          </div>
+
+                @if (units().length === 0) {
+                  <p class="py-16 text-center text-body text-fg-muted">
+                    {{ emptyKey() | transloco }}
+                  </p>
+                }
+                @for (unit of units(); track unit.key) {
+                  @if (renderedUnits().has(unit.key)) {
+                    @for (section of unit.sections; track section.number) {
+                      <app-clause-section
+                        [section]="section"
+                        [standardKey]="std.key"
+                        [canManage]="canManage()"
+                        [hasLicensedText]="std.has_licensed_text"
+                        [licensed]="licensed().get(section.number)"
+                        [licensedOpen]="openLicensed().has(section.number)"
+                        [guidanceOpen]="openGuidance().has(section.number)"
+                        [expandedRefs]="expandedRefs()"
+                        [highlightRef]="highlightRef()"
+                        [standardEnabled]="std.enabled"
+                        [prev]="links().get(section.number)?.prev ?? null"
+                        [next]="links().get(section.number)?.next ?? null"
+                        [showSectionNav]="sectionNavVisible(section.number)"
+                        (guidanceToggled)="toggleIn(openGuidance, section.number)"
+                        (licensedToggled)="toggleLicensed(section.number)"
+                        (requirementToggled)="toggleIn(expandedRefs, $event)"
+                        (requirementUpdated)="onRequirementUpdated($event)"
+                        (linksChanged)="onLinksChanged($event)"
+                        (navigate)="onNavigate($event)"
+                      />
+                    }
+                  } @else {
+                    <div
+                      class="pt-8"
+                      [style.height.px]="unit.estimate"
+                      aria-hidden="true"
+                      (appNearViewport)="renderUnit(unit.key)"
+                    >
+                      <div class="h-6 w-2/3 rounded bg-surface-2"></div>
+                    </div>
+                  }
+                }
+              </article>
+            </div>
+          }
         </div>
       </div>
 
@@ -709,8 +760,6 @@ function clampWidth(width: number): number {
   `,
 })
 export class StandardWorkspace {
-  /** Register tables stay in the library; the standard page shows its documents. */
-  protected readonly registerExportKinds = ['register_export'] as const;
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
@@ -725,6 +774,8 @@ export class StandardWorkspace {
   readonly req = input<string | undefined>(undefined);
   /** `?filter=gaps|stale|suggestions` preselects a content filter (readiness links). */
   readonly filter = input<string | undefined>(undefined);
+  /** `?tab=overview|requirements|registers|outputs|audit` (simplify U19). */
+  readonly tab = input<string | undefined>(undefined);
 
   protected readonly standard = signal<StandardSummary | null>(null);
   protected readonly tree = signal<readonly ClauseNode[]>([]);
@@ -816,6 +867,29 @@ export class StandardWorkspace {
     standardName(this.standard(), this.language.active()),
   );
   protected readonly form = computed(() => legalFormOf(this.standard()));
+
+  /**
+   * The open tab (simplify U19): Oversikt (gaps first) unless the link points into the
+   * reader (a clause, `?req=` or `?filter=`) or asks for a tab; the reader only for
+   * standards that are not enabled.
+   */
+  protected readonly view = computed<StandardTab>(() =>
+    initialTab(
+      this.tab(),
+      !!(this.number() || this.req() || this.filter()),
+      this.standard()?.enabled ?? false,
+    ),
+  );
+  protected readonly hubTab = computed<HubTab | null>(() => {
+    const view = this.view();
+    return view === 'requirements' ? null : view;
+  });
+  protected readonly tabs = STANDARD_TABS;
+  /** The guided journey of the standard's framework, when it has one. */
+  protected readonly journeyLink = computed(() => {
+    const framework = this.standard()?.framework;
+    return framework && hasJourney(framework) ? journeyUrl(framework) : null;
+  });
   /** THE headline number (the API's weighted score; the covered share on older APIs). */
   protected readonly headline = computed(() => {
     const std = this.standard();
@@ -1096,12 +1170,23 @@ export class StandardWorkspace {
       untracked(() => this.load(orgId, key, true));
     });
 
+    // U19: `?filter=` reached in-app on an open standard (Oversikt → "Se alle krav")
+    // reuses this component, so the load-time preset does not run; apply it here.
+    effect(() => {
+      this.filter();
+      untracked(() => {
+        if (!this.loading() && this.standard()) {
+          this.applyUrlFilter();
+        }
+      });
+    });
+
     // Route → document: deep links, back / forward, legacy ?req= links.
     effect(() => {
       const raw = this.number() ?? null;
       const number = raw === null ? null : (this.routeNumber() ?? raw);
       const req = this.req() ?? null;
-      const ready = !this.loading() && this.tree().length > 0;
+      const ready = !this.loading() && this.tree().length > 0 && this.view() === 'requirements';
       if (ready) {
         untracked(() => this.syncFromRoute(number, req));
       }
@@ -1181,7 +1266,7 @@ export class StandardWorkspace {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    if (!this.standard()) {
+    if (!this.standard() || this.view() !== 'requirements') {
       return;
     }
     if (event.key === 'Escape' && this.drawerModal()) {
@@ -1241,6 +1326,15 @@ export class StandardWorkspace {
       return;
     }
     const target = number && this.index().nodes.has(number) ? number : null;
+    if (!target && this.standard()?.enabled && !this.filtered()) {
+      // U19: the reader opens on the first missing requirement.
+      const gap = firstGap(this.tree());
+      const clause = gap ? clauseOfRequirement(this.tree(), gap.ref) : null;
+      if (gap && clause) {
+        this.revealRequirement(gap.ref, clause);
+        return;
+      }
+    }
     if (!target) {
       const first = this.order()[0] ?? null;
       if (first) {
@@ -1698,6 +1792,11 @@ export class StandardWorkspace {
     this.gapsOnly.set(filter === 'gaps');
     this.staleOnly.set(filter === 'stale');
     this.suggestionsOnly.set(filter === 'suggestions');
+  }
+
+  /** Switch tab (U19); the reader then opens on the first missing requirement. */
+  protected openTab(tab: StandardTab): void {
+    void this.router.navigate(['/standards', this.key()], { queryParams: { tab } });
   }
 
   protected takeNextStep(step: NextStep): void {

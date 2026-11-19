@@ -176,7 +176,10 @@ describe('DocumentWorkflowActions', () => {
     confirmIn(root).click();
 
     const approve = http.expectOne(`${DOC_URL}/approve`);
-    expect(approve.request.body).toEqual({ note: 'Checked against the routine' });
+    expect(approve.request.body).toEqual({
+      note: 'Checked against the routine',
+      review_interval_months: 12,
+    });
     approve.flush(
       { detail: { code: 'self_approval', message: 'x' } },
       { status: 409, statusText: 'Conflict' },
@@ -185,6 +188,40 @@ describe('DocumentWorkflowActions', () => {
     expect(notifications.error).toHaveBeenCalledWith('documents.workflow.errors.selfApproval');
     expect(reloads()).toBe(0);
     expect(root.querySelector('[role="alertdialog"]')).toBeNull();
+  });
+
+  it('asks who must read and confirm and when it is reviewed again (U27)', async () => {
+    const { fixture, root, http, notifications } = await setup('in_review', ['documents:approve']);
+    click(root, 'documents.approve');
+    await fixture.whenStable();
+    const note = dialog(root).querySelector('textarea')!;
+    note.value = 'Ok';
+    note.dispatchEvent(new Event('input'));
+    const readers = dialog(root).querySelector<HTMLSelectElement>(
+      '[data-testid="approve-readers"]',
+    )!;
+    readers.value = 'all';
+    readers.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    const readBy = dialog(root).querySelector<HTMLInputElement>('[data-testid="approve-read-by"]')!;
+    readBy.value = '2026-12-31';
+    readBy.dispatchEvent(new Event('change'));
+    const review = dialog(root).querySelector<HTMLSelectElement>('[data-testid="approve-review"]')!;
+    review.value = '24';
+    review.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    confirmIn(root).click();
+
+    const req = http.expectOne(`${DOC_URL}/approve`);
+    expect(req.request.body).toEqual({
+      note: 'Ok',
+      readers: [{ type: 'all' }],
+      read_by: '2026-12-31',
+      review_interval_months: 24,
+    });
+    req.flush(doc('approved'));
+    await fixture.whenStable();
+    expect(notifications.success).toHaveBeenCalledWith('documents.readConfirm.publish.toast');
   });
 
   it('asks the host to reload when the document is no longer in review', async () => {

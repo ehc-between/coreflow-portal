@@ -533,6 +533,37 @@
       "date": "Bekreftet",
       "done": "Bekreftet",
       "pending": "Ikke ennå"
+    },
+    "progress": "{{done}} av {{total}} har bekreftet",
+    "remindedToast": "Påminnelse sendt. Antall som ble minnet på: {{count}}.",
+    "publish": {
+      "who": "Hvem må lese og bekrefte?",
+      "modes": {
+        "none": "Ingen (bare publiser)",
+        "all": "Alle som kan lese den",
+        "custom": "Velg personer, roller eller avdelinger"
+      },
+      "readBy": "Bekreftes innen (valgfritt)",
+      "review": "Når gjennomgås den på nytt?",
+      "months": "Om {{count}} måneder",
+      "toast": "Godkjent. Alle som må lese den, har fått en oppgave i Mitt arbeid."
+    },
+    "matrix": {
+      "link": "Hvem har lest hva (alle dokumenter)",
+      "title": "Hvem har lest hva",
+      "description": "Hver kolonne er et dokument som må leses og bekreftes. Åpne et dokument for å minne på dem som mangler.",
+      "type": "Dokumenttype",
+      "types": {
+        "all": "Alle dokumenter",
+        "policy": "Policyer"
+      },
+      "missingOnly": "Bare de som mangler bekreftelse",
+      "person": "Person",
+      "personProgress": "{{done}} av {{total}} bekreftet",
+      "missing": "Mangler",
+      "notAsked": "Ikke bedt om å lese",
+      "empty": "Ingen godkjente dokumenter krever «Lest og forstått» ennå.",
+      "export": "Eksporter"
     }
   },
   "link": {

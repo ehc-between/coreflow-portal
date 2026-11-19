@@ -7,6 +7,7 @@ const draft = permissionGuard('documents:draft', { redirectTo: '/documents' });
 /** Every documents route provides the `documents` i18n scope (kept flat for route specs). */
 const scope = [provideTranslocoScope('documents')];
 const distribute = permissionGuard('documents:distribute', { redirectTo: '/documents' });
+const approve = permissionGuard('documents:approve', { redirectTo: '/documents' });
 
 /**
  * Documents feature routes (lazy-loaded; `app.routes.ts` already wraps the module
@@ -82,6 +83,14 @@ export default [
   moduleConfigRedirect('templates/:id', 'documents'),
   moduleConfigRedirect('retention/new', 'documents'),
   moduleConfigRedirect('retention/:id', 'documents'),
+  {
+    // U27: who has read and confirmed which document (people x documents).
+    providers: scope,
+    path: 'read-confirm',
+    canActivate: [approve],
+    loadComponent: () =>
+      import('./read-confirm/read-confirm-matrix').then((m) => m.ReadConfirmMatrixPage),
+  },
   {
     providers: scope,
     path: 'new',

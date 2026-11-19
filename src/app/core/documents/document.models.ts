@@ -125,6 +125,8 @@ export interface AcknowledgementEntry {
 export interface DocumentAcknowledgements {
   /** The approved revision label the lists refer to; null if never approved. */
   readonly revision: string | null;
+  /** U27: counted against the people asked to confirm (`audience`) or every reader. */
+  readonly scope?: 'audience' | 'readers';
   readonly acknowledged: readonly AcknowledgementEntry[];
   readonly pending: readonly AcknowledgementEntry[];
 }
@@ -386,4 +388,54 @@ export interface ProposalEdit {
 export interface ProposalApproveResult {
   readonly ok: boolean;
   readonly document_id: string;
+}
+
+/** Who must read and confirm (U27): a person, role, department or everyone. */
+export interface ReadAudienceEntry {
+  readonly type: 'user' | 'role' | 'department' | 'all';
+  readonly value?: string | null;
+}
+
+/** U27: the publishing questions asked when a revision is approved. */
+export interface ApproveOptions {
+  /** "Hvem må lese og bekrefte?" (empty: nobody is asked). */
+  readonly readers?: readonly ReadAudienceEntry[];
+  /** Optional deadline for the confirmations (YYYY-MM-DD). */
+  readonly readBy?: string | null;
+  /** "Når gjennomgås den på nytt?" in months. */
+  readonly reviewIntervalMonths?: number | null;
+}
+
+/** One document column of the people x documents read-and-confirm matrix. */
+export interface AckMatrixDocument {
+  readonly id: string;
+  readonly doc_code: string | null;
+  readonly title: string;
+  readonly type: string;
+  readonly revision: string;
+  readonly scope: 'audience' | 'readers';
+  readonly acknowledged: number;
+  readonly total: number;
+}
+
+/** One cell: confirmed (with the date) or still missing; null when not asked. */
+export interface AckMatrixCell {
+  readonly status: 'acknowledged' | 'pending';
+  readonly acknowledged_at: string | null;
+}
+
+export interface AckMatrixPerson {
+  readonly user_id: string;
+  readonly name: string | null;
+  readonly email?: string | null;
+  readonly acknowledged: number;
+  readonly total: number;
+  /** Aligned with `documents`. */
+  readonly cells: readonly (AckMatrixCell | null)[];
+}
+
+/** People x documents that require "read and understood" (U27). */
+export interface AcknowledgementMatrix {
+  readonly documents: readonly AckMatrixDocument[];
+  readonly people: readonly AckMatrixPerson[];
 }
