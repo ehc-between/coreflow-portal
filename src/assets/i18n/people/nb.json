@@ -298,6 +298,43 @@
       "offboarding": "Åpne avslutningen"
     }
   },
+  "employeeDetail": {
+    "type": "Person",
+    "askTerms": "Hva bør vilkårene si om sikkerhet og taushetsplikt?",
+    "ownTitle": "Egen tittel: {{ title }}",
+    "lastDay": "Siste arbeidsdag {{ date }}",
+    "account": "Brukerkonto",
+    "updated": "Sist endret",
+    "lead": {
+      "position": "Stilling",
+      "manager": "Nærmeste leder",
+      "department": "Avdeling",
+      "started": "Startet"
+    },
+    "status": {
+      "plain": "{{ status }}",
+      "inOrder": "{{ status }} – alt som kreves for denne personen, er i orden.",
+      "open": "{{ status }} – {{ count }} krav for denne personen er ikke i orden.",
+      "openOne": "{{ status }} – 1 krav for denne personen er ikke i orden.",
+      "former": "{{ status }} – oppføringen beholdes for historikken."
+    },
+    "missing": {
+      "confidentiality": "Registrer taushetserklæringen",
+      "security_terms": "Registrer at sikkerhetsvilkårene er akseptert",
+      "screening": "Registrer bakgrunnssjekken",
+      "competence": "Vurder kompetansen – {{ count }} mangler mot stillingen",
+      "awareness": "Registrer at personen kjenner retningslinjene",
+      "post_employment": "Registrer at pliktene etter avsluttet arbeidsforhold er bekreftet",
+      "access_revoked": "Fjern tilgangene",
+      "equipment_returned": "Få tilbake utstyret",
+      "position": "Velg stilling",
+      "manager": "Velg nærmeste leder",
+      "expiring": "{{ count }} kompetanser utløper snart",
+      "expiringOne": "1 kompetanse utløper snart",
+      "checklists": "{{ count }} åpne sjekklister",
+      "checklistsOne": "1 åpen sjekkliste"
+    }
+  },
   "competences": {
     "title": "Kompetanser",
     "subtitle": "Katalogen over ferdigheter, kunnskap, kvalifikasjoner og sertifikater stillingene krever.",
@@ -382,6 +419,32 @@
     "reviewNote": "Notat (valgfritt)",
     "reviewNotePlaceholder": "For eksempel: lagt til krav om førstehjelp",
     "summarise": "Oppsummer denne stillingen"
+  },
+  "positionDetail": {
+    "type": "Stilling",
+    "askRole": "Hva bør ansvar og myndighet inneholde?",
+    "updated": "Sist endret",
+    "showAllHolders": "Vis alle ({{ count }})",
+    "lead": {
+      "purpose": "Hva rollen er til for",
+      "responsibilities": "Hva rollen har ansvar for",
+      "authorities": "Hva rollen kan bestemme",
+      "risk": "Sikkerhetsrisiko"
+    },
+    "status": {
+      "active": "I bruk – ansvar, myndighet og kompetansekrav er beskrevet.",
+      "incomplete": "I bruk – beskrivelsen er ikke fullstendig ennå. Se Oppfølging.",
+      "reviewDue": "Gjennomgang forfalt – sjekk at rollebeskrivelsen fortsatt stemmer.",
+      "retired": "Utgått – stillingen er ikke lenger i bruk."
+    },
+    "missing": {
+      "review": "Gå gjennom stillingen (forfalt)",
+      "responsibilities": "Beskriv hva rollen har ansvar for",
+      "authorities": "Beskriv hva rollen kan bestemme",
+      "requirements": "Legg til kompetansen rollen trenger",
+      "owner": "Velg hvem som holder stillingen oppdatert",
+      "jobDescription": "Koble til stillingsbeskrivelsen"
+    }
   },
   "positionForm": {
     "newTitle": "Ny stilling",
@@ -629,7 +692,8 @@
     "checklist": "Hvilke punkter på denne sjekklisten er viktigst for informasjonssikkerheten, og hvorfor?",
     "gaps": "Hvilke kompetansemangler bør vi rette opp først, og hvordan?",
     "label": "Spør",
-    "gapsLabel": "Spør om manglene"
+    "gapsLabel": "Spør om manglene",
+    "positionRole": "Hva bør ansvaret og myndigheten til denne stillingen inneholde, og mangler det noe?"
   },
   "lessons": {
     "link": "Leksjon: {{ title }} ({{ minutes }} min)"

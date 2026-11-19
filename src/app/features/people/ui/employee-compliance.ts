@@ -22,7 +22,6 @@ import { PeopleApi } from '../data/people-api';
 import { complianceLook } from '../data/people-display';
 import { ComplianceItem, Employee, EmployeeCompliance } from '../data/people.models';
 import { PeopleClause } from './clause-label';
-import { PeopleAsk } from './people-ask';
 
 /** Where a control is put in order: the form, a section of the page, or the checklist. */
 export type ComplianceFix = 'edit' | 'competences' | 'awareness' | 'offboarding';
@@ -37,6 +36,11 @@ const FIX: Readonly<Record<string, ComplianceFix>> = {
   access_revoked: 'offboarding',
   equipment_returned: 'offboarding',
 };
+
+/** Where the given control is put in order. */
+export function complianceFix(item: ComplianceItem): ComplianceFix {
+  return FIX[item.key] ?? 'edit';
+}
 
 /** The one line under a control: when it was done, what is due, or what is missing. */
 export interface ComplianceDetailText {
@@ -84,15 +88,7 @@ export function complianceDetail(item: ComplianceItem): ComplianceDetailText {
  */
 @Component({
   selector: 'app-people-employee-compliance',
-  imports: [
-    TranslocoPipe,
-    LocalDayPipe,
-    ErrorState,
-    LoadingState,
-    StatusBadge,
-    PeopleClause,
-    PeopleAsk,
-  ],
+  imports: [TranslocoPipe, LocalDayPipe, ErrorState, LoadingState, StatusBadge, PeopleClause],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-emp-compliance-h" id="compliance">
@@ -111,10 +107,6 @@ export function complianceDetail(item: ComplianceItem): ComplianceDetailText {
               {{ openKey(d.open) | transloco: { count: d.open } }}
             </span>
           }
-          <app-people-ask
-            [prompt]="'people.ask.securityTerms' | transloco"
-            [field]="'people.compliance.title' | transloco"
-          />
         </span>
       </div>
       <p class="mb-3 text-meta text-fg-muted">{{ 'people.compliance.subtitle' | transloco }}</p>
@@ -235,7 +227,7 @@ export class EmployeeComplianceCard {
   }
 
   protected fixFor(item: ComplianceItem): ComplianceFix {
-    return FIX[item.key] ?? 'edit';
+    return complianceFix(item);
   }
 
   protected reload(): void {
