@@ -190,6 +190,7 @@ interface Kpi {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="suppliers"
       titleKey="modules.names.suppliers"
       descriptionKey="suppliers.list.subtitle"
       scope="suppliers"

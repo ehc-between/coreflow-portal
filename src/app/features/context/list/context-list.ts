@@ -148,6 +148,7 @@ export function rowBadges(kind: ContextKind, row: ContextRecord): BadgeSpec[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      [exportRegister]="kind() === 'party' ? 'interested_parties' : null"
       [titleKey]="'context.kinds.' + kind() + '.plural'"
       [descriptionKey]="'context.list.descriptions.' + kind()"
       [breadcrumbs]="breadcrumbs()"

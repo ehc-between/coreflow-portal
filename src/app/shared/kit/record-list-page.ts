@@ -20,6 +20,7 @@ import { Icon } from '../ui/icon/icon';
 import { KpiBand } from '../ui/kpi-band/kpi-band';
 import { Breadcrumb, PageHeader } from '../ui/page-header/page-header';
 import { PromptDialog } from '../ui/prompt-dialog/prompt-dialog';
+import { RegisterExport } from '../outputs/register-export';
 import { provideKitScope } from './kit-scope';
 import { SavedView, SavedViewsService } from './saved-views.service';
 
@@ -53,7 +54,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-record-list-page',
-  imports: [TranslocoPipe, Icon, KpiBand, PageHeader, PromptDialog],
+  imports: [TranslocoPipe, Icon, KpiBand, PageHeader, PromptDialog, RegisterExport],
   viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -78,8 +79,11 @@ let nextId = 0;
           }
           <ng-content select="[intro]" />
         </ng-container>
-        <ng-container ngProjectAs="[secondary]"
-          ><ng-content select="[toolbar]" /><ng-content select="[secondary]"
+        <ng-container ngProjectAs="[secondary]">
+          @if (exportRegister(); as register) {
+            <app-register-export [register]="register" [filters]="exportFilters()" />
+          }
+          <ng-content select="[toolbar]" /><ng-content select="[secondary]"
         /></ng-container>
         <ng-container ngProjectAs="[primary]"><ng-content select="[primary]" /></ng-container>
         <ng-container ngProjectAs="[overflow]"><ng-content select="[overflow]" /></ng-container>
@@ -250,6 +254,11 @@ export class RecordListPage {
   readonly settingsLink = input<string | readonly unknown[] | null | undefined>(null);
   /** Module whose "Dokumenter og rapporter" the header links to (U11). */
   readonly outputsModule = input<string | null | undefined>(null);
+  /**
+   * The `report_registers` key this list exports (U15): adds "Eksporter" (Excel, CSV,
+   * PDF) with the current search and `filters`, the same output the library offers.
+   */
+  readonly exportRegister = input<string | null | undefined>(null);
   /** How many filters inside "Flere filtre" are set (shown on the button). */
   readonly moreFiltersActive = input(0);
   /** Module scope (portal path), used for the saved-views key and guidance. */
@@ -281,6 +290,8 @@ export class RecordListPage {
   protected readonly moreOpen = signal(false);
   protected readonly hasMoreFilters = signal(false);
   protected readonly text = linkedSignal(() => this.query());
+  /** The search text and filters handed to the register export (it keeps what applies). */
+  protected readonly exportFilters = computed(() => ({ ...this.filters(), q: this.text() }));
   protected readonly menuOpen = signal(false);
   protected readonly saveOpen = signal(false);
   protected readonly activeView = signal<SavedView | null>(null);

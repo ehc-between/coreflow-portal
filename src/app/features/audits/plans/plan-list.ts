@@ -89,6 +89,7 @@ export function planStatusParam(filter: string): string | undefined {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="audit_plans"
       titleKey="audits.plans.title"
       descriptionKey="audits.plans.subtitle"
       scope="audits"

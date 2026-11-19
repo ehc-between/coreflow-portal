@@ -198,6 +198,7 @@ export function groupByActivity(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="env_aspects"
       titleKey="environment.aspects.title"
       descriptionKey="environment.aspects.subtitle"
       scope="environment"

@@ -143,6 +143,7 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-record-list-page
+      exportRegister="processes"
       titleKey="modules.names.processes"
       descriptionKey="processes.list.subtitle"
       scope="processes"
