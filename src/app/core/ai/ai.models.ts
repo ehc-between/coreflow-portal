@@ -167,6 +167,8 @@ export interface AssistRequestBody {
 export type AssistEvent =
   | { readonly type: 'delta'; readonly text: string }
   | { readonly type: 'result'; readonly data: unknown }
+  /** Profile facts the draft needed but are empty (placeholders were left out). */
+  | { readonly type: 'missing_facts'; readonly facts: readonly string[] }
   | { readonly type: 'sources'; readonly sources: readonly AskSource[] }
   | { readonly type: 'done' }
   | { readonly type: 'error'; readonly message: string }

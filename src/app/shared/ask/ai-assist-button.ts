@@ -17,6 +17,7 @@ import { SseStream } from '../../core/ai/sse-client';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Button, ButtonSize, ButtonVariant } from '../ui/button/button';
 import { Icon } from '../ui/icon/icon';
+import { MissingFactsHint } from './missing-facts-hint';
 
 /**
  * A module AI button (draft, suggest, summarise, explain), backed by an assist
@@ -37,7 +38,7 @@ import { Icon } from '../ui/icon/icon';
  */
 @Component({
   selector: 'app-ai-assist-button',
-  imports: [Button, Icon],
+  imports: [Button, Icon, MissingFactsHint],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (!availability.unavailable() && (!quiet() || running() || error())) {
@@ -60,6 +61,9 @@ import { Icon } from '../ui/icon/icon';
         </app-button>
         @if (error()) {
           <span class="text-[12px] text-fail" role="alert">{{ failedLabel() }}</span>
+        }
+        @if (missingFacts().length && !running()) {
+          <app-missing-facts-hint [facts]="missingFacts()" />
         }
       </span>
     }
@@ -99,6 +103,8 @@ export class AiAssistButton {
 
   protected readonly running = signal(false);
   protected readonly error = signal(false);
+  /** Profile facts the last draft lacked ("add X to the company profile"). */
+  protected readonly missingFacts = signal<readonly string[]>([]);
 
   private readonly language = inject(LanguageService);
   protected readonly label = computed(() => this.language.translate(this.labelKey()));
@@ -145,6 +151,7 @@ export class AiAssistButton {
 
     let accumulated = '';
     this.error.set(false);
+    this.missingFacts.set([]);
     this.running.set(true);
     this.stream = this.api.run(orgId, this.assist(), body, (event) => {
       switch (event.type) {
@@ -157,6 +164,9 @@ export class AiAssistButton {
           break;
         case 'sources':
           this.sources.emit(event.sources);
+          break;
+        case 'missing_facts':
+          this.missingFacts.set(event.facts);
           break;
         case 'done':
           if (accumulated) {

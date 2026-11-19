@@ -175,6 +175,46 @@ import {
                   {{ help + '.description.help' | transloco }}
                 </p>
               </div>
+              <div>
+                <app-form-field inputId="profile-orgnr" [label]="p + '.orgNumber' | transloco">
+                  <input
+                    id="profile-orgnr"
+                    type="text"
+                    formControlName="org_number"
+                    maxlength="32"
+                    inputmode="numeric"
+                    autocomplete="off"
+                  />
+                </app-form-field>
+              </div>
+              <div>
+                <app-form-field inputId="profile-address" [label]="p + '.address' | transloco">
+                  <input
+                    id="profile-address"
+                    type="text"
+                    formControlName="address"
+                    maxlength="500"
+                    autocomplete="street-address"
+                  />
+                </app-form-field>
+              </div>
+              <div class="md:col-span-2">
+                <app-form-field
+                  inputId="profile-products"
+                  [label]="p + '.productsServices' | transloco"
+                >
+                  <textarea
+                    id="profile-products"
+                    rows="3"
+                    formControlName="products_services"
+                    maxlength="5000"
+                    aria-describedby="profile-products-help"
+                  ></textarea>
+                </app-form-field>
+                <p id="profile-products-help" class="mt-1 text-meta text-fg-subtle">
+                  {{ p + '.factsHint' | transloco }}
+                </p>
+              </div>
             </div>
           </app-card>
 

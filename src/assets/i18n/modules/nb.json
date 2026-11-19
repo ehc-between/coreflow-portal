@@ -216,7 +216,11 @@
       "construction_site": "Byggeplass",
       "remote": "Fjernarbeid",
       "other": "Annet"
-    }
+    },
+    "orgNumber": "Organisasjonsnummer",
+    "address": "Adresse",
+    "productsServices": "Produkter og tjenester",
+    "factsHint": "Brukes i forslag, slik at tekstene får riktig navn, adresse og tjenester."
   },
   "terminology": {
     "title": "Terminologi",

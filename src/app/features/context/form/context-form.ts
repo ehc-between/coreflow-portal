@@ -17,6 +17,9 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { CreateFlowService, FlowContext } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import { FormSuggestOffer } from '../../../core/ai/form-suggest-api';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
@@ -53,6 +56,12 @@ import {
   updateBody,
 } from './context-draft';
 import { KindFields } from './kind-fields';
+import {
+  POLICY_SUGGEST_KEY,
+  policyPatch,
+  policySuggestFields,
+  policySuggestValues,
+} from './policy-suggest';
 
 /** A new draft pre-filled from the URL (`?framework=` for scopes, `?kind=` for policies). */
 export function seededDraft(
@@ -99,6 +108,7 @@ export function seededDraft(
     FormRow,
     OwnerSelect,
     KindFields,
+    FormSuggest,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -127,6 +137,20 @@ export function seededDraft(
             </div>
           }
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+            @if (kind() === 'policy') {
+              <app-form-suggest
+                [suggestKey]="policySuggestKey"
+                labelKey="context.formSuggest.suggestPolicy"
+                offerKeyPrefix="context.formSuggest.offers."
+                [fields]="policyFields()"
+                [values]="policyValues()"
+                [context]="suggestContext()"
+                [editing]="editing()"
+                [titleOnly]="!!draft().title.trim() && !draft().statement.trim()"
+                (offerPicked)="startFromOffer($event)"
+                (applied)="applyPolicySuggestion($event)"
+              />
+            }
             <p class="text-meta text-fg-muted">
               <span class="text-fail-ink" aria-hidden="true">*</span>
               {{ 'context.form.requiredLegend' | transloco }}
@@ -420,6 +444,46 @@ export class ContextForm {
 
   protected patch(change: Partial<ContextDraft>): void {
     this.draft.update((d) => ({ ...d, ...change }));
+  }
+
+  // --- whole-form suggestion (policies) --------------------------------------------
+
+  private readonly language = inject(LanguageService);
+  protected readonly policySuggestKey = POLICY_SUGGEST_KEY;
+  protected readonly policyFields = computed(() =>
+    policySuggestFields((key, params) => this.language.translate(key, params)),
+  );
+  protected readonly policyValues = computed(() => policySuggestValues(this.draft()));
+  protected readonly suggestContext = computed(() => ({
+    from: 'context',
+    form: 'policy',
+    created_from: this.flow()?.source?.title ?? null,
+    requirement: this.flow()?.requirementRef ?? null,
+  }));
+
+  /** A missing policy was picked: start from its kind (and a title when empty). */
+  protected startFromOffer(offer: FormSuggestOffer): void {
+    const kind = offer.values['kind'];
+    const change: Partial<ContextDraft> = policyPatch({
+      kind: { name: 'kind', value: kind, rationale: null, changed: true, display: null },
+    });
+    if (!this.draft().title.trim()) {
+      this.patch({
+        ...change,
+        title: this.language.translate(`context.formSuggest.offerTitles.${offer.key}`),
+      });
+      return;
+    }
+    this.patch(change);
+  }
+
+  /** Accepted suggestions fill the form; nothing is saved until "Save". */
+  protected applyPolicySuggestion(accepted: AcceptedSuggestion): void {
+    const { review_interval_months: interval, ...change } = policyPatch(accepted);
+    this.patch(change);
+    if (interval !== undefined) {
+      this.setInterval(interval);
+    }
   }
 
   /** Choosing an interval fills in the next review date (unless one was typed). */

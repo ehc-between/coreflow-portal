@@ -896,5 +896,28 @@
     "openDocument": "Åpne det styrte dokumentet",
     "documentHint": "Når den godkjennes, publiseres den som en revisjon i Dokumenter.",
     "documentLabel": "Styrt dokument"
+  },
+  "formSuggest": {
+    "suggestPolicy": "Foreslå policy",
+    "offers": {
+      "quality": "kvalitetspolicy",
+      "information_security": "informasjonssikkerhetspolicy",
+      "environment": "miljøpolicy",
+      "ai": "KI-policy",
+      "privacy": "personvernpolicy",
+      "health_safety": "HMS-policy",
+      "acceptable_use": "policy for akseptabel bruk",
+      "other": "policy"
+    },
+    "offerTitles": {
+      "quality": "Kvalitetspolicy",
+      "information_security": "Informasjonssikkerhetspolicy",
+      "environment": "Miljøpolicy",
+      "ai": "KI-policy",
+      "privacy": "Personvernpolicy",
+      "health_safety": "HMS-policy",
+      "acceptable_use": "Policy for akseptabel bruk",
+      "other": "Policy"
+    }
   }
 }

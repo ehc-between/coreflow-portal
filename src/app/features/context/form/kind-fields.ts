@@ -10,6 +10,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import { FormSuggest, FormSuggestFieldDef } from '../../../shared/ask/form-suggest';
 import { EntityChip } from '../../../shared/kit/entity-chip';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -35,6 +36,7 @@ import { AnalysisItemsEditor, itemsOutside } from './analysis-items-editor';
 import { ContextDraft } from './context-draft';
 import { ExclusionsEditor } from './exclusions-editor';
 import { RaciEditor } from './raci-editor';
+import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-suggest';
 
 /**
  * The kind-specific part of the M01 form (everything except title, owner,
@@ -50,6 +52,7 @@ import { RaciEditor } from './raci-editor';
     TranslocoPipe,
     AskAbout,
     AiAssistButton,
+    FormSuggest,
     EntityChip,
     Button,
     Icon,
@@ -548,11 +551,13 @@ import { RaciEditor } from './raci-editor';
           ></textarea>
         </app-context-form-row>
         <div class="flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            assist="context.draft_policy"
-            labelKey="context.ai.draftPolicy"
-            [input]="{ kind: draft().kind, notes: draft().title || null }"
-            (text)="patch({ statement: $event })"
+          <app-form-suggest
+            variant="field"
+            [suggestKey]="policySuggestKey"
+            [fields]="statementField"
+            [values]="policyValues()"
+            [only]="['statement']"
+            (applied)="patch(policyPatch($event))"
           />
           <app-ask-about
             [prompt]="'context.ai.prompts.policyContent' | transloco"
@@ -560,7 +565,6 @@ import { RaciEditor } from './raci-editor';
             [fieldLabel]="'context.fields.statement' | transloco"
             [requirements]="['hs:5.2']"
           />
-          <span class="text-meta text-fg-muted">{{ 'context.ai.draftHint' | transloco }}</span>
         </div>
         <app-context-framework-picker
           [value]="draft().frameworks"
@@ -748,6 +752,13 @@ export class KindFields {
   protected readonly addressed = ADDRESSED_STATUSES;
   protected readonly policyKinds = POLICY_KINDS;
   protected readonly frameworkOrder = this.frameworks.ordered;
+  /** "Skriv om" on the policy statement (the whole form is suggested at the top). */
+  protected readonly policySuggestKey = POLICY_SUGGEST_KEY;
+  protected readonly statementField: readonly FormSuggestFieldDef[] = [
+    { name: 'statement', labelKey: 'context.fields.statement', long: true },
+  ];
+  protected readonly policyValues = computed(() => policySuggestValues(this.draft()));
+  protected readonly policyPatch = policyPatch;
 
   protected readonly suggestions = signal<readonly SuggestedParty[]>([]);
   protected readonly priority = computed(() =>

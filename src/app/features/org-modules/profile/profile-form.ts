@@ -138,6 +138,9 @@ export function createProfileForm(fb: FormBuilder) {
     countries: ['', [countriesValidator]],
     ai_act_role: ['unknown' as AiActRole],
     description: ['', [Validators.maxLength(5000)]],
+    org_number: ['', [Validators.maxLength(32)]],
+    address: ['', [Validators.maxLength(500)]],
+    products_services: ['', [Validators.maxLength(5000)]],
     frameworks: fb.nonNullable.group(frameworks),
     sites: fb.array<SiteGroup>([]),
     certification_targets: fb.array<TargetGroup>([]),
@@ -162,6 +165,9 @@ export function patchProfileForm(
     countries: profile.countries.join(', '),
     ai_act_role: normaliseAiActRole(profile.ai_act_role),
     description: profile.description ?? '',
+    org_number: profile.org_number ?? '',
+    address: profile.address ?? '',
+    products_services: profile.products_services ?? '',
     frameworks,
   });
   resetArray(form.controls.sites, profile.sites.length, () => siteGroup(fb));
@@ -210,6 +216,9 @@ export function readProfileForm(form: ProfileForm): OrgProfileUpdate {
     countries: parseCountries(v.countries),
     ai_act_role: v.ai_act_role,
     description: blank(v.description),
+    org_number: blank(v.org_number),
+    address: blank(v.address),
+    products_services: blank(v.products_services),
     frameworks: selectedFrameworks(form),
     sites: v.sites.map((site) => ({
       name: site.name.trim(),
