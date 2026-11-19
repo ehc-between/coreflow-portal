@@ -221,14 +221,8 @@
   "detail": {
     "edit": "Edit",
     "report": "Report",
-    "progress": "Review progress",
     "readOnly": "This review can no longer be edited.",
-    "cancelledNotice": "This review was cancelled on {{ date }}.",
-    "awaitingNotice": "Sent for sign-off by {{ name }} on {{ date }}. The review is locked until it is signed or sent back.",
-    "signedNotice": "Signed by {{ name }} on {{ date }}. The report is frozen.",
     "beforeSubmit": "Before you can submit for sign-off:",
-    "actionsHeading": "Follow-up actions",
-    "actionStats": "Open: {{ open }} · Done: {{ done }} · Overdue: {{ overdue }}",
     "meetingHeading": "Meeting {{ code }}",
     "openMeeting": "Open the meeting page",
     "outputsHeading": "Outputs of the review",
@@ -236,17 +230,13 @@
     "unsaved": "Unsaved changes",
     "deleteTitle": "Delete this review?",
     "deleteMessage": "{{ code }} and its meeting will be removed. This cannot be undone.",
-    "topManagement": "Top management present",
-    "neighbours": "Other reviews",
-    "previous": "Previous: {{ code }}",
-    "next": "Next: {{ code }}",
     "noMeeting": "This review has no meeting. It may have been removed.",
     "outputsIntro": "Write what top management concluded and decided. The decisions recorded in the meeting are shown under the matching field; each action there becomes a task with an owner.",
     "fromMeeting": "From the meeting ({{ category }}):",
     "saveBar": "Unsaved changes",
     "discard": "Discard",
     "leaveUnsaved": "You have unsaved text in this review. Leave without saving?",
-    "topManagementValue": "{{ present }} of {{ total }}"
+    "type": "Management review"
   },
   "inputs": {
     "compiledAt": "Figures fetched {{ date }}",
@@ -618,7 +608,6 @@
     "statusHeading": "Meeting status",
     "heldAt": "Held {{ date }}",
     "readOnly": "This meeting can no longer be edited.",
-    "partOfReview": "This meeting belongs to the management review",
     "delete": "Delete meeting",
     "deleteTitle": "Delete this meeting?",
     "deleteMessage": "{{ code }} with its agenda, attendees, minutes and decisions will be removed.",
@@ -968,7 +957,9 @@
   },
   "previous": {
     "heading": "Previous review",
-    "signed": "signed {{ date }}"
+    "nextHeading": "Next review",
+    "openActions": "Open actions from it ({{ count }})",
+    "allDone": "All its actions have been followed up."
   },
   "planning": {
     "label": "Review planning",
@@ -1008,6 +999,66 @@
     "never": {
       "title": "Hold the first management review",
       "why": "Top management has not reviewed the management system yet. ISO requires it at planned intervals."
+    }
+  },
+  "status": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "awaiting_signoff": "Awaiting sign-off",
+    "signed": "Signed",
+    "completed": "Held",
+    "cancelled": "Cancelled"
+  },
+  "lead": {
+    "period": "Period reviewed",
+    "meeting": "The meeting",
+    "topManagement": "Top management: {{ present }} of {{ total }} present",
+    "conclusions": "What management concluded",
+    "actions": "Follow-up actions",
+    "actionStats": "Open: {{ open }} · Done: {{ done }}",
+    "overdue": "{{ count }} overdue",
+    "frameworks": "Standards",
+    "compiledAt": "Figures fetched",
+    "updated": "Last changed",
+    "status": {
+      "planned": "Planned – start the review to fetch the figures for the inputs.",
+      "in_progress": "In progress – {{ done }} of {{ total }} inputs reviewed. See what is left before sign-off.",
+      "ready": "In progress – everything is in place. Send the review to top management for sign-off.",
+      "awaiting_signoff": "Awaiting sign-off – sent by {{ name }} on {{ date }}. The review is locked until it is signed or returned.",
+      "signed": "Signed – by {{ name }} on {{ date }}. The report is locked.",
+      "cancelled": "Cancelled on {{ date }} – the review will not be completed."
+    },
+    "missing": {
+      "period": "Set the period the review covers",
+      "owner": "Choose an owner",
+      "inputs_reviewed": "Review the inputs ({{ done }} of {{ total }} done)",
+      "meeting_completed": "Hold the meeting and mark it as held",
+      "minutes_approved": "Write and approve the minutes",
+      "top_management_present": "Record that top management took part ({{ present }} of {{ total }})",
+      "assessment_criteria": "Assess whether the management system works",
+      "conclusions": "Write the conclusions"
+    }
+  },
+  "meetingLead": {
+    "when": "Time and place",
+    "purpose": "Purpose",
+    "concerns": "Concerns",
+    "decisions": "Decisions",
+    "decisionCount": "{{ count }} recorded, {{ actions }} of them actions",
+    "updated": "Last changed",
+    "status": {
+      "planned": "Planned – the meeting is on {{ date }}.",
+      "plannedNoDate": "Planned – no time set yet.",
+      "in_progress": "In progress – record the minutes and decisions as you go.",
+      "completed": "Held – the minutes are not approved yet.",
+      "approved": "Held – the minutes were approved by {{ name }} on {{ date }}.",
+      "cancelled": "Cancelled – the meeting will not take place."
+    },
+    "missing": {
+      "when": "Set a time for the meeting",
+      "chair": "Choose a chair",
+      "minutes": "Approve the minutes",
+      "tasks": "Create a follow-up task for actions without one ({{ count }})"
     }
   }
 }

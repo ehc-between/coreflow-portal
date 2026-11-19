@@ -1,6 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   SecurityContext,
   computed,
@@ -29,18 +31,21 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RequirementLink } from '../../core/standards/standards.models';
-import { WatchButton } from '../../shared/activity/watch-button';
-import { AskAbout } from '../../shared/ask/ask-about';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
+import { AskPanelService } from '../ask/ask-panel.service';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import { RecordLead, RecordMeta, RecordStatusLine } from '../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
-import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
@@ -49,7 +54,8 @@ import { DocumentAccessEditor } from './access/document-access-editor';
 import { DocumentComments } from './comments/document-comments';
 import { DocumentControlApi } from './data/document-control-api';
 import { DocumentType } from './data/document-control.models';
-import { documentTypeName, lifecycleSteps, statusLabelKey } from './document-status';
+import { documentMissing, documentStatusLine } from './document-anatomy';
+import { documentTypeName, statusLabelKey } from './document-status';
 import { DocumentsPageGuide } from './shared/documents-page-guide';
 import { DocumentAcknowledge } from './workflow/document-acknowledge';
 import { DocumentAcknowledgementList } from './workflow/document-acknowledgement-list';
@@ -65,23 +71,29 @@ import { DocumentWorkflowActions } from './workflow/document-workflow-actions';
 
 const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', 'attachments'];
 
+/** From this width the versions, reading and sharing cards sit in the side column. */
+const WIDE_QUERY = '(min-width: 1024px)';
+
 /**
- * Document detail on the shared record-detail layout. Header: breadcrumbs, the
- * title, a meta line (code · type · status · review due) and the actions — the
- * workflow step as the primary action ("Send til godkjenning" / "Godkjenn"),
- * "Rediger" and "Lag ny fra denne" as secondary, and "Mer" (download PDF / Word,
- * distribute, compare revisions, make obsolete, delete). Tabs: the document
- * itself (lifecycle stepper, approval status, the auditor's fields — owner,
- * approved by and when, effective from, next review, revision — and the paper
- * view), Related (the record links), Tasks, Activity and Attachments. The aside
- * holds "Krav dette dokumenterer", the connections, periodic review,
- * read-and-understood, revision history, sharing and the anchored comments.
- * Readers see the last approved revision; drafters can switch to the draft.
- * Navigates back to the list on org switch.
+ * Document detail on the detail-page anatomy (docs/ux-guide.md §2.7). Header:
+ * breadcrumbs, the title, one meta line (code · type · status, "forfalt" when the
+ * periodic review is overdue) and one primary action — the workflow step
+ * ("Send til godkjenning" / "Godkjenn") or else "Rediger"; "Spør KI" holds the
+ * assistant actions and "Mer" the downloads, distribute, compare, make obsolete
+ * and delete. "Hovedinformasjon": a status sentence (approved / draft / waiting
+ * for whom) and which version applies, who approved it and what changed. The
+ * Details tab is the document itself (version switch, read-and-understood
+ * prompt, the paper view). One "Oppfølging" card: what is missing, the
+ * requirements it documents, connections, and owner / review schedule / last
+ * changed (the review schedule is edited there). Read-and-understood, versions,
+ * sharing and anchored comments sit under the card on wide screens and after
+ * the document on phones. Readers see the last approved revision; drafters can
+ * switch to the draft. Navigates back to the list on org switch.
  */
 @Component({
   selector: 'app-document-detail',
   imports: [
+    NgTemplateOutlet,
     RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
@@ -89,15 +101,14 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
     LocalDatePipe,
     LocalDayPipe,
     RecordDetailLayout,
-    WatchButton,
-    AskAbout,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     EntityTasks,
-    Alert,
     Button,
     Card,
     ErrorState,
-    FieldList,
     FieldItem,
     Icon,
     LoadingState,
@@ -117,6 +128,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
   template: `
     @if (document(); as doc) {
       <app-record-detail-layout
+        [anatomy]="true"
         entityType="document"
         [entityId]="doc.id"
         [title]="doc.title"
@@ -129,10 +141,11 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
         [canEdit]="canEdit()"
         [canComment]="false"
         [includeAudit]="canReadAudit()"
+        [missing]="missing()"
         backLink="/documents"
         backLabelKey="documents.backToList"
       >
-        <ng-container meta>
+        <ng-container ngProjectAs="[meta]">
           <span class="font-mono" data-testid="doc-code">{{ doc.doc_code }}</span>
           <span aria-hidden="true">·</span>
           <span data-testid="doc-type">{{ typeName() }}</span>
@@ -142,12 +155,16 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
             [value]="doc.status"
             [labelKey]="statusLabelKey(doc.status)"
           />
-          @if (review(); as r) {
-            <app-status-badge meaning="lifecycle" [value]="r" [labelKey]="reviewLabelKey(r)" />
+          @if (review() === 'overdue') {
+            <app-status-badge
+              meaning="lifecycle"
+              value="overdue"
+              [labelKey]="reviewLabelKey('overdue')"
+            />
           }
-          <app-ask-about class="ml-1" [prompt]="'documents.page.detail.askCovers' | transloco" />
         </ng-container>
 
+        <!-- One primary action: the next workflow step, else "Rediger". -->
         @if (!viewingOldRevision()) {
           <app-document-workflow-actions
             primary
@@ -157,9 +174,20 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
             (reloadRequested)="reload()"
           />
         }
-
-        <app-watch-button secondary entityType="document" [entityId]="doc.id" />
-        @if (!viewingOldRevision() && doc.status !== 'obsolete') {
+        @if (canEditDoc() && !hasWorkflowStep()) {
+          <a
+            primary
+            *appHasPermission="'documents:draft'"
+            [routerLink]="['/documents', doc.id, 'edit']"
+            data-testid="edit-link"
+          >
+            <app-button variant="primary">
+              <app-icon name="pencil" [size]="15" />
+              {{ 'documents.edit' | transloco }}
+            </app-button>
+          </a>
+        }
+        @if (canEditDoc() && hasWorkflowStep()) {
           <a
             secondary
             *appHasPermission="'documents:draft'"
@@ -172,6 +200,21 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
             </app-button>
           </a>
         }
+
+        <button appMenuItem ask type="button" (click)="askAi('covers')" data-testid="ask-covers">
+          <app-icon name="spark" [size]="15" />
+          {{ 'documents.page.detail.askCovers' | transloco }}
+        </button>
+        <button
+          appMenuItem
+          ask
+          type="button"
+          (click)="askAi('summarise')"
+          data-testid="ask-summarise"
+        >
+          <app-icon name="spark" [size]="15" />
+          {{ 'documents.page.detail.ask.summarise' | transloco }}
+        </button>
 
         <button
           overflow
@@ -254,107 +297,98 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
           <app-documents-page-guide page="detail" lesson="first-document" tour="detail" />
         </div>
 
-        <!-- Details tab: the document itself. -->
-        <div class="flex flex-col gap-4">
-          <ol
-            class="flex flex-wrap items-center gap-x-1 gap-y-2 text-meta"
-            [attr.aria-label]="'documents.page.detail.lifecycle' | transloco"
-            data-testid="lifecycle"
-            [appTourStep]="'documents-lifecycle'"
-          >
-            @for (s of steps(); track s.step; let last = $last) {
-              <li class="flex items-center gap-1">
-                <span
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold"
-                  [class]="
-                    s.state === 'current'
-                      ? 'border-accent bg-accent-soft text-accent'
-                      : s.state === 'done'
-                        ? 'border-border bg-surface text-fg'
-                        : 'border-dashed border-border bg-surface text-fg-subtle'
-                  "
-                  [attr.aria-current]="s.state === 'current' ? 'step' : null"
-                >
-                  @if (s.state === 'done') {
-                    <app-icon name="check" [size]="12" class="text-pass" />
-                  }
-                  {{ statusLabelKey(s.step) | transloco }}
-                </span>
-                @if (!last) {
-                  <span aria-hidden="true" class="text-fg-subtle">→</span>
-                }
-              </li>
-            }
-          </ol>
-
-          @if (doc.status === 'in_review') {
-            <app-alert tone="info" data-testid="awaiting-approval">
-              @if (reviewedRevision()?.requested_approver_name; as name) {
-                {{ 'documents.approval.waitingFor' | transloco: { name } }}
-              } @else {
-                {{ 'documents.approval.waitingAny' | transloco }}
+        <!-- §2.7 "Hovedinformasjon": where the document stands and which version applies. -->
+        <app-record-lead record-lead [appTourStep]="'documents-fields'" data-testid="doc-fields">
+          @if (statusLine(); as line) {
+            <app-record-status-line
+              status
+              [tone]="line.tone"
+              [appTourStep]="'documents-lifecycle'"
+              data-testid="doc-status-line"
+            >
+              {{ line.key | transloco: line.params }}
+              @if (line.extraKey) {
+                {{ line.extraKey | transloco: line.extraParams }}
               }
-              @if (reviewedRevision()?.submitted_at; as at) {
-                <span class="text-fg-muted">
-                  · {{ 'documents.approval.submittedOn' | transloco: { date: (at | localDate) } }}
+              @if (doc.status === 'in_review' && reviewedRevision()?.submitted_at; as at) {
+                <span class="font-normal">
+                  {{
+                    'documents.page.detail.status.submitted' | transloco: { date: (at | localDay) }
+                  }}
                 </span>
               }
-              @if (doc.segregation_required !== false) {
-                <span class="mt-1 block text-meta text-fg-muted">{{
-                  'documents.approval.segregationExplained' | transloco
-                }}</span>
-              }
-            </app-alert>
+            </app-record-status-line>
+          }
+          @if (doc.status === 'in_review' && doc.segregation_required !== false) {
+            <p class="-mt-2 mb-4 text-meta text-fg-muted" data-testid="segregation-explained">
+              {{ 'documents.approval.segregationExplained' | transloco }}
+            </p>
           }
 
-          <app-card [appTourStep]="'documents-fields'">
-            <app-field-list [columns]="3" data-testid="doc-fields">
-              <app-field-item labelKey="documents.page.fields.owner" [value]="ownerName()" />
-              <app-field-item
-                labelKey="documents.page.fields.approvedBy"
-                [value]="doc.current_revision?.approved_by_name"
-              />
-              <app-field-item
-                labelKey="documents.page.fields.approvedOn"
-                [value]="
-                  doc.current_revision?.approved_at
-                    ? (doc.current_revision?.approved_at | localDay)
-                    : null
-                "
-              />
-              <app-field-item
-                labelKey="documents.page.fields.effectiveFrom"
-                [value]="effectiveFrom() ? (effectiveFrom() | localDay) : null"
-              />
-              <app-field-item
-                labelKey="documents.page.fields.nextReview"
-                [value]="doc.next_review_at ? (doc.next_review_at | localDay) : null"
-              />
-              <app-field-item labelKey="documents.meta.revision" [value]="revisionLabel()" />
-              <app-field-item labelKey="documents.meta.type" [value]="typeName()" />
-              @if (doc.current_revision?.change_reason; as reason) {
-                <app-field-item
-                  labelKey="documents.page.fields.changeReason"
-                  [value]="reason"
-                  [wide]="true"
-                  [multiline]="true"
-                />
+          <app-field-item
+            size="lead"
+            labelKey="documents.page.detail.lead.version"
+            data-testid="lead-version"
+          >
+            @if (doc.current_revision; as cur) {
+              @if (effectiveFrom(); as eff) {
+                {{
+                  'documents.page.detail.lead.versionFrom'
+                    | transloco: { rev: cur.rev, date: (eff | localDay) }
+                }}
+              } @else {
+                {{ 'documents.revShort' | transloco: { rev: cur.rev } }}
               }
+            } @else {
+              <span class="text-fg-muted">{{
+                'documents.page.detail.lead.versionNone'
+                  | transloco: { rev: doc.draft_revision?.rev ?? '–' }
+              }}</span>
+            }
+          </app-field-item>
+          @if (doc.current_revision?.approved_at; as approvedAt) {
+            <app-field-item
+              size="lead"
+              labelKey="documents.page.fields.approvedBy"
+              data-testid="lead-approved"
+            >
+              {{
+                (doc.current_revision?.approved_by_name
+                  ? 'documents.page.detail.lead.approvedByValue'
+                  : 'documents.page.detail.lead.approvedOnValue'
+                )
+                  | transloco
+                    : {
+                        name: doc.current_revision?.approved_by_name,
+                        date: (approvedAt | localDay),
+                      }
+              }}
               @if (doc.current_revision?.approval_note; as note) {
-                <app-field-item
-                  labelKey="documents.page.fields.approvalNote"
-                  [value]="note"
-                  [wide]="true"
-                  [multiline]="true"
-                />
+                <span class="mt-1 block text-ui leading-snug text-fg-muted whitespace-pre-line">{{
+                  'documents.page.detail.lead.note' | transloco: { note }
+                }}</span>
               }
-            </app-field-list>
-          </app-card>
+            </app-field-item>
+          }
+          @if ((doc.current_revision ?? doc.draft_revision)?.change_reason; as reason) {
+            <app-field-item
+              size="lead"
+              labelKey="documents.page.fields.changeReason"
+              [value]="reason"
+              [multiline]="true"
+              [wide]="true"
+            />
+          }
+        </app-record-lead>
 
+        <!-- Details tab: the document itself. -->
+        <div class="flex flex-col gap-4">
           @if (!viewedRevision()) {
             <app-document-version-banner
+              class="empty:hidden"
               [document]="doc"
               [view]="versionView()"
+              [hideUnapprovedNote]="true"
               (viewChange)="versionView.set($event)"
             />
           }
@@ -394,6 +428,16 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
               </p>
             </app-card>
           }
+
+          <!-- Phones and tablets: versions, reading and sharing after the document. -->
+          @if (!wide()) {
+            <div class="flex flex-col gap-4">
+              <ng-container
+                [ngTemplateOutlet]="extras"
+                [ngTemplateOutletContext]="{ $implicit: doc }"
+              />
+            </div>
+          }
         </div>
 
         <div tasks>
@@ -406,159 +450,218 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'tasks', 'activity', '
         </div>
 
         @if (canReadStandards()) {
-          <app-card
+          <app-supports-requirements
             aside-requirements
             id="supports-requirements"
-            class="scroll-mt-6"
+            class="block scroll-mt-6"
             [appTourStep]="'documents-requirements'"
-          >
-            <app-supports-requirements
-              entityType="document"
-              [entityId]="doc.id"
-              [canEdit]="canEdit()"
-              (linksChange)="requirementLinks.set($event)"
-            />
-          </app-card>
+            entityType="document"
+            [entityId]="doc.id"
+            [canEdit]="canEdit()"
+            (linksChange)="requirementLinks.set($event)"
+          />
         }
 
-        <div aside class="flex flex-col gap-4">
-          <app-document-review-panel
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="documents.page.fields.owner"
+            [value]="ownerName()"
+          />
+          <app-field-item layout="inline" labelKey="documents.page.detail.meta.interval">
+            @if (doc.review_interval_months; as months) {
+              {{ 'documents.review.everyMonths' | transloco: { months } }}
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="documents.page.fields.nextReview"
+            data-testid="meta-next-review"
+          >
+            @if (doc.next_review_at) {
+              <span [class.text-warn-ink]="review() === 'overdue'">{{
+                doc.next_review_at | localDay
+              }}</span>
+            } @else {
+              <span class="font-normal text-fg-subtle">{{
+                'documents.page.detail.meta.notPlanned' | transloco
+              }}</span>
+            }
+            @if (canPlanReview() && !reviewEditing()) {
+              <span aria-hidden="true" class="text-fg-subtle"> · </span>
+              <button
+                type="button"
+                class="font-semibold text-accent hover:underline"
+                data-testid="review-edit"
+                (click)="reviewEditing.set(true)"
+              >
+                {{
+                  (doc.next_review_at
+                    ? 'documents.page.detail.meta.change'
+                    : 'documents.page.detail.meta.plan'
+                  ) | transloco
+                }}
+              </button>
+            }
+          </app-field-item>
+          <app-field-item
+            layout="inline"
+            labelKey="documents.page.detail.meta.updated"
+            [value]="doc.updated_at ? (doc.updated_at | localDate) : null"
+          />
+          @if (reviewEditing()) {
+            <app-document-review-panel
+              class="mt-2 border-t border-border pt-3"
+              [document]="doc"
+              (changed)="onDocumentChange($event)"
+              (closed)="reviewEditing.set(false)"
+            />
+          }
+        </app-record-meta>
+
+        <!-- Wide screens: versions, reading and sharing under the "Oppfølging" card. -->
+        @if (wide()) {
+          <div aside class="flex flex-col gap-4">
+            <ng-container
+              [ngTemplateOutlet]="extras"
+              [ngTemplateOutletContext]="{ $implicit: doc }"
+            />
+          </div>
+        }
+      </app-record-detail-layout>
+
+      <ng-template #extras let-doc>
+        @if (canManage() || doc.acknowledgement?.required) {
+          <app-document-acknowledgement-list
             [document]="doc"
             [canManage]="canManage()"
             (changed)="onDocumentChange($event)"
           />
+        }
 
-          @if (canManage() || doc.acknowledgement?.required) {
-            <app-document-acknowledgement-list
-              [document]="doc"
-              [canManage]="canManage()"
-              (changed)="onDocumentChange($event)"
-            />
-          }
-
-          <app-card [padded]="false">
-            <h2 class="px-4 pt-3.5 pb-1 font-display text-card font-bold text-fg">
-              {{ 'documents.history' | transloco }}
-            </h2>
-            @if (doc.revisions.length === 0) {
-              <p class="px-4 py-6 text-center text-ui text-fg-muted">
-                {{ 'documents.noRevisions' | transloco }}
-              </p>
-            } @else {
-              <ul class="px-2 py-2" data-testid="revision-list">
-                @for (rev of doc.revisions; track rev.id) {
-                  <li>
-                    <button
-                      type="button"
-                      [disabled]="revisionLoading()"
-                      [class.bg-surface-2]="isSelected(rev)"
-                      (click)="viewRevision(rev)"
-                      class="flex w-full items-start gap-2.5 rounded-tile px-2 py-2 text-left hover:bg-surface-2 disabled:opacity-60"
-                    >
-                      <span class="mt-0.5 flex flex-none text-fg-subtle">
-                        <app-icon name="history" [size]="15" />
+        <app-card [padded]="false">
+          <h2 class="px-4 pt-3.5 pb-1 font-display text-card font-bold text-fg">
+            {{ 'documents.page.detail.versions' | transloco }}
+          </h2>
+          @if (doc.revisions.length === 0) {
+            <p class="px-4 py-6 text-center text-ui text-fg-muted">
+              {{ 'documents.noRevisions' | transloco }}
+            </p>
+          } @else {
+            <ul class="px-2 py-2" data-testid="revision-list">
+              @for (rev of doc.revisions; track rev.id) {
+                <li>
+                  <button
+                    type="button"
+                    [disabled]="revisionLoading()"
+                    [class.bg-surface-2]="isSelected(rev)"
+                    [attr.aria-current]="isSelected(rev) ? 'true' : null"
+                    (click)="viewRevision(rev)"
+                    class="flex w-full items-start gap-2.5 rounded-tile px-2 py-2 text-left hover:bg-surface-2 disabled:opacity-60"
+                  >
+                    <span class="mt-0.5 flex flex-none text-fg-subtle">
+                      <app-icon name="history" [size]="15" />
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="flex flex-wrap items-center gap-2">
+                        <span class="font-semibold text-fg">{{
+                          'documents.revShort' | transloco: { rev: rev.rev }
+                        }}</span>
+                        <app-status-badge
+                          meaning="lifecycle"
+                          [value]="rev.status"
+                          [labelKey]="statusLabelKey(rev.status)"
+                        />
                       </span>
-                      <span class="min-w-0 flex-1">
-                        <span class="flex flex-wrap items-center gap-2">
-                          <span class="font-semibold text-fg">{{
-                            'documents.revShort' | transloco: { rev: rev.rev }
-                          }}</span>
-                          <app-status-badge
-                            meaning="lifecycle"
-                            [value]="rev.status"
-                            [labelKey]="statusLabelKey(rev.status)"
-                          />
-                        </span>
+                      <span class="block text-meta text-fg-subtle">
+                        @if (rev.author_name) {
+                          {{
+                            'documents.page.detail.writtenBy'
+                              | transloco
+                                : { name: rev.author_name, date: (rev.created_at | localDay) }
+                          }}
+                        } @else {
+                          {{ rev.created_at | localDay }}
+                        }
+                      </span>
+                      @if (rev.approved_at) {
                         <span class="block text-meta text-fg-subtle">
-                          @if (rev.author_name) {
-                            {{
-                              'documents.page.detail.writtenBy'
-                                | transloco
-                                  : { name: rev.author_name, date: (rev.created_at | localDay) }
-                            }}
-                          } @else {
-                            {{ rev.created_at | localDay }}
-                          }
+                          {{
+                            (rev.approved_by_name
+                              ? 'documents.page.detail.approvedByOn'
+                              : 'documents.page.detail.approvedOn'
+                            )
+                              | transloco
+                                : {
+                                    name: rev.approved_by_name,
+                                    date: (rev.approved_at | localDay),
+                                  }
+                          }}
                         </span>
-                        @if (rev.approved_at) {
-                          <span class="block text-meta text-fg-subtle">
-                            {{
-                              (rev.approved_by_name
-                                ? 'documents.page.detail.approvedByOn'
-                                : 'documents.page.detail.approvedOn'
-                              )
-                                | transloco
-                                  : {
-                                      name: rev.approved_by_name,
-                                      date: (rev.approved_at | localDay),
-                                    }
-                            }}
-                          </span>
-                        }
-                        @if (rev.change_reason) {
-                          <span class="mt-0.5 block text-meta leading-snug text-fg-muted">{{
-                            rev.change_reason
-                          }}</span>
-                        }
-                      </span>
-                    </button>
-                  </li>
-                }
-              </ul>
-              @if (doc.revisions.length > 1) {
-                <a
-                  [routerLink]="['/documents', doc.id, 'history']"
-                  class="block px-4 pb-3 text-meta font-semibold text-accent hover:underline"
-                >
-                  {{ 'documents.control.compare.link' | transloco }}
-                </a>
+                      }
+                      @if (rev.change_reason) {
+                        <span class="mt-0.5 block text-meta leading-snug text-fg-muted">{{
+                          rev.change_reason
+                        }}</span>
+                      }
+                    </span>
+                  </button>
+                </li>
               }
+            </ul>
+            @if (doc.revisions.length > 1) {
+              <a
+                [routerLink]="['/documents', doc.id, 'history']"
+                class="block px-4 pb-3 text-meta font-semibold text-accent hover:underline"
+              >
+                {{ 'documents.control.compare.link' | transloco }}
+              </a>
             }
+          }
+        </app-card>
+
+        @if (access(); as acc) {
+          <app-card [padded]="false">
+            <h2 class="px-4 pt-3.5 pb-3 font-display text-card font-bold text-fg">
+              {{ 'documents.access.sharingTitle' | transloco }}
+            </h2>
+            <div class="px-4 pb-4">
+              <app-document-access-editor
+                mode="live"
+                [documentId]="doc.id"
+                [canManage]="canManage()"
+                [owner]="acc.owner_user_id"
+                [ownerName]="acc.owner_name"
+                [visibility]="acc.visibility"
+                [grants]="grants()"
+                (ownerChange)="onOwnerChange($event)"
+                (visibilityChange)="onVisibilityChange($event)"
+                (grantsChange)="grants.set($event)"
+              />
+            </div>
           </app-card>
+        }
 
-          @if (access(); as acc) {
-            <app-card [padded]="false">
-              <h2 class="px-4 pt-3.5 pb-3 font-display text-card font-bold text-fg">
-                {{ 'documents.access.sharingTitle' | transloco }}
-              </h2>
-              <div class="px-4 pb-4">
-                <app-document-access-editor
-                  mode="live"
-                  [documentId]="doc.id"
-                  [canManage]="canManage()"
-                  [owner]="acc.owner_user_id"
-                  [ownerName]="acc.owner_name"
-                  [visibility]="acc.visibility"
-                  [grants]="grants()"
-                  (ownerChange)="onOwnerChange($event)"
-                  (visibilityChange)="onVisibilityChange($event)"
-                  (grantsChange)="grants.set($event)"
-                />
-              </div>
-            </app-card>
-          }
-
-          @if (activeRevisionId(); as revId) {
-            <app-document-comments
-              [docElement]="docBodyEl()"
-              [documentId]="doc.id"
-              [revisionId]="revId"
-              [revisionHtml]="(viewedRevision() ?? baseRevision())?.content ?? ''"
-              [canEdit]="canEdit()"
-              (revisionApplied)="reload()"
-            />
-          }
-
-          <app-document-delete-action
-            #deleteRef
-            [document]="doc"
-            [canManage]="canManage()"
-            [showCard]="false"
-            (deleted)="onDeleted()"
-            (reloadRequested)="reload()"
+        @if (activeRevisionId(); as revId) {
+          <app-document-comments
+            [docElement]="docBodyEl()"
+            [documentId]="doc.id"
+            [revisionId]="revId"
+            [revisionHtml]="(viewedRevision() ?? baseRevision())?.content ?? ''"
+            [canEdit]="canEdit()"
+            (revisionApplied)="reload()"
           />
-        </div>
-      </app-record-detail-layout>
+        }
+      </ng-template>
+
+      <app-document-delete-action
+        #deleteRef
+        [document]="doc"
+        [canManage]="canManage()"
+        [showCard]="false"
+        (deleted)="onDeleted()"
+        (reloadRequested)="reload()"
+      />
     } @else {
       <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
         <a
@@ -592,6 +695,7 @@ export class DocumentDetail {
   private readonly language = inject(LanguageService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly router = inject(Router);
+  private readonly ask = inject(AskPanelService);
 
   /** Route param `id`, bound via withComponentInputBinding(). */
   readonly id = input.required<string>();
@@ -662,10 +766,44 @@ export class DocumentDetail {
     const doc = this.document();
     return doc ? reviewState(doc) : null;
   });
-  protected readonly steps = computed(() => {
+  /** The "Hovedinformasjon" status sentence. */
+  protected readonly statusLine = computed(() => {
     const doc = this.document();
-    return doc ? lifecycleSteps(doc.status, !!doc.current_revision) : [];
+    return doc ? documentStatusLine(doc) : null;
   });
+  /** Whether the header's primary slot holds a workflow step (then "Rediger" is secondary). */
+  protected readonly hasWorkflowStep = computed(() => {
+    const status = this.document()?.status;
+    return (
+      (status === 'draft' && this.canEdit()) ||
+      (status === 'in_review' && this.permissions().includes('documents:approve'))
+    );
+  });
+  /** "Rediger" shows on the current (or draft) version of a document that is not obsolete. */
+  protected readonly canEditDoc = computed(
+    () => !this.viewingOldRevision() && this.document()?.status !== 'obsolete',
+  );
+  /** The review schedule form under "Neste gjennomgang" is open. */
+  protected readonly reviewEditing = signal(false);
+  protected readonly canPlanReview = computed(
+    () => this.canManage() && this.document()?.status !== 'obsolete',
+  );
+  /** "Oppfølging": what this document still needs. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const doc = this.document();
+    if (!doc) {
+      return [];
+    }
+    return documentMissing(doc, {
+      canEdit: this.canEdit(),
+      canManage: this.canManage(),
+      reviewOverdue: this.review() === 'overdue',
+      editLink: ['/documents', doc.id, 'edit'],
+      planReview: () => this.reviewEditing.set(true),
+    });
+  });
+  /** Wide screens: the extra cards go in the side column. */
+  protected readonly wide = signal(matchesWide());
   /** The revision in (or heading for) approval: the draft when there is one. */
   protected readonly reviewedRevision = computed(() => {
     const doc = this.document();
@@ -675,29 +813,6 @@ export class DocumentDetail {
     const doc = this.document();
     return doc?.effective_from ?? doc?.current_revision?.approved_at ?? null;
   });
-  /** "B" for the approved revision, "C (utkast)" while a draft is open, "A (utkast)" before. */
-  protected readonly revisionLabel = computed(() => {
-    const doc = this.document();
-    if (!doc) {
-      return null;
-    }
-    const approved = doc.current_revision?.rev;
-    const draft = doc.draft_revision?.rev;
-    if (
-      draft !== undefined &&
-      draft !== null &&
-      doc.draft_revision?.id !== doc.current_revision?.id
-    ) {
-      const draftLabel = this.language.translate('documents.page.detail.draftRevision', {
-        rev: draft,
-      });
-      return approved !== undefined && approved !== null
-        ? `${approved} · ${draftLabel}`
-        : draftLabel;
-    }
-    return approved !== undefined && approved !== null ? String(approved) : null;
-  });
-
   /** Drafters: whether the approved revision or the working draft is shown. */
   protected readonly versionView = signal<VersionView>('approved');
 
@@ -750,6 +865,12 @@ export class DocumentDetail {
   private currentOrgId: string | null = null;
 
   constructor() {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const media = window.matchMedia(WIDE_QUERY);
+      const listener = (event: MediaQueryListEvent) => this.wide.set(event.matches);
+      media.addEventListener?.('change', listener);
+      inject(DestroyRef).onDestroy(() => media.removeEventListener?.('change', listener));
+    }
     // Tell the assistant which document this page shows, and what it documents.
     providePageContext(() => ({
       module: 'documents',
@@ -777,6 +898,26 @@ export class DocumentDetail {
           error: () => this.types.set([]),
         });
       }
+    });
+  }
+
+  /** "Spør KI": what the document covers, or a short summary of it. */
+  protected askAi(kind: 'covers' | 'summarise'): void {
+    const doc = this.document();
+    if (!doc) {
+      return;
+    }
+    const prompt =
+      kind === 'covers'
+        ? this.language.translate('documents.page.detail.askCovers')
+        : this.language.translate('documents.page.detail.ask.summarisePrompt', {
+            code: doc.doc_code,
+            title: doc.title,
+          });
+    this.ask.askAbout(prompt, undefined, {
+      requirements: this.requirementLinks()
+        .filter((link) => link.status === 'confirmed')
+        .map((link) => link.requirement_ref),
     });
   }
 
@@ -914,4 +1055,10 @@ export class DocumentDetail {
       },
     });
   }
+}
+
+function matchesWide(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(WIDE_QUERY).matches
+    : true;
 }

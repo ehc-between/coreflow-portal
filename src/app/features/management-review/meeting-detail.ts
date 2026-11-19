@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   computed,
   effect,
   inject,
@@ -18,20 +19,29 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AssigneeIn } from '../../core/tasks/task.models';
 import { AskPanelService } from '../ask/ask-panel.service';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
-import { EntityChip } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDatePipe } from '../../shared/locale/locale-pipes';
+import { EntityChip, EntityChipRef } from '../../shared/kit/entity-chip';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
+import { LocalDatePipe, formatLocalDate } from '../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -47,7 +57,6 @@ import {
   meetingKindKey,
   meetingStatusKey,
   mrCrumbs,
-  reviewStatusKey,
   toneValue,
 } from './management-review-display';
 
@@ -77,6 +86,101 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
   agenda: 'managementReview.agenda.title',
 };
 
+/** The status sentence of a meeting's "Hovedinformasjon" (docs/ux-guide.md §2.7). */
+export function meetingStatusSentence(
+  m: MeetingDetail,
+  date: (value: string | null | undefined) => string,
+): { key: string; params: Record<string, unknown>; tone: StatusLineTone } {
+  const base = 'managementReview.meetingLead.status.';
+  switch (m.status) {
+    case 'planned':
+      return m.scheduled_at
+        ? { key: `${base}planned`, params: { date: date(m.scheduled_at) }, tone: 'info' }
+        : { key: `${base}plannedNoDate`, params: {}, tone: 'warn' };
+    case 'in_progress':
+      return { key: `${base}in_progress`, params: {}, tone: 'warn' };
+    case 'completed':
+      return m.minutes_status === 'approved'
+        ? {
+            key: `${base}approved`,
+            params: {
+              name: m.minutes_approved_by?.name ?? '—',
+              date: date(m.minutes_approved_at),
+            },
+            tone: 'pass',
+          }
+        : { key: `${base}completed`, params: {}, tone: 'warn' };
+    default:
+      return { key: `${base}cancelled`, params: {}, tone: 'neutral' };
+  }
+}
+
+/** What the meeting still needs ("Oppfølging"); each line opens the card that fixes it. */
+export function meetingMissing(
+  m: MeetingDetail,
+  scrollTo: (anchor: string) => void,
+  editLink: readonly unknown[],
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  if (m.status === 'cancelled') {
+    return items;
+  }
+  if (m.can_edit && !m.scheduled_at) {
+    items.push({
+      key: 'when',
+      labelKey: 'managementReview.meetingLead.missing.when',
+      link: editLink,
+    });
+  }
+  if (m.can_edit && !m.chair) {
+    items.push({
+      key: 'chair',
+      labelKey: 'managementReview.meetingLead.missing.chair',
+      link: editLink,
+    });
+  }
+  if (m.status === 'completed' && m.minutes_status !== 'approved') {
+    items.push({
+      key: 'minutes',
+      labelKey: 'managementReview.meetingLead.missing.minutes',
+      action: () => scrollTo('mr-meeting-minutes'),
+    });
+  }
+  const noTask = m.decisions.filter((d) => d.follow_up_missing).length;
+  if (noTask > 0) {
+    items.push({
+      key: 'tasks',
+      labelKey: 'managementReview.meetingLead.missing.tasks',
+      params: { count: noTask },
+      action: () => scrollTo('mr-meeting-decisions'),
+    });
+  }
+  return items;
+}
+
+/**
+ * What the meeting concerns, as chips: its review first (a review meeting belongs to
+ * one), then the records it is linked to ("Gjelder").
+ */
+export function meetingConcerns(m: MeetingDetail): EntityChipRef[] {
+  const refs: EntityChipRef[] = [];
+  if (m.review) {
+    refs.push({
+      entity_type: 'management_review',
+      entity_id: m.review.id,
+      title: m.review.title,
+      code: m.review.code,
+      url: m.review.url,
+      status: m.review.status,
+      module: MR_MODULE,
+    });
+  }
+  for (const r of m.related ?? []) {
+    refs.push(r);
+  }
+  return refs;
+}
+
 /**
  * `/management-review/meetings/:id`: a meeting with minutes — what it concerns
  * ("Gjelder"), time and place, the agenda, attendees and attendance, minutes
@@ -91,20 +195,21 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
-    WatchButton,
     TourStepDirective,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     EntityTasks,
     Alert,
     Button,
-    Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
+    Icon,
     LoadingState,
     MenuItem,
     StatusBadge,
@@ -136,6 +241,7 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
       @case ('ready') {
         @if (meeting(); as m) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="meeting"
             [entityId]="m.id"
             [title]="m.title"
@@ -145,8 +251,9 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
             [canEdit]="m.can_edit"
             [fieldLabels]="fieldLabels"
             [requirementsPanel]="true"
+            [missing]="missing()"
           >
-            <ng-container meta>
+            <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ m.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ kindKey(m.kind) | transloco }}</span>
@@ -159,19 +266,19 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
             </ng-container>
 
             @if (m.can_edit) {
-              <app-button secondary variant="secondary" (click)="edit()">
+              <app-button primary data-testid="meeting-edit" (click)="edit()">
                 {{ 'managementReview.detail.edit' | transloco }}
               </app-button>
             }
-            <app-watch-button secondary entityType="meeting" [entityId]="m.id" />
-            <button appMenuItem overflow (click)="askSummary()">
-              {{ 'managementReview.ai.summariseMeeting' | transloco }}
-            </button>
             @if (canDelete()) {
               <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">
                 {{ 'managementReview.meeting.delete' | transloco }}
               </button>
             }
+            <button appMenuItem ask type="button" (click)="askSummary()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'managementReview.ai.summariseMeeting' | transloco }}
+            </button>
 
             <app-help-strip
               help
@@ -181,68 +288,78 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
               lesson="good-minutes"
             />
 
-            <div class="flex flex-col gap-4">
-              @if (m.review; as rv) {
-                <app-alert tone="info">
-                  {{ 'managementReview.meeting.partOfReview' | transloco }}
-                  <a [routerLink]="rv.url" class="font-semibold underline" data-testid="review-link"
-                    >{{ rv.code }} {{ rv.title }}</a
+            <!-- §2.7 Hovedinformasjon: where the meeting stands, when and where, why,
+                 what it concerns and what was decided. -->
+            <app-record-lead record-lead data-testid="meeting-lead">
+              <app-record-status-line
+                status
+                [tone]="statusSentence().tone"
+                data-testid="meeting-status-line"
+              >
+                {{ statusSentence().key | transloco: statusSentence().params }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="managementReview.meetingLead.when">
+                @if (m.scheduled_at || m.location) {
+                  @if (m.scheduled_at) {
+                    {{ m.scheduled_at | localDate }}
+                    @if (m.duration_minutes) {
+                      ·
+                      {{ 'managementReview.common.minutes' | transloco: { n: m.duration_minutes } }}
+                    }
+                  }
+                  @if (m.location) {
+                    <span class="block text-ui text-fg-muted">{{ m.location }}</span>
+                  }
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="managementReview.meetingLead.purpose"
+                [value]="m.purpose"
+                [multiline]="true"
+              />
+              <app-field-item
+                size="lead"
+                labelKey="managementReview.meetingLead.concerns"
+                [wide]="true"
+              >
+                @if (concerns().length) {
+                  <ul class="flex flex-col gap-2" data-testid="meeting-related">
+                    @for (ref of concerns(); track ref.entity_type + ref.entity_id) {
+                      <li
+                        [attr.data-testid]="
+                          ref.entity_type === 'management_review' ? 'review-link' : null
+                        "
+                      >
+                        <app-entity-chip [ref]="ref" [statusText]="true" />
+                      </li>
+                    }
+                  </ul>
+                }
+              </app-field-item>
+              @if (decisionCounts(); as c) {
+                <app-field-item
+                  size="lead"
+                  labelKey="managementReview.meetingLead.decisions"
+                  [wide]="true"
+                >
+                  <a
+                    href="#mr-meeting-decisions"
+                    class="font-semibold text-accent hover:underline"
+                    data-testid="meeting-decision-count"
+                    (click)="$event.preventDefault(); scrollTo('mr-meeting-decisions')"
+                    >{{ 'managementReview.meetingLead.decisionCount' | transloco: c }}</a
                   >
-                  ({{ reviewStatusKey(rv.status) | transloco }})
-                </app-alert>
+                </app-field-item>
               }
+            </app-record-lead>
+
+            <div class="flex flex-col gap-4">
               @if (m.kind === 'safety') {
                 <app-alert tone="info" data-testid="amu-hint">{{
                   'managementReview.meeting.amuHint' | transloco
                 }}</app-alert>
               }
-
-              <app-card>
-                <app-field-list [columns]="2">
-                  <app-field-item labelKey="managementReview.fields.scheduledAt">
-                    @if (m.scheduled_at) {
-                      {{ m.scheduled_at | localDate }}
-                      @if (m.duration_minutes) {
-                        ·
-                        {{
-                          'managementReview.common.minutes' | transloco: { n: m.duration_minutes }
-                        }}
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="managementReview.fields.location"
-                    [value]="m.location"
-                  />
-                  <app-field-item
-                    labelKey="managementReview.fields.chair"
-                    [value]="m.chair?.name ?? null"
-                  />
-                  <app-field-item
-                    labelKey="managementReview.fields.secretary"
-                    [value]="m.secretary?.name ?? null"
-                  />
-                  <app-field-item
-                    labelKey="managementReview.fields.purpose"
-                    [value]="m.purpose"
-                    [wide]="true"
-                    [multiline]="true"
-                  />
-                  <app-field-item
-                    labelKey="managementReview.fields.related"
-                    [wide]="true"
-                    empty="none"
-                  >
-                    @if (m.related?.length) {
-                      <ul class="flex flex-wrap gap-1.5" data-testid="meeting-related">
-                        @for (r of m.related; track r.link_id) {
-                          <li><app-entity-chip [ref]="r" /></li>
-                        }
-                      </ul>
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
 
               <app-mr-meeting-workspace
                 appTourStep="mtg-workspace"
@@ -263,6 +380,24 @@ export const MEETING_FIELD_LABELS: Readonly<Record<string, string>> = {
                 "
               />
             </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.fields.chair"
+                [value]="m.chair?.name ?? null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.fields.secretary"
+                [value]="m.secretary?.name ?? null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.meetingLead.updated"
+                [value]="m.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <app-why-it-matters aside-learn [scope]="scope" page="meetingDetail" />
           </app-record-detail-layout>
@@ -289,6 +424,7 @@ export class MeetingDetailPage {
   private readonly notifications = inject(NotificationService);
   private readonly ask = inject(AskPanelService);
   private readonly router = inject(Router);
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
 
   readonly id = input.required<string>();
 
@@ -299,7 +435,6 @@ export class MeetingDetailPage {
   protected readonly statusKey = meetingStatusKey;
   protected readonly tone = toneValue;
   protected readonly kindKey = meetingKindKey;
-  protected readonly reviewStatusKey = reviewStatusKey;
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly meeting = signal<MeetingDetail | null>(null);
@@ -320,6 +455,34 @@ export class MeetingDetailPage {
   protected readonly defaultAssignee = computed<AssigneeIn | null>(() => {
     const chair = this.meeting()?.chair;
     return chair ? { type: 'user', value: chair.id } : null;
+  });
+
+  protected readonly statusSentence = computed(() => {
+    const m = this.meeting();
+    const locale = this.language.locale();
+    return m
+      ? meetingStatusSentence(m, (v) => formatLocalDate(v, 'mediumDate', locale))
+      : { key: '', params: {}, tone: 'neutral' as StatusLineTone };
+  });
+  protected readonly missing = computed<RecordMissingItem[]>(() => {
+    const m = this.meeting();
+    return m
+      ? meetingMissing(m, (a) => this.scrollTo(a), ['/management-review/meetings', m.id, 'edit'])
+      : [];
+  });
+  protected readonly concerns = computed(() => {
+    const m = this.meeting();
+    return m ? meetingConcerns(m) : [];
+  });
+  /** "3 beslutninger · 1 tiltak", when anything was decided. */
+  protected readonly decisionCounts = computed(() => {
+    const decisions = this.meeting()?.decisions ?? [];
+    return decisions.length
+      ? {
+          count: decisions.length,
+          actions: decisions.filter((d) => d.category === 'action').length,
+        }
+      : null;
   });
 
   private request = new Subscription();
@@ -346,6 +509,11 @@ export class MeetingDetailPage {
 
   protected edit(): void {
     void this.router.navigate(['/management-review/meetings', this.id(), 'edit']);
+  }
+
+  protected scrollTo(anchor: string): void {
+    const target = this.host.nativeElement.querySelector<HTMLElement>('#' + anchor);
+    target?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
   }
 
   protected askSummary(): void {

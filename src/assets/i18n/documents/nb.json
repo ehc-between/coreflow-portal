@@ -471,20 +471,49 @@
     "detail": {
       "askCovers": "Hvilke krav dokumenterer dette dokumentet?",
       "deleteDraft": "Slett utkast",
-      "lifecycle": "Hvor dokumentet er i livsløpet",
       "writtenBy": "Skrevet av {{name}}, {{date}}",
       "approvedByOn": "Godkjent av {{name}}, {{date}}",
       "approvedOn": "Godkjent {{date}}",
-      "draftRevision": "{{rev}} (utkast)"
+      "status": {
+        "approved": "Godkjent – dette er versjonen alle skal følge.",
+        "revising": "Godkjent – en ny versjon er under arbeid.",
+        "draft": "Utkast – ikke godkjent ennå. Leserne ser det ikke før det er godkjent.",
+        "inReview": "Til godkjenning – {{name}} er bedt om å godkjenne det.",
+        "inReviewAny": "Til godkjenning – alle godkjennere kan godkjenne det.",
+        "obsolete": "Utgått – skal ikke brukes lenger.",
+        "stillApplies": "Rev {{rev}} gjelder fram til da.",
+        "submitted": "Sendt {{date}}."
+      },
+      "lead": {
+        "version": "Gjeldende versjon",
+        "versionFrom": "Rev {{rev}}, gyldig fra {{date}}",
+        "versionNone": "Ingen ennå – Rev {{rev}} er et utkast",
+        "approvedByValue": "{{name}}, {{date}}",
+        "approvedOnValue": "{{date}}",
+        "note": "«{{note}}»"
+      },
+      "meta": {
+        "interval": "Gjennomgås",
+        "change": "Endre",
+        "updated": "Sist endret",
+        "notPlanned": "Ikke planlagt",
+        "plan": "Planlegg"
+      },
+      "versions": "Versjoner",
+      "missing": {
+        "changes": "Gjør endringene godkjenneren ba om",
+        "review": "Gjennomgangen er forfalt – sett en ny dato"
+      },
+      "ask": {
+        "summarise": "Oppsummer dokumentet",
+        "summarisePrompt": "Oppsummer dokumentet {{code}} {{title}} med noen få setninger: hva det er til, hvem det gjelder for og hva de må gjøre."
+      }
     },
     "fields": {
       "owner": "Eier",
       "approvedBy": "Godkjent av",
-      "approvedOn": "Godkjent dato",
-      "effectiveFrom": "Gyldig fra",
-      "nextReview": "Neste periodiske gjennomgang",
-      "changeReason": "Begrunnelse for revisjonen",
-      "approvalNote": "Godkjenningsnotat"
+      "nextReview": "Neste gjennomgang",
+      "changeReason": "Hva er endret"
     },
     "new": {
       "about": "Om dokumentet",
