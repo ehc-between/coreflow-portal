@@ -91,13 +91,7 @@
   },
   "requisition": {
     "pipeline": "Pipeline",
-    "pipelineSummary": "Candidate pipeline",
-    "requiredChecks": "Required background checks",
-    "noPosting": "No job ad yet. Write the ad, or let the assistant draft one from the criteria.",
     "hiresOf": "{{ hires }} of {{ headcount }} hired",
-    "rejectedNote": "Rejected: {{ note }}",
-    "awaitingApproval": "Waiting for approval by an HR manager.",
-    "awaitingYou": "This requisition is waiting for your approval.",
     "note": "Note",
     "deleteTitle": "Delete this requisition?",
     "deleteMessage": "{{ code }} will be deleted. A requisition with applications cannot be deleted; cancel it instead.",
@@ -132,18 +126,14 @@
       "cancel": "The recruitment for {{ code }} is stopped.",
       "delete": "{{ code }} deleted."
     },
-    "aboutRole": "About the position",
     "approval": "Approval",
     "approvedBy": "Approved by {{ name }}, {{ date }}",
     "rejectedBy": "Rejected by {{ name }}, {{ date }}",
     "submittedBy": "submitted by {{ name }}, {{ date }}",
-    "awaitingShort": "Waiting for approval",
-    "draftHint": "This is a draft. Add the criteria and the hiring team, then send it for approval.",
     "allApplications": "See all applications",
     "noApplications": "No applications yet.",
     "noApplicationsOpen": "No applications yet. Add the first candidate when you receive an application.",
     "stageTileLabel": "{{ count }} in {{ stage }}: open the list",
-    "requiredChecksHint": "Planned automatically when a candidate reaches the reference check, from the table for {{ risk }}.",
     "legalBasisNote": "Criminal-record and credit checks are never planned automatically. Add them per candidate, with the legal basis.",
     "writePosting": "Write the job ad",
     "postingDeadline": "Application deadline {{ date }}",
@@ -233,8 +223,7 @@
     "erase": "Delete personal data",
     "eraseTitle": "Erase this candidate?",
     "eraseMessage": "The personal data of {{ code }} is anonymised, the free text of the applications, interviews, scorecards and checks is removed, and comments and attachments are deleted. This cannot be undone.",
-    "erased": "The personal data of {{ code }} has been erased.",
-    "contact": "Contact details"
+    "erased": "The personal data of {{ code }} has been erased."
   },
   "privacy": {
     "title": "Privacy and consent",
@@ -254,7 +243,6 @@
     "recordConsent": "Record talent-pool consent",
     "withdrawConsent": "Withdraw talent-pool consent",
     "saved": "Privacy record updated.",
-    "givenOn": "Given {{ date }}",
     "revision": "Revision {{ revision }}",
     "legacyVersion": "Version {{ version }} (text in the recruitment settings)",
     "noticeFromDocument": "Candidates get the approved privacy notice ({{ version }}):",
@@ -295,13 +283,10 @@
   },
   "application": {
     "backToPipeline": "Back to the pipeline",
-    "facts": "Application",
     "appliedAt": "Applied on",
     "stageSince": "In this stage since",
     "yourRole": "Your role",
-    "noticeMissing": "The candidate has not received the privacy notice yet, so the application cannot move past screening.",
     "openCandidate": "Open the candidate",
-    "rejectedBecause": "Rejected: {{ reason }}",
     "deleteTitle": "Delete this application?",
     "deleteMessage": "{{ code }} and its interviews, scorecards and checks will be deleted.",
     "deleted": "Application {{ code }} deleted.",
@@ -313,7 +298,6 @@
     },
     "openPipeline": "Open the pipeline",
     "delete": "Delete the application",
-    "screeningIncomplete": "Screening not finished",
     "overrideNote": "{{ name }} moved the candidate on before screening was finished ({{ date }}).",
     "overrideReason": "Reason: {{ reason }}"
   },
@@ -406,12 +390,10 @@
     "extendedAt": "Offered",
     "respondedAt": "Answered",
     "hiredAt": "Hired",
-    "onboardingTask": "Onboarding task",
     "extended": "Offer recorded.",
     "accepted": "Offer accepted.",
     "declined": "Offer declined; the application is withdrawn.",
     "hired": "Hired. The person and the onboarding are created.",
-    "employee": "In People",
     "openOnboarding": "Open the onboarding task",
     "noEmployee": "No person was registered in People (the module is off, or you may not register employees). Register the person there and link the onboarding."
   },
@@ -826,8 +808,6 @@
     "stalled": "No progress for {{ count }} days"
   },
   "offerBlockers": {
-    "title": "Before you can make the offer",
-    "go": "Go there",
     "other": "Something else blocks the offer.",
     "overrideHint": "You can make the offer before screening is finished only with a written reason, which is logged.",
     "application_closed": "The application is closed.",
@@ -889,6 +869,84 @@
       "hired": "Hired",
       "rejected": "Rejected",
       "withdrawn": "Withdrawn"
+    }
+  },
+  "detail": {
+    "aiRunning": "Drafting…",
+    "aiFailed": "The draft could not be made. Try again later.",
+    "opened": "Opened for applications",
+    "created": "Registered",
+    "updated": "Last changed",
+    "req": {
+      "type": "Job requisition",
+      "why": "Why the role is needed",
+      "candidates": "Candidates",
+      "risk": "Role risk and background checks",
+      "checks": "Checks for every candidate: {{ checks }}.",
+      "noChecks": "No background checks are required for this risk level.",
+      "checksWhen": "They are planned automatically when a candidate reaches reference check.",
+      "hires": "Hired so far",
+      "noPosting": "No job ad yet.",
+      "status": {
+        "draft": "Draft – add the criteria and the hiring team, then send it for approval.",
+        "pending_approval": "Awaiting approval – an HR manager decides whether the role can be filled.",
+        "pending_you": "Awaiting your approval – approve it, or reject it with what must change.",
+        "approved": "Approved – ready to be opened for applications.",
+        "rejected": "Rejected – change the requisition and send it again.",
+        "rejected_note": "Rejected – {{ note }}",
+        "open": "Open for applications – {{ active }} candidates in progress, {{ hires }} of {{ headcount }} hired.",
+        "on_hold": "On hold – no new applications until it is opened again.",
+        "filled": "Filled – {{ hires }} of {{ headcount }} hired.",
+        "cancelled": "Stopped – the recruitment ended without a hire."
+      },
+      "missing": {
+        "criteria": "Add screening criteria",
+        "manager": "Choose the hiring manager",
+        "posting": "Write the job ad"
+      }
+    },
+    "cand": {
+      "type": "Candidate",
+      "applications": "Applications",
+      "contact": "Contact",
+      "retention": "Personal data deleted",
+      "source": "How we found them",
+      "noticeDoc": "Privacy notice given",
+      "status": {
+        "noticeGiven": "Privacy notice given {{ date }} – the candidate knows how their data is used.",
+        "noticeMissing": "Privacy notice missing – record that the candidate has received it before the application goes past screening."
+      },
+      "missing": {
+        "notice": "Record that the privacy notice was given",
+        "application": "Add the candidate to a requisition"
+      }
+    },
+    "app": {
+      "type": "Application",
+      "requisition": "Applies for",
+      "candidate": "Candidate",
+      "checks": "Background checks",
+      "checksDone": "{{ done }} of {{ total }} required checks done",
+      "noChecks": "No required checks",
+      "noCriteria": "The requisition has no criteria.",
+      "startsOn": "starts {{ date }}",
+      "status": {
+        "hired": "Hired – the recruitment for this candidate is complete.",
+        "hiredPeople": "Hired – the person is registered in People.",
+        "rejected": "Rejected – {{ reason }}.",
+        "rejectedPlain": "Rejected.",
+        "withdrawn": "Withdrawn – the candidate is no longer in the process.",
+        "offerExtended": "Offer made – record the candidate’s answer.",
+        "offerAccepted": "Offer accepted – mark the candidate as hired.",
+        "blocked": "{{ stage }} – {{ count }} things must be done before you can make an offer.",
+        "blockedOne": "{{ stage }} – one thing must be done before you can make an offer.",
+        "ready": "{{ stage }} – everything is in place to make an offer.",
+        "active": "{{ stage }} – in progress."
+      },
+      "missing": {
+        "notice": "The candidate has not received the privacy notice",
+        "text": "{{ text }}"
+      }
     }
   }
 }

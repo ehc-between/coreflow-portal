@@ -1,10 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -14,23 +17,31 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe, formatLocalDate } from '../../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
@@ -38,6 +49,7 @@ import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { RecruitmentApi } from '../data/recruitment-api';
 import {
   RequisitionAction,
+  activeApplicationCount,
   groupRequisitionActions,
   isRequisitionClosed,
   requisitionActions,
@@ -50,28 +62,70 @@ import {
   ENTITY_REQUISITION,
   MODULE_KEY,
   RequisitionDetail,
+  RequisitionStatus,
   STAGES,
   SuggestedQuestion,
 } from '../data/recruitment.models';
 import { RecruitmentAiOutput } from '../shared/ai-output';
 import { injectConfirmedRefs } from '../shared/confirmed-refs';
-import {
-  RECRUITMENT_CRUMB,
-  injectRecruitmentNav,
-  settingsLinkFor,
-} from '../shared/recruitment-nav';
+import { RECRUITMENT_CRUMB, settingsLinkFor } from '../shared/recruitment-nav';
 import { injectRecruitmentPerms } from '../shared/recruitment-perms';
 import { TeamEditor } from '../shared/team-editor';
 
 const TABS: readonly RecordTab[] = [
   'details',
-  'tasks',
   'related',
   'activity',
+  'tasks',
   'comments',
   'attachments',
   'revisions',
 ];
+
+/** Tone of the status sentence: done is green, open work is a to-do (never red). */
+const STATUS_TONE: Readonly<Record<RequisitionStatus, StatusLineTone>> = {
+  draft: 'warn',
+  pending_approval: 'warn',
+  approved: 'warn',
+  rejected: 'warn',
+  open: 'neutral',
+  on_hold: 'neutral',
+  filled: 'pass',
+  cancelled: 'neutral',
+};
+
+/** What a requisition still needs ("Oppfølging", docs/ux-guide.md §2.7). */
+export function requisitionMissing(
+  r: RequisitionDetail,
+  editLink: readonly unknown[],
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  if (isRequisitionClosed(r.status)) {
+    return items;
+  }
+  if (r.screening_criteria.length === 0) {
+    items.push({
+      key: 'criteria',
+      labelKey: 'recruitment.detail.req.missing.criteria',
+      link: editLink,
+    });
+  }
+  if (!r.hiring_manager) {
+    items.push({
+      key: 'manager',
+      labelKey: 'recruitment.detail.req.missing.manager',
+      link: editLink,
+    });
+  }
+  if (!r.posting_text?.trim()) {
+    items.push({
+      key: 'posting',
+      labelKey: 'recruitment.detail.req.missing.posting',
+      link: editLink,
+    });
+  }
+  return items;
+}
 
 /** Revision snapshot field -> label key (scoped). */
 const FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -104,35 +158,38 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
 };
 
 /**
- * A job requisition: one next step in the header (send, approve, open), the
- * candidate flow per stage (each tile opens the matching applications), the role,
- * criteria and required checks, the job ad, the hiring team, and the shared record
- * kit (requirements this documents, connections, tasks, activity, revisions).
+ * A job requisition, on the detail-page anatomy (docs/ux-guide.md §2.7): one next
+ * step in the header (send, approve, open) and the assistant drafts in "Spør KI";
+ * "Hovedinformasjon" with a status sentence, why the role is needed, the candidates
+ * per stage (each opens the matching applications), the role risk with the checks it
+ * needs, and the approval; the other fields, criteria and job ad under the details;
+ * one "Oppfølging" card (what is missing, requirements, connections, metadata) and
+ * the hiring team.
  */
 @Component({
   selector: 'app-requisition-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    WatchButton,
     AiAssistButton,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     LocalDatePipe,
     LocalDayPipe,
     EntityTasks,
-    Alert,
     Button,
     Card,
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
-    ModuleNav,
     MenuItem,
     PromptDialog,
     StatusBadge,
@@ -152,6 +209,7 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
       </div>
     } @else if (req(); as r) {
       <app-record-detail-layout
+        [anatomy]="true"
         [entityType]="entityType"
         [entityId]="r.id"
         [title]="r.title"
@@ -161,28 +219,24 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
         [canEdit]="r.can_edit"
         [requirementsPanel]="true"
         [fieldLabels]="fieldLabels"
+        [missing]="missing()"
       >
-        <span meta class="flex flex-wrap items-center gap-x-2 gap-y-1" data-testid="req-meta">
-          <span class="font-mono font-semibold">{{ r.code }}</span>
+        <ng-container ngProjectAs="[meta]">
+          <span class="font-mono" data-testid="req-meta">{{ r.code }}</span>
           <span aria-hidden="true">·</span>
-          <span>{{ 'recruitment.employmentType.' + r.employment_type | transloco }}</span>
+          <span>{{ 'recruitment.detail.req.type' | transloco }}</span>
+          <span aria-hidden="true">·</span>
           <app-status-badge
             meaning="lifecycle"
             [value]="statusValue(r.status)"
             [labelKey]="'recruitment.requisitionStatus.' + r.status"
             data-testid="req-status"
           />
-          <app-status-badge
-            meaning="severity"
-            [value]="r.role_risk"
-            [labelKey]="'recruitment.roleRisk.' + r.role_risk"
-          />
-        </span>
+        </ng-container>
 
         @if (groups().primary; as action) {
           <app-button
             primary
-            size="sm"
             [loading]="busy() === action"
             [disabled]="busy() !== null"
             (click)="start(action)"
@@ -191,16 +245,13 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
             {{ 'recruitment.requisition.actions.' + action | transloco }}
           </app-button>
         } @else if (canEdit()) {
-          <a primary [routerLink]="['/recruitment/requisitions', r.id, 'edit']">
-            <app-button size="sm" data-testid="req-edit">
-              {{ 'recruitment.common.edit' | transloco }}
-            </app-button>
-          </a>
+          <app-button primary (click)="edit()" data-testid="req-edit">
+            {{ 'recruitment.common.edit' | transloco }}
+          </app-button>
         }
         @if (groups().secondary; as action) {
           <app-button
             secondary
-            size="sm"
             variant="secondary"
             [loading]="busy() === action"
             [disabled]="busy() !== null"
@@ -211,7 +262,7 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
           </app-button>
         }
         <a secondary [routerLink]="['/recruitment/requisitions', r.id, 'pipeline']">
-          <app-button variant="secondary" size="sm" data-testid="req-pipeline">
+          <app-button variant="secondary" data-testid="req-pipeline">
             <app-icon name="people" [size]="15" />
             {{ 'recruitment.requisition.pipeline' | transloco }}
           </app-button>
@@ -235,7 +286,31 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
           </button>
         }
 
-        <app-module-nav nav [items]="nav()" labelKey="modules.names.recruitment" />
+        @if (perms().write && r.screening_criteria.length > 0) {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            data-testid="ask-interview-questions"
+            (click)="runAssist('questions')"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'recruitment.ai.interviewQuestions' | transloco }}
+          </button>
+        }
+        @if (canEdit()) {
+          <button
+            appMenuItem
+            ask
+            type="button"
+            data-testid="ask-job-ad"
+            (click)="runAssist('jobAd')"
+          >
+            <app-icon name="spark" [size]="15" />
+            {{ 'recruitment.ai.draftJobAd' | transloco }}
+          </button>
+        }
+
         <app-help-strip
           help
           scope="recruitment"
@@ -244,53 +319,46 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
           [subject]="r.title"
         />
 
-        <div class="flex flex-col gap-4">
-          @if (r.status === 'rejected' && r.decision_note) {
-            <app-alert tone="error">
-              {{ 'recruitment.requisition.rejectedNote' | transloco: { note: r.decision_note } }}
-            </app-alert>
-          }
-          @if (r.status === 'pending_approval') {
-            <app-alert tone="info" data-testid="req-awaiting">
-              @if (r.can_approve) {
-                {{ 'recruitment.requisition.awaitingYou' | transloco }}
-              } @else {
-                {{ 'recruitment.requisition.awaitingApproval' | transloco }}
-              }
-            </app-alert>
-          }
-          @if (r.status === 'draft' && canEdit()) {
-            <app-alert tone="info">{{ 'recruitment.requisition.draftHint' | transloco }}</app-alert>
-          }
-
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-card font-bold text-fg">
-                {{ 'recruitment.requisition.pipelineSummary' | transloco }}
-              </h2>
-              <div class="flex flex-wrap items-center gap-2">
-                <a
-                  routerLink="/recruitment/applications"
-                  [queryParams]="{ requisition_id: r.id }"
-                  class="text-ui font-semibold text-accent"
-                  data-testid="req-all-applications"
-                  >{{ 'recruitment.requisition.allApplications' | transloco }}</a
-                >
+        <app-record-lead record-lead [fillLink]="canEdit() ? editLink() : null">
+          <app-record-status-line status [tone]="statusTone()" data-testid="req-status-line">
+            {{ statusSentence() }}
+          </app-record-status-line>
+          <app-field-item
+            size="lead"
+            [wide]="true"
+            labelKey="recruitment.detail.req.why"
+            [value]="r.justification"
+            [multiline]="true"
+          />
+          <div class="min-w-0 sm:col-span-full" data-testid="req-flow">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <span class="text-ui font-semibold text-fg">{{
+                'recruitment.detail.req.candidates' | transloco
+              }}</span>
+              <span class="flex flex-wrap items-center gap-4">
+                @if (stageTiles().length > 0) {
+                  <a
+                    routerLink="/recruitment/applications"
+                    [queryParams]="{ requisition_id: r.id }"
+                    class="text-ui font-semibold text-accent hover:underline"
+                    data-testid="req-all-applications"
+                    >{{ 'recruitment.requisition.allApplications' | transloco }}</a
+                  >
+                }
                 @if (perms().write && r.status === 'open') {
                   <a
                     [routerLink]="['/recruitment/applications/new']"
                     [queryParams]="{ requisition_id: r.id }"
+                    class="inline-flex items-center gap-1 text-ui font-semibold text-accent hover:underline"
                   >
-                    <app-button size="sm" variant="secondary">
-                      <app-icon name="userplus" [size]="15" />
-                      {{ 'recruitment.applications.new' | transloco }}
-                    </app-button>
+                    <app-icon name="userplus" [size]="15" />
+                    {{ 'recruitment.applications.new' | transloco }}
                   </a>
                 }
-              </div>
+              </span>
             </div>
             @if (stageTiles().length === 0) {
-              <p class="text-ui text-fg-muted" data-testid="req-no-applications">
+              <p class="mt-1 text-body text-fg-muted" data-testid="req-no-applications">
                 {{
                   (r.status === 'open'
                     ? 'recruitment.requisition.noApplicationsOpen'
@@ -299,13 +367,13 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
                 }}
               </p>
             } @else {
-              <ul class="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="req-stage-tiles">
+              <ul class="mt-2 flex flex-wrap gap-2" data-testid="req-stage-tiles">
                 @for (stage of stageTiles(); track stage) {
                   <li>
                     <a
                       routerLink="/recruitment/applications"
                       [queryParams]="{ requisition_id: r.id, stage: stage }"
-                      class="flex flex-col rounded-tile border border-border px-3 py-2 outline-none hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent"
+                      class="flex min-w-[112px] flex-col rounded-tile border border-border px-3 py-2 outline-none hover:border-border-strong hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent"
                       [attr.aria-label]="
                         'recruitment.requisition.stageTileLabel'
                           | transloco
@@ -315,250 +383,249 @@ const NOTE_ACTIONS: Partial<Record<RequisitionAction, { readonly required: boole
                               }
                       "
                     >
-                      <span class="text-meta text-fg-muted">{{
-                        'recruitment.stage.' + stage | transloco
-                      }}</span>
                       <span class="text-section font-bold text-fg">{{
                         r.stage_counts[stage] ?? 0
+                      }}</span>
+                      <span class="text-meta text-fg-muted">{{
+                        'recruitment.stage.' + stage | transloco
                       }}</span>
                     </a>
                   </li>
                 }
               </ul>
             }
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-3 text-card font-bold text-fg">
-              {{ 'recruitment.requisition.aboutRole' | transloco }}
-            </h2>
-            <app-field-list>
-              <app-field-item
-                labelKey="recruitment.fields.department"
-                [value]="people.departmentName(r.department_id)"
-              />
-              <app-field-item labelKey="recruitment.fields.location" [value]="r.location" />
-              <app-field-item
-                labelKey="recruitment.fields.headcount"
-                [value]="
-                  'recruitment.requisition.hiresOf'
-                    | transloco: { hires: r.hires, headcount: r.headcount }
-                "
-              />
-              <app-field-item
-                labelKey="recruitment.fields.targetStartDate"
-                [value]="r.target_start_date ? (r.target_start_date | localDay) : null"
-              />
-              <app-field-item
-                labelKey="recruitment.fields.hiringManager"
-                [value]="r.hiring_manager?.name"
-              />
-              <app-field-item labelKey="recruitment.fields.recruiter" [value]="r.recruiter?.name" />
-              <app-field-item labelKey="recruitment.fields.position" data-testid="req-position">
-                @if (positionRef(); as ref) {
-                  <app-entity-chip [ref]="ref" [showType]="false" />
-                }
-              </app-field-item>
-              <app-field-item
-                labelKey="recruitment.requisition.approval"
-                [value]="decisionText()"
-                data-testid="req-decision"
-              />
-              @if (r.description) {
-                <app-field-item
-                  labelKey="recruitment.fields.description"
-                  [value]="r.description"
-                  [wide]="true"
-                  [multiline]="true"
-                />
+          </div>
+          <app-field-item size="lead" labelKey="recruitment.detail.req.risk" data-testid="req-risk">
+            <app-status-badge
+              meaning="severity"
+              [value]="r.role_risk"
+              [labelKey]="'recruitment.roleRisk.' + r.role_risk"
+            />
+            <span class="mt-1 block text-body text-fg" data-testid="req-required-checks">
+              @if (requiredChecks()) {
+                {{ 'recruitment.detail.req.checks' | transloco: { checks: requiredChecks() } }}
+              } @else {
+                {{ 'recruitment.detail.req.noChecks' | transloco }}
               }
-              @if (r.justification) {
-                <app-field-item
-                  labelKey="recruitment.fields.justification"
-                  [value]="r.justification"
-                  [wide]="true"
-                  [multiline]="true"
-                />
+            </span>
+            <span class="mt-1 block text-meta text-fg-muted">
+              {{ 'recruitment.detail.req.checksWhen' | transloco }}
+              @if (showsLegalBasisNote()) {
+                {{ 'recruitment.requisition.legalBasisNote' | transloco }}
               }
-            </app-field-list>
-          </app-card>
+            </span>
+          </app-field-item>
+          <app-field-item
+            size="lead"
+            labelKey="recruitment.requisition.approval"
+            [value]="decisionText()"
+            data-testid="req-decision"
+          />
+        </app-record-lead>
 
-          <app-card>
-            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-card font-bold text-fg">
+        <app-record-details [columns]="3" [fillLink]="canEdit() ? editLink() : null">
+          <app-field-item
+            labelKey="recruitment.fields.employmentType"
+            [value]="'recruitment.employmentType.' + r.employment_type | transloco"
+          />
+          <app-field-item
+            labelKey="recruitment.detail.req.hires"
+            [value]="
+              'recruitment.requisition.hiresOf'
+                | transloco: { hires: r.hires, headcount: r.headcount }
+            "
+          />
+          <app-field-item
+            labelKey="recruitment.fields.targetStartDate"
+            [value]="r.target_start_date ? (r.target_start_date | localDay) : null"
+          />
+          <app-field-item
+            labelKey="recruitment.fields.department"
+            [value]="people.departmentName(r.department_id)"
+          />
+          <app-field-item labelKey="recruitment.fields.location" [value]="r.location" />
+          <app-field-item labelKey="recruitment.fields.position" data-testid="req-position">
+            @if (positionRef(); as ref) {
+              <app-entity-chip [ref]="ref" [statusText]="true" />
+            }
+          </app-field-item>
+          <app-field-item
+            labelKey="recruitment.fields.description"
+            [value]="r.description"
+            [wide]="true"
+            [multiline]="true"
+          />
+
+          <div after class="mt-6 flex flex-col gap-4">
+            <app-card id="req-criteria" class="block scroll-mt-20">
+              <h2 class="mb-2 font-display text-card font-bold text-fg">
                 {{ 'recruitment.fields.screeningCriteria' | transloco }}
               </h2>
+              @if (r.screening_criteria.length === 0) {
+                <p class="text-ui text-fg-muted">
+                  {{ 'recruitment.criteria.noneOnRequisition' | transloco }}
+                </p>
+              } @else {
+                <ol class="flex list-decimal flex-col gap-1.5 pl-5 text-body">
+                  @for (c of r.screening_criteria; track c.id) {
+                    <li>
+                      <span class="font-semibold text-fg">{{ c.label }}</span>
+                      @if (c.description) {
+                        <span class="block text-fg-muted">{{ c.description }}</span>
+                      }
+                    </li>
+                  }
+                </ol>
+              }
+              @if (aiRunning() === 'questions') {
+                <p class="mt-3 text-ui text-fg-muted" role="status">
+                  {{ 'recruitment.detail.aiRunning' | transloco }}
+                </p>
+              }
+              @if (questions().length > 0) {
+                <app-recruitment-ai-output class="mt-3" (dismissed)="questions.set([])">
+                  <ol class="flex list-decimal flex-col gap-2 pl-5 text-body">
+                    @for (q of questions(); track $index) {
+                      <li>
+                        @if (criterionLabel(q.criterion_id); as label) {
+                          <span class="block text-meta font-semibold text-fg-subtle">{{
+                            label
+                          }}</span>
+                        }
+                        <span class="text-fg">{{ q.question }}</span>
+                        @if (q.follow_up) {
+                          <span class="block text-fg-muted">
+                            {{ 'recruitment.ai.followUp' | transloco: { text: q.follow_up } }}
+                          </span>
+                        }
+                      </li>
+                    }
+                  </ol>
+                </app-recruitment-ai-output>
+              }
               @if (perms().write && r.screening_criteria.length > 0) {
                 <app-ai-assist-button
+                  #questionsAssist
+                  class="hidden"
                   assist="recruitment.interview_questions"
                   labelKey="recruitment.ai.interviewQuestions"
                   [entityType]="entityType"
                   [entityId]="r.id"
                   (result)="onQuestions($event)"
+                  (failed)="onAiFailed()"
                 />
               }
-            </div>
-            @if (r.screening_criteria.length === 0) {
-              <p class="text-ui text-fg-muted">
-                {{ 'recruitment.criteria.noneOnRequisition' | transloco }}
-              </p>
-            } @else {
-              <ol class="flex list-decimal flex-col gap-1.5 pl-5 text-body">
-                @for (c of r.screening_criteria; track c.id) {
-                  <li>
-                    <span class="font-semibold text-fg">{{ c.label }}</span>
-                    @if (c.description) {
-                      <span class="block text-fg-muted">{{ c.description }}</span>
-                    }
-                  </li>
-                }
-              </ol>
-            }
-            @if (questions().length > 0) {
-              <app-recruitment-ai-output class="mt-3" (dismissed)="questions.set([])">
-                <ol class="flex list-decimal flex-col gap-2 pl-5 text-body">
-                  @for (q of questions(); track $index) {
-                    <li>
-                      @if (criterionLabel(q.criterion_id); as label) {
-                        <span class="block text-meta font-semibold text-fg-subtle">{{
-                          label
-                        }}</span>
-                      }
-                      <span class="text-fg">{{ q.question }}</span>
-                      @if (q.follow_up) {
-                        <span class="block text-fg-muted">
-                          {{ 'recruitment.ai.followUp' | transloco: { text: q.follow_up } }}
-                        </span>
-                      }
-                    </li>
-                  }
-                </ol>
-              </app-recruitment-ai-output>
-            }
-            <div class="mt-3 border-t border-border pt-3">
-              <h3 class="mb-1 text-ui font-semibold text-fg-muted">
-                {{ 'recruitment.requisition.requiredChecks' | transloco }}
-              </h3>
-              <p class="mb-2 text-meta text-fg-muted">
-                {{
-                  'recruitment.requisition.requiredChecksHint'
-                    | transloco: { risk: ('recruitment.roleRisk.' + r.role_risk | transloco) }
-                }}
-              </p>
-              <div class="flex flex-wrap gap-1.5" data-testid="req-required-checks">
-                @for (c of r.required_checks; track c) {
-                  <app-status-badge
-                    meaning="lifecycle"
-                    value="draft"
-                    [labelKey]="'recruitment.checkType.' + c"
-                  />
-                } @empty {
-                  <span class="text-ui text-fg-muted">{{ 'common.empty.none' | transloco }}</span>
-                }
-              </div>
-              @if (showsLegalBasisNote()) {
-                <p class="mt-2 text-meta text-fg-muted">
-                  {{ 'recruitment.requisition.legalBasisNote' | transloco }}
-                </p>
-              }
-            </div>
-          </app-card>
+            </app-card>
 
-          <app-card>
-            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-card font-bold text-fg">
+            <app-card id="req-posting" class="block scroll-mt-20">
+              <h2 class="mb-2 font-display text-card font-bold text-fg">
                 {{ 'recruitment.requisitionForm.postingSection' | transloco }}
               </h2>
+              @if (aiRunning() === 'jobAd') {
+                <p class="mb-3 text-ui text-fg-muted" role="status">
+                  {{ 'recruitment.detail.aiRunning' | transloco }}
+                </p>
+              }
+              @if (jobAd()) {
+                <app-recruitment-ai-output
+                  class="mb-3"
+                  [text]="jobAd()"
+                  useLabelKey="recruitment.ai.useAsPosting"
+                  (used)="usePosting()"
+                  (dismissed)="jobAd.set(null)"
+                />
+              }
+              @if (r.posting_text) {
+                <div data-testid="req-posting">
+                  <h3 class="mb-1 text-body font-semibold text-fg">
+                    {{ r.posting_title || r.title }}
+                  </h3>
+                  <p class="mb-2 text-meta text-fg-muted">
+                    {{
+                      r.posting_closes_at
+                        ? ('recruitment.requisition.postingDeadline'
+                          | transloco: { date: (r.posting_closes_at | localDate) })
+                        : ('recruitment.requisition.postingNoDeadline' | transloco)
+                    }}
+                    ·
+                    {{
+                      (r.status === 'open'
+                        ? 'recruitment.requisition.postingLive'
+                        : 'recruitment.requisition.postingNotLive'
+                      ) | transloco
+                    }}
+                  </p>
+                  <p
+                    class="text-body whitespace-pre-wrap text-fg"
+                    [class.line-clamp-6]="!postingExpanded()"
+                  >
+                    {{ r.posting_text.trim() }}
+                  </p>
+                  <button
+                    type="button"
+                    class="mt-1 text-ui font-semibold text-accent"
+                    (click)="postingExpanded.set(!postingExpanded())"
+                  >
+                    {{
+                      (postingExpanded()
+                        ? 'recruitment.requisition.showLess'
+                        : 'recruitment.requisition.showAll'
+                      ) | transloco
+                    }}
+                  </button>
+                </div>
+              } @else {
+                <p class="text-ui text-fg-muted" data-testid="req-no-posting">
+                  {{ 'recruitment.detail.req.noPosting' | transloco }}
+                  @if (canEdit()) {
+                    <a
+                      [routerLink]="editLink()"
+                      class="ml-1 font-semibold whitespace-nowrap text-accent hover:underline"
+                      >{{ 'recruitment.requisition.writePosting' | transloco }}</a
+                    >
+                  }
+                </p>
+              }
               @if (canEdit()) {
                 <app-ai-assist-button
+                  #jobAdAssist
+                  class="hidden"
                   assist="recruitment.draft_job_ad"
                   labelKey="recruitment.ai.draftJobAd"
                   [entityType]="entityType"
                   [entityId]="r.id"
-                  (text)="jobAd.set($event)"
+                  (text)="onJobAd($event)"
+                  (failed)="onAiFailed()"
                 />
               }
-            </div>
-            @if (jobAd()) {
-              <app-recruitment-ai-output
-                class="mb-3"
-                [text]="jobAd()"
-                useLabelKey="recruitment.ai.useAsPosting"
-                (used)="usePosting()"
-                (dismissed)="jobAd.set(null)"
-              />
-            }
-            @if (r.posting_text) {
-              <div data-testid="req-posting">
-                <h3 class="mb-1 text-body font-semibold text-fg">
-                  {{ r.posting_title || r.title }}
-                </h3>
-                <p class="mb-2 text-meta text-fg-muted">
-                  {{
-                    r.posting_closes_at
-                      ? ('recruitment.requisition.postingDeadline'
-                        | transloco: { date: (r.posting_closes_at | localDate) })
-                      : ('recruitment.requisition.postingNoDeadline' | transloco)
-                  }}
-                  ·
-                  {{
-                    (r.status === 'open'
-                      ? 'recruitment.requisition.postingLive'
-                      : 'recruitment.requisition.postingNotLive'
-                    ) | transloco
-                  }}
-                </p>
-                <p
-                  class="text-body whitespace-pre-wrap text-fg"
-                  [class.line-clamp-6]="!postingExpanded()"
-                >
-                  {{ r.posting_text.trim() }}
-                </p>
-                <button
-                  type="button"
-                  class="mt-1 text-ui font-semibold text-accent"
-                  (click)="postingExpanded.set(!postingExpanded())"
-                >
-                  {{
-                    (postingExpanded()
-                      ? 'recruitment.requisition.showLess'
-                      : 'recruitment.requisition.showAll'
-                    ) | transloco
-                  }}
-                </button>
-              </div>
-            } @else {
-              <p class="text-ui text-fg-muted" data-testid="req-no-posting">
-                {{ 'recruitment.requisition.noPosting' | transloco }}
-              </p>
-              @if (canEdit()) {
-                <a
-                  [routerLink]="['/recruitment/requisitions', r.id, 'edit']"
-                  class="mt-1 inline-block text-ui font-semibold text-accent"
-                  >{{ 'recruitment.requisition.writePosting' | transloco }}</a
-                >
-              }
-            }
-          </app-card>
+            </app-card>
+          </div>
+        </app-record-details>
+
+        <div tasks>
+          <app-entity-tasks [entityType]="entityType" [entityId]="r.id" [canCreate]="r.can_edit" />
         </div>
 
-        <app-entity-tasks
-          tasks
-          [entityType]="entityType"
-          [entityId]="r.id"
-          [canCreate]="r.can_edit"
-        />
+        <app-record-meta follow-up-meta>
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.detail.opened"
+            [value]="r.opened_at ? (r.opened_at | localDate) : null"
+          />
+          <app-field-item
+            layout="inline"
+            labelKey="recruitment.detail.updated"
+            [value]="r.updated_at | localDate"
+          />
+        </app-record-meta>
 
-        <ng-container aside>
+        <ng-container ngProjectAs="[aside]">
           <app-team-editor
             [requisitionId]="r.id"
             [team]="r.team"
             [canEdit]="perms().write && r.can_edit && !closed()"
             (saved)="req.set($event)"
           />
-          <div class="flex justify-start">
-            <app-watch-button [entityType]="entityType" [entityId]="r.id" />
-          </div>
         </ng-container>
         <app-why-it-matters aside-learn scope="recruitment" page="requisition" />
       </app-record-detail-layout>
@@ -598,10 +665,10 @@ export class RequisitionDetailPage {
   private readonly router = inject(Router);
   private readonly toasts = inject(NotificationService);
   private readonly language = inject(LanguageService);
+  private readonly injector = inject(Injector);
   private readonly orgId = inject(SelectedOrgService).currentOrgId;
   protected readonly people = inject(RecruitmentPeople);
   protected readonly perms = injectRecruitmentPerms();
-  protected readonly nav = injectRecruitmentNav();
   protected readonly settingsLink = computed(() => settingsLinkFor(this.perms()));
 
   protected readonly entityType = ENTITY_REQUISITION;
@@ -619,6 +686,9 @@ export class RequisitionDetailPage {
   protected readonly questions = signal<readonly SuggestedQuestion[]>([]);
   protected readonly jobAd = signal<string | null>(null);
   protected readonly postingExpanded = signal(false);
+  protected readonly aiRunning = signal<'questions' | 'jobAd' | null>(null);
+  private readonly questionsAssist = viewChild<AiAssistButton>('questionsAssist');
+  private readonly jobAdAssist = viewChild<AiAssistButton>('jobAdAssist');
   private readonly version = signal(0);
   private readonly refs = injectConfirmedRefs(ENTITY_REQUISITION, this.id);
 
@@ -639,6 +709,42 @@ export class RequisitionDetailPage {
     { labelKey: 'recruitment.nav.requisitions', link: '/recruitment/requisitions' },
     { label: this.req()?.title ?? '' },
   ]);
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/recruitment/requisitions',
+    this.req()?.id ?? '',
+    'edit',
+  ]);
+  protected readonly statusTone = computed<StatusLineTone>(
+    () => STATUS_TONE[this.req()?.status ?? 'draft'] ?? 'neutral',
+  );
+  /** "Åpent for søknader – 5 kandidater er med, 0 av 1 ansatt." */
+  protected readonly statusSentence = computed(() => {
+    const r = this.req();
+    if (!r) {
+      return '';
+    }
+    let key = `recruitment.detail.req.status.${r.status}`;
+    if (r.status === 'pending_approval' && r.can_approve) {
+      key = 'recruitment.detail.req.status.pending_you';
+    } else if (r.status === 'rejected' && r.decision_note) {
+      key = 'recruitment.detail.req.status.rejected_note';
+    }
+    return this.language.translate(key, {
+      active: activeApplicationCount(r),
+      hires: r.hires,
+      headcount: r.headcount,
+      note: r.decision_note ?? '',
+    });
+  });
+  protected readonly requiredChecks = computed(() =>
+    (this.req()?.required_checks ?? [])
+      .map((c) => this.language.translate(`recruitment.checkType.${c}`))
+      .join(', '),
+  );
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const r = this.req();
+    return r && this.canEdit() ? requisitionMissing(r, this.editLink()) : [];
+  });
   protected readonly stageTiles = computed(() =>
     visibleStageTiles(this.req()?.stage_counts ?? {}, STAGES),
   );
@@ -665,8 +771,6 @@ export class RequisitionDetailPage {
       parts.push(
         this.language.translate(key, { name: r.decided_by.name, date: date(r.decided_at) }),
       );
-    } else if (r.status === 'pending_approval') {
-      parts.push(this.language.translate('recruitment.requisition.awaitingShort'));
     }
     if (r.submitted_by) {
       parts.push(
@@ -679,7 +783,8 @@ export class RequisitionDetailPage {
     if (r.decision_note && r.status !== 'rejected') {
       parts.push(r.decision_note);
     }
-    return parts.length > 0 ? parts.join(' · ') : null;
+    const text = parts.join(' · ');
+    return text ? text.charAt(0).toLocaleUpperCase(locale) + text.slice(1) : null;
   });
   protected readonly noteDialog = computed(() => {
     const action = this.pending();
@@ -807,7 +912,32 @@ export class RequisitionDetailPage {
     });
   }
 
+  /** "Spør KI": run a drafting assist; the answer shows in the card it belongs to. */
+  protected runAssist(which: 'questions' | 'jobAd'): void {
+    this.aiRunning.set(which);
+    afterNextRender(
+      () => {
+        (which === 'questions' ? this.questionsAssist() : this.jobAdAssist())?.run();
+        document
+          .getElementById(which === 'questions' ? 'req-criteria' : 'req-posting')
+          ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  protected onAiFailed(): void {
+    this.aiRunning.set(null);
+    this.toasts.error('recruitment.detail.aiFailed');
+  }
+
+  protected onJobAd(text: string): void {
+    this.aiRunning.set(null);
+    this.jobAd.set(text);
+  }
+
   protected onQuestions(result: unknown): void {
+    this.aiRunning.set(null);
     const list = (result as { questions?: unknown } | null)?.questions;
     if (Array.isArray(list)) {
       this.questions.set(
