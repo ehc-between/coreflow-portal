@@ -22,11 +22,19 @@ import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { pluralKey } from '../../../shared/i18n/plural';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
@@ -34,28 +42,31 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ContinuityApi } from '../data/continuity-api';
+import {
+  ControlledHeaderAction,
+  controlledStatusLine,
+  placeControlledActions,
+  planIctGaps,
+  planMissing,
+} from '../data/continuity-anatomy';
 import { badge } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
-import { PLAN_TEXT_FIELDS, PlanDetail, PlanIct, STEP_PHASES } from '../data/continuity.models';
+import { PlanDetail, PlanIct, STEP_PHASES } from '../data/continuity.models';
 import { ContinuityContactsPanel } from '../shared/contacts-panel';
-import {
-  CONTINUITY_NAV,
-  ContinuityLearnMore,
-  fileSlug,
-  recordCrumbs,
-  saveFile,
-} from '../shared/continuity-page';
-import { ContinuityControlledPanel, ControlledActionRequest } from '../shared/controlled-panel';
+import { ContinuityLearnMore, fileSlug, recordCrumbs, saveFile } from '../shared/continuity-page';
+import { ContinuityControlledDialog, ControlledActionRequest } from '../shared/controlled-panel';
 import { ContinuityDuration } from '../shared/duration';
+import { ContinuityLinkedRecord } from '../shared/linked-record';
 import { confirmedRequirementRefs } from '../shared/page-requirements';
+import { ContinuityRecoveryTargets, hasTargets } from '../shared/recovery-targets';
 import { PlanExerciseSchedule } from './exercise-schedule';
 
 const TABS: readonly RecordTab[] = [
@@ -92,17 +103,25 @@ export const PLAN_FIELD_LABELS: Readonly<Record<string, string>> = {
   bia_ids: 'continuity.form.sections.coverage',
 };
 
-/** Issues that mean an ICT service cannot recover within the plan's targets. */
-const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
+/** The plan sections shown under "Flere detaljer" (scope and activation lead the page). */
+const DETAIL_TEXT_FIELDS = [
+  'objectives',
+  'roles_responsibilities',
+  'recovery_strategy',
+  'communication_plan',
+  'resources',
+] as const;
 
 /**
- * A continuity plan (`/continuity/plans/:id`): how to use it in an incident
- * (activate, print or download, register the incident), the approval card, the
- * recovery targets inherited from the covered BIAs with the ICT services they rely on
- * (and whether each can recover in time), the steps, the plan's crisis contacts, the
- * plan sections, its exercises and recurring exercise schedule, and the shared record
- * tabs. On phones the steps and contacts come first. `?tab=contacts` scrolls to the
- * contact list.
+ * A continuity plan (`/continuity/plans/:id`) on the detail-page anatomy
+ * (docs/ux-guide.md §2.7): the header holds the next approval step and the PDF;
+ * "Hovedinformasjon" says where the plan stands, what it covers, when it is used, how
+ * fast things must be back up and which activities (BIAs) it protects. The details
+ * hold how to use it in an incident (activate, register the incident), the steps, the
+ * crisis contacts, the other plan sections, the ICT services it relies on (and whether
+ * each can recover in time) and its exercises. One "Oppfølging" card lists what is
+ * missing, the requirements, the connections and owner · version · approval · reviews.
+ * `?tab=contacts` scrolls to the contact list.
  */
 @Component({
   selector: 'app-plan-detail',
@@ -117,21 +136,25 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
     Card,
     ConfirmDialog,
     ContinuityContactsPanel,
-    ContinuityControlledPanel,
+    ContinuityControlledDialog,
     ContinuityDuration,
     ContinuityLearnMore,
+    ContinuityLinkedRecord,
+    ContinuityRecoveryTargets,
     EntityTasks,
+    FieldItem,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     PlanExerciseSchedule,
     PromptDialog,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
-    Term,
-    WatchButton,
     WhyItMatters,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -154,7 +177,10 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
       }
       @default {
         @if (plan(); as p) {
+          @let line = statusLine();
+          @let open = canWrite() && p.status !== 'retired';
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="continuity_plan"
             [entityId]="p.id"
             [title]="p.title"
@@ -164,35 +190,50 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
             [requirementsPanel]="true"
+            [missing]="missing()"
             backLink="/continuity/plans"
             backLabelKey="continuity.plans.back"
           >
-            <ng-container meta>
+            <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ p.code }}</span>
               <span aria-hidden="true">·</span>
               <span>{{ 'continuity.planType.' + p.plan_type | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
-                [meaning]="statusBadge(p).meaning"
-                [value]="statusBadge(p).value"
+                meaning="lifecycle"
+                [value]="p.status"
                 [labelKey]="'continuity.status.' + p.status"
               />
-              @if (ictGaps().length) {
-                <app-status-badge
-                  meaning="compliance"
-                  value="not_met"
-                  labelKey="continuity.plans.ictGapBadge"
-                />
-              }
-              @if (!p.last_exercised_on && p.status !== 'retired') {
+              @if (p.review_state === 'overdue' && p.status !== 'retired') {
                 <app-status-badge
                   meaning="lifecycle"
-                  value="due"
-                  labelKey="continuity.plans.neverExercised"
+                  value="overdue"
+                  labelKey="continuity.reviewState.overdue"
                 />
               }
             </ng-container>
 
-            <app-watch-button secondary entityType="continuity_plan" [entityId]="p.id" />
+            @if (placed().primary; as action) {
+              <app-button
+                primary
+                [disabled]="busy()"
+                (click)="run(p, action)"
+                [attr.data-testid]="'plan-' + action"
+              >
+                {{ actionLabel(action) | transloco }}
+              </app-button>
+            }
+            @for (action of placed().secondary; track action) {
+              <app-button
+                secondary
+                variant="secondary"
+                [disabled]="busy()"
+                (click)="run(p, action)"
+                [attr.data-testid]="'plan-' + action"
+              >
+                {{ actionLabel(action) | transloco }}
+              </app-button>
+            }
             <app-button
               secondary
               variant="secondary"
@@ -200,34 +241,45 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
               (click)="exportPdf(p)"
               data-testid="plan-pdf"
             >
-              <app-icon name="documents" [size]="14" />
+              <app-icon name="download" [size]="14" />
               {{ 'continuity.plans.exportPdf' | transloco }}
             </app-button>
-            @if (p.can_edit) {
-              <app-button primary (click)="edit(p)">
-                {{ 'continuity.common.edit' | transloco }}
-              </app-button>
+            @for (action of placed().overflow; track action) {
+              <button appMenuItem overflow type="button" (click)="run(p, action)">
+                {{ actionLabel(action) | transloco }}
+              </button>
             }
-            <button appMenuItem overflow (click)="askSummary()">
-              {{ 'continuity.ai.summarise' | transloco }}
-            </button>
-            @if (canWrite() && p.status !== 'retired') {
-              <button appMenuItem overflow (click)="planExercise(p)">
+            @if (open) {
+              <button appMenuItem overflow type="button" (click)="planExercise(p)">
                 {{ 'continuity.plans.planExercise' | transloco }}
               </button>
             }
             @if (p.allowed_actions.includes('retire')) {
-              <button appMenuItem overflow (click)="panel()?.open('retire')">
+              <button appMenuItem overflow type="button" (click)="dialog()?.open('retire')">
                 {{ 'continuity.actions.retire' | transloco }}
               </button>
             }
             @if (p.can_delete) {
-              <button appMenuItem overflow [danger]="true" (click)="confirmDelete.set(true)">
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                (click)="confirmDelete.set(true)"
+              >
                 {{ 'continuity.common.delete' | transloco }}
               </button>
             }
 
-            <app-module-nav nav labelKey="continuity.nav.label" [items]="nav" />
+            <button appMenuItem ask type="button" (click)="askAi('summarisePlan')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'continuity.ai.summarise' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('nextStep')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'continuity.detail.ask.nextStep' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="continuity"
@@ -236,8 +288,79 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
               [subject]="p.title"
             />
 
+            <app-record-lead record-lead [fillLink]="p.can_edit ? editLink() : null">
+              <app-record-status-line status [tone]="line.tone">
+                {{
+                  line.key
+                    | transloco
+                      : {
+                          date: (line.date | localDay),
+                          name: line.name || ('continuity.common.unknownPerson' | transloco),
+                          version: line.version,
+                        }
+                }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="continuity.detail.plan.scope">
+                @if (p.scope) {
+                  <div
+                    class="cf-prose text-body leading-relaxed"
+                    [innerHTML]="p.scope | appMarkdown"
+                  ></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="continuity.detail.plan.activation">
+                @if (p.activation_criteria) {
+                  <div
+                    class="cf-prose text-body leading-relaxed"
+                    [innerHTML]="p.activation_criteria | appMarkdown"
+                  ></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="continuity.detail.plan.targets" [wide]="true">
+                @if (targetsSet(p)) {
+                  <app-continuity-recovery-targets
+                    [rto]="p.recovery_targets.rto_minutes"
+                    [rpo]="p.recovery_targets.rpo_minutes"
+                    [mtpd]="p.recovery_targets.mtpd_minutes"
+                  />
+                  <p class="mt-1 text-meta text-fg-muted">
+                    {{ 'continuity.detail.plan.targetsFrom' | transloco }}
+                  </p>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="continuity.detail.plan.bias" [wide]="true">
+                @if (p.bias.length) {
+                  <div role="list" class="flex flex-col gap-2" data-testid="plan-bias">
+                    @for (b of p.bias; track b.id) {
+                      <app-continuity-linked-record
+                        icon="scale"
+                        typeKey="continuity.detail.type.bia"
+                        [code]="b.code"
+                        [title]="b.title"
+                        [link]="['/continuity/bias', b.id]"
+                      >
+                        @if (b.criticality) {
+                          <app-status-badge
+                            meaning="severity"
+                            [value]="b.criticality"
+                            [labelKey]="'continuity.criticality.' + b.criticality"
+                          />
+                        }
+                        @if (b.rto_minutes !== null) {
+                          <span>
+                            {{ 'continuity.detail.targets.rto' | transloco }}
+                            <app-continuity-duration [minutes]="b.rto_minutes" />
+                          </span>
+                        }
+                      </app-continuity-linked-record>
+                    }
+                  </div>
+                }
+              </app-field-item>
+            </app-record-lead>
+
             <div class="flex flex-col gap-5">
-              <app-card class="max-md:-order-1" data-testid="plan-use">
+              <app-card data-testid="plan-use">
                 <h2 class="mb-1 font-display text-card font-bold text-fg">
                   {{ 'continuity.plans.useTitle' | transloco }}
                 </h2>
@@ -279,7 +402,7 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                     {{ 'continuity.plans.neverDistributed' | transloco }}
                   }
                 </p>
-                @if (canWrite() && p.status !== 'retired') {
+                @if (open) {
                   <div class="mt-3 flex flex-wrap gap-2">
                     <app-button
                       size="sm"
@@ -296,139 +419,9 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                 }
               </app-card>
 
-              <div class="max-md:order-1">
-                <app-continuity-controlled-panel
-                  [record]="p"
-                  [busy]="busy()"
-                  [error]="actionError()"
-                  (acted)="act(p, $event)"
-                />
-              </div>
-
-              <app-card class="max-md:order-1">
+              <app-card>
                 <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'continuity.plans.targets' | transloco }}
-                </h2>
-                <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-body sm:grid-cols-3">
-                  <div>
-                    <dt class="text-meta text-fg-muted">
-                      <app-term key="rto" scope="continuity">{{
-                        'continuity.fields.rto' | transloco
-                      }}</app-term>
-                    </dt>
-                    <dd class="text-card font-semibold text-fg">
-                      <app-continuity-duration [minutes]="p.recovery_targets.rto_minutes" />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-muted">
-                      <app-term key="rpo" scope="continuity">{{
-                        'continuity.fields.rpo' | transloco
-                      }}</app-term>
-                    </dt>
-                    <dd class="text-card font-semibold text-fg">
-                      <app-continuity-duration [minutes]="p.recovery_targets.rpo_minutes" />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-muted">
-                      <app-term key="mtpd" scope="continuity">{{
-                        'continuity.fields.mtpd' | transloco
-                      }}</app-term>
-                    </dt>
-                    <dd class="text-card font-semibold text-fg">
-                      <app-continuity-duration [minutes]="p.recovery_targets.mtpd_minutes" />
-                    </dd>
-                  </div>
-                </dl>
-                <p class="mt-2 text-meta text-fg-subtle">
-                  {{ 'continuity.plans.targetsHint' | transloco }}
-                </p>
-
-                @if (ictGaps().length) {
-                  <div class="mt-3" data-testid="plan-ict-gap">
-                    <app-alert tone="error">
-                      {{
-                        'continuity.plans.ictGapWarning' | transloco: { services: ictGapNames() }
-                      }}
-                    </app-alert>
-                  </div>
-                }
-
-                <h3 class="mt-4 mb-2 text-ui font-semibold text-fg-muted">
-                  {{ 'continuity.plans.ictServices' | transloco }}
-                </h3>
-                @if ((p.ict_dependencies ?? []).length === 0) {
-                  <p class="text-ui text-fg-muted">{{ 'continuity.plans.noIct' | transloco }}</p>
-                } @else {
-                  <ul class="flex flex-col gap-1.5" data-testid="plan-ict">
-                    @for (s of p.ict_dependencies; track s.id) {
-                      <li class="flex flex-wrap items-center gap-x-2 gap-y-1 text-ui">
-                        <a
-                          [routerLink]="['/continuity/ict-systems', s.id]"
-                          class="text-fg hover:underline"
-                        >
-                          <span class="font-mono text-meta text-fg-muted">{{ s.code }}</span>
-                          {{ s.name }}
-                        </a>
-                        <app-status-badge
-                          meaning="compliance"
-                          [value]="planGap(s) ? 'not_met' : readinessBadge(s).value"
-                          [labelKey]="
-                            planGap(s)
-                              ? 'continuity.plans.ictCannotMeet'
-                              : 'continuity.readiness.' + s.readiness
-                          "
-                        />
-                        <span class="text-meta text-fg-subtle">
-                          {{ 'continuity.plans.ictCan' | transloco }}
-                          <app-continuity-duration [minutes]="s.achievable_rto_minutes" />
-                          @if (s.last_test_recovery_minutes !== null) {
-                            · {{ 'continuity.plans.ictTested' | transloco }}
-                            <app-continuity-duration [minutes]="s.last_test_recovery_minutes" />
-                          }
-                        </span>
-                      </li>
-                    }
-                  </ul>
-                }
-
-                <h3 class="mt-4 mb-2 text-ui font-semibold text-fg-muted">
-                  {{ 'continuity.form.sections.coverage' | transloco }}
-                </h3>
-                @if (p.bias.length === 0) {
-                  <p class="text-ui text-fg-muted">{{ 'continuity.plans.noBias' | transloco }}</p>
-                } @else {
-                  <ul class="flex flex-col gap-1.5" data-testid="plan-bias">
-                    @for (b of p.bias; track b.id) {
-                      <li class="flex flex-wrap items-center gap-2 text-ui">
-                        <a
-                          [routerLink]="['/continuity/bias', b.id]"
-                          class="text-fg hover:underline"
-                        >
-                          <span class="font-mono text-meta text-fg-muted">{{ b.code }}</span>
-                          {{ b.title }}
-                        </a>
-                        @if (b.criticality) {
-                          <app-status-badge
-                            meaning="severity"
-                            [value]="b.criticality"
-                            [labelKey]="'continuity.criticality.' + b.criticality"
-                          />
-                        }
-                        <span class="text-meta text-fg-subtle">
-                          {{ 'continuity.fields.rtoShort' | transloco }}
-                          <app-continuity-duration [minutes]="b.rto_minutes" />
-                        </span>
-                      </li>
-                    }
-                  </ul>
-                }
-              </app-card>
-
-              <app-card class="max-md:-order-1">
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'continuity.form.sections.steps' | transloco }}
+                  {{ 'continuity.detail.plan.steps' | transloco }}
                 </h2>
                 @if (p.steps.length === 0) {
                   <p class="text-ui text-fg-muted">{{ 'continuity.form.noSteps' | transloco }}</p>
@@ -470,32 +463,83 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                 }
               </app-card>
 
-              <div id="contacts" #contacts tabindex="-1" class="outline-none max-md:-order-1">
-                <app-continuity-contacts-panel
-                  [planId]="p.id"
-                  [canEdit]="canWrite() && p.status !== 'retired'"
-                />
+              <div id="contacts" #contacts tabindex="-1" class="outline-none">
+                <app-continuity-contacts-panel [planId]="p.id" [canEdit]="open" />
               </div>
 
-              @for (f of textFields; track f) {
-                @if (p[f]; as text) {
-                  <app-card class="max-md:order-1">
-                    <h2 class="mb-2 font-display text-card font-bold text-fg">
-                      {{ 'continuity.planText.' + f | transloco }}
-                    </h2>
-                    <div
-                      class="cf-prose text-body leading-relaxed text-fg"
-                      [innerHTML]="text | appMarkdown"
-                    ></div>
-                  </app-card>
-                }
-              }
+              <app-card>
+                <app-record-details
+                  [columns]="2"
+                  titleKey="continuity.detail.plan.more"
+                  [fillLink]="p.can_edit ? editLink() : null"
+                >
+                  @for (f of detailFields; track f) {
+                    <app-field-item [labelKey]="'continuity.planText.' + f" [wide]="true">
+                      @if (p[f]; as text) {
+                        <div
+                          class="cf-prose text-body leading-relaxed"
+                          [innerHTML]="text | appMarkdown"
+                        ></div>
+                      }
+                    </app-field-item>
+                  }
+                  <app-field-item labelKey="continuity.fields.location" [value]="p.location" />
+                </app-record-details>
+              </app-card>
 
-              <app-card class="max-md:order-1">
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
+              <app-card>
+                <h2 class="mb-1 font-display text-card font-bold text-fg">
+                  {{ 'continuity.plans.ictServices' | transloco }}
+                </h2>
+                @if (ictGaps().length) {
+                  <div class="my-3" data-testid="plan-ict-gap">
+                    <app-alert tone="error">
+                      {{
+                        'continuity.plans.ictGapWarning' | transloco: { services: ictGapNames() }
+                      }}
+                    </app-alert>
+                  </div>
+                }
+                @if ((p.ict_dependencies ?? []).length === 0) {
+                  <p class="text-ui text-fg-muted">{{ 'continuity.plans.noIct' | transloco }}</p>
+                } @else {
+                  <div role="list" class="mt-3 flex flex-col gap-2" data-testid="plan-ict">
+                    @for (s of p.ict_dependencies; track s.id) {
+                      <app-continuity-linked-record
+                        icon="devices"
+                        typeKey="continuity.detail.type.ict"
+                        [code]="s.code"
+                        [title]="s.name"
+                        [link]="['/continuity/ict-systems', s.id]"
+                      >
+                        <app-status-badge
+                          meaning="compliance"
+                          [value]="planGap(s) ? 'not_met' : readinessBadge(s).value"
+                          [labelKey]="
+                            planGap(s)
+                              ? 'continuity.plans.ictCannotMeet'
+                              : 'continuity.readiness.' + s.readiness
+                          "
+                        />
+                        <span>
+                          {{ 'continuity.plans.ictCan' | transloco }}
+                          <app-continuity-duration [minutes]="s.achievable_rto_minutes" />
+                          @if (s.last_test_recovery_minutes !== null) {
+                            · {{ 'continuity.plans.ictTested' | transloco }}
+                            <app-continuity-duration [minutes]="s.last_test_recovery_minutes" />
+                          }
+                        </span>
+                      </app-continuity-linked-record>
+                    }
+                  </div>
+                }
+              </app-card>
+
+              <app-card>
+                <h2 class="mb-1 font-display text-card font-bold text-fg">
                   {{ 'continuity.plans.exercises' | transloco }}
                 </h2>
-                <p class="mb-2 text-ui text-fg-muted">
+                <p class="mb-3 text-ui text-fg-muted">
                   @if (p.last_exercised_on) {
                     {{
                       'continuity.plans.lastExercised'
@@ -512,21 +556,16 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                     }}
                   }
                 </p>
-                @if (p.exercises.length === 0) {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'continuity.plans.noExercises' | transloco }}
-                  </p>
-                } @else {
-                  <ul class="flex flex-col gap-1.5">
+                @if (p.exercises.length) {
+                  <div role="list" class="flex flex-col gap-2" data-testid="plan-exercises">
                     @for (e of p.exercises; track e.id) {
-                      <li class="flex flex-wrap items-center gap-2 text-ui">
-                        <a
-                          [routerLink]="['/continuity/exercises', e.id]"
-                          class="text-fg hover:underline"
-                        >
-                          <span class="font-mono text-meta text-fg-muted">{{ e.code }}</span>
-                          {{ e.title }}
-                        </a>
+                      <app-continuity-linked-record
+                        icon="target"
+                        [typeKey]="'continuity.exerciseType.' + e.exercise_type"
+                        [code]="e.code"
+                        [title]="e.title"
+                        [link]="['/continuity/exercises', e.id]"
+                      >
                         @if (e.outcome) {
                           <app-status-badge
                             [meaning]="outcomeBadge(e.outcome).meaning"
@@ -541,13 +580,13 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                           />
                         }
                         @if (e.conducted_on ?? e.scheduled_on; as day) {
-                          <span class="text-meta text-fg-subtle">{{ day | localDay }}</span>
+                          <span>{{ day | localDay }}</span>
                         }
-                      </li>
+                      </app-continuity-linked-record>
                     }
-                  </ul>
+                  </div>
                 }
-                @if (canWrite() && p.status !== 'retired') {
+                @if (open) {
                   <div class="mt-3">
                     <app-button size="sm" variant="secondary" (click)="planExercise(p)">
                       <app-icon name="plus" [size]="14" />
@@ -557,21 +596,10 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                 }
               </app-card>
 
-              <div class="max-md:order-1">
-                <app-plan-exercise-schedule
-                  [plan]="p"
-                  [canEdit]="canWrite() && p.status !== 'retired'"
-                  (scheduled)="reload()"
-                />
-              </div>
+              <app-plan-exercise-schedule [plan]="p" [canEdit]="open" (scheduled)="reload()" />
 
-              <app-why-it-matters class="max-md:order-1" scope="continuity" page="planDetail" />
+              <app-why-it-matters scope="continuity" page="planDetail" />
             </div>
-
-            <app-continuity-learn-more
-              aside-learn
-              [lessons]="['exercising-plans', 'crisis-contacts']"
-            />
 
             <div tasks>
               <app-entity-tasks
@@ -581,7 +609,71 @@ const PLAN_GAP_ISSUES = ['plan_rto_gap', 'plan_rpo_gap'];
                 [entityLabel]="p.code + ' ' + p.title"
               />
             </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.fields.owner"
+                [value]="p.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.fields.version"
+                [value]="p.version || null"
+              />
+              <app-field-item layout="inline" labelKey="continuity.detail.meta.approved">
+                @if (p.approved_at) {
+                  {{ p.approved_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.fields.lastReviewed"
+                [value]="p.last_reviewed_on | localDay"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.detail.meta.reviewEvery"
+                [value]="
+                  'continuity.detail.meta.everyMonths'
+                    | transloco: { count: p.review_interval_months }
+                "
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.fields.nextReview"
+                [keepEmpty]="p.status !== 'retired'"
+                [emptyKey]="
+                  p.status === 'approved'
+                    ? 'kit.detail.meta.notPlanned'
+                    : 'continuity.detail.meta.afterApproval'
+                "
+              >
+                @if (p.next_review_on) {
+                  <span [class.text-warn-ink]="p.review_state === 'overdue'">{{
+                    p.next_review_on | localDay
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.detail.meta.lastExercised"
+                [value]="p.last_exercised_on | localDay"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="continuity.detail.meta.updated"
+                [value]="p.updated_at | localDate"
+              />
+            </app-record-meta>
+
+            <app-continuity-learn-more
+              aside-learn
+              [lessons]="['exercising-plans', 'crisis-contacts']"
+            />
           </app-record-detail-layout>
+
+          <app-continuity-controlled-dialog [busy]="busy()" (acted)="act(p, $event)" />
 
           <app-prompt-dialog
             [open]="activateOpen()"
@@ -626,15 +718,13 @@ export class PlanDetailPage {
 
   readonly id = input.required<string>();
 
-  protected readonly panel = viewChild(ContinuityControlledPanel);
+  protected readonly dialog = viewChild(ContinuityControlledDialog);
   private readonly contactsAnchor = viewChild<ElementRef<HTMLElement>>('contacts');
 
-  protected readonly nav = CONTINUITY_NAV;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = PLAN_FIELD_LABELS;
-  protected readonly textFields = PLAN_TEXT_FIELDS;
+  protected readonly detailFields = DETAIL_TEXT_FIELDS;
   protected readonly phases = STEP_PHASES;
-  protected readonly statusBadge = (p: PlanDetail) => badge.controlled(p.status);
   protected readonly outcomeBadge = badge.outcome;
   protected readonly readinessBadge = (s: PlanIct) => badge.readiness(s.readiness);
 
@@ -642,7 +732,6 @@ export class PlanDetailPage {
   protected readonly plan = signal<PlanDetail | null>(null);
   protected readonly busy = signal(false);
   protected readonly exporting = signal(false);
-  protected readonly actionError = signal<string | null>(null);
   protected readonly confirmDelete = signal(false);
   protected readonly activateOpen = signal(false);
 
@@ -650,11 +739,41 @@ export class PlanDetailPage {
   protected readonly canAudit = computed(() => this.permissions().includes('audit:read'));
   protected readonly canWrite = computed(() => this.permissions().includes('continuity:write'));
   protected readonly crumbs = computed(() => recordCrumbs('plans', this.plan()?.code ?? ''));
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/continuity/plans',
+    this.id(),
+    'edit',
+  ]);
+
+  protected readonly statusLine = computed(() => {
+    const p = this.plan();
+    return p ? controlledStatusLine(p) : { key: '', tone: 'neutral' as const };
+  });
+
+  protected readonly placed = computed(() => {
+    const p = this.plan();
+    return p ? placeControlledActions(p) : { primary: null, secondary: [], overflow: [] };
+  });
+
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const p = this.plan();
+    if (!p) {
+      return [];
+    }
+    const write = this.canWrite();
+    return planMissing(p, {
+      editLink: this.editLink(),
+      review: p.allowed_actions.includes('review') ? () => this.dialog()?.open('review') : null,
+      planExercise: write ? () => this.planExercise(p) : null,
+      print: write ? () => this.exportPdf(p) : null,
+    });
+  });
 
   /** ICT services that cannot recover within this plan's targets. */
-  protected readonly ictGaps = computed(() =>
-    (this.plan()?.ict_dependencies ?? []).filter((s) => this.planGap(s)),
-  );
+  protected readonly ictGaps = computed(() => {
+    const p = this.plan();
+    return p ? planIctGaps(p) : [];
+  });
   protected readonly ictGapNames = computed(() =>
     this.ictGaps()
       .map((s) => `${s.code} ${s.name}`)
@@ -704,8 +823,17 @@ export class PlanDetailPage {
     });
   }
 
+  protected actionLabel(action: ControlledHeaderAction): string {
+    return action === 'edit' ? 'continuity.common.edit' : `continuity.actions.${action}`;
+  }
+
+  protected targetsSet(p: PlanDetail): boolean {
+    const t = p.recovery_targets;
+    return hasTargets(t.rto_minutes, t.rpo_minutes, t.mtpd_minutes);
+  }
+
   protected planGap(s: PlanIct): boolean {
-    return s.issues.some((i) => PLAN_GAP_ISSUES.includes(i));
+    return this.ictGaps().some((g) => g.id === s.id);
   }
 
   protected activationKey(p: PlanDetail): string {
@@ -720,16 +848,20 @@ export class PlanDetailPage {
     this.load(this.selectedOrg.currentOrgId(), this.id(), false);
   }
 
-  protected edit(p: PlanDetail): void {
-    void this.router.navigate(['/continuity/plans', p.id, 'edit']);
+  protected run(p: PlanDetail, action: ControlledHeaderAction): void {
+    if (action === 'edit') {
+      void this.router.navigate(this.editLink());
+    } else {
+      this.dialog()?.open(action);
+    }
   }
 
   protected planExercise(p: PlanDetail): void {
     void this.router.navigate(['/continuity/exercises/new'], { queryParams: { plan: p.id } });
   }
 
-  protected askSummary(): void {
-    this.ask.showWith(this.language.translate('continuity.ai.prompts.summarisePlan'));
+  protected askAi(kind: 'summarisePlan' | 'nextStep'): void {
+    this.ask.showWith(this.language.translate(`continuity.ai.prompts.${kind}`));
   }
 
   /** Register the incident as a deviation, prefilled and linked back (P4 flow). */
@@ -789,18 +921,17 @@ export class PlanDetailPage {
       return;
     }
     this.busy.set(true);
-    this.actionError.set(null);
     this.api.planAction(orgId, p.id, request.action, request.note).subscribe({
       next: (updated) => {
         this.busy.set(false);
-        this.panel()?.close();
+        this.dialog()?.close();
         this.plan.set(updated);
         this.notifications.success('continuity.actionDone.' + request.action, { code: p.code });
       },
       error: (err: unknown) => {
         this.busy.set(false);
-        this.panel()?.close();
-        this.actionError.set(continuityErrorKey(err));
+        this.dialog()?.close();
+        this.notifications.error(continuityErrorKey(err));
       },
     });
   }
@@ -831,7 +962,7 @@ export class PlanDetailPage {
     if (!orgId) {
       return;
     }
-    if (showLoading) {
+    if (showLoading && this.plan()?.id !== id) {
       this.state.set('loading');
     }
     this.request = this.api.getPlan(orgId, id).subscribe({
