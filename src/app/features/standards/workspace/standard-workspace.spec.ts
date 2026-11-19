@@ -109,10 +109,13 @@ describe('StandardWorkspace', () => {
   /** What the mocked API answers for the standard and its tree (tests may override). */
   let fixtureStandard: StandardSummary = STANDARD;
   let fixtureTree: ClauseNode[] = TREE;
+  /** `?tab=`: the reader by default here (U19 opens on Oversikt without one). */
+  let fixtureTab: string | undefined = 'requirements';
 
   beforeEach(() => {
     fixtureStandard = STANDARD;
     fixtureTree = TREE;
+    fixtureTab = 'requirements';
   });
 
   async function render(): Promise<void> {
@@ -162,6 +165,9 @@ describe('StandardWorkspace', () => {
   async function mount(number?: string, reqRef?: string, filter?: string): Promise<void> {
     fixture = TestBed.createComponent(StandardWorkspace);
     fixture.componentRef.setInput('key', KEY);
+    if (fixtureTab) {
+      fixture.componentRef.setInput('tab', fixtureTab);
+    }
     if (filter) {
       fixture.componentRef.setInput('filter', filter);
     }
@@ -398,9 +404,10 @@ describe('StandardWorkspace', () => {
       expect(aside.hasAttribute('inert')).toBe(false);
       expect(aside.nextElementSibling?.hasAttribute('inert')).toBe(true);
       // j / k stay off while the drawer is open.
+      const before = current();
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'j' }));
       await render();
-      expect(current()).toBe(tocDomId('4'));
+      expect(current()).toBe(before);
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
       await render();
       expect(aside.getAttribute('role')).toBeNull();
@@ -710,5 +717,112 @@ describe('StandardWorkspace', () => {
     step.querySelector<HTMLButtonElement>('app-button button')!.click();
     await render();
     expect(sectionIds()).toEqual(['sec-4', 'sec-4_1']);
+  });
+  describe('U19 tabs', () => {
+    const PREP = {
+      standard_key: KEY,
+      framework: 'iso27001',
+      audits_readable: true,
+      next_audit: {
+        id: 'p1',
+        code: 'AUD-1',
+        title: 'Stage 2',
+        status: 'planned',
+        date: '2027-01-11T00:00:00',
+        url: '/audits/plans/p1',
+      },
+      open_findings_count: 1,
+      open_nc_count: 1,
+      open_findings: [
+        {
+          id: 'f1',
+          code: 'F-1',
+          title: 'Leavers keep access',
+          finding_type: 'minor_nc',
+          status: 'open',
+          plan_code: 'AUD-1',
+          url: '/audits/findings/f1',
+        },
+      ],
+      packs_readable: true,
+      latest_pack: null,
+    };
+
+    it('opens on Oversikt: gaps first, each with where to fill it in, and no reader', async () => {
+      fixtureTab = undefined;
+      await setup();
+      expect(el.querySelector('#standard-toc')).toBeNull();
+      expect(
+        el.querySelector('[data-testid="standard-tab-overview"]')?.getAttribute('aria-current'),
+      ).toBe('page');
+      http
+        .expectOne((r) => r.url === `${ROOT}/frameworks/gaps` && r.params.get('limit') === '5')
+        .flush({
+          total: 7,
+          items: [
+            {
+              ref: 'iso:A.5.1.r1',
+              number: 'A.5.1',
+              title: 'Policies for information security',
+              text: '',
+              chapter: 'A.5',
+              status: 'not_started',
+              label: null,
+              fix_in: [],
+              fill_in: [
+                {
+                  key: 'documents.policies',
+                  module: 'documents',
+                  module_enabled: true,
+                  label: 'Policies',
+                  route: '/documents',
+                  query: {},
+                  url: '/documents?type=policy',
+                  outcome: 'not_met',
+                  text: '',
+                },
+              ],
+            },
+          ],
+        });
+      http.expectOne(`${ROOT}/standards/${KEY}/audit-prep`).flush(PREP);
+      await render();
+      const fill = el.querySelector<HTMLAnchorElement>('[data-testid="hub-fill-here"]')!;
+      expect(fill.getAttribute('href')).toContain('/documents?type=policy');
+      expect(fill.getAttribute('href')).toContain('fromRequirement=iso:A.5.1.r1');
+      // "Se alle krav" opens the reader on only the gaps.
+      const all = el.querySelector<HTMLAnchorElement>('[data-testid="hub-all-gaps"]')!;
+      expect(all.getAttribute('href')).toBe(`/standards/${KEY}?filter=gaps`);
+      expect(el.querySelector('[data-testid="hub-next-audit"]')?.textContent).toContain('Stage 2');
+    });
+
+    it('Forbered revisjon: next audit, open findings and the requirement matrix', async () => {
+      fixtureTab = 'audit';
+      await setup();
+      http.expectOne(`${ROOT}/standards/${KEY}/audit-prep`).flush(PREP);
+      await render();
+      expect(el.querySelectorAll('[data-testid="hub-finding"]').length).toBe(1);
+      expect(el.querySelector('[data-testid="hub-matrix-xlsx"]')).not.toBeNull();
+    });
+
+    it('"Se alle krav" from Oversikt (same component) turns on "Bare mangler"', async () => {
+      fixtureTab = undefined;
+      await setup();
+      http.match((r) => r.url === `${ROOT}/frameworks/gaps`);
+      http.match(`${ROOT}/standards/${KEY}/audit-prep`);
+      fixture.componentRef.setInput('filter', 'gaps');
+      await render();
+      await render();
+      const sections = Array.from(el.querySelectorAll('section[id^="sec-"]')).map((s) => s.id);
+      expect(sections).toEqual(['sec-4', 'sec-4_2', 'sec-A', 'sec-A_5', 'sec-A_5_1']);
+    });
+
+    it('the reader opens on the first missing requirement', async () => {
+      await setup();
+      expect(current()).toBe(tocDomId('A.5.1'));
+      expect(
+        el.querySelector('[data-testid="standard-tab-requirements"]')?.getAttribute('aria-current'),
+      ).toBe('page');
+    });
   });
 });

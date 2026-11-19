@@ -766,3 +766,48 @@ export interface ClauseTitle {
   readonly title_nb: string;
   readonly found: boolean;
 }
+
+/** An upcoming audit of the standard's framework (`audit-prep`, simplify U19). */
+export interface AuditPrepAudit {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly status: string;
+  readonly date: string | null;
+  readonly url: string;
+}
+
+/** An open audit finding of the standard (`audit-prep`). */
+export interface AuditPrepFinding {
+  readonly id: string;
+  readonly code: string;
+  readonly title: string;
+  readonly finding_type: string;
+  readonly status: string;
+  readonly plan_code: string | null;
+  readonly url: string;
+}
+
+/** The latest audit pack that includes the standard (`audit-prep`). */
+export interface AuditPrepPack {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly generated_at: string | null;
+  readonly url: string;
+}
+
+/** `GET standards/{key}/audit-prep`: "Forbered revisjon" for one standard. */
+export interface AuditPrep {
+  readonly standard_key: string;
+  readonly framework: string | null;
+  /** False when the audits module is off or the caller may not read it. */
+  readonly audits_readable: boolean;
+  readonly next_audit: AuditPrepAudit | null;
+  readonly open_findings_count: number;
+  readonly open_nc_count: number;
+  /** The newest five. */
+  readonly open_findings: readonly AuditPrepFinding[];
+  readonly packs_readable: boolean;
+  readonly latest_pack: AuditPrepPack | null;
+}
