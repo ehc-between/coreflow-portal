@@ -368,22 +368,46 @@
     },
     "next": {
       "internal": {
-        "planned": "Put together the team (with a lead auditor) and the checklist. Then press «Start the audit» on the day.",
-        "in_progress": "Answer each question in the checklist and link the evidence you saw. Register a finding when something is not in order.",
-        "reporting": "Write the summary and the overall conclusion, then send the report for approval.",
-        "report_review": "The report waits for approval by someone who did not write it.",
-        "closed": "The audit is closed. Follow up the open findings until they are verified.",
-        "cancelled": "The audit was cancelled. Reopen it if it should be carried out after all."
+        "planned": "Planned – put together the team with a lead auditor and build the checklist. Start the audit on the day.",
+        "in_progress": "In progress – answer each question in the checklist and link the evidence you saw. Register a finding when something is not in order.",
+        "reporting": "Reporting – write the summary and the overall conclusion, then send the report for approval.",
+        "report_review": "Report in review – the report waits for approval by someone who did not write it.",
+        "closed": "Closed – follow up the open findings until they are verified.",
+        "cancelled": "Cancelled – reopen the audit if it should be carried out after all."
       },
       "external": {
-        "planned": "Prepare: share the scope with the auditor and name your contacts. Start the audit when it begins.",
-        "in_progress": "Upload the auditor's report when you receive it and register its findings.",
-        "reporting": "Register the remaining findings and write a short summary for management.",
-        "report_review": "The summary waits for approval.",
-        "closed": "The audit is closed. Follow up the findings and keep the certificate up to date.",
-        "cancelled": "The audit was cancelled. Reopen it if it should be held after all."
+        "planned": "Planned – share the scope with the auditor and name your contacts. Start the audit when it begins.",
+        "in_progress": "In progress – upload the auditor’s report when you receive it and register its findings.",
+        "reporting": "Reporting – register the remaining findings and write a short summary for management.",
+        "report_review": "Report in review – the summary waits for approval.",
+        "closed": "Closed – follow up the findings and keep the certificate up to date.",
+        "cancelled": "Cancelled – reopen the audit if it should be held after all."
       }
-    }
+    },
+    "lead": {
+      "scope": "What is audited",
+      "criteria": "Audited against",
+      "when": "When",
+      "actualWhen": "Carried out",
+      "auditor": "Who audits us",
+      "progress": "Progress"
+    },
+    "progress": {
+      "checklist": "Checklist: {{ answered }} of {{ total }} answered",
+      "noChecklist": "No checklist yet",
+      "findings": "{{ total }} findings, {{ open }} open",
+      "noFindings": "No findings"
+    },
+    "missing": {
+      "lead": "Choose a lead auditor",
+      "scope": "Describe what is audited",
+      "dates": "Set the audit dates",
+      "checklist": "Build the checklist",
+      "report": "Write the report",
+      "openFindings": "Follow up {{ count }} open findings",
+      "owner": "Choose who is responsible"
+    },
+    "closedDone": "Closed – every finding has been followed up."
   },
   "team": {
     "empty": "Nobody has been assigned to this audit yet.",
@@ -559,19 +583,42 @@
     "deviationsHint": "Link the deviation that handles this finding, or create one with «Create from this».",
     "next": {
       "nc": {
-        "open": "The responsible person finds the root cause and plans the correction. Press «Start the response».",
-        "in_progress": "Fill in root cause, correction and corrective action, then send the response.",
-        "pending_verification": "The auditor checks that the actions are done and verifies the finding.",
-        "closed": "The finding is closed. Check later whether the actions worked.",
-        "cancelled": "The finding was cancelled."
+        "open": "Open – the person responsible finds the root cause and plans the correction.",
+        "in_progress": "Response in progress – fill in root cause, correction and corrective action, then send the response.",
+        "pending_verification": "Awaiting verification – the auditor checks that the actions are done.",
+        "closed": "Closed – check later whether the actions worked.",
+        "cancelled": "Cancelled – this finding is no longer followed up."
       },
       "other": {
-        "open": "Decide what to do with the suggestion and write the decision.",
-        "in_progress": "Write the decision and send it.",
-        "pending_verification": "The auditor reads the decision and closes the finding.",
-        "closed": "The finding is closed.",
-        "cancelled": "The finding was cancelled."
+        "open": "Open – decide what to do and write the decision.",
+        "in_progress": "Response in progress – write the decision and send it.",
+        "pending_verification": "Awaiting verification – the auditor reads the decision and closes the finding.",
+        "closed": "Closed – the decision is recorded.",
+        "cancelled": "Cancelled – this finding is no longer followed up."
       }
+    },
+    "lead": {
+      "what": "What was found",
+      "evidence": "What the auditor saw",
+      "requirementNc": "Requirement that is not met",
+      "requirement": "Requirement it concerns",
+      "audit": "Found in the audit"
+    },
+    "deviationsTitle": "Deviations that follow it up",
+    "linkDeviation": "Link a deviation",
+    "missing": {
+      "description": "Describe what was found",
+      "owner": "Choose who responds",
+      "due": "Set a response date",
+      "response": "Write the response",
+      "decision": "Write the decision",
+      "actions": "Add actions or link a deviation",
+      "verify": "Verify that the actions are done",
+      "effectiveness": "Check whether the actions worked"
+    },
+    "meta": {
+      "responded": "Response sent",
+      "closed": "Closed"
     }
   },
   "certifications": {
@@ -839,6 +886,44 @@
   },
   "programmeDetail": {
     "about": "About the programme",
-    "askAbout": "Explain audit programme {{ code }}: what it covers, how far it has come and where the gaps are."
+    "askAbout": "Explain audit programme {{ code }}: what it covers, how far it has come and where the gaps are.",
+    "status": {
+      "draft": "Draft – approve the programme when the year’s audits are planned.",
+      "approved": "Approved – the audits are carried out as planned.",
+      "closed": "Closed – the programme for this year is finished."
+    },
+    "lead": {
+      "objectives": "What the programme should achieve",
+      "riskBasis": "Why these areas (risk)",
+      "progress": "Progress"
+    },
+    "progress": "{{ done }} of {{ total }} audits closed",
+    "progressOpen": "{{ count }} still open",
+    "missing": {
+      "audits": "Add the first audit",
+      "objectives": "Write the programme’s objectives",
+      "owner": "Choose who is responsible",
+      "approve": "Approve the programme"
+    }
+  },
+  "detail": {
+    "ask": {
+      "plan": "Explain this audit",
+      "finding": "Explain this finding",
+      "rootCause": "Help me find the root cause",
+      "decision": "Help me decide what to do",
+      "programme": "Explain this programme"
+    },
+    "belongsTo": "Belongs to",
+    "types": {
+      "plan": "Audit",
+      "programme": "Audit programme",
+      "certification": "Certification",
+      "deviation": "Deviation"
+    },
+    "meta": {
+      "created": "Created",
+      "updated": "Last changed"
+    }
   }
 }
