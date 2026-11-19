@@ -10,7 +10,8 @@
     "transfer": "Transfers",
     "retention": "Retention",
     "consent": "Consents",
-    "lba": "Legal basis"
+    "lba": "Legal basis",
+    "documents": "Documents and reports"
   },
   "overview": {
     "title": "Privacy and GDPR",
@@ -51,7 +52,9 @@
       "breaches": "{{ count }} breaches not closed",
       "gaps": "{{ count }} gaps between the registers"
     },
-    "contextSummary": "{{ gaps }} gaps, {{ breaches }} breaches being assessed, {{ requests }} open requests, {{ dpias }} DPIAs awaiting a decision."
+    "contextSummary": "{{ gaps }} gaps, {{ breaches }} breaches being assessed, {{ requests }} open requests, {{ dpias }} DPIAs awaiting a decision.",
+    "documents": "Documents and reports",
+    "documentsAll": "All documents and registers"
   },
   "registers": {
     "ropa": {
@@ -977,7 +980,9 @@
       "pdf": "PDF",
       "xlsx": "Excel (XLSX)",
       "csv": "CSV"
-    }
+    },
+    "list": "Export",
+    "listTitle": "Export the list with the current search and filter"
   },
   "gaps": {
     "title": "What is missing ({{ count }})",
@@ -1223,5 +1228,11 @@
       "third_country": "{{ country }} is a third country: the transfer needs standard contractual clauses or another tool (Art. 46–49) and a transfer impact assessment.",
       "unknown": "The country could not be classified."
     }
+  },
+  "documents": {
+    "title": "Documents and reports",
+    "subtitle": "The records Datatilsynet and auditors ask for, made from what you have registered. See what is missing first, then make the document as PDF, Word or Excel.",
+    "registers": "The registers as tables",
+    "registersHint": "Each register as a spreadsheet or PDF, with the filters you choose."
   }
 }

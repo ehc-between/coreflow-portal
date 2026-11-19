@@ -46,6 +46,11 @@ export default [
       },
       // U10: the module's configuration lives under /settings/modules/privacy.
       moduleConfigRedirect('settings', 'privacy', ''),
+      // U12: "Dokumenter og rapporter" (the GDPR protocols and logs, register exports).
+      {
+        path: 'documents',
+        loadComponent: () => import('./privacy-documents').then((m) => m.PrivacyDocuments),
+      },
       ...REGISTER_LIST.map(registerRoutes),
       { path: '**', redirectTo: '' },
     ],

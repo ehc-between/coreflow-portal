@@ -24,6 +24,11 @@ export function privacyNavItems(perms: Signal<ReadonlySet<string>>): Signal<Modu
         link: ['/privacy', r.segment],
         testId: `privacy-nav-${r.key}`,
       })),
+      {
+        labelKey: 'privacy.nav.documents',
+        link: '/privacy/documents',
+        testId: 'privacy-nav-documents',
+      },
     ];
     return items;
   });

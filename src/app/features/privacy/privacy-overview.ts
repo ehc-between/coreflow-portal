@@ -37,7 +37,7 @@ import {
 } from './data/privacy.models';
 import { clockFact } from './data/privacy-display';
 import { PRIVACY_SETTINGS_LINK, REGISTERS, REGISTER_LIST } from './data/privacy-registers';
-import { PrivacyExportMenu } from './privacy-export';
+import { OutputsPanel } from '../../shared/outputs/outputs-panel';
 import { PrivacyGaps } from './privacy-gaps';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
 import { PrivacySetupCard } from './privacy-setup';
@@ -88,7 +88,7 @@ export const OVERVIEW_LESSONS = [
     ModuleNav,
     PageHeader,
     StatusBadge,
-    PrivacyExportMenu,
+    OutputsPanel,
     PrivacyGaps,
     PrivacySetupCard,
   ],
@@ -99,6 +99,7 @@ export const OVERVIEW_LESSONS = [
         titleKey="modules.names.privacy"
         descriptionKey="privacy.overview.subtitle"
         [settingsLink]="canManage() ? settingsLink : null"
+        outputsModule="privacy"
       >
         @if (canWrite()) {
           <a
@@ -112,7 +113,6 @@ export const OVERVIEW_LESSONS = [
             {{ 'privacy.overview.reportBreach' | transloco }}
           </a>
         }
-        <app-privacy-export-menu secondary kind="ropa" />
       </app-page-header>
 
       <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
@@ -286,6 +286,22 @@ export const OVERVIEW_LESSONS = [
         }
       }
 
+      <!-- U12: the documents Datatilsynet asks for, one click from the overview. -->
+      <section class="mt-8" data-testid="privacy-documents">
+        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 class="font-display text-section font-bold text-fg">
+            {{ 'privacy.overview.documents' | transloco }}
+          </h2>
+          <a
+            routerLink="/privacy/documents"
+            class="text-ui font-semibold text-accent hover:underline"
+            data-testid="privacy-documents-all"
+            >{{ 'privacy.overview.documentsAll' | transloco }}</a
+          >
+        </div>
+        <app-outputs-panel module="privacy" [excludeKinds]="documentKindsOnly" />
+      </section>
+
       <h2 class="mt-8 mb-3 font-display text-section font-bold text-fg">
         {{ 'privacy.overview.registers' | transloco }}
       </h2>
@@ -323,6 +339,8 @@ export const OVERVIEW_LESSONS = [
   `,
 })
 export class PrivacyOverview {
+  /** The overview shows documents; register tables live on the documents tab. */
+  protected readonly documentKindsOnly = ['register_export'] as const;
   private readonly api = inject(PrivacyApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);

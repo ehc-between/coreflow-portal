@@ -10,7 +10,8 @@
     "transfer": "Overføringer",
     "retention": "Lagringsregler",
     "consent": "Samtykker",
-    "lba": "Behandlingsgrunnlag"
+    "lba": "Behandlingsgrunnlag",
+    "documents": "Dokumenter og rapporter"
   },
   "overview": {
     "title": "Personvern og GDPR",
@@ -51,7 +52,9 @@
       "breaches": "{{ count }} personvernbrudd ikke lukket",
       "gaps": "{{ count }} mangler mellom registrene"
     },
-    "contextSummary": "{{ gaps }} mangler, {{ breaches }} personvernbrudd under vurdering, {{ requests }} åpne henvendelser, {{ dpias }} DPIA-er venter på beslutning."
+    "contextSummary": "{{ gaps }} mangler, {{ breaches }} personvernbrudd under vurdering, {{ requests }} åpne henvendelser, {{ dpias }} DPIA-er venter på beslutning.",
+    "documents": "Dokumenter og rapporter",
+    "documentsAll": "Alle dokumenter og registre"
   },
   "registers": {
     "ropa": {
@@ -977,7 +980,9 @@
       "pdf": "PDF",
       "xlsx": "Excel (XLSX)",
       "csv": "CSV"
-    }
+    },
+    "list": "Eksporter",
+    "listTitle": "Eksporter listen med søket og filteret du har valgt"
   },
   "gaps": {
     "title": "Mangler ({{ count }})",
@@ -1223,5 +1228,11 @@
       "third_country": "{{ country }} er et tredjeland: overføringen krever standard personvernbestemmelser eller et annet grunnlag (art. 46–49) og en overføringsvurdering.",
       "unknown": "Landet kunne ikke klassifiseres."
     }
+  },
+  "documents": {
+    "title": "Dokumenter og rapporter",
+    "subtitle": "Protokollene og loggene Datatilsynet og revisor ber om, laget av det dere har registrert. Se først hva som mangler, og lag så dokumentet som PDF, Word eller Excel.",
+    "registers": "Registrene som tabell",
+    "registersHint": "Hvert register som regneark eller PDF, med filtrene du velger."
   }
 }

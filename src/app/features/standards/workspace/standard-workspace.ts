@@ -35,6 +35,7 @@ import {
 } from '../../../core/standards/standards-display';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { OutputsLink } from '../../../shared/outputs/outputs-link';
+import { OutputsPanel } from '../../../shared/outputs/outputs-panel';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { MenuItem, OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -170,6 +171,7 @@ function clampWidth(width: number): number {
   imports: [
     RouterLink,
     OutputsLink,
+    OutputsPanel,
     TranslocoPipe,
     HasPermissionDirective,
     Attachments,
@@ -538,6 +540,13 @@ function clampWidth(width: number): number {
                 @if (std.enabled) {
                   <!-- U11: "Dokumenter du kan hente ut" for this standard (the library, filtered). -->
                   <app-outputs-link class="mt-3 inline-block" [standard]="std.key" />
+                  <!-- U12: the standard's documents right here ("Lag dokument" in one click). -->
+                  <app-outputs-panel
+                    class="mt-3"
+                    [standardKey]="std.key"
+                    [excludeKinds]="registerExportKinds"
+                    data-testid="standard-outputs"
+                  />
                 }
                 @if (!std.enabled) {
                   <div
@@ -687,6 +696,8 @@ function clampWidth(width: number): number {
   `,
 })
 export class StandardWorkspace {
+  /** Register tables stay in the library; the standard page shows its documents. */
+  protected readonly registerExportKinds = ['register_export'] as const;
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);

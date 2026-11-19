@@ -53,7 +53,7 @@ import {
   REGISTERS,
   RegisterKey,
 } from './data/privacy-registers';
-import { PrivacyExportMenu } from './privacy-export';
+import { PrivacyRegisterExport } from './privacy-register-export';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
 
@@ -121,7 +121,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
     RecordRow,
     RecordRowHeader,
     StatusBadge,
-    PrivacyExportMenu,
+    PrivacyRegisterExport,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -152,9 +152,13 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
           {{ 'privacy.registers.' + def().key + '.new' | transloco }}
         </app-button>
       }
-      @if (def().exportKind; as kind) {
-        <app-privacy-export-menu secondary [kind]="kind" />
-      }
+      <!-- U12: every privacy list exports what it shows (search + status). -->
+      <app-privacy-register-export
+        secondary
+        [register]="def().key"
+        [q]="q()"
+        [statuses]="exportStatuses()"
+      />
 
       <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
       <app-fulfils-requirements help />
@@ -414,6 +418,7 @@ export class PrivacyRegisterList {
   );
   protected readonly extra = signal<Readonly<Record<string, string>>>({});
   protected readonly offset = signal(0);
+  protected readonly exportStatuses = computed(() => statusesFor(this.def().key, this.status()));
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly rows = signal<readonly PrivacyRecord[]>([]);
