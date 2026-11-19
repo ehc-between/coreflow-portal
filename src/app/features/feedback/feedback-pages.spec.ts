@@ -220,15 +220,26 @@ describe('FeedbackDetail', () => {
     expect(el.querySelector('[data-testid="feedback-due"]')?.classList).toContain('text-warn-ink');
     expect(el.querySelector('[data-testid="action-resolve"]')).toBeTruthy();
     expect(el.querySelector('[data-testid="no-deviations"]')).toBeTruthy();
-    // A complaint shows its assessment and what an auditor would still miss.
-    expect(el.querySelector('[data-testid="feedback-assessment"]')).toBeTruthy();
-    expect(el.querySelector('[data-testid="assessment-gaps"]')?.textContent).toContain(
-      'feedback.gaps.assessment',
+    // Detail-page anatomy: what the customer said and who they are come first.
+    const lead = el.querySelector('[data-testid="record-lead"]');
+    expect(lead?.textContent).toContain('The parcel arrived late.');
+    expect(lead?.querySelector('[data-testid="feedback-customer"]')?.textContent).toContain(
+      'Nordic Retail',
     );
+    expect(lead?.textContent).toContain('feedback.detail.status.in_progress');
+    // A complaint shows its assessment; what an auditor would still miss is in Oppfølging.
+    expect(el.querySelector('[data-testid="feedback-assessment"]')).toBeTruthy();
+    const missing = el.querySelector('[data-testid="record-missing"]')?.textContent ?? '';
+    expect(missing).toContain('feedback.gaps.assessment');
+    // Overdue and no reply logged: one line, "reply to the customer".
+    expect(missing).toContain('feedback.detail.missing.overdue');
+    expect(missing).toContain('feedback.detail.missing.subjects');
     expect(el.querySelector('[data-testid="no-replies"]')).toBeTruthy();
-    expect(el.querySelector('[data-testid="no-subjects"]')).toBeTruthy();
-    // Six empty customer fields are not shown as a wall of "not set".
-    expect(el.querySelector('[data-testid="no-customer"]')).toBeNull();
+    // Nothing linked yet: no empty "about" block, and no wall of "not set".
+    expect(el.querySelector('[data-testid="subject-list"]')).toBeNull();
+    expect(
+      el.querySelector('[data-testid="field-item"]:not(.hidden) [data-testid="field-item-empty"]'),
+    ).toBeNull();
   });
 
   it('shows one primary step and asks before acknowledging', async () => {

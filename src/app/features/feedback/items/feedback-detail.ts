@@ -10,36 +10,45 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { EntityRefDto } from '../../../core/entities/entity.models';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
-import { WatchButton } from '../../../shared/activity/watch-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
-import { FieldHelp } from '../../../shared/guidance/field-help';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
-import { FeedbackAskButton } from '../ask-button';
+import { AskPanelService } from '../../ask/ask-panel.service';
+import { recordIcon } from '../../ask/ask-icons';
 import { FeedbackApi } from '../data/feedback-api';
 import {
   feedbackActionKey,
@@ -58,6 +67,7 @@ import {
   FeedbackActionBody,
   PERM_WRITE,
 } from '../data/feedback.models';
+import { FEEDBACK_STATUS_TONE, FeedbackTodo, feedbackTodos } from '../feedback-anatomy';
 import { FEEDBACK_SETTINGS_LINK } from '../feedback-nav';
 import { FeedbackSubjectPicker } from '../subject-picker';
 import { FeedbackAssessment, YES_NO_OPTIONS } from './feedback-assessment';
@@ -136,12 +146,15 @@ export function customerFields(
 }
 
 /**
- * One feedback record (`/feedback/items/:id`): the customer's message, one primary
- * "next step" button (the other steps under "Mer"; every step asks first), the
- * complaint assessment, the reply log, what the feedback is about (suppliers,
- * contracts, processes, …), linked deviations, follow-up tasks, and the shared
- * record kit (requirements, connections, create-from-here, activity, comments,
- * attachments, revisions).
+ * One feedback record (`/feedback/items/:id`) in the detail-page anatomy
+ * (docs/ux-guide.md §2.7): one calm meta line (code · kind · status), the next step
+ * as the one primary button (the other steps under "Mer"; every step asks first),
+ * assistant actions in "Spør KI"; "Hovedinformasjon" with what the customer said,
+ * who the customer is, what it is about (linked records with type, code, title and
+ * status) and how it was resolved; the complaint assessment, the reply log, linked
+ * deviations and the remaining fields (empty ones hidden) in Detaljer; one
+ * "Oppfølging" card with what is still missing, requirements, connections, the
+ * survey it came from and the handling metadata.
  */
 @Component({
   selector: 'app-feedback-detail',
@@ -150,26 +163,26 @@ export function customerFields(
     TranslocoPipe,
     LocalDayPipe,
     LocalDatePipe,
-    WatchButton,
-    AskAbout,
-    FieldHelp,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     EntityTasks,
-    Alert,
     Badge,
     Button,
     Card,
     ConfirmDialog,
     ErrorState,
+    FieldItem,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
     StatusBadge,
-    FeedbackAskButton,
     FeedbackAssessment,
     FeedbackDeviations,
     FeedbackReplies,
@@ -194,6 +207,7 @@ export function customerFields(
       @default {
         @if (feedback(); as f) {
           <app-record-detail-layout
+            [anatomy]="true"
             [entityType]="entityType"
             [entityId]="f.id"
             [title]="f.title"
@@ -206,36 +220,25 @@ export function customerFields(
             [counts]="{ tasks: f.open_tasks }"
             [canEdit]="f.can_edit"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
           >
-            <ng-container meta>
-              <span class="font-mono font-semibold" data-testid="feedback-code">{{ f.code }}</span>
-              <app-badge tone="neutral" data-testid="feedback-kind">{{
-                kindKey(f.kind) | transloco
-              }}</app-badge>
+            <ng-container ngProjectAs="[meta]">
+              <span class="font-mono" data-testid="feedback-code">{{ f.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span data-testid="feedback-kind">{{ kindKey(f.kind) | transloco }}</span>
+              <span aria-hidden="true">·</span>
               <app-status-badge
                 meaning="lifecycle"
                 [value]="f.status"
                 [labelKey]="statusKey(f.status)"
                 data-testid="feedback-status"
               />
-              @if (f.severity) {
-                <app-status-badge
-                  meaning="severity"
-                  [value]="f.severity"
-                  [labelKey]="severityKey(f.severity)"
-                />
-              }
               @if (f.overdue) {
-                <app-status-badge meaning="lifecycle" value="overdue" />
-              }
-              <span>{{
-                'feedback.detail.receivedVia'
-                  | transloco: { channel: (channelKey(f.channel) | transloco) }
-              }}</span>
-              @if (f.category) {
-                <span data-testid="feedback-category">{{
-                  'feedback.list.categoryValue' | transloco: { category: f.category }
-                }}</span>
+                <app-status-badge
+                  meaning="lifecycle"
+                  value="overdue"
+                  labelKey="feedback.detail.replyOverdue"
+                />
               }
             </ng-container>
 
@@ -251,20 +254,15 @@ export function customerFields(
               </app-button>
             }
             @if (f.can_edit) {
-              <a
+              <app-button
                 secondary
-                [routerLink]="['/feedback/items', f.id, 'edit']"
-                class="inline-flex h-9 items-center gap-1.5 rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                variant="secondary"
+                (click)="edit()"
                 data-testid="feedback-edit"
               >
                 {{ 'feedback.common.edit' | transloco }}
-              </a>
+              </app-button>
             }
-            <app-feedback-ask-button
-              secondary
-              promptKey="feedback.ask.summarise"
-              [requirements]="confirmedRefs()"
-            />
             @for (a of others(); track a) {
               <button
                 appMenuItem
@@ -290,139 +288,128 @@ export function customerFields(
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'feedback.detail.ai.summarise' | transloco }}
+            </button>
+            @if (f.status !== 'closed') {
+              <button appMenuItem ask type="button" (click)="askAi('resolution')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'feedback.detail.ai.resolution' | transloco }}
+              </button>
+            }
+            @if (f.kind === 'complaint') {
+              <button appMenuItem ask type="button" (click)="askAi('assessment')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'feedback.detail.ai.assessment' | transloco }}
+              </button>
+            }
+
             <app-help-strip help scope="feedback" page="detail" lesson="handling-complaints" />
 
-            <div class="flex flex-col gap-6">
-              @if (f.status === 'closed') {
-                <app-alert tone="info">{{ 'feedback.detail.closedNotice' | transloco }}</app-alert>
-              }
-
-              @if (f.status !== 'closed') {
-                <app-card>
-                  <h2 class="mb-1 font-display text-card font-bold text-fg">
-                    {{ 'feedback.next.title' | transloco }}
-                  </h2>
-                  <p class="text-ui text-fg-muted" data-testid="workflow-hint">
-                    {{ 'feedback.workflow.hint.' + f.status | transloco }}
-                  </p>
-                  @if (f.kind === 'complaint' && f.assessment_gaps.length) {
-                    <ul class="mt-3 flex flex-col gap-2" data-testid="assessment-gaps">
-                      @for (g of f.assessment_gaps; track g) {
-                        <li class="flex flex-wrap items-center gap-2 text-ui">
-                          <app-icon name="clock" [size]="14" class="text-warn-ink" />
-                          <span class="min-w-0 flex-1 text-fg">{{
-                            'feedback.gaps.' + g | transloco
-                          }}</span>
-                          @if (f.can_edit) {
-                            <app-button
-                              size="sm"
-                              variant="ghost"
-                              (click)="fixGap(g)"
-                              [attr.data-testid]="'gap-' + g"
-                            >
-                              {{ 'feedback.gaps.' + g + 'Action' | transloco }}
-                            </app-button>
-                          }
-                        </li>
+            <app-record-lead record-lead [fillLink]="f.can_edit ? editLink() : null">
+              <app-record-status-line status [tone]="statusTone()" data-testid="workflow-hint">
+                {{ 'feedback.detail.status.' + f.status | transloco }}
+              </app-record-status-line>
+              <app-field-item
+                size="lead"
+                labelKey="feedback.detail.lead.message"
+                [wide]="true"
+                [value]="f.description"
+                [multiline]="true"
+                data-testid="feedback-description"
+              />
+              <app-field-item size="lead" labelKey="feedback.detail.lead.customer">
+                @if (customer().length) {
+                  <span class="flex flex-col gap-0.5" data-testid="feedback-customer">
+                    @for (c of customer(); track c.key) {
+                      @if (c.href) {
+                        <a
+                          class="text-ui font-semibold text-accent hover:underline"
+                          [href]="c.href"
+                          >{{ c.value }}</a
+                        >
+                      } @else if (c.key === 'name') {
+                        <span>{{ c.value }}</span>
+                      } @else {
+                        <span class="text-ui text-fg-muted">{{ c.value }}</span>
                       }
-                    </ul>
-                  }
-                </app-card>
-              }
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'feedback.detail.message' | transloco }}
-                </h2>
-                @if (f.description) {
-                  <p
-                    class="text-body whitespace-pre-line text-fg"
-                    data-testid="feedback-description"
-                  >
-                    {{ f.description }}
-                  </p>
-                } @else {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'feedback.detail.noDescription' | transloco }}
-                  </p>
+                    }
+                  </span>
                 }
-                @if (f.product_or_service || f.satisfaction_score || f.sentiment) {
-                  <dl class="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 text-ui sm:grid-cols-3">
-                    @if (f.product_or_service) {
-                      <div>
-                        <dt class="text-meta text-fg-subtle">
-                          {{ 'feedback.fields.productOrService' | transloco }}
-                        </dt>
-                        <dd class="text-fg">{{ f.product_or_service }}</dd>
-                      </div>
-                    }
-                    @if (f.satisfaction_score) {
-                      <div>
-                        <dt class="text-meta text-fg-subtle">
-                          {{ 'feedback.fields.satisfactionScore' | transloco }}
-                        </dt>
-                        <dd class="text-fg">
-                          {{ 'feedback.form.scoreOption.' + f.satisfaction_score | transloco }}
-                        </dd>
-                      </div>
-                    }
-                    @if (f.sentiment) {
-                      <div>
-                        <dt class="text-meta text-fg-subtle">
-                          {{ 'feedback.fields.sentiment' | transloco }}
-                        </dt>
-                        <dd class="text-fg">{{ sentimentKey(f.sentiment) | transloco }}</dd>
-                      </div>
-                    }
-                  </dl>
-                }
-                @if (f.tags.length) {
-                  <ul
-                    class="mt-3 flex flex-wrap gap-1.5"
-                    [attr.aria-label]="'feedback.fields.tags' | transloco"
-                  >
-                    @for (t of f.tags; track t) {
-                      <li>
-                        <app-badge tone="neutral">{{ t }}</app-badge>
+              </app-field-item>
+              <app-field-item size="lead" labelKey="feedback.detail.lead.about">
+                @if (editingSubjects()) {
+                  <span class="block text-ui" data-testid="feedback-subjects-editor">
+                    <app-feedback-subject-picker
+                      [picked]="subjectDraft()"
+                      (selected)="addSubject($event)"
+                      (removed)="removeSubject($event)"
+                    />
+                    <span class="mt-3 flex flex-wrap justify-end gap-2">
+                      <app-button variant="ghost" size="sm" (click)="editingSubjects.set(false)">
+                        {{ 'common.cancel' | transloco }}
+                      </app-button>
+                      <app-button
+                        size="sm"
+                        [loading]="acting()"
+                        [disabled]="acting()"
+                        (click)="saveSubjects()"
+                        data-testid="save-subjects"
+                      >
+                        {{ 'feedback.subjects.save' | transloco }}
+                      </app-button>
+                    </span>
+                  </span>
+                } @else if (f.subjects.length) {
+                  <ul class="flex flex-col gap-1.5 text-ui" data-testid="subject-list">
+                    @for (s of f.subjects; track s.entity_type + s.entity_id) {
+                      <li class="flex min-w-0 items-start gap-2">
+                        <app-icon
+                          [name]="iconFor(s)"
+                          [size]="15"
+                          class="mt-0.5 flex-none text-fg-muted"
+                        />
+                        <app-entity-chip [ref]="s" [statusText]="true" [stacked]="true" />
                       </li>
                     }
                   </ul>
+                  @if (f.can_edit) {
+                    <button
+                      type="button"
+                      class="mt-1.5 text-meta font-semibold text-accent hover:underline"
+                      (click)="editSubjects()"
+                      data-testid="edit-subjects"
+                    >
+                      {{ 'feedback.detail.lead.changeAbout' | transloco }}
+                    </button>
+                  }
                 }
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'feedback.detail.customer' | transloco }}
-                </h2>
-                @if (customer().length) {
-                  <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-ui sm:grid-cols-2">
-                    @for (c of customer(); track c.key) {
-                      <div>
-                        <dt class="text-meta text-fg-subtle">{{ c.labelKey | transloco }}</dt>
-                        <dd class="break-words text-fg">
-                          @if (c.href) {
-                            <a class="text-accent hover:underline" [href]="c.href">{{ c.value }}</a>
-                          } @else {
-                            {{ c.value }}
-                          }
-                        </dd>
-                      </div>
-                    }
-                  </dl>
-                } @else {
-                  <p class="text-ui text-fg-muted" data-testid="no-customer">
-                    {{ 'feedback.detail.noCustomer' | transloco }}
-                    @if (f.can_edit) {
-                      <a
-                        [routerLink]="['/feedback/items', f.id, 'edit']"
-                        class="font-semibold text-accent hover:underline"
-                        >{{ 'feedback.detail.addCustomer' | transloco }}</a
-                      >
-                    }
-                  </p>
+              </app-field-item>
+              <app-field-item size="lead" labelKey="feedback.detail.lead.resolution" [wide]="true">
+                @if (f.resolution) {
+                  <span class="block whitespace-pre-line" data-testid="feedback-resolution">{{
+                    f.resolution
+                  }}</span>
+                  <span
+                    class="mt-2 flex items-center gap-1.5 text-ui font-normal"
+                    [class.text-pass-ink]="f.customer_informed"
+                    [class.text-fg-muted]="!f.customer_informed"
+                    data-testid="feedback-informed"
+                  >
+                    <app-icon [name]="f.customer_informed ? 'checkcircle' : 'clock'" [size]="14" />
+                    {{
+                      (f.customer_informed
+                        ? 'feedback.detail.informed'
+                        : 'feedback.detail.notInformed'
+                      ) | transloco
+                    }}
+                  </span>
                 }
-              </app-card>
+              </app-field-item>
+            </app-record-lead>
 
+            <div class="flex flex-col gap-6">
               @if (f.kind === 'complaint') {
                 <app-card>
                   <app-feedback-assessment
@@ -432,43 +419,6 @@ export function customerFields(
                   />
                 </app-card>
               }
-
-              <app-card>
-                <h2 class="mb-3 flex items-center gap-1 font-display text-card font-bold text-fg">
-                  {{ 'feedback.detail.resolution' | transloco }}
-                  <app-ask-about
-                    [prompt]="'feedback.ask.resolution' | transloco"
-                    field="resolution"
-                    [fieldLabel]="'feedback.fields.resolution' | transloco"
-                  />
-                </h2>
-                @if (f.resolution) {
-                  <p
-                    class="text-body whitespace-pre-line text-fg"
-                    data-testid="feedback-resolution"
-                  >
-                    {{ f.resolution }}
-                  </p>
-                } @else {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'feedback.detail.noResolution' | transloco }}
-                  </p>
-                }
-                <p
-                  class="mt-3 flex items-center gap-1.5 text-ui"
-                  [class.text-pass-ink]="f.customer_informed"
-                  [class.text-fg-muted]="!f.customer_informed"
-                  data-testid="feedback-informed"
-                >
-                  <app-icon [name]="f.customer_informed ? 'checkcircle' : 'clock'" [size]="14" />
-                  {{
-                    (f.customer_informed
-                      ? 'feedback.detail.informed'
-                      : 'feedback.detail.notInformed'
-                    ) | transloco
-                  }}
-                </p>
-              </app-card>
 
               <app-card>
                 <app-feedback-replies
@@ -482,65 +432,6 @@ export function customerFields(
               </app-card>
 
               <app-card>
-                <section aria-labelledby="cf-fb-subjects-h" data-testid="feedback-subjects">
-                  <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <h2
-                      id="cf-fb-subjects-h"
-                      class="flex items-center gap-1 font-display text-card font-bold text-fg"
-                    >
-                      {{ 'feedback.subjects.title' | transloco }}
-                      <app-field-help scope="feedback" page="detail" field="subjects" />
-                    </h2>
-                    @if (f.can_edit && !editingSubjects()) {
-                      <app-button
-                        size="sm"
-                        variant="secondary"
-                        (click)="editSubjects()"
-                        data-testid="edit-subjects"
-                      >
-                        <app-icon name="link" [size]="14" />
-                        {{ 'feedback.subjects.edit' | transloco }}
-                      </app-button>
-                    }
-                  </div>
-                  <p class="mb-3 text-meta text-fg-muted">
-                    {{ 'feedback.subjects.hint' | transloco }}
-                  </p>
-                  @if (editingSubjects()) {
-                    <app-feedback-subject-picker
-                      [picked]="subjectDraft()"
-                      (selected)="addSubject($event)"
-                      (removed)="removeSubject($event)"
-                    />
-                    <div class="mt-3 flex flex-wrap justify-end gap-2">
-                      <app-button variant="ghost" size="sm" (click)="editingSubjects.set(false)">
-                        {{ 'common.cancel' | transloco }}
-                      </app-button>
-                      <app-button
-                        size="sm"
-                        [loading]="acting()"
-                        [disabled]="acting()"
-                        (click)="saveSubjects()"
-                        data-testid="save-subjects"
-                      >
-                        {{ 'feedback.subjects.save' | transloco }}
-                      </app-button>
-                    </div>
-                  } @else if (f.subjects.length) {
-                    <ul class="flex flex-wrap gap-2" data-testid="subject-list">
-                      @for (s of f.subjects; track s.entity_type + s.entity_id) {
-                        <li><app-entity-chip [ref]="s" /></li>
-                      }
-                    </ul>
-                  } @else {
-                    <p class="text-ui text-fg-muted" data-testid="no-subjects">
-                      {{ 'feedback.subjects.none' | transloco }}
-                    </p>
-                  }
-                </section>
-              </app-card>
-
-              <app-card>
                 <app-feedback-deviations
                   [feedbackId]="f.id"
                   [links]="f.linked_deviations"
@@ -549,6 +440,58 @@ export function customerFields(
                   (changed)="onDeviationsChanged($event)"
                 />
               </app-card>
+
+              <app-record-details [columns]="3" [fillLink]="f.can_edit ? editLink() : null">
+                <app-field-item labelKey="feedback.fields.severity">
+                  @if (f.severity) {
+                    <app-status-badge
+                      meaning="severity"
+                      [value]="f.severity"
+                      [labelKey]="severityKey(f.severity)"
+                    />
+                  }
+                </app-field-item>
+                <app-field-item
+                  labelKey="feedback.detail.fields.channel"
+                  [value]="channelKey(f.channel) | transloco"
+                />
+                <app-field-item labelKey="feedback.fields.receivedOn">
+                  {{ f.received_on | localDay }}
+                </app-field-item>
+                <app-field-item
+                  labelKey="feedback.fields.category"
+                  [value]="f.category"
+                  data-testid="feedback-category"
+                />
+                <app-field-item
+                  labelKey="feedback.fields.productOrService"
+                  [value]="f.product_or_service"
+                />
+                <app-field-item labelKey="feedback.fields.satisfactionScore">
+                  @if (f.satisfaction_score) {
+                    {{ 'feedback.form.scoreOption.' + f.satisfaction_score | transloco }}
+                  }
+                </app-field-item>
+                <app-field-item labelKey="feedback.fields.sentiment">
+                  @if (f.sentiment) {
+                    {{ sentimentKey(f.sentiment) | transloco }}
+                  }
+                </app-field-item>
+                <app-field-item
+                  labelKey="feedback.fields.department"
+                  [value]="f.department?.name"
+                  data-testid="feedback-department"
+                />
+                <app-field-item labelKey="feedback.fields.tags" [wide]="true">
+                  @if (f.tags.length) {
+                    <span class="flex flex-wrap gap-1.5">
+                      @for (t of f.tags; track t) {
+                        <app-badge tone="neutral">{{ t }}</app-badge>
+                      }
+                    </span>
+                  }
+                </app-field-item>
+              </app-record-details>
             </div>
 
             <div tasks>
@@ -560,125 +503,81 @@ export function customerFields(
               />
             </div>
 
-            <ng-container aside-requirements>
-              <app-supports-requirements
-                [entityType]="entityType"
-                [entityId]="f.id"
-                [canEdit]="f.can_edit"
-                (linksChange)="reqLinks.set($event)"
-              />
-            </ng-container>
+            <app-supports-requirements
+              aside-requirements
+              [entityType]="entityType"
+              [entityId]="f.id"
+              [canEdit]="f.can_edit"
+              (linksChange)="reqLinks.set($event)"
+            />
 
-            <ng-container aside>
-              <app-card>
-                <div class="mb-2 flex items-center justify-between gap-2">
-                  <h2 class="text-ui font-semibold text-fg-subtle">
-                    {{ 'feedback.detail.handling' | transloco }}
-                  </h2>
-                  <app-watch-button [entityType]="entityType" [entityId]="f.id" />
-                </div>
-                <dl class="flex flex-col gap-2 text-ui">
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.fields.receivedOn' | transloco }}
-                    </dt>
-                    <dd class="text-fg">{{ f.received_on | localDay }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.fields.responseDueOn' | transloco }}
-                    </dt>
-                    <dd
-                      [class.text-warn-ink]="f.overdue"
-                      [class.font-semibold]="f.overdue"
-                      class="text-fg"
-                      data-testid="feedback-due"
-                    >
-                      {{
-                        f.response_due_on
-                          ? (f.response_due_on | localDay)
-                          : ('feedback.common.none' | transloco)
-                      }}
-                      @if (f.overdue) {
-                        · {{ 'feedback.common.overdue' | transloco }}
-                      }
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.fields.owner' | transloco }}
-                    </dt>
-                    <dd class="text-fg">
-                      {{ f.owner?.name ?? ('feedback.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt class="text-meta text-fg-subtle">
-                      {{ 'feedback.fields.department' | transloco }}
-                    </dt>
-                    <dd class="text-fg" data-testid="feedback-department">
-                      {{ f.department?.name ?? ('feedback.common.none' | transloco) }}
-                    </dd>
-                  </div>
-                  @if (f.survey; as sv) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.detail.fromSurvey' | transloco }}
-                      </dt>
-                      <dd><app-entity-chip [ref]="sv" [showType]="false" /></dd>
-                    </div>
-                  } @else if (f.survey_id) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.detail.fromSurvey' | transloco }}
-                      </dt>
-                      <dd>
-                        <a
-                          [routerLink]="['/feedback/surveys', f.survey_id]"
-                          class="font-semibold text-accent hover:underline"
-                          >{{ 'feedback.detail.openSurvey' | transloco }}</a
-                        >
-                      </dd>
-                    </div>
-                  }
-                  @if (f.created_by?.name; as by) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.fields.createdBy' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ by }}</dd>
-                    </div>
-                  }
-                  @if (f.acknowledged_at) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.fields.acknowledgedAt' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ f.acknowledged_at | localDate }}</dd>
-                    </div>
-                  }
-                  @if (f.resolved_at) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.fields.resolvedAt' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ f.resolved_at | localDate }}</dd>
-                    </div>
-                  }
-                  @if (f.closed_at) {
-                    <div>
-                      <dt class="text-meta text-fg-subtle">
-                        {{ 'feedback.fields.closedAt' | transloco }}
-                      </dt>
-                      <dd class="text-fg">{{ f.closed_at | localDate }}</dd>
-                    </div>
-                  }
-                </dl>
-                <p class="mt-3 text-meta text-fg-muted">
-                  {{ 'feedback.detail.openTasks' | transloco: { count: f.open_tasks } }}
+            @if (f.survey || f.survey_id) {
+              <div follow-up-connections class="text-ui" data-testid="feedback-from-survey">
+                <p class="mb-1 text-meta font-semibold text-fg-muted">
+                  {{ 'feedback.detail.fromSurvey' | transloco }}
                 </p>
-              </app-card>
-            </ng-container>
+                @if (f.survey; as sv) {
+                  <span class="flex min-w-0 items-center gap-2">
+                    <app-icon name="smile" [size]="15" class="flex-none text-fg-muted" />
+                    <app-entity-chip [ref]="sv" [showType]="false" [statusText]="true" />
+                  </span>
+                } @else {
+                  <a
+                    [routerLink]="['/feedback/surveys', f.survey_id]"
+                    class="font-semibold text-accent hover:underline"
+                    >{{ 'feedback.detail.openSurvey' | transloco }}</a
+                  >
+                }
+              </div>
+            }
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.fields.owner"
+                [value]="f.owner?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.detail.fields.replyBy"
+                [keepEmpty]="f.status !== 'closed' && f.status !== 'resolved'"
+                emptyKey="feedback.detail.meta.noDeadline"
+                emptyActionKey="feedback.detail.meta.setDeadline"
+                [emptyLink]="f.can_edit ? editLink() : null"
+              >
+                @if (f.response_due_on) {
+                  <span
+                    [class.text-warn-ink]="f.overdue"
+                    [class.font-semibold]="f.overdue"
+                    data-testid="feedback-due"
+                    >{{ f.response_due_on | localDay }}
+                    @if (f.overdue) {
+                      · {{ 'feedback.common.overdue' | transloco }}
+                    }
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="feedback.fields.resolvedAt">
+                @if (f.resolved_at) {
+                  {{ f.resolved_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="feedback.fields.closedAt">
+                @if (f.closed_at) {
+                  {{ f.closed_at | localDay }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.fields.createdBy"
+                [value]="f.created_by?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="feedback.detail.fields.updated"
+                [value]="f.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <ng-container aside-learn>
               <app-why-it-matters scope="feedback" page="detail" />
@@ -850,6 +749,9 @@ export class FeedbackDetail {
   private readonly notifications = inject(NotificationService);
   private readonly flows = inject(CreateFlowService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly ask = inject(AskPanelService);
+  private readonly language = inject(LanguageService);
 
   readonly id = input.required<string>();
 
@@ -895,6 +797,27 @@ export class FeedbackDetail {
     const f = this.feedback();
     const main = this.primary();
     return f ? f.allowed_actions.filter((a) => a !== main) : [];
+  });
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/feedback/items',
+    this.id(),
+    'edit',
+  ]);
+  /** Overdue open work reads as a to-do (amber), whatever the step. */
+  protected readonly statusTone = computed(() => {
+    const f = this.feedback();
+    if (f?.overdue && f.status !== 'resolved' && f.status !== 'closed') {
+      return 'warn' as const;
+    }
+    return FEEDBACK_STATUS_TONE[f?.status ?? 'new'] ?? 'neutral';
+  });
+  /** The "Oppfølging" lines (docs/ux-guide.md §2.7), each with its fix. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const f = this.feedback();
+    if (!f || !f.can_edit) {
+      return [];
+    }
+    return feedbackTodos(f).map((todo) => this.toMissing(todo));
   });
   protected readonly customer = computed(() => {
     const f = this.feedback();
@@ -1024,10 +947,54 @@ export class FeedbackDetail {
     if (gap === 'deviation') {
       void this.flows.start(DEVIATION_FLOW, FEEDBACK_ENTITY, f.id);
     } else if (gap === 'reply') {
-      this.repliesCard()?.open();
+      this.onDetails(() => this.repliesCard()?.open());
     } else {
-      this.assessmentCard()?.edit();
+      this.onDetails(() => this.assessmentCard()?.edit());
     }
+  }
+
+  protected edit(): void {
+    void this.router.navigate(this.editLink());
+  }
+
+  protected iconFor(ref: EntityRefDto): string {
+    return recordIcon(ref.entity_type, ref.module);
+  }
+
+  protected askAi(kind: 'summarise' | 'resolution' | 'assessment'): void {
+    this.ask.askAbout(this.language.translate(`feedback.ask.${kind}`), undefined, {
+      requirements: this.confirmedRefs(),
+    });
+  }
+
+  private toMissing(todo: FeedbackTodo): RecordMissingItem {
+    const base = { key: todo.key, labelKey: todo.labelKey };
+    switch (todo.kind) {
+      case 'gap':
+        return { ...base, action: () => this.fixGap(todo.gap) };
+      case 'reply':
+        return { ...base, action: () => this.fixGap('reply') };
+      case 'subjects':
+        return { ...base, action: () => this.editSubjects() };
+      default:
+        return { ...base, link: this.editLink() };
+    }
+  }
+
+  /** Open the Details tab (where the cards are), then run `then`. */
+  private onDetails(then: () => void): void {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (!tab || tab === 'details') {
+      then();
+      return;
+    }
+    void this.router
+      .navigate([], {
+        relativeTo: this.route,
+        queryParams: { tab: null },
+        queryParamsHandling: 'merge',
+      })
+      .then(() => setTimeout(then));
   }
 
   protected onDeviationsChanged(items: readonly EntityRefDto[]): void {

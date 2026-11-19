@@ -236,23 +236,48 @@
     }
   },
   "detail": {
-    "message": "The customer's message",
-    "noDescription": "No details were recorded.",
-    "customer": "Customer",
     "fromSurvey": "Raised from a survey",
     "openSurvey": "Open the survey",
     "resolution": "Resolution",
-    "noResolution": "No resolution has been recorded yet.",
     "informed": "The customer has been told the outcome.",
     "notInformed": "The customer has not been told the outcome yet.",
-    "handling": "Handling",
-    "openTasks": "Open follow-up tasks: {{ count }}",
-    "closedNotice": "This feedback is closed and read-only. Reopen it to make changes.",
     "deleteTitle": "Delete this feedback?",
     "deleteMessage": "{{ code }} and its open follow-up tasks will be removed. The audit trail is kept.",
-    "receivedVia": "via {{ channel }}",
-    "noCustomer": "No customer details were recorded.",
-    "addCustomer": "Add customer details"
+    "replyOverdue": "Reply overdue",
+    "status": {
+      "new": "New – the customer has not been told yet that you received this.",
+      "acknowledged": "Receipt confirmed – nobody has started handling it yet.",
+      "in_progress": "Being handled – assess it, reply to the customer and mark it as resolved when done.",
+      "resolved": "Resolved – close it once the customer has accepted the outcome.",
+      "closed": "Closed – this case is finished. Reopen it if the customer gets in touch again."
+    },
+    "lead": {
+      "message": "What the customer said",
+      "customer": "Customer",
+      "about": "What it is about",
+      "changeAbout": "Change",
+      "resolution": "How it was resolved"
+    },
+    "missing": {
+      "overdue": "The reply deadline has passed – reply to the customer",
+      "overdueReplied": "The reply deadline has passed – resolve the case or set a new deadline",
+      "subjects": "Link what the feedback is about (supplier, product, process …)",
+      "owner": "Choose who is responsible"
+    },
+    "ai": {
+      "summarise": "Summarise this feedback",
+      "resolution": "What makes a good resolution?",
+      "assessment": "Help me assess the complaint"
+    },
+    "fields": {
+      "channel": "Received via",
+      "replyBy": "Reply by",
+      "updated": "Last changed"
+    },
+    "meta": {
+      "noDeadline": "No deadline",
+      "setDeadline": "Set deadline"
+    }
   },
   "deviations": {
     "title": "Linked deviations",
@@ -395,7 +420,6 @@
     "thresholdOff": "Leave it empty for no automatic follow-up."
   },
   "surveyDetail": {
-    "accepting": "Accepting answers",
     "notAccepting": "Outside the answer window",
     "questions": "Questions",
     "noQuestions": "No questions yet. Edit the survey to add some.",
@@ -404,9 +428,36 @@
     "deleteTitle": "Delete this survey?",
     "deleteMessage": "{{ code }} and its public link will be removed. Feedback already raised from it is kept.",
     "requiredBadge": "required",
-    "followUpRule": "Automatic follow-up",
     "thresholdValue": "At a score of {{ value }} or lower (about {{ five }} of 5)",
-    "followUps": "Follow-ups from low scores: {{ count }}"
+    "status": {
+      "draft": "Draft – add the questions and publish to get a link you can share.",
+      "open": "Open – share the link with your customers. Close it when you have enough answers.",
+      "openNotAccepting": "Open, but outside the answer period – new answers are not accepted right now.",
+      "closed": "Closed – new answers are not accepted. Reopen it to collect more."
+    },
+    "lead": {
+      "responses": "Answers so far",
+      "link": "Link to share",
+      "period": "Answer period",
+      "from": "From {{ date }}",
+      "until": "Until {{ date }}",
+      "lowScores": "Low scores are followed up"
+    },
+    "missing": {
+      "questions": "Add the questions",
+      "publish": "Publish the survey to get the link",
+      "share": "No answers yet – copy the link and share it",
+      "owner": "Choose who is responsible"
+    },
+    "ai": {
+      "results": "Summarise the results",
+      "questions": "Improve the questions"
+    },
+    "fields": {
+      "who": "Who answers",
+      "language": "Language"
+    },
+    "followUpsLink": "Follow-up cases from low scores ({{ count }}) →"
   },
   "share": {
     "title": "Public link",
@@ -542,7 +593,8 @@
     "button": "Ask about this",
     "kind": "How do I tell a complaint from other feedback, and why does it matter?",
     "severity": "How should I judge the impact of this feedback?",
-    "assessment": "How do I decide whether this complaint is justified, and what should I record about the root cause?"
+    "assessment": "How do I decide whether this complaint is justified, and what should I record about the root cause?",
+    "surveyQuestions": "Look at the questions in this survey. Are they clear and neutral, and do they tell us what we need to improve? Suggest better wording where it helps."
   },
   "notices": {
     "created": "{{ code }} registered.",

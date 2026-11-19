@@ -137,8 +137,14 @@ export const DEVIATION_FLOW = 'customer_feedback.to_deviation';
       } @else {
         <ul class="flex flex-col gap-2" data-testid="deviation-links">
           @for (ref of links(); track ref.entity_id) {
-            <li class="flex flex-wrap items-center gap-2">
-              <app-entity-chip [ref]="ref" />
+            <li class="flex min-w-0 items-start gap-2">
+              <app-icon name="alert" [size]="15" class="mt-0.5 flex-none text-fg-muted" />
+              <app-entity-chip
+                [ref]="ref"
+                [showType]="false"
+                [statusText]="true"
+                [stacked]="true"
+              />
               @if (canEdit()) {
                 <button
                   type="button"
