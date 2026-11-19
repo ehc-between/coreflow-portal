@@ -292,6 +292,8 @@ export class ConnectionsPanel {
    * (the card lists the requirements right above) and a short empty state.
    */
   readonly variant = input<'card' | 'section'>('card');
+  /** Entity types listed after the others in the top rows (e.g. an indicator's measurements). */
+  readonly lastTypes = input<readonly string[]>([]);
   /** "Show all" / "more suggestions": open the Related tab. */
   readonly showAll = output<void>();
 
@@ -338,7 +340,11 @@ export class ConnectionsPanel {
   protected readonly rows = computed<readonly PanelRow[]>(() => {
     const top = this.compact() ? PANEL_TOP_COMPACT : PANEL_TOP;
     const out: PanelRow[] = [];
-    for (const group of this.store.groups()) {
+    const last = this.lastTypes();
+    const groups = [...this.store.groups()].sort(
+      (a, b) => Number(last.includes(a.entity_type)) - Number(last.includes(b.entity_type)),
+    );
+    for (const group of groups) {
       if (out.length >= top) {
         break;
       }

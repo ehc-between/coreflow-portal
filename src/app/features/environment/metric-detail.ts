@@ -15,18 +15,29 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, map } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
+import { CreateFlowService } from '../../core/kit/create-flow.service';
+import { AskPanelService } from '../ask/ask-panel.service';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RequirementLink } from '../../core/standards/standards.models';
-import { WatchButton } from '../../shared/activity/watch-button';
 import { Attachments } from '../../shared/attachments/attachments';
-import { AskAbout } from '../../shared/ask/ask-about';
 import { Term } from '../../shared/guidance/term';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { EntityChip } from '../../shared/kit/entity-chip';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
+import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
@@ -35,11 +46,10 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
-import { FieldItem, FieldList } from '../../shared/ui/field-list/field-list';
+import { FieldItem } from '../../shared/ui/field-list/field-list';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
-import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
 import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
 import { Pager } from '../../shared/ui/pager/pager';
 import { SlideOver } from '../../shared/ui/slide-over/slide-over';
@@ -65,11 +75,9 @@ import {
   ENV_FRAMEWORKS,
   ENV_MODULE,
   ENV_ROOT_CRUMB,
-  EnvAskButton,
   departmentName,
   injectEnvPermissions,
 } from './environment-shared';
-import { EnvFlowButtons } from './flow-buttons';
 import { EnvMeasurementDialog } from './measurement-dialog';
 
 const TABS: readonly RecordTab[] = [
@@ -105,7 +113,7 @@ export const METRIC_FIELD_LABELS: Readonly<Record<string, string>> = {
   collection_rrule: 'environment.metric.collection',
 };
 
-const MEASUREMENTS_PAGE = 20;
+const MEASUREMENTS_PAGE = 12;
 
 /** How far back the trend looks per bucket (days). */
 const TREND_WINDOW: Readonly<Record<TrendBucket, number>> = {
@@ -114,33 +122,109 @@ const TREND_WINDOW: Readonly<Record<TrendBucket, number>> = {
   year: 365 * 10,
 };
 
-/** Flows offered when the metric has no target yet (the objective / KPI it serves). */
-export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.metricToKpi];
+/** The status sentence of an indicator: how it is doing against its target. */
+export type MetricStatusKey = 'on_track' | 'off_track' | 'no_target' | 'no_data' | 'retired';
+
+export function metricStatusKey(m: Metric): MetricStatusKey {
+  if (m.status === 'retired') {
+    return 'retired';
+  }
+  if (m.target_value === null || m.target_value === undefined) {
+    return 'no_target';
+  }
+  return m.target_status && m.target_status !== 'no_target' ? m.target_status : 'no_data';
+}
+
+/** On track is done (green); off track and no target are open work (never red). */
+export const METRIC_STATUS_TONE: Readonly<Record<MetricStatusKey, StatusLineTone>> = {
+  on_track: 'pass',
+  off_track: 'warn',
+  no_target: 'warn',
+  no_data: 'neutral',
+  retired: 'neutral',
+};
+
+/** The actions behind the missing lines ("Oppfølging", docs/ux-guide.md §2.7). */
+export interface MetricMissingActions {
+  readonly editLink: readonly unknown[];
+  /** Record a value, or null without the record permission. */
+  readonly record: (() => void) | null;
+  readonly makeObjective: () => void;
+}
+
+/** What an indicator still needs, as actionable lines of the "Oppfølging" card. */
+export function metricMissing(m: Metric, actions: MetricMissingActions): RecordMissingItem[] {
+  if (m.status === 'retired') {
+    return [];
+  }
+  const items: RecordMissingItem[] = [];
+  if (!m.measurement_count && actions.record && m.status === 'active') {
+    items.push({
+      key: 'first',
+      labelKey: 'environment.metric.missing.first',
+      action: actions.record,
+    });
+  }
+  if (m.target_value === null || m.target_value === undefined) {
+    items.push({
+      key: 'target',
+      labelKey: 'environment.metric.missing.target',
+      link: actions.editLink,
+      fragment: 'target',
+    });
+  }
+  if (!(m.objectives ?? []).length) {
+    items.push({
+      key: 'objective',
+      labelKey: 'environment.metric.missing.objective',
+      action: actions.makeObjective,
+    });
+  }
+  if (!m.owner_user_id) {
+    items.push({
+      key: 'owner',
+      labelKey: 'environment.metric.missing.owner',
+      link: actions.editLink,
+    });
+  }
+  if (!m.collection_rrule) {
+    items.push({
+      key: 'reminders',
+      labelKey: 'environment.metric.missing.reminders',
+      link: actions.editLink,
+    });
+  }
+  return items;
+}
 
 /**
- * An environmental indicator (`/environment/metrics/:id`). Header: code, category,
- * emission category and status; "Registrer verdi" is the primary action, Edit and
- * "Lag ny fra denne" are secondary, Delete is under "Mer". Body: the target and
- * baseline against the last 12 months, this year and last year, with the objectives
- * it serves (6.2, 9.1.1); the trend with a y-axis and the target line; the
- * measurements with their source and evidence files (`?measurement=<id>`
- * highlights one). Aside: the requirements it documents, connections, and what the
- * indicator is (emission factor with its source and year, method, reminders).
+ * An environmental indicator (`/environment/metrics/:id`), built on the detail-page
+ * anatomy (docs/ux-guide.md §2.7). Header: code · Indikator · category · status;
+ * "Registrer verdi" is the primary action, Edit secondary, Delete under "Mer", the
+ * assistant in "Spør KI". Hovedinformasjon: how it is doing against the target (a
+ * status sentence), the last 12 months, the target, this year against last year and
+ * the objectives it measures (6.2, 9.1.1). Details: the trend with the target line,
+ * the measurements with their evidence files (`?measurement=<id>` highlights one)
+ * and the remaining fields. Oppfølging: what is missing, the requirements, the
+ * connections (measurements last) and ownership.
  */
 @Component({
   selector: 'app-env-metric-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
+    LocalDatePipe,
     LocalDayPipe,
     LocalNumberPipe,
-    WatchButton,
     Attachments,
-    AskAbout,
     Term,
     WhyItMatters,
     EntityChip,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     SupportsRequirements,
     EntityTasks,
     RuleSummary,
@@ -149,17 +233,13 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
     ConfirmDialog,
     ErrorState,
     FieldItem,
-    FieldList,
     HelpStrip,
     Icon,
     LoadingState,
     MenuItem,
-    ModuleNav,
     Pager,
     SlideOver,
     StatusBadge,
-    EnvAskButton,
-    EnvFlowButtons,
     EnvTrendChart,
     EnvMeasurementDialog,
   ],
@@ -191,6 +271,7 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
         @if (metric(); as m) {
           @let unit = displayUnit(m.unit);
           <app-record-detail-layout
+            [anatomy]="true"
             [entityType]="entityType"
             [entityId]="m.id"
             [title]="m.name"
@@ -199,15 +280,16 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
             [tabs]="tabs"
             [canEdit]="perms.write()"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
+            [connectionsLast]="connectionsLast"
           >
             <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ m.code }}</span>
               <span aria-hidden="true">·</span>
-              <span>{{ 'environment.categories.' + m.category | transloco }}</span>
-              @if (m.ghg_scope) {
-                <span aria-hidden="true">·</span>
-                <span>{{ 'environment.scopes.' + m.ghg_scope | transloco }}</span>
-              }
+              <span>{{
+                'environment.metric.typeLine'
+                  | transloco: { category: ('environment.categories.' + m.category | transloco) }
+              }}</span>
               <span aria-hidden="true">·</span>
               <app-status-badge
                 meaning="lifecycle"
@@ -215,13 +297,6 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
                 [labelKey]="'environment.status.' + m.status"
                 data-testid="metric-status"
               />
-              @if (m.target_status && m.target_status !== 'no_target') {
-                <app-status-badge
-                  meaning="compliance"
-                  [value]="targetValue(m.target_status)"
-                  [labelKey]="'environment.targetStatus.' + m.target_status"
-                />
-              }
             </ng-container>
 
             @if (perms.record() && m.status === 'active') {
@@ -231,12 +306,7 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
               </app-button>
             }
             @if (perms.write()) {
-              <a
-                secondary
-                [routerLink]="['/environment/metrics', m.id, 'edit']"
-                tabindex="-1"
-                data-testid="metric-edit"
-              >
+              <a secondary [routerLink]="editLink()" tabindex="-1" data-testid="metric-edit">
                 <app-button variant="secondary">{{
                   'environment.common.edit' | transloco
                 }}</app-button>
@@ -255,12 +325,19 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
               </button>
             }
 
-            <app-module-nav
-              nav
-              class="mb-4 block"
-              [items]="perms.nav()"
-              labelKey="modules.names.environment"
-            />
+            <button appMenuItem ask type="button" (click)="askAi('explainTrend')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.explainTrendLabel' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('targetField')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.targetLabel' | transloco }}
+            </button>
+            <button appMenuItem ask type="button" (click)="askAi('methodField')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'environment.ask.methodLabel' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="environment"
@@ -269,116 +346,65 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
               [subject]="m.name"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (m.status === 'retired') {
-                <p
-                  class="rounded-tile border border-info/30 bg-info-soft px-4 py-3 text-ui text-info-ink"
-                  role="status"
+            <app-record-lead
+              record-lead
+              [fillLink]="perms.write() ? editLink() : null"
+              data-testid="metric-target"
+            >
+              <app-record-status-line status [tone]="statusTone()">
+                <span
+                  [attr.data-testid]="statusKey() === 'no_target' ? 'metric-no-target' : null"
+                  >{{ 'environment.metric.statusLine.' + statusKey() | transloco }}</span
                 >
-                  {{ 'environment.metric.retiredNotice' | transloco }}
-                </p>
-              }
-
-              <app-card data-testid="metric-target">
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'environment.metric.targetTitle' | transloco }}
-                  </h2>
-                  <app-ask-about
-                    [prompt]="'environment.ask.explainTrend' | transloco"
-                    field="target_value"
-                    [fieldLabel]="'environment.metric.targetTitle' | transloco"
-                    [requirements]="confirmedRefs()"
-                  />
-                </div>
-                @if (m.target_value === null || m.target_value === undefined) {
-                  <p class="mb-3 text-ui text-fg-muted" data-testid="metric-no-target">
-                    {{ 'environment.metric.noTarget' | transloco }}
-                  </p>
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="environment.metric.lead.last12">
+                @if (m.last_12_months_value !== null && m.last_12_months_value !== undefined) {
+                  {{ m.last_12_months_value | localNumber: '1.0-2' }} {{ unit }}
                 }
-                <app-field-list>
-                  <app-field-item labelKey="environment.fields.targetValue">
-                    @if (m.target_value !== null && m.target_value !== undefined) {
+              </app-field-item>
+              <app-field-item size="lead" labelKey="environment.metric.lead.target">
+                @if (m.target_value !== null && m.target_value !== undefined) {
+                  {{
+                    'environment.metric.targetText.' + (m.direction ?? 'decrease')
+                      | transloco
+                        : {
+                            value: (m.target_value | localNumber: '1.0-2'),
+                            unit: unit,
+                            year: m.target_year ?? '',
+                          }
+                  }}
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="environment.metric.lead.thisYear">
+                @if (m.current_year_value !== null && m.current_year_value !== undefined) {
+                  {{ m.current_year_value | localNumber: '1.0-2' }} {{ unit }}
+                  @if (m.previous_year_value !== null && m.previous_year_value !== undefined) {
+                    <span class="block text-ui font-normal text-fg-muted">
                       {{
-                        'environment.metric.targetText.' + (m.direction ?? 'decrease')
+                        'environment.metric.previousYearFull'
                           | transloco
-                            : {
-                                value: (m.target_value | localNumber: '1.0-2'),
-                                unit: unit,
-                                year: m.target_year ?? '',
-                              }
+                            : { value: (m.previous_year_value | localNumber: '1.0-2'), unit }
                       }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="environment.fields.baselineValue">
-                    @if (m.baseline_value !== null && m.baseline_value !== undefined) {
-                      {{ m.baseline_value | localNumber: '1.0-2' }} {{ unit }}
-                      @if (m.baseline_year) {
-                        ({{ m.baseline_year }})
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="environment.metric.last12">
-                    @if (m.last_12_months_value !== null && m.last_12_months_value !== undefined) {
-                      <span class="font-semibold">
-                        {{ m.last_12_months_value | localNumber: '1.0-2' }} {{ unit }}
-                      </span>
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="environment.metric.thisYearVsLast">
-                    @if (m.current_year_value !== null && m.current_year_value !== undefined) {
-                      {{ m.current_year_value | localNumber: '1.0-2' }} {{ unit }}
-                      @if (m.previous_year_value !== null && m.previous_year_value !== undefined) {
-                        <span class="text-fg-muted">
-                          ·
-                          {{
-                            'environment.metric.previousYear'
-                              | transloco
-                                : { value: (m.previous_year_value | localNumber: '1.0-2'), unit }
-                          }}
-                        </span>
-                      }
-                    }
-                  </app-field-item>
-                </app-field-list>
-                <h3 class="mt-4 mb-1.5 text-meta font-semibold text-fg-muted">
-                  {{ 'environment.metric.objectives' | transloco }}
-                </h3>
+                    </span>
+                  }
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="environment.metric.lead.objectives"
+                data-testid="metric-objectives"
+              >
                 @if (objectives().length) {
-                  <ul class="flex flex-col gap-2" data-testid="metric-objectives">
+                  <ul class="flex flex-col gap-1.5">
                     @for (o of objectives(); track o.id) {
                       <li><app-entity-chip [ref]="ref(o)" [statusText]="true" /></li>
                     }
                   </ul>
-                } @else {
-                  <p class="text-ui text-fg-muted">
-                    {{ 'environment.metric.noObjectives' | transloco }}
-                  </p>
                 }
-                @if (perms.write() && (!objectives().length || !m.target_value)) {
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    @if (!m.target_value) {
-                      <a
-                        [routerLink]="['/environment/metrics', m.id, 'edit']"
-                        fragment="target"
-                        tabindex="-1"
-                      >
-                        <app-button variant="secondary" size="sm">
-                          {{ 'environment.metric.setTarget' | transloco }}
-                        </app-button>
-                      </a>
-                    }
-                    @if (!objectives().length) {
-                      <app-env-flow-buttons
-                        [entityType]="entityType"
-                        [entityId]="m.id"
-                        [keys]="targetFlows"
-                      />
-                    }
-                  </div>
-                }
-              </app-card>
+              </app-field-item>
+            </app-record-lead>
 
+            <div class="flex flex-col gap-5">
               <app-card>
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 class="font-display text-card font-bold text-fg">
@@ -439,6 +465,11 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
                 <div class="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
                   <h2 class="font-display text-card font-bold text-fg">
                     {{ 'environment.measurement.listTitle' | transloco }}
+                    @if (measurementTotal()) {
+                      <span class="ml-1 text-ui font-normal text-fg-muted">{{
+                        measurementTotal()
+                      }}</span>
+                    }
                   </h2>
                 </div>
                 @if (measurements().length) {
@@ -452,10 +483,15 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
                           <th scope="col" class="px-2 py-1.5 text-right font-semibold">
                             {{ 'environment.metric.value' | transloco }}
                           </th>
-                          <th scope="col" class="px-2 py-1.5 font-semibold">
+                          <th scope="col" class="hidden px-2 py-1.5 font-semibold sm:table-cell">
                             {{ 'environment.fields.source' | transloco }}
                           </th>
-                          <th scope="col" class="px-2 py-1.5 text-right font-semibold">kg CO₂e</th>
+                          <th
+                            scope="col"
+                            class="hidden px-2 py-1.5 text-right font-semibold md:table-cell"
+                          >
+                            kg CO₂e
+                          </th>
                           <th scope="col" class="px-2 py-1.5 font-semibold">
                             {{ 'environment.measurement.evidence' | transloco }}
                           </th>
@@ -490,27 +526,33 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
                             <td class="px-2 py-2 text-right font-semibold whitespace-nowrap">
                               {{ x.value | localNumber: '1.0-2' }} {{ unit }}
                             </td>
-                            <td class="px-2 py-2 whitespace-nowrap text-fg-muted">
+                            <td
+                              class="hidden px-2 py-2 whitespace-nowrap text-fg-muted sm:table-cell"
+                            >
                               {{
                                 x.source
                                   ? ('environment.sources.' + x.source | transloco)
                                   : ('common.empty.dash' | transloco)
                               }}
                             </td>
-                            <td class="px-2 py-2 text-right whitespace-nowrap">
+                            <td class="hidden px-2 py-2 text-right whitespace-nowrap md:table-cell">
                               {{ x.co2e_kg === null ? '–' : (x.co2e_kg | localNumber: '1.2-2') }}
                             </td>
                             <td class="px-2 py-2 whitespace-nowrap">
                               <button
                                 type="button"
-                                class="inline-flex h-8 items-center gap-1 rounded-tile px-2 text-ui font-semibold text-accent hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                                class="inline-flex h-8 items-center gap-1 rounded-tile px-2 text-ui font-semibold hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                                [class.text-accent]="!!x.attachment_count"
+                                [class.text-fg-muted]="!x.attachment_count"
                                 (click)="evidenceFor.set(x)"
                                 [attr.data-testid]="'measurement-evidence-' + x.id"
                               >
                                 <app-icon name="documents" [size]="14" />
                                 {{
-                                  'environment.measurement.files'
-                                    | transloco: { count: x.attachment_count ?? 0 }
+                                  (x.attachment_count
+                                    ? 'environment.measurement.files'
+                                    : 'environment.measurement.addFile'
+                                  ) | transloco: { count: x.attachment_count ?? 0 }
                                 }}
                               </button>
                             </td>
@@ -537,21 +579,83 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
                       </tbody>
                     </table>
                   </div>
-                  <div class="px-4 pb-3">
-                    <app-pager
-                      [offset]="offset()"
-                      [pageSize]="pageSize"
-                      [count]="measurements().length"
-                      [total]="measurementTotal()"
-                      (pageChange)="offset.set($event)"
-                    />
-                  </div>
+                  @if (measurementTotal() > pageSize) {
+                    <div class="px-4 pb-3">
+                      <app-pager
+                        [offset]="offset()"
+                        [pageSize]="pageSize"
+                        [count]="measurements().length"
+                        [total]="measurementTotal()"
+                        (pageChange)="offset.set($event)"
+                      />
+                    </div>
+                  }
                 } @else {
                   <p class="px-4 pb-4 text-ui text-fg-muted" data-testid="no-measurements">
                     {{ 'environment.measurement.none' | transloco }}
                   </p>
                 }
               </app-card>
+
+              <app-record-details
+                [columns]="2"
+                [fillLink]="perms.write() ? editLink() : null"
+                data-testid="metric-summary"
+              >
+                <app-field-item labelKey="environment.fields.unit" [value]="unit" />
+                <app-field-item
+                  labelKey="environment.fields.direction"
+                  [value]="'environment.directions.' + (m.direction ?? 'decrease') | transloco"
+                />
+                <app-field-item labelKey="environment.fields.baselineValue">
+                  @if (m.baseline_value !== null && m.baseline_value !== undefined) {
+                    {{ m.baseline_value | localNumber: '1.0-2' }} {{ unit }}
+                    @if (m.baseline_year) {
+                      ({{ m.baseline_year }})
+                    }
+                  }
+                </app-field-item>
+                <app-field-item labelKey="environment.metric.details.scope">
+                  @if (m.ghg_scope) {
+                    {{ 'environment.scopes.' + m.ghg_scope | transloco }}
+                  }
+                </app-field-item>
+                <app-field-item labelKey="environment.metric.details.factor">
+                  @if (m.emission_factor !== null) {
+                    <app-term key="emission-factor" scope="environment">{{
+                      'environment.metric.factorValue'
+                        | transloco: { value: (m.emission_factor | localNumber: '1.0-6'), unit }
+                    }}</app-term>
+                    @if (m.factor_source || m.factor_year) {
+                      <span class="block text-meta text-fg-muted">
+                        {{
+                          'environment.metric.factorFrom'
+                            | transloco
+                              : { source: m.factor_source || '—', year: m.factor_year || '—' }
+                        }}
+                      </span>
+                    }
+                  }
+                </app-field-item>
+                <app-field-item labelKey="environment.metric.collection">
+                  @if (m.collection_rrule) {
+                    <app-rule-summary [rrule]="m.collection_rrule" />
+                  }
+                </app-field-item>
+                <app-field-item
+                  labelKey="environment.fields.measurementMethod"
+                  [value]="m.measurement_method"
+                  [multiline]="true"
+                  [wide]="true"
+                />
+                <app-field-item labelKey="environment.metric.details.site" [value]="m.site" />
+                <app-field-item
+                  labelKey="environment.fields.description"
+                  [value]="m.description"
+                  [multiline]="true"
+                  [wide]="true"
+                />
+              </app-record-details>
             </div>
 
             <div tasks>
@@ -572,73 +676,28 @@ export const TARGET_FLOWS: readonly string[] = [FLOWS.metricToObjective, FLOWS.m
               (linksChange)="onLinks($event)"
             />
 
-            <div aside class="flex flex-col gap-4">
-              <app-card data-testid="metric-summary">
-                <div class="mb-3 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'environment.metric.about' | transloco }}
-                  </h2>
-                  <app-watch-button [entityType]="entityType" [entityId]="m.id" />
-                </div>
-                <app-field-list [columns]="1">
-                  <app-field-item labelKey="environment.fields.unit" [value]="unit" />
-                  <app-field-item
-                    labelKey="environment.fields.direction"
-                    [value]="'environment.directions.' + (m.direction ?? 'decrease') | transloco"
-                  />
-                  <app-field-item labelKey="environment.fields.emissionFactor">
-                    @if (m.emission_factor !== null) {
-                      <app-term key="emission-factor" scope="environment">{{
-                        'environment.metric.factorValue'
-                          | transloco: { value: (m.emission_factor | localNumber: '1.0-6'), unit }
-                      }}</app-term>
-                      @if (m.factor_source || m.factor_year) {
-                        <span class="block text-meta text-fg-muted">
-                          {{
-                            'environment.metric.factorFrom'
-                              | transloco
-                                : { source: m.factor_source || '—', year: m.factor_year || '—' }
-                          }}
-                        </span>
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item
-                    labelKey="environment.fields.measurementMethod"
-                    [value]="m.measurement_method"
-                    [multiline]="true"
-                  />
-                  <app-field-item labelKey="environment.metric.collection">
-                    @if (m.collection_rrule) {
-                      <app-rule-summary [rrule]="m.collection_rrule" />
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="environment.fields.owner" [value]="m.owner_name" />
-                  <app-field-item labelKey="environment.fields.department" [value]="department()" />
-                  <app-field-item labelKey="environment.fields.site" [value]="m.site" />
-                  <app-field-item
-                    labelKey="environment.metric.measurementCount"
-                    [value]="m.measurement_count"
-                  />
-                </app-field-list>
-                @if (m.description) {
-                  <p class="mt-3 text-ui whitespace-pre-line text-fg-muted">
-                    {{ m.description }}
-                  </p>
-                }
-                <div
-                  class="mt-4 flex flex-wrap gap-1"
-                  role="group"
-                  [attr.aria-label]="'environment.ask.group' | transloco"
-                >
-                  <app-env-ask-button
-                    labelKey="environment.ask.explainTrendLabel"
-                    promptKey="environment.ask.explainTrend"
-                    [requirements]="confirmedRefs()"
-                  />
-                </div>
-              </app-card>
-            </div>
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.owner"
+                [value]="m.owner_name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.fields.department"
+                [value]="department()"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.metric.lastValue"
+                [value]="m.latest_period_end ? (m.latest_period_end | localDay) : null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="environment.common.updated"
+                [value]="m.updated_at | localDate"
+              />
+            </app-record-meta>
 
             <div aside-learn>
               <app-why-it-matters scope="environment" page="metricDetail" />
@@ -705,6 +764,8 @@ export class MetricDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly directory = inject(AssigneeOptionsService);
   private readonly language = inject(LanguageService);
+  private readonly ask = inject(AskPanelService);
+  private readonly flows = inject(CreateFlowService);
 
   /** Route param (component input binding): follows navigation between indicators. */
   readonly id = input.required<string>();
@@ -716,7 +777,8 @@ export class MetricDetail {
   protected readonly fieldLabels = METRIC_FIELD_LABELS;
   protected readonly frameworks = ENV_FRAMEWORKS;
   protected readonly buckets = TREND_BUCKETS;
-  protected readonly targetFlows = TARGET_FLOWS;
+  /** Measurements are connections too; list the records they serve first. */
+  protected readonly connectionsLast: readonly string[] = [ENTITY_MEASUREMENT];
   protected readonly pageSize = MEASUREMENTS_PAGE;
   protected readonly displayUnit = displayUnit;
   protected readonly targetValue = targetBadgeValue;
@@ -752,6 +814,27 @@ export class MetricDetail {
     { label: this.metric()?.code ?? '' },
   ]);
   protected readonly objectives = computed(() => this.metric()?.objectives ?? []);
+  protected readonly editLink = computed<readonly unknown[]>(() => [
+    '/environment/metrics',
+    this.id(),
+    'edit',
+  ]);
+  protected readonly statusKey = computed<MetricStatusKey>(() => {
+    const m = this.metric();
+    return m ? metricStatusKey(m) : 'no_data';
+  });
+  protected readonly statusTone = computed(() => METRIC_STATUS_TONE[this.statusKey()]);
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const m = this.metric();
+    if (!m || !this.perms.write()) {
+      return [];
+    }
+    return metricMissing(m, {
+      editLink: this.editLink(),
+      record: this.perms.record() ? () => this.openRecord() : null,
+      makeObjective: () => void this.flows.start(FLOWS.metricToObjective, ENTITY_METRIC, m.id),
+    });
+  });
   protected readonly department = computed(() =>
     departmentName(this.directory, this.metric()?.department_id),
   );
@@ -804,6 +887,12 @@ export class MetricDetail {
       const offset = this.offset();
       this.version();
       untracked(() => this.loadMeasurements(orgId, id, offset));
+    });
+  }
+
+  protected askAi(promptKey: 'explainTrend' | 'targetField' | 'methodField'): void {
+    this.ask.askAbout(this.language.translate(`environment.ask.${promptKey}`), undefined, {
+      requirements: this.confirmedRefs(),
     });
   }
 
