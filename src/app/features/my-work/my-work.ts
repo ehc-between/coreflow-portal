@@ -18,7 +18,8 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { taskErrorKey } from '../../core/tasks/task-errors';
-import { EditableTaskStatus, WorkItem } from '../../core/tasks/task.models';
+import { EditableTaskStatus, WorkItem, WorkScope } from '../../core/tasks/task.models';
+import { ModuleService } from '../../core/modules/module.service';
 import { TasksApi } from '../../core/tasks/tasks-api';
 import { AskPanelService } from '../ask/ask-panel.service';
 import { LocalizedTitlePipe } from '../../shared/i18n/localized-title.pipe';
@@ -42,9 +43,11 @@ import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import {
   BOARD_COLUMNS,
   BoardColumn,
-  MY_WORK_VIEWS,
   MyWorkView,
   NO_FILTERS,
+  RECURRING_FILTER,
+  SWITCH_VIEWS,
+  WORK_SCOPES,
   WORK_TABS,
   WorkFilters,
   WorkTab,
@@ -55,14 +58,15 @@ import {
   gridRange,
   groupByColumn,
   groupOf,
+  inTab,
   itemsByDay,
   monthGrid,
+  parseScope,
   parseTab,
   parseView,
   shiftMonth,
   sourceIcon,
   sourceLabelKey,
-  tabGroup,
   whyOf,
 } from './my-work-data';
 import { provideTasksPageContext } from './tasks-page-context';
@@ -76,12 +80,13 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
 
 /**
  * Mitt arbeid: everything waiting on the signed-in user in the current org, from
- * `GET /my-work`. Four tabs say *when* (Overdue, This week, Later) or *what*
- * (Awaiting review: documents to approve, change proposals, audit reports and
- * management review sign-offs; the old "Needs your review" page). Every row says
- * what the item is, why it is on the list and which module it belongs to, and has
- * filters for module and type. List and board views follow the tab; the calendar
- * shows the month. Tasks can be completed or moved between board columns in place.
+ * `GET /my-work`, the one inbox (U08). Tabs say *when* (Overdue, This week, Later),
+ * *what* (Til gjennomgang: every approval, the old "Needs your review" page; Les og
+ * bekreft; Min opplæring) or show the month (Kalender). Mine / Alle (`?scope=all`)
+ * widens tasks, deviations and reviews to everything the caller may see. Every row
+ * says what the item is, why it is on the list and which module it belongs to, and
+ * has filters for module and type (recurring tasks are a type). List and board views
+ * follow the tab. Tasks can be completed or moved between board columns in place.
  */
 @Component({
   selector: 'app-my-work',
@@ -132,7 +137,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
             </a>
             <a appMenuItem routerLink="/tasks/recurring">
               <app-icon name="history" [size]="15" />
-              {{ 'tasks.myWork.recurring' | transloco }}
+              {{ 'tasks.myWork.manageRecurring' | transloco }}
             </a>
           </ng-container>
         }
@@ -146,46 +151,48 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
         lesson="working-with-tasks"
       />
 
-      <!-- Tabs: when (overdue, this week, later) or what (awaiting review) -->
-      @if (view() !== 'calendar') {
-        <div class="relative mb-4" data-tour="tasks-tabs">
-          <div
-            role="tablist"
-            [attr.aria-label]="'tasks.myWork.tabsLabel' | transloco"
-            class="flex gap-1 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            @for (t of tabs; track t) {
-              <button
-                type="button"
-                role="tab"
-                [id]="'work-tab-' + t"
-                [attr.aria-selected]="tab() === t"
-                [attr.aria-controls]="'work-panel'"
-                [attr.tabindex]="tab() === t ? 0 : -1"
-                [attr.data-testid]="'work-tab-' + t"
-                class="-mb-px flex min-h-10 flex-none items-center gap-1.5 border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-                [class.border-accent]="tab() === t"
-                [class.text-fg]="tab() === t"
-                [class.border-transparent]="tab() !== t"
-                [class.text-fg-muted]="tab() !== t"
-                (click)="setTab(t)"
-                (keydown)="onTabKey($event)"
-              >
-                {{ 'tasks.myWork.tabs.' + t | transloco }}
+      <!-- Tabs: when (overdue, this week, later), what (review, read and confirm, training)
+           and the calendar (U08: one inbox) -->
+      <div class="relative mb-4" data-tour="tasks-tabs">
+        <div
+          role="tablist"
+          [attr.aria-label]="'tasks.myWork.tabsLabel' | transloco"
+          class="flex gap-1 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          @for (t of tabs; track t) {
+            <button
+              type="button"
+              role="tab"
+              [id]="'work-tab-' + t"
+              [attr.aria-selected]="tab() === t"
+              [attr.aria-controls]="'work-panel'"
+              [attr.tabindex]="tab() === t ? 0 : -1"
+              [attr.data-testid]="'work-tab-' + t"
+              class="-mb-px flex min-h-10 flex-none items-center gap-1.5 border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+              [class.border-accent]="tab() === t"
+              [class.text-fg]="tab() === t"
+              [class.border-transparent]="tab() !== t"
+              [class.text-fg-muted]="tab() !== t"
+              (click)="setTab(t)"
+              (keydown)="onTabKey($event)"
+            >
+              {{ 'tasks.myWork.tabs.' + t | transloco }}
+              @if (t !== 'calendar') {
                 <span
                   class="rounded-full px-1.5 py-px text-micro font-semibold"
+                  [attr.data-testid]="'work-count-' + t"
                   [class]="
                     t === 'overdue' && counts().overdue > 0
                       ? 'bg-warn-soft text-warn-ink'
                       : 'bg-surface-2 text-fg-muted'
                   "
-                  >{{ counts()[t] }}</span
+                  >{{ tabCount(t) }}</span
                 >
-              </button>
-            }
-          </div>
+              }
+            </button>
+          }
         </div>
-      }
+      </div>
 
       <!-- View switch + filters -->
       <div
@@ -224,36 +231,63 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                   {{ sourceLabelKey(s) | transloco }}
                 </option>
               }
+              @if (hasRecurring() || filters().source === recurringFilter) {
+                <option [value]="recurringFilter" [selected]="filters().source === recurringFilter">
+                  {{ 'tasks.myWork.recurringFilter' | transloco }}
+                </option>
+              }
             </select>
           </label>
         </div>
-        <div
-          class="inline-flex self-start rounded-tile border border-border bg-surface p-0.5 sm:self-end"
-          data-tour="tasks-view-switch"
-          role="group"
-          [attr.aria-label]="'tasks.myWork.viewLabel' | transloco"
-        >
-          @for (v of views; track v) {
-            <button
-              type="button"
-              class="rounded-tile px-3 py-1.5 text-ui font-semibold focus-visible:outline-2 focus-visible:outline-accent"
-              [class.bg-accent-soft]="view() === v"
-              [class.text-accent]="view() === v"
-              [class.text-fg-muted]="view() !== v"
-              [attr.aria-pressed]="view() === v"
-              (click)="setView(v)"
+        <div class="flex flex-wrap items-center gap-2 self-start sm:self-end">
+          <!-- Mine / All (U08) -->
+          <div
+            class="inline-flex rounded-tile border border-border bg-surface p-0.5"
+            role="group"
+            data-testid="work-scope"
+            [attr.aria-label]="'tasks.myWork.scopeLabel' | transloco"
+          >
+            @for (s of scopes; track s) {
+              <button
+                type="button"
+                class="rounded-tile px-3 py-1.5 text-ui font-semibold focus-visible:outline-2 focus-visible:outline-accent"
+                [attr.data-testid]="'work-scope-' + s"
+                [class.bg-accent-soft]="scope() === s"
+                [class.text-accent]="scope() === s"
+                [class.text-fg-muted]="scope() !== s"
+                [attr.aria-pressed]="scope() === s"
+                (click)="setScope(s)"
+              >
+                {{ 'tasks.myWork.scopes.' + s | transloco }}
+              </button>
+            }
+          </div>
+          @if (!calendar()) {
+            <div
+              class="inline-flex rounded-tile border border-border bg-surface p-0.5"
+              data-tour="tasks-view-switch"
+              role="group"
+              [attr.aria-label]="'tasks.myWork.viewLabel' | transloco"
             >
-              {{ 'tasks.myWork.views.' + v | transloco }}
-            </button>
+              @for (v of views; track v) {
+                <button
+                  type="button"
+                  class="rounded-tile px-3 py-1.5 text-ui font-semibold focus-visible:outline-2 focus-visible:outline-accent"
+                  [class.bg-accent-soft]="view() === v"
+                  [class.text-accent]="view() === v"
+                  [class.text-fg-muted]="view() !== v"
+                  [attr.aria-pressed]="view() === v"
+                  (click)="setView(v)"
+                >
+                  {{ 'tasks.myWork.views.' + v | transloco }}
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
 
-      <div
-        id="work-panel"
-        [attr.role]="view() !== 'calendar' ? 'tabpanel' : null"
-        [attr.aria-labelledby]="view() !== 'calendar' ? 'work-tab-' + tab() : null"
-      >
+      <div id="work-panel" role="tabpanel" [attr.aria-labelledby]="'work-tab-' + tab()">
         @switch (state()) {
           @case ('loading') {
             <app-loading-state [rows]="5" />
@@ -262,7 +296,7 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
             <app-error-state (retry)="reload()" />
           }
           @case ('ready') {
-            @switch (view()) {
+            @switch (shownView()) {
               @case ('list') {
                 @if (items().length === 0) {
                   <app-card [padded]="false">
@@ -325,6 +359,12 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
                               @if (row.item.module && row.item.module !== 'tasks') {
                                 <span aria-hidden="true">·</span>
                                 <span>{{ 'modules.names.' + row.item.module | transloco }}</span>
+                              }
+                              @if (row.item.mine === false) {
+                                <span aria-hidden="true">·</span>
+                                <span data-testid="work-not-mine">{{
+                                  'tasks.myWork.notMine' | transloco
+                                }}</span>
                               }
                             </span>
                             @if (row.item.url) {
@@ -646,6 +686,26 @@ const WEEKDAY_KEYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
         }
       </div>
 
+      @if (tab() === 'training' && trainingOn()) {
+        <a
+          routerLink="/training/mine"
+          data-testid="work-all-training"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
+        >
+          {{ 'tasks.myWork.allTraining' | transloco }}
+        </a>
+      }
+      @if (calendar() && reportsOn()) {
+        <a
+          routerLink="/reports/calendar"
+          [queryParams]="scope() === 'mine' ? { owner: 'me' } : {}"
+          data-testid="work-org-calendar"
+          class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
+        >
+          {{ 'tasks.myWork.orgCalendar' | transloco }}
+        </a>
+      }
+
       <div class="mt-6">
         <app-task-why-it-matters page="myWork" />
       </div>
@@ -677,9 +737,12 @@ export class MyWork {
   private readonly ask = inject(AskPanelService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly modules = inject(ModuleService);
 
-  protected readonly views = MY_WORK_VIEWS;
+  protected readonly views = SWITCH_VIEWS;
   protected readonly tabs = WORK_TABS;
+  protected readonly scopes = WORK_SCOPES;
+  protected readonly recurringFilter = RECURRING_FILTER;
   protected readonly boardColumns = BOARD_COLUMNS;
   protected readonly weekdayKeys = WEEKDAY_KEYS;
   protected readonly cellLimit = CELL_LIMIT;
@@ -691,12 +754,28 @@ export class MyWork {
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canRead = computed(() => this.permissions().includes('tasks:read'));
   protected readonly canWrite = computed(() => this.permissions().includes('tasks:write'));
+  protected readonly trainingOn = computed(
+    () => this.modules.isEnabled('training') && this.permissions().includes('training:read'),
+  );
+  protected readonly reportsOn = computed(
+    () => this.modules.isEnabled('reports') && this.permissions().includes('reports:read'),
+  );
 
   private readonly query = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot?.queryParamMap ?? null,
   });
   protected readonly view = computed<MyWorkView>(() => parseView(this.query()?.get('view')));
   private readonly requestedTab = computed(() => parseTab(this.query()?.get('tab')));
+  /** The Kalender tab: `?tab=calendar` or the older `?view=calendar`. */
+  protected readonly calendar = computed(
+    () => this.view() === 'calendar' || this.requestedTab() === 'calendar',
+  );
+  /** What the panel shows: the calendar on the Kalender tab, else list or board. */
+  protected readonly shownView = computed<MyWorkView>(() =>
+    this.calendar() ? 'calendar' : this.view() === 'board' ? 'board' : 'list',
+  );
+  /** Mine / All (`?scope=all`, U08). */
+  protected readonly scope = computed<WorkScope>(() => parseScope(this.query()?.get('scope')));
 
   protected readonly today = todayDay();
   private readonly month = signal(initialMonth(this.today));
@@ -721,15 +800,18 @@ export class MyWork {
   /** Items after the module and type filters (every tab). */
   protected readonly filtered = computed(() => filterWorkItems(this.items(), this.filters()));
   protected readonly counts = computed(() => countTabs(this.filtered(), this.today));
-  /** The open tab: `?tab=`, else the first tab with something in it. */
-  protected readonly tab = computed<WorkTab>(
-    () => this.requestedTab() ?? defaultTab(this.counts()),
+  /** The open tab: the calendar, `?tab=`, else the first time tab with something in it. */
+  protected readonly tab = computed<WorkTab>(() =>
+    this.calendar() ? 'calendar' : (this.requestedTab() ?? defaultTab(this.counts())),
   );
   /** Items of the open tab (list and board); the calendar shows every filtered item. */
   protected readonly visible = computed(() => {
-    const group = tabGroup(this.tab());
-    return this.filtered().filter((item) => groupOf(item, this.today) === group);
+    const tab = this.tab();
+    return tab === 'calendar'
+      ? this.filtered()
+      : this.filtered().filter((item) => inTab(item, tab, this.today));
   });
+  protected readonly hasRecurring = computed(() => this.items().some((item) => !!item.recurring));
   protected readonly rows = computed(() =>
     this.visible().map((item) => ({
       item,
@@ -777,12 +859,26 @@ export class MyWork {
     providePageContext(context);
     provideTasksPageContext(context);
 
+    // `?recurring=1` (old links to the recurring list) opens with the recurring filter.
+    if (this.route.snapshot?.queryParamMap?.get('recurring') === '1') {
+      this.filters.set({ ...NO_FILTERS, source: RECURRING_FILTER });
+    }
+
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const calendar = this.view() === 'calendar';
-      const range = calendar ? gridRange(this.grid()) : null;
-      untracked(() => this.load(orgId, range));
+      const range = this.calendar() ? gridRange(this.grid()) : null;
+      const scope = this.scope();
+      untracked(() => this.load(orgId, range, scope));
     });
+  }
+
+  /** The count badge of a tab (the calendar has none). */
+  protected tabCount(tab: WorkTab): number {
+    return tab === 'calendar' ? 0 : this.counts()[tab];
+  }
+
+  protected setScope(scope: WorkScope): void {
+    this.navigate({ scope: scope === 'all' ? 'all' : null });
   }
 
   protected setView(view: MyWorkView): void {
@@ -791,7 +887,13 @@ export class MyWork {
   }
 
   protected setTab(tab: WorkTab): void {
-    this.navigate({ tab });
+    this.selectedDay.set(null);
+    if (tab === 'calendar') {
+      this.navigate({ tab: 'calendar', view: null });
+      return;
+    }
+    // Leaving the calendar returns to the list; the board stays the board.
+    this.navigate({ tab, view: this.view() === 'board' ? 'board' : null });
   }
 
   /** Arrow keys move between tabs (WAI-ARIA tabs pattern). */
@@ -826,8 +928,8 @@ export class MyWork {
   }
 
   protected reload(): void {
-    const range = this.view() === 'calendar' ? gridRange(this.grid()) : null;
-    this.load(this.selectedOrg.currentOrgId(), range);
+    const range = this.calendar() ? gridRange(this.grid()) : null;
+    this.load(this.selectedOrg.currentOrgId(), range, this.scope());
   }
 
   protected complete(item: WorkItem): void {
@@ -899,7 +1001,11 @@ export class MyWork {
     });
   }
 
-  private load(orgId: string | null, range: { from: string; to: string } | null): void {
+  private load(
+    orgId: string | null,
+    range: { from: string; to: string } | null,
+    scope: WorkScope,
+  ): void {
     this.request.unsubscribe();
     if (!orgId) {
       this.items.set([]);
@@ -907,7 +1013,8 @@ export class MyWork {
       return;
     }
     this.state.set('loading');
-    this.request = this.api.myWork(orgId, range ?? {}).subscribe({
+    const query = { ...(range ?? {}), ...(scope === 'all' ? { scope } : {}) };
+    this.request = this.api.myWork(orgId, query).subscribe({
       next: (res) => {
         this.items.set(res.items);
         this.state.set('ready');

@@ -101,7 +101,7 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
 
 /**
  * The project register (`/projects`): a clickable portfolio summary, search,
- * filters on status, people and kind (sorting and overdue under "Flere filtre"),
+ * filters on status and people (kind, sorting and overdue under "Flere filtre"),
  * saved views and paging, as a list or as a portfolio timeline.
  */
 @Component({
@@ -236,23 +236,6 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
           </option>
         }
       </select>
-      <label filters class="sr-only" for="cf-project-kind">
-        {{ 'projects.filters.kind' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-project-kind"
-        class="hidden h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:block"
-        (change)="setKind($any($event.target).value)"
-        data-testid="filter-kind"
-      >
-        <option value="" [selected]="!kind()">{{ 'projects.filters.allKinds' | transloco }}</option>
-        @for (k of kinds; track k) {
-          <option [value]="k" [selected]="kind() === k">
-            {{ 'projects.kinds.' + k | transloco }}
-          </option>
-        }
-      </select>
 
       <div more-filters class="flex flex-col gap-3">
         <div class="flex flex-col gap-1 sm:hidden">
@@ -271,12 +254,13 @@ export function projectRows(projects: readonly Project[]): GanttRow[] {
             }
           </select>
         </div>
-        <div class="flex flex-col gap-1 sm:hidden">
+        <div class="flex flex-col gap-1">
           <label for="cf-project-kind-m" class="text-meta font-semibold text-fg-muted">{{
             'projects.filters.kind' | transloco
           }}</label>
           <select
             id="cf-project-kind-m"
+            data-testid="filter-kind"
             class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
             (change)="setKind($any($event.target).value)"
           >
@@ -500,7 +484,7 @@ export class ProjectsList {
       this.overdue() ||
       !!this.focus(),
   );
-  protected readonly moreActive = computed(() => (this.overdue() ? 1 : 0));
+  protected readonly moreActive = computed(() => (this.overdue() ? 1 : 0) + (this.kind() ? 1 : 0));
   /** The teaching empty state: the register itself is empty (not just this filter). */
   protected readonly showEmpty = computed(() => {
     const o = this.overview();

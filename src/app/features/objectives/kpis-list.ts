@@ -231,22 +231,6 @@ export function kpiTiles(
           </option>
         }
       </select>
-      <label filters class="sr-only" for="kpi-ms">{{
-        'objectives.filters.system' | transloco
-      }}</label>
-      <select
-        filters
-        id="kpi-ms"
-        class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-        (change)="setSystem($any($event.target).value)"
-      >
-        <option value="" [selected]="!system()">
-          {{ 'objectives.filters.allSystems' | transloco }}
-        </option>
-        @for (m of systems; track m) {
-          <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
-        }
-      </select>
       <label filters class="sr-only" for="kpi-status">{{
         'objectives.filters.status' | transloco
       }}</label>
@@ -263,6 +247,23 @@ export function kpiTiles(
         }
       </select>
 
+      <div more-filters class="flex flex-col gap-1">
+        <label for="kpi-ms" class="text-meta font-semibold text-fg-muted">{{
+          'objectives.filters.system' | transloco
+        }}</label>
+        <select
+          id="kpi-ms"
+          class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+          (change)="setSystem($any($event.target).value)"
+        >
+          <option value="" [selected]="!system()">
+            {{ 'objectives.filters.allSystems' | transloco }}
+          </option>
+          @for (m of systems; track m) {
+            <option [value]="m" [selected]="system() === m">{{ systemKey(m) | transloco }}</option>
+          }
+        </select>
+      </div>
       <div more-filters class="flex flex-col gap-3">
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted" for="kpi-sort">
           {{ 'objectives.filters.sort' | transloco }}
@@ -428,7 +429,11 @@ export class KpisList {
     kpiTiles(this.overview(), this.healthChoice(), this.overdue()),
   );
   protected readonly moreActive = computed(
-    () => (this.sort() !== 'code' ? 1 : 0) + (this.mine() ? 1 : 0) + (this.overdue() ? 1 : 0),
+    () =>
+      (this.system() ? 1 : 0) +
+      (this.sort() !== 'code' ? 1 : 0) +
+      (this.mine() ? 1 : 0) +
+      (this.overdue() ? 1 : 0),
   );
   protected readonly isFiltered = computed(
     () =>

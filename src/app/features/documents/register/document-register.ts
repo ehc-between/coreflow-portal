@@ -152,6 +152,7 @@ export function registerQuery(
       searchPlaceholderKey="documents.control.register.searchPlaceholder"
       [query]="q()"
       [filters]="filterRecord()"
+      [moreFiltersActive]="moreActive()"
       [empty]="state() === 'ready' && rows().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
@@ -205,20 +206,24 @@ export function registerQuery(
             </option>
           }
         </select>
-        <label class="sr-only" for="reg-f-sort">{{
-          'documents.control.filters.sort' | transloco
-        }}</label>
-        <select
-          id="reg-f-sort"
-          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-          (change)="patch({ sort: $any($event.target).value })"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === filters().sort">
-              {{ 'documents.control.filters.sorts.' + s | transloco }}
-            </option>
-          }
-        </select>
+      </ng-container>
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="reg-f-sort">{{
+            'documents.control.filters.sort' | transloco
+          }}</label>
+          <select
+            id="reg-f-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="patch({ sort: $any($event.target).value })"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="s === filters().sort">
+                {{ 'documents.control.filters.sorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
         <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
@@ -244,7 +249,7 @@ export function registerQuery(
           />
           {{ 'documents.control.register.includeExternal' | transloco }}
         </label>
-      </ng-container>
+      </div>
 
       <app-card [padded]="false">
         @switch (state()) {
@@ -428,6 +433,16 @@ export class DocumentRegisterPage {
   protected readonly isFiltered = computed(() => {
     const f = this.filters();
     return !!this.q() || !!f.type || !!f.status || f.mine || f.reviewDue;
+  });
+
+  protected readonly moreActive = computed(() => {
+    const f = this.filters();
+    return (
+      (f.sort !== DEFAULTS.sort ? 1 : 0) +
+      (f.mine ? 1 : 0) +
+      (f.reviewDue ? 1 : 0) +
+      (f.external !== DEFAULTS.external ? 1 : 0)
+    );
   });
 
   protected readonly filterRecord = computed<Record<string, string>>(() => {

@@ -110,6 +110,7 @@ function parseStatus(value: string | null): StatusFilter {
       searchPlaceholderKey="recruitment.requisitions.search"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="sort() !== '-created_at' ? 1 : 0"
       [empty]="!loading() && !errorKey() && items().length === 0 && !filtered()"
       (search)="onSearch($event)"
       (viewApplied)="applyView($event)"
@@ -168,7 +169,11 @@ function parseStatus(value: string | null): StatusFilter {
             {{ 'recruitment.filters.mine' | transloco }}
           </option>
         </select>
-        <label class="sr-only" for="req-sort">{{ 'recruitment.filters.sort' | transloco }}</label>
+      </ng-container>
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        <label class="text-meta font-semibold text-fg-muted" for="req-sort">{{
+          'recruitment.filters.sort' | transloco
+        }}</label>
         <select id="req-sort" class="cf-filter" (change)="setSort($any($event.target).value)">
           @for (s of sorts; track s) {
             <option [value]="s" [selected]="sort() === s">
@@ -176,7 +181,7 @@ function parseStatus(value: string | null): StatusFilter {
             </option>
           }
         </select>
-      </ng-container>
+      </div>
 
       @if (errorKey(); as key) {
         <app-error-state [bodyKey]="key" (retry)="reload()" />

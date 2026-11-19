@@ -42,6 +42,9 @@
     </div>
     <!-- pb-20 keeps the end of every page clear of the floating assistant button. -->
     <main id="main-content" tabindex="-1" class="min-w-0 flex-1 overflow-y-auto pb-20 outline-none">
+      @defer (when registrer.created()) {
+        <app-registrer-complete />
+      }
       <router-outlet />
     </main>
   </div>
@@ -73,5 +76,8 @@
   }
   @defer (when palette.open(); prefetch on idle) {
     <app-command-palette />
+  }
+  @defer (when registrer.open(); prefetch on idle) {
+    <app-registrer-dialog />
   }
 </div>

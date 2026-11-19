@@ -109,7 +109,7 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
 
 /**
  * The process register (`/processes`, "Prosesser"): search, filters (status,
- * category, owner incl. "no owner", review due, sort), saved views and paging.
+ * owner incl. "no owner"; category, review due and sort under "Flere filtre"), saved views and paging.
  * Each row shows the code, title, what it is (category, parent, map), how many
  * requirements it documents, its status, how complete it is ("6 av 9"), the
  * owner and the next review (overdue in amber with "Forfalt"). The empty
@@ -196,21 +196,6 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
       <select
         filters
         class="cf-filter"
-        [attr.aria-label]="'processes.filters.category' | transloco"
-        (change)="setFilter('category', $any($event.target).value)"
-      >
-        <option value="" [selected]="filters().category === ''">
-          {{ 'processes.filters.allCategories' | transloco }}
-        </option>
-        @for (c of categories; track c) {
-          <option [value]="c" [selected]="c === filters().category">
-            {{ categoryKey(c) | transloco }}
-          </option>
-        }
-      </select>
-      <select
-        filters
-        class="cf-filter"
         [attr.aria-label]="'processes.filters.owner' | transloco"
         (change)="setFilter('owner', $any($event.target).value)"
         data-testid="filter-owner"
@@ -227,6 +212,19 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
       </select>
 
       <div more-filters class="flex flex-col gap-3">
+        <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
+          {{ 'processes.filters.category' | transloco }}
+          <select class="cf-filter" (change)="setFilter('category', $any($event.target).value)">
+            <option value="" [selected]="filters().category === ''">
+              {{ 'processes.filters.allCategories' | transloco }}
+            </option>
+            @for (c of categories; track c) {
+              <option [value]="c" [selected]="c === filters().category">
+                {{ categoryKey(c) | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
           <input
             type="checkbox"
@@ -386,7 +384,9 @@ export class ProcessesList {
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
   protected readonly moreActive = computed(
     () =>
-      (this.filters().reviewDue ? 1 : 0) + (this.filters().sort !== DEFAULT_FILTERS.sort ? 1 : 0),
+      (this.filters().category ? 1 : 0) +
+      (this.filters().reviewDue ? 1 : 0) +
+      (this.filters().sort !== DEFAULT_FILTERS.sort ? 1 : 0),
   );
   protected readonly noOwnerText = computed(() =>
     this.language.translate('processes.list.noOwner'),

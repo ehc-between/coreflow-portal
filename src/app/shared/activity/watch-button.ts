@@ -15,7 +15,9 @@ import { isUnsupportedEntity } from '../../core/notifications/activity-errors';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { WatchersApi } from '../../core/notifications/watchers-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RecordPageContext } from '../kit/record-page-context';
 import { Icon } from '../ui/icon/icon';
+import { MenuItem } from '../ui/overflow-menu/overflow-menu';
 
 /**
  * Follow / unfollow toggle for any record. Followers are notified of the
@@ -25,14 +27,48 @@ import { Icon } from '../ui/icon/icon';
  * mount it safely.
  *
  *   <app-watch-button entityType="deviation" [entityId]="dev.id" />
+ *
+ * On a record page (`app-record-detail-layout`, U29) the layout offers "Følg" in
+ * its "Mer ⋯" menu (`variant="menu"`), so a button for the page's own record
+ * renders nothing there and loads nothing.
  */
 @Component({
   selector: 'app-watch-button',
-  imports: [TranslocoPipe, Icon],
+  imports: [TranslocoPipe, Icon, MenuItem],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
-    @if (state(); as s) {
+    @if (handedOver()) {
+      <!-- offered in the record page's "Mer" menu -->
+    } @else if (variant() === 'menu') {
+      @if (state(); as s) {
+        <button
+          appMenuItem
+          type="button"
+          data-testid="watch-menu-item"
+          [attr.aria-pressed]="s.watching"
+          [attr.title]="followersTitle()"
+          [disabled]="busy()"
+          (click)="toggle()"
+        >
+          <app-icon name="bell" [size]="15" />
+          <span class="flex-1">{{
+            (s.watching ? 'notifications.watch.following' : 'notifications.watch.follow')
+              | transloco
+          }}</span>
+          @if (s.count > 0) {
+            <span
+              aria-hidden="true"
+              class="rounded-full bg-surface-2 px-1.5 text-[11.5px] text-fg-muted tabular-nums"
+              >{{ s.count }}</span
+            >
+            <span class="sr-only">{{
+              'notifications.watch.followerCount' | transloco: { count: s.count }
+            }}</span>
+          }
+        </button>
+      }
+    } @else if (state(); as s) {
       <button
         type="button"
         data-testid="watch-button"
@@ -73,6 +109,14 @@ export class WatchButton {
 
   readonly entityType = input.required<string>();
   readonly entityId = input.required<string>();
+  /** `menu`: an item of an `app-overflow-menu` (the record page's "Mer ⋯"). */
+  readonly variant = input<'button' | 'menu'>('button');
+
+  private readonly page = inject(RecordPageContext, { optional: true });
+  /** A plain button for the record page's own record: the layout's menu offers it instead. */
+  protected readonly handedOver = computed(
+    () => this.variant() === 'button' && !!this.page?.isRecord(this.entityType(), this.entityId()),
+  );
 
   /** Null while loading or when the record can't be followed (the button is hidden). */
   protected readonly state = signal<WatchersRead | null>(null);
@@ -97,7 +141,8 @@ export class WatchButton {
       const orgId = this.selectedOrg.currentOrgId();
       const entityType = this.entityType();
       const entityId = this.entityId();
-      untracked(() => this.load(orgId, entityType, entityId));
+      const handedOver = this.handedOver();
+      untracked(() => this.load(orgId, entityType, handedOver ? '' : entityId));
     });
   }
 

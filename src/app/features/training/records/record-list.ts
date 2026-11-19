@@ -170,17 +170,17 @@ export function matchesRecord(r: TrainingRecord, q: string): boolean {
         testId="filter-validity"
         (valueChange)="setValidity($event)"
       />
-      @if (access.canOversee()) {
-        <app-training-filter
-          filters
-          [label]="'training.filters.evidence' | transloco"
-          [value]="evidenceFilter()"
-          [options]="evidenceOptions()"
-          testId="filter-evidence"
-          (valueChange)="setEvidence($event)"
-        />
-      }
       <div more-filters class="flex flex-col gap-3">
+        @if (access.canOversee()) {
+          <app-training-filter
+            [label]="'training.filters.evidence' | transloco"
+            [showLabel]="true"
+            [value]="evidenceFilter()"
+            [options]="evidenceOptions()"
+            testId="filter-evidence"
+            (valueChange)="setEvidence($event)"
+          />
+        }
         <app-training-filter
           [label]="'training.filters.method' | transloco"
           [showLabel]="true"
@@ -319,7 +319,10 @@ export class RecordListPage {
     sort: this.sort(),
   }));
   protected readonly moreActive = computed(
-    () => (this.method() ? 1 : 0) + (this.sort() !== '-completed_at' ? 1 : 0),
+    () =>
+      (this.evidenceFilter() ? 1 : 0) +
+      (this.method() ? 1 : 0) +
+      (this.sort() !== '-completed_at' ? 1 : 0),
   );
   protected readonly hasFilters = computed(
     () => !!this.q() || !!this.validity() || !!this.evidenceFilter() || !!this.method(),

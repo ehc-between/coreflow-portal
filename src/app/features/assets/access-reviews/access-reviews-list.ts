@@ -156,6 +156,7 @@ interface Summary {
       searchPlaceholderKey="assets.reviews.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="(filters().reviewer ? 1 : 0) + (filters().sort !== 'due_on' ? 1 : 0)"
       [empty]="showEmpty()"
       (search)="search($event)"
       (viewApplied)="applyView($event)"
@@ -214,21 +215,6 @@ interface Summary {
             </option>
           }
         </select>
-        <label class="sr-only" for="ar-f-reviewer">{{
-          'assets.fields.reviewer' | transloco
-        }}</label>
-        <select
-          id="ar-f-reviewer"
-          [class]="selectClass"
-          (change)="setFilter('reviewer', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().reviewer">
-            {{ 'assets.filters.anyReviewer' | transloco }}
-          </option>
-          <option value="me" [selected]="filters().reviewer === 'me'">
-            {{ 'assets.filters.reviewedByMe' | transloco }}
-          </option>
-        </select>
         <label class="sr-only" for="ar-f-due">{{ 'assets.fields.dueOn' | transloco }}</label>
         <select
           id="ar-f-due"
@@ -250,6 +236,23 @@ interface Summary {
         </select>
       </ng-container>
 
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        <label class="text-meta font-semibold text-fg-muted" for="ar-f-reviewer">{{
+          'assets.fields.reviewer' | transloco
+        }}</label>
+        <select
+          id="ar-f-reviewer"
+          [class]="selectClass"
+          (change)="setFilter('reviewer', $any($event.target).value)"
+        >
+          <option value="" [selected]="!filters().reviewer">
+            {{ 'assets.filters.anyReviewer' | transloco }}
+          </option>
+          <option value="me" [selected]="filters().reviewer === 'me'">
+            {{ 'assets.filters.reviewedByMe' | transloco }}
+          </option>
+        </select>
+      </div>
       <div more-filters class="flex flex-col gap-3">
         <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
           {{ 'assets.filters.sort' | transloco }}

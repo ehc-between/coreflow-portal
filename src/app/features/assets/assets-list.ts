@@ -96,8 +96,9 @@ export const DEFAULT_ASSET_FILTERS: AssetFilters = {
   sort: 'code',
 };
 
-/** The filters under "Flere filtre" (search, type, lifecycle and follow-up stay visible). */
+/** The filters under "Flere filtre" (search, type and follow-up stay visible; U30). */
 const MORE_FILTERS: readonly (keyof AssetFilters)[] = [
+  'lifecycle',
   'classification',
   'flag',
   'owner',
@@ -180,7 +181,7 @@ interface Summary {
  * The asset register (`/assets`). Headline figures that double as filters (needs
  * follow-up, calibration overdue in use, register review overdue, personal data
  * without a processing activity, held by someone who has left); search, type,
- * lifecycle and follow-up filters with the rest under "Flere filtre"; saved views;
+ * follow-up filters with the rest (lifecycle …) under "Flere filtre"; saved views;
  * one row per asset with lifecycle, criticality, classification, calibration and
  * follow-up badges, requirement coverage, owner and the next calibration or review.
  * `?attention=<code|any>`, `?review_overdue=true` and `?supplier_id=` (links from the
@@ -278,21 +279,6 @@ interface Summary {
             </option>
           }
         </select>
-        <label class="sr-only" for="ast-f-life">{{ 'assets.fields.lifecycle' | transloco }}</label>
-        <select
-          id="ast-f-life"
-          [class]="selectClass"
-          (change)="setFilter('lifecycle', $any($event.target).value)"
-        >
-          <option value="" [selected]="!filters().lifecycle">
-            {{ 'assets.filters.anyLifecycle' | transloco }}
-          </option>
-          @for (l of lifecycles; track l) {
-            <option [value]="l" [selected]="filters().lifecycle === l">
-              {{ 'assets.lifecycle.' + l | transloco }}
-            </option>
-          }
-        </select>
         <label class="sr-only" for="ast-f-attention">
           {{ 'assets.filters.attention' | transloco }}
         </label>
@@ -317,6 +303,23 @@ interface Summary {
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <label [class]="moreLabelClass">
+          {{ 'assets.fields.lifecycle' | transloco }}
+          <select
+            id="ast-f-life"
+            [class]="moreSelectClass"
+            (change)="setFilter('lifecycle', $any($event.target).value)"
+          >
+            <option value="" [selected]="!filters().lifecycle">
+              {{ 'assets.filters.anyLifecycle' | transloco }}
+            </option>
+            @for (l of lifecycles; track l) {
+              <option [value]="l" [selected]="filters().lifecycle === l">
+                {{ 'assets.lifecycle.' + l | transloco }}
+              </option>
+            }
+          </select>
+        </label>
         <label [class]="moreLabelClass">
           {{ 'assets.fields.classification' | transloco }}
           <select

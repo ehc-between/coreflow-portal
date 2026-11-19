@@ -84,10 +84,13 @@ export class MenuItem {
         <app-icon [name]="icon()" [size]="17" />
       }
       @if (!iconOnly()) {
-        <span>{{ labelKey() | transloco }}</span>
+        <span>{{ label() || (labelKey() | transloco) }}</span>
       }
       @if (variant() !== 'primary') {
-        <app-icon [name]="icon()" [size]="variant() === 'ghost' ? 19 : 16" />
+        <app-icon
+          [name]="variant() === 'tab' ? 'chevron' : icon()"
+          [size]="variant() === 'ghost' ? 19 : variant() === 'tab' ? 14 : 16"
+        />
       }
     </button>
     <div
@@ -119,14 +122,27 @@ export class OverflowMenu {
   readonly align = input<'start' | 'end'>('end');
   /** Trigger icon (shared Icon set); "⋯" by default. */
   readonly icon = input('more');
+  /** Literal trigger label (wins over `labelKey`). */
+  readonly label = input<string | null>(null);
   /**
    * Trigger look: `default` (bordered "Mer ⋯"), `primary` (a full-width accent button,
-   * icon first, e.g. the shell's "Registrer") or `ghost` (a borderless top-bar icon).
+   * icon first, e.g. the shell's "Registrer"), `ghost` (a borderless top-bar icon) or
+   * `tab` (looks like a tab of a tab row: "Mer ▾" on record pages, U29).
    */
-  readonly variant = input<'default' | 'primary' | 'ghost'>('default');
+  readonly variant = input<'default' | 'primary' | 'ghost' | 'tab'>('default');
+  /** With `variant="tab"`: one of the menu's items is the open tab. */
+  readonly active = input(false);
   readonly triggerTestId = input('overflow-trigger');
 
-  protected readonly triggerClass = computed(() => TRIGGER_CLASSES[this.variant()]);
+  protected readonly triggerClass = computed(() => {
+    const variant = this.variant();
+    if (variant === 'tab') {
+      return `-mb-px inline-flex items-center gap-1 border-b-2 px-3 py-2 text-ui font-semibold whitespace-nowrap ${FOCUS} ${
+        this.active() ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:text-fg'
+      }`;
+    }
+    return TRIGGER_CLASSES[variant];
+  });
 
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');

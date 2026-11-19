@@ -19,6 +19,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
@@ -108,6 +109,7 @@ function legacyAttention(o: AiGovernanceOverview): AttentionItemDto[] {
     Card,
     ErrorState,
     Icon,
+    KpiBand,
     KpiTile,
     LoadingState,
     ProgressBar,
@@ -139,10 +141,7 @@ function legacyAttention(o: AiGovernanceOverview): AttentionItemDto[] {
       @if (error()) {
         <app-error-state (retry)="reload.update((n) => n + 1)" />
       } @else if (overview(); as o) {
-        <div
-          class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
-          appTourStep="ai-overview-kpis"
-        >
+        <app-kpi-band scope="ai-governance.overview" appTourStep="ai-overview-kpis">
           <a
             routerLink="/ai-governance/systems"
             class="rounded-card focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
@@ -227,7 +226,7 @@ function legacyAttention(o: AiGovernanceOverview): AttentionItemDto[] {
               deltaTone="neutral"
             />
           </a>
-        </div>
+        </app-kpi-band>
 
         @if (o.systems_total === 0) {
           <app-card class="mb-6">

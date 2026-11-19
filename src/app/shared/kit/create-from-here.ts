@@ -26,6 +26,10 @@ import { provideKitScope } from './kit-scope';
  * that documents it, …). The new form opens prefilled, and the new record is
  * linked back here when it is saved. Only flows into enabled modules the user
  * may write to are listed; with none, nothing renders.
+ *
+ * `variant="items"` renders the flows as items of an enclosing
+ * `app-overflow-menu` under a "Lag ny fra denne" heading (the record page's
+ * "Mer ⋯", U29) instead of a menu of their own.
  */
 @Component({
   selector: 'app-create-from-here',
@@ -33,12 +37,30 @@ import { provideKitScope } from './kit-scope';
   viewProviders: [provideKitScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'inline-flex',
+    '[class]': "variant() === 'items' ? 'contents' : 'inline-flex'",
     '(pointerdown)': 'placeMenu()',
     '(focusin)': 'placeMenu()',
   },
   template: `
-    @if (items().length > 0) {
+    @if (items().length > 0 && variant() === 'items') {
+      <p
+        class="px-2.5 pt-2 pb-0.5 text-micro font-semibold tracking-wide text-fg-subtle uppercase"
+        data-testid="create-from-here-heading"
+      >
+        {{ 'kit.flows.menu' | transloco }}
+      </p>
+      @for (flow of items(); track flow.key) {
+        <button
+          appMenuItem
+          type="button"
+          [disabled]="flows.starting() !== null"
+          (click)="start(flow)"
+          [attr.data-flow]="flow.key"
+        >
+          {{ label(flow) | transloco: { type: targetLabel(flow) } }}
+        </button>
+      }
+    } @else if (items().length > 0) {
       <app-overflow-menu labelKey="kit.flows.menu" [align]="align()" data-testid="create-from-here">
         @for (flow of items(); track flow.key) {
           <button
@@ -65,6 +87,8 @@ export class CreateFromHere {
   readonly entityId = input<string | null | undefined>(null);
   /** For `entityType = 'standard_requirement'`: the requirement ref. */
   readonly requirementRef = input<string | null | undefined>(null);
+  /** `items`: menu items inside an enclosing `app-overflow-menu`. */
+  readonly variant = input<'menu' | 'items'>('menu');
 
   protected readonly items = signal<readonly CreateFlowItem[]>([]);
   /** Open the menu towards the side with room (left-aligned when the button is on the left). */

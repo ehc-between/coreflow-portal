@@ -30,7 +30,7 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { ReportsNav } from '../components/reports-nav';
+import { LibraryNav } from '../../../shared/outputs/library-nav';
 import { reportErrorKey } from '../data/report-errors';
 import { clauseText, localized } from '../data/report-display';
 import {
@@ -50,7 +50,7 @@ export type OwnerFilter = 'all' | 'me';
 export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
 
 /**
- * `/reports/definitions`: saved reports (a register with its filters, columns,
+ * `/library/reports`: saved reports (a register with its filters, columns,
  * format and language) that anyone can run again in one click. Each row says what
  * it exports, which requirements it is evidence for, when it last ran and whether
  * it is scheduled. Search, filter by register and owner, sort, saved views.
@@ -75,7 +75,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
     Icon,
     LoadingState,
     Pager,
-    ReportsNav,
+    LibraryNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -83,7 +83,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
       titleKey="reports.definitions.title"
       descriptionKey="reports.definitions.subtitle"
       [breadcrumbs]="[
-        { labelKey: 'modules.names.reports', link: '/reports' },
+        { labelKey: 'outputs.title', link: '/library' },
         { labelKey: 'reports.nav.definitions' },
       ]"
       scope="reports"
@@ -91,6 +91,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
       searchPlaceholderKey="reports.definitions.search"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="sort() !== 'name' ? 1 : 0"
       [empty]="loaded() && !error() && items().length === 0 && !filtered()"
       (search)="setSearch($event)"
       (viewApplied)="applyView($event)"
@@ -101,7 +102,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
           {{ 'reports.definitions.new' | transloco }}
         </app-button>
       }
-      <app-reports-nav nav />
+      <app-library-nav nav />
       <app-help-strip help scope="reports" page="definitions" tour="definitions" />
 
       <ng-container filters>
@@ -134,7 +135,9 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
             </option>
           }
         </select>
-        <label for="def-sort" class="sr-only">{{
+      </ng-container>
+      <div more-filters class="flex flex-col gap-1 empty:hidden">
+        <label for="def-sort" class="text-meta font-semibold text-fg-muted">{{
           'reports.definitions.sortLabel' | transloco
         }}</label>
         <select
@@ -148,7 +151,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
             </option>
           }
         </select>
-      </ng-container>
+      </div>
 
       @if (error(); as key) {
         <app-error-state [bodyKey]="key" (retry)="reload()" />
@@ -171,7 +174,7 @@ export const OWNER_FILTERS: readonly OwnerFilter[] = ['all', 'me'];
               >
                 <div class="min-w-0 flex-1">
                   <a
-                    [routerLink]="['/reports/definitions', d.id]"
+                    [routerLink]="['/library/reports', d.id]"
                     class="block truncate text-body font-semibold text-fg after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-none focus-visible:after:rounded-tile focus-visible:after:ring-2 focus-visible:after:ring-accent"
                   >
                     {{ d.name }}
@@ -360,7 +363,7 @@ export class DefinitionsList {
   }
 
   protected create(): void {
-    void this.router.navigate(['/reports/definitions/new']);
+    void this.router.navigate(['/library/reports/new']);
   }
 
   protected reload(): void {

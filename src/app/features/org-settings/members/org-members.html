@@ -163,6 +163,20 @@
         }}
       </button>
     }
+    @if (withoutCard() > 0) {
+      ·
+      <a
+        [routerLink]="'/people/employees'"
+        [queryParams]="canCreateCards() ? { import: 'users' } : null"
+        class="font-semibold text-warn hover:underline"
+        data-testid="members-without-card"
+      >
+        {{
+          (withoutCard() === 1 ? 'settings.members.withoutCardOne' : 'settings.members.withoutCard')
+            | transloco: { count: withoutCard() }
+        }}
+      </a>
+    }
     @if (hiddenOperators() > 0) {
       · {{ 'settings.members.operatorsHidden' | transloco: { count: hiddenOperators() } }}
     }
@@ -225,6 +239,23 @@
                 }
                 @if (!member.is_active) {
                   <app-badge tone="warn">{{ 'settings.members.inactive' | transloco }}</app-badge>
+                }
+                @if (lacksCard(member)) {
+                  @if (canCreateCards()) {
+                    <a
+                      routerLink="/people/employees"
+                      [queryParams]="{ import: 'users' }"
+                      class="rounded-full focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      [attr.title]="'settings.members.noCardTitle' | transloco"
+                      data-testid="member-no-card"
+                    >
+                      <app-badge tone="warn">{{ 'settings.members.noCard' | transloco }}</app-badge>
+                    </a>
+                  } @else {
+                    <app-badge tone="warn" data-testid="member-no-card">{{
+                      'settings.members.noCard' | transloco
+                    }}</app-badge>
+                  }
                 }
               </div>
               @if (hasName(member)) {

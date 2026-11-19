@@ -25,6 +25,14 @@ export interface AssigneeOption {
   /** Display name; for roles, the i18n key of the role name (`labelIsKey`). */
   readonly label: string;
   readonly labelIsKey: boolean;
+  /**
+   * U26: users only — the job title from the person's employee card in the People
+   * register (`null` when none). Shown beside the name in pickers; `label` stays the
+   * plain name because it is also used as a display name elsewhere.
+   */
+  readonly detail?: string | null;
+  /** U26: users only — whether the user has a current employee card (undefined = unknown). */
+  readonly inRegister?: boolean;
 }
 
 export interface AssigneeOptions {
@@ -96,6 +104,8 @@ export class AssigneeOptionsService {
               value: `user:${u.id}`,
               label: userLabel(u, all),
               labelIsKey: false,
+              detail: u.job_title ?? null,
+              inRegister: u.employee_id === undefined ? undefined : u.employee_id !== null,
             })),
           departments: [...subjects.departments]
             .sort((a, b) => a.name.localeCompare(b.name))

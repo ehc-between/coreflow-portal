@@ -128,6 +128,7 @@ export function externalQuery(
       searchPlaceholderKey="documents.control.external.searchPlaceholder"
       [query]="q()"
       [filters]="filterRecord()"
+      [moreFiltersActive]="(filters().sort !== defaultSort ? 1 : 0) + (filters().mine ? 1 : 0)"
       [empty]="state() === 'ready' && rows().length === 0 && !isFiltered()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
@@ -157,28 +158,6 @@ export function externalQuery(
             </option>
           }
         </select>
-        <label class="sr-only" for="ext-f-sort">{{
-          'documents.control.filters.sort' | transloco
-        }}</label>
-        <select
-          id="ext-f-sort"
-          class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-          (change)="patch({ sort: $any($event.target).value })"
-        >
-          @for (s of sorts; track s) {
-            <option [value]="s" [selected]="s === filters().sort">
-              {{ 'documents.control.filters.sorts.' + s | transloco }}
-            </option>
-          }
-        </select>
-        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
-          <input
-            type="checkbox"
-            [checked]="filters().mine"
-            (change)="patch({ mine: $any($event.target).checked })"
-          />
-          {{ 'documents.control.filters.mine' | transloco }}
-        </label>
         <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
           <input
             type="checkbox"
@@ -188,6 +167,32 @@ export function externalQuery(
           {{ 'documents.control.filters.reviewDue' | transloco }}
         </label>
       </ng-container>
+      <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-meta font-semibold text-fg-muted" for="ext-f-sort">{{
+            'documents.control.filters.sort' | transloco
+          }}</label>
+          <select
+            id="ext-f-sort"
+            class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+            (change)="patch({ sort: $any($event.target).value })"
+          >
+            @for (s of sorts; track s) {
+              <option [value]="s" [selected]="s === filters().sort">
+                {{ 'documents.control.filters.sorts.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
+        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
+          <input
+            type="checkbox"
+            [checked]="filters().mine"
+            (change)="patch({ mine: $any($event.target).checked })"
+          />
+          {{ 'documents.control.filters.mine' | transloco }}
+        </label>
+      </div>
 
       <app-card [padded]="false">
         @switch (state()) {
@@ -320,6 +325,8 @@ export class ExternalListPage {
     const f = this.filters();
     return !!this.q() || f.status !== 'current' || f.mine || f.reviewDue;
   });
+
+  protected readonly defaultSort = DEFAULTS.sort;
 
   protected readonly filterRecord = computed<Record<string, string>>(() => {
     const f = this.filters();

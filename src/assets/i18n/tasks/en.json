@@ -16,8 +16,21 @@
       "overdue": "Overdue",
       "this_week": "This week",
       "later": "Later",
-      "review": "Awaiting review"
+      "review": "To review",
+      "acknowledge": "Read and confirm",
+      "training": "My training",
+      "calendar": "Calendar"
     },
+    "scopeLabel": "Whose work",
+    "scopes": {
+      "mine": "Mine",
+      "all": "Everyone's"
+    },
+    "notMine": "Someone else's",
+    "recurringFilter": "Recurring tasks",
+    "allTraining": "See all my training →",
+    "orgCalendar": "Open the full calendar for every area →",
+    "manageRecurring": "Manage recurring tasks",
     "empty": {
       "overdue": {
         "title": "Nothing is overdue",
@@ -34,6 +47,18 @@
       "review": {
         "title": "Nothing is waiting for your review",
         "body": "Documents to approve, change proposals, audit reports and management review sign-offs show up here."
+      },
+      "acknowledge": {
+        "title": "Nothing to read and confirm",
+        "body": "Documents and policies you are asked to read and confirm show up here."
+      },
+      "training": {
+        "title": "No courses waiting for you",
+        "body": "Courses you are assigned, and training that is due or about to expire, show up here."
+      },
+      "calendar": {
+        "title": "Nothing in the calendar",
+        "body": "Everything with a deadline shows up on its day."
       }
     },
     "reviewHint": "Everything waiting for your review is also in My Work →"

@@ -393,7 +393,8 @@ describe('list filters', () => {
     expect(f.process).toBe('11111111-2222-3333-4444-555555555555');
     expect(f.sort).toBe('code');
     expect(f.impactType).toBe('');
-    expect(moreFiltersCount(f)).toBe(1);
+    // "Needs follow-up" and the process both sit under "Flere filtre" (U30).
+    expect(moreFiltersCount(f)).toBe(2);
     const q = aspectQuery(' fuel ', { ...f, group: '1' }, 25);
     expect(q).toEqual(
       expect.objectContaining({

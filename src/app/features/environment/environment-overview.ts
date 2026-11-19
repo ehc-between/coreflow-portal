@@ -23,6 +23,7 @@ import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { KpiBand } from '../../shared/ui/kpi-band/kpi-band';
 import { KpiTile, KpiTone } from '../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../shared/ui/module-nav/module-nav';
@@ -124,6 +125,7 @@ export function attentionItems(o: EnvironmentOverview): AttentionItem[] {
     ErrorState,
     HelpStrip,
     Icon,
+    KpiBand,
     KpiTile,
     LoadingState,
     ModuleNav,
@@ -210,44 +212,25 @@ export function attentionItems(o: EnvironmentOverview): AttentionItem[] {
                 </p>
               }
 
-              @for (section of sections(); track section.key) {
-                <section [attr.aria-labelledby]="'env-ov-' + section.key">
-                  <div class="mb-2 flex items-center justify-between gap-2">
-                    <h2
-                      [id]="'env-ov-' + section.key"
-                      class="font-display text-section font-bold text-fg"
-                    >
-                      {{ 'environment.overview.sections.' + section.key | transloco }}
-                    </h2>
-                    <a
-                      [routerLink]="section.link"
-                      class="text-ui font-semibold text-accent hover:underline"
-                      >{{ 'environment.overview.seeAll' | transloco }}</a
-                    >
-                  </div>
-                  <div
-                    class="grid grid-cols-2 gap-3 lg:grid-cols-4"
-                    [attr.data-testid]="'overview-' + section.key"
+              <!-- U30: one key-figures band (≤ 4 tiles, the rest behind "Vis alle"). -->
+              <app-kpi-band scope="environment.overview" data-testid="overview-tiles">
+                @for (tile of tiles(); track tile.key) {
+                  <a
+                    [routerLink]="tile.link"
+                    [queryParams]="tile.query ?? null"
+                    class="block rounded-card transition-shadow hover:shadow-pop focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    [attr.data-testid]="'tile-' + tile.key"
                   >
-                    @for (tile of section.tiles; track tile.key) {
-                      <a
-                        [routerLink]="tile.link"
-                        [queryParams]="tile.query ?? null"
-                        class="block rounded-card transition-shadow hover:shadow-pop focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                        [attr.data-testid]="'tile-' + tile.key"
-                      >
-                        <app-kpi-tile
-                          [label]="'environment.overview.tiles.' + tile.key | transloco"
-                          [value]="tile.value"
-                          [tone]="tile.tone"
-                          [delta]="tile.delta ?? ''"
-                          [deltaTone]="tile.deltaTone ?? null"
-                        />
-                      </a>
-                    }
-                  </div>
-                </section>
-              }
+                    <app-kpi-tile
+                      [label]="'environment.overview.tiles.' + tile.key | transloco"
+                      [value]="tile.value"
+                      [tone]="tile.tone"
+                      [delta]="tile.delta ?? ''"
+                      [deltaTone]="tile.deltaTone ?? null"
+                    />
+                  </a>
+                }
+              </app-kpi-band>
 
               <section aria-labelledby="env-ov-requirements" data-testid="overview-requirements">
                 <h2
@@ -433,7 +416,19 @@ export class EnvironmentOverviewPage {
     return o ? attentionItems(o) : [];
   });
 
-  protected readonly sections = computed(() => {
+  /**
+   * All key figures in one band (U30, ≤ 4 visible): a headline per area first (aspects,
+   * significant aspects, emergency plans, emissions), the follow-up figures after
+   * (they are also in "Trenger oppfølging" above).
+   */
+  protected readonly tiles = computed(() => {
+    const all = this.sections().flatMap((section) => section.tiles);
+    const first = ['aspectsTotal', 'aspectsSignificant', 'plansActive', 'emissionsYtd'];
+    const rank = (key: string) => (first.includes(key) ? first.indexOf(key) : first.length);
+    return [...all].sort((a, b) => rank(a.key) - rank(b.key));
+  });
+
+  private readonly sections = computed(() => {
     const o = this.data();
     if (!o) {
       return [];

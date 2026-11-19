@@ -41,7 +41,18 @@ export interface UserNotification {
   readonly created_at: string;
   readonly read_at: string | null;
   readonly is_read: boolean;
+  /** U08: `todo` when it points at an item in My Work; the bell lists `news` only. */
+  readonly feed?: NotificationFeed;
 }
+
+/**
+ * U08: which notifications a call covers. `news` leaves out the to-dos that already
+ * live in My Work (assignments, reminders, approvals); `todo` keeps only those.
+ */
+export type NotificationFeed = 'all' | 'news' | 'todo';
+
+/** The bell shows news only: everything to do is in My Work. */
+export const BELL_FEED: NotificationFeed = 'news';
 
 /** `GET v1/me/notifications` — unread first, then newest. */
 export interface UserNotificationList {
@@ -57,6 +68,8 @@ export interface UserNotificationListQuery {
   readonly unread_only?: boolean;
   readonly limit?: number;
   readonly offset?: number;
+  /** Defaults to the bell's feed (`news`). */
+  readonly feed?: NotificationFeed;
 }
 
 /** `GET v1/me/notifications/unread-count`. */

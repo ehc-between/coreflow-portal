@@ -3,15 +3,16 @@ import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 
 const toReports = { redirectTo: '/reports' };
-const toDefinitions = { redirectTo: '/reports/definitions' };
 
 /**
  * `/reports` (M23, scope `reports`; app.routes wraps it in the `reports` module
  * gate and `reports:read`): the reporting overview (key numbers, trends and the
- * role overview), the organisation calendar, register exports, saved reports with
- * their run history, audit packs and the role-overview designer. Each page renders
- * its own header and the Reports sub-navigation (`app-reports-nav`). The backend
- * links records as `/reports/definitions/{id}` and `/reports/audit-packs/{id}`.
+ * role overview), the organisation calendar and the role-overview designer. Each
+ * page renders its own header and the Reports sub-navigation (`app-reports-nav`).
+ *
+ * U11: register exports, saved reports and audit packs moved into "Dokumenter og
+ * rapporter" (`/library/registers`, `/library/reports`, `/library/audit-packs`);
+ * `features/library/library-redirects.ts` keeps the old `/reports/*` URLs working.
  */
 export default [
   {
@@ -26,41 +27,6 @@ export default [
       {
         path: 'calendar',
         loadComponent: () => import('./calendar/org-calendar').then((m) => m.OrgCalendar),
-      },
-      {
-        path: 'registers',
-        loadComponent: () => import('./registers/registers-page').then((m) => m.RegistersPage),
-      },
-      {
-        path: 'definitions',
-        loadComponent: () =>
-          import('./definitions/definitions-list').then((m) => m.DefinitionsList),
-      },
-      {
-        path: 'definitions/new',
-        canActivate: [permissionGuard('reports:write', toDefinitions)],
-        loadComponent: () => import('./definitions/definition-form').then((m) => m.DefinitionForm),
-      },
-      {
-        path: 'definitions/:id',
-        loadComponent: () =>
-          import('./definitions/definition-detail').then((m) => m.DefinitionDetail),
-      },
-      {
-        path: 'definitions/:id/edit',
-        canActivate: [permissionGuard('reports:write', toDefinitions)],
-        loadComponent: () => import('./definitions/definition-form').then((m) => m.DefinitionForm),
-      },
-      {
-        path: 'audit-packs',
-        canActivate: [permissionGuard('reports:audit_pack', toReports)],
-        loadComponent: () => import('./audit-packs/audit-packs-list').then((m) => m.AuditPacksList),
-      },
-      {
-        path: 'audit-packs/:id',
-        canActivate: [permissionGuard('reports:audit_pack', toReports)],
-        loadComponent: () =>
-          import('./audit-packs/audit-pack-detail').then((m) => m.AuditPackDetail),
       },
       {
         path: 'dashboards',

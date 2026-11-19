@@ -10,6 +10,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { OutputsLink } from '../../outputs/outputs-link';
 import { Icon } from '../icon/icon';
 import { OverflowMenu } from '../overflow-menu/overflow-menu';
 import { TitleService } from '../title/title.service';
@@ -29,6 +30,8 @@ export interface Breadcrumb {
  *   breadcrumbs (Module › Sub-area › Record)
  *   [lead] (legacy custom heading block), h1 + optional [meta] line (code · type · status on detail pages) + description
  *   actions on the right: [secondary] (≤ 2) · [primary] (one) · "Mer ⋯" ([overflow]) · ⚙
+ *   ("Dokumenter og rapporter" leads the actions when `outputsModule` / `outputsStandard` is set)
+ *   [page-help] (the record page's "?", U29)
  *
  *   <app-page-header titleKey="modules.names.risk" descriptionKey="risk.list.description"
  *       [breadcrumbs]="[{ labelKey: 'modules.names.risk' }]" settingsLink="/settings/modules/risk">
@@ -42,7 +45,7 @@ export interface Breadcrumb {
  */
 @Component({
   selector: 'app-page-header',
-  imports: [RouterLink, TranslocoPipe, Icon, OverflowMenu],
+  imports: [RouterLink, TranslocoPipe, Icon, OverflowMenu, OutputsLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -108,6 +111,12 @@ export interface Breadcrumb {
           <ng-content select="[intro]" />
         </div>
         <div class="flex flex-wrap items-center gap-2 empty:hidden" data-testid="page-actions">
+          @if (outputsModule() || outputsStandard()) {
+            <app-outputs-link
+              [module]="outputsModule() ?? null"
+              [standard]="outputsStandard() ?? null"
+            />
+          }
           <ng-content select="[secondary]" />
           <ng-content select="[primary]" />
           <app-overflow-menu>
@@ -124,6 +133,7 @@ export interface Breadcrumb {
               <app-icon name="gear" [size]="17" />
             </a>
           }
+          <ng-content select="[page-help]" />
         </div>
       </div>
     </header>
@@ -146,6 +156,10 @@ export class PageHeader {
   /** "Back" link, used when there are no breadcrumbs (and on phones). */
   readonly backLink = input<string | readonly unknown[] | null | undefined>(null);
   readonly backLabelKey = input<string | null | undefined>(null);
+  /** Module whose outputs the "Dokumenter og rapporter" action opens (the library, filtered; U11). */
+  readonly outputsModule = input<string | null | undefined>(null);
+  /** Standard whose outputs the "Dokumenter og rapporter" action opens. */
+  readonly outputsStandard = input<string | null | undefined>(null);
   /** `data-testid` of the h1 (kept stable for the kit frames' tests). */
   readonly titleTestId = input('page-title');
   /** Set the document title from the h1 (default on). */

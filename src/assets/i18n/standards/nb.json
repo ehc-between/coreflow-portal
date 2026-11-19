@@ -148,6 +148,8 @@
     "positionMany": "(krav {{first}} og {{last}} av {{count}})",
     "positionLong": "Krav {{index}} av {{count}}",
     "showAll": "Vis alle {{count}}",
+    "edit": "Endre",
+    "showLess": "Vis mindre",
     "onAction": "På tiltak: {{action}}",
     "moreLabel": "Vis {{count}} flere koblede krav",
     "moreLabelOne": "Vis 1 koblet krav til",

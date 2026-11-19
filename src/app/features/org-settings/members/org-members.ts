@@ -151,6 +151,14 @@ export class OrgMembers {
   protected readonly staffCount = computed(
     () => this.members().filter((m) => !m.is_platform_operator).length,
   );
+  /** U26: may create employee cards (the "Mangler ansattkort" badges become links). */
+  protected readonly canCreateCards = computed(() =>
+    hasAnyPermission(this.granted(), 'people:write'),
+  );
+  /** U26: staff members who are not in the People register (no employee card). */
+  protected readonly withoutCard = computed(
+    () => this.members().filter((m) => this.lacksCard(m)).length,
+  );
   protected readonly withoutMfa = computed(
     () => this.members().filter((m) => !m.is_platform_operator && m.mfa_enabled === false).length,
   );
@@ -203,6 +211,15 @@ export class OrgMembers {
 
   protected displayName(member: OrgMember): string {
     return member.full_name?.trim() || member.email;
+  }
+
+  /**
+   * U26: a staff member with no People-register entry. Only when the backend sends
+   * `person` (an absent field means "unknown", not a gap); operators and deactivated
+   * accounts are not counted (the People register gap leaves them out too).
+   */
+  protected lacksCard(member: OrgMember): boolean {
+    return !member.is_platform_operator && member.is_active && member.person === null;
   }
 
   protected hasName(member: OrgMember): boolean {

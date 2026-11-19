@@ -1,48 +1,113 @@
-import { WorkGroup, WorkItem } from '../../core/tasks/task.models';
+import { WorkGroup, WorkItem, WorkLane, WorkScope } from '../../core/tasks/task.models';
 import { addDays, dayOf, localDay } from '../../shared/tasks/task-display';
 
-/** The three My Work views (`?view=`). */
+/**
+ * The My Work views (`?view=`). The calendar is the Kalender tab (U08); the view
+ * switch offers list and board.
+ */
 export type MyWorkView = 'list' | 'board' | 'calendar';
 export const MY_WORK_VIEWS: readonly MyWorkView[] = ['list', 'board', 'calendar'];
+export const SWITCH_VIEWS: readonly MyWorkView[] = ['list', 'board'];
 
 export function parseView(value: string | null | undefined): MyWorkView {
   return MY_WORK_VIEWS.includes(value as MyWorkView) ? (value as MyWorkView) : 'list';
 }
 
 /**
- * The My Work tabs (`?tab=`): Overdue, This week, Later and Awaiting review (the old
- * "Needs your review" page). Each maps to the backend's item `group`.
+ * The My Work tabs (`?tab=`). When: Overdue, This week, Later (the backend's time
+ * `group`). What (U08): To review (every approval; the old "Needs your review" page),
+ * Read and confirm and My training (the backend's `lane`; they overlap the time
+ * tabs). Calendar shows the month (`?view=calendar`).
  */
-export type WorkTab = 'overdue' | 'this_week' | 'later' | 'review';
-export const WORK_TABS: readonly WorkTab[] = ['overdue', 'this_week', 'later', 'review'];
+export type WorkTab =
+  | 'overdue'
+  | 'this_week'
+  | 'later'
+  | 'review'
+  | 'acknowledge'
+  | 'training'
+  | 'calendar';
+export const WORK_TABS: readonly WorkTab[] = [
+  'overdue',
+  'this_week',
+  'later',
+  'review',
+  'acknowledge',
+  'training',
+  'calendar',
+];
+/** Tabs that list items (all but the calendar). */
+export type ListTab = Exclude<WorkTab, 'calendar'>;
+type TimeTab = 'overdue' | 'this_week' | 'later' | 'review';
+const TIME_TABS: readonly TimeTab[] = ['overdue', 'this_week', 'later', 'review'];
 
-const TAB_GROUP: Record<WorkTab, WorkGroup> = {
+const TAB_GROUP: Record<TimeTab, WorkGroup> = {
   overdue: 'overdue',
   this_week: 'this_week',
   later: 'later',
   review: 'awaiting_review',
 };
 
-export function tabGroup(tab: WorkTab): WorkGroup {
+/** The backend group of a time tab. */
+export function tabGroup(tab: TimeTab): WorkGroup {
   return TAB_GROUP[tab];
 }
 
-/** `?tab=` value -> tab; accepts the group names and `week` too. Null when absent or unknown. */
+/** `?tab=` value -> tab; accepts group and lane names and `week` too. Null when absent or unknown. */
 export function parseTab(value: string | null | undefined): WorkTab | null {
   switch (value) {
     case 'overdue':
     case 'later':
     case 'review':
     case 'this_week':
+    case 'acknowledge':
+    case 'training':
+    case 'calendar':
       return value;
     case 'week':
       return 'this_week';
     case 'awaiting_review':
       return 'review';
+    case 'read':
+    case 'ack':
+      return 'acknowledge';
     default:
       return null;
   }
 }
+
+/** Sources that ask the caller to read and confirm (the acknowledge lane, older backend). */
+const ACK_SOURCES: readonly string[] = ['document_ack'];
+/** Sources of the caller's own courses (the training lane, older backend). */
+const TRAINING_SOURCES: readonly string[] = ['training_due'];
+
+/** The lane of an item: the backend's `lane`, or the same rule computed here. */
+export function laneOf(item: WorkItem): WorkLane {
+  if (item.lane) {
+    return item.lane;
+  }
+  if (REVIEW_SOURCES.includes(item.source)) {
+    return 'review';
+  }
+  if (ACK_SOURCES.includes(item.source)) {
+    return 'acknowledge';
+  }
+  return TRAINING_SOURCES.includes(item.source) ? 'training' : 'work';
+}
+
+/** Is the item on list tab `tab`? Time tabs follow the group, the others the lane. */
+export function inTab(item: WorkItem, tab: ListTab, today: string): boolean {
+  if (tab === 'acknowledge' || tab === 'training') {
+    return laneOf(item) === tab;
+  }
+  return groupOf(item, today) === TAB_GROUP[tab];
+}
+
+/** `?scope=` value -> the Mine / All switch (default mine). */
+export function parseScope(value: string | null | undefined): WorkScope {
+  return value === 'all' ? 'all' : 'mine';
+}
+export const WORK_SCOPES: readonly WorkScope[] = ['mine', 'all'];
 
 /** Sources that ask the caller to review or approve something (the review tab). */
 export const REVIEW_SOURCES: readonly string[] = [
@@ -73,29 +138,43 @@ export function groupOf(item: WorkItem, today: string): WorkGroup {
   return day && day <= addDays(today, THIS_WEEK_DAYS) ? 'this_week' : 'later';
 }
 
-export type TabCounts = Readonly<Record<WorkTab, number>>;
+export type TabCounts = Readonly<Record<ListTab, number>>;
 
+/** Items per list tab. The time tabs add up to the total; the lane tabs overlap them. */
 export function countTabs(items: readonly WorkItem[], today: string): TabCounts {
-  const counts: Record<WorkTab, number> = { overdue: 0, this_week: 0, later: 0, review: 0 };
+  const counts: Record<ListTab, number> = {
+    overdue: 0,
+    this_week: 0,
+    later: 0,
+    review: 0,
+    acknowledge: 0,
+    training: 0,
+  };
   for (const item of items) {
     const group = groupOf(item, today);
-    const tab = WORK_TABS.find((t) => TAB_GROUP[t] === group) ?? 'later';
-    counts[tab]++;
+    counts[TIME_TABS.find((t) => TAB_GROUP[t] === group) ?? 'later']++;
+    const lane = laneOf(item);
+    if (lane === 'acknowledge' || lane === 'training') {
+      counts[lane]++;
+    }
   }
   return counts;
 }
 
-/** The tab to open without `?tab=`: the first one with something in it. */
-export function defaultTab(counts: TabCounts): WorkTab {
-  return WORK_TABS.find((tab) => counts[tab] > 0) ?? 'overdue';
+/** The tab to open without `?tab=`: the first time tab with something in it. */
+export function defaultTab(counts: TabCounts): ListTab {
+  return TIME_TABS.find((tab) => counts[tab] > 0) ?? 'overdue';
 }
 
 export interface WorkFilters {
   /** `all` or a module key. */
   readonly module: string;
-  /** `all` or a source key (the item type). */
+  /** `all`, a source key (the item type) or `recurring` (U08: from recurring tasks). */
   readonly source: string;
 }
+
+/** The type filter's value for "recurring tasks" (U08). */
+export const RECURRING_FILTER = 'recurring';
 
 export const NO_FILTERS: WorkFilters = { module: 'all', source: 'all' };
 
@@ -195,7 +274,9 @@ function fallbackReason(item: WorkItem): string {
 export function filterWorkItems(items: readonly WorkItem[], filters: WorkFilters): WorkItem[] {
   return items.filter(
     (item) =>
-      (filters.source === 'all' || item.source === filters.source) &&
+      (filters.source === 'all' ||
+        item.source === filters.source ||
+        (filters.source === RECURRING_FILTER && !!item.recurring)) &&
       (filters.module === 'all' || item.module === filters.module),
   );
 }

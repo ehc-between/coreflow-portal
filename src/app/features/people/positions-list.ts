@@ -83,6 +83,7 @@ const PAGE_SIZE = 50;
       searchPlaceholderKey="people.positions.searchPlaceholder"
       [query]="q()"
       [filters]="viewFilters()"
+      [moreFiltersActive]="risk() ? 1 : 0"
       [empty]="showEmpty()"
       (search)="setQuery($event)"
       (viewApplied)="applyView($event)"
@@ -135,22 +136,23 @@ const PAGE_SIZE = 50;
           </option>
         }
       </select>
-      <label filters class="sr-only" for="cf-pos-risk">
-        {{ 'people.filters.risk' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-pos-risk"
-        [class]="selectClass"
-        (change)="setRisk($any($event.target).value)"
-      >
-        <option value="" [selected]="!risk()">{{ 'people.filters.anyRisk' | transloco }}</option>
-        @for (r of risks; track r) {
-          <option [value]="r" [selected]="risk() === r">
-            {{ 'people.riskLevels.' + r | transloco }}
-          </option>
-        }
-      </select>
+      <div more-filters class="flex flex-col gap-1">
+        <label for="cf-pos-risk" class="text-meta font-semibold text-fg-muted">
+          {{ 'people.filters.risk' | transloco }}
+        </label>
+        <select
+          id="cf-pos-risk"
+          [class]="selectClass"
+          (change)="setRisk($any($event.target).value)"
+        >
+          <option value="" [selected]="!risk()">{{ 'people.filters.anyRisk' | transloco }}</option>
+          @for (r of risks; track r) {
+            <option [value]="r" [selected]="risk() === r">
+              {{ 'people.riskLevels.' + r | transloco }}
+            </option>
+          }
+        </select>
+      </div>
 
       <app-card [padded]="false">
         @if (view() === 'chart') {

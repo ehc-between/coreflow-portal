@@ -30,6 +30,7 @@ import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
@@ -83,6 +84,7 @@ type FilterKey = 'type_id' | 'standard' | 'severity' | 'source' | 'department_id
     ErrorState,
     HelpStrip,
     Icon,
+    KpiBand,
     KpiTile,
     LoadingState,
     ModuleNav,
@@ -180,11 +182,7 @@ type FilterKey = 'type_id' | 'standard' | 'severity' | 'source' | 'department_id
             bodyKey="deviations.stats.emptyBody"
           />
         } @else {
-          <div
-            class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
-            role="group"
-            [attr.aria-label]="'deviations.stats.kpisLabel' | transloco"
-          >
+          <app-kpi-band scope="deviations.stats">
             <app-kpi-tile
               link="/deviations"
               [queryParams]="drill({ active: 'true' })"
@@ -228,7 +226,7 @@ type FilterKey = 'type_id' | 'standard' | 'severity' | 'source' | 'department_id
               [value]="s.kpis?.recurring ?? 0"
               [tone]="(s.kpis?.recurring ?? 0) > 0 ? 'warn' : 'neutral'"
             />
-          </div>
+          </app-kpi-band>
 
           <div class="mb-5 grid gap-4 lg:grid-cols-3">
             <app-card class="lg:col-span-2">
