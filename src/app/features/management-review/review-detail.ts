@@ -12,6 +12,7 @@ import {
   signal,
   untracked,
   Injector,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -27,8 +28,19 @@ import { AskPanelService } from '../ask/ask-panel.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
-import { RecordDetailLayout, RecordTab } from '../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe } from '../../shared/locale/locale-pipes';
+import { EntityChip, EntityChipRef } from '../../shared/kit/entity-chip';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../shared/kit/record-detail-layout';
+import {
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+  StatusLineTone,
+} from '../../shared/kit/record-sections';
+import { LocalDatePipe, LocalDayPipe, formatLocalDate } from '../../shared/locale/locale-pipes';
 import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -48,7 +60,7 @@ import { AssessmentCriteriaView, CriteriaDraft } from './components/assessment-c
 import { FieldLabel } from './components/field-label';
 import { InputRowChange, ReviewInputRow } from './components/review-input-row';
 import { MeetingWorkspace } from './components/meeting-workspace';
-import { SignoffChecklist } from './components/signoff-checklist';
+import { SignoffChecklist, checklist } from './components/signoff-checklist';
 import { ManagementReviewApi } from './data/management-review-api';
 import { missingForSubmit, mrErrorCode, mrErrorKey } from './data/management-review-errors';
 import {
@@ -60,6 +72,7 @@ import {
   Decision,
   DecisionCategory,
   MeetingDetail,
+  NeighbourReview,
   ReviewAction,
   ReviewDetail,
   ReviewInput,
@@ -74,14 +87,12 @@ import {
   MR_SCOPE,
   MR_SETTINGS_LINK,
   REVIEW_SECTIONS,
-  REVIEW_STEPS,
   ReviewSection,
   assessmentKey,
   decisionCategoryKey,
   defaultSection,
   frameworkKey,
   inputDone,
-  meetingStatusKey,
   mrCrumbs,
   reviewActionKey,
   reviewStatusKey,
@@ -258,6 +269,118 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
   return null;
 }
 
+/** The status sentence of the "Hovedinformasjon" card (docs/ux-guide.md §2.7). */
+export interface ReviewStatusSentence {
+  readonly key: string;
+  readonly params: Record<string, unknown>;
+  readonly tone: StatusLineTone;
+}
+
+/**
+ * "Pågår – 4 av 19 punkter i grunnlaget er gjennomgått …": the status word, a dash and
+ * what it means now. Open work is `warn` (never `fail`), signed is `pass`.
+ */
+export function reviewStatusSentence(
+  r: ReviewDetail,
+  date: (value: string | null | undefined) => string,
+): ReviewStatusSentence {
+  const base = 'managementReview.lead.status.';
+  switch (r.status) {
+    case 'planned':
+      return { key: `${base}planned`, params: {}, tone: 'info' };
+    case 'in_progress': {
+      const missing = r.submit_check?.missing ?? r.missing_for_submit;
+      if (r.submit_check && missing.length === 0) {
+        return { key: `${base}ready`, params: {}, tone: 'warn' };
+      }
+      return {
+        key: `${base}in_progress`,
+        params: { done: r.inputs.filter((i) => inputDone(i)).length, total: r.inputs.length },
+        tone: 'warn',
+      };
+    }
+    case 'awaiting_signoff':
+      return {
+        key: `${base}awaiting_signoff`,
+        params: { name: r.submitted_by?.name ?? '—', date: date(r.submitted_at) },
+        tone: 'warn',
+      };
+    case 'signed':
+      return {
+        key: `${base}signed`,
+        params: {
+          name: r.signature_name || r.signed_by?.name || '—',
+          date: date(r.signed_at),
+        },
+        tone: 'pass',
+      };
+    default:
+      return { key: `${base}cancelled`, params: { date: date(r.cancelled_at) }, tone: 'neutral' };
+  }
+}
+
+/**
+ * What the review still needs ("Oppfølging"): the sign-off items left (each opens the
+ * step that fixes it), then a missing period or owner (the edit page).
+ */
+export function reviewMissing(
+  r: ReviewDetail,
+  go: (item: SubmitRequirement) => void,
+  editLink: readonly unknown[],
+): RecordMissingItem[] {
+  const items: RecordMissingItem[] = [];
+  if (r.status === 'planned' || r.status === 'in_progress') {
+    for (const item of checklist(r)) {
+      if (!item.done) {
+        items.push({
+          key: item.key,
+          labelKey: `managementReview.lead.missing.${item.key}`,
+          params: item.params,
+          action: () => go(item.key),
+        });
+      }
+    }
+  }
+  if (r.can_edit && r.status !== 'signed' && r.status !== 'cancelled') {
+    if (!r.period_start && !r.period_end) {
+      items.push({
+        key: 'period',
+        labelKey: 'managementReview.lead.missing.period',
+        link: editLink,
+      });
+    }
+    if (!r.owner) {
+      items.push({ key: 'owner', labelKey: 'managementReview.lead.missing.owner', link: editLink });
+    }
+  }
+  return items;
+}
+
+/** A neighbour review or the review's meeting as an entity chip. */
+export function reviewChip(n: NeighbourReview): EntityChipRef {
+  return {
+    entity_type: 'management_review',
+    entity_id: n.id,
+    title: n.title,
+    code: n.code,
+    url: n.url,
+    status: n.status,
+    module: MR_MODULE,
+  };
+}
+
+export function meetingChip(m: MeetingDetail): EntityChipRef {
+  return {
+    entity_type: 'meeting',
+    entity_id: m.id,
+    title: m.title,
+    code: m.code,
+    url: `/management-review/meetings/${m.id}`,
+    status: m.status,
+    module: MR_MODULE,
+  };
+}
+
 /**
  * `/management-review/reviews/:id`: one management review end to end, split into
  * the four steps of the work (so one screen holds one job):
@@ -286,6 +409,10 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
     TourStepDirective,
     WhyItMatters,
     RecordDetailLayout,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    EntityChip,
     EntityTasks,
     Alert,
     Badge,
@@ -335,6 +462,7 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
       @case ('ready') {
         @if (review(); as r) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="management_review"
             [entityId]="r.id"
             [title]="r.title"
@@ -344,19 +472,18 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
             [canEdit]="r.can_edit"
             [fieldLabels]="fieldLabels"
             [requirementsPanel]="true"
+            [missing]="missing()"
           >
-            <ng-container meta>
+            <ng-container ngProjectAs="[meta]">
               <span class="font-mono">{{ r.code }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ 'managementReview.detail.type' | transloco }}</span>
               <span aria-hidden="true">·</span>
               <app-status-badge
                 meaning="lifecycle"
                 [value]="tone(r.status)"
                 [labelKey]="statusKey(r.status)"
               />
-              @if (r.frameworks.length) {
-                <span aria-hidden="true">·</span>
-                <span>{{ frameworksText() }}</span>
-              }
             </ng-container>
 
             @if (primary(); as a) {
@@ -389,9 +516,6 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
                 {{ 'managementReview.detail.edit' | transloco }}
               </button>
             }
-            <button appMenuItem overflow (click)="askSummary()">
-              {{ 'managementReview.ai.summarise' | transloco }}
-            </button>
             @if (allowed('return')) {
               <button appMenuItem overflow (click)="runAction('return')">
                 {{ actionKey('return') | transloco }}
@@ -408,6 +532,35 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askSummary()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'managementReview.ai.summarise' | transloco }}
+            </button>
+            @if (r.can_edit) {
+              <ng-container ngProjectAs="[ask]">
+                <button
+                  appMenuItem
+                  ask
+                  type="button"
+                  data-testid="ask-draft-summary"
+                  (click)="runAssist('draft')"
+                >
+                  <app-icon name="spark" [size]="15" />
+                  {{ 'managementReview.ai.draftSummary' | transloco }}
+                </button>
+                <button
+                  appMenuItem
+                  ask
+                  type="button"
+                  data-testid="ask-suggest-outputs"
+                  (click)="runAssist('suggest')"
+                >
+                  <app-icon name="spark" [size]="15" />
+                  {{ 'managementReview.ai.suggestOutputs' | transloco }}
+                </button>
+              </ng-container>
+            }
+
             <app-help-strip
               help
               [scope]="scope"
@@ -416,148 +569,67 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
               lesson="effective-review"
             />
 
-            <div class="flex flex-col gap-5">
-              @if (r.status === 'cancelled') {
-                <app-alert tone="info">{{
-                  'managementReview.detail.cancelledNotice'
-                    | transloco: { date: (r.cancelled_at | localDay) }
-                }}</app-alert>
-              } @else if (r.status === 'awaiting_signoff') {
-                <app-alert tone="info">{{
-                  'managementReview.detail.awaitingNotice'
-                    | transloco
-                      : {
-                          name: r.submitted_by?.name ?? '—',
-                          date: (r.submitted_at | localDate),
+            <!-- §2.7 Hovedinformasjon: where the review stands, the period, the meeting,
+                 what was concluded and the follow-up. -->
+            <app-record-lead record-lead data-testid="review-lead">
+              <app-record-status-line
+                status
+                [tone]="statusTone()"
+                appTourStep="mr-progress"
+                data-testid="review-status-line"
+              >
+                {{ statusSentence().key | transloco: statusSentence().params }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="managementReview.lead.period">
+                @if (r.period_start || r.period_end) {
+                  {{ (r.period_start | localDay) || '…' }} –
+                  {{ (r.period_end | localDay) || '…' }}
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="managementReview.lead.meeting">
+                @if (meetingRef(); as ref) {
+                  <span class="flex flex-col gap-1" data-testid="review-meeting">
+                    <app-entity-chip [ref]="ref" [statusText]="true" [stacked]="true" />
+                    <span class="text-meta text-fg-muted">
+                      @if (meetingWhen(); as when) {
+                        {{ when | localDate }}
+                      }
+                      @if (topManagement(); as tm) {
+                        @if (meetingWhen()) {
+                          ·
                         }
-                }}</app-alert>
-              } @else if (r.status === 'signed') {
-                <app-alert tone="success">{{
-                  'managementReview.detail.signedNotice'
-                    | transloco
-                      : {
-                          name: r.signature_name || r.signed_by?.name || '—',
-                          date: (r.signed_at | localDate),
-                        }
-                }}</app-alert>
-              }
-
-              <!-- overview -->
-              <app-card>
-                <ol
-                  class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-2"
-                  [attr.aria-label]="'managementReview.detail.progress' | transloco"
-                  appTourStep="mr-progress"
-                >
-                  @for (step of steps; track step; let i = $index) {
-                    <li
-                      class="flex items-center gap-2 text-meta"
-                      [attr.aria-current]="r.status === step ? 'step' : null"
+                        {{ 'managementReview.lead.topManagement' | transloco: tm }}
+                      }
+                    </span>
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item
+                size="lead"
+                labelKey="managementReview.lead.conclusions"
+                [value]="r.conclusions"
+                [multiline]="true"
+                [wide]="true"
+              />
+              <app-field-item size="lead" labelKey="managementReview.lead.actions" [wide]="true">
+                @if (r.actions.total > 0) {
+                  <span data-testid="action-stats">{{
+                    'managementReview.lead.actionStats'
+                      | transloco: { open: r.actions.open, done: r.actions.done }
+                  }}</span>
+                  @if (r.actions.overdue > 0) {
+                    <span class="text-warn-ink">
+                      ·
+                      {{
+                        'managementReview.lead.overdue' | transloco: { count: r.actions.overdue }
+                      }}</span
                     >
-                      <span
-                        class="flex h-6 w-6 items-center justify-center rounded-full border text-micro font-bold"
-                        [class]="
-                          stepIndex() > i
-                            ? 'border-pass bg-pass text-white'
-                            : stepIndex() === i
-                              ? 'border-accent bg-accent-soft text-accent'
-                              : 'border-border text-fg-subtle'
-                        "
-                      >
-                        @if (stepIndex() > i) {
-                          <app-icon name="check" [size]="12" />
-                        } @else {
-                          {{ i + 1 }}
-                        }
-                      </span>
-                      <span [class.font-semibold]="stepIndex() === i" class="text-fg">
-                        {{ statusKey(step) | transloco }}
-                      </span>
-                      @if (i < steps.length - 1) {
-                        <span class="hidden h-px w-6 bg-border sm:block" aria-hidden="true"></span>
-                      }
-                    </li>
                   }
-                </ol>
-                <app-field-list [columns]="2">
-                  <app-field-item
-                    labelKey="managementReview.fields.owner"
-                    [value]="r.owner?.name ?? null"
-                  />
-                  <app-field-item labelKey="managementReview.fields.period">
-                    @if (r.period_start || r.period_end) {
-                      {{ (r.period_start | localDay) || '…' }} –
-                      {{ (r.period_end | localDay) || '…' }}
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="managementReview.fields.meeting">
-                    @if (r.meeting; as m) {
-                      <a
-                        [routerLink]="['/management-review/meetings', m.id]"
-                        class="font-semibold text-accent hover:underline"
-                        >{{ m.code }}</a
-                      >
-                      · {{ meetingStatusKey(m.status) | transloco }}
-                      @if (m.held_at || m.scheduled_at) {
-                        · {{ m.held_at || m.scheduled_at | localDate }}
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="managementReview.detail.topManagement">
-                    @if (r.meeting?.attendance; as at) {
-                      @if (at.top_management_total > 0) {
-                        {{
-                          'managementReview.detail.topManagementValue'
-                            | transloco
-                              : {
-                                  present: at.top_management_present,
-                                  total: at.top_management_total,
-                                }
-                        }}
-                      }
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="managementReview.detail.actionsHeading" empty="none">
-                    @if (r.actions.total > 0) {
-                      <span data-testid="action-stats">{{
-                        'managementReview.detail.actionStats'
-                          | transloco
-                            : {
-                                open: r.actions.open,
-                                done: r.actions.done,
-                                overdue: r.actions.overdue,
-                              }
-                      }}</span>
-                    }
-                  </app-field-item>
-                  <app-field-item labelKey="managementReview.detail.neighbours" empty="none">
-                    @if (r.previous_review || r.next_review) {
-                      <span class="flex flex-wrap gap-x-3 gap-y-1">
-                        @if (r.previous_review; as p) {
-                          <a
-                            [routerLink]="p.url"
-                            class="font-semibold text-accent hover:underline"
-                            data-testid="previous-review"
-                            >‹
-                            {{
-                              'managementReview.detail.previous' | transloco: { code: p.code }
-                            }}</a
-                          >
-                        }
-                        @if (r.next_review; as n) {
-                          <a
-                            [routerLink]="n.url"
-                            class="font-semibold text-accent hover:underline"
-                            data-testid="next-review"
-                            >{{ 'managementReview.detail.next' | transloco: { code: n.code } }} ›</a
-                          >
-                        }
-                      </span>
-                    }
-                  </app-field-item>
-                </app-field-list>
-              </app-card>
+                }
+              </app-field-item>
+            </app-record-lead>
 
+            <div class="flex flex-col gap-5">
               <!-- step navigation -->
               <nav
                 class="sticky top-0 z-20 -mx-1 flex gap-1 overflow-x-auto bg-bg/95 px-1 py-1.5 backdrop-blur"
@@ -774,6 +846,8 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
                         </div>
                         @if (r.can_edit) {
                           <app-ai-assist-button
+                            #draftAssist
+                            variant="ghost"
                             [assist]="draftSummaryAssist"
                             labelKey="managementReview.ai.draftSummary"
                             entityType="management_review"
@@ -851,6 +925,8 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
                         </h2>
                         @if (r.can_edit) {
                           <app-ai-assist-button
+                            #suggestAssistBtn
+                            variant="ghost"
                             [assist]="suggestAssist"
                             labelKey="managementReview.ai.suggestOutputs"
                             entityType="management_review"
@@ -1114,64 +1190,109 @@ export function primaryAction(r: ReviewDetail): ReviewAction | null {
               />
             </div>
 
-            @if (r.previous_review; as p) {
-              <app-card aside>
-                <h2 class="text-card font-bold text-fg">
-                  {{ 'managementReview.previous.heading' | transloco }}
-                </h2>
-                <p class="mt-1 text-meta text-fg-muted">
-                  <a [routerLink]="p.url" class="font-semibold text-accent hover:underline">{{
-                    p.code
-                  }}</a>
-                  {{ p.title }}
-                  @if (p.signed_at) {
-                    ·
-                    {{
-                      'managementReview.previous.signed'
-                        | transloco: { date: (p.signed_at | localDay) }
-                    }}
-                  }
-                </p>
-                @if (p.actions; as a) {
-                  <p class="mt-2 text-meta text-fg">
-                    {{
-                      'managementReview.detail.actionStats'
-                        | transloco: { open: a.open, done: a.done, overdue: a.overdue }
-                    }}
-                  </p>
-                  @if (a.items.length) {
-                    <ul class="mt-2 flex flex-col gap-2" data-testid="previous-open-actions">
-                      @for (item of a.items; track item.decision_id) {
-                        <li class="flex flex-col gap-1 rounded-tile border border-border p-2">
-                          <span class="text-ui text-fg">{{ item.text }}</span>
-                          <span class="flex flex-wrap items-center gap-1.5 text-meta text-fg-muted">
-                            <app-status-badge
-                              meaning="lifecycle"
-                              [value]="item.overdue ? 'overdue' : tone(item.status)"
-                              [labelKey]="
-                                item.overdue
-                                  ? 'managementReview.actionStatus.overdue'
-                                  : 'managementReview.actionStatus.' + item.status
-                              "
-                            />
-                            @if (item.owner?.name) {
-                              {{ item.owner?.name }}
-                            }
-                            @if (item.task; as t) {
-                              <a
-                                [routerLink]="t.url"
-                                class="font-semibold text-accent hover:underline"
-                                >{{ 'managementReview.decisions.taskShort' | transloco }}</a
+            @if (r.previous_review || r.next_review) {
+              <div
+                follow-up-connections
+                class="mt-3 flex flex-col gap-3 border-t border-border pt-3"
+                data-testid="review-neighbours"
+              >
+                @if (r.previous_review; as p) {
+                  <div>
+                    <p class="text-meta font-semibold text-fg-muted">
+                      {{ 'managementReview.previous.heading' | transloco }}
+                    </p>
+                    <span class="mt-1 block" data-testid="previous-review">
+                      <app-entity-chip
+                        [ref]="neighbourRef(p)"
+                        [statusText]="true"
+                        [stacked]="true"
+                      />
+                    </span>
+                    @if (p.actions; as a) {
+                      @if (a.items.length) {
+                        <p class="mt-2 text-meta font-semibold text-fg-muted">
+                          {{
+                            'managementReview.previous.openActions'
+                              | transloco: { count: a.items.length }
+                          }}
+                        </p>
+                        <ul class="mt-1 flex flex-col gap-1.5" data-testid="previous-open-actions">
+                          @for (item of a.items; track item.decision_id) {
+                            <li class="flex flex-col gap-0.5 text-ui">
+                              <span class="text-fg">{{ item.text }}</span>
+                              <span
+                                class="flex flex-wrap items-center gap-1.5 text-meta text-fg-muted"
                               >
-                            }
-                          </span>
-                        </li>
+                                <app-status-badge
+                                  meaning="lifecycle"
+                                  [value]="item.overdue ? 'overdue' : tone(item.status)"
+                                  [labelKey]="
+                                    item.overdue
+                                      ? 'managementReview.actionStatus.overdue'
+                                      : 'managementReview.actionStatus.' + item.status
+                                  "
+                                />
+                                @if (item.owner?.name) {
+                                  {{ item.owner?.name }}
+                                }
+                                @if (item.task; as t) {
+                                  <a
+                                    [routerLink]="t.url"
+                                    class="font-semibold text-accent hover:underline"
+                                    >{{ 'managementReview.decisions.taskShort' | transloco }}</a
+                                  >
+                                }
+                              </span>
+                            </li>
+                          }
+                        </ul>
+                      } @else if (a.open + a.done + a.overdue > 0) {
+                        <p class="mt-1.5 text-meta text-fg-muted">
+                          {{ 'managementReview.previous.allDone' | transloco }}
+                        </p>
                       }
-                    </ul>
-                  }
+                    }
+                  </div>
                 }
-              </app-card>
+                @if (r.next_review; as n) {
+                  <div>
+                    <p class="text-meta font-semibold text-fg-muted">
+                      {{ 'managementReview.previous.nextHeading' | transloco }}
+                    </p>
+                    <span class="mt-1 block" data-testid="next-review">
+                      <app-entity-chip
+                        [ref]="neighbourRef(n)"
+                        [statusText]="true"
+                        [stacked]="true"
+                      />
+                    </span>
+                  </div>
+                }
+              </div>
             }
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.fields.owner"
+                [value]="r.owner?.name ?? null"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.lead.frameworks"
+                [value]="frameworksText() || null"
+              />
+              <app-field-item layout="inline" labelKey="managementReview.lead.compiledAt">
+                @if (r.inputs_compiled_at) {
+                  {{ r.inputs_compiled_at | localDate }}
+                }
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="managementReview.lead.updated"
+                [value]="r.updated_at | localDate"
+              />
+            </app-record-meta>
             <app-why-it-matters aside-learn [scope]="scope" page="detail" />
           </app-record-detail-layout>
 
@@ -1272,14 +1393,12 @@ export class ReviewDetailPage {
   protected readonly settingsLink = MR_SETTINGS_LINK;
   protected readonly tabs = TABS;
   protected readonly fieldLabels = REVIEW_FIELD_LABELS;
-  protected readonly steps = REVIEW_STEPS;
   protected readonly sections = REVIEW_SECTIONS;
   protected readonly outputFields = OUTPUT_FIELDS;
   protected readonly draftSummaryAssist = ASSIST_DRAFT_INPUT_SUMMARY;
   protected readonly suggestAssist = ASSIST_SUGGEST_OUTPUTS;
   protected readonly statusKey = reviewStatusKey;
   protected readonly tone = toneValue;
-  protected readonly meetingStatusKey = meetingStatusKey;
   protected readonly actionKey = reviewActionKey;
   protected readonly assessmentKey = assessmentKey;
   protected readonly categoryKey = decisionCategoryKey;
@@ -1358,10 +1477,6 @@ export class ReviewDetailPage {
       ? 'managementReview.errors.unsavedOutputs'
       : 'managementReview.signoff.disabledHint',
   );
-  protected readonly stepIndex = computed(() => {
-    const status = this.review()?.status;
-    return status === 'signed' ? REVIEW_STEPS.length : REVIEW_STEPS.indexOf(status ?? 'planned');
-  });
   /** The review as the sign-off checklist sees it (a refused submit wins). */
   protected readonly checked = computed(() => {
     const r = this.review();
@@ -1406,6 +1521,44 @@ export class ReviewDetailPage {
       title: this.review()?.title ?? '-',
     }),
   );
+
+  private readonly draftAssist = viewChild<AiAssistButton>('draftAssist');
+  private readonly suggestAssistBtn = viewChild<AiAssistButton>('suggestAssistBtn');
+
+  protected readonly statusSentence = computed(() => {
+    const r = this.review();
+    const locale = this.language.locale();
+    return r
+      ? reviewStatusSentence(r, (v) => formatLocalDate(v, 'mediumDate', locale))
+      : { key: '', params: {}, tone: 'neutral' as StatusLineTone };
+  });
+  protected readonly statusTone = computed(() => this.statusSentence().tone);
+  protected readonly missing = computed<RecordMissingItem[]>(() => {
+    const r = this.checked();
+    return r
+      ? reviewMissing(r, (item) => this.goToMissing(item), [
+          '/management-review/reviews',
+          r.id,
+          'edit',
+        ])
+      : [];
+  });
+  protected readonly meetingRef = computed(() => {
+    const m = this.review()?.meeting;
+    return m ? meetingChip(m) : null;
+  });
+  protected readonly meetingWhen = computed(() => {
+    const m = this.review()?.meeting;
+    return m?.held_at || m?.scheduled_at || null;
+  });
+  /** "Toppledelsen: 1 av 2 til stede", when the meeting has top management on its list. */
+  protected readonly topManagement = computed(() => {
+    const at = this.review()?.meeting?.attendance;
+    return at && at.top_management_total > 0
+      ? { present: at.top_management_present, total: at.top_management_total }
+      : null;
+  });
+  protected readonly neighbourRef = reviewChip;
 
   private request = new Subscription();
 
@@ -1468,6 +1621,15 @@ export class ReviewDetailPage {
         }),
       );
     }
+  }
+
+  /** "Spør KI": run a drafting assist from the header, in the step it fills. */
+  protected runAssist(which: 'draft' | 'suggest'): void {
+    this.goTo(which === 'draft' ? 'inputs' : 'outputs');
+    afterNextRender(
+      () => (which === 'draft' ? this.draftAssist() : this.suggestAssistBtn())?.run(),
+      { injector: this.injector },
+    );
   }
 
   // --- sections ------------------------------------------------------------------------

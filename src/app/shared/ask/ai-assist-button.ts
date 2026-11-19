@@ -109,6 +109,13 @@ export class AiAssistButton {
     inject(DestroyRef).onDestroy(() => this.stream?.cancel());
   }
 
+  /** Start a run from outside (e.g. a "Spør KI" menu item); no-op while one runs. */
+  run(): void {
+    if (!this.running()) {
+      this.start();
+    }
+  }
+
   protected toggle(): void {
     if (this.running()) {
       this.stream?.cancel();

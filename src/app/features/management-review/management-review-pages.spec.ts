@@ -27,8 +27,9 @@ import {
   ReviewDetail,
   ReviewSummary,
 } from './data/management-review.models';
+import { meetingConcerns, meetingMissing, meetingStatusSentence } from './meeting-detail';
 import { MeetingsList } from './meetings-list';
-import { ReviewDetailPage } from './review-detail';
+import { ReviewDetailPage, reviewMissing, reviewStatusSentence } from './review-detail';
 import { ReviewEditor } from './review-editor';
 import { ReviewsList } from './reviews-list';
 
@@ -780,5 +781,80 @@ describe('ReviewDetailPage', () => {
     expect(el.querySelector('#mr-out-conclusions')).toBeNull();
     expect(el.textContent).toContain('abc123');
     expect(el.querySelector('[data-testid="save-outputs"]')).toBeNull();
+  });
+});
+
+describe('detail-page anatomy (docs/ux-guide.md §2.7)', () => {
+  const day = (v: string | null | undefined) => v ?? '';
+
+  it('says where a review stands in one sentence', () => {
+    expect(reviewStatusSentence(makeDetail({ status: 'in_progress' }), day)).toEqual({
+      key: 'managementReview.lead.status.in_progress',
+      params: { done: 0, total: 1 },
+      tone: 'warn',
+    });
+    const signed = reviewStatusSentence(
+      makeDetail({ status: 'signed', signature_name: 'Ada', signed_at: '2026-12-11' }),
+      day,
+    );
+    expect(signed.key).toBe('managementReview.lead.status.signed');
+    expect(signed.params).toEqual({ name: 'Ada', date: '2026-12-11' });
+    expect(signed.tone).toBe('pass');
+  });
+
+  it('lists what a review still needs, each line opening its step', () => {
+    const go = vi.fn();
+    const items = reviewMissing(makeDetail({ status: 'in_progress', owner: null }), go, ['edit']);
+    expect(items.map((i) => i.key)).toEqual([
+      'inputs_reviewed',
+      'meeting_completed',
+      'conclusions',
+      'owner',
+    ]);
+    items[0].action?.();
+    expect(go).toHaveBeenCalledWith('inputs_reviewed');
+    expect(items[0].labelKey).toBe('managementReview.lead.missing.inputs_reviewed');
+    expect(reviewMissing(makeDetail({ status: 'signed' }), go, ['edit'])).toEqual([]);
+  });
+
+  it('says where a meeting stands and what it still needs', () => {
+    const held = makeMeeting({ status: 'completed', minutes_status: 'draft', chair: null });
+    expect(meetingStatusSentence(held, day).tone).toBe('warn');
+    const scroll = vi.fn();
+    const items = meetingMissing(held, scroll, ['edit']);
+    expect(items.map((i) => i.key)).toEqual(['chair', 'minutes']);
+    items[1].action?.();
+    expect(scroll).toHaveBeenCalledWith('mr-meeting-minutes');
+    const approved = makeMeeting({
+      status: 'completed',
+      minutes_status: 'approved',
+      minutes_approved_by: { id: 'u-1', name: 'Ada' },
+      minutes_approved_at: '2026-12-10',
+    });
+    expect(meetingStatusSentence(approved, day)).toEqual({
+      key: 'managementReview.meetingLead.status.approved',
+      params: { name: 'Ada', date: '2026-12-10' },
+      tone: 'pass',
+    });
+  });
+
+  it('shows the review a meeting belongs to first among what it concerns', () => {
+    const refs = meetingConcerns(
+      makeMeeting({
+        review: { id: 'r-1', code: 'MR-0001', title: 'Review', status: 'in_progress', url: '/r/1' },
+        related: [
+          {
+            link_id: 'l-1',
+            link_type: 'relates_to',
+            entity_type: 'deviation',
+            entity_id: 'd-1',
+            title: 'Fall',
+            code: 'HMS-1',
+          },
+        ],
+      }),
+    );
+    expect(refs.map((r) => r.code)).toEqual(['MR-0001', 'HMS-1']);
+    expect(refs[0].entity_type).toBe('management_review');
   });
 });
