@@ -126,14 +126,14 @@ export function noticeTone(status: NoticeStage['status']): string {
                   }
                 } @else if (s.due_at) {
                   {{ 'notices.due' | transloco: { date: (s.due_at | localDate) } }}
-                } @else {
+                } @else if (s.status !== 'not_required') {
                   {{ 'notices.withoutDelay' | transloco }}
                 }
               </p>
               <div class="mt-3 flex flex-wrap items-center gap-2">
                 <app-button
                   size="sm"
-                  [variant]="open() === s.key ? 'secondary' : 'primary'"
+                  variant="secondary"
                   [attr.aria-expanded]="open() === s.key"
                   (click)="toggle(s.key)"
                   data-testid="notice-toggle"
