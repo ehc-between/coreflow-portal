@@ -255,6 +255,38 @@
       "bodyWhistle": "Du har rett til å varsle om kritikkverdige forhold på arbeidsplassen. Varselet behandles fortrolig, og du kan være anonym.",
       "scan": "Skann koden med mobilkameraet, eller skriv inn adressen:",
       "file": "plakat-rapporter"
+    },
+    "page": {
+      "askLabel": "Spør KI",
+      "status": {
+        "new": "Ny – ingen har sett på rapporten ennå. Les den og avgjør hva som skal skje.",
+        "triaged": "Under behandling – avgjør om den skal bli et avvik eller lukkes.",
+        "converted": "Registrert som avvik – oppfølgingen skjer i avviket.",
+        "dismissed": "Lukket – rapporten førte ikke til et avvik."
+      },
+      "lead": {
+        "description": "Hva som ble rapportert",
+        "occurredOn": "Når det skjedde",
+        "location": "Hvor det skjedde"
+      },
+      "followUp": "Oppfølging",
+      "connected": "Ble til",
+      "notConverted": "Ikke registrert som avvik ennå.",
+      "deadline": {
+        "acknowledged": "Mottak bekreftet {{ date }}"
+      },
+      "meta": {
+        "received": "Mottatt",
+        "contact": "Kontakt",
+        "anonymous": "Anonym",
+        "handledBy": "Behandlet av"
+      },
+      "dialog": {
+        "triageTitle": "Starte behandlingen?",
+        "triageMessage": "Rapporten merkes som under behandling. Du kan skrive en melding som den som rapporterte, ser sammen med kvitteringskoden.",
+        "dismissTitle": "Lukke rapporten uten avvik?",
+        "dismissMessage": "Rapporten lukkes og blir ikke et avvik. Skriv gjerne hvorfor – den som rapporterte, ser meldingen sammen med kvitteringskoden."
+      }
     }
   },
   "publicReport": {
@@ -622,6 +654,64 @@
         "worked": "Ja, det virket",
         "failed": "Nei, trenger nytt tiltak"
       }
+    }
+  },
+  "page": {
+    "lead": {
+      "whatHappened": "Hva skjedde",
+      "immediateAction": "Hva ble gjort med en gang",
+      "rootCause": "Hvorfor det skjedde (rotårsak)",
+      "rootCauseNotNeeded": "Hvorfor det ikke trengs en årsaksanalyse",
+      "actions": "Tiltak",
+      "actionsNone": "Ingen tiltak ennå",
+      "seeActions": "Se alle tiltak ({{ done }} av {{ total }} fullført)"
+    },
+    "status": {
+      "open": "{{ status }} – saken er registrert, men ikke utredet ennå.",
+      "in_progress": "{{ status }} – saken er under arbeid.",
+      "overdue": "{{ status }} – fristen har gått ut.",
+      "ready": "{{ status }} – alt som kreves, er gjort. Saken kan lukkes.",
+      "done": "{{ status }} – saken er lukket.",
+      "cancelled": "{{ status }} – saken er avbrutt og følges ikke opp."
+    },
+    "details": {
+      "title": "Flere detaljer",
+      "source": "Hvor saken kom fra",
+      "createdFrom": "Opprettet fra"
+    },
+    "noRequirements": "Ingen krav er koblet til saken ennå.",
+    "typicalForType": "Vanlig for denne typen – klikk for å koble:",
+    "missing": {
+      "description": "Beskriv hva som skjedde",
+      "due": "Sett en frist",
+      "overdue": "Fristen har gått ut – sett en ny",
+      "owner": "Velg en eier",
+      "checks": {
+        "root_cause": "Finn rotårsaken",
+        "corrective_action_planned": "Planlegg et korrigerende tiltak",
+        "actions_done": "Fullfør tiltakene",
+        "effectiveness_reviewed": "Sjekk om tiltakene virket",
+        "authorities_notified": "Avklar om myndighetene må varsles"
+      }
+    },
+    "meta": {
+      "visibility": "Hvem kan se saken",
+      "noOwner": "Ingen eier",
+      "noDue": "Ikke satt",
+      "setDue": "Sett frist"
+    },
+    "access": {
+      "title": "Endre eier og tilgang"
+    },
+    "ai": {
+      "summarise": "Oppsummer saken",
+      "compare": "Sammenlign med lignende saker",
+      "ask": "Spør om saken",
+      "askPrompt": "Forklar avvik {{ code }} «{{ title }}»: hva skjedde, hva er gjort, og hva gjenstår før saken kan lukkes?"
+    },
+    "capa": {
+      "update": "Oppdater",
+      "done": "Ferdig"
     }
   }
 }

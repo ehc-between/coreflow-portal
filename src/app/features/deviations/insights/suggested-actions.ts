@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   Action,
@@ -59,6 +67,7 @@ export function dueInDays(days: number | null, today: Date = new Date()): string
         labelKey="deviations.assist.suggestActions"
         entityType="deviation"
         [entityId]="deviationId()"
+        [quiet]="quiet()"
         (result)="onResult($event)"
       />
       @if (suggestions().length) {
@@ -111,11 +120,20 @@ export class SuggestedActions {
   private readonly notifications = inject(NotificationService);
 
   readonly deviationId = input.required<string>();
+  /** Started from the page's "Spør KI" menu ({@link run}): no button of its own. */
+  readonly quiet = input(false);
   /** Fires with the created action. */
   readonly added = output<Action>();
 
   protected readonly suggestions = signal<readonly SuggestedAction[]>([]);
   protected readonly busy = signal<number | null>(null);
+
+  private readonly assist = viewChild(AiAssistButton);
+
+  /** Ask for suggestions (the "Spør KI" menu). */
+  run(): void {
+    this.assist()?.run();
+  }
 
   protected kindKey(kind: string): string {
     return actionKindLabelKey(kind);
