@@ -3,7 +3,7 @@
     "label": "Privacy registers",
     "overview": "Overview",
     "ropa": "Record of processing",
-    "dpia": "DPIAs",
+    "dpia": "Impact assessments (DPIA)",
     "dsr": "Requests",
     "breach": "Breaches",
     "processor": "Processors",
@@ -11,11 +11,17 @@
     "retention": "Retention",
     "consent": "Consents",
     "lba": "Legal basis",
-    "documents": "Documents and reports"
+    "documents": "Documents and reports",
+    "more": "More registers",
+    "groups": {
+      "ropa": "Processing",
+      "processors": "Processors and transfers",
+      "incidents": "Breaches and requests"
+    }
   },
   "overview": {
     "title": "Privacy and GDPR",
-    "subtitle": "Your record of processing, impact assessments, requests from individuals, personal data breaches, processors and transfers in one place.",
+    "subtitle": "What personal data you use, who processes it for you, and what to do when something happens.",
     "kpis": "Privacy key figures",
     "tiles": {
       "ropaActive": "Active processing records",
@@ -24,37 +30,39 @@
       "dsrOpen": "Open requests",
       "dsrOverdue": "Requests past their deadline",
       "dpiasOpen": "DPIAs in progress",
-      "dpiasRequiredUndecided": "DPIAs required but not decided",
+      "dpiasRequiredUndecided": "Required impact assessments (DPIA) not decided",
       "processorsWithoutDpa": "Processors without a data processing agreement (DPA)",
-      "transfersMissingTia": "Transfers without a transfer impact assessment (TIA)",
+      "transfersMissingTia": "Transfers without an assessment of the destination country (TIA)",
       "reviewsOverdue": "Reviews overdue",
-      "transfersUnsignedSafeguards": "Transfers on standard contractual clauses (SCC) without a signed agreement",
+      "transfersUnsignedSafeguards": "Transfers on the EU standard contract (SCC) without a signed agreement",
       "breachesActive": "Breaches being assessed (72-hour clock)",
       "retentionExecutionsDue": "Deletions overdue",
       "breachesAwaitingClosure": "Notified breaches waiting to be closed",
       "attention": "Selection from the overview"
     },
-    "breachesNow": "Personal data breaches that need action",
+    "breachesNow": "Breaches with a running deadline",
     "noBreaches": "No breaches with a running 72-hour deadline. Report a breach the moment you become aware of it.",
     "requestsNow": "Nearest response deadlines",
     "noRequests": "No open data subject requests.",
     "dueOn": "Due {{ date }}",
     "registers": "Registers",
-    "reportBreach": "Report a personal data breach",
+    "reportBreach": "Report a data breach",
     "attention": "To follow up now",
-    "nothingUrgent": "Nothing needs action right now: no breaches on the clock, no overdue requests and no missing agreements.",
+    "nothingUrgent": "You are up to date: no breaches on the clock, no overdue requests and no missing agreements.",
     "overdueSince": "Overdue since {{ date }}",
     "stats": "Key figures",
     "stat": {
       "ropa": "{{ active }} of {{ total }} processing activities active",
-      "dpias": "{{ count }} DPIAs in progress",
+      "dpias": "{{ count }} impact assessments (DPIA) in progress",
       "requests": "{{ count }} open requests",
       "breaches": "{{ count }} breaches not closed",
       "gaps": "{{ count }} gaps between the registers"
     },
     "contextSummary": "{{ gaps }} gaps, {{ breaches }} breaches being assessed, {{ requests }} open requests, {{ dpias }} DPIAs awaiting a decision.",
     "documents": "Documents and reports",
-    "documentsAll": "All documents and registers"
+    "documentsAll": "All documents and registers",
+    "newRequest": "Request from an individual",
+    "moreAlerts": "Show {{ count }} more alerts"
   },
   "registers": {
     "ropa": {
@@ -1234,5 +1242,32 @@
     "subtitle": "The records Datatilsynet and auditors ask for, made from what you have registered. See what is missing first, then make the document as PDF, Word or Excel.",
     "registers": "The registers as tables",
     "registersHint": "Each register as a spreadsheet or PDF, with the filters you choose."
+  },
+  "path": {
+    "title": "Get your privacy in order",
+    "progress": "{{ done }} of {{ total }} steps done",
+    "complete": "All four steps are done. Keep the records up to date when something changes.",
+    "steps": {
+      "ropa": {
+        "title": "Map your processing",
+        "body": "Write down what personal data you use and why: payroll, customers, newsletter, cameras. This becomes your record of processing.",
+        "cta": "Map your processing"
+      },
+      "processors": {
+        "title": "Processors and agreements",
+        "body": "Suppliers that process personal data for you, and whether the agreement with them (data processing agreement) is signed.",
+        "cta": "Review the suppliers"
+      },
+      "dpia": {
+        "title": "Assess the risk (DPIA)",
+        "body": "A risk assessment before you start something new with personal data, such as tracking or health data (data protection impact assessment).",
+        "cta": "Assess the risk"
+      },
+      "documents": {
+        "title": "Make the documents",
+        "body": "The record of processing, the privacy notice and the processor list, made from what you have registered.",
+        "cta": "Make the documents"
+      }
+    }
   }
 }

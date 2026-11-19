@@ -56,6 +56,7 @@ import {
 import { PrivacyRegisterExport } from './privacy-register-export';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
+import { PrivacyGroupSwitch } from './privacy-group-switch';
 
 const PAGE_SIZE = 25;
 
@@ -122,6 +123,7 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
     RecordRowHeader,
     StatusBadge,
     PrivacyRegisterExport,
+    PrivacyGroupSwitch,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -160,7 +162,13 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
         [statuses]="exportStatuses()"
       />
 
-      <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-module-nav
+        nav
+        labelKey="modules.names.privacy"
+        moreLabelKey="privacy.nav.more"
+        [items]="nav()"
+      />
+      <app-privacy-group-switch nav [register]="def().key" />
       <app-fulfils-requirements help />
       <app-help-strip help scope="privacy" [page]="def().key" [lesson]="def().lesson" />
 
