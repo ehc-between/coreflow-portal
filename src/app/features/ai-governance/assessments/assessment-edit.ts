@@ -13,7 +13,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../../shared/ask/form-suggest';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -75,7 +79,7 @@ export function mergeDraft(
     ErrorState,
     LoadingState,
     TranslocoPipe,
-    AiAssistButton,
+    FormSuggest,
     AskAbout,
     Alert,
     Button,
@@ -96,20 +100,6 @@ export function mergeDraft(
       [backLink]="['/ai-governance/assessments', id()]"
       backLabelKey="aiGovernance.assessmentEdit.back"
     >
-      <div secondary>
-        @if (assessment(); as a) {
-          @if (a.status === 'draft' && a.kind !== 'classification') {
-            <app-ai-assist-button
-              assist="ai_governance.draft_assessment"
-              labelKey="aiGovernance.ai.draftAssessment"
-              [input]="{ assessment_id: a.id }"
-              entityType="ai_assessment"
-              [entityId]="a.id"
-              (result)="applyDraft($event)"
-            />
-          }
-        }
-      </div>
       @if (loadError()) {
         <app-error-state (retry)="reload.update((n) => n + 1)" />
       } @else if (assessment(); as a) {
@@ -134,6 +124,15 @@ export function mergeDraft(
             (submit)="$event.preventDefault(); save()"
             novalidate
           >
+            <app-form-suggest
+              [suggestKey]="'ai_governance.' + a.kind"
+              labelKey="ask.formSuggest.labels.assessment"
+              [fields]="suggestFields()"
+              [values]="suggestValues()"
+              [context]="{ from: 'ai_governance', assessment_id: a.id }"
+              [editing]="hasAnswers()"
+              (applied)="applySuggestion($event)"
+            />
             <app-card>
               <p class="mb-3 text-ui text-fg-muted">
                 {{ kindKey(a.kind) | transloco }} · {{ a.ai_system.code }} {{ a.ai_system.name }}
@@ -356,17 +355,37 @@ export class AiAssessmentEdit {
     }
   }
 
-  protected applyDraft(data: unknown): void {
-    const { sections, filled } = mergeDraft(this.sections(), data, this.sectionKeys());
-    this.sections.set(sections);
-    this.notifications.info(
-      filled === 0
-        ? 'aiGovernance.assessmentEdit.nothingDrafted'
-        : filled === 1
-          ? 'aiGovernance.assessmentEdit.draftedOne'
-          : 'aiGovernance.assessmentEdit.drafted',
-      { count: filled },
-    );
+  protected readonly suggestFields = computed((): readonly FormSuggestFieldDef[] => {
+    const kind = this.assessment()?.kind ?? 'impact';
+    return [
+      { name: 'title', labelKey: 'aiGovernance.fields.title' },
+      ...this.sectionKeys().map((key) => ({
+        name: key,
+        labelKey: this.sectionKey(kind, key),
+        long: true,
+      })),
+    ];
+  });
+  protected readonly suggestValues = computed(() => ({
+    title: this.title(),
+    ...this.sections(),
+  }));
+  protected readonly hasAnswers = computed(() =>
+    Object.values(this.sections()).some((text) => text.trim()),
+  );
+
+  /** Accepted suggestions fill the sections; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const title = accepted['title']?.value;
+    if (typeof title === 'string') {
+      this.title.set(title.slice(0, 200));
+    }
+    for (const key of this.sectionKeys()) {
+      const text = accepted[key]?.value;
+      if (typeof text === 'string') {
+        this.setSection(key, text);
+      }
+    }
   }
 
   protected back(): void {

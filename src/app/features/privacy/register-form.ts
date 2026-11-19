@@ -22,7 +22,7 @@ import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
-import { DpiaRisk, LiaDraft, RopaDraft, ScreeningSuggestion } from './data/privacy.models';
+import { DpiaRisk, LiaDraft } from './data/privacy.models';
 import { ISO_COUNTRY_CODES } from './data/privacy-countries';
 import { classifyCountry, countryStatusKey, suggestedMechanism } from './data/privacy-display';
 import { PrivacyErrorMessage } from './data/privacy-errors';
@@ -33,11 +33,17 @@ import {
   fieldsFor,
   isVisible,
   mergeLiaDraft,
-  mergeRopaDraft,
   validate,
 } from './data/privacy-form-model';
 import { PrivacyRefsService } from './data/privacy-refs.service';
 import { FieldDef, FormValues, RegisterDef, fieldLabelKey } from './data/privacy-registers';
+import { AcceptedSuggestion, FormSuggest } from '../../shared/ask/form-suggest';
+import {
+  privacySuggestFields,
+  privacySuggestKey,
+  privacySuggestPatch,
+  privacySuggestValues,
+} from './privacy-suggest';
 import { RecordPicker } from './fields/record-picker';
 import { RisksField } from './fields/risks-field';
 import { ScreeningField } from './fields/screening-field';
@@ -75,8 +81,8 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
  * descriptor (`data/privacy-registers.ts`): sections, field kinds, conditional
  * fields, inline field help and required checks. Links to other records are picked
  * from their registers, countries from the ISO list (with their chapter V status).
- * AI helpers: draft a ROPA entry from a description and check its Art. 30
- * completeness, screen the DPIA need, draft a breach assessment, a legitimate-interest
+ * AI helpers: "Foreslå" at the top fills a whole ROPA entry or DPIA (reviewed field
+ * by field), check a ROPA entry's Art. 30 completeness, draft a breach assessment, a legitimate-interest
  * assessment and a transfer assessment. A new breach starts in "Registrer raskt" (three
  * fields) so the clock starts at once.
  */
@@ -86,6 +92,7 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
     TranslocoPipe,
     MarkdownPipe,
     AiAssistButton,
+    FormSuggest,
     AskAbout,
     FieldHelp,
     Alert,
@@ -117,46 +124,17 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
         </app-alert>
       }
 
-      @if (register().key === 'ropa' && mode() === 'create') {
-        <app-card>
-          <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
-            <app-icon name="spark" [size]="16" />
-            {{ 'privacy.ai.ropaTitle' | transloco }}
-          </h2>
-          <p class="mb-3 text-ui text-fg-muted">{{ 'privacy.ai.ropaHint' | transloco }}</p>
-          <label class="sr-only" for="cf-pf-ai-description">
-            {{ 'privacy.ai.describeLabel' | transloco }}
-          </label>
-          <textarea
-            id="cf-pf-ai-description"
-            rows="3"
-            maxlength="6000"
-            class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
-            [placeholder]="'privacy.ai.ropaPlaceholder' | transloco"
-            [value]="aiDescription()"
-            (input)="aiDescription.set($any($event.target).value)"
-            data-testid="ropa-ai-description"
-          ></textarea>
-          <div class="mt-2">
-            <app-ai-assist-button
-              assist="privacy.draft_ropa"
-              [input]="{ description: aiDescription() }"
-              labelKey="privacy.ai.draftRopa"
-              [disabled]="!aiDescription().trim()"
-              (result)="applyRopaDraft($event)"
-            />
-          </div>
-          @if (aiNotes(); as notes) {
-            <app-alert tone="info" class="mt-3 block">
-              {{ 'privacy.ai.notes' | transloco: { notes } }}
-            </app-alert>
-          }
-          @if (aiApplied()) {
-            <p class="mt-2 text-meta text-fg-muted" role="status">
-              {{ 'privacy.ai.applied' | transloco }}
-            </p>
-          }
-        </app-card>
+      @if (suggestKey(); as key) {
+        <app-form-suggest
+          [suggestKey]="key"
+          [labelKey]="'ask.formSuggest.labels.' + register().key"
+          [fields]="suggestFields()"
+          [values]="suggestValues()"
+          [context]="{ from: 'privacy', register: register().key }"
+          [editing]="mode() === 'edit'"
+          [titleOnly]="suggestTitleOnly()"
+          (applied)="applySuggestion($event)"
+        />
       }
 
       @if (register().key === 'ropa' && mode() === 'edit' && entityId()) {
@@ -221,18 +199,6 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
                       [rationale]="rationale()"
                       (valueChange)="set('screening', $event)"
                     />
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                      <app-ai-assist-button
-                        assist="privacy.screen_dpia"
-                        [input]="{ description: screeningText() }"
-                        labelKey="privacy.ai.screenDpia"
-                        [disabled]="!screeningText().trim()"
-                        (result)="applyScreening($event)"
-                      />
-                      @if (screeningSummary(); as summary) {
-                        <p class="text-meta text-fg-muted" role="status">{{ summary }}</p>
-                      }
-                    </div>
                   }
                   @case ('risks') {
                     <app-privacy-risks-field
@@ -671,12 +637,8 @@ export class PrivacyRegisterForm {
   );
   protected readonly quickMode = computed(() => this.quick());
 
-  protected readonly aiDescription = signal('');
-  protected readonly aiNotes = signal<string | null>(null);
-  protected readonly aiApplied = signal(false);
   protected readonly liaApplied = signal(false);
   protected readonly rationale = signal<Readonly<Record<string, string>>>({});
-  protected readonly screeningSummary = signal<string | null>(null);
   protected readonly breachDraft = signal<string | null>(null);
   protected readonly tiaDraft = signal<string | null>(null);
   protected readonly ropaCheck = signal<string | null>(null);
@@ -753,12 +715,6 @@ export class PrivacyRegisterForm {
   );
   protected readonly risksValue = computed(
     () => (this.form()['risks'] as readonly DpiaRisk[]) ?? [],
-  );
-  protected readonly screeningText = computed(() =>
-    [this.form()['title'], this.form()['description'], this.form()['necessity_assessment']]
-      .map((v) => String(v ?? '').trim())
-      .filter(Boolean)
-      .join('\n\n'),
   );
   protected readonly breachText = computed(() =>
     [this.form()['title'], this.form()['description'], this.form()['consequences']]
@@ -867,14 +823,25 @@ export class PrivacyRegisterForm {
     this.set(key, checked ? [...current, option] : current);
   }
 
-  protected applyRopaDraft(result: unknown): void {
-    if (!result || typeof result !== 'object') {
-      return;
-    }
-    const draft = result as RopaDraft;
-    this.form.update((v) => mergeRopaDraft(v, draft));
-    this.aiNotes.set(typeof draft.notes === 'string' && draft.notes.trim() ? draft.notes : null);
-    this.aiApplied.set(true);
+  // --- whole-form suggestion (ROPA, DPIA) ------------------------------------------
+
+  protected readonly suggestKey = computed(() => privacySuggestKey(this.register()));
+  protected readonly suggestFields = computed(() =>
+    privacySuggestFields(this.register(), (key, params) => this.i18n.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    privacySuggestValues(this.register(), this.form()),
+  );
+  protected readonly suggestTitleOnly = computed(() => {
+    const values = this.form();
+    const filled = (key: string) => String(values[key] ?? '').trim().length > 0;
+    return filled('title') && !filled('purposes') && !filled('necessity_assessment');
+  });
+
+  /** Accepted suggestions fill the form; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const change = privacySuggestPatch(this.register(), accepted);
+    this.form.update((v) => ({ ...v, ...change }));
   }
 
   protected applyLiaDraft(result: unknown): void {
@@ -883,18 +850,6 @@ export class PrivacyRegisterForm {
     }
     this.form.update((v) => mergeLiaDraft(v, result as LiaDraft));
     this.liaApplied.set(true);
-  }
-
-  protected applyScreening(result: unknown): void {
-    if (!result || typeof result !== 'object') {
-      return;
-    }
-    const s = result as ScreeningSuggestion;
-    if (s.screening && typeof s.screening === 'object') {
-      this.set('screening', { ...s.screening });
-    }
-    this.rationale.set(s.rationale ?? {});
-    this.screeningSummary.set(s.summary ?? null);
   }
 
   protected useBreachDraft(): void {

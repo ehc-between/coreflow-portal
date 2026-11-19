@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   inject,
@@ -15,7 +16,11 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../../shared/ask/form-suggest';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -28,7 +33,6 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
 import { blankToNull } from '../data/supplier-display';
 import { supplierErrorKey } from '../data/supplier-errors';
 import {
-  DraftQuestionnaireResult,
   EVALUATION_KINDS,
   EvaluationKind,
   QuestionIn,
@@ -47,13 +51,13 @@ import {
 /**
  * Create or edit an org questionnaire template (`/settings/modules/suppliers/questionnaires/new`,
  * `…/:qid/edit`; `suppliers:manage`). `?from=<template id>` starts from a copy (e.g.
- * of a built-in template). The assistant can draft questions for the kind and focus.
+ * of a built-in template). "Foreslå spørreskjema" proposes the whole questionnaire.
  */
 @Component({
   selector: 'app-questionnaire-editor',
   imports: [
     TranslocoPipe,
-    AiAssistButton,
+    FormSuggest,
     Alert,
     Button,
     Card,
@@ -95,6 +99,16 @@ import {
         <app-alert>{{ 'suppliers.questionnaires.notFound' | transloco }}</app-alert>
       } @else {
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <app-form-suggest
+            suggestKey="suppliers.questionnaire"
+            labelKey="ask.formSuggest.labels.questionnaire"
+            [fields]="suggestFields()"
+            [values]="suggestValues()"
+            [context]="{ from: 'suppliers' }"
+            [editing]="!!qid()"
+            [titleOnly]="!!name().trim() && !hasQuestions()"
+            (applied)="applySuggestion($event)"
+          />
           <app-card>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div class="sm:col-span-2">
@@ -164,25 +178,6 @@ import {
               <h2 class="font-display text-card font-bold text-fg">
                 {{ 'suppliers.evaluation.questions' | transloco }}
               </h2>
-              <div class="flex flex-wrap items-end gap-2">
-                <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                  {{ 'suppliers.questionnaires.focus' | transloco }}
-                  <input
-                    type="text"
-                    maxlength="200"
-                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
-                    [placeholder]="'suppliers.questionnaires.focusPlaceholder' | transloco"
-                    [value]="focus()"
-                    (input)="focus.set($any($event.target).value)"
-                  />
-                </label>
-                <app-ai-assist-button
-                  assist="suppliers.draft_questionnaire"
-                  labelKey="suppliers.ai.draftQuestions"
-                  [input]="{ kind: kind(), count: 8, focus: focus() || null }"
-                  (result)="addDrafted($event)"
-                />
-              </div>
             </div>
             <app-question-editor
               [questions]="questions()"
@@ -225,7 +220,6 @@ export class QuestionnaireEditor {
   protected readonly kind = signal<EvaluationKind>('initial');
   protected readonly description = signal('');
   protected readonly passScore = signal(70);
-  protected readonly focus = signal('');
   protected readonly questions = signal<readonly EditableQuestion[]>([blankQuestion()]);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -251,15 +245,69 @@ export class QuestionnaireEditor {
     });
   }
 
-  protected addDrafted(result: unknown): void {
-    const drafted = (result as DraftQuestionnaireResult | null)?.questions;
-    if (!Array.isArray(drafted)) {
-      return;
+  protected readonly suggestFields = computed((): readonly FormSuggestFieldDef[] => {
+    const t = (key: string): string => this.language.translate(key);
+    return [
+      { name: 'name', labelKey: 'suppliers.questionnaires.name' },
+      {
+        name: 'kind',
+        labelKey: 'suppliers.evaluations.kind',
+        format: (value) => t(`suppliers.evaluationKind.${String(value)}`),
+      },
+      { name: 'description', labelKey: 'suppliers.questionnaires.description', long: true },
+      { name: 'pass_score', labelKey: 'suppliers.evaluation.passScore' },
+      {
+        name: 'questions',
+        labelKey: 'suppliers.evaluation.questions',
+        format: (value) =>
+          (Array.isArray(value) ? value : [])
+            .map((q) => String((q as { text?: unknown }).text ?? ''))
+            .join(' · '),
+      },
+    ];
+  });
+  protected readonly hasQuestions = computed(() => this.questions().some((q) => q.text.trim()));
+  protected readonly suggestValues = computed(() => ({
+    name: this.name(),
+    kind: this.kind(),
+    description: this.description(),
+    pass_score: this.passScore(),
+    questions: toQuestionIn(this.questions()).map((q) => ({
+      text: q.text,
+      help: q.help ?? '',
+      category: q.category ?? 'general',
+      type: q.type,
+      weight: q.weight ?? 1,
+      critical: !!q.critical,
+    })),
+  }));
+
+  /** Accepted suggestions fill the form (questions replace the blank / current ones). */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const value = (name: string): unknown => accepted[name]?.value;
+    if (typeof value('name') === 'string') {
+      this.name.set(value('name') as string);
     }
-    const rows = (drafted as QuestionIn[])
-      .filter((q) => typeof q?.text === 'string' && q.text.trim())
-      .map((q) => toEditable({ ...q, id: null }));
-    this.questions.update((current) => [...current.filter((q) => q.text.trim()), ...rows]);
+    const kind = value('kind');
+    if (typeof kind === 'string' && (this.kinds as readonly string[]).includes(kind)) {
+      this.kind.set(kind as EvaluationKind);
+    }
+    if (typeof value('description') === 'string') {
+      this.description.set(value('description') as string);
+    }
+    const pass = value('pass_score');
+    if (typeof pass === 'number' && pass >= 0 && pass <= 100) {
+      this.passScore.set(pass);
+    }
+    const drafted = value('questions');
+    if (Array.isArray(drafted)) {
+      const rows = (drafted as QuestionIn[])
+        .filter((q) => typeof q?.text === 'string' && q.text.trim())
+        .map((q) => toEditable({ ...q, id: null }));
+      if (rows.length) {
+        this.questions.set(rows);
+      }
+    }
   }
 
   protected save(): void {

@@ -56,6 +56,12 @@ import {
   updateBody,
 } from './context-draft';
 import { KindFields } from './kind-fields';
+import { suggestDefs } from '../../../shared/ask/form-suggest-map';
+import {
+  CONTEXT_SUGGEST_FIELDS,
+  contextSuggestPatch,
+  contextSuggestValues,
+} from './context-suggest';
 import {
   POLICY_SUGGEST_KEY,
   policyPatch,
@@ -149,6 +155,17 @@ export function seededDraft(
                 [titleOnly]="!!draft().title.trim() && !draft().statement.trim()"
                 (offerPicked)="startFromOffer($event)"
                 (applied)="applyPolicySuggestion($event)"
+              />
+            } @else if (recordSuggest(); as rs) {
+              <app-form-suggest
+                [suggestKey]="rs.key"
+                [labelKey]="rs.labelKey"
+                [fields]="rs.fields"
+                [values]="recordValues()"
+                [context]="suggestContext()"
+                [editing]="editing()"
+                [titleOnly]="recordTitleOnly()"
+                (applied)="applyRecordSuggestion($event)"
               />
             }
             <p class="text-meta text-fg-muted">
@@ -456,10 +473,52 @@ export class ContextForm {
   protected readonly policyValues = computed(() => policySuggestValues(this.draft()));
   protected readonly suggestContext = computed(() => ({
     from: 'context',
-    form: 'policy',
+    form: this.kind(),
     created_from: this.flow()?.source?.title ?? null,
     requirement: this.flow()?.requirementRef ?? null,
   }));
+
+  // --- whole-form suggestion (scope, analysis, party, responsibility) --------------
+
+  protected readonly recordSuggest = computed(() => {
+    const kind = this.kind();
+    if (kind === 'policy') {
+      return null;
+    }
+    return {
+      kind,
+      key: `context.${kind}`,
+      labelKey: `ask.formSuggest.labels.${kind}`,
+      fields: suggestDefs(CONTEXT_SUGGEST_FIELDS[kind], (key, params) =>
+        this.language.translate(key, params),
+      ),
+    };
+  });
+  protected readonly recordValues = computed(() => {
+    const kind = this.kind();
+    return kind === 'policy' ? {} : contextSuggestValues(kind, this.draft());
+  });
+  /** Only the title is filled in: "Foreslå resten ut fra tittelen". */
+  protected readonly recordTitleOnly = computed(() => {
+    const kind = this.kind();
+    const draft = this.draft();
+    if (kind === 'policy' || !draft.title.trim()) {
+      return false;
+    }
+    return CONTEXT_SUGGEST_FIELDS[kind]
+      .filter((spec) => spec.type === 'long')
+      .every(
+        (spec) => !String((draft as unknown as Record<string, unknown>)[spec.name] ?? '').trim(),
+      );
+  });
+
+  protected applyRecordSuggestion(accepted: AcceptedSuggestion): void {
+    const kind = this.kind();
+    if (kind === 'policy') {
+      return;
+    }
+    this.patch(contextSuggestPatch(kind, accepted, this.draft()));
+  }
 
   /** A missing policy was picked: start from its kind (and a title when empty). */
   protected startFromOffer(offer: FormSuggestOffer): void {

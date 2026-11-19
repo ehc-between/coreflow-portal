@@ -1,3 +1,6 @@
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import { suggestDefs, suggestPatch, suggestValues } from '../../../shared/ask/form-suggest-map';
+import { SYSTEM_SUGGEST_FIELDS, SYSTEM_SUGGEST_KEY } from './system-suggest';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -186,6 +189,7 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
   selector: 'app-ai-system-form',
   imports: [
     TranslocoPipe,
+    FormSuggest,
     AskAbout,
     Term,
     Alert,
@@ -217,6 +221,16 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
           (submit)="$event.preventDefault(); submit()"
           novalidate
         >
+          <app-form-suggest
+            [suggestKey]="suggestKey"
+            labelKey="ask.formSuggest.labels.aiSystem"
+            [fields]="suggestFields()"
+            [values]="suggestValues()"
+            [context]="{ from: 'ai_governance' }"
+            [editing]="!!id()"
+            [titleOnly]="!!form().name.trim() && !form().intended_purpose.trim()"
+            (applied)="applySuggestion($event)"
+          />
           <app-card>
             <h2 class="mb-4 font-display text-section font-bold text-fg">
               {{ 'aiGovernance.systemForm.sections.what' | transloco }}
@@ -668,6 +682,19 @@ export class AiSystemForm {
   protected readonly maxMetrics = 30;
 
   protected readonly form = signal<SystemFormValue>(emptySystemForm());
+  protected readonly suggestKey = SYSTEM_SUGGEST_KEY;
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(SYSTEM_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(SYSTEM_SUGGEST_FIELDS, this.form()),
+  );
+
+  /** Accepted whole-form suggestions fill the form; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const change = suggestPatch(SYSTEM_SUGGEST_FIELDS, accepted) as Partial<SystemFormValue>;
+    this.form.update((f) => ({ ...f, ...change }));
+  }
   protected readonly ownerName = signal<string | null>(null);
   private readonly knownNames = signal<Readonly<Record<string, string>>>({});
   protected readonly changeReason = signal('');

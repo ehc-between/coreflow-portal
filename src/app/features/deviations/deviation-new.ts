@@ -25,7 +25,6 @@ import {
   DeviationLinkType,
   DeviationType,
   DeviationVisibility,
-  RegisterFromTextResult,
   Severity,
   Source,
 } from '../../core/deviations/deviation.models';
@@ -36,7 +35,12 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RecordTypeVersion } from '../../core/records/record.models';
 import { RecordsApi } from '../../core/records/records-api';
-import { AiAssistButton } from '../../shared/ask/ai-assist-button';
+import { SuggestedField } from '../../core/ai/form-suggest-api';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../shared/ask/form-suggest';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
@@ -120,7 +124,7 @@ export function linksFromParams(params: {
     AskAbout,
     DynamicField,
     DynamicForm,
-    AiAssistButton,
+    FormSuggest,
     TeachingEmpty,
     FlowBanner,
     HelpStrip,
@@ -180,25 +184,14 @@ export function linksFromParams(params: {
                 [placeholder]="'deviations.assist.describePlaceholder' | transloco"
                 class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
               ></textarea>
-              <div class="flex flex-wrap items-center gap-2">
-                <app-ai-assist-button
-                  assist="deviations.register_from_text"
-                  labelKey="deviations.assist.registerFromText"
-                  [input]="registerInput()"
-                  [disabled]="freeText().trim().length < 10"
-                  (result)="applyDraft($event)"
-                />
-                <span class="text-meta text-fg-muted">{{
-                  'deviations.assist.describeHint' | transloco
-                }}</span>
-              </div>
-              @if (draftMissing().length) {
-                <p class="text-meta text-fg-muted" data-testid="draft-missing">
-                  {{
-                    'deviations.assist.missing' | transloco: { fields: draftMissing().join(', ') }
-                  }}
-                </p>
-              }
+              <app-form-suggest
+                suggestKey="deviations.deviation"
+                labelKey="ask.formSuggest.labels.deviation"
+                [fields]="suggestFields()"
+                [values]="suggestValues()"
+                [context]="{ from: 'deviations', text: freeText().trim() }"
+                (applied)="applySuggestion($event)"
+              />
             </div>
           </app-card>
 
@@ -539,11 +532,6 @@ export class DeviationNew {
   protected readonly orgId = this.selectedOrg.currentOrgId;
 
   protected readonly freeText = signal('');
-  protected readonly draftMissing = signal<readonly string[]>([]);
-  protected readonly registerInput = computed(() => ({
-    text: this.freeText().trim(),
-    ...(this.selectedType() ? { type_id: this.selectedType()!.id } : {}),
-  }));
   protected readonly recordVersion = signal<RecordTypeVersion | null>(null);
   protected readonly loadingRecordType = signal(false);
   protected readonly recordErrors = signal<Readonly<Record<string, string>>>({});
@@ -722,34 +710,77 @@ export class DeviationNew {
     this.data.set(value);
   }
 
-  /** Fill the form from the drafted text (the user reviews before saving). */
-  protected applyDraft(result: unknown): void {
-    const draft = result as RegisterFromTextResult | null;
-    if (!draft || typeof draft !== 'object') {
-      return;
-    }
-    const type = this.types().find((t) => t.id === draft.type_id) ?? this.selectedType();
-    const data = draft.data && typeof draft.data === 'object' ? draft.data : {};
+  protected readonly suggestFields = computed((): readonly FormSuggestFieldDef[] => {
+    const t = (key: string): string => this.language.translate(key);
+    const display = (_: unknown, field: SuggestedField): string =>
+      typeof field.display === 'string' ? field.display : '';
+    return [
+      { name: 'type_id', labelKey: 'deviations.create.typeLabel', format: display },
+      { name: 'title', labelKey: 'deviations.create.fields.title' },
+      { name: 'description', labelKey: 'deviations.create.fields.description', long: true },
+      { name: 'location', labelKey: 'deviations.facts.location' },
+      { name: 'immediate_action', labelKey: 'deviations.facts.immediateAction', long: true },
+      {
+        name: 'severity',
+        labelKey: 'deviations.create.fields.severity',
+        format: (value) => t(`deviations.severity.${String(value)}`),
+      },
+      {
+        name: 'source',
+        labelKey: 'deviations.create.fields.source',
+        format: (value) => t(`deviations.source.${String(value)}`),
+      },
+      { name: 'owner_user_id', labelKey: 'deviations.create.fields.owner', format: display },
+      { name: 'department_id', labelKey: 'deviations.create.fields.department', format: display },
+    ];
+  });
+  protected readonly suggestValues = computed(() => ({
+    type_id: this.selectedType()?.id ?? null,
+    title: this.title(),
+    description: this.description(),
+    location: this.location(),
+    immediate_action: this.immediateAction(),
+    severity: this.severity(),
+    source: this.source(),
+    owner_user_id: this.ownerId() || null,
+    department_id: this.departmentId() || null,
+  }));
+
+  /** Accepted suggestions fill the form (the user reviews before saving). */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const text = (name: string): string | null =>
+      typeof accepted[name]?.value === 'string' ? (accepted[name].value as string) : null;
+    const typeId = text('type_id');
+    const type = typeId ? this.types().find((t) => t.id === typeId) : undefined;
     if (type && type.id !== this.selectedType()?.id) {
-      this.selectType(type, { ...data });
-    } else if (type) {
-      this.data.set({ ...this.data(), ...data });
+      this.selectType(type);
     }
-    if (draft.title) {
-      this.title.set(draft.title.slice(0, 255));
+    const title = text('title');
+    if (title) {
+      this.title.set(title.slice(0, 255));
       this.titleError.set(false);
     }
-    if (draft.description) {
-      this.description.set(draft.description);
+    const setters: readonly [string, (value: string) => void][] = [
+      ['description', (v) => this.description.set(v)],
+      ['location', (v) => this.location.set(v)],
+      ['immediate_action', (v) => this.immediateAction.set(v)],
+      ['owner_user_id', (v) => this.ownerId.set(v)],
+      ['department_id', (v) => this.departmentId.set(v)],
+    ];
+    for (const [name, set] of setters) {
+      const value = text(name);
+      if (value !== null) {
+        set(value);
+      }
     }
-    if (draft.severity) {
-      this.severity.set(draft.severity);
+    const severity = text('severity');
+    if (severity && (SEVERITY_OPTIONS as readonly string[]).includes(severity)) {
+      this.severity.set(severity as Severity);
     }
-    if (draft.source) {
-      this.source.set(draft.source);
+    const source = text('source');
+    if (source && (SOURCE_OPTIONS as readonly string[]).includes(source)) {
+      this.source.set(source as Source);
     }
-    this.draftMissing.set(Array.isArray(draft.missing) ? draft.missing : []);
-    this.notifications.info('deviations.assist.draftApplied');
   }
 
   protected setData(key: string, value: unknown): void {

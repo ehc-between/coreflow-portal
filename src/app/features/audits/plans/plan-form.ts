@@ -1,3 +1,10 @@
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import {
+  SuggestFieldSpec,
+  suggestDefs,
+  suggestPatch,
+  suggestValues,
+} from '../../../shared/ask/form-suggest-map';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -104,6 +111,39 @@ export function emptyPlanForm(): PlanFormValue {
     changeReason: '',
   };
 }
+
+/** The plan form's whole-form suggestion (server key `audits.plan`). */
+const PLAN_SUGGEST_FIELDS: readonly SuggestFieldSpec[] = [
+  { name: 'title', labelKey: 'audits.fields.title', type: 'text' },
+  {
+    name: 'kind',
+    labelKey: 'audits.fields.kind',
+    type: 'enum',
+    options: PLAN_KINDS,
+    enumPrefix: 'audits.kind.',
+  },
+  { name: 'scope', labelKey: 'audits.fields.scope', type: 'long' },
+  { name: 'criteria', labelKey: 'audits.fields.criteria', type: 'long' },
+  { name: 'objectives', labelKey: 'audits.fields.objectives', type: 'long' },
+  {
+    name: 'frameworks',
+    labelKey: 'audits.fields.frameworks',
+    type: 'multi',
+    enumPrefix: 'audits.frameworks.',
+  },
+  { name: 'processes', labelKey: 'audits.fields.processes', type: 'refs' },
+  { name: 'departments', labelKey: 'audits.fields.departments', type: 'refs' },
+  { name: 'auditees', labelKey: 'audits.fields.auditees', type: 'refs' },
+  { name: 'location', labelKey: 'audits.fields.location', type: 'text' },
+  {
+    name: 'risk',
+    labelKey: 'audits.fields.risk',
+    type: 'enum',
+    options: RISK_LEVELS,
+    enumPrefix: 'audits.risk.',
+  },
+  { name: 'owner_user_id', labelKey: 'audits.fields.owner', type: 'ref', draftKey: 'ownerId' },
+];
 
 /** A placeholder ref for a record known only by id (shown until the plan is saved). */
 function idRef(entityType: string, id: string, title: string): EntityRef {
@@ -228,6 +268,7 @@ export function planPrefill(
 @Component({
   selector: 'app-audit-plan-form',
   imports: [
+    FormSuggest,
     FormsModule,
     TranslocoPipe,
     AskAbout,
@@ -254,6 +295,17 @@ export function planPrefill(
       (cancelled)="back()"
     >
       <app-flow-banner before [flow]="flow()" />
+
+      <app-form-suggest
+        suggestKey="audits.plan"
+        labelKey="ask.formSuggest.labels.auditPlan"
+        [fields]="suggestFields()"
+        [values]="suggestValues()"
+        [context]="{ from: 'audits' }"
+        [editing]="!!id()"
+        [titleOnly]="!!f().title.trim() && !f().scope.trim()"
+        (applied)="applySuggestion($event)"
+      />
 
       <app-audit-field
         inputId="plan-title"
@@ -648,6 +700,30 @@ export class PlanForm {
 
   protected certTitle(c: Certification): string {
     return certificationTitle(c, (k, p) => this.language.translate(k, p));
+  }
+
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(PLAN_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(PLAN_SUGGEST_FIELDS, this.f(), {
+      processes: this.f().processes.map((p) => p.entity_id),
+    }),
+  );
+
+  /** Accepted suggestions fill the plan; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const change = suggestPatch(PLAN_SUGGEST_FIELDS, accepted, [
+      'processes',
+    ]) as Partial<PlanFormValue>;
+    const processes = accepted['processes'];
+    if (processes && Array.isArray(processes.value)) {
+      const labels = Array.isArray(processes.display) ? processes.display : [];
+      change.processes = processes.value
+        .filter((id): id is string => typeof id === 'string')
+        .map((id, i) => idRef('process', id, String(labels[i] ?? id.slice(0, 8))));
+    }
+    this.patch(change);
   }
 
   protected patch(change: Partial<PlanFormValue>): void {

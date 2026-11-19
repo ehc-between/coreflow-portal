@@ -263,6 +263,31 @@
       "description": "en kort beskrivelse",
       "countries": "landene",
       "sites": "lokasjonene"
+    },
+    "labels": {
+      "scope": "Foreslå omfang",
+      "analysis": "Foreslå analyse",
+      "party": "Foreslå interessent",
+      "responsibility": "Foreslå ansvarsområde",
+      "risk": "Foreslå risiko",
+      "objective": "Foreslå mål",
+      "process": "Foreslå prosess",
+      "document": "Foreslå dokument",
+      "questionnaire": "Foreslå spørreskjema",
+      "ropa": "Foreslå behandlingsaktivitet",
+      "dpia": "Foreslå DPIA",
+      "aiSystem": "Foreslå KI-system",
+      "assessment": "Foreslå vurdering",
+      "contract": "Foreslå ut fra kontrakten",
+      "deviation": "Foreslå ut fra beskrivelsen",
+      "auditPlan": "Foreslå revisjonsplan",
+      "minutes": "Foreslå referat"
+    },
+    "yes": "Ja",
+    "no": "Nei",
+    "fields": {
+      "content": "Innhold",
+      "questions": "Spørsmål"
     }
   }
 }

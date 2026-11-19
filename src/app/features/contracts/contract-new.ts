@@ -1,3 +1,6 @@
+import { AcceptedSuggestion, FormSuggest } from '../../shared/ask/form-suggest';
+import { suggestDefs, suggestPatch, suggestValues } from '../../shared/ask/form-suggest-map';
+import { CONTRACT_SUGGEST_FIELDS, CONTRACT_SUGGEST_KEY } from './contract-suggest';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,6 +56,7 @@ export const MIN_EXTRACT_CHARS = 40;
 @Component({
   selector: 'app-contract-new',
   imports: [
+    FormSuggest,
     TranslocoPipe,
     AiAssistButton,
     WhyItMatters,
@@ -80,6 +84,18 @@ export const MIN_EXTRACT_CHARS = 40;
         lesson="notice-and-renewal"
       />
       <app-flow-banner [flow]="flow()" />
+
+      <div class="mb-5">
+        <app-form-suggest
+          [suggestKey]="suggestKey"
+          labelKey="ask.formSuggest.labels.contract"
+          [fields]="suggestFields()"
+          [values]="suggestValues()"
+          [context]="{ from: 'contracts', text: extractText().slice(0, 24000) }"
+          [titleOnly]="!!draft().title.trim() && !draft().description.trim()"
+          (applied)="applySuggestion($event)"
+        />
+      </div>
 
       <app-card>
         <details [open]="extractOpen()" (toggle)="extractOpen.set($any($event.target).open)">
@@ -205,6 +221,24 @@ export class ContractNew {
         this.draft.set(next);
       }
     });
+  }
+
+  protected readonly suggestKey = CONTRACT_SUGGEST_KEY;
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(CONTRACT_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(CONTRACT_SUGGEST_FIELDS, this.draft()),
+  );
+
+  /** Accepted suggestions fill the form; nothing is saved until "Create". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const next = {
+      ...this.draft(),
+      ...(suggestPatch(CONTRACT_SUGGEST_FIELDS, accepted) as Partial<ContractFormValue>),
+    };
+    this.seed.set(next);
+    this.draft.set(next);
   }
 
   protected onExtracted(result: ContractExtraction | null): void {

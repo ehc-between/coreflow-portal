@@ -17,7 +17,13 @@ import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { SearchHit } from '../../../core/kit/kit.models';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import { AcceptedSuggestion, FormSuggest } from '../../../shared/ask/form-suggest';
+import { suggestDefs, suggestValues } from '../../../shared/ask/form-suggest-map';
+import {
+  PROCESS_SUGGEST_FIELDS,
+  PROCESS_SUGGEST_KEY,
+  processSuggestPatch,
+} from './process-suggest';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Term } from '../../../shared/guidance/term';
@@ -43,7 +49,6 @@ import {
   ProcessCategory,
   ProcessDetail,
   TURTLE_LIST_FIELDS,
-  TurtleDraft,
   TurtleListField,
 } from '../data/process.models';
 import { ProcessesApi } from '../data/processes-api';
@@ -53,7 +58,6 @@ import {
   ProcessFormValue,
   emptyForm,
   formFromDetail,
-  mergeTurtleDraft,
   toCreateRequest,
   toUpdateRequest,
   validateForm,
@@ -77,8 +81,8 @@ type TextField =
  * purpose, scope, the standards it serves), the process on one page (inputs,
  * outputs, resources, competence, methods, risks and KPIs, where each KPI can be
  * linked to a KPI in "Mål og KPI-er"), and the review cycle. Every field has a
- * visible hint and a "?" with more help; "Foreslå innhold" drafts the turtle
- * facts (added, never overwritten). Editing sends only the changed fields with
+ * visible hint and a "?" with more help; "Foreslå prosess" at the top proposes the
+ * whole form (reviewed field by field before it is used). Editing sends only the changed fields with
  * an optional change reason. `?fromRequirement=` opens it as evidence for a
  * requirement (P1/P4 create-from-here).
  */
@@ -87,7 +91,7 @@ type TextField =
   imports: [
     RouterLink,
     TranslocoPipe,
-    AiAssistButton,
+    FormSuggest,
     AskAbout,
     FieldHelp,
     Term,
@@ -123,6 +127,16 @@ type TextField =
         <app-loading-state [rows]="6" />
       } @else {
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
+          <app-form-suggest
+            [suggestKey]="suggestKey"
+            labelKey="ask.formSuggest.labels.process"
+            [fields]="suggestFields()"
+            [values]="suggestValues()"
+            [context]="{ from: 'processes' }"
+            [editing]="!!id()"
+            [titleOnly]="canDraft() && !form().purpose.trim() && !form().inputs.length"
+            (applied)="applySuggestion($event)"
+          />
           <app-card>
             <h2 class="text-section font-bold text-fg">
               {{ 'processes.form.sections.basics' | transloco }}
@@ -342,15 +356,6 @@ type TextField =
                   {{ 'processes.form.turtleHint' | transloco }}
                 </p>
               </div>
-              <app-ai-assist-button
-                assist="processes.draft_turtle"
-                labelKey="processes.ai.draftTurtle"
-                [input]="turtleInput()"
-                [entityType]="id() ? entityType : null"
-                [entityId]="id() ?? null"
-                [disabled]="!canDraft()"
-                (result)="onTurtleDraft($event)"
-              />
             </div>
             <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
               @for (field of listFields; track field) {
@@ -693,14 +698,13 @@ export class ProcessFormPage {
     return { id: original.id, name: original.name ?? original.id };
   });
 
-  protected readonly turtleInput = computed(() => {
-    const f = this.form();
-    const description = [f.title, f.purpose, f.scope].map((s) => s.trim()).filter(Boolean);
-    return {
-      description: description.join('\n\n') || undefined,
-      process_id: this.id() || undefined,
-    };
-  });
+  protected readonly suggestKey = PROCESS_SUGGEST_KEY;
+  protected readonly suggestFields = computed(() =>
+    suggestDefs(PROCESS_SUGGEST_FIELDS, (key, params) => this.language.translate(key, params)),
+  );
+  protected readonly suggestValues = computed(() =>
+    suggestValues(PROCESS_SUGGEST_FIELDS, this.form(), { id: this.id() ?? null }),
+  );
 
   constructor() {
     providePageContext(() => {
@@ -828,12 +832,10 @@ export class ProcessFormPage {
     this.form.update((f) => ({ ...f, kpis: f.kpis.filter((_, i) => i !== index) }));
   }
 
-  protected onTurtleDraft(data: unknown): void {
-    if (!data || typeof data !== 'object') {
-      return;
-    }
-    this.form.update((f) => mergeTurtleDraft(f, data as TurtleDraft));
-    this.notifications.info('processes.ai.draftApplied');
+  /** Accepted whole-form suggestions fill the form; nothing is saved until "Save". */
+  protected applySuggestion(accepted: AcceptedSuggestion): void {
+    const change = processSuggestPatch(accepted);
+    this.form.update((f) => ({ ...f, ...change }));
   }
 
   protected submit(): void {

@@ -13,7 +13,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
+import {
+  AcceptedSuggestion,
+  FormSuggest,
+  FormSuggestFieldDef,
+} from '../../../shared/ask/form-suggest';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
@@ -29,7 +33,6 @@ import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { ManagementReviewApi } from '../data/management-review-api';
 import { mrErrorKey } from '../data/management-review-errors';
 import {
-  ASSIST_DRAFT_MINUTES,
   ATTENDANCES,
   ATTENDEE_ROLES,
   AgendaItemIn,
@@ -171,7 +174,7 @@ const SMALL_SELECT =
     LocalDatePipe,
     LocalDayPipe,
     MarkdownPipe,
-    AiAssistButton,
+    FormSuggest,
     FieldHelp,
     Alert,
     Badge,
@@ -662,18 +665,18 @@ const SMALL_SELECT =
             (input)="minutesDraft.set($any($event.target).value)"
           ></textarea>
         </app-form-field>
-        <div class="mt-2 flex flex-wrap items-center gap-2">
-          <app-ai-assist-button
-            [assist]="draftMinutesAssist"
-            labelKey="managementReview.ai.draftMinutes"
-            entityType="meeting"
-            [entityId]="m.id"
-            [input]="{ meeting_id: m.id, notes: minutesDraft() }"
-            (text)="minutesDraft.set($event)"
+        <div class="mt-2">
+          <app-form-suggest
+            suggestKey="management_review.minutes"
+            labelKey="ask.formSuggest.labels.minutes"
+            [fields]="minutesFields"
+            [values]="{ minutes: minutesDraft() }"
+            [context]="{ from: 'management_review', meeting_id: m.id }"
+            [editing]="!!minutesDraft().trim()"
+            (applied)="applyMinutes($event)"
           />
-          <span class="text-meta text-fg-subtle">{{
-            'managementReview.ai.draftMinutesHint' | transloco
-          }}</span>
+        </div>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
           <span class="flex-1"></span>
           @if (minutesDirty()) {
             <span class="text-meta text-fg-subtle">{{
@@ -942,7 +945,17 @@ export class MeetingWorkspace {
   protected readonly roles = ATTENDEE_ROLES;
   protected readonly attendances = ATTENDANCES;
   protected readonly categories = DECISION_CATEGORIES;
-  protected readonly draftMinutesAssist = ASSIST_DRAFT_MINUTES;
+  protected readonly minutesFields: readonly FormSuggestFieldDef[] = [
+    { name: 'minutes', labelKey: 'managementReview.minutes.label', long: true },
+  ];
+
+  /** Accepted minutes replace the draft text; saved with "Save minutes". */
+  protected applyMinutes(accepted: AcceptedSuggestion): void {
+    const text = accepted['minutes']?.value;
+    if (typeof text === 'string') {
+      this.minutesDraft.set(text);
+    }
+  }
   protected readonly smallSelect = SMALL_SELECT;
   protected readonly statusKey = meetingStatusKey;
   protected readonly tone = toneValue;
