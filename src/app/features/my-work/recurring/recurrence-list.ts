@@ -8,9 +8,10 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Subscription } from 'rxjs';
+import { Subscription, map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -19,6 +20,7 @@ import { taskErrorKey } from '../../../core/tasks/task-errors';
 import { Recurrence } from '../../../core/tasks/task.models';
 import { TasksApi } from '../../../core/tasks/tasks-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
+import { EntityChip } from '../../../shared/kit/entity-chip';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { AssigneeLabel } from '../../../shared/tasks/assignee-label';
 import { TaskGuideIntro } from '../../../shared/tasks/guidance/task-guide-intro';
@@ -57,6 +59,7 @@ const PAGE_SIZE = 25;
     Button,
     Card,
     ConfirmDialog,
+    EntityChip,
     Icon,
     Pager,
     RuleSummary,
@@ -128,7 +131,13 @@ const PAGE_SIZE = 25;
             } @else {
               <ul class="divide-y divide-border">
                 @for (rec of items(); track rec.id) {
-                  <li class="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4">
+                  <li
+                    class="flex scroll-mt-24 flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4"
+                    [id]="'series-' + rec.id"
+                    [class.bg-accent-soft]="rec.id === highlighted()"
+                    [attr.aria-current]="rec.id === highlighted() ? 'true' : null"
+                    [attr.data-testid]="rec.id === highlighted() ? 'series-highlighted' : null"
+                  >
                     <div class="min-w-0 flex-1">
                       <div class="flex flex-wrap items-center gap-2">
                         <span
@@ -157,15 +166,7 @@ const PAGE_SIZE = 25;
                         </span>
                         <app-assignee-label [assignee]="rec.assignee" />
                         @if (rec.entity; as entity) {
-                          @if (entity.url) {
-                            <a
-                              [routerLink]="entity.url"
-                              class="inline-flex items-center gap-1 text-accent hover:underline"
-                            >
-                              <app-icon name="link" [size]="12" />
-                              {{ entity.code || entity.title }}
-                            </a>
-                          }
+                          <app-entity-chip [ref]="entity" />
                         }
                       </div>
                     </div>
@@ -256,6 +257,7 @@ export class RecurrenceListPage {
   private readonly notifications = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly pageSize = PAGE_SIZE;
   protected readonly priorityKey = taskPriorityKey;
@@ -272,6 +274,11 @@ export class RecurrenceListPage {
   protected readonly editing = signal<Recurrence | null>(null);
   protected readonly deleting = signal<Recurrence | null>(null);
   protected readonly busy = signal(false);
+  /** The series a task page linked to (`?series=<id>`): highlighted and scrolled to. */
+  protected readonly highlighted = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('series'))),
+    { initialValue: null },
+  );
 
   private request = new Subscription();
 
@@ -356,6 +363,16 @@ export class RecurrenceListPage {
     this.items.update((items) => items.map((i) => (i.id === rec.id ? rec : i)));
   }
 
+  private scrollToHighlighted(): void {
+    const id = this.highlighted();
+    if (!id || typeof document === 'undefined') {
+      return;
+    }
+    setTimeout(() =>
+      document.getElementById(`series-${id}`)?.scrollIntoView?.({ block: 'center' }),
+    );
+  }
+
   private load(orgId: string | null, offset: number): void {
     this.request.unsubscribe();
     if (!orgId) {
@@ -367,6 +384,7 @@ export class RecurrenceListPage {
         this.items.set(page.items);
         this.total.set(page.total);
         this.state.set('ready');
+        this.scrollToHighlighted();
       },
       error: () => this.state.set('error'),
     });

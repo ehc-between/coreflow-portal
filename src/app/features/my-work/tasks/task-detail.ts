@@ -11,8 +11,9 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, catchError, map, of } from 'rxjs';
 import { LanguageService } from '../../../core/i18n/language.service';
+import { KitApi } from '../../../core/kit/kit-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { taskErrorKey } from '../../../core/tasks/task-errors';
@@ -20,18 +21,25 @@ import {
   ChecklistItem,
   EDITABLE_TASK_STATUSES,
   EditableTaskStatus,
+  Recurrence,
   TaskDetail,
 } from '../../../core/tasks/task.models';
 import { TasksApi } from '../../../core/tasks/tasks-api';
 import { AskPanelService } from '../../ask/ask-panel.service';
 import { LocalizedTitleResolver } from '../../../core/i18n/localized-title';
 import { LocalizedTitlePipe } from '../../../shared/i18n/localized-title.pipe';
+import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
+import { RecordDetailLayout, RecordMissingItem } from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { AssigneeLabel } from '../../../shared/tasks/assignee-label';
-import { TaskGuideIntro } from '../../../shared/tasks/guidance/task-guide-intro';
-import { TaskLesson } from '../../../shared/tasks/guidance/task-lesson';
-import { TaskWhyItMatters } from '../../../shared/tasks/guidance/task-why-it-matters';
+import { RuleSummary } from '../../../shared/tasks/rule-summary';
 import {
   isClosedStatus,
   taskPriorityKey,
@@ -39,24 +47,32 @@ import {
   taskStatusKey,
   taskStatusTone,
 } from '../../../shared/tasks/task-display';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
+import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
+import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
 import { provideTasksPageContext } from '../tasks-page-context';
-import { TaskHistoryEntry, taskHistory } from './task-history';
+import { taskMissing, taskStatusLine } from './task-anatomy';
 
 type PendingConfirm = 'cancel' | 'delete' | null;
 
 /**
- * A task's detail page (`/tasks/:id`): status and priority, the record it belongs
- * to, assignee and dates, description, checklist (tick, add, remove), its history,
- * and the actions the caller may take (start / block, complete, reopen, cancel,
- * edit, delete). Done and cancelled tasks are read-only until reopened. Offers
- * assistant actions (summarise, suggest checklist steps, ask about the task).
+ * A task's detail page (`/tasks/:id`), built on the detail-page anatomy
+ * (docs/ux-guide.md §2.7): the header (task · status · overdue; "Merk som utført"
+ * or "Gjenåpne", Rediger, the rest in "Mer ⋯", assistant actions in "Spør KI");
+ * "Hovedinformasjon" with a status sentence, what to do, the deadline (and the
+ * series it repeats in), who is responsible and the record it belongs to; the
+ * checklist and the other fields (empty ones hidden) in Detaljer; one
+ * "Oppfølging" card with what is missing, the connections and the metadata.
+ * Done and cancelled tasks are read-only until reopened.
  */
 @Component({
   selector: 'app-task-detail',
@@ -67,387 +83,416 @@ type PendingConfirm = 'cancel' | 'delete' | null;
     LocalDayPipe,
     LocalizedTitlePipe,
     MarkdownPipe,
-    Alert,
     AssigneeLabel,
     Badge,
     Button,
     Card,
     ConfirmDialog,
+    EntityChip,
+    ErrorState,
+    FieldItem,
+    HelpStrip,
     Icon,
+    LoadingState,
+    MenuItem,
     ProgressBar,
-    TaskGuideIntro,
-    TaskLesson,
-    TaskWhyItMatters,
+    RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
+    RuleSummary,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/my-work"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'tasks.common.backToMyWork' | transloco }}
-      </a>
+    @switch (state()) {
+      @case ('loading') {
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+          <app-loading-state [rows]="6" />
+        </div>
+      }
+      @case ('error') {
+        <div class="mx-auto max-w-[1180px] px-4 pt-7 sm:px-8">
+          <app-error-state
+            titleKey="tasks.detail.notFoundTitle"
+            bodyKey="tasks.detail.notFound"
+            (retry)="reload()"
+          />
+        </div>
+      }
+      @case ('ready') {
+        @if (task(); as task) {
+          @let line = statusLine();
+          <app-record-detail-layout
+            [anatomy]="true"
+            entityType="task"
+            [entityId]="task.id"
+            [title]="task | localizedTitle"
+            [breadcrumbs]="breadcrumbs()"
+            [canEdit]="task.can_edit"
+            [missing]="missing()"
+          >
+            <ng-container ngProjectAs="[meta]">
+              <span>{{ 'tasks.detail.type' | transloco }}</span>
+              <span aria-hidden="true">·</span>
+              <app-badge [tone]="statusTone(task.status)" data-testid="task-status">{{
+                statusKey(task.status) | transloco
+              }}</app-badge>
+              @if (task.overdue) {
+                <app-badge tone="warn">{{ 'tasks.common.overdue' | transloco }}</app-badge>
+              }
+            </ng-container>
 
-      @switch (state()) {
-        @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'tasks.common.loading' | transloco }}</p>
-        }
-        @case ('error') {
-          <app-alert tone="error">{{ 'tasks.detail.notFound' | transloco }}</app-alert>
-        }
-        @case ('ready') {
-          @if (task(); as task) {
-            <header class="mb-4 flex flex-col gap-3">
-              <div class="flex flex-wrap items-center gap-2">
-                <app-badge [tone]="statusTone(task.status)">{{
-                  statusKey(task.status) | transloco
-                }}</app-badge>
+            @if (editable()) {
+              <app-button
+                primary
+                [loading]="busy()"
+                (click)="complete()"
+                data-testid="task-complete"
+              >
+                <app-icon name="check" [size]="14" />
+                {{ 'tasks.actions.complete' | transloco }}
+              </app-button>
+            }
+            @if (editable()) {
+              <app-button
+                secondary
+                variant="secondary"
+                [disabled]="busy()"
+                (click)="edit()"
+                data-testid="task-edit"
+              >
+                {{ 'tasks.actions.edit' | transloco }}
+              </app-button>
+            }
+            @if (editable()) {
+              <ng-container ngProjectAs="[overflow]">
+                @for (s of otherStatuses(); track s) {
+                  <button
+                    appMenuItem
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="setStatus(s)"
+                    [attr.data-testid]="'task-status-' + s"
+                  >
+                    {{ 'tasks.detail.setStatus.' + s | transloco }}
+                  </button>
+                }
+                <button
+                  appMenuItem
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="pending.set('cancel')"
+                  data-testid="task-cancel"
+                >
+                  {{ 'tasks.actions.cancel' | transloco }}
+                </button>
+              </ng-container>
+            }
+            @if (task.can_edit && closed()) {
+              <app-button primary [loading]="busy()" (click)="reopen()" data-testid="task-reopen">
+                {{ 'tasks.actions.reopen' | transloco }}
+              </app-button>
+            }
+            @if (task.can_delete) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                [danger]="true"
+                [disabled]="busy()"
+                (click)="pending.set('delete')"
+                data-testid="task-delete"
+              >
+                {{ 'tasks.actions.delete' | transloco }}
+              </button>
+            }
+
+            <button appMenuItem ask type="button" (click)="askAi('summarise')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'tasks.ai.summarise' | transloco }}
+            </button>
+            @if (editable()) {
+              <button appMenuItem ask type="button" (click)="askAi('suggestChecklist')">
+                <app-icon name="spark" [size]="15" />
+                {{ 'tasks.ai.suggestChecklist' | transloco }}
+              </button>
+            }
+            <button appMenuItem ask type="button" (click)="askAi('askAbout')">
+              <app-icon name="spark" [size]="15" />
+              {{ 'tasks.ai.askAbout' | transloco }}
+            </button>
+
+            <app-help-strip
+              help
+              scope="tasks"
+              page="detail"
+              lesson="working-with-tasks"
+              [subject]="task | localizedTitle"
+            />
+
+            <app-record-lead record-lead [fillLink]="fillLink()">
+              <app-record-status-line status [tone]="line.tone">
+                {{
+                  line.key
+                    | transloco: { date: task.completed_at ? (task.completed_at | localDay) : '' }
+                }}
+              </app-record-status-line>
+              <app-field-item size="lead" [wide]="true" labelKey="tasks.detail.lead.what">
+                @if (task.description) {
+                  <div
+                    class="cf-prose text-body leading-relaxed text-fg"
+                    [innerHTML]="task.description | appMarkdown"
+                  ></div>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="tasks.detail.lead.due">
+                @if (task.due_at) {
+                  <span
+                    data-testid="task-due"
+                    [class.text-warn-ink]="task.overdue"
+                    [class.font-semibold]="task.overdue"
+                    >{{ task.due_at | localDay: 'fullDate' }}</span
+                  >
+                  @if (task.overdue && !closed()) {
+                    <span class="block text-meta font-semibold text-warn-ink">{{
+                      'tasks.detail.lead.duePassed' | transloco
+                    }}</span>
+                  }
+                }
+                @if (task.recurrence_id) {
+                  <span
+                    class="mt-1 flex items-center gap-1 text-meta text-fg-muted"
+                    data-testid="task-repeats"
+                  >
+                    <app-icon name="history" [size]="13" />
+                    @if (series(); as rec) {
+                      <app-rule-summary [rrule]="rec.rrule" />
+                    } @else {
+                      {{ 'tasks.detail.partOfSeries' | transloco }}
+                    }
+                  </span>
+                }
+              </app-field-item>
+              <app-field-item size="lead" labelKey="tasks.detail.lead.assignee">
+                @if (task.assignee) {
+                  <app-assignee-label [assignee]="task.assignee" />
+                }
+              </app-field-item>
+              <!-- Set when the task is created from a record; not editable, so never "missing". -->
+              @if (task.entity_type) {
+                <app-field-item size="lead" [wide]="true" labelKey="tasks.detail.lead.record">
+                  @if (recordRef(); as ref) {
+                    <span class="block text-body" data-testid="task-record">
+                      <app-entity-chip
+                        class="sm:hidden"
+                        [ref]="ref"
+                        [statusText]="true"
+                        [stacked]="true"
+                      />
+                      <app-entity-chip class="hidden sm:inline" [ref]="ref" [statusText]="true" />
+                    </span>
+                  } @else {
+                    <span class="text-body text-fg-subtle">{{
+                      'tasks.detail.recordUnavailable' | transloco
+                    }}</span>
+                  }
+                </app-field-item>
+              }
+            </app-record-lead>
+
+            @if (task.checklist.length || editable()) {
+              <app-card class="mb-6 block" data-testid="task-checklist">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <h2 class="font-display text-card font-bold text-fg">
+                    {{ 'tasks.checklist.title' | transloco }}
+                  </h2>
+                  @if (task.checklist.length) {
+                    <span class="text-meta text-fg-muted">
+                      {{
+                        'tasks.checklist.progress'
+                          | transloco: { done: doneCount(), total: task.checklist.length }
+                      }}
+                    </span>
+                  }
+                </div>
+                @if (task.checklist.length) {
+                  <div class="mb-3">
+                    <app-progress-bar
+                      [value]="checklistPercent()"
+                      [label]="'tasks.checklist.title' | transloco"
+                    />
+                  </div>
+                  <ul class="flex flex-col gap-1">
+                    @for (item of task.checklist; track item.id) {
+                      <li
+                        class="group flex items-center gap-2 rounded-tile px-1 py-1 hover:bg-surface-2"
+                      >
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 flex-none"
+                          [id]="'check-' + item.id"
+                          [checked]="itemBusy() === item.id ? !item.done : item.done"
+                          [disabled]="!editable() || itemBusy() === item.id"
+                          (change)="toggleItem(item, $any($event.target).checked)"
+                        />
+                        <label
+                          [for]="'check-' + item.id"
+                          class="min-w-0 flex-1 text-body"
+                          [class.line-through]="item.done"
+                          [class.text-fg-muted]="item.done"
+                          [class.text-fg]="!item.done"
+                        >
+                          {{ item.text }}
+                        </label>
+                        @if (editable()) {
+                          <button
+                            type="button"
+                            class="rounded-[8px] p-1 text-fg-subtle opacity-100 hover:text-fail focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                            [attr.aria-label]="
+                              'tasks.checklist.remove' | transloco: { text: item.text }
+                            "
+                            [disabled]="itemBusy() === item.id"
+                            (click)="removeItem(item)"
+                          >
+                            <app-icon name="x" [size]="14" />
+                          </button>
+                        }
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="text-ui text-fg-subtle">
+                    {{ 'tasks.checklist.emptyHint' | transloco }}
+                  </p>
+                }
+                @if (editable()) {
+                  <form
+                    class="mt-3 flex items-center gap-2"
+                    (submit)="$event.preventDefault(); addItem()"
+                  >
+                    <input
+                      type="text"
+                      maxlength="500"
+                      class="h-9 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-body"
+                      [attr.aria-label]="'tasks.checklist.addLabel' | transloco"
+                      [placeholder]="'tasks.checklist.addPlaceholder' | transloco"
+                      [value]="newItem()"
+                      (input)="newItem.set($any($event.target).value)"
+                    />
+                    <app-button
+                      size="sm"
+                      type="submit"
+                      [disabled]="!newItem().trim()"
+                      [loading]="adding()"
+                    >
+                      {{ 'tasks.checklist.add' | transloco }}
+                    </app-button>
+                  </form>
+                }
+              </app-card>
+            }
+
+            <app-record-details [columns]="2" [fillLink]="fillLink()">
+              <app-field-item labelKey="tasks.detail.fields.priority">
                 <app-badge [tone]="priorityTone(task.priority)">{{
                   priorityKey(task.priority) | transloco
                 }}</app-badge>
-                @if (task.overdue) {
-                  <app-badge tone="fail">{{ 'tasks.common.overdue' | transloco }}</app-badge>
+              </app-field-item>
+              <app-field-item labelKey="tasks.detail.fields.start">
+                @if (task.start_at) {
+                  {{ task.start_at | localDay: 'fullDate' }}
                 }
-                @if (task.escalation_level > 0) {
-                  <app-badge tone="warn">
-                    {{ 'tasks.detail.escalated' | transloco: { level: task.escalation_level } }}
-                  </app-badge>
-                }
-                @if (task.recurrence_id) {
-                  <a
-                    routerLink="/tasks/recurring"
-                    class="inline-flex items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline"
-                  >
-                    <app-icon name="history" [size]="13" />
-                    {{ 'tasks.detail.partOfSeries' | transloco }}
-                  </a>
-                }
-              </div>
-              <h1
-                class="font-display text-[26px] font-bold tracking-[-0.025em] break-words text-fg"
-              >
-                {{ task | localizedTitle }}
-              </h1>
-
-              <div class="flex flex-wrap items-center gap-2">
-                @if (editable()) {
-                  <label class="flex items-center gap-2 text-[13px] font-semibold text-fg-muted">
-                    {{ 'tasks.detail.statusLabel' | transloco }}
-                    <select
-                      class="h-9 rounded-tile border border-border bg-bg px-2 text-[13px] text-fg"
-                      [disabled]="busy()"
-                      (change)="setStatus($any($event.target))"
-                    >
-                      @for (s of editableStatuses; track s) {
-                        <option [value]="s" [selected]="s === task.status">
-                          {{ statusKey(s) | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </label>
-                  <app-button size="sm" [loading]="busy()" (click)="complete()">
-                    <app-icon name="check" [size]="14" />
-                    {{ 'tasks.actions.complete' | transloco }}
-                  </app-button>
-                  <a
-                    [routerLink]="['/tasks', task.id, 'edit']"
-                    class="inline-flex h-8 items-center rounded-tile border border-border px-3 text-[13px] font-semibold text-fg hover:bg-surface-2"
-                  >
-                    {{ 'tasks.actions.edit' | transloco }}
-                  </a>
-                  <app-button
-                    variant="ghost"
-                    size="sm"
-                    [disabled]="busy()"
-                    (click)="pending.set('cancel')"
-                  >
-                    {{ 'tasks.actions.cancel' | transloco }}
-                  </app-button>
-                }
-                @if (task.can_edit && closed()) {
-                  <app-button variant="secondary" size="sm" [loading]="busy()" (click)="reopen()">
-                    {{ 'tasks.actions.reopen' | transloco }}
-                  </app-button>
-                }
-                @if (task.can_delete) {
-                  <app-button
-                    variant="ghost"
-                    size="sm"
-                    [disabled]="busy()"
-                    (click)="pending.set('delete')"
-                  >
-                    <app-icon name="trash" [size]="14" />
-                    {{ 'tasks.actions.delete' | transloco }}
-                  </app-button>
-                }
-              </div>
-              @if (closed()) {
-                <p class="text-[13px] text-fg-muted">{{ 'tasks.detail.closedHint' | transloco }}</p>
-              }
-            </header>
-
-            <div class="mb-4 flex flex-col gap-3">
-              <app-task-guide-intro page="detail" />
-              <div
-                class="flex flex-wrap items-center gap-2"
-                role="group"
-                [attr.aria-label]="'tasks.ai.groupLabel' | transloco"
-              >
-                <app-button variant="ghost" size="sm" (click)="askAi('summarise')">
-                  <app-icon name="spark" [size]="14" />
-                  {{ 'tasks.ai.summarise' | transloco }}
-                </app-button>
-                @if (editable()) {
-                  <app-button variant="ghost" size="sm" (click)="askAi('suggestChecklist')">
-                    <app-icon name="spark" [size]="14" />
-                    {{ 'tasks.ai.suggestChecklist' | transloco }}
-                  </app-button>
-                }
-                <app-button variant="ghost" size="sm" (click)="askAi('askAbout')">
-                  <app-icon name="comment" [size]="14" />
-                  {{ 'tasks.ai.askAbout' | transloco }}
-                </app-button>
-                <app-task-lesson lesson="working-with-tasks" />
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
-              <div class="flex min-w-0 flex-col gap-5">
-                <app-card>
-                  <h2 class="mb-2 font-display text-[15px] font-bold text-fg">
-                    {{ 'tasks.detail.description' | transloco }}
-                  </h2>
-                  @if (task.description) {
-                    <div
-                      class="cf-prose text-[13.5px] leading-relaxed text-fg"
-                      [innerHTML]="task.description | appMarkdown"
-                    ></div>
-                  } @else {
-                    <p class="text-[13.5px] text-fg-subtle">
-                      {{ 'tasks.detail.noDescription' | transloco }}
-                    </p>
-                  }
-                </app-card>
-
-                <app-card>
-                  <div class="mb-2 flex items-center justify-between gap-2">
-                    <h2 class="font-display text-[15px] font-bold text-fg">
-                      {{ 'tasks.checklist.title' | transloco }}
-                    </h2>
-                    @if (task.checklist.length) {
-                      <span class="text-[12.5px] text-fg-muted">
-                        {{
-                          'tasks.checklist.progress'
-                            | transloco: { done: doneCount(), total: task.checklist.length }
-                        }}
-                      </span>
-                    }
-                  </div>
-                  @if (task.checklist.length) {
-                    <div class="mb-3">
-                      <app-progress-bar
-                        [value]="checklistPercent()"
-                        [label]="'tasks.checklist.title' | transloco"
-                      />
-                    </div>
-                    <ul class="flex flex-col gap-1">
-                      @for (item of task.checklist; track item.id) {
-                        <li
-                          class="group flex items-center gap-2 rounded-tile px-1 py-1 hover:bg-surface-2"
-                        >
-                          <input
-                            type="checkbox"
-                            class="h-4 w-4 flex-none"
-                            [id]="'check-' + item.id"
-                            [checked]="itemBusy() === item.id ? !item.done : item.done"
-                            [disabled]="!editable() || itemBusy() === item.id"
-                            (change)="toggleItem(item, $any($event.target).checked)"
-                          />
-                          <label
-                            [for]="'check-' + item.id"
-                            class="min-w-0 flex-1 text-[13.5px]"
-                            [class.line-through]="item.done"
-                            [class.text-fg-muted]="item.done"
-                            [class.text-fg]="!item.done"
-                          >
-                            {{ item.text }}
-                          </label>
-                          @if (editable()) {
-                            <button
-                              type="button"
-                              class="rounded-[8px] p-1 text-fg-subtle opacity-100 hover:text-fail focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                              [attr.aria-label]="
-                                'tasks.checklist.remove' | transloco: { text: item.text }
-                              "
-                              [disabled]="itemBusy() === item.id"
-                              (click)="removeItem(item)"
-                            >
-                              <app-icon name="x" [size]="14" />
-                            </button>
-                          }
-                        </li>
-                      }
-                    </ul>
-                  } @else {
-                    <p class="text-[13.5px] text-fg-subtle">
-                      {{ 'tasks.checklist.empty' | transloco }}
-                    </p>
-                  }
-                  @if (editable()) {
-                    <form
-                      class="mt-3 flex items-center gap-2"
-                      (submit)="$event.preventDefault(); addItem()"
-                    >
-                      <input
-                        type="text"
-                        maxlength="500"
-                        class="h-9 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-[13.5px]"
-                        [attr.aria-label]="'tasks.checklist.addLabel' | transloco"
-                        [placeholder]="'tasks.checklist.addPlaceholder' | transloco"
-                        [value]="newItem()"
-                        (input)="newItem.set($any($event.target).value)"
-                      />
-                      <app-button
-                        size="sm"
-                        type="submit"
-                        [disabled]="!newItem().trim()"
-                        [loading]="adding()"
-                      >
-                        {{ 'tasks.checklist.add' | transloco }}
-                      </app-button>
-                    </form>
-                  }
-                </app-card>
-
-                <app-card>
-                  <h2 class="mb-2 font-display text-[15px] font-bold text-fg">
-                    {{ 'tasks.history.title' | transloco }}
-                  </h2>
-                  <ol class="flex flex-col gap-2 border-l border-border pl-4">
-                    @for (entry of history(); track entry.key) {
-                      <li class="relative text-[13px] text-fg-muted">
-                        <span
-                          class="absolute top-1.5 -left-[21px] h-2 w-2 rounded-full bg-accent"
-                          aria-hidden="true"
-                        ></span>
-                        {{ entry.key | transloco: entry.params }}
-                        <span class="block text-[12px] text-fg-subtle">{{
-                          entry.at | localDate: 'medium'
-                        }}</span>
-                      </li>
-                    }
-                  </ol>
-                </app-card>
-              </div>
-
-              <aside class="flex flex-col gap-5">
-                <app-card>
-                  <dl class="flex flex-col gap-3 text-[13px]">
-                    <div>
-                      <dt class="text-[12px] font-semibold text-fg-subtle">
-                        {{ 'tasks.fields.assignee' | transloco }}
-                      </dt>
-                      <dd class="text-fg"><app-assignee-label [assignee]="task.assignee" /></dd>
-                    </div>
-                    <div>
-                      <dt class="text-[12px] font-semibold text-fg-subtle">
-                        {{ 'tasks.fields.due' | transloco }}
-                      </dt>
-                      <dd
-                        [class.text-fail]="task.overdue"
-                        [class.font-semibold]="task.overdue"
-                        [class.text-fg]="!task.overdue"
-                      >
-                        @if (task.due_at) {
-                          {{ task.due_at | localDay: 'fullDate' }}
+              </app-field-item>
+              @if (task.recurrence_id) {
+                <app-field-item labelKey="tasks.detail.fields.series" [wide]="true">
+                  <span class="flex flex-col gap-0.5" data-testid="task-series">
+                    @if (series(); as rec) {
+                      <span class="font-semibold"><app-rule-summary [rrule]="rec.rrule" /></span>
+                      <span class="text-meta text-fg-muted">
+                        @if (!rec.active) {
+                          {{ 'tasks.detail.series.paused' | transloco }}
+                        } @else if (rec.next_due_at) {
+                          {{
+                            'tasks.detail.series.next'
+                              | transloco: { date: (rec.next_due_at | localDay) }
+                          }}
                         } @else {
-                          {{ 'tasks.common.noDueDate' | transloco }}
+                          {{ 'tasks.recurring.ended' | transloco }}
                         }
-                      </dd>
-                    </div>
-                    @if (task.start_at) {
-                      <div>
-                        <dt class="text-[12px] font-semibold text-fg-subtle">
-                          {{ 'tasks.fields.start' | transloco }}
-                        </dt>
-                        <dd class="text-fg">{{ task.start_at | localDay: 'fullDate' }}</dd>
-                      </div>
+                      </span>
+                    } @else {
+                      <span>{{ 'tasks.detail.partOfSeries' | transloco }}</span>
                     }
-                    @if (task.entity; as entity) {
-                      <div>
-                        <dt class="text-[12px] font-semibold text-fg-subtle">
-                          {{ 'tasks.fields.record' | transloco }}
-                        </dt>
-                        <dd>
-                          @if (entity.url) {
-                            <a
-                              [routerLink]="entity.url"
-                              class="inline-flex items-center gap-1 font-semibold text-accent hover:underline"
-                            >
-                              <app-icon name="link" [size]="13" />
-                              @if (entity.code) {
-                                <span class="font-mono">{{ entity.code }}</span>
-                              }
-                              {{ entity.title }}
-                            </a>
-                          } @else {
-                            <span class="text-fg">{{ entity.title }}</span>
-                          }
-                        </dd>
-                      </div>
-                    } @else if (task.entity_type) {
-                      <div>
-                        <dt class="text-[12px] font-semibold text-fg-subtle">
-                          {{ 'tasks.fields.record' | transloco }}
-                        </dt>
-                        <dd class="text-fg-subtle">
-                          {{ 'tasks.detail.recordUnavailable' | transloco }}
-                        </dd>
-                      </div>
-                    }
-                    <div>
-                      <dt class="text-[12px] font-semibold text-fg-subtle">
-                        {{ 'tasks.fields.createdBy' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{ task.created_by_name || ('tasks.history.system' | transloco) }}
-                      </dd>
-                    </div>
-                  </dl>
-                </app-card>
-                <app-task-why-it-matters page="detail" />
-              </aside>
-            </div>
+                    <a
+                      routerLink="/tasks/recurring"
+                      [queryParams]="{ series: task.recurrence_id }"
+                      class="text-meta font-semibold text-accent hover:underline"
+                      >{{ 'tasks.detail.series.open' | transloco }} →</a
+                    >
+                  </span>
+                </app-field-item>
+              }
+              <!-- Facts the system records, not fields to fill in: shown only when they apply. -->
+              @if (task.status === 'done' && task.completed_at) {
+                <app-field-item
+                  labelKey="tasks.detail.fields.completed"
+                  [value]="task.completed_at | localDate: 'medium'"
+                />
+              }
+              @if (task.escalation_level > 0) {
+                <app-field-item
+                  labelKey="tasks.detail.fields.escalation"
+                  [value]="'tasks.detail.escalated' | transloco: { level: task.escalation_level }"
+                />
+              }
+            </app-record-details>
 
-            <app-confirm-dialog
-              [open]="pending() !== null"
-              [title]="
-                (pending() === 'delete' ? 'tasks.confirm.deleteTitle' : 'tasks.confirm.cancelTitle')
-                  | transloco
-              "
-              [message]="
-                (pending() === 'delete' ? 'tasks.confirm.deleteBody' : 'tasks.confirm.cancelBody')
-                  | transloco: { title: (task | localizedTitle) }
-              "
-              [confirmLabel]="
-                (pending() === 'delete' ? 'tasks.actions.delete' : 'tasks.actions.cancel')
-                  | transloco
-              "
-              [cancelLabel]="'tasks.confirm.keep' | transloco"
-              [busy]="busy()"
-              (confirmed)="confirmPending()"
-              (cancelled)="pending.set(null)"
-            />
-          }
+            <app-record-meta follow-up-meta>
+              <app-field-item layout="inline" labelKey="tasks.fields.createdBy">
+                {{ task.created_by_name || ('tasks.history.system' | transloco) }}
+              </app-field-item>
+              <app-field-item
+                layout="inline"
+                labelKey="tasks.detail.fields.created"
+                [value]="task.created_at | localDate"
+              />
+              @if (task.updated_at.slice(0, 19) > task.created_at.slice(0, 19)) {
+                <app-field-item
+                  layout="inline"
+                  labelKey="tasks.detail.fields.updated"
+                  [value]="task.updated_at | localDate"
+                />
+              }
+            </app-record-meta>
+          </app-record-detail-layout>
+
+          <app-confirm-dialog
+            [open]="pending() !== null"
+            [title]="
+              (pending() === 'delete' ? 'tasks.confirm.deleteTitle' : 'tasks.confirm.cancelTitle')
+                | transloco
+            "
+            [message]="
+              (pending() === 'delete' ? 'tasks.confirm.deleteBody' : 'tasks.confirm.cancelBody')
+                | transloco: { title: (task | localizedTitle) }
+            "
+            [confirmLabel]="
+              (pending() === 'delete' ? 'tasks.actions.delete' : 'tasks.actions.cancel') | transloco
+            "
+            [cancelLabel]="'tasks.confirm.keep' | transloco"
+            [busy]="busy()"
+            (confirmed)="confirmPending()"
+            (cancelled)="pending.set(null)"
+          />
         }
       }
-    </div>
+    }
   `,
 })
 export class TaskDetailPage {
   private readonly api = inject(TasksApi);
+  private readonly kit = inject(KitApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
@@ -458,7 +503,6 @@ export class TaskDetailPage {
   /** Route param (component input binding). */
   readonly id = input.required<string>();
 
-  protected readonly editableStatuses = EDITABLE_TASK_STATUSES;
   protected readonly statusKey = taskStatusKey;
   protected readonly statusTone = taskStatusTone;
   protected readonly priorityKey = taskPriorityKey;
@@ -466,6 +510,10 @@ export class TaskDetailPage {
 
   protected readonly state = signal<'loading' | 'error' | 'ready'>('loading');
   protected readonly task = signal<TaskDetail | null>(null);
+  /** The linked record with its status (resolved through the kit; falls back to the task's ref). */
+  private readonly record = signal<EntityChipRef | null>(null);
+  /** The recurring series this task is an occurrence of, when the caller can see it. */
+  protected readonly series = signal<Recurrence | null>(null);
   protected readonly busy = signal(false);
   protected readonly itemBusy = signal<string | null>(null);
   protected readonly adding = signal(false);
@@ -474,6 +522,36 @@ export class TaskDetailPage {
 
   protected readonly closed = computed(() => isClosedStatus(this.task()?.status));
   protected readonly editable = computed(() => !!this.task()?.can_edit && !this.closed());
+  protected readonly otherStatuses = computed<readonly EditableTaskStatus[]>(() =>
+    EDITABLE_TASK_STATUSES.filter((s) => s !== this.task()?.status),
+  );
+  protected readonly statusLine = computed(() => {
+    const task = this.task();
+    return task ? taskStatusLine(task) : { key: '', tone: 'neutral' as const };
+  });
+  protected readonly missing = computed<RecordMissingItem[]>(() => {
+    const task = this.task();
+    return task ? taskMissing(task) : [];
+  });
+  protected readonly fillLink = computed(() =>
+    this.editable() ? ['/tasks', this.id(), 'edit'] : null,
+  );
+  protected readonly breadcrumbs = computed<Breadcrumb[]>(() => {
+    const task = this.task();
+    return [
+      { labelKey: 'nav.myWork', link: '/my-work' },
+      { labelKey: 'tasks.list.title', link: '/tasks' },
+      { label: task ? this.titles.resolve(task) : '' },
+    ];
+  });
+  protected readonly recordRef = computed<EntityChipRef | null>(() => {
+    const entity = this.task()?.entity;
+    if (!entity) {
+      return null;
+    }
+    const resolved = this.record();
+    return resolved && resolved.entity_id === entity.entity_id ? resolved : entity;
+  });
   protected readonly doneCount = computed(
     () => this.task()?.checklist.filter((i) => i.done).length ?? 0,
   );
@@ -481,15 +559,15 @@ export class TaskDetailPage {
     const total = this.task()?.checklist.length ?? 0;
     return total ? Math.round((this.doneCount() / total) * 100) : 0;
   });
-  protected readonly history = computed<readonly TaskHistoryEntry[]>(() => {
-    const task = this.task();
-    return task ? taskHistory(task) : [];
-  });
 
   private request = new Subscription();
+  private extras = new Subscription();
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.request.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      this.request.unsubscribe();
+      this.extras.unsubscribe();
+    });
     provideTasksPageContext(() => ({
       module: 'tasks',
       entityType: 'task',
@@ -504,14 +582,19 @@ export class TaskDetailPage {
     });
   }
 
-  protected setStatus(select: HTMLSelectElement): void {
-    const status = select.value as EditableTaskStatus;
+  protected reload(): void {
+    this.load(this.selectedOrg.currentOrgId(), this.id());
+  }
+
+  protected edit(): void {
+    void this.router.navigate(['/tasks', this.id(), 'edit']);
+  }
+
+  protected setStatus(status: EditableTaskStatus): void {
     const current = this.task()?.status;
     if (!current || status === current) {
       return;
     }
-    // Show the stored status until the server confirms the change.
-    select.value = current;
     this.mutate((orgId, id) => this.api.update(orgId, id, { status }), 'tasks.notices.saved');
   }
 
@@ -679,8 +762,41 @@ export class TaskDetailPage {
       next: (task) => {
         this.task.set(task);
         this.state.set('ready');
+        this.loadExtras(orgId, task);
       },
       error: () => this.state.set('error'),
     });
+  }
+
+  /** The linked record's status and the series' rule: nice to have, never blocking. */
+  private loadExtras(orgId: string, task: TaskDetail): void {
+    this.extras.unsubscribe();
+    this.extras = new Subscription();
+    this.record.set(null);
+    this.series.set(null);
+    if (task.entity) {
+      this.extras.add(
+        this.kit
+          .entity(orgId, task.entity.entity_type, task.entity.entity_id)
+          .pipe(catchError(() => of(null)))
+          .subscribe((ref) => this.record.set(ref)),
+      );
+    }
+    if (task.recurrence_id) {
+      const seriesId = task.recurrence_id;
+      const scope =
+        task.entity_type && task.entity_id
+          ? { entity_type: task.entity_type, entity_id: task.entity_id }
+          : {};
+      this.extras.add(
+        this.api
+          .listRecurrences(orgId, { ...scope, limit: 200 })
+          .pipe(
+            map((page) => page.items.find((r) => r.id === seriesId) ?? null),
+            catchError(() => of(null)),
+          )
+          .subscribe((rec) => this.series.set(rec)),
+      );
+    }
   }
 }
