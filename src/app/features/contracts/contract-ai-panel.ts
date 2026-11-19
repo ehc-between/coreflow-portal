@@ -1,12 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   inject,
   input,
   linkedSignal,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -92,11 +94,16 @@ export function extractionChanges(
  * The contract's AI actions on an attached file: extract the register details,
  * obligations and risks (and apply them after review), and check a processor
  * agreement against GDPR Art. 28(3). Nothing is saved without a click.
+ *
+ * The page starts the runs from its "Spør KI" menu (docs/ux-guide.md §2.7) through
+ * `extract()` / `checkDpa()`; the panel stays hidden until a run is started, then
+ * shows the file, the run state and what was found.
  */
 @Component({
   selector: 'app-contract-ai-panel',
   imports: [TranslocoPipe, AiAssistButton, Badge, Button, Card, Icon, ExtractionSummary],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block', '[class.hidden]': '!shown()', 'data-testid': 'contract-ai-panel' },
   template: `
     <app-card>
       <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
@@ -126,6 +133,7 @@ export function extractionChanges(
           <div class="flex flex-wrap gap-2">
             @if (canWrite()) {
               <app-ai-assist-button
+                #extractButton
                 assist="contracts.extract"
                 labelKey="contracts.ai.extract"
                 entityType="contract"
@@ -137,6 +145,7 @@ export function extractionChanges(
             }
             @if (dpaRelevant()) {
               <app-ai-assist-button
+                #dpaButton
                 assist="contracts.dpa_check"
                 labelKey="contracts.ai.dpaCheck"
                 entityType="contract"
@@ -286,12 +295,13 @@ export class ContractAiPanel {
   /** An obligation was added. */
   readonly obligationAdded = output<void>();
 
-  protected readonly files = computed(() => this.attachments().filter(isReadableFile));
+  /** Files the analysis can read (the page offers the runs only when there is one). */
+  readonly files = computed(() => this.attachments().filter(isReadableFile));
   protected readonly fileId = linkedSignal(() => this.files()[0]?.id ?? '');
-  protected readonly canWrite = computed(() =>
+  readonly canWrite = computed(() =>
     (this.selectedOrg.currentOrg()?.permissions ?? []).includes(PERM_WRITE),
   );
-  protected readonly dpaRelevant = computed(
+  readonly dpaRelevant = computed(
     () => this.contract().processes_personal_data || this.contract().contract_type === 'dpa',
   );
 
@@ -307,6 +317,32 @@ export class ContractAiPanel {
   protected readonly extraction = signal<ContractExtraction | null>(null);
   protected readonly dpaResult = signal<DpaCheckResult | null>(null);
   protected readonly busy = signal(false);
+  /** A run was started from the page's menu (or there is a result to show). */
+  private readonly started = signal(false);
+  protected readonly shown = computed(
+    () => this.started() || !!this.extraction() || !!this.dpaResult(),
+  );
+  private readonly extractButton = viewChild<AiAssistButton>('extractButton');
+  private readonly dpaButton = viewChild<AiAssistButton>('dpaButton');
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** "Finn opplysninger, forpliktelser og risikoer" from the page's "Spør KI" menu. */
+  extract(): void {
+    this.start(() => this.extractButton()?.run());
+  }
+
+  /** "Kontroller klausuler for databehandling" from the page's "Spør KI" menu. */
+  checkDpa(): void {
+    this.start(() => this.dpaButton()?.run());
+  }
+
+  private start(run: () => void): void {
+    this.started.set(true);
+    run();
+    setTimeout(() =>
+      this.host.nativeElement.scrollIntoView?.({ behavior: 'smooth', block: 'start' }),
+    );
+  }
 
   private readonly changes = computed(() => {
     const x = this.extraction();

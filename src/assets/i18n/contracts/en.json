@@ -308,21 +308,59 @@
     "submittedBy": "Submitted by {{ name }} on {{ date }}."
   },
   "detail": {
-    "summary": "Summary",
-    "nextDeadline": "Next deadline",
     "noDeadline": "No upcoming deadline.",
-    "openObligations": "Open obligations: {{ count }}",
+    "openObligations": "{{ count }} open obligations",
     "noticeDays": "{{ days }} days' notice",
     "autoRenew": "Renews automatically",
     "autoRenewTerm": "Renews automatically for {{ months }} months at a time",
     "noAutoRenew": "Does not renew automatically",
-    "closedNotice": "Status: {{ status }}. The contract has ended, is kept for the record and can no longer be changed.",
     "deleteTitle": "Delete this contract?",
     "deleteMessage": "{{ code }} is removed from the register and its open obligations are cancelled. It stays in the audit log.",
-    "ask": "Ask",
     "obligationsTab": "Obligations",
     "startEvaluation": "Start supplier evaluation",
-    "notApprovedYet": "Not approved yet"
+    "notApprovedYet": "Not approved yet",
+    "askSummarise": "Summarise the contract",
+    "nextStep": "Next step",
+    "from": "From {{ date }}",
+    "until": "Until {{ date }}",
+    "noticeBy": "Give notice by {{ date }} ({{ days }} days’ notice)",
+    "noticeByDate": "Give notice by {{ date }}",
+    "confidentialYes": "Yes",
+    "lead": {
+      "with": "Who the contract is with",
+      "term": "How long it runs",
+      "about": "What it covers",
+      "nextDeadline": "Next deadline"
+    },
+    "labels": {
+      "signedDate": "Date signed",
+      "governingLaw": "Governing law",
+      "flags": "Also note",
+      "updated": "Last changed"
+    },
+    "statusLine": {
+      "draft": "Draft – the contract has not been sent for approval yet.",
+      "in_review": "Waiting for approval – someone who approves contracts must look at it.",
+      "approved": "Approved – sign it, upload the signed copy and mark it as active.",
+      "activeUntil": "Active – runs until {{ date }}.",
+      "activeRenews": "Active – runs until {{ date }} and renews automatically.",
+      "activeOpen": "Active – no end date is recorded.",
+      "terminatedOn": "Terminated {{ date }} – kept for the record and can no longer be changed.",
+      "terminated": "Terminated – kept for the record and can no longer be changed.",
+      "expired": "Expired – kept for the record and can no longer be changed.",
+      "unknown": "Status unknown."
+    },
+    "todo": {
+      "counterparty": "Add who the contract is with",
+      "dpa_missing": "Link or create the data processing agreement",
+      "dpa_incomplete": "Complete the data processing agreement",
+      "signed_copy_missing": "Upload the signed copy",
+      "review_overdue": "Review the contract – the review is overdue",
+      "review_date_missing": "Set the date of the next review",
+      "notice_soon": "Decide whether to renew or give notice before {{ date }}",
+      "end_date_missing": "Record the end date",
+      "notice_period_missing": "Record the notice period"
+    }
   },
   "dpa": {
     "title": "Data processing agreement",
