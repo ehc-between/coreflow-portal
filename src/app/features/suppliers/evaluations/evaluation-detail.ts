@@ -9,23 +9,31 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, Subscription, of, switchMap } from 'rxjs';
-import { AiAvailability } from '../../../core/ai/ai-availability';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskPanelService } from '../../ask/ask-panel.service';
-import { WatchButton } from '../../../shared/activity/watch-button';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { ClauseChips } from '../../../shared/guidance/clause-chips';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
-import { LocalDatePipe, LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
+import {
+  RecordDetailLayout,
+  RecordMissingItem,
+  RecordTab,
+} from '../../../shared/kit/record-detail-layout';
+import {
+  RecordDetails,
+  RecordLead,
+  RecordMeta,
+  RecordStatusLine,
+} from '../../../shared/kit/record-sections';
+import { LocalDayPipe, LocalNumberPipe, formatLocalDay } from '../../../shared/locale/locale-pipes';
 import { MarkdownPipe } from '../../../shared/markdown/markdown.pipe';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -33,6 +41,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FieldItem } from '../../../shared/ui/field-list/field-list';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -58,6 +67,8 @@ import {
   UpdateEvaluationRequest,
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
+import { TextAssist } from '../data/text-assist';
+import { evaluationStatusKey, evaluationTone, showOnDetails } from '../detail/supplier-anatomy';
 import { SupplierUserSelect } from '../shared/people-select';
 import { questionnaireLang } from '../detail/start-evaluation-dialog';
 import {
@@ -121,19 +132,23 @@ export function answersBody(
 }
 
 /**
- * An evaluation of a supplier (`/suppliers/:id/evaluations/:eid`). While a draft the
- * evaluator answers the questionnaire (with a live score) and may adjust the
- * questions, then submits. A submitted evaluation is decided by someone with approval
- * rights (or reopened); the score's recommendation is advisory. Shows the summary
- * (with an assistant summary of the responses), the decision and the shared record
- * tabs.
+ * An evaluation of a supplier (`/suppliers/:id/evaluations/:eid`), on the detail-page
+ * anatomy (docs/ux-guide.md §2.7). Hovedinformasjon: a status sentence (draft,
+ * waiting for a decision, or the decision with who and when), the supplier as a clear
+ * link, the result (score against the pass mark, recommendation, failed critical
+ * questions), progress while open, conditions and the summary. Details: the
+ * questionnaire (answered with a live score while a draft; questions adjustable),
+ * the summary box (with the assistant's suggestion) and what the decision does.
+ * "Oppfølging": unanswered questions, a missing evaluator or deadline, a deviation to
+ * raise; evaluator, deadline and who submitted / created it. A submitted evaluation
+ * is decided by someone with approval rights (or reopened); the recommendation is
+ * advisory. Assistant actions sit in "Spør KI".
  */
 @Component({
   selector: 'app-evaluation-detail',
   imports: [
     RouterLink,
     TranslocoPipe,
-    LocalDatePipe,
     LocalDayPipe,
     LocalNumberPipe,
     MarkdownPipe,
@@ -147,6 +162,7 @@ export function answersBody(
     ErrorState,
     EvaluationDecideDialog,
     FieldHelp,
+    FieldItem,
     FormField,
     HelpStrip,
     Icon,
@@ -157,11 +173,15 @@ export function answersBody(
     QuestionEditor,
     QuestionnaireAnswers,
     RecordDetailLayout,
+    RecordDetails,
+    RecordLead,
+    RecordMeta,
+    RecordStatusLine,
     StatusBadge,
     SupplierUserSelect,
-    WatchButton,
     WhyItMatters,
   ],
+  providers: [TextAssist],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
@@ -187,6 +207,7 @@ export function answersBody(
       @default {
         @if (evaluation(); as e) {
           <app-record-detail-layout
+            [anatomy]="true"
             entityType="supplier_evaluation"
             [entityId]="e.id"
             [title]="e.title"
@@ -200,19 +221,13 @@ export function answersBody(
             [requirementsPanel]="true"
             [includeAudit]="canAudit()"
             [fieldLabels]="fieldLabels"
+            [missing]="missing()"
             [backLink]="['/suppliers', e.supplier.id]"
             backLabelKey="suppliers.common.backToSupplier"
           >
             <ng-container ngProjectAs="[meta]">
-              <a
-                [routerLink]="['/suppliers', e.supplier.id]"
-                class="font-semibold hover:underline"
-                data-testid="evaluation-supplier"
-              >
-                <span class="font-mono">{{ e.supplier.code }}</span> {{ e.supplier.name }}
-              </a>
-              <span aria-hidden="true">·</span>
               <span>{{ 'suppliers.evaluationKind.' + e.kind | transloco }}</span>
+              <span aria-hidden="true">·</span>
               @let st = statusBadge(e.status);
               <app-status-badge
                 [meaning]="st.meaning"
@@ -254,7 +269,17 @@ export function answersBody(
                 {{ 'suppliers.evaluation.reopen' | transloco }}
               </app-button>
             }
-            <app-watch-button secondary entityType="supplier_evaluation" [entityId]="e.id" />
+            @if (isOpen() && e.can_edit) {
+              <button
+                appMenuItem
+                overflow
+                type="button"
+                data-testid="edit-details"
+                (click)="startEditDetails()"
+              >
+                {{ 'suppliers.evaluation.editDetails' | transloco }}
+              </button>
+            }
             @if (isOpen() && e.can_edit) {
               <button appMenuItem overflow type="button" (click)="pending.set('cancel')">
                 {{ 'suppliers.evaluation.cancel' | transloco }}
@@ -272,12 +297,125 @@ export function answersBody(
               </button>
             }
 
+            <button appMenuItem ask type="button" (click)="askScore()">
+              <app-icon name="spark" [size]="15" />
+              {{ 'suppliers.ai.explainScore' | transloco }}
+            </button>
+            <button
+              appMenuItem
+              ask
+              type="button"
+              data-testid="ask-summarise-responses"
+              (click)="summariseResponses()"
+            >
+              <app-icon name="spark" [size]="15" />
+              {{ 'suppliers.ai.summariseResponses' | transloco }}
+            </button>
+
             <app-help-strip
               help
               scope="suppliers"
               page="evaluation"
               [lesson]="e.kind === 'security' ? 'third-party-security' : 'evaluating-suppliers'"
             />
+
+            <app-record-lead
+              record-lead
+              [fillAction]="canEditSummary() ? fillSummary : null"
+              data-testid="evaluation-lead"
+            >
+              <app-record-status-line status [tone]="tone()">
+                {{
+                  statusKey()
+                    | transloco
+                      : {
+                          date: e.decided_at ? (e.decided_at | localDay) : '',
+                          name: e.decided_by?.name ?? ('suppliers.common.nobody' | transloco),
+                        }
+                }}
+              </app-record-status-line>
+              <app-field-item size="lead" labelKey="suppliers.evaluation.lead.supplier">
+                <a
+                  [routerLink]="['/suppliers', e.supplier.id]"
+                  class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-tile border border-border bg-surface px-2 py-1 text-ui text-fg hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  data-testid="evaluation-supplier"
+                >
+                  <app-icon name="link" [size]="13" class="flex-none text-fg-muted" />
+                  <span class="font-mono text-meta text-fg-muted">{{ e.supplier.code }}</span>
+                  <span class="min-w-0 truncate font-semibold">{{ e.supplier.name }}</span>
+                  <span aria-hidden="true" class="text-accent">→</span>
+                </a>
+              </app-field-item>
+              <app-field-item size="lead" labelKey="suppliers.evaluation.lead.result">
+                <span class="flex flex-wrap items-baseline gap-x-2 gap-y-1" data-testid="score">
+                  @if (score() === null) {
+                    <span class="text-body text-fg-muted">{{
+                      'suppliers.evaluation.lead.noScore' | transloco
+                    }}</span>
+                  } @else {
+                    <span class="font-display text-section font-bold text-fg">
+                      {{ score() | localNumber: '1.0-1' }}
+                      <span class="text-ui font-normal text-fg-muted">/ 100</span>
+                    </span>
+                  }
+                  <span class="text-meta text-fg-muted">{{
+                    'suppliers.evaluation.lead.passMark' | transloco: { pass: e.pass_score }
+                  }}</span>
+                  <app-field-help scope="suppliers" page="evaluation" field="score" />
+                </span>
+                @if (recommendation(); as rec) {
+                  <span class="mt-1 flex flex-wrap items-center gap-1.5 text-meta text-fg-muted">
+                    {{ 'suppliers.evaluation.lead.recommends' | transloco }}
+                    @let rb = decision(rec);
+                    <app-status-badge
+                      [meaning]="rb.meaning"
+                      [value]="rb.value"
+                      [labelKey]="'suppliers.recommendation.' + rec"
+                    />
+                  </span>
+                }
+                @if (criticalFailures().length) {
+                  <span class="mt-1 block text-ui font-semibold text-fail-ink" role="status">
+                    {{
+                      'suppliers.evaluation.criticalFailures'
+                        | transloco: { count: criticalFailures().length }
+                    }}
+                  </span>
+                }
+              </app-field-item>
+              @if (isOpen()) {
+                <app-field-item size="lead" labelKey="suppliers.evaluation.answered">
+                  <span class="block">
+                    {{
+                      'suppliers.evaluation.lead.answeredOf'
+                        | transloco: { answered: preview().answered, total: preview().total }
+                    }}
+                  </span>
+                  <span class="mt-2 block">
+                    <app-progress-bar
+                      [value]="preview().total ? (preview().answered / preview().total) * 100 : 0"
+                      [label]="'suppliers.evaluation.answered' | transloco"
+                    />
+                  </span>
+                </app-field-item>
+              }
+              @if (e.status === 'completed' && e.conditions) {
+                <app-field-item
+                  size="lead"
+                  labelKey="suppliers.decide.conditions"
+                  [value]="e.conditions"
+                  [multiline]="true"
+                />
+              }
+              <app-field-item size="lead" labelKey="suppliers.evaluation.summary" [wide]="true">
+                @if (e.summary) {
+                  <div
+                    class="cf-prose text-body text-fg"
+                    [innerHTML]="e.summary | appMarkdown"
+                  ></div>
+                }
+              </app-field-item>
+            </app-record-lead>
 
             <div class="flex flex-col gap-5">
               @if (actionError(); as key) {
@@ -291,154 +429,87 @@ export function answersBody(
                 </app-alert>
               }
 
-              <app-card>
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1.5 font-display text-card font-bold text-fg">
-                    {{ 'suppliers.evaluation.scoreTitle' | transloco }}
-                    <app-field-help scope="suppliers" page="evaluation" field="score" />
-                  </h2>
-                  @if (!ai.unavailable()) {
-                    <app-button variant="ghost" size="sm" (click)="askScore()">
-                      <app-icon name="spark" [size]="14" />
-                      {{ 'suppliers.ai.explainScore' | transloco }}
-                    </app-button>
-                  }
-                </div>
-                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <div>
-                    <p class="text-meta text-fg-muted">
-                      {{ 'suppliers.evaluation.score' | transloco }}
-                    </p>
-                    <p class="font-display text-section font-bold text-fg" data-testid="score">
-                      @if (score() === null) {
-                        –
-                      } @else {
-                        {{ score() | localNumber: '1.0-1' }}
-                        <span class="text-ui font-normal text-fg-muted">/ 100</span>
-                      }
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-meta text-fg-muted">
-                      {{ 'suppliers.evaluation.passScore' | transloco }}
-                    </p>
-                    <p class="font-display text-section font-bold text-fg">{{ e.pass_score }}</p>
-                  </div>
-                  <div>
-                    <p class="text-meta text-fg-muted">
-                      {{ 'suppliers.evaluation.answered' | transloco }}
-                    </p>
-                    <p class="font-display text-section font-bold text-fg">
-                      {{ preview().answered }} / {{ preview().total }}
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-meta text-fg-muted">
-                      {{ 'suppliers.evaluation.recommendation' | transloco }}
-                    </p>
-                    @if (recommendation(); as rec) {
-                      @let rb = decision(rec);
-                      <app-status-badge
-                        [meaning]="rb.meaning"
-                        [value]="rb.value"
-                        [labelKey]="'suppliers.recommendation.' + rec"
-                      />
-                    } @else {
-                      <p class="text-ui text-fg-subtle">–</p>
-                    }
-                  </div>
-                </div>
-                <p class="mt-2 text-meta text-fg-muted" data-testid="score-meaning">
-                  {{ 'suppliers.evaluation.scoreMeaning' | transloco: { pass: e.pass_score } }}
-                </p>
-                <div class="mt-3">
-                  <app-progress-bar
-                    [value]="preview().total ? (preview().answered / preview().total) * 100 : 0"
-                    [label]="'suppliers.evaluation.answered' | transloco"
-                  />
-                </div>
-                @if (criticalFailures().length) {
-                  <p class="mt-3 text-ui font-semibold text-fail-ink" role="status">
-                    {{
-                      'suppliers.evaluation.criticalFailures'
-                        | transloco: { count: criticalFailures().length }
-                    }}
-                  </p>
-                }
-                @if (canRaiseDeviation()) {
-                  <div
-                    class="mt-3 flex flex-wrap items-center gap-2 rounded-tile bg-surface-2 px-3 py-2"
-                    data-testid="raise-deviation-box"
-                  >
-                    <p class="min-w-0 flex-1 text-ui text-fg-muted">
-                      {{ 'suppliers.evaluation.raiseDeviationHint' | transloco }}
-                    </p>
-                    <app-button size="sm" variant="secondary" (click)="raiseDeviation()">
-                      {{ 'suppliers.evaluation.raiseDeviation' | transloco }}
-                    </app-button>
-                  </div>
-                }
-                <p class="mt-2 text-meta text-fg-subtle">
-                  {{ 'suppliers.evaluation.advisory' | transloco }}
-                </p>
-              </app-card>
-
-              @if (e.status === 'completed' && e.decision) {
+              @if (editingDetails()) {
                 <app-card>
-                  <h2 class="mb-2 font-display text-card font-bold text-fg">
-                    {{ 'suppliers.evaluation.decisionTitle' | transloco }}
-                  </h2>
-                  <p class="mb-2 flex flex-wrap items-center gap-2 text-ui text-fg-muted">
-                    @let db = decision(e.decision);
-                    <app-status-badge
-                      [meaning]="db.meaning"
-                      [value]="db.value"
-                      [labelKey]="'suppliers.decision.' + e.decision"
-                    />
-                    @if (e.decided_at) {
-                      {{
-                        'suppliers.evaluation.decidedBy'
-                          | transloco
-                            : { name: e.decided_by?.name ?? '–', date: (e.decided_at | localDate) }
-                      }}
-                    }
-                  </p>
-                  @if (e.conditions) {
-                    <h3 class="mt-2 text-meta font-semibold text-fg-muted">
-                      {{ 'suppliers.decide.conditions' | transloco }}
-                    </h3>
-                    <p class="text-body whitespace-pre-line text-fg">{{ e.conditions }}</p>
-                  }
-                  @if (e.decision_notes) {
-                    <h3 class="mt-2 text-meta font-semibold text-fg-muted">
-                      {{ 'suppliers.decide.notes' | transloco }}
-                    </h3>
-                    <p class="text-body whitespace-pre-line text-fg">{{ e.decision_notes }}</p>
-                  }
-                  <p class="mt-3 text-meta text-fg-subtle">
-                    {{
-                      (setsStatus()
-                        ? 'suppliers.decide.setsStatus'
-                        : 'suppliers.decide.recordsOnly'
-                      ) | transloco
-                    }}
-                  </p>
-                  @if (checkedRefs().length) {
-                    <p
-                      class="mt-2 flex flex-wrap items-baseline gap-x-1 text-meta"
-                      data-testid="evidence-note"
+                  <form
+                    id="evaluation-edit-details"
+                    class="flex scroll-mt-24 flex-col gap-3"
+                    (submit)="$event.preventDefault(); saveDetails()"
+                  >
+                    <h2 class="font-display text-card font-bold text-fg">
+                      {{ 'suppliers.evaluation.editDetails' | transloco }}
+                    </h2>
+                    <app-form-field
+                      [label]="'suppliers.evaluations.titleField' | transloco"
+                      inputId="ed-title"
                     >
-                      <span class="text-fg-subtle">{{
-                        'suppliers.evaluation.evidenceFor' | transloco
-                      }}</span>
-                      <app-clause-chips [clauses]="checkedRefs()" />
-                    </p>
-                  }
+                      <input
+                        id="ed-title"
+                        type="text"
+                        maxlength="255"
+                        [value]="titleDraft()"
+                        (input)="titleDraft.set($any($event.target).value)"
+                      />
+                    </app-form-field>
+                    <app-form-field
+                      [label]="'suppliers.evaluations.evaluator' | transloco"
+                      inputId="ed-user"
+                    >
+                      <app-supplier-user-select
+                        inputId="ed-user"
+                        [value]="evaluatorDraft()"
+                        [currentName]="e.evaluator?.name ?? null"
+                        (valueChange)="evaluatorDraft.set($event)"
+                      />
+                    </app-form-field>
+                    <app-form-field
+                      [label]="'suppliers.evaluations.dueAt' | transloco"
+                      inputId="ed-due"
+                    >
+                      <input
+                        id="ed-due"
+                        type="date"
+                        [attr.lang]="lang()"
+                        [value]="dueDraft()"
+                        (input)="dueDraft.set($any($event.target).value)"
+                      />
+                    </app-form-field>
+                    <div class="flex justify-end gap-2">
+                      <app-button variant="ghost" size="sm" (click)="editingDetails.set(false)">
+                        {{ 'common.cancel' | transloco }}
+                      </app-button>
+                      <app-button
+                        size="sm"
+                        type="submit"
+                        [loading]="saving()"
+                        [disabled]="!titleDraft().trim()"
+                      >
+                        {{ 'common.save' | transloco }}
+                      </app-button>
+                    </div>
+                  </form>
                 </app-card>
               }
 
+              @if (canRaiseDeviation()) {
+                <div
+                  class="flex flex-wrap items-center gap-2 rounded-tile border border-warn bg-warn-soft px-3 py-2"
+                  data-testid="raise-deviation-box"
+                >
+                  <p class="min-w-0 flex-1 text-ui text-fg">
+                    {{ 'suppliers.evaluation.raiseDeviationHint' | transloco }}
+                  </p>
+                  <app-button size="sm" variant="secondary" (click)="raiseDeviation()">
+                    {{ 'suppliers.evaluation.raiseDeviation' | transloco }}
+                  </app-button>
+                </div>
+              }
+
               <app-card>
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div
+                  id="evaluation-questions"
+                  class="mb-3 flex scroll-mt-24 flex-wrap items-center justify-between gap-2"
+                >
                   <h2 class="font-display text-card font-bold text-fg">
                     {{ 'suppliers.evaluation.questions' | transloco }}
                   </h2>
@@ -496,194 +567,100 @@ export function answersBody(
                 }
               </app-card>
 
-              <app-card>
-                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h2 class="flex items-center gap-1 font-display text-card font-bold text-fg">
-                    {{ 'suppliers.evaluation.summary' | transloco }}
-                    <app-field-help scope="suppliers" page="evaluation" field="summary" />
-                  </h2>
-                  <app-ai-assist-button
-                    assist="suppliers.summarise_responses"
-                    labelKey="suppliers.ai.summariseResponses"
-                    entityType="supplier_evaluation"
-                    [entityId]="e.id"
-                    [input]="{ evaluation_id: e.id }"
-                    (text)="aiSummary.set($event)"
-                  />
-                </div>
-                @if (aiSummary(); as text) {
-                  <div
-                    class="mb-3 rounded-tile border border-accent bg-accent-soft p-3"
-                    aria-live="polite"
-                  >
-                    <p class="mb-1 text-meta font-semibold text-accent">
-                      {{ 'suppliers.ai.suggestion' | transloco }}
-                    </p>
-                    <div class="cf-prose text-body text-fg" [innerHTML]="text | appMarkdown"></div>
-                    <div class="mt-2 flex gap-2">
-                      @if (canEditSummary()) {
-                        <app-button size="sm" variant="secondary" (click)="useAiSummary(text)">
-                          {{ 'suppliers.ai.useSummary' | transloco }}
-                        </app-button>
-                      }
-                      <app-button size="sm" variant="ghost" (click)="aiSummary.set(null)">
-                        {{ 'suppliers.ai.discard' | transloco }}
-                      </app-button>
-                    </div>
-                  </div>
-                }
-                @if (canEditSummary()) {
-                  <label class="sr-only" for="ev-summary">{{
-                    'suppliers.evaluation.summary' | transloco
-                  }}</label>
-                  <textarea
-                    id="ev-summary"
-                    rows="4"
-                    maxlength="20000"
-                    class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg"
-                    [placeholder]="'suppliers.evaluation.summaryPlaceholder' | transloco"
-                    [value]="summaryDraft()"
-                    (input)="summaryDraft.set($any($event.target).value)"
-                  ></textarea>
-                  <div class="mt-2 flex justify-end">
-                    <app-button
-                      size="sm"
-                      variant="secondary"
-                      [disabled]="summaryDraft() === (e.summary ?? '')"
-                      [loading]="saving()"
-                      (click)="saveSummary()"
+              @if (canEditSummary() || aiSummary()) {
+                <app-card>
+                  <div id="evaluation-summary" class="scroll-mt-24">
+                    <h2
+                      class="mb-2 flex items-center gap-1 font-display text-card font-bold text-fg"
                     >
-                      {{ 'suppliers.evaluation.saveSummary' | transloco }}
-                    </app-button>
-                  </div>
-                } @else if (e.summary) {
-                  <div
-                    class="cf-prose text-body text-fg"
-                    [innerHTML]="e.summary | appMarkdown"
-                  ></div>
-                } @else {
-                  <p class="text-body text-fg-subtle">
-                    {{ 'suppliers.evaluation.noSummary' | transloco }}
-                  </p>
-                }
-              </app-card>
-
-              <app-why-it-matters scope="suppliers" page="evaluation" />
-            </div>
-
-            <ng-container aside>
-              <app-card>
-                <div class="mb-2 flex items-center justify-between gap-2">
-                  <h2 class="font-display text-body font-bold text-fg">
-                    {{ 'suppliers.evaluation.details' | transloco }}
-                  </h2>
-                  @if (isOpen() && e.can_edit && !editingDetails()) {
-                    <button
-                      type="button"
-                      class="text-meta font-semibold text-accent hover:underline"
-                      (click)="startEditDetails()"
-                    >
-                      {{ 'suppliers.common.edit' | transloco }}
-                    </button>
-                  }
-                </div>
-                @if (editingDetails()) {
-                  <form
-                    class="flex flex-col gap-3"
-                    (submit)="$event.preventDefault(); saveDetails()"
-                  >
-                    <app-form-field
-                      [label]="'suppliers.evaluations.titleField' | transloco"
-                      inputId="ed-title"
-                    >
-                      <input
-                        id="ed-title"
-                        type="text"
-                        maxlength="255"
-                        [value]="titleDraft()"
-                        (input)="titleDraft.set($any($event.target).value)"
-                      />
-                    </app-form-field>
-                    <app-form-field
-                      [label]="'suppliers.evaluations.evaluator' | transloco"
-                      inputId="ed-user"
-                    >
-                      <app-supplier-user-select
-                        inputId="ed-user"
-                        [value]="evaluatorDraft()"
-                        [currentName]="e.evaluator?.name ?? null"
-                        (valueChange)="evaluatorDraft.set($event)"
-                      />
-                    </app-form-field>
-                    <app-form-field
-                      [label]="'suppliers.evaluations.dueAt' | transloco"
-                      inputId="ed-due"
-                    >
-                      <input
-                        id="ed-due"
-                        type="date"
-                        [attr.lang]="lang()"
-                        [value]="dueDraft()"
-                        (input)="dueDraft.set($any($event.target).value)"
-                      />
-                    </app-form-field>
-                    <div class="flex justify-end gap-2">
-                      <app-button variant="ghost" size="sm" (click)="editingDetails.set(false)">
-                        {{ 'common.cancel' | transloco }}
-                      </app-button>
-                      <app-button
-                        size="sm"
-                        type="submit"
-                        [loading]="saving()"
-                        [disabled]="!titleDraft().trim()"
+                      {{ 'suppliers.evaluation.writeSummary' | transloco }}
+                      <app-field-help scope="suppliers" page="evaluation" field="summary" />
+                    </h2>
+                    @if (aiSummary(); as text) {
+                      <div
+                        class="mb-3 rounded-tile border border-accent bg-accent-soft p-3"
+                        aria-live="polite"
                       >
-                        {{ 'common.save' | transloco }}
-                      </app-button>
-                    </div>
-                  </form>
-                } @else {
-                  <dl class="flex flex-col gap-2 text-ui">
-                    <div>
-                      <dt class="text-meta text-fg-muted">
-                        {{ 'suppliers.evaluations.evaluator' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{ e.evaluator?.name ?? ('suppliers.common.nobody' | transloco) }}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt class="text-meta text-fg-muted">
-                        {{ 'suppliers.evaluations.dueAt' | transloco }}
-                      </dt>
-                      <dd [class.text-warn-ink]="e.overdue && isOpen()">
-                        {{ e.due_at ? (e.due_at | localDay) : '–' }}
-                      </dd>
-                    </div>
-                    @if (e.submitted_at) {
-                      <div>
-                        <dt class="text-meta text-fg-muted">
-                          {{ 'suppliers.evaluation.submitted' | transloco }}
-                        </dt>
-                        <dd class="text-fg">
-                          {{ e.submitted_at | localDate }}
-                          @if (e.submitted_by?.name; as name) {
-                            · {{ name }}
-                          }
-                        </dd>
+                        <p class="mb-1 text-meta font-semibold text-accent">
+                          {{ 'suppliers.ai.suggestion' | transloco }}
+                        </p>
+                        <div
+                          class="cf-prose text-body text-fg"
+                          [innerHTML]="text | appMarkdown"
+                        ></div>
+                        @if (!assist.running()) {
+                          <div class="mt-2 flex gap-2">
+                            @if (canEditSummary()) {
+                              <app-button
+                                size="sm"
+                                variant="secondary"
+                                (click)="useAiSummary(text)"
+                              >
+                                {{ 'suppliers.ai.useSummary' | transloco }}
+                              </app-button>
+                            }
+                            <app-button size="sm" variant="ghost" (click)="assist.clear()">
+                              {{ 'suppliers.ai.discard' | transloco }}
+                            </app-button>
+                          </div>
+                        }
                       </div>
                     }
-                    <div>
-                      <dt class="text-meta text-fg-muted">
-                        {{ 'suppliers.evaluation.createdBy' | transloco }}
-                      </dt>
-                      <dd class="text-fg">
-                        {{ e.created_by?.name ?? '–' }} · {{ e.created_at | localDay }}
-                      </dd>
-                    </div>
-                  </dl>
-                }
-              </app-card>
-            </ng-container>
+                    @if (canEditSummary()) {
+                      <label class="sr-only" for="ev-summary">{{
+                        'suppliers.evaluation.summary' | transloco
+                      }}</label>
+                      <textarea
+                        id="ev-summary"
+                        rows="4"
+                        maxlength="20000"
+                        class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg"
+                        [placeholder]="'suppliers.evaluation.summaryPlaceholder' | transloco"
+                        [value]="summaryDraft()"
+                        (input)="summaryDraft.set($any($event.target).value)"
+                      ></textarea>
+                      <div class="mt-2 flex justify-end">
+                        <app-button
+                          size="sm"
+                          variant="secondary"
+                          [disabled]="summaryDraft() === (e.summary ?? '')"
+                          [loading]="saving()"
+                          (click)="saveSummary()"
+                        >
+                          {{ 'suppliers.evaluation.saveSummary' | transloco }}
+                        </app-button>
+                      </div>
+                    }
+                  </div>
+                </app-card>
+              }
+
+              @if (e.status === 'completed') {
+                <app-record-details [columns]="1">
+                  <app-field-item
+                    labelKey="suppliers.evaluation.lead.whatDecisionDoes"
+                    [value]="
+                      (setsStatus()
+                        ? 'suppliers.decide.setsStatus'
+                        : 'suppliers.decide.recordsOnly'
+                      ) | transloco
+                    "
+                  />
+                  <app-field-item
+                    labelKey="suppliers.decide.notes"
+                    [value]="e.decision_notes"
+                    [multiline]="true"
+                  />
+                  <app-field-item labelKey="suppliers.evaluation.lead.evidence">
+                    @if (checkedRefs().length) {
+                      <span data-testid="evidence-note">
+                        <app-clause-chips [clauses]="checkedRefs()" />
+                      </span>
+                    }
+                  </app-field-item>
+                </app-record-details>
+              }
+            </div>
 
             <div tasks>
               <app-entity-tasks
@@ -692,6 +669,41 @@ export function answersBody(
                 [canCreate]="e.can_edit"
                 [entityLabel]="e.title"
               />
+            </div>
+
+            <app-record-meta follow-up-meta>
+              <app-field-item
+                layout="inline"
+                labelKey="suppliers.evaluations.evaluator"
+                [value]="e.evaluator?.name"
+              />
+              <app-field-item
+                layout="inline"
+                labelKey="suppliers.evaluations.dueAt"
+                [keepEmpty]="isOpen()"
+                emptyKey="kit.detail.meta.notPlanned"
+              >
+                @if (e.due_at) {
+                  <span [class.text-warn-ink]="e.overdue && isOpen()">{{
+                    e.due_at | localDay
+                  }}</span>
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="suppliers.evaluation.submitted">
+                @if (e.submitted_at) {
+                  {{ e.submitted_at | localDay }}
+                  @if (e.submitted_by?.name; as name) {
+                    · {{ name }}
+                  }
+                }
+              </app-field-item>
+              <app-field-item layout="inline" labelKey="suppliers.evaluation.createdBy">
+                {{ e.created_by?.name ?? '–' }} · {{ e.created_at | localDay }}
+              </app-field-item>
+            </app-record-meta>
+
+            <div aside-learn>
+              <app-why-it-matters scope="suppliers" page="evaluation" />
             </div>
           </app-record-detail-layout>
 
@@ -765,10 +777,11 @@ export class EvaluationDetailPage {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly language = inject(LanguageService);
   private readonly ask = inject(AskPanelService);
   private readonly flows = inject(CreateFlowService);
-  protected readonly ai = inject(AiAvailability);
+  protected readonly assist = inject(TextAssist);
 
   /** Supplier id (route `:id`). */
   readonly id = input.required<string>();
@@ -804,7 +817,8 @@ export class EvaluationDetailPage {
   protected readonly dueDraft = signal('');
 
   protected readonly summaryDraft = signal('');
-  protected readonly aiSummary = signal<string | null>(null);
+  /** The assistant's summary of the responses while it streams / until used or discarded. */
+  protected readonly aiSummary = computed(() => this.assist.text() || null);
 
   private readonly permissions = computed(() => this.selectedOrg.currentOrg()?.permissions ?? []);
   protected readonly canManage = computed(() => this.permissions().includes('suppliers:manage'));
@@ -826,6 +840,66 @@ export class EvaluationDetailPage {
   protected readonly summaryDirty = computed(
     () => this.canEditSummary() && this.summaryDraft() !== (this.evaluation()?.summary ?? ''),
   );
+
+  protected readonly tone = computed(() => {
+    const e = this.evaluation();
+    return e ? evaluationTone(e) : 'neutral';
+  });
+  protected readonly statusKey = computed(() => {
+    const e = this.evaluation();
+    return e ? evaluationStatusKey(e) : '';
+  });
+  /** "Fyll ut" for the summary: the summary box on the Details tab. */
+  protected readonly fillSummary = () => this.show('evaluation-summary');
+
+  /** "Oppfølging" (docs/ux-guide.md §2.7): what the evaluation still needs. */
+  protected readonly missing = computed<readonly RecordMissingItem[]>(() => {
+    const e = this.evaluation();
+    if (!e) {
+      return [];
+    }
+    const items: RecordMissingItem[] = [];
+    const editDetails = () => this.startEditDetails();
+    const unanswered = this.preview().unanswered.length;
+    if (e.status === 'draft' && e.can_edit && unanswered > 0) {
+      items.push({
+        key: 'unanswered',
+        labelKey:
+          unanswered === 1
+            ? 'suppliers.evaluation.todo.unansweredOne'
+            : 'suppliers.evaluation.todo.unanswered',
+        params: { count: unanswered },
+        action: () => this.show('evaluation-questions'),
+      });
+    }
+    if (this.isOpen() && e.can_edit) {
+      if (!e.evaluator) {
+        items.push({
+          key: 'evaluator',
+          labelKey: 'suppliers.evaluation.todo.evaluator',
+          action: editDetails,
+        });
+      }
+      if (!e.due_at) {
+        items.push({ key: 'due', labelKey: 'suppliers.evaluation.todo.due', action: editDetails });
+      } else if (e.overdue) {
+        items.push({
+          key: 'overdue',
+          labelKey: 'suppliers.evaluation.todo.overdue',
+          params: { date: formatLocalDay(e.due_at, 'mediumDate', this.language.locale()) },
+          action: editDetails,
+        });
+      }
+    }
+    if (this.canRaiseDeviation()) {
+      items.push({
+        key: 'deviation',
+        labelKey: 'suppliers.evaluation.todo.deviation',
+        action: () => this.raiseDeviation(),
+      });
+    }
+    return items;
+  });
 
   /** The live score while answering a draft (the server value otherwise). */
   protected readonly preview = computed(() => {
@@ -892,6 +966,25 @@ export class EvaluationDetailPage {
 
   protected reload(): void {
     this.load(this.selectedOrg.currentOrgId(), this.eid(), this.lang());
+  }
+
+  /** "Oppsummer svarene" (Spør KI): stream a suggestion into the summary box. */
+  protected summariseResponses(): void {
+    const e = this.evaluation();
+    if (!e) {
+      return;
+    }
+    this.assist.run(
+      'suppliers.summarise_responses',
+      { evaluation_id: e.id },
+      'supplier_evaluation',
+      e.id,
+    );
+    this.show('evaluation-summary');
+  }
+
+  private show(elementId: string): void {
+    showOnDetails(this.router, this.route, elementId);
   }
 
   protected askScore(): void {
@@ -1118,6 +1211,7 @@ export class EvaluationDetailPage {
     this.evaluatorDraft.set(e.evaluator?.id ?? '');
     this.dueDraft.set(wireToDay(e.due_at));
     this.editingDetails.set(true);
+    this.show('evaluation-edit-details');
   }
 
   protected saveDetails(): void {
@@ -1155,7 +1249,7 @@ export class EvaluationDetailPage {
 
   protected useAiSummary(text: string): void {
     this.summaryDraft.set(text);
-    this.aiSummary.set(null);
+    this.assist.clear();
   }
 
   protected saveSummary(): void {

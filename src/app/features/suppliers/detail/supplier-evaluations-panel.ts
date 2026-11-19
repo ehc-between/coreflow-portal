@@ -16,19 +16,23 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Card } from '../../../shared/ui/card/card';
+import { Button } from '../../../shared/ui/button/button';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { decisionBadge, evaluationStatusBadge, scoreParams } from '../data/supplier-display';
-import { EvaluationListItem, SupplierDetail } from '../data/supplier.models';
+import { EvaluationKind, EvaluationListItem, SupplierDetail } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { questionnaireLang } from './start-evaluation-dialog';
 
 export { defaultKind, questionnaireLang } from './start-evaluation-dialog';
 
 /**
- * A supplier's evaluations (all kinds): title, kind, evaluator, the score against its
+ * A supplier's evaluations: first the assessments its risk profile calls for
+ * ("Påkrevde vurderinger: 1 av 3 gjort", each done, in progress or to start), then
+ * every evaluation (all kinds): title, kind, evaluator, the score against its
  * pass mark ("64 / 100 (grense 70)"), the decision or status and the due date of open
  * ones. Starting one is the page's primary action; the empty state asks for it
  * (`startRequested`).
@@ -39,7 +43,9 @@ export { defaultKind, questionnaireLang } from './start-evaluation-dialog';
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
+    Button,
     Card,
+    Icon,
     EmptyState,
     ErrorState,
     LoadingState,
@@ -48,9 +54,99 @@ export { defaultKind, questionnaireLang } from './start-evaluation-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-card [padded]="false">
-      <h2 class="px-5 pt-4 pb-2 font-display text-card font-bold text-fg">
+      <h2 class="flex items-center gap-2 px-5 pt-4 pb-2 font-display text-card font-bold text-fg">
+        <app-icon name="checkcircle" [size]="16" class="text-fg-muted" />
         {{ 'suppliers.evaluations.title' | transloco }}
       </h2>
+      @let s = supplier();
+      @if (s.required_assessments?.length) {
+        <div class="px-5 pb-4" data-testid="required-assessments">
+          <h3 class="mb-2 text-ui font-semibold text-fg">
+            {{
+              'suppliers.required.title'
+                | transloco: { done: s.required_done ?? 0, total: s.required_total ?? 0 }
+            }}
+          </h3>
+          <ul class="flex flex-col divide-y divide-border rounded-tile border border-border">
+            @for (r of s.required_assessments; track r.kind) {
+              <li
+                class="flex flex-col gap-1.5 px-3 py-2 sm:flex-row sm:items-center sm:gap-3"
+                [attr.data-kind]="r.kind"
+              >
+                <span
+                  class="flex h-5 w-5 flex-none items-center justify-center rounded-full"
+                  [class]="r.done ? 'bg-pass-soft text-pass-ink' : 'bg-surface-2 text-fg-subtle'"
+                  aria-hidden="true"
+                >
+                  <app-icon [name]="r.done ? 'check' : 'clock'" [size]="12" />
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-ui font-semibold text-fg">
+                    {{ 'suppliers.evaluationKind.' + r.kind | transloco }}
+                    <span class="sr-only">
+                      ·
+                      {{
+                        (r.done ? 'suppliers.required.done' : 'suppliers.required.notDone')
+                          | transloco
+                      }}
+                    </span>
+                  </p>
+                  <p class="text-meta text-fg-muted">
+                    {{ 'suppliers.required.why.' + r.reason | transloco }}
+                  </p>
+                </div>
+                <span class="flex flex-wrap items-center gap-2 text-meta">
+                  @if (r.latest; as l) {
+                    <a
+                      [routerLink]="['/suppliers', s.id, 'evaluations', l.id]"
+                      class="inline-flex items-center gap-2 hover:underline"
+                    >
+                      @if (l.decision) {
+                        @let d = decision(l.decision);
+                        <app-status-badge
+                          [meaning]="d.meaning"
+                          [value]="d.value"
+                          [labelKey]="'suppliers.decision.' + l.decision"
+                        />
+                      }
+                      @if (scoreOf(l.score); as sc) {
+                        <span class="text-fg-muted">{{
+                          'suppliers.score.of100' | transloco: sc
+                        }}</span>
+                      }
+                      @if (l.decided_at) {
+                        <span class="text-fg-subtle">{{ l.decided_at | localDay }}</span>
+                      }
+                    </a>
+                  }
+                  @if (r.open_evaluation_id) {
+                    <a
+                      [routerLink]="['/suppliers', s.id, 'evaluations', r.open_evaluation_id]"
+                      class="font-semibold text-accent hover:underline"
+                    >
+                      {{ 'suppliers.required.inProgress' | transloco }}
+                      <span aria-hidden="true">→</span>
+                    </a>
+                  } @else if (!r.done && canWrite()) {
+                    <app-button size="sm" variant="secondary" (click)="startRequested.emit(r.kind)">
+                      {{ 'suppliers.required.start' | transloco }}
+                    </app-button>
+                  } @else if (!r.done) {
+                    <span class="text-fg-subtle">{{
+                      'suppliers.required.notStarted' | transloco
+                    }}</span>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+        @if (items().length) {
+          <h3 class="px-5 pb-1 text-meta font-semibold text-fg-muted">
+            {{ 'suppliers.evaluations.history' | transloco }}
+          </h3>
+        }
+      }
       @switch (state()) {
         @case ('loading') {
           <app-loading-state [rows]="2" />
@@ -66,7 +162,7 @@ export { defaultKind, questionnaireLang } from './start-evaluation-dialog';
               titleKey="suppliers.evaluations.noneTitle"
               bodyKey="suppliers.evaluations.none"
               [ctaKey]="canWrite() ? 'suppliers.evaluations.start' : null"
-              (cta)="startRequested.emit()"
+              (cta)="startRequested.emit(null)"
             />
           } @else {
             <ul class="divide-y divide-border border-t border-border" data-testid="evaluation-rows">
@@ -142,7 +238,7 @@ export class SupplierEvaluationsPanel {
   readonly supplier = input.required<SupplierDetail>();
   readonly canWrite = input(false);
   /** "Start vurdering" from the empty state (the page owns the dialog). */
-  readonly startRequested = output<void>();
+  readonly startRequested = output<EvaluationKind | null>();
 
   protected readonly decision = decisionBadge;
   protected readonly status = evaluationStatusBadge;
@@ -161,6 +257,10 @@ export class SupplierEvaluationsPanel {
       const lang = questionnaireLang(this.language.active());
       untracked(() => this.load(orgId, id, lang));
     });
+  }
+
+  protected scoreOf(score: number | null) {
+    return scoreParams(score, null, this.language.locale());
   }
 
   protected score(e: EvaluationListItem) {
