@@ -21,7 +21,11 @@ import { privacyNavItems, privacyPermissions } from './privacy-nav';
         titleKey="privacy.documents.title"
         descriptionKey="privacy.documents.subtitle"
       />
-      <app-module-nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-module-nav
+        labelKey="modules.names.privacy"
+        moreLabelKey="privacy.nav.more"
+        [items]="nav()"
+      />
 
       <app-outputs-panel
         module="privacy"

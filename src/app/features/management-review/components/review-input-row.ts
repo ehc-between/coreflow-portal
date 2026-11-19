@@ -89,9 +89,6 @@ let nextId = 0;
         <span class="min-w-0 flex-1 basis-48 font-semibold text-fg sm:basis-auto">{{
           title()
         }}</span>
-        @if (clause(); as c) {
-          <app-mr-clause-ref [ref]="c.ref" [item]="c.item" [frameworks]="frameworks()" />
-        }
         @if (i.not_relevant) {
           <app-badge tone="neutral">{{
             'managementReview.inputs.notRelevant' | transloco
@@ -122,6 +119,12 @@ let nextId = 0;
       </summary>
 
       <div class="flex flex-col gap-3 border-t border-border px-3 py-3">
+        @if (clause(); as c) {
+          <!-- U37: the clause sits in the open row, not on every closed one. -->
+          <p class="text-meta text-fg-muted">
+            <app-mr-clause-ref [ref]="c.ref" [item]="c.item" [frameworks]="frameworks()" />
+          </p>
+        }
         @if (hintKey(); as hint) {
           <p class="text-ui text-fg-muted">{{ hint | transloco }}</p>
         }

@@ -2,7 +2,7 @@
   "sections": {
     "label": "Inspeksjonsområder",
     "inspections": "Inspeksjoner",
-    "findings": "Funn",
+    "findings": "Det kontrollen fant",
     "templates": "Sjekklistemaler",
     "schedules": "Faste inspeksjoner"
   },
@@ -347,7 +347,7 @@
     "overview": "Om inspeksjonen",
     "answers": "Svar",
     "findings": "Funn ({{ count }})",
-    "noFindings": "Ingen funn.",
+    "noFindings": "Kontrollen fant ingenting som må følges opp.",
     "notStarted": "Denne inspeksjonen er ikke startet ennå.",
     "unanswered": "Ikke besvart",
     "start": "Start inspeksjon",
@@ -432,7 +432,7 @@
     "imageAlt": "Signaturen til {{ name }}"
   },
   "findings": {
-    "title": "Funn",
+    "title": "Det kontrollene fant (funn)",
     "subtitle": "Det inspeksjonene fant, hvem som følger det opp, og om det ble et avvik.",
     "searchPlaceholder": "Søk etter kode eller tittel",
     "noOwner": "Ingen eier",

@@ -432,7 +432,8 @@
       "project_design_review": "Project review",
       "training_due": "Training",
       "other": "Other",
-      "document_periodic_review": "Document review due"
+      "document_periodic_review": "Document review due",
+      "requirement_suggestions": "Suggested requirements to confirm"
     },
     "why": {
       "overdue": "The deadline passed {{ days }} days ago",
@@ -444,6 +445,9 @@
       "acknowledge": "Read it and confirm that you have",
       "owner": "You are responsible",
       "assigned": "Assigned to you"
+    },
+    "titles": {
+      "requirementSuggestions": "Confirm suggested requirements ({{ count }})"
     }
   }
 }

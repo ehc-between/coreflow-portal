@@ -235,8 +235,8 @@
     },
     "matrix": {
       "intro": {
-        "title": "Kompetansematrisen",
-        "body": "Matrisen viser hver person mot hvert kurs med status for det som er påkrevd. Prosenten øverst er andelen påkrevd opplæring som er på plass, og hvert kurs har sin egen prosent.",
+        "title": "Kursstatus per person",
+        "body": "Oversikten viser hver person mot hvert kurs med status for det som er påkrevd. Prosenten øverst er andelen påkrevd opplæring som er på plass, og hvert kurs har sin egen prosent.",
         "steps": [
           "Filtrer på kategori, avdeling eller stilling for å se ett område om gangen.",
           "Klikk på en celle for å åpne registreringen eller tildelingen bak den, eller på et navn for personens opplæringsoversikt.",
@@ -347,11 +347,6 @@
         "target": "training-courses",
         "title": "Kurskatalogen",
         "body": "Bla gjennom alle publiserte kurs, også de du ikke må ta."
-      },
-      {
-        "target": "training-stats",
-        "title": "Tall for programmet",
-        "body": "Følger du opp opplæringen, ser du hvor mye påkrevd opplæring som er på plass, åpne og forfalte tildelinger og kursbevis som snart utløper."
       }
     ],
     "courses": [

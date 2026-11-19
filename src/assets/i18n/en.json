@@ -721,7 +721,8 @@
         "trace": "Traceability",
         "advanced": "Advanced"
       },
-      "advancedHint": "Custom record types and deletion logs."
+      "advancedHint": "Branding, roles, departments, the audit log, module settings and the menu.",
+      "rarely": "Rarely needed"
     },
     "moduleConfig": {
       "note": "Set up how the module works here. The daily work happens in the module itself.",
@@ -1625,7 +1626,7 @@
         "owner": "Owner",
         "due": "Due date",
         "status": "Status",
-        "effectiveness": "Effectiveness"
+        "effectiveness": "Did it work?"
       },
       "kind": {
         "containment": "Containment",

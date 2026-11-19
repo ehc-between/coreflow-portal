@@ -4,7 +4,7 @@
     "overview": "Overview",
     "plans": "Audits",
     "programmes": "Programmes",
-    "findings": "Findings",
+    "findings": "What the audit found",
     "certifications": "Certifications",
     "auditors": "Auditors"
   },
@@ -199,7 +199,7 @@
   "checklistResult": {
     "unanswered": "Not answered",
     "conforming": "Conforming",
-    "nonconforming": "Nonconforming",
+    "nonconforming": "Requirement not met",
     "observation": "Observation",
     "not_applicable": "Not applicable"
   },
@@ -209,10 +209,10 @@
     "ai": "Drafted by the assistant"
   },
   "findingType": {
-    "major_nc": "Major nonconformity",
-    "minor_nc": "Minor nonconformity",
-    "observation": "Observation",
-    "ofi": "Opportunity for improvement"
+    "major_nc": "Serious gap (major nonconformity)",
+    "minor_nc": "Gap (minor nonconformity)",
+    "observation": "Could become a problem (observation)",
+    "ofi": "Suggested improvement"
   },
   "findingTypeHelp": {
     "major_nc": "A requirement is not met at all, or the failure puts the system's results at risk.",
@@ -499,7 +499,7 @@
     "fix": "Could not save. Fill in the title and a year between 2000 and 2100."
   },
   "findings": {
-    "title": "Audit findings",
+    "title": "What audits found (findings)",
     "search": "Search by code or title",
     "new": "Raise a finding",
     "back": "All findings",
@@ -509,7 +509,7 @@
       "-created_at": "Newest first",
       "code": "By code"
     },
-    "subtitle": "Every finding from internal and external audits, and how far the follow-up has come.",
+    "subtitle": "Everything audits found: requirements not met (nonconformities), things that could become a problem, and suggested improvements. What must be fixed is followed up here or in a linked deviation.",
     "raiseFromAudit": "Findings are registered from an audit",
     "fromAudit": "From {{ audit }}"
   },

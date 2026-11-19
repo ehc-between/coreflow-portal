@@ -219,9 +219,12 @@ describe('supplier list query', () => {
       category: '',
       due: '',
       flag: 'provides_ai',
+      dpa: '',
       owner: '',
       sort: 'name',
     });
+    expect(filtersFromView({ dpa_status: 'missing' }).dpa).toBe('missing');
+    expect(toQuery('', filtersFromView({ dpa: 'covered' }), 0).dpa_status).toEqual(['covered']);
   });
 
   it('maps filters to the API query, flag as a boolean param', () => {

@@ -487,6 +487,8 @@ export interface PrivacyOverview {
   readonly gaps_total?: number;
   readonly gaps_by_kind?: Readonly<Record<string, number>>;
   readonly setup?: PrivacySetup | null;
+  /** U32: the beginner path (`ropa` | `processors` | `dpia` | `documents`), done from the data. */
+  readonly path?: PrivacySetup | null;
 }
 
 /** The steps of the overview's "start here" checklist, in order. */

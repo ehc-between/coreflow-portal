@@ -13,6 +13,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { OrgApi } from '../../../core/org/org-api';
 import { OrgMembersApi } from '../../../core/org/org-members-api';
 import { OrgMfaPolicy, OrgRole } from '../../../core/org/org.models';
+import { relevantRoles } from '../../../core/org/roles';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RoleNamePipe } from '../../../shared/roles/role-name.pipe';
 import { Alert } from '../../../shared/ui/alert/alert';
@@ -89,7 +90,7 @@ export function mfaPolicyErrorKey(error: unknown): string {
               <legend class="mb-1 text-ui font-semibold text-fg">
                 {{ 'settings.mfa.rolesLabel' | transloco }}
               </legend>
-              @for (role of roles(); track role.key) {
+              @for (role of shownRoles(); track role.key) {
                 <label class="flex cursor-pointer items-center gap-2.5 text-ui text-fg">
                   <input
                     type="checkbox"
@@ -142,6 +143,10 @@ export class OrgMfaSettings {
   protected readonly policy = signal<OrgMfaPolicy>('off');
   protected readonly selectedRoles = signal<ReadonlySet<string>>(new Set());
   protected readonly roles = signal<readonly OrgRole[]>([]);
+  /** U37: the named roles plus any the policy already lists, not the whole global catalogue. */
+  protected readonly shownRoles = computed(() =>
+    relevantRoles(this.roles(), this.saved().roles.split(',').filter(Boolean)),
+  );
   /** Last saved values, to know whether there is anything to save. */
   private readonly saved = signal<{ policy: OrgMfaPolicy; roles: string }>({
     policy: 'off',

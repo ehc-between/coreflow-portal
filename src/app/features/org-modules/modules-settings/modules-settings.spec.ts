@@ -15,6 +15,21 @@ import { ModulesSettings, scopeGaps } from './modules-settings';
 const BASE = 'http://test/api';
 const ORG = 'org-1';
 
+const PACKAGES = {
+  total: 28,
+  enabled: 6,
+  items: [
+    {
+      key: 'quality',
+      frameworks: ['iso9001'],
+      modules: ['audits', 'documents'],
+      module_count: 10,
+      missing: ['audits'],
+      covered: false,
+    },
+  ],
+};
+
 function mod(key: string, enabled: boolean, extra: Partial<OrgModule> = {}): OrgModule {
   return {
     key,
@@ -82,6 +97,7 @@ describe('ModulesSettings', () => {
       // A module whose page sits below another route (encoded '/' once broke it).
       mod('records', true, { always_on: true, portal_path: 'settings/record-types' }),
     ]);
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules/packages`).flush(PACKAGES);
     // A26: the profile's frameworks drive the scope-gap hints.
     http.expectOne(`${BASE}/v1/orgs/${ORG}/profile`).flush({ frameworks: [] });
     fixture.detectChanges();
@@ -114,6 +130,7 @@ describe('ModulesSettings', () => {
     const req = http.expectOne(`${BASE}/v1/orgs/${ORG}/modules/audits`);
     expect(req.request.body).toEqual({ enabled: true });
     req.flush(mod('audits', true));
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules/packages`).flush(PACKAGES);
     http.expectOne(`${BASE}/v1/orgs/${ORG}/modules`).flush([]);
     expect(reload).toHaveBeenCalled();
   });
@@ -159,5 +176,20 @@ describe('ModulesSettings', () => {
     ) as HTMLButtonElement;
     button.click();
     expect(showWith).toHaveBeenCalledWith(expect.stringContaining('modules.settings.askFitPrompt'));
+  });
+
+  it('switches a whole package on (U09)', async () => {
+    const section = el().querySelector('[data-testid="module-packages"]') as HTMLElement;
+    expect(section.textContent).toContain('modules.packages.items.quality.name');
+    const apply = [...section.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('modules.packages.apply'),
+    ) as HTMLButtonElement;
+    apply.click();
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules/packages/quality/apply`).flush({
+      enabled: ['audits', 'documents'],
+    });
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules/packages`).flush(PACKAGES);
+    http.expectOne(`${BASE}/v1/orgs/${ORG}/modules`).flush([]);
+    expect(reload).toHaveBeenCalled();
   });
 });

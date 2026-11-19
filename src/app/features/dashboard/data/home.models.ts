@@ -155,6 +155,16 @@ export interface JourneySummary {
   readonly skipped: number;
   readonly percent: number;
   readonly next_step: JourneyNextStep | null;
+  /** U09: the target audit date (ISO date), from the org's certification target. */
+  readonly target_date?: string | null;
+  readonly schedule?: JourneySchedule | null;
+}
+
+/** U09: progress against the target audit date. */
+export interface JourneySchedule {
+  readonly status: 'on_track' | 'behind' | 'overdue' | 'done';
+  readonly weeks_behind: number;
+  readonly days_left: number;
 }
 
 export interface SetupSummary {

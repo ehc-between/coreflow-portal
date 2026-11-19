@@ -15,21 +15,19 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { TeachingEmpty } from '../../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
-import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
+import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { KpiBand } from '../../../shared/ui/kpi-band/kpi-band';
-import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { TrainingApi } from '../data/training-api';
 import { TRAINING_MODULE, TrainingAccess, cellBadge } from '../data/training-display';
-import { NeedItem, Needs, TrainingStats } from '../data/training.models';
+import { NeedItem, Needs } from '../data/training.models';
 
 /** Order of a person's needs on the home page: what needs action first. */
 const NEED_ORDER: Readonly<Record<string, number>> = {
@@ -64,9 +62,9 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
 }
 
 /**
- * `/training` (module root, "Min opplæring"): the learner's own training first
- * (needs from the rules, open assignments, valid certificates); for people who
- * oversee training, the programme figures and what to follow up.
+ * `/training/mine` ("Min opplæring"): the learner's own training only (needs from
+ * the rules, open assignments, valid certificates). U35: the programme figures for
+ * people who oversee training are the band on top of the course register.
  */
 @Component({
   selector: 'app-training-home',
@@ -74,14 +72,11 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
-    LocalNumberPipe,
     Button,
     Card,
     ErrorState,
     HelpStrip,
     Icon,
-    KpiBand,
-    KpiTile,
     LoadingState,
     ModuleNav,
     PageHeader,
@@ -94,9 +89,12 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
-        titleKey="modules.names.training"
+        titleKey="training.nav.mine"
         descriptionKey="training.home.subtitle"
-        [breadcrumbs]="[{ labelKey: 'modules.names.training' }]"
+        [breadcrumbs]="[
+          { labelKey: 'modules.names.training', link: '/training/courses' },
+          { labelKey: 'training.nav.mine' },
+        ]"
       >
         <app-button
           secondary
@@ -227,63 +225,6 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
           class="flex min-w-0 flex-col gap-4"
           [attr.aria-label]="'training.home.aside' | transloco"
         >
-          @if (access.canOversee() && stats(); as s) {
-            <app-card>
-              <h2 class="mb-3 text-card font-semibold text-fg">
-                {{ 'training.home.followUpTitle' | transloco }}
-              </h2>
-              <ul class="flex flex-col gap-2 text-ui" data-testid="training-follow-up">
-                <li>
-                  <a
-                    routerLink="/training/assignments"
-                    [queryParams]="{ overdue: true }"
-                    class="flex items-center justify-between gap-2 rounded-tile px-2 py-1.5 hover:bg-surface-2"
-                  >
-                    <span class="text-fg">{{ 'training.home.followOverdue' | transloco }}</span>
-                    <span
-                      class="font-semibold"
-                      [class.text-warn-ink]="s.assignments_overdue"
-                      [class.text-fg-muted]="!s.assignments_overdue"
-                      >{{ s.assignments_overdue | localNumber }}</span
-                    >
-                  </a>
-                </li>
-                <li>
-                  <a
-                    routerLink="/training/plan"
-                    class="flex items-center justify-between gap-2 rounded-tile px-2 py-1.5 hover:bg-surface-2"
-                  >
-                    <span class="text-fg">{{ 'training.home.followExpiring' | transloco }}</span>
-                    <span
-                      class="font-semibold"
-                      [class.text-warn-ink]="s.expiring_30_days"
-                      [class.text-fg-muted]="!s.expiring_30_days"
-                      >{{ s.expiring_30_days | localNumber }}</span
-                    >
-                  </a>
-                </li>
-                <li>
-                  <a
-                    routerLink="/training/records"
-                    [queryParams]="{ evidence: 'missing' }"
-                    class="flex items-center justify-between gap-2 rounded-tile px-2 py-1.5 hover:bg-surface-2"
-                  >
-                    <span class="text-fg">{{ 'training.home.followEvidence' | transloco }}</span>
-                    <app-icon name="arrow" [size]="14" class="text-fg-subtle" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    routerLink="/training/matrix"
-                    class="flex items-center justify-between gap-2 rounded-tile px-2 py-1.5 hover:bg-surface-2"
-                  >
-                    <span class="text-fg">{{ 'training.home.followMatrix' | transloco }}</span>
-                    <app-icon name="arrow" [size]="14" class="text-fg-subtle" />
-                  </a>
-                </li>
-              </ul>
-            </app-card>
-          }
           <app-card>
             <h2 class="mb-1 text-card font-semibold text-fg">
               {{ 'training.home.learnTitle' | transloco }}
@@ -295,90 +236,6 @@ export function needAction(need: NeedItem): 'record' | 'start' | 'retake' | null
           </app-card>
         </aside>
       </div>
-
-      @if (access.canOversee() && stats(); as s) {
-        <section class="mt-8" aria-labelledby="training-stats-heading">
-          <h2 id="training-stats-heading" class="mb-3 font-display text-section font-bold text-fg">
-            {{ 'training.stats.label' | transloco }}
-          </h2>
-          <app-kpi-band
-            scope="training.home"
-            class="[&_app-kpi-tile>*]:h-full"
-            data-testid="training-stats"
-            [appTourStep]="'training-stats'"
-          >
-            <app-kpi-tile
-              link="/training/matrix"
-              [title]="'training.stats.completionRateHelp' | transloco"
-              [label]="'training.stats.completionRate' | transloco"
-              [value]="'training.stats.pct' | transloco: { value: s.completion_rate }"
-              [delta]="
-                s.required !== undefined
-                  ? ('training.stats.completionOf'
-                    | transloco: { compliant: s.compliant ?? 0, required: s.required })
-                  : ''
-              "
-              [tone]="s.completion_rate >= 90 ? 'pass' : 'warn'"
-            />
-            <app-kpi-tile
-              link="/training/assignments"
-              [queryParams]="{ status: 'open' }"
-              [label]="'training.stats.open' | transloco"
-              [value]="s.assignments_open | localNumber"
-              tone="info"
-            />
-            <app-kpi-tile
-              link="/training/assignments"
-              [queryParams]="{ overdue: 'true' }"
-              [label]="'training.stats.overdue' | transloco"
-              [value]="s.assignments_overdue | localNumber"
-              [tone]="s.assignments_overdue ? 'warn' : 'neutral'"
-            />
-            <app-kpi-tile
-              link="/training/records"
-              [queryParams]="{ validity: 'expiring' }"
-              [label]="'training.stats.expiring' | transloco"
-              [value]="s.expiring_30_days | localNumber"
-              [tone]="s.expiring_30_days ? 'warn' : 'neutral'"
-            />
-            <app-kpi-tile
-              link="/training/records"
-              [queryParams]="{ validity: 'expired' }"
-              [label]="'training.stats.expired' | transloco"
-              [value]="s.expired | localNumber"
-              [tone]="s.expired ? 'fail' : 'neutral'"
-            />
-            <app-kpi-tile
-              link="/training/courses"
-              [queryParams]="{ status: 'published' }"
-              [label]="'training.stats.published' | transloco"
-              [value]="s.courses_published | localNumber"
-            />
-          </app-kpi-band>
-          <p class="mt-2 text-meta text-fg-muted" data-testid="completion-formula">
-            {{ 'training.stats.completionRateHelp' | transloco }}
-          </p>
-          <p class="mt-1 text-meta text-fg-muted">
-            {{
-              'training.stats.effectiveness'
-                | transloco
-                  : {
-                      effective: s.effectiveness.effective,
-                      partial: s.effectiveness.partially_effective,
-                      not: s.effectiveness.not_effective,
-                      pending: s.effectiveness.not_evaluated,
-                    }
-            }}
-            @if (s.average_feedback !== null) {
-              ·
-              {{
-                'training.stats.feedback'
-                  | transloco: { rating: (s.average_feedback | localNumber: '1.1-1') }
-              }}
-            }
-          </p>
-        </section>
-      }
 
       <div class="mt-8">
         <app-why-it-matters scope="training" page="home" />
@@ -393,7 +250,6 @@ export class TrainingHome {
   protected readonly router = inject(Router);
 
   protected readonly needs = signal<readonly NeedItem[]>([]);
-  protected readonly stats = signal<TrainingStats | null>(null);
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   protected readonly userId = signal<string | null>(null);
@@ -411,16 +267,15 @@ export class TrainingHome {
     inject(DestroyRef).onDestroy(() => this.subs.unsubscribe());
     effect(() => {
       const orgId = this.selectedOrg.currentOrgId();
-      const oversee = this.access.canOversee();
-      untracked(() => this.load(orgId, oversee));
+      untracked(() => this.load(orgId));
     });
   }
 
   protected reload(): void {
-    this.load(this.selectedOrg.currentOrgId(), this.access.canOversee());
+    this.load(this.selectedOrg.currentOrgId());
   }
 
-  private load(orgId: string | null, oversee: boolean): void {
+  private load(orgId: string | null): void {
     this.subs.unsubscribe();
     this.subs = new Subscription();
     if (!orgId) {
@@ -441,13 +296,5 @@ export class TrainingHome {
         },
       }),
     );
-    if (oversee) {
-      this.subs.add(
-        this.api.stats(orgId).subscribe({
-          next: (s) => this.stats.set(s),
-          error: () => this.stats.set(null),
-        }),
-      );
-    }
   }
 }

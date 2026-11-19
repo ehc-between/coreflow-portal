@@ -312,7 +312,12 @@ const BREACH_FLOWS = [
               </button>
             }
 
-            <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
+            <app-module-nav
+              nav
+              labelKey="modules.names.privacy"
+              moreLabelKey="privacy.nav.more"
+              [items]="nav()"
+            />
             <app-help-strip help scope="privacy" page="detail" [lesson]="def().lesson" />
 
             <div class="flex flex-col gap-6">

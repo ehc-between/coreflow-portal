@@ -138,7 +138,7 @@ const SUBSET: IsActiveMatchOptions = { ...EXACT, paths: 'subset' };
             data-testid="module-nav-more"
           >
             <span class="truncate">{{
-              activeOverflow()?.labelKey ?? 'ui.moduleNav.more' | transloco
+              activeOverflow()?.labelKey ?? moreLabelKey() | transloco
             }}</span>
             <app-icon
               name="chevron"
@@ -188,6 +188,8 @@ export class ModuleNav {
   readonly labelKey = input<string | null>(null);
   /** How many tabs are visible before "Mer" (default {@link MODULE_NAV_MAX_VISIBLE}). */
   readonly maxVisible = input(MODULE_NAV_MAX_VISIBLE);
+  /** i18n key of the overflow button (default "Mer"; e.g. "Flere registre"). */
+  readonly moreLabelKey = input('ui.moduleNav.more');
 
   private readonly scroller = viewChild.required<ElementRef<HTMLElement>>('scroller');
   private readonly moreHost = viewChild<ElementRef<HTMLElement>>('moreHost');

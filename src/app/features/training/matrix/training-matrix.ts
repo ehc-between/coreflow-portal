@@ -14,6 +14,7 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
+import { ModuleService } from '../../../core/modules/module.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { TourStepDirective } from '../../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
@@ -122,6 +123,17 @@ const TONE_CELL: Readonly<Record<string, string>> = {
       </app-page-header>
       <app-module-nav [items]="access.navItems()" labelKey="training.nav.label" />
       <app-help-strip scope="training" page="matrix" tour="matrix" />
+      @if (showCompetence()) {
+        <!-- U35: the one competence matrix lives under People. -->
+        <p class="mb-3 text-meta print:hidden">
+          <a
+            routerLink="/people/matrix"
+            class="font-semibold text-accent hover:underline"
+            data-testid="competence-matrix-link"
+            >{{ 'training.matrix.competenceLink' | transloco }} →</a
+          >
+        </p>
+      }
 
       <div
         class="mb-4 flex flex-wrap items-center gap-2 print:hidden"
@@ -352,6 +364,12 @@ export class TrainingMatrix {
   private readonly notifications = inject(NotificationService);
   private readonly directory = inject(TrainingPeople);
   protected readonly access = inject(TrainingAccess);
+  private readonly modules = inject(ModuleService);
+
+  /** U35: link to the one competence matrix (People on, and allowed to read it). */
+  protected readonly showCompetence = computed(
+    () => this.modules.isEnabled('people') && this.access.canReadPeople(),
+  );
 
   protected readonly statuses = CELL_STATUSES;
   protected readonly category = signal<CourseCategory | ''>('');

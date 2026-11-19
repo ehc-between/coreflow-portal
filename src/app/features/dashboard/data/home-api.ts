@@ -99,6 +99,20 @@ export class HomeApi {
     );
   }
 
+  /** U09: set or clear (null) the target audit date. */
+  setTargetDate(
+    orgId: string,
+    id: string,
+    targetDate: string | null,
+    lang: string,
+  ): Observable<Journey> {
+    return this.api.patch<Journey>(
+      `v1/orgs/${orgId}/journeys/${id}`,
+      { target_date: targetDate },
+      { params: { lang }, ...skipToast() },
+    );
+  }
+
   setStep(
     orgId: string,
     id: string,

@@ -119,7 +119,24 @@ describe('Settings hub for an org:manage user', () => {
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
-    for (const group of ['organisation', 'people', 'work', 'learning', 'trace']) {
+    // U37: four main cards on top; the other sections sit in the "Avansert" fold.
+    expect(
+      [
+        ...root.querySelectorAll(
+          '[data-testid="settings-primary"] [data-testid^="settings-card-"]',
+        ),
+      ].map((a) => a.getAttribute('data-testid')),
+    ).toEqual([
+      'settings-card-settings.hub.cards.organisation',
+      'settings-card-settings.hub.cards.members',
+      'settings-card-settings.hub.cards.modules',
+      'settings-card-settings.hub.cards.notifications',
+    ]);
+    const fold = root.querySelector('[data-testid="settings-section-advanced"]')!;
+    expect(fold.hasAttribute('open')).toBe(false);
+    expect(fold.querySelector('[data-testid="settings-section-work"]')).toBeNull();
+    expect(fold.querySelector('[data-testid="nav-v2-switch"]')).not.toBeNull();
+    for (const group of ['organisation', 'people', 'learning', 'trace']) {
       expect(root.querySelector(`[data-testid="settings-section-${group}"]`)).not.toBeNull();
     }
     expect(

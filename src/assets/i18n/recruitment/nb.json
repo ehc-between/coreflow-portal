@@ -406,7 +406,7 @@
     "extendedAt": "Tilbud gitt",
     "respondedAt": "Besvart",
     "hiredAt": "Ansatt",
-    "onboardingTask": "Onboardingoppgave",
+    "onboardingTask": "Oppstartsoppgave",
     "extended": "Tilbudet er registrert.",
     "accepted": "Tilbudet er akseptert.",
     "declined": "Tilbudet er avslått; søknaden er trukket.",
@@ -734,7 +734,7 @@
     "scorecardSubmitted": "Et vurderingsskjema er sendt inn for {{ code }}",
     "offerExtended": "Det er gitt et tilbud på {{ code }}",
     "offerResponded": "Kandidaten har svart på tilbudet på {{ code }}",
-    "hired": "{{ code }}: kandidaten er ansatt, onboarding kan starte",
+    "hired": "{{ code }}: kandidaten er ansatt, oppstarten kan begynne",
     "applicationDeleted": "Søknad {{ code }} er slettet"
   },
   "timeline": {

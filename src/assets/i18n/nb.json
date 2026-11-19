@@ -721,7 +721,8 @@
         "trace": "Sporbarhet",
         "advanced": "Avansert"
       },
-      "advancedHint": "Egne registertyper og slettelogger."
+      "advancedHint": "Merkevare, roller, avdelinger, revisjonsloggen, modulinnstillinger og menyen.",
+      "rarely": "Sjelden brukt"
     },
     "moduleConfig": {
       "note": "Her bestemmer du hvordan modulen fungerer. Det daglige arbeidet gjør du i selve modulen.",
@@ -1625,7 +1626,7 @@
         "owner": "Eier",
         "due": "Frist",
         "status": "Status",
-        "effectiveness": "Effektivitet"
+        "effectiveness": "Virket det?"
       },
       "kind": {
         "containment": "Strakstiltak",
@@ -2013,7 +2014,7 @@
     },
     "hr_manager": {
       "name": "HR-leder",
-      "description": "Har ansvar for personer, kompetanse og onboarding; kan invitere brukere."
+      "description": "Har ansvar for personer, kompetanse og oppstart av nyansatte; kan invitere brukere."
     },
     "ai_officer": {
       "name": "KI-ansvarlig",

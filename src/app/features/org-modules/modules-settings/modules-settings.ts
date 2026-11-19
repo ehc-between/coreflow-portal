@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { ModuleService } from '../../../core/modules/module.service';
-import { FRAMEWORK_KEYS, OrgModule } from '../../../core/modules/module.models';
+import { FRAMEWORK_KEYS, OrgModule, PackagesResponse } from '../../../core/modules/module.models';
 import { ModulesApi, moduleErrorDetail } from '../../../core/modules/modules-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -164,6 +164,47 @@ export function scopeGaps(
           </p>
         </app-card>
       } @else {
+        <!-- U09: whole packages first; the module list below is the fine-tuning -->
+        @if (packages(); as p) {
+          <section class="mb-5" aria-labelledby="packages-title" data-testid="module-packages">
+            <h2 id="packages-title" class="text-section font-bold text-fg">
+              {{ 'modules.packages.sectionTitle' | transloco }}
+            </h2>
+            <p class="mb-3 text-ui text-fg-muted">
+              {{ 'modules.packages.coverage' | transloco: { on: p.enabled, total: p.total } }}
+              {{ 'modules.packages.sectionBody' | transloco }}
+            </p>
+            <ul class="grid gap-2 sm:grid-cols-2">
+              @for (pkg of p.items; track pkg.key) {
+                <li
+                  class="flex items-start justify-between gap-3 rounded-tile border border-border bg-surface px-3 py-2.5"
+                >
+                  <span class="min-w-0">
+                    <span class="block text-ui font-semibold text-fg">{{
+                      'modules.packages.items.' + pkg.key + '.name' | transloco
+                    }}</span>
+                    <span class="block text-meta text-fg-muted">{{
+                      'modules.packages.items.' + pkg.key + '.description' | transloco
+                    }}</span>
+                  </span>
+                  @if (pkg.covered) {
+                    <app-badge tone="pass">{{ 'modules.packages.covered' | transloco }}</app-badge>
+                  } @else {
+                    <app-button
+                      size="sm"
+                      variant="secondary"
+                      [loading]="applyingPackage() === pkg.key"
+                      [disabled]="applyingPackage() !== null"
+                      (click)="applyPackage(pkg.key)"
+                    >
+                      {{ 'modules.packages.apply' | transloco }}
+                    </app-button>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end" role="search">
           <label class="flex flex-1 flex-col gap-1 text-meta font-semibold text-fg-muted">
             {{ 'modules.settings.search' | transloco }}
@@ -368,6 +409,9 @@ export class ModulesSettings {
   protected readonly saving = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly pendingDisable = signal<OrgModule | null>(null);
+  /** U09: the module packages (null when they could not be loaded). */
+  protected readonly packages = signal<PackagesResponse | null>(null);
+  protected readonly applyingPackage = signal<string | null>(null);
 
   protected readonly query = signal('');
   protected readonly status = signal<ModuleStatusFilter>('all');
@@ -444,6 +488,12 @@ export class ModulesSettings {
     }
     this.loading.set(true);
     this.loadFailed.set(false);
+    this.api.packages(orgId).subscribe({
+      next: (packages) => {
+        if (this.orgId() === orgId) this.packages.set(packages);
+      },
+      error: () => this.packages.set(null),
+    });
     this.api.list(orgId).subscribe({
       next: (modules) => {
         if (this.orgId() === orgId) {
@@ -454,6 +504,27 @@ export class ModulesSettings {
       error: () => {
         this.loading.set(false);
         this.loadFailed.set(true);
+      },
+    });
+  }
+
+  /** U09: switch a whole package on (never switches anything off). */
+  protected applyPackage(key: string): void {
+    const orgId = this.orgId();
+    if (!orgId || this.applyingPackage()) {
+      return;
+    }
+    this.applyingPackage.set(key);
+    this.api.applyPackage(orgId, key).subscribe({
+      next: () => {
+        this.applyingPackage.set(null);
+        this.notifications.success('modules.packages.appliedToast');
+        this.moduleService.reload();
+        this.load();
+      },
+      error: () => {
+        this.applyingPackage.set(null);
+        this.notifications.error('modules.packages.applyFailed');
       },
     });
   }

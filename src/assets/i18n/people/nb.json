@@ -136,8 +136,8 @@
     "not_required": "Ikke påkrevd"
   },
   "checklistKinds": {
-    "onboarding": "Oppstart (onboarding)",
-    "offboarding": "Avslutning (offboarding)"
+    "onboarding": "Oppstart",
+    "offboarding": "Avslutning"
   },
   "checklistStatus": {
     "open": "Åpen",
@@ -154,9 +154,9 @@
   },
   "awarenessKinds": {
     "policy": "Retningslinje lest og akseptert",
-    "security_awareness": "Sikkerhetsbevissthet",
+    "security_awareness": "Informasjon om sikkerhet",
     "briefing": "Orientering",
-    "campaign": "Bevissthetskampanje",
+    "campaign": "Informasjonskampanje",
     "induction": "Introduksjon",
     "other": "Annet",
     "training": "Gjennomført kurs"
@@ -440,7 +440,8 @@
     "cellAction": "{{ name }}, {{ label }}. Registrer en vurdering",
     "gapTotalOne": "1 mangel totalt",
     "export": "Eksporter til CSV",
-    "assignTraining": "Tildel opplæring: {{ course }}"
+    "assignTraining": "Tildel opplæring: {{ course }}",
+    "courseStatusLink": "Kursstatus per person"
   },
   "checklists": {
     "title": "Oppstart og avslutning",
@@ -497,11 +498,11 @@
     }
   },
   "awareness": {
-    "title": "Bevisstgjøring",
-    "empty": "Ingen bevisstgjøring registrert ennå. Registrer retningslinjer personen har lest, sikkerhetsopplæring og orienteringer.",
-    "add": "Registrer bevisstgjøring",
-    "addTitle": "Registrer bevisstgjøring",
-    "editTitle": "Rediger bevisstgjøringen",
+    "title": "Retningslinjer og orienteringer",
+    "empty": "Ingen registrert ennå. Registrer retningslinjer personen har lest, sikkerhetsinformasjon og orienteringer.",
+    "add": "Registrer lest eller orientert",
+    "addTitle": "Registrer lest eller orientert",
+    "editTitle": "Rediger registreringen",
     "message": "Hva personen er gjort kjent med, og når.",
     "deleteTitle": "Slette denne registreringen?",
     "deleteMessage": "Registreringen «{{ topic }}» fjernes.",

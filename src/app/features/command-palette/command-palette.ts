@@ -43,6 +43,7 @@ import {
 } from './command-palette.actions';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { CommandPaletteService } from './command-palette.service';
+import { Place, PlaceIndexService, searchPlaces } from './place-index';
 
 /** A keyboard-navigable row, tagged by kind so Enter knows what to do. */
 type Row =
@@ -50,6 +51,7 @@ type Row =
   | { readonly kind: 'action'; readonly action: AgentAction }
   | { readonly kind: 'howto'; readonly entry: HowtoEntry }
   | { readonly kind: 'nav'; readonly item: NavItem }
+  | { readonly kind: 'place'; readonly place: Place }
   | { readonly kind: 'record'; readonly item: SearchItem; readonly link: InternalLink };
 
 /** A group of record hits of one type, in rank order of its best hit. */
@@ -72,6 +74,12 @@ type SearchState =
 export const MIN_SEARCH_LENGTH = 2;
 /** Debounce between keystrokes and the search request. */
 export const SEARCH_DEBOUNCE_MS = 200;
+/** Page, register, setting and output hits shown first (instant, client-side). */
+export const MAX_PLACES = 6;
+/** Requirement hits come after every other record type, at most this many. */
+export const MAX_REQUIREMENTS = 3;
+/** The search type of standard requirements. */
+const REQUIREMENT_TYPE = 'standard_requirement';
 /** Highlight value meaning "the Ask CoreFlow row" (always the last row). */
 const ASK_ROW = -1;
 
@@ -211,6 +219,41 @@ export function looksLikeQuestion(text: string): boolean {
           </div>
 
           <div class="max-h-[64vh] overflow-y-auto py-2 sm:max-h-[56vh]">
+            @if (placeRows().length) {
+              <div
+                class="px-4 pt-2 pb-1 text-micro font-bold tracking-[0.08em] text-fg-subtle uppercase"
+              >
+                {{ 'search.palette.places' | transloco }}
+              </div>
+              @for (row of placeRows(); track row.place.url) {
+                <button
+                  type="button"
+                  (click)="run(row)"
+                  (mouseenter)="highlightRow(row)"
+                  data-testid="palette-place"
+                  class="flex w-full items-center gap-3 px-4 py-2 text-left"
+                  [class.bg-accent-soft]="highlighted() === row"
+                >
+                  <span class="flex flex-none text-fg-muted"
+                    ><app-icon [name]="row.place.icon" [size]="18"
+                  /></span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-body font-medium text-fg">{{
+                      row.place.title
+                    }}</span>
+                    @if (row.place.area) {
+                      <span class="block truncate text-meta text-fg-subtle">{{
+                        row.place.area
+                      }}</span>
+                    }
+                  </span>
+                  <span class="flex-none text-meta text-fg-subtle">{{
+                    'search.palette.kinds.' + row.place.kind | transloco
+                  }}</span>
+                </button>
+              }
+            }
+
             @switch (searchStatus()) {
               @case ('loading') {
                 <p class="px-4 pt-2 pb-1 text-ui text-fg-subtle" role="status">
@@ -291,7 +334,7 @@ export function looksLikeQuestion(text: string): boolean {
                     'ask.howto.' + row.entry.key + '.title' | transloco
                   }}</span>
                   <span class="flex-none text-meta text-fg-subtle">{{
-                    'ask.palette.howtoTag' | transloco
+                    'search.palette.openPage' | transloco
                   }}</span>
                 </button>
               }
@@ -391,6 +434,7 @@ export class CommandPalette {
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);
   private readonly uxMetrics = inject(UxMetricsService);
+  private readonly placeIndex = inject(PlaceIndexService);
 
   private readonly inputRef = viewChild<ElementRef<HTMLInputElement>>('input');
 
@@ -445,6 +489,12 @@ export class CommandPalette {
       rows.push({ kind: 'record', item, link });
       groups.set(item.entity_type, rows);
     }
+    // Requirements rank below every record and show at most three (U06).
+    const requirements = groups.get(REQUIREMENT_TYPE);
+    if (requirements) {
+      groups.delete(REQUIREMENT_TYPE);
+      groups.set(REQUIREMENT_TYPE, requirements.slice(0, MAX_REQUIREMENTS));
+    }
     return [...groups.entries()].map(([entityType, rows]) => ({
       entityType,
       label: entityTypeLabel(
@@ -457,6 +507,14 @@ export class CommandPalette {
       rows,
     }));
   });
+
+  /** Pages, tabs, registers, settings and outputs for the query, from the local index. */
+  protected readonly placeRows = computed<Extract<Row, { kind: 'place' }>[]>(() =>
+    searchPlaces(this.placeIndex.places(), this.trimmed(), MAX_PLACES).map((place) => ({
+      kind: 'place',
+      place,
+    })),
+  );
 
   private readonly recordRows = computed(() => this.recordGroups().flatMap((group) => group.rows));
 
@@ -484,17 +542,16 @@ export class CommandPalette {
     ).map((action) => ({ kind: 'action', action }));
   });
 
-  protected readonly navRows = computed<Extract<Row, { kind: 'nav' }>[]>(() => {
-    const q = this.trimmed().toLocaleLowerCase();
-    return NAV_ITEMS.filter(
-      (item) => !q || this.language.translate(item.labelKey).toLocaleLowerCase().includes(q),
-    ).map((item) => ({ kind: 'nav', item }));
-  });
+  /** "Gå til" before anything is typed; once typed, the place hits answer instead. */
+  protected readonly navRows = computed<Extract<Row, { kind: 'nav' }>[]>(() =>
+    this.trimmed() ? [] : NAV_ITEMS.map((item) => ({ kind: 'nav', item })),
+  );
 
   /** Every visible row in display order — the keyboard navigation space. */
   protected readonly rows = computed<Row[]>(() => {
     const ask = this.askRow();
     return [
+      ...this.placeRows(),
       ...this.recordRows(),
       ...this.howtoRows(),
       ...this.actionRows(),
@@ -519,6 +576,7 @@ export class CommandPalette {
   constructor() {
     effect(() => {
       if (this.palette.open()) {
+        untracked(() => this.placeIndex.ensure());
         this.query.set('');
         this.highlight.set(0);
         queueMicrotask(() => this.inputRef()?.nativeElement.focus());
@@ -582,7 +640,15 @@ export class CommandPalette {
         this.ask.showWith(this.language.translate(actionPromptKey(row.action)));
         break;
       case 'howto':
-        this.ask.showWith(this.language.translate(`ask.howto.${row.entry.key}.question`));
+        // A how-to row opens its page; asking for the steps is the explicit Ask row.
+        this.uxMetrics.markNext('palette');
+        void this.router.navigateByUrl(row.entry.path);
+        break;
+      case 'place':
+        this.uxMetrics.markNext('palette');
+        void this.router.navigate([row.place.path], {
+          queryParams: row.place.queryParams ?? undefined,
+        });
         break;
       case 'nav':
         this.uxMetrics.markNext('palette');

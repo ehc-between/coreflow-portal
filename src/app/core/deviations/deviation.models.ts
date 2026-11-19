@@ -552,6 +552,8 @@ export interface DeviationFilters {
   readonly due_before?: string;
   readonly due_after?: string;
   readonly q?: string;
+  /** U33: HMS event kind (`near_miss`, `injury` …), e.g. the HMS near-miss view. */
+  readonly event_kind?: string;
   /** Only deviations that are not closed or cancelled. */
   readonly active?: boolean;
   /** Only deviations that are not closed or cancelled and past their due date. */

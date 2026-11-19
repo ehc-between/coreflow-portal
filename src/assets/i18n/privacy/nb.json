@@ -3,7 +3,7 @@
     "label": "Personvernregistre",
     "overview": "Oversikt",
     "ropa": "Behandlingsprotokoll",
-    "dpia": "DPIA-er",
+    "dpia": "Konsekvensvurderinger (DPIA)",
     "dsr": "Henvendelser",
     "breach": "Personvernbrudd",
     "processor": "Databehandlere",
@@ -11,11 +11,17 @@
     "retention": "Lagringsregler",
     "consent": "Samtykker",
     "lba": "Behandlingsgrunnlag",
-    "documents": "Dokumenter og rapporter"
+    "documents": "Dokumenter og rapporter",
+    "more": "Flere registre",
+    "groups": {
+      "ropa": "Behandlinger",
+      "processors": "Databehandlere og overføringer",
+      "incidents": "Hendelser og henvendelser"
+    }
   },
   "overview": {
     "title": "Personvern og GDPR",
-    "subtitle": "Behandlingsprotokoll, konsekvensvurderinger, henvendelser fra registrerte, personvernbrudd, databehandlere og overføringer på ett sted.",
+    "subtitle": "Hvilke personopplysninger dere bruker, hvem som behandler dem for dere, og hva dere gjør når noe skjer.",
     "kpis": "Nøkkeltall for personvern",
     "tiles": {
       "ropaActive": "Aktive behandlinger",
@@ -26,35 +32,37 @@
       "dpiasOpen": "DPIA-er under arbeid",
       "dpiasRequiredUndecided": "Påkrevde konsekvensvurderinger (DPIA) uten beslutning",
       "processorsWithoutDpa": "Databehandlere uten databehandleravtale",
-      "transfersMissingTia": "Overføringer uten overføringsvurdering (TIA)",
+      "transfersMissingTia": "Overføringer uten vurdering av mottakerlandet (TIA)",
       "reviewsOverdue": "Gjennomganger over frist",
-      "transfersUnsignedSafeguards": "Overføringer på standard personvernbestemmelser (SCC) uten signert avtale",
+      "transfersUnsignedSafeguards": "Overføringer på EUs standardavtale (SCC) uten signert avtale",
       "breachesActive": "Personvernbrudd under vurdering (72-timersfrist)",
       "retentionExecutionsDue": "Slettinger som er forfalt",
       "breachesAwaitingClosure": "Varslede personvernbrudd som venter på lukking",
       "attention": "Utvalg fra oversikten"
     },
-    "breachesNow": "Personvernbrudd som krever handling",
+    "breachesNow": "Personvernbrudd med løpende frist",
     "noBreaches": "Ingen personvernbrudd med løpende 72-timersfrist. Registrer et personvernbrudd i det øyeblikket dere blir kjent med det.",
     "requestsNow": "Nærmeste svarfrister",
     "noRequests": "Ingen åpne henvendelser fra registrerte.",
     "dueOn": "Frist {{ date }}",
     "registers": "Registre",
-    "reportBreach": "Registrer et personvernbrudd",
+    "reportBreach": "Meld personvernbrudd",
     "attention": "Må følges opp nå",
-    "nothingUrgent": "Ingenting krever handling akkurat nå: ingen personvernbrudd med løpende frist, ingen henvendelser over frist og ingen manglende avtaler.",
+    "nothingUrgent": "Du er à jour: ingen personvernbrudd med løpende frist, ingen henvendelser over frist og ingen manglende avtaler.",
     "overdueSince": "Over frist siden {{ date }}",
     "stats": "Nøkkeltall",
     "stat": {
       "ropa": "{{ active }} av {{ total }} behandlinger er aktive",
-      "dpias": "{{ count }} DPIA-er pågår",
+      "dpias": "{{ count }} konsekvensvurderinger (DPIA) pågår",
       "requests": "{{ count }} åpne henvendelser",
       "breaches": "{{ count }} personvernbrudd ikke lukket",
       "gaps": "{{ count }} mangler mellom registrene"
     },
     "contextSummary": "{{ gaps }} mangler, {{ breaches }} personvernbrudd under vurdering, {{ requests }} åpne henvendelser, {{ dpias }} DPIA-er venter på beslutning.",
     "documents": "Dokumenter og rapporter",
-    "documentsAll": "Alle dokumenter og registre"
+    "documentsAll": "Alle dokumenter og registre",
+    "newRequest": "Henvendelse fra registrert",
+    "moreAlerts": "Vis {{ count }} varsler til"
   },
   "registers": {
     "ropa": {
@@ -161,7 +169,9 @@
     "awareOn": "Kjent siden {{ date }}",
     "givenOn": "Gitt {{ date }}",
     "noLegalBasis": "Behandlingsgrunnlag ikke satt",
-    "clearAttention": "Vis alle"
+    "clearAttention": "Vis alle",
+    "processorsAreSuppliers": "Hver databehandler er også en leverandør: leverandørkortet har avtalen, risikoen og vurderingene.",
+    "openSupplierRegister": "Se dem i leverandørregisteret"
   },
   "sorts": {
     "created_atDesc": "Nyeste først",
@@ -1234,5 +1244,32 @@
     "subtitle": "Protokollene og loggene Datatilsynet og revisor ber om, laget av det dere har registrert. Se først hva som mangler, og lag så dokumentet som PDF, Word eller Excel.",
     "registers": "Registrene som tabell",
     "registersHint": "Hvert register som regneark eller PDF, med filtrene du velger."
+  },
+  "path": {
+    "title": "Få orden på personvernet",
+    "progress": "{{ done }} av {{ total }} steg gjort",
+    "complete": "Alle fire stegene er gjort. Hold oversikten oppdatert når noe endrer seg.",
+    "steps": {
+      "ropa": {
+        "title": "Kartlegg behandlinger",
+        "body": "Skriv opp hvilke personopplysninger dere bruker og hvorfor: lønn, kunder, nyhetsbrev, kamera. Dette blir behandlingsprotokollen.",
+        "cta": "Kartlegg behandlinger"
+      },
+      "processors": {
+        "title": "Databehandlere og avtaler",
+        "body": "Leverandører som behandler persondata for dere, og om avtalen med dem (databehandleravtalen) er signert.",
+        "cta": "Gå gjennom leverandørene"
+      },
+      "dpia": {
+        "title": "Vurder risiko (DPIA)",
+        "body": "En risikovurdering før dere tar i bruk noe nytt med persondata, for eksempel sporing eller helseopplysninger (personvernkonsekvensvurdering).",
+        "cta": "Vurder risikoen"
+      },
+      "documents": {
+        "title": "Lag dokumentene",
+        "body": "Behandlingsprotokollen, personvernerklæringen og listen over databehandlere, laget fra det dere har registrert.",
+        "cta": "Lag dokumentene"
+      }
+    }
   }
 }

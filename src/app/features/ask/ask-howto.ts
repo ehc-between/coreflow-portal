@@ -3,32 +3,34 @@
  * assistant answers with steps and a link to the page (`help_howto` in core,
  * `app/ai/howto/*.json`). The palette matches the typed words against the title,
  * question and keywords in the active language (`ask.howto.<key>.*`), and choosing
- * an entry asks the assistant the question.
+ * an entry opens its page; asking for the steps stays the explicit "Ask" row.
  */
 export interface HowtoEntry {
   readonly key: string;
   /** Owning module (its nav icon and name tag the row); null = platform-wide. */
   readonly module: string | null;
+  /** The page where it is done: choosing the row opens it (U06: no silent AI call). */
+  readonly path: string;
 }
 
 export const HOWTO_ENTRIES: readonly HowtoEntry[] = [
-  { key: 'registerDeviation', module: 'deviations' },
-  { key: 'registerBreach', module: 'deviations' },
-  { key: 'handleDeviation', module: 'deviations' },
-  { key: 'createDocument', module: 'documents' },
-  { key: 'approveDocument', module: 'documents' },
-  { key: 'readAcknowledge', module: 'documents' },
-  { key: 'linkRequirement', module: 'standards' },
-  { key: 'startStandard', module: 'standards' },
-  { key: 'whatNext', module: 'standards' },
-  { key: 'confirmSuggestions', module: 'standards' },
-  { key: 'notApplicable', module: 'standards' },
-  { key: 'createTask', module: 'tasks' },
-  { key: 'inviteUser', module: null },
-  { key: 'enableModule', module: null },
-  { key: 'findRecord', module: null },
-  { key: 'prepareAudit', module: null },
-  { key: 'learn', module: null },
+  { key: 'registerDeviation', module: 'deviations', path: '/deviations/new' },
+  { key: 'registerBreach', module: 'deviations', path: '/privacy/breaches/new' },
+  { key: 'handleDeviation', module: 'deviations', path: '/deviations' },
+  { key: 'createDocument', module: 'documents', path: '/documents/new' },
+  { key: 'approveDocument', module: 'documents', path: '/review' },
+  { key: 'readAcknowledge', module: 'documents', path: '/my-work' },
+  { key: 'linkRequirement', module: 'standards', path: '/standards' },
+  { key: 'startStandard', module: 'standards', path: '/standards' },
+  { key: 'whatNext', module: 'standards', path: '/standards' },
+  { key: 'confirmSuggestions', module: 'standards', path: '/standards' },
+  { key: 'notApplicable', module: 'standards', path: '/standards' },
+  { key: 'createTask', module: 'tasks', path: '/tasks/new' },
+  { key: 'inviteUser', module: null, path: '/settings/invitations' },
+  { key: 'enableModule', module: null, path: '/settings/modules' },
+  { key: 'findRecord', module: null, path: '/registers' },
+  { key: 'prepareAudit', module: null, path: '/audits/plans' },
+  { key: 'learn', module: null, path: '/account/learning' },
 ];
 
 /** Words that carry no meaning for matching ("how do I …", "hvordan …"). */

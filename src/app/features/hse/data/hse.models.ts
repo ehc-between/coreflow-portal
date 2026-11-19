@@ -598,6 +598,9 @@ export interface OverviewIncidents {
   readonly open?: number;
   readonly last_365_days?: number;
   readonly near_misses_365?: number;
+  /** U33: the deviation list filtered to near misses / injuries (`?event_kind=`). */
+  readonly near_misses_url?: string;
+  readonly injuries_url?: string;
   readonly injuries_365?: number;
   readonly lost_time_injuries_365?: number;
   readonly lost_days_365?: number;

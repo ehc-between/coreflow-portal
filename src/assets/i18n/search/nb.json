@@ -11,7 +11,15 @@
     "searching": "Søker …",
     "error": "Søket er ikke tilgjengelig akkurat nå. Du kan fortsatt gå til en side nedenfor.",
     "noResults": "Ingen poster passer med «{{query}}».",
-    "count": "{{count}}"
+    "count": "{{count}}",
+    "places": "Sider og registre",
+    "openPage": "Åpne siden",
+    "kinds": {
+      "page": "Side",
+      "register": "Register",
+      "settings": "Innstillinger",
+      "output": "Dokument eller rapport"
+    }
   },
   "launcher": {
     "label": "Åpne Spør CoreFlow",

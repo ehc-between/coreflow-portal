@@ -177,6 +177,7 @@ export interface RegisterDef {
 
 const isTrue = (key: string) => (v: FormValues) => v[key] === true;
 const isFalse = (key: string) => (v: FormValues) => v[key] === false;
+const noValue = (key: string) => (v: FormValues) => !v[key];
 const notFalse = (key: string) => (v: FormValues) => v[key] !== false;
 const hasItems = (key: string) => (v: FormValues) =>
   Array.isArray(v[key]) && (v[key] as unknown[]).length > 0;
@@ -620,17 +621,20 @@ export const REGISTERS: Readonly<Record<RegisterKey, RegisterDef>> = {
         showIf: isTrue('is_sub_processor'),
       },
       { key: 'data_categories', kind: 'tags', section: 'basics', wide: true },
+      // U25: the DPA is a contract of type DPA; with one linked, its status and dates
+      // follow the contract (the backend derives them), so they are not typed in.
+      { key: 'dpa_contract_id', kind: 'entity', entity: 'contract', section: 'dpa' },
       {
         key: 'dpa_status',
         kind: 'select',
         options: DPA_STATUSES,
         optionSet: 'dpaStatus',
         section: 'dpa',
+        showIf: noValue('dpa_contract_id'),
       },
-      { key: 'dpa_contract_id', kind: 'entity', entity: 'contract', section: 'dpa' },
       { key: 'dpa_document_id', kind: 'entity', entity: 'document', section: 'dpa' },
-      { key: 'dpa_signed_at', kind: 'date', section: 'dpa' },
-      { key: 'dpa_expires_at', kind: 'date', section: 'dpa' },
+      { key: 'dpa_signed_at', kind: 'date', section: 'dpa', showIf: noValue('dpa_contract_id') },
+      { key: 'dpa_expires_at', kind: 'date', section: 'dpa', showIf: noValue('dpa_contract_id') },
       {
         key: 'risk_rating',
         kind: 'select',

@@ -10,15 +10,26 @@ import {
   OrgModule,
   OrgProfile,
   OrgProfileUpdate,
+  PackagesResponse,
   RecommendationsRequest,
   RecommendationsResponse,
+  RegistryLookup,
   SetupState,
+  StarterKindKey,
+  StartersResponse,
   Terminology,
   TermOverrides,
 } from './module.models';
 
 /** Suppresses the generic error toast so the caller can message in place. */
 const quiet = () => ({ context: new HttpContext().set(SKIP_ERROR_TOAST, true) });
+
+/** U09: where each starter kind is created (the normal create endpoints). */
+const STARTER_PATHS: Readonly<Record<StarterKindKey, string>> = {
+  policies: 'context/policies',
+  risks: 'risk/risks',
+  ropa: 'privacy/ropa',
+};
 
 /**
  * Org module registry, profile, terminology and setup wizard API
@@ -74,6 +85,45 @@ export class ModulesApi {
     return this.api.post<RecommendationsResponse>(
       `v1/orgs/${orgId}/setup/recommendations`,
       body,
+      quiet(),
+    );
+  }
+
+  /** U09: the module packages with what is still off in this org. */
+  packages(orgId: string): Observable<PackagesResponse> {
+    return this.api.get<PackagesResponse>(`v1/orgs/${orgId}/modules/packages`, quiet());
+  }
+
+  /** U09: switch a package on (never switches anything off). */
+  applyPackage(orgId: string, key: string): Observable<{ enabled: string[] }> {
+    return this.api.post<{ enabled: string[] }>(
+      `v1/orgs/${orgId}/modules/packages/${encodeURIComponent(key)}/apply`,
+      {},
+      quiet(),
+    );
+  }
+
+  /** U09: starter templates (policies, risks, processing activities) in `lang`. */
+  starters(orgId: string, lang: string): Observable<StartersResponse> {
+    return this.api.get<StartersResponse>(`v1/orgs/${orgId}/setup/starters`, {
+      params: { lang },
+      ...quiet(),
+    });
+  }
+
+  /** U09: create one confirmed starter through the kind's normal create endpoint. */
+  createStarter(
+    orgId: string,
+    kind: StarterKindKey,
+    payload: Record<string, unknown>,
+  ): Observable<unknown> {
+    return this.api.post<unknown>(`v1/orgs/${orgId}/${STARTER_PATHS[kind]}`, payload, quiet());
+  }
+
+  /** U09: look an organisation number up in the Brønnøysund register. */
+  registryLookup(orgId: string, orgnr: string): Observable<RegistryLookup> {
+    return this.api.get<RegistryLookup>(
+      `v1/orgs/${orgId}/setup/registry/${encodeURIComponent(orgnr)}`,
       quiet(),
     );
   }

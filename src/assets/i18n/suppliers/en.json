@@ -43,6 +43,8 @@
     "ownedByMe": "Owned by me",
     "evaluationDue": "Re-evaluation",
     "flag": "What they do for us",
+    "dpa": "Data processing agreement (DPA)",
+    "anyDpa": "Any DPA status",
     "sort": "Sort",
     "due": {
       "overdue": "Re-evaluation overdue",

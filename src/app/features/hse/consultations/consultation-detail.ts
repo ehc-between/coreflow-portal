@@ -16,6 +16,7 @@ import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { RequirementLink } from '../../../core/standards/standards.models';
+import { OutputsPanel } from '../../../shared/outputs';
 import { WatchButton } from '../../../shared/activity/watch-button';
 import { Term } from '../../../shared/guidance/term';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
@@ -115,6 +116,7 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
 @Component({
   selector: 'app-consultation-detail',
   imports: [
+    OutputsPanel,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -378,6 +380,16 @@ export function peopleNames(users: readonly UserRef[] | undefined, names: readon
                 />
               </div>
             </div>
+
+            <section class="mt-6" data-testid="consultation-documents">
+              <h2 class="font-display text-card font-bold text-fg">
+                {{ 'hse.common.documentsTitle' | transloco }}
+              </h2>
+              <p class="mt-0.5 mb-3 text-ui text-fg-muted">
+                {{ 'hse.common.documentsHint' | transloco }}
+              </p>
+              <app-outputs-panel entityType="worker_consultation" [entityId]="c.id" />
+            </section>
 
             <div tasks>
               <app-entity-tasks

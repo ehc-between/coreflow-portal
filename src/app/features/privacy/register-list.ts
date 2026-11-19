@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
@@ -56,6 +56,7 @@ import {
 import { PrivacyRegisterExport } from './privacy-register-export';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
 import { privacyNavItems, privacyPermissions } from './privacy-nav';
+import { PrivacyGroupSwitch } from './privacy-group-switch';
 
 const PAGE_SIZE = 25;
 
@@ -122,6 +123,8 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
     RecordRowHeader,
     StatusBadge,
     PrivacyRegisterExport,
+    RouterLink,
+    PrivacyGroupSwitch,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -160,9 +163,27 @@ export function statusesFor(register: RegisterKey, filter: string): readonly str
         [statuses]="exportStatuses()"
       />
 
-      <app-module-nav nav labelKey="modules.names.privacy" [items]="nav()" />
+      <app-module-nav
+        nav
+        labelKey="modules.names.privacy"
+        moreLabelKey="privacy.nav.more"
+        [items]="nav()"
+      />
+      <app-privacy-group-switch nav [register]="def().key" />
       <app-fulfils-requirements help />
       <app-help-strip help scope="privacy" [page]="def().key" [lesson]="def().lesson" />
+      @if (def().key === 'processor') {
+        <!-- U25: a processor is a role of a supplier; the supplier register is its home. -->
+        <p help class="text-meta text-fg-muted" data-testid="processors-are-suppliers">
+          {{ 'privacy.list.processorsAreSuppliers' | transloco }}
+          <a
+            class="font-semibold text-accent hover:underline"
+            routerLink="/suppliers"
+            [queryParams]="{ flag: 'processes_personal_data' }"
+            >{{ 'privacy.list.openSupplierRegister' | transloco }}</a
+          >
+        </p>
+      }
 
       <label filters class="sr-only" [for]="id('status')">
         {{ 'privacy.list.status' | transloco }}

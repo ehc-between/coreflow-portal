@@ -128,6 +128,7 @@ import { groupFieldsIntoSections } from './types/type-schema';
 import { DeviationEventFacts } from './ui/event-facts-fields';
 import { DeviationFormRow } from './ui/form-row';
 import { DeviationWorkflowPanel } from './workflow/deviation-workflow-panel';
+import { DeviationEffectCheck } from './detail/effect-check';
 
 /** The detail tabs (details, related records, history, comments, files, versions, tasks). */
 const DETAIL_TABS: readonly RecordTab[] = [
@@ -208,6 +209,7 @@ interface ClauseChip {
     SuggestedActions,
     RootCausePanel,
     DeviationWorkflowPanel,
+    DeviationEffectCheck,
     WhyItMatters,
     FormsModule,
     RouterLink,
@@ -840,10 +842,13 @@ interface ClauseChip {
           }
 
           @if (!editing()) {
-            <app-card>
-              <h2 class="mb-1 font-display text-section font-bold text-fg">
-                {{ 'deviations.detail.sections.rootCause' | transloco }}
+            <app-card data-testid="card-why">
+              <h2 class="font-display text-section font-bold text-fg">
+                {{ 'deviations.plain.why.title' | transloco }}
               </h2>
+              <p class="mt-0.5 mb-3 text-meta text-fg-muted">
+                {{ 'deviations.plain.why.hint' | transloco }}
+              </p>
               <div
                 class="mb-4 rounded-tile bg-surface-2 px-3.5 py-3"
                 data-testid="root-cause-summary"
@@ -875,8 +880,10 @@ interface ClauseChip {
               />
             </app-card>
 
-            <app-card appTourStep="deviations-capa">
+            <app-card appTourStep="deviations-capa" data-testid="card-what">
               <app-deviation-actions
+                titleKey="deviations.plain.what.title"
+                introKey="deviations.plain.what.hint"
                 [deviationId]="dev.id"
                 [actions]="actions()"
                 [owners]="owners()"
@@ -891,6 +898,10 @@ interface ClauseChip {
                   <app-suggested-actions [deviationId]="dev.id" (added)="onActionAdded($event)" />
                 </div>
               }
+            </app-card>
+
+            <app-card data-testid="card-effect">
+              <app-deviation-effect-check [actions]="actions()" />
             </app-card>
 
             @if (!openObligations().length && (dev.reporting_obligations ?? []).length) {

@@ -52,8 +52,8 @@
   },
   "rootCauses": {
     "title": "Årsaksanalyse",
-    "newFiveWhys": "5 hvorfor",
-    "newFishbone": "Fiskebein",
+    "newFiveWhys": "Spør «hvorfor?» 5 ganger",
+    "newFishbone": "Sorter årsaker (fiskebein)",
     "aiDraftNote": "Utkast laget med KI-hjelp. Sjekk hvert trinn før du lagrer.",
     "problem": "Problem",
     "whys": "Hvorfor-trinn",
@@ -67,7 +67,7 @@
     "conclusion": "Konklusjon (rotårsak)",
     "applyOnSave": "Bruk også konklusjonen som avvikets rotårsak",
     "save": "Lagre analyse",
-    "empty": "Ingen analyse ennå. Start en 5 hvorfor- eller fiskebeinanalyse for å finne rotårsaken.",
+    "empty": "Ingen analyse ennå. Spør «hvorfor?» til dere finner årsaken, eller sorter mulige årsaker i grupper som mennesker, metode og utstyr (fiskebein).",
     "applied": "Brukt som rotårsak",
     "byline": "{{ name }}, {{ date }}",
     "edit": "Rediger",
@@ -81,7 +81,7 @@
     "removedToast": "Analysen er fjernet.",
     "methods": {
       "five_whys": "5 hvorfor",
-      "fishbone": "Fiskebein (Ishikawa)",
+      "fishbone": "Fiskebein (årsaker sortert i grupper)",
       "other": "Annen analyse"
     },
     "categories": {
@@ -508,13 +508,16 @@
     "groups": {
       "work": "Arbeid",
       "phase": "Fase",
-      "status": "Status"
+      "status": "Nøyaktig steg",
+      "current": "Valgt nå"
     },
     "tagLabel": "Etikett",
     "clauseLabel": "Punkt",
     "clausePlaceholder": "F.eks. 10.2",
     "dueFrom": "Frist fra",
-    "dueTo": "Frist til"
+    "dueTo": "Frist til",
+    "eventKind": "Type hendelse (HMS)",
+    "allEventKinds": "Alle typer hendelser"
   },
   "events": {
     "rootCauseAdded": "Årsaksanalyse lagt til",
@@ -588,7 +591,37 @@
     }
   },
   "statusPair": {
-    "list": "Fasen viser hvor langt saken har kommet: åpen, under arbeid eller ferdig. Statusen er steget i arbeidsflyten, for eksempel utredning eller verifisering.",
+    "list": "Åpen: meldt, ingen har begynt. Under arbeid: årsaken finnes og rettes. Ferdig: tiltakene er gjort og sjekket. Avbrutt: det viste seg å ikke være et avvik.",
     "actions": "Fullført betyr at tiltaket er gjort. Verifisert betyr at noen senere har sjekket at det virket."
+  },
+  "eventKind": {
+    "near_miss": "Nestenulykke",
+    "injury": "Personskade",
+    "occupational_illness": "Arbeidsrelatert sykdom",
+    "dangerous_condition": "Farlig forhold",
+    "property_damage": "Materielle skader"
+  },
+  "plain": {
+    "why": {
+      "title": "Hvorfor skjedde det?",
+      "hint": "Finn årsaken, så det ikke skjer igjen (rotårsak). Spør «hvorfor?» til du kommer til noe dere kan endre."
+    },
+    "what": {
+      "title": "Hva gjør vi?",
+      "hint": "Stopp skaden nå, og fjern deretter årsaken. Gi hvert tiltak en ansvarlig og en dato."
+    },
+    "effect": {
+      "title": "Virket det?",
+      "hint": "En stund etter at et tiltak er gjort, sjekker dere at problemet ikke har kommet tilbake (effektivitetsvurdering). Svaret registreres på tiltaket over.",
+      "summary": "{{ worked }} av {{ total }} tiltak har virket",
+      "empty": "Legg først til et tiltak under «Hva gjør vi?». Her ser dere om det virket.",
+      "words": {
+        "notDone": "Ikke gjort ennå",
+        "due": "Sjekkes innen {{ date }}",
+        "unchecked": "Gjort, ikke sjekket ennå",
+        "worked": "Ja, det virket",
+        "failed": "Nei, trenger nytt tiltak"
+      }
+    }
   }
 }

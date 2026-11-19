@@ -148,7 +148,7 @@ describe('SuppliersList', () => {
     expect(root.querySelector('[data-testid="filter-attention"]')).not.toBeNull();
     const panel = root.querySelector('[data-testid="more-filters-panel"]')!;
     expect(panel.querySelector('#sup-f-crit')).not.toBeNull();
-    expect(panel.querySelectorAll('select').length).toBe(6);
+    expect(panel.querySelectorAll('select').length).toBe(7);
   });
 
   it('shows the teaching empty state for an empty register and hides "new" without write access', async () => {
@@ -167,6 +167,24 @@ describe('SuppliersList', () => {
     await fixture.whenStable();
     const req = http.expectOne((r) => r.url === listUrl);
     expect(req.request.params.get('status')).toBe('suspended');
+    req.flush({ items: [], total: 0 });
+  });
+
+  it('shows the DPA status per row and filters on it (U25)', async () => {
+    const { fixture, http, root } = setup();
+    await flushList(fixture, http, [
+      row({ dpa_status: 'covered' }),
+      row({ id: 's-2', code: 'SUP-0002', dpa_status: 'not_needed' }),
+    ]);
+    const badges = root.querySelectorAll('[data-testid="row-dpa"]');
+    expect(badges.length).toBe(1);
+    expect(badges[0].textContent).toContain('DPA in place');
+    const select = root.querySelector<HTMLSelectElement>('[data-testid="filter-dpa"]')!;
+    select.value = 'missing';
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    const req = http.expectOne((r) => r.url === listUrl);
+    expect(req.request.params.get('dpa_status')).toBe('missing');
     req.flush({ items: [], total: 0 });
   });
 

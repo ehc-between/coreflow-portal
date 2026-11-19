@@ -5,9 +5,10 @@ import { ModuleNav, ModuleNavItem } from '../../../shared/ui/module-nav/module-n
 export const AUDIT_SECTIONS = [
   { key: 'overview', path: '/audits', exact: true },
   { key: 'plans', path: '/audits/plans', exact: false },
-  { key: 'programmes', path: '/audits/programmes', exact: false },
+  // U37: daily work first; programmes and auditors are planning, under "Mer".
   { key: 'findings', path: '/audits/findings', exact: false },
   { key: 'certifications', path: '/audits/certifications', exact: false },
+  { key: 'programmes', path: '/audits/programmes', exact: false },
   { key: 'auditors', path: '/audits/auditors', exact: false },
 ] as const;
 

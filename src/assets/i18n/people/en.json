@@ -84,10 +84,10 @@
     "created_atDesc": "Recently added"
   },
   "status": {
-    "onboarding": "Onboarding",
+    "onboarding": "Starting",
     "active": "Active",
     "on_leave": "On leave",
-    "offboarding": "Offboarding",
+    "offboarding": "Leaving",
     "former": "Left"
   },
   "employmentTypes": {
@@ -136,8 +136,8 @@
     "not_required": "Not required"
   },
   "checklistKinds": {
-    "onboarding": "Onboarding",
-    "offboarding": "Offboarding"
+    "onboarding": "Joining",
+    "offboarding": "Leaving"
   },
   "checklistStatus": {
     "open": "Open",
@@ -154,9 +154,9 @@
   },
   "awarenessKinds": {
     "policy": "Policy read and accepted",
-    "security_awareness": "Security awareness",
+    "security_awareness": "Security information",
     "briefing": "Briefing",
-    "campaign": "Awareness campaign",
+    "campaign": "Information campaign",
     "induction": "Induction",
     "other": "Other",
     "training": "Completed course"
@@ -294,8 +294,8 @@
     "notFoundBody": "It may have been deleted, or you may not have access to it.",
     "hiredThrough": "Recruitment {{ code }}",
     "openChecklist": {
-      "onboarding": "Open onboarding",
-      "offboarding": "Open offboarding"
+      "onboarding": "Open the joining checklist",
+      "offboarding": "Open the leaving checklist"
     }
   },
   "competences": {
@@ -440,17 +440,18 @@
     "cellAction": "{{ name }}, {{ label }}. Record an assessment",
     "gapTotalOne": "1 gap in total",
     "export": "Export to CSV",
-    "assignTraining": "Assign training: {{ course }}"
+    "assignTraining": "Assign training: {{ course }}",
+    "courseStatusLink": "Course status by person"
   },
   "checklists": {
     "title": "Joining and leaving",
     "subtitle": "The steps for people who start and leave: access, equipment, confidentiality and training.",
     "noMatch": "No checklists match these filters.",
-    "employeeTitle": "Onboarding and offboarding",
+    "employeeTitle": "Joining and leaving",
     "employeeEmpty": "No checklists yet.",
     "start": {
-      "onboarding": "Start onboarding",
-      "offboarding": "Start offboarding"
+      "onboarding": "Start joining checklist",
+      "offboarding": "Start leaving checklist"
     },
     "startMessage": "The checklist starts from the default template and is assigned as a task.",
     "startConfirm": "Start checklist",
@@ -497,11 +498,11 @@
     }
   },
   "awareness": {
-    "title": "Awareness",
-    "empty": "No awareness records yet. Record the policies this person has read, security awareness sessions and briefings.",
-    "add": "Record awareness",
-    "addTitle": "Record awareness",
-    "editTitle": "Edit awareness record",
+    "title": "Policies and briefings",
+    "empty": "Nothing recorded yet. Record the policies this person has read, security information and briefings.",
+    "add": "Record read or briefed",
+    "addTitle": "Record read or briefed",
+    "editTitle": "Edit the record",
     "message": "What the person was made aware of, and when.",
     "deleteTitle": "Delete this awareness record?",
     "deleteMessage": "The record \"{{ topic }}\" is removed.",

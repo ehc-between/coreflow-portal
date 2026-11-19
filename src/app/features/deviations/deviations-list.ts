@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 import { hasAnyPermission } from '../../core/auth/permission';
@@ -22,7 +22,9 @@ import {
 import { DeviationsApi } from '../../core/deviations/deviations-api';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
+import { GuidanceService } from '../../core/guidance/guidance.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { RegistrerService } from '../../shared/registrer/registrer.service';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
@@ -62,6 +64,15 @@ import { StatusLegend } from '../../shared/ui/status-legend/status-legend';
 const PAGE_SIZE = 25;
 const WIDE_QUERY = '(min-width: 640px)';
 
+/** HMS event kinds stored on HMS deviations (`data.event_kind`; mirrors core). */
+export const EVENT_KINDS = [
+  'near_miss',
+  'injury',
+  'occupational_illness',
+  'dangerous_condition',
+  'property_damage',
+] as const;
+
 /** URL / saved-view filter keys of the list (the list endpoint's param names). */
 export const LIST_FILTER_KEYS = [
   'state',
@@ -75,6 +86,7 @@ export const LIST_FILTER_KEYS = [
   'clause',
   'due_after',
   'due_before',
+  'event_kind',
   'sort',
 ] as const;
 export type ListFilterKey = (typeof LIST_FILTER_KEYS)[number];
@@ -90,6 +102,7 @@ const MORE_KEYS: readonly ListFilterKey[] = [
   'clause',
   'due_after',
   'due_before',
+  'event_kind',
   'sort',
 ];
 
@@ -144,6 +157,7 @@ export function toDeviationFilters(
     clause: v('clause'),
     due_after: v('due_after'),
     due_before: v('due_before'),
+    event_kind: v('event_kind'),
     sort: v('sort') ?? '-raised_at',
   };
 }
@@ -192,7 +206,6 @@ export function filtersFromParams(params: {
   imports: [
     StatusLegend,
     FulfilsRequirements,
-    RouterLink,
     TranslocoPipe,
     HasPermissionDirective,
     TeachingEmpty,
@@ -233,18 +246,16 @@ export function filtersFromParams(params: {
       (viewApplied)="applyView($event)"
     >
       <app-fulfils-requirements help locationKey="deviations.register" />
-      <a
+      <app-button
         primary
         *appHasPermission="'deviations:write'"
-        routerLink="/deviations/new"
-        tabindex="-1"
         appTourStep="deviations-new"
+        data-testid="deviation-new"
+        (click)="reportNew()"
       >
-        <app-button data-testid="deviation-new">
-          <app-icon name="plus" [size]="15" />
-          {{ 'deviations.new' | transloco }}
-        </app-button>
-      </a>
+        <app-icon name="plus" [size]="15" />
+        {{ 'deviations.new' | transloco }}
+      </app-button>
       <app-button
         secondary
         variant="secondary"
@@ -272,6 +283,7 @@ export function filtersFromParams(params: {
         [style.display]="wide() ? null : 'none'"
         labelKey="deviations.filters.status"
         allKey="deviations.filters.allStatuses"
+        [options]="stateOptions"
         [groups]="stateGroups()"
         [value]="filters()['state'] ?? ''"
         testId="filter-state"
@@ -293,6 +305,7 @@ export function filtersFromParams(params: {
           <app-deviation-filter
             labelKey="deviations.filters.status"
             allKey="deviations.filters.allStatuses"
+            [options]="stateOptions"
             [groups]="stateGroups()"
             [value]="filters()['state'] ?? ''"
             [showLabel]="true"
@@ -330,6 +343,15 @@ export function filtersFromParams(params: {
           [value]="filters()['source'] ?? ''"
           [showLabel]="true"
           (valueChange)="setFilter('source', $event)"
+        />
+        <app-deviation-filter
+          labelKey="deviations.filters.eventKind"
+          allKey="deviations.filters.allEventKinds"
+          [showLabel]="true"
+          [options]="eventKindOptions"
+          [value]="filters()['event_kind'] ?? ''"
+          testId="filter-event-kind"
+          (valueChange)="setFilter('event_kind', $event)"
         />
         <app-deviation-filter
           labelKey="deviations.filters.standard"
@@ -500,6 +522,8 @@ export class DeviationsList {
   private readonly notifications = inject(NotificationService);
   protected readonly statusLabels = inject(DeviationStatusLabels);
   protected readonly nav = inject(DeviationsNavService);
+  private readonly guidance = inject(GuidanceService);
+  private readonly registrer = inject(RegistrerService);
 
   protected readonly orgId = this.selectedOrg.currentOrgId;
   protected readonly pageSize = PAGE_SIZE;
@@ -560,8 +584,16 @@ export class DeviationsList {
     this.departments().map((d) => ({ value: d.id, label: d.name, literal: true })),
   );
 
-  /** One Status filter: open work, phases, statuses and workflow states as groups. */
-  protected readonly stateGroups = computed<FilterGroup[]>(() => [
+  /**
+   * U33: the one Status filter leads with 4 plain words (the lifecycle phases: Åpen,
+   * Under arbeid, Ferdig, Avbrutt). Experienced users also get open work and the exact
+   * workflow steps as groups; beginners only see a deeper value when a link set it.
+   */
+  protected readonly stateOptions: readonly FilterOption[] = STATUS_CATEGORIES.map((c) => ({
+    value: `cat:${c}`,
+    label: `deviations.category.${c}`,
+  }));
+  private readonly detailedStateGroups = computed<FilterGroup[]>(() => [
     {
       labelKey: 'deviations.filters.groups.work',
       options: [
@@ -571,24 +603,30 @@ export class DeviationsList {
       ],
     },
     {
-      labelKey: 'deviations.filters.groups.phase',
-      options: STATUS_CATEGORIES.map((c) => ({
-        value: `cat:${c}`,
-        label: `deviations.category.${c}`,
-      })),
-    },
-    {
       labelKey: 'deviations.filters.groups.status',
-      options: STATUS_OPTIONS.map((s) => ({ value: s, label: statusLabelKey(s) })),
-    },
-    {
-      labelKey: 'deviations.wf.statesGroup',
-      options: this.statusLabels
-        .workflowStates()
-        .filter((s) => !(STATUS_OPTIONS as readonly string[]).includes(s.key))
-        .map((s) => ({ value: s.key, label: s.text, literal: true })),
+      options: [
+        ...STATUS_OPTIONS.map((s) => ({ value: s, label: statusLabelKey(s) })),
+        ...this.statusLabels
+          .workflowStates()
+          .filter((s) => !(STATUS_OPTIONS as readonly string[]).includes(s.key))
+          .map((s) => ({ value: s.key, label: s.text, literal: true })),
+      ],
     },
   ]);
+  protected readonly stateGroups = computed<FilterGroup[]>(() => {
+    const groups = this.detailedStateGroups();
+    if (!this.guidance.isBeginner()) {
+      return groups;
+    }
+    const current = this.filters()['state'] ?? '';
+    const picked = groups.flatMap((g) => g.options).find((o) => o.value === current);
+    return picked ? [{ labelKey: 'deviations.filters.groups.current', options: [picked] }] : [];
+  });
+  /** U33: the HMS event kinds (the near-miss view is `?event_kind=near_miss`). */
+  protected readonly eventKindOptions: readonly FilterOption[] = EVENT_KINDS.map((k) => ({
+    value: k,
+    label: `deviations.eventKind.${k}`,
+  }));
 
   protected readonly moreActive = computed(() => {
     const filters = this.filters();
@@ -688,6 +726,15 @@ export class DeviationsList {
 
   protected openNew(): void {
     void this.router.navigateByUrl('/deviations/new');
+  }
+
+  /** U33: beginners report with the short "Registrer" form; others open the full form. */
+  protected reportNew(): void {
+    if (this.guidance.isBeginner()) {
+      this.registrer.show({ type: 'deviation' });
+    } else {
+      this.openNew();
+    }
   }
 
   /** Download the filtered register as CSV (opens in Excel; nb headers and `;`). */
