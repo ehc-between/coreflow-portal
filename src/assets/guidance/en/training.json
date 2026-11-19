@@ -235,8 +235,8 @@
     },
     "matrix": {
       "intro": {
-        "title": "The training matrix",
-        "body": "The matrix shows every person against every course with the status of what is required. The percentage at the top is the share of required training in place, and each course has its own percentage.",
+        "title": "Course status by person",
+        "body": "The overview shows every person against every course with the status of what is required. The percentage at the top is the share of required training in place, and each course has its own percentage.",
         "steps": [
           "Filter by category, department or job position to focus on one area.",
           "Click a cell to open the record or assignment behind it, or a name for the person's training profile.",
@@ -347,11 +347,6 @@
         "target": "training-courses",
         "title": "The course catalogue",
         "body": "Browse every published course, including the ones you do not have to take."
-      },
-      {
-        "target": "training-stats",
-        "title": "Programme figures",
-        "body": "If you follow up training, you see how much required training is in place, open and overdue assignments, and certificates expiring soon."
       }
     ],
     "courses": [

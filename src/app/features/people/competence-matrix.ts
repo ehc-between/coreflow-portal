@@ -15,6 +15,7 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../core/ai/page-context';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
+import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { TeachingEmpty } from '../../shared/guidance/teaching-empty';
 import { TourStepDirective } from '../../shared/guidance/tour-step.directive';
@@ -122,6 +123,17 @@ export const CELL_SYMBOL: Readonly<Record<CellStatus, string>> = {
       </app-page-header>
       <app-module-nav [items]="nav" labelKey="people.sections.label" />
       <app-help-strip scope="people" page="matrix" tour="matrix" lesson="competence-basics" />
+      @if (showCourseStatus()) {
+        <!-- U35: one competence matrix; courses per person is a view of the course register. -->
+        <p class="mb-3 text-meta">
+          <a
+            routerLink="/training/matrix"
+            class="font-semibold text-accent hover:underline"
+            data-testid="course-status-link"
+            >{{ 'people.matrix.courseStatusLink' | transloco }} →</a
+          >
+        </p>
+      }
 
       <div class="mb-4 flex flex-wrap items-center gap-2" appTourStep="people-matrix-filters">
         <div
@@ -491,6 +503,7 @@ export class CompetenceMatrix {
   private readonly language = inject(LanguageService);
   private readonly notifications = inject(NotificationService);
   protected readonly lookups = inject(PeopleLookups);
+  private readonly modules = inject(ModuleService);
 
   protected readonly nav = PEOPLE_NAV;
   protected readonly root = PEOPLE_ROOT;
@@ -533,6 +546,15 @@ export class CompetenceMatrix {
   protected readonly canAssignTraining = computed(() =>
     hasPerm(this.selectedOrg.currentOrg()?.permissions, 'training:assign'),
   );
+
+  /** Link to the course register's per-person status (training on, and allowed to see it). */
+  protected readonly showCourseStatus = computed(() => {
+    const perms = this.selectedOrg.currentOrg()?.permissions;
+    return (
+      this.modules.isEnabled('training') &&
+      ['training:report', 'training:assign', 'training:manage'].some((p) => hasPerm(perms, p))
+    );
+  });
 
   protected readonly matrixEmpty = computed(() => {
     const m = this.matrix();

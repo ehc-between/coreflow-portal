@@ -475,25 +475,47 @@ export function primaryActionFor(e: Employee): PrimaryAction | null {
                   {{ 'people.detail.atAGlance' | transloco }}
                 </h2>
                 <ul class="flex flex-col gap-1.5 text-ui">
-                  <li [class.text-warn-ink]="e.gap_count > 0" data-testid="glance-gaps">
-                    {{
-                      countKey('people.employees.gapCount', e.gap_count)
-                        | transloco: { count: e.gap_count }
-                    }}
+                  <!-- U35: every number is a door: each count scrolls to the list it counts. -->
+                  <li [class.text-warn-ink]="e.gap_count > 0">
+                    <button
+                      type="button"
+                      class="text-left hover:underline"
+                      (click)="scrollTo('competences')"
+                      data-testid="glance-gaps"
+                    >
+                      {{
+                        countKey('people.employees.gapCount', e.gap_count)
+                          | transloco: { count: e.gap_count }
+                      }}
+                    </button>
                   </li>
                   @if (e.expiring_count) {
-                    <li class="text-warn-ink" data-testid="glance-expiring">
-                      {{
-                        countKey('people.employees.expiringCount', e.expiring_count)
-                          | transloco: { count: e.expiring_count }
-                      }}
+                    <li class="text-warn-ink">
+                      <button
+                        type="button"
+                        class="text-left hover:underline"
+                        (click)="scrollTo('competences')"
+                        data-testid="glance-expiring"
+                      >
+                        {{
+                          countKey('people.employees.expiringCount', e.expiring_count)
+                            | transloco: { count: e.expiring_count }
+                        }}
+                      </button>
                     </li>
                   }
                   <li>
-                    {{
-                      countKey('people.employees.openChecklists', e.open_checklists)
-                        | transloco: { count: e.open_checklists }
-                    }}
+                    <button
+                      type="button"
+                      class="text-left hover:underline"
+                      (click)="scrollTo('checklists')"
+                      data-testid="glance-checklists"
+                    >
+                      {{
+                        countKey('people.employees.openChecklists', e.open_checklists)
+                          | transloco: { count: e.open_checklists }
+                      }}
+                    </button>
                   </li>
                 </ul>
                 <a
@@ -719,7 +741,7 @@ export class EmployeeDetail {
     });
   }
 
-  private scrollTo(section: string): void {
+  protected scrollTo(section: string): void {
     afterNextRender(() => document.getElementById(section)?.scrollIntoView?.({ block: 'start' }), {
       injector: this.injector,
     });
