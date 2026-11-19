@@ -1,0 +1,262 @@
+{
+  "subtitle": "A first draft based on your organisation profile. Nothing is saved until you confirm.",
+  "close": "Close",
+  "start": "Make a proposal from the company profile",
+  "promptNote": "You review everything before it is saved.",
+  "loadingHint": "This usually takes less than a minute.",
+  "status": {
+    "preparing": "Reading your organisation profile…",
+    "generating": "Writing proposals…",
+    "checking": "Checking what you already have…"
+  },
+  "source": {
+    "ai": "Proposals from the assistant, based on your organisation. Check and adjust them before you create anything.",
+    "template": "A standard setup for organisations like yours.",
+    "ai_unavailable": "The assistant is not available, so this is a standard setup for organisations like yours.",
+    "ai_failed": "The assistant could not answer right now, so this is a standard setup for organisations like yours.",
+    "ai_empty": "The assistant had no new proposals, so this is a standard setup for organisations like yours."
+  },
+  "basedOn": "Based on: {{ facts }}",
+  "basedOnSize": "{{ size }} employees",
+  "basedOnRecords": "{{ count }} records in other registers",
+  "basedOnNothing": "Your organisation profile is mostly empty, so the proposals are general. Fill in the profile for better proposals.",
+  "skipped": "{{ count }} proposals were left out because you already have them.",
+  "nothingNew": "Nothing new to propose: you already have what we would suggest.",
+  "selectedCount": "{{ count }} of {{ total }} selected",
+  "selectAll": "Select all",
+  "selectNone": "Select none",
+  "why": "Why:",
+  "edit": "Edit",
+  "done": "Done",
+  "untitled": "(no title)",
+  "none": "None",
+  "tagsHint": "One per line.",
+  "clause": "Clause",
+  "justification": "Justification",
+  "remove": "Remove",
+  "noExclusions": "No exclusions.",
+  "assignee": "Who",
+  "raciLetter": "RACI",
+  "addAssignee": "Add person, role or department",
+  "noAssignees": "Nobody to choose yet. Add members, roles or departments first, or fill this in later.",
+  "raciLegend": "R = does the work, A = accountable (exactly one), C = consulted, I = informed.",
+  "assigneeTypes": {
+    "user": "Person",
+    "role": "Role",
+    "department": "Department"
+  },
+  "confirmNote": "Only the selected items are created.",
+  "cancel": "Cancel",
+  "accept": "Create {{ count }} selected",
+  "acceptSingle": "Create the analysis",
+  "useStandard": "Use the standard setup",
+  "retry": "Try again",
+  "errors": {
+    "generate": "The proposals could not be made. Try again, or use the standard setup.",
+    "accept": "The records could not be created. Try again.",
+    "invalid": "Some of the selected items are incomplete. Check the required fields and try again."
+  },
+  "toast": {
+    "created": "{{ count }} records created from the proposal.",
+    "createdSingle": "The analysis was created from the proposal.",
+    "nothingCreated": "Nothing was created: you already have these."
+  },
+  "hints": {
+    "no_accountable": "Nobody is accountable (A) yet. Choose one person when you know who it is.",
+    "no_responsible": "Nobody is responsible (R) yet. Add who does the work.",
+    "unrated": "Not rated yet. Choose likelihood and consequence, or rate it later."
+  },
+  "fields": {
+    "title": "Title",
+    "summary": "Summary",
+    "name": "Name",
+    "category": "Category",
+    "party_type": "Internal or external",
+    "needs": "Needs",
+    "expectations": "Expectations",
+    "how_addressed": "How we handle it",
+    "influence": "Influence",
+    "interest": "Interest",
+    "is_compliance_obligation": "The requirements are legal or contractual obligations",
+    "text": "Factor",
+    "impact": "Impact",
+    "statement": "Scope statement",
+    "boundaries": "Boundaries",
+    "products_services": "Products and services",
+    "sites": "Sites",
+    "exclusions": "Exclusions (requirements that do not apply)",
+    "process_id": "Process",
+    "description": "Description",
+    "authorities": "Authorities",
+    "assignments": "Who does what (RACI)",
+    "threat": "What can happen",
+    "vulnerability": "What makes it possible",
+    "consequence_text": "What it leads to",
+    "likelihood": "Likelihood",
+    "consequence": "Consequence",
+    "treatment_notes": "Suggested measures",
+    "subject": "Concerns",
+    "obligation_type": "Type",
+    "issuer": "Authority",
+    "reference": "Reference",
+    "source_url": "Link to the text",
+    "applicability": "How it applies to us",
+    "requirements": "Main duties",
+    "purpose": "Purpose",
+    "inputs": "Inputs",
+    "outputs": "Outputs",
+    "management_system": "Standard",
+    "target": "Target (measurable)",
+    "plan": "How we will get there",
+    "evaluation_method": "How we measure it",
+    "due_date": "Deadline (YYYY-MM-DD)"
+  },
+  "options": {
+    "party_category": {
+      "customer": "Customers",
+      "employee": "Employees",
+      "owner": "Owners and investors",
+      "regulator": "Authorities and regulators",
+      "supplier": "Suppliers",
+      "partner": "Partners",
+      "community": "Community and neighbours",
+      "competitor": "Competitors",
+      "other": "Others"
+    },
+    "party_type": {
+      "internal": "Internal",
+      "external": "External"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "swot": {
+      "strength": "Strengths",
+      "weakness": "Weaknesses",
+      "opportunity": "Opportunities",
+      "threat": "Threats"
+    },
+    "framework": {
+      "iso9001": "ISO 9001",
+      "iso27001": "ISO/IEC 27001",
+      "iso14001": "ISO 14001",
+      "iso42001": "ISO/IEC 42001",
+      "iso45001": "ISO 45001",
+      "gdpr": "GDPR",
+      "eu_ai_act": "EU AI Act",
+      "nis2": "NIS2",
+      "general": "General"
+    },
+    "risk_category": {
+      "enterprise": "Business",
+      "information_security": "Information security",
+      "privacy": "Privacy",
+      "ai": "AI",
+      "hse": "Health and safety",
+      "environmental": "Environment",
+      "project": "Projects",
+      "quality": "Quality",
+      "other": "Other"
+    },
+    "likelihood": {
+      "1": "1 – Very unlikely",
+      "2": "2 – Unlikely",
+      "3": "3 – Possible",
+      "4": "4 – Likely",
+      "5": "5 – Very likely"
+    },
+    "consequence": {
+      "1": "1 – Very small",
+      "2": "2 – Small",
+      "3": "3 – Moderate",
+      "4": "4 – Large",
+      "5": "5 – Very large"
+    },
+    "obligation_type": {
+      "law": "Law",
+      "regulation": "Regulation",
+      "permit": "Permit",
+      "licence": "Licence",
+      "contract": "Contract",
+      "standard": "Standard",
+      "industry_code": "Industry code",
+      "voluntary": "Voluntary commitment",
+      "internal": "Internal requirement",
+      "other": "Other"
+    },
+    "obligation_area": {
+      "work": "Employees and working environment",
+      "privacy": "Privacy",
+      "finance": "Accounts and finance",
+      "security": "Digital security and AI",
+      "environment": "Environment",
+      "product": "Products and consumers",
+      "industry": "Your industry"
+    },
+    "process_category": {
+      "management": "Management processes",
+      "core": "Core processes",
+      "support": "Support processes"
+    }
+  },
+  "providers": {
+    "context_interested_parties": {
+      "title": "Proposed interested parties",
+      "whatTitle": "What is an interested party?",
+      "intro": "Interested parties are the people and organisations that affect your business or are affected by it: customers, employees, owners, suppliers, authorities and so on. For each one you note what they need and expect from you, and how you follow it up.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose the interested parties that are typical for a business like yours, with their needs and expectations, based on your company profile and what you already have registered."
+    },
+    "context_swot": {
+      "title": "Proposed SWOT analysis",
+      "whatTitle": "What is a SWOT analysis?",
+      "intro": "A SWOT analysis is a simple way to describe your situation: strengths and weaknesses inside the business, opportunities and threats outside it. It helps you see what the management system must take care of.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can draft a first SWOT analysis for your business, based on your company profile and what you already have registered."
+    },
+    "context_scopes": {
+      "title": "Proposed scope",
+      "whatTitle": "What is a scope?",
+      "intro": "The scope says what your management system covers: which activities, sites and services are included, where the boundaries are, and which requirements of a standard do not apply to you (with a reason).",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose a scope for each standard you work with, based on your company profile, sites and processes."
+    },
+    "context_responsibilities": {
+      "title": "Proposed roles and responsibilities",
+      "whatTitle": "What are roles and responsibilities (RACI)?",
+      "intro": "Here you decide who does what in the management system. For each task, RACI shows who does the work (R), who is accountable (A, always exactly one), who is consulted (C) and who is kept informed (I). In a small company one person often holds several roles.",
+      "promptTitle": "Shall I propose roles and responsibilities for you?",
+      "promptBody": "We propose the usual responsibilities for the standards you work with, using your own people, roles and departments, and link them to your processes where they exist."
+    },
+    "risk_risks": {
+      "title": "Proposed risks",
+      "whatTitle": "What is a risk register?",
+      "intro": "A risk is something that can go wrong and hurt your business, your employees, your customers or your information. For each risk you estimate how likely it is (likelihood) and how bad it would be (consequence), so you can deal with the most important ones first. The ratings here are suggestions: adjust them to your situation.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose the risks that are typical for a business like yours, with a first rating and suggested measures, and link them to your assets, processes and suppliers where they exist."
+    },
+    "obligations_laws": {
+      "title": "Proposed laws and regulations",
+      "whatTitle": "Why a list of laws and regulations?",
+      "intro": "Every business must know which laws and regulations apply to it and check regularly that it follows them. This is required by the Internal Control Regulations and by the ISO standards. The proposals are a starting point: check that each one applies to you, and add any permits or contracts you have.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose the laws and regulations that usually apply to a Norwegian business of your industry and size, with the main duties of each."
+    },
+    "processes_map": {
+      "title": "Proposed processes",
+      "whatTitle": "What is a process map?",
+      "intro": "A process is a set of activities that turns something coming in (an order, a need) into something going out (a delivery, a decision). Core processes create value for your customers, management processes steer the business, and support processes make the rest possible. The map shows how your business works.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose a process map with management, core and support processes, based on your industry and the standards you work with."
+    },
+    "objectives_objectives": {
+      "title": "Proposed objectives",
+      "whatTitle": "What is a good objective?",
+      "intro": "A good objective is SMART: Specific, Measurable, Achievable, Relevant and Time-bound. Each proposal has a target you can measure, a short plan and a deadline. The objectives are created as drafts, so management can approve them afterwards.",
+      "promptTitle": "Get started with a proposal",
+      "promptBody": "We can propose a few SMART objectives for each standard you work with, based on your company profile."
+    }
+  }
+}

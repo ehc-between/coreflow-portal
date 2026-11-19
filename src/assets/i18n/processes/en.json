@@ -25,7 +25,8 @@
     "noOwner": "No owner",
     "noMap": "No workflow drawn yet",
     "noMatchesTitle": "No matches",
-    "clearFilters": "Clear the filters"
+    "clearFilters": "Clear the filters",
+    "suggestMore": "Suggest more"
   },
   "filters": {
     "status": "Status",

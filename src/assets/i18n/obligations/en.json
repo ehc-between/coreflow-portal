@@ -19,7 +19,8 @@
     "showing": "{{ count }} shown",
     "duties": "{{ count }} duties",
     "noPlan": "No evaluation plan",
-    "renewalDue": "Renewal due"
+    "renewalDue": "Renewal due",
+    "suggestMore": "Suggest more"
   },
   "export": {
     "button": "Export register",

@@ -139,7 +139,8 @@
       "openFactorsOne": "1 not followed up",
       "acknowledged": "Confirmed {{ acknowledged }} of {{ total }}",
       "notCommunicated": "Not communicated"
-    }
+    },
+    "suggestMore": "Suggest more"
   },
   "search": {
     "placeholder": "Search by title or code",

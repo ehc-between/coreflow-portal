@@ -139,7 +139,8 @@
       "openFactorsOne": "1 uten oppfølging",
       "acknowledged": "Bekreftet {{ acknowledged }} av {{ total }}",
       "notCommunicated": "Ikke kommunisert"
-    }
+    },
+    "suggestMore": "Foreslå flere"
   },
   "search": {
     "placeholder": "Søk på tittel eller kode",

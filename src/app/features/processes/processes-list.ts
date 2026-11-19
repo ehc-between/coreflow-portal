@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -47,6 +48,9 @@ import {
 } from './data/process.models';
 import { ProcessesApi } from './data/processes-api';
 import { FulfilsRequirements } from '../../shared/requirement-locations/fulfils-requirements';
+import { MenuItem } from '../../shared/ui/overflow-menu/overflow-menu';
+import { StarterSetup } from '../../shared/starter-setup/starter-setup';
+import { StarterSetupPrompt } from '../../shared/starter-setup/starter-setup-prompt';
 
 const PAGE_SIZE = 25;
 
@@ -139,6 +143,9 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
     RecordRow,
     RecordRowHeader,
     StatusBadge,
+    MenuItem,
+    StarterSetup,
+    StarterSetupPrompt,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -167,6 +174,17 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
           {{ 'processes.list.new' | transloco }}
         </app-button>
       </a>
+      @if (canWrite() && total() > 0) {
+        <button
+          appMenuItem
+          overflow
+          type="button"
+          data-testid="starter-more"
+          (click)="starter()?.open()"
+        >
+          {{ 'processes.list.suggestMore' | transloco }}
+        </button>
+      }
 
       <app-module-nav
         nav
@@ -318,6 +336,9 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
       }
 
       <div empty>
+        @if (canWrite()) {
+          <app-starter-setup-prompt [provider]="starterProvider" (begin)="starter()?.open()" />
+        }
         <app-card>
           <app-teaching-empty
             scope="processes"
@@ -330,6 +351,7 @@ export function toQuery(q: string, f: ProcessListFilters, offset: number): Proce
 
       <app-why-it-matters below scope="processes" page="list" />
     </app-record-list-page>
+    <app-starter-setup [provider]="starterProvider" (created)="reload()" />
   `,
   styles: [
     `
@@ -381,6 +403,9 @@ export class ProcessesList {
   protected readonly canWrite = computed(
     () => this.selectedOrg.currentOrg()?.permissions.includes('processes:write') ?? false,
   );
+  /** The starter-setup provider of the register ("Kom i gang med et forslag"). */
+  protected readonly starterProvider = 'processes.map';
+  protected readonly starter = viewChild(StarterSetup);
 
   protected readonly viewFilters = computed<Record<string, string>>(() => ({ ...this.filters() }));
   protected readonly moreActive = computed(
