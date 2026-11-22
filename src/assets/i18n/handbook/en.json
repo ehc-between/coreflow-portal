@@ -1,0 +1,135 @@
+{
+  "title": "Handbook",
+  "intro": "How you work, from the customer having a need to a satisfied customer. Click a process to see its steps, who does what, and the procedures you follow.",
+  "actions": {
+    "propose": "Suggest a process map",
+    "newProcedure": "+ New procedure",
+    "newProcess": "+ New process",
+    "askProcess": "Ask about the process",
+    "details": "Details and editing",
+    "interactions": "How the processes connect",
+    "allProcesses": "All processes",
+    "order": "Order",
+    "orderDone": "Done",
+    "moveUp": "Move “{{ title }}” up",
+    "moveDown": "Move “{{ title }}” down",
+    "add": "Add",
+    "makeSteps": "Draw the steps",
+    "openProcess": "Open the process"
+  },
+  "tabs": {
+    "label": "Handbook",
+    "map": "Process map",
+    "procedures": "All procedures",
+    "proceduresCount": "All procedures ({{ count }})",
+    "waiting": "Waiting for you",
+    "waitingCount": "Waiting for you ({{ count }})"
+  },
+  "bands": {
+    "management": {
+      "eyebrow": "Management · sets the direction",
+      "kind": "Management process"
+    },
+    "core": {
+      "eyebrow": "Core processes · what you live from",
+      "kind": "Core process"
+    },
+    "support": {
+      "eyebrow": "Support processes · make delivery possible",
+      "kind": "Support process"
+    }
+  },
+  "map": {
+    "governs": "directs and follows up",
+    "supports": "supports",
+    "customerNeed": "The customer has a need",
+    "satisfied": "Satisfied customer",
+    "emptyBand": "No processes here yet.",
+    "procedures": "{{ count }} procedures",
+    "proceduresOne": "1 procedure",
+    "draft": "Draft",
+    "footnote": "The dots show whether something needs attention: green is fine, yellow has something due soon, and red has an open deviation or a procedure that is out of date.",
+    "dots": {
+      "ok": "Fine",
+      "warn": "Something is due soon",
+      "bad": "Needs attention now"
+    },
+    "orderHint": "Put the processes in the order the work flows. Core processes read from left to right.",
+    "orderSaved": "The order is saved",
+    "orderFailed": "Could not save the order. Try again.",
+    "empty": {
+      "title": "You have not made the process map yet",
+      "body": "The process map shows how the company works, from the customer having a need to a satisfied customer. Get a suggestion from the company profile, or make the first process yourself."
+    }
+  },
+  "procedures": {
+    "intro": "All procedures, instructions and checklists, grouped by process.",
+    "noProcess": "Not in a process",
+    "empty": "No procedures yet. Make the first one with “+ New procedure”.",
+    "version": "Version {{ rev }}",
+    "owner": "Owner: {{ name }}"
+  },
+  "waiting": {
+    "intro": "Procedures waiting for you to approve them or confirm that you have read them.",
+    "empty": "Nothing is waiting for you now.",
+    "approve": "Approve",
+    "read": "Read and confirm",
+    "open": "Open"
+  },
+  "process": {
+    "breadcrumbMap": "Process map",
+    "owner": "Owner: {{ name }}",
+    "ownerLabel": "Owner:",
+    "noOwner": "No owner yet",
+    "procedures": "{{ count }} procedures",
+    "proceduresOne": "1 procedure",
+    "openCases": "{{ count }} open deviations",
+    "openCasesOne": "1 open deviation",
+    "draft": "Draft",
+    "howWeWork": "How we do it",
+    "step": "Step {{ n }}",
+    "from": "← From: {{ title }}",
+    "to": "To: {{ title }} →",
+    "fromCustomer": "← The customer has a need",
+    "toCustomer": "Satisfied customer →",
+    "noSteps": "No steps yet",
+    "noStepsBody": "Draw the steps of the process, who does them and which procedure they follow.",
+    "noDocument": "No procedure linked",
+    "notFound": "Could not find the process. It may have been deleted, or you do not have access.",
+    "prevProcess": "Previous process",
+    "nextProcess": "Next process"
+  },
+  "cards": {
+    "procedures": "Procedures and forms",
+    "proceduresEmpty": "No procedures are linked to the process yet.",
+    "who": "Who does what",
+    "responsible": "Responsible for the process",
+    "whoEmpty": "Add the roles to the steps so everyone sees who does what.",
+    "risks": "What can go wrong",
+    "risksEmpty": "No risks are linked to the process yet.",
+    "performance": "How it is going",
+    "performanceEmpty": "No measures yet.",
+    "target": "target {{ value }}",
+    "cases": "Cases in the last 12 months",
+    "casesSummary": "{{ open }} open · {{ closed }} closed",
+    "casesNone": "No cases"
+  },
+  "procedure": {
+    "reviewOverdue": "Needs updating",
+    "reviewSoon": "Review due soon",
+    "readPct": "Read by {{ pct }} %",
+    "approved": "Approved",
+    "draft": "Draft",
+    "approvedIn": "Version {{ rev }} · approved {{ month }}",
+    "version": "Version {{ rev }}"
+  },
+  "risk": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "none": "Not assessed"
+  },
+  "ask": {
+    "prompt": "Explain the process “{{ title }}”: the steps, who does what and which procedures we follow."
+  }
+}

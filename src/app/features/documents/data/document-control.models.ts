@@ -33,6 +33,8 @@ export interface DocumentType {
   readonly default_review_interval_months: number | null;
   readonly default_acknowledgement_required: boolean;
   readonly retention_rule_id: string | null;
+  /** Documents of this type are work procedures and show in Håndbok (IA v2). */
+  readonly handbook?: boolean;
   readonly active: boolean;
   readonly document_count: number;
   readonly url: string;
@@ -50,6 +52,7 @@ export interface DocumentTypeCreate {
   readonly default_review_interval_months?: number | null;
   readonly default_acknowledgement_required?: boolean;
   readonly retention_rule_id?: string | null;
+  readonly handbook?: boolean;
   readonly active?: boolean;
 }
 
