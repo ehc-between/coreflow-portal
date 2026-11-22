@@ -50,7 +50,232 @@
     "learning": "Learning centre",
     "customizeDone": "Done",
     "showItem": "Show {{ name }} in the menu",
-    "library": "Documents and reports"
+    "library": "Documents and reports",
+    "areas": {
+      "home": {
+        "label": "Overview"
+      },
+      "speakUp": {
+        "label": "Report",
+        "items": {
+          "report": {
+            "label": "Report something",
+            "hint": "Something has happened"
+          },
+          "cases": {
+            "label": "All cases",
+            "hint": "Deviations, incidents, breaches and complaints"
+          },
+          "myCases": {
+            "label": "My cases",
+            "hint": "What you follow up"
+          },
+          "actions": {
+            "label": "Actions",
+            "hint": "What has been decided to put things right"
+          },
+          "intake": {
+            "label": "Whistleblowing",
+            "hint": "Anonymous reports and whistleblowing"
+          }
+        }
+      },
+      "annual": {
+        "label": "Year planner",
+        "items": {
+          "cycle": {
+            "label": "The year planner",
+            "hint": "Everything that should happen this year"
+          },
+          "audits": {
+            "label": "Audits",
+            "hint": "Internal and external audits"
+          },
+          "inspections": {
+            "label": "Inspections and safety rounds",
+            "hint": "With a checklist on your phone"
+          },
+          "managementReview": {
+            "label": "Management review",
+            "hint": "The input is gathered automatically"
+          },
+          "recurring": {
+            "label": "Recurring tasks",
+            "hint": "What comes back every week, month or year"
+          }
+        }
+      },
+      "company": {
+        "label": "Company",
+        "items": {
+          "interestedParties": {
+            "label": "Interested parties",
+            "hint": "Who has requirements of you"
+          },
+          "policies": {
+            "label": "Policies",
+            "hint": "What management commits to"
+          },
+          "responsibilities": {
+            "label": "Roles and responsibilities",
+            "hint": "Who does what"
+          },
+          "objectives": {
+            "label": "Objectives and KPIs",
+            "hint": "What you want to achieve"
+          },
+          "risk": {
+            "label": "Risks and opportunities",
+            "hint": "What can go wrong"
+          },
+          "obligations": {
+            "label": "Laws and regulations",
+            "hint": "What you have to comply with"
+          },
+          "scope": {
+            "label": "Scope and context",
+            "hint": "What the system covers"
+          },
+          "projects": {
+            "label": "Projects",
+            "hint": "What you are working on now"
+          },
+          "topics": {
+            "label": "Topic areas",
+            "hint": "Privacy, IT, AI, environment and continuity"
+          }
+        }
+      },
+      "people": {
+        "label": "People",
+        "items": {
+          "employees": {
+            "label": "People",
+            "hint": "Employees and contractors"
+          },
+          "training": {
+            "label": "Training",
+            "hint": "Courses and who has taken them"
+          },
+          "competences": {
+            "label": "Competence",
+            "hint": "What each role requires"
+          },
+          "recruitment": {
+            "label": "Recruitment",
+            "hint": "Positions you are hiring for"
+          },
+          "hse": {
+            "label": "Health and safety",
+            "hint": "Safety rounds, near misses and protective equipment"
+          },
+          "access": {
+            "label": "Access",
+            "hint": "Who has access to what"
+          }
+        }
+      },
+      "contacts": {
+        "label": "Contacts",
+        "items": {
+          "customers": {
+            "label": "Customers",
+            "hint": "With complaints and contracts"
+          },
+          "suppliers": {
+            "label": "Suppliers",
+            "hint": "With evaluation and risk"
+          },
+          "processors": {
+            "label": "Data processors",
+            "hint": "With a data processing agreement"
+          },
+          "agreements": {
+            "label": "Agreements",
+            "hint": "All contracts and deadlines"
+          },
+          "surveys": {
+            "label": "Customer surveys",
+            "hint": "What your customers think"
+          }
+        }
+      },
+      "handbook": {
+        "label": "Handbook",
+        "items": {
+          "map": {
+            "label": "Process map",
+            "hint": "The whole company from start to finish"
+          },
+          "procedures": {
+            "label": "All procedures",
+            "hint": "Instructions and checklists, by process"
+          }
+        },
+        "kinds": {
+          "core": "Core process",
+          "management": "Management process",
+          "support": "Support process"
+        }
+      },
+      "documents": {
+        "label": "Documents",
+        "items": {
+          "policies": {
+            "label": "Policies",
+            "hint": "What management commits to"
+          },
+          "plans": {
+            "label": "Plans",
+            "hint": "Emergency, training, audit"
+          },
+          "templates": {
+            "label": "Templates",
+            "hint": "Start from a ready draft"
+          },
+          "external": {
+            "label": "External documents",
+            "hint": "Standards and laws"
+          },
+          "archive": {
+            "label": "Archive",
+            "hint": "Locked reports and minutes"
+          },
+          "waiting": {
+            "label": "Waiting for you",
+            "hint": "Approval or read confirmation"
+          }
+        }
+      },
+      "reports": {
+        "label": "Reports",
+        "items": {
+          "auditor": {
+            "label": "For the auditor",
+            "hint": "Audit pack and SoA"
+          },
+          "authority": {
+            "label": "For the data protection authority",
+            "hint": "Records of processing and breach notices"
+          },
+          "board": {
+            "label": "For the board",
+            "hint": "Management review"
+          },
+          "people": {
+            "label": "For customers and employees",
+            "hint": "Privacy notice and handbook"
+          },
+          "standards": {
+            "label": "Standards (expert view)",
+            "hint": "Requirement by requirement, for auditors and consultants"
+          }
+        }
+      },
+      "mainMenu": "Main menu",
+      "seeAll": "See the whole overview →",
+      "openMenu": "Show submenu for {{ area }}"
+    }
   },
   "topbar": {
     "searchPlaceholder": "Search, or ask CoreFlow…",
@@ -2648,7 +2873,8 @@
       "appearance": "Appearance",
       "lightTheme": "Switch to light",
       "darkTheme": "Switch to dark",
-      "home": "CoreFlow home"
+      "home": "CoreFlow home",
+      "ask": "Ask CoreFlow"
     },
     "countries": {
       "EU": "European Union (EU)",
@@ -2680,6 +2906,11 @@
       "inProgress": "In progress",
       "overdue": "Overdue",
       "closed": "Closed"
+    },
+    "showRequirements": {
+      "on": "Showing which requirements each item meets",
+      "off": "Requirements are hidden again",
+      "pickerHidden": "Switch on “Show requirements” to link requirements."
     }
   },
   "account": {

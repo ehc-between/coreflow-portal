@@ -39,6 +39,7 @@ import {
   positionText,
   shortNameKey,
 } from './requirement-label';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** A CAPA action whose links are shown under the deviation (structurally an `Action`). */
 export interface LinkedAction {
@@ -292,7 +293,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
   // The strings live in the `standards` scope; hosts don't load it themselves.
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block', '[style.display]': "reqVis.show() ? null : 'none'" },
   template: `
     @if (canRead() && compact()) {
       <section
@@ -639,6 +640,8 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
   `,
 })
 export class SupportsRequirements {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   private readonly api = inject(StandardsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly transloco = inject(TranslocoService);

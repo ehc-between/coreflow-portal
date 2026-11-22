@@ -4,6 +4,7 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { LocatedRequirementFields } from '../../core/locations/locations.models';
 import { LocationStatusIcon } from './location-status-icon';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** The short location text of a requirement in the active language (falls back to English). */
 export function locationText(
@@ -25,7 +26,10 @@ export function locationText(
   imports: [TranslocoPipe, LocationStatusIcon],
   viewProviders: [provideSharedScope('locations')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex min-w-0 empty:hidden' },
+  host: {
+    class: 'inline-flex min-w-0 empty:hidden',
+    '[style.display]': "reqVis.show() ? null : 'none'",
+  },
   template: `
     @if (text(); as t) {
       <span
@@ -41,6 +45,8 @@ export function locationText(
   `,
 })
 export class LocationHint {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   private readonly language = inject(LanguageService);
 
   readonly requirement = input.required<LocatedRequirementFields>();

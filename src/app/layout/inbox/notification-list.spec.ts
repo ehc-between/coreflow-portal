@@ -13,7 +13,7 @@ import {
 } from '../../core/notifications/user-notification.models';
 import { UserNotificationsApi } from '../../core/notifications/user-notifications-api';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { NOTIFICATION_PAGE_SIZE, NotificationBell } from './notification-bell';
+import { NOTIFICATION_PAGE_SIZE, NotificationList } from './notification-list';
 
 function make(id: string, overrides: Partial<UserNotification> = {}): UserNotification {
   return {
@@ -83,7 +83,7 @@ function setup() {
   const toasts = { error: vi.fn() };
   TestBed.configureTestingModule({
     imports: [
-      NotificationBell,
+      NotificationList,
       TranslocoTestingModule.forRoot({
         langs: { en: EN },
         translocoConfig: { availableLangs: ['en'], defaultLang: 'en' },
@@ -100,19 +100,19 @@ function setup() {
       { provide: LanguageService, useValue: { active: signal('en').asReadonly() } },
     ],
   });
-  const fixture = TestBed.createComponent(NotificationBell);
+  const fixture = TestBed.createComponent(NotificationList);
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
   const router = TestBed.inject(Router);
   const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
-  const bell = () => el.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
-  const panel = () => el.querySelector<HTMLElement>('[role="dialog"]');
+  const navigated = vi.fn();
+  fixture.componentInstance.navigated.subscribe(navigated);
+  const panel = () => el;
   const items = () => Array.from(el.querySelectorAll<HTMLElement>('[data-notification-item]'));
   const byTestId = (id: string) => el.querySelector<HTMLElement>(`[data-testid="${id}"]`);
   const render = () => fixture.detectChanges();
   const open = async () => {
-    bell().click();
     render();
     await fixture.whenStable();
   };
@@ -127,7 +127,7 @@ function setup() {
     orgId,
     list$,
     navigate,
-    bell,
+    navigated,
     panel,
     items,
     byTestId,
@@ -136,33 +136,16 @@ function setup() {
   };
 }
 
-describe('NotificationBell', () => {
-  it('shows the unread badge and an accessible label', () => {
-    const { bell, byTestId, unread, render } = setup();
-    expect(byTestId('unread-badge')?.textContent?.trim()).toBe('2');
-    expect(bell().getAttribute('aria-label')).toBe('Notifications, 2 unread');
-
-    unread.set(150);
-    render();
-    expect(byTestId('unread-badge')?.textContent?.trim()).toBe('99+');
-
-    unread.set(0);
-    render();
-    expect(byTestId('unread-badge')).toBeNull();
-    expect(bell().getAttribute('aria-label')).toBe('Notifications');
-  });
-
-  it('loads the first page for the selected org when opened and shows loading', async () => {
-    const { api, list$, open, byTestId, items, render, inbox, panel, bell } = setup();
+describe('NotificationList', () => {
+  it('loads the first page for the selected org and shows loading', async () => {
+    const { api, list$, open, byTestId, items, render, inbox } = setup();
     await open();
-    expect(bell().getAttribute('aria-expanded')).toBe('true');
     expect(api.list).toHaveBeenCalledWith({
       org_id: 'org-1',
       limit: NOTIFICATION_PAGE_SIZE,
       offset: 0,
     });
     expect(byTestId('notifications-loading')).not.toBeNull();
-    expect(document.activeElement).toBe(panel());
 
     list$.current.next(page([make('1'), make('2', { is_read: true })], 2, 1));
     render();
@@ -199,7 +182,7 @@ describe('NotificationBell', () => {
   });
 
   it('marks an unread notification read and navigates to its deviation', async () => {
-    const { list$, open, items, render, inbox, navigate, panel } = setup();
+    const { list$, open, items, render, inbox, navigate, navigated } = setup();
     await open();
     list$.current.next(page([make('1')]));
     render();
@@ -207,7 +190,7 @@ describe('NotificationBell', () => {
     render();
     expect(inbox.markRead).toHaveBeenCalledWith(expect.objectContaining({ id: '1' }));
     expect(navigate).toHaveBeenCalledWith('/deviations/dev-1?org=org-1');
-    expect(panel()).toBeNull();
+    expect(navigated).toHaveBeenCalled();
   });
 
   it('does not mark an already-read notification again', async () => {
@@ -270,17 +253,6 @@ describe('NotificationBell', () => {
     expect(byTestId('load-more')).toBeNull();
   });
 
-  it('closes on Escape and returns focus to the bell', async () => {
-    const { list$, open, render, panel, bell } = setup();
-    await open();
-    list$.current.next(page([make('1')]));
-    render();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    render();
-    expect(panel()).toBeNull();
-    expect(document.activeElement).toBe(bell());
-  });
-
   it('moves focus between entries with arrow keys', async () => {
     const { list$, open, render, panel, items } = setup();
     await open();
@@ -298,15 +270,7 @@ describe('NotificationBell', () => {
     expect(document.activeElement).toBe(items()[1]);
   });
 
-  it('closes on outside click', async () => {
-    const { open, render, panel } = setup();
-    await open();
-    document.body.click();
-    render();
-    expect(panel()).toBeNull();
-  });
-
-  it('reloads the open panel on org switch', async () => {
+  it('reloads on org switch', async () => {
     const { api, open, orgId, fixture } = setup();
     await open();
     orgId.set('org-2');

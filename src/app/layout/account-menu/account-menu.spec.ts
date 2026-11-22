@@ -1,4 +1,4 @@
-import { computed, provideZonelessChangeDetection, signal } from '@angular/core';
+import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
@@ -6,31 +6,24 @@ import { Subject } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { GuidanceLevel } from '../../core/guidance/guidance.models';
 import { GuidanceService } from '../../core/guidance/guidance.service';
+import { InboxService } from '../../core/notifications/inbox.service';
 import { NotificationService } from '../../core/notifications/notification.service';
-import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
+import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { AccountMenu } from './account-menu';
 
-function fakeShell(opts: { orgNavV2?: boolean; userNavV2?: boolean | null } = {}) {
-  const orgNavV2 = signal(opts.orgNavV2 ?? false);
-  const userNavV2 = signal<boolean | null>(opts.userNavV2 ?? null);
-  const showAll = signal(false);
-  return {
-    orgNavV2,
-    userNavV2,
-    navV2: computed(() => userNavV2() ?? orgNavV2()),
-    canSwitch: computed(() => orgNavV2() || userNavV2() !== null),
-    showAll,
-    saving: signal(false),
-    setShowAll: vi.fn((v: boolean) => showAll.set(v)),
-    setNavV2: vi.fn((v: boolean | null) => userNavV2.set(v)),
-  };
+interface Opts {
+  readonly permissions?: string[];
+  readonly superuser?: boolean;
+  readonly orgs?: { id: string; name: string }[];
 }
 
-function setup(shell = fakeShell(), v2 = false) {
+function setup(opts: Opts = {}) {
   const logoutAll$ = new Subject<void>();
   const auth = {
     user: signal({ id: 'u-1', email: 'ada@example.com', full_name: 'Ada Lovelace' }).asReadonly(),
     displayName: signal('Ada Lovelace').asReadonly(),
+    isSuperuser: signal(opts.superuser ?? false).asReadonly(),
     logout: vi.fn(),
     logoutAll: vi.fn(() => logoutAll$),
   };
@@ -42,6 +35,25 @@ function setup(shell = fakeShell(), v2 = false) {
     saving: signal(false),
     setLevel: vi.fn((level: GuidanceLevel | null) => personalLevel.set(level)),
   };
+  const orgs = opts.orgs ?? [{ id: 'org-1', name: 'Demo AS' }];
+  const currentOrgId = signal('org-1');
+  const selectedOrg = {
+    currentOrgId: currentOrgId.asReadonly(),
+    currentOrg: signal({
+      id: 'org-1',
+      name: 'Demo AS',
+      roles: [],
+      permissions: opts.permissions ?? [],
+    }).asReadonly(),
+    orgs: signal(orgs).asReadonly(),
+    setCurrentOrg: vi.fn((id: string) => currentOrgId.set(id)),
+  };
+  const inbox = {
+    unreadByOrg: signal(new Map<string, number>([['org-2', 3]])).asReadonly(),
+    unreadElsewhere: signal(0).asReadonly(),
+    refreshByOrg: vi.fn(),
+  };
+  const ask = { show: vi.fn() };
   TestBed.configureTestingModule({
     imports: [
       AccountMenu,
@@ -53,11 +65,12 @@ function setup(shell = fakeShell(), v2 = false) {
       { provide: AuthService, useValue: auth },
       { provide: NotificationService, useValue: notifications },
       { provide: GuidanceService, useValue: guidance },
-      { provide: ShellPreferencesService, useValue: shell },
+      { provide: SelectedOrgService, useValue: selectedOrg },
+      { provide: InboxService, useValue: inbox },
+      { provide: AskPanelService, useValue: ask },
     ],
   });
   const fixture = TestBed.createComponent(AccountMenu);
-  fixture.componentRef.setInput('v2', v2);
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
 
@@ -74,19 +87,86 @@ function setup(shell = fakeShell(), v2 = false) {
     return found;
   }
 
-  return { fixture, el, auth, notifications, guidance, shell, logoutAll$, openMenu, item };
+  const byTestId = (id: string) => el.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+
+  return {
+    fixture,
+    el,
+    auth,
+    notifications,
+    guidance,
+    selectedOrg,
+    ask,
+    logoutAll$,
+    openMenu,
+    item,
+    byTestId,
+  };
 }
 
-describe('AccountMenu', () => {
-  it('shows the user and the account actions when opened', () => {
-    const { el, openMenu, item } = setup();
+describe('AccountMenu (IA v2 §4.5)', () => {
+  it('shows the user, the company and the "Meg" group when opened', () => {
+    const { el, openMenu, item, byTestId } = setup();
     expect(el.querySelector('[role="menu"]')).toBeNull();
     openMenu();
     expect(el.textContent).toContain('Ada Lovelace');
     expect(el.textContent).toContain('ada@example.com');
-    expect(item('auth.menu.changePassword').getAttribute('href')).toBe('/account/password');
-    expect(item('auth.logout')).toBeTruthy();
-    expect(item('auth.menu.logoutAll')).toBeTruthy();
+    expect(byTestId('account-menu-org')?.textContent).toContain('Demo AS');
+    expect(item('shell.account.profile').getAttribute('href')).toBe('/account/password');
+    expect(item('auth.menu.security').getAttribute('href')).toBe('/account/security');
+    expect(item('auth.menu.sessions').getAttribute('href')).toBe('/account/sessions');
+    expect(item('shell.account.myNotifications').getAttribute('href')).toBe(
+      '/account/notifications',
+    );
+    // One company: no switcher.
+    expect(byTestId('account-menu-orgs')).toBeNull();
+  });
+
+  it('switches company when the user belongs to more than one', () => {
+    const { openMenu, byTestId, selectedOrg } = setup({
+      orgs: [
+        { id: 'org-1', name: 'Demo AS' },
+        { id: 'org-2', name: 'Annen AS' },
+      ],
+    });
+    openMenu();
+    expect(byTestId('account-menu-orgs')).not.toBeNull();
+    expect(byTestId('account-menu-org-org-1')?.getAttribute('aria-checked')).toBe('true');
+    byTestId('account-menu-org-org-2')!.click();
+    expect(selectedOrg.setCurrentOrg).toHaveBeenCalledWith('org-2');
+  });
+
+  it('has help and learning: the learning centre and the assistant', () => {
+    const { openMenu, byTestId, ask } = setup();
+    openMenu();
+    expect(byTestId('account-menu-learning')?.getAttribute('href')).toBe('/account/learning');
+    byTestId('account-menu-ask')!.click();
+    expect(ask.show).toHaveBeenCalled();
+  });
+
+  it('hides administration without the permissions', () => {
+    const { openMenu, byTestId } = setup({ permissions: ['documents:read'] });
+    openMenu();
+    expect(byTestId('account-menu-admin')).toBeNull();
+  });
+
+  it('shows settings, modules and setup to an org manager, all orgs to a superuser', () => {
+    const { openMenu, byTestId } = setup({ permissions: ['org:manage'], superuser: true });
+    openMenu();
+    expect(byTestId('account-menu-settings')?.getAttribute('href')).toBe('/settings');
+    expect(byTestId('account-menu-modules')?.getAttribute('href')).toBe('/settings/modules');
+    expect(byTestId('account-menu-setup')?.getAttribute('href')).toBe('/setup');
+    expect(byTestId('account-menu-organizations')?.getAttribute('href')).toBe(
+      '/admin/organizations',
+    );
+  });
+
+  it('shows settings but not setup to an inviter', () => {
+    const { openMenu, byTestId } = setup({ permissions: ['users:invite'] });
+    openMenu();
+    expect(byTestId('account-menu-settings')).not.toBeNull();
+    expect(byTestId('account-menu-setup')).toBeNull();
+    expect(byTestId('account-menu-organizations')).toBeNull();
   });
 
   it('signs out', () => {
@@ -105,8 +185,8 @@ describe('AccountMenu', () => {
     expect(notifications.error).toHaveBeenCalledWith('auth.menu.logoutAllFailed');
   });
 
-  it('switches the learning level and links to the learning centre', () => {
-    const { el, fixture, guidance, openMenu, item } = setup();
+  it('switches the learning level and keeps the menu open', () => {
+    const { el, fixture, guidance, openMenu } = setup();
     openMenu();
     const radios = () =>
       Array.from(
@@ -127,47 +207,5 @@ describe('AccountMenu', () => {
     expect(el.querySelector('[role="menu"]')).not.toBeNull();
     radios()[0].click();
     expect(guidance.setLevel).toHaveBeenLastCalledWith(null);
-    expect(item('guidance.menu.learningCentre').getAttribute('href')).toBe('/account/learning');
-  });
-});
-
-describe('AccountMenu, shell v2 (U03)', () => {
-  it('offers nothing about the menu while the org uses the old one', () => {
-    const { el, openMenu } = setup();
-    openMenu();
-    expect(el.querySelector('[data-testid="account-menu-shell"]')).toBeNull();
-    expect(el.querySelector('[data-testid="account-menu-display"]')!.className).toContain(
-      'md:hidden',
-    );
-  });
-
-  it('shows theme and language at every width, "Vis alt" and the switch back', () => {
-    const shell = fakeShell({ orgNavV2: true });
-    const { el, fixture, openMenu } = setup(shell, true);
-    openMenu();
-    expect(el.querySelector('[data-testid="account-menu-display"]')!.className).not.toContain(
-      'md:hidden',
-    );
-    const showAll = el.querySelector<HTMLButtonElement>('[data-testid="account-menu-show-all"]')!;
-    expect(showAll.getAttribute('aria-checked')).toBe('false');
-    showAll.click();
-    fixture.detectChanges();
-    expect(shell.setShowAll).toHaveBeenCalledWith(true);
-
-    const toggle = el.querySelector<HTMLButtonElement>('[data-testid="account-menu-nav-v2"]')!;
-    expect(toggle.getAttribute('aria-checked')).toBe('true');
-    toggle.click();
-    fixture.detectChanges();
-    // Off differs from the org default (on): stored as the user's own choice.
-    expect(shell.setNavV2).toHaveBeenCalledWith(false);
-  });
-
-  it('follows the org again when switching back to its default', () => {
-    const shell = fakeShell({ orgNavV2: true, userNavV2: false });
-    const { el, openMenu } = setup(shell, false);
-    openMenu();
-    expect(el.querySelector('[data-testid="account-menu-show-all"]')).toBeNull();
-    el.querySelector<HTMLButtonElement>('[data-testid="account-menu-nav-v2"]')!.click();
-    expect(shell.setNavV2).toHaveBeenCalledWith(null);
   });
 });

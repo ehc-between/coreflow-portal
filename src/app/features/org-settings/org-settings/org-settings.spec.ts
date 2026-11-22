@@ -94,9 +94,6 @@ describe('Settings access for a users:invite-only user', () => {
     expect(
       root.querySelector('[data-testid="settings-card-settings.hub.cards.members"]'),
     ).toBeNull();
-    // The menu card is for org:manage only.
-    http.expectNone(`${BASE}/v1/orgs/${ORG}/settings`);
-    expect(root.querySelector('[data-testid="settings-nav-v2"]')).toBeNull();
   });
 });
 
@@ -112,8 +109,6 @@ describe('Settings hub for an org:manage user', () => {
       { id: 'd1', name: 'IT', member_count: 2, lead_user_id: 'u1', lead_name: 'Ada' },
       { id: 'd2', name: 'Salg', member_count: 0, lead_user_id: null, lead_name: null },
     ]);
-    // U03: the menu card reads the org's nav_v2 setting.
-    http.expectOne(`${BASE}/v1/orgs/${ORG}/settings`).flush({ nav_v2: true });
     // U07: the home page per role card.
     http.expectOne(`${BASE}/v1/orgs/${ORG}/home/workspaces`).flush({ workspaces: [], roles: [] });
     await fixture.whenStable();
@@ -135,7 +130,6 @@ describe('Settings hub for an org:manage user', () => {
     const fold = root.querySelector('[data-testid="settings-section-advanced"]')!;
     expect(fold.hasAttribute('open')).toBe(false);
     expect(fold.querySelector('[data-testid="settings-section-work"]')).toBeNull();
-    expect(fold.querySelector('[data-testid="nav-v2-switch"]')).not.toBeNull();
     for (const group of ['organisation', 'people', 'learning', 'trace']) {
       expect(root.querySelector(`[data-testid="settings-section-${group}"]`)).not.toBeNull();
     }
@@ -144,7 +138,5 @@ describe('Settings hub for an org:manage user', () => {
     ).not.toBeNull();
     const attention = root.querySelector('[data-testid="settings-attention-leads"]');
     expect(attention?.textContent).toContain('settings.departments.noLeadWarningOne');
-    const navSwitch = root.querySelector('[data-testid="nav-v2-switch"]');
-    expect(navSwitch?.getAttribute('aria-checked')).toBe('true');
   });
 });
