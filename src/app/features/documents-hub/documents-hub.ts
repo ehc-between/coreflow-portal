@@ -101,7 +101,9 @@ type State = 'loading' | 'error' | 'ready';
         }
         @default {
           <div class="mb-[22px]">
-            <app-hub-tiles [tiles]="tiles()" />
+            @if (readable()) {
+              <app-hub-tiles [tiles]="tiles()" />
+            }
             @if (otherPlans().continuity !== null || otherPlans().emergency !== null) {
               <p
                 class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-ui text-fg-muted"
@@ -210,9 +212,11 @@ type State = 'loading' | 'error' | 'ready';
           }
 
           <p class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-ui" data-testid="documents-links">
-            <a routerLink="/documents/register" [class]="link">{{
-              'hubs.documents.links.register' | transloco
-            }}</a>
+            @if (readable()) {
+              <a routerLink="/documents/register" [class]="link">{{
+                'hubs.documents.links.register' | transloco
+              }}</a>
+            }
             @if (hub.can('documents:distribute')) {
               <a routerLink="/documents/campaigns" [class]="link">{{
                 'hubs.documents.links.campaigns' | transloco
@@ -324,10 +328,17 @@ export class DocumentsHub {
       });
   });
 
+  /** The documents module is on and the user may read it (the hub itself is unguarded). */
+  protected readonly readable = computed(
+    () => this.hub.enabled('documents') && this.hub.can('documents:read'),
+  );
+
   constructor() {
     effect(() => {
       const orgId = this.hub.orgId();
-      untracked(() => this.load(orgId));
+      // Re-evaluated when modules load or permissions change.
+      const readable = this.readable();
+      untracked(() => this.load(readable ? orgId : null));
     });
     inject(DestroyRef).onDestroy(() => this.subs.forEach((s) => s.unsubscribe()));
   }
@@ -348,7 +359,7 @@ export class DocumentsHub {
   }
 
   protected reload(): void {
-    this.load(this.hub.orgId());
+    this.load(this.readable() ? this.hub.orgId() : null);
   }
 
   private load(orgId: string | null): void {

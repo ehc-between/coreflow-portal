@@ -1,6 +1,13 @@
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Route, provideRouter } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Route,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { of } from 'rxjs';
 import { DocumentSummary } from '../../core/documents/document.models';
@@ -17,6 +24,7 @@ import { HomeApi } from '../dashboard/data/home-api';
 import { DocumentControlApi } from '../documents/data/document-control-api';
 import documentsRoutes from '../documents/documents.routes';
 import { DocumentsHub } from './documents-hub';
+import { filteredListToAll } from './documents-hub.routes';
 import {
   isHandbookType,
   isWaitingDocument,
@@ -270,5 +278,66 @@ describe('DocumentsHub', () => {
     );
     // Vis krav is off by default: no requirement chips on the hub.
     expect(el.querySelector('[data-testid="req-pills"]')).toBeNull();
+  });
+
+  it('neither asks for nor shows documents without read access', async () => {
+    const get = vi.fn(() => of([doc({ id: 'p1', type: 'policy', title: 'Kvalitetspolicy' })]));
+    TestBed.configureTestingModule({
+      imports: [TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([]),
+        { provide: ApiService, useValue: { get } },
+        { provide: LocationsApi, useValue: { counts: vi.fn(() => of({ items: [] })) } },
+        { provide: HomeApi, useValue: { nextActions: vi.fn(() => of({ items: [] })) } },
+        { provide: DocumentControlApi, useValue: { listTypes: vi.fn(() => of([])) } },
+        { provide: OutputsApi, useValue: { generated: vi.fn(() => of({ items: [], total: 0 })) } },
+        { provide: TasksApi, useValue: { myWork: vi.fn(() => of({ items: [] })) } },
+        { provide: ModuleService, useValue: { isEnabled: () => true } },
+        {
+          provide: SelectedOrgService,
+          useValue: {
+            currentOrgId: signal('org-1'),
+            currentOrg: signal({ id: 'org-1', name: 'Acme', roles: [], permissions: [] }),
+          },
+        },
+        {
+          provide: LanguageService,
+          useValue: { active: signal('nb'), translate: (k: string) => k },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DocumentsHub);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    expect(get).not.toHaveBeenCalled();
+    expect(el.querySelector('app-error-state')).toBeNull();
+    expect(el.querySelector('[data-key="policies"]')).toBeNull();
+    expect(el.querySelector('[data-testid="documents-new"]')).toBeNull();
+  });
+});
+
+describe('the hub route', () => {
+  const run = (queryParams: Record<string, string>) => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    return TestBed.runInInjectionContext(() =>
+      filteredListToAll(
+        { queryParams, fragment: null } as unknown as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ),
+    );
+  };
+
+  it('opens the hub without a query', () => {
+    expect(run({})).toBe(true);
+  });
+
+  it('sends a filtered old list link to the list, filters kept', () => {
+    const result = run({ customer_id: 'c-1', status: 'approved' });
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe(
+      '/documents/all?customer_id=c-1&status=approved',
+    );
   });
 });
