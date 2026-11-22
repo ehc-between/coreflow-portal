@@ -367,5 +367,67 @@
         "auditor": "Standarder, revisjonspakker og dokumenter."
       }
     }
+  },
+  "oversikt": {
+    "title": "Oversikt",
+    "greeting": {
+      "morning": "God morgen, {{ name }}",
+      "day": "God dag, {{ name }}",
+      "evening": "God kveld, {{ name }}"
+    },
+    "summary": {
+      "none": "Alt er i rute denne uken.",
+      "one": "Du har 1 ting å gjøre denne uken.",
+      "many": "Du har {{ count }} ting å gjøre denne uken.",
+      "top": "Det viktigste nå: {{ title }}."
+    },
+    "quick": {
+      "title": "Snarveier",
+      "speakUp": {
+        "label": "Meld fra",
+        "hint": "Noe har skjedd"
+      },
+      "supplier": {
+        "label": "Legg til leverandør",
+        "hint": "Med avtale og vurdering"
+      },
+      "policy": {
+        "label": "Ny policy",
+        "hint": "Vi foreslår hele teksten"
+      },
+      "report": {
+        "label": "Lag rapport",
+        "hint": "Til revisor, styret og andre"
+      },
+      "fallbackHints": {
+        "report_issue": "Noe har skjedd",
+        "suggest_improvement": "En idé som gjør det bedre",
+        "find_document": "Søk i dokumenter og prosedyrer",
+        "prepare_audit": "Planlegg og gjennomfør",
+        "export_document": "Last ned som PDF eller Excel",
+        "audit_pack": "Alt revisor trenger, samlet",
+        "standards": "Se hvor dere står"
+      }
+    },
+    "todo": {
+      "title": "Dette bør du gjøre nå",
+      "count": "{{ shown }} av {{ total }}",
+      "empty": "Ingenting haster nå. Godt jobbet!",
+      "allWork": "Se alt arbeidet ditt ({{ count }})"
+    },
+    "deadlines": {
+      "title": "Snart frist",
+      "all": "Hele årshjulet",
+      "owner": "Ansvarlig: {{ name }}",
+      "empty": "Ingen frister de neste 30 dagene.",
+      "error": "Vi fikk ikke hentet fristene."
+    },
+    "standards": {
+      "title": "Hvor står dere?",
+      "percent": "{{ percent }} %",
+      "more": "Vis {{ count }} til",
+      "footnote": "Tallene regnes ut fra det dere faktisk har registrert. Slå på «Vis krav» for å se hvilke krav hver ting dekker."
+    },
+    "retry": "Prøv igjen"
   }
 }
