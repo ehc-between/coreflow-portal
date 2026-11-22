@@ -1,29 +1,15 @@
 import { Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
-import { permissionGuard } from '../../core/auth/permission.guard';
-import { moduleGuard } from '../../core/modules/module.service';
-
-const toLibrary = { redirectTo: '/library' };
-const toSavedReports = { redirectTo: '/library/reports' };
-
-/** The Reports pages hosted in the library still need the Reports module. */
-const reports = (permission: string, redirect = toLibrary) => [
-  moduleGuard('reports'),
-  permissionGuard(permission, redirect),
-];
+import { libraryRootTarget, moved, toReportsWhenReachable } from './library-redirects';
 
 /**
- * `/library` (U11, "Dokumenter og rapporter"): everything CoreFlow can hand out.
+ * `/library` (U11 "Dokumenter og rapporter") is now Rapporter (IA v2 §7): every old
+ * URL redirects under `/reports`, query string kept.
  *
- * - `''` Hent ut: every output the caller can make, grouped by audience
- *   (`?module=` / `?standard=` / `?kind=` narrow it; module and standard pages link here).
- * - `saved` the archive of generated files; `generated/:id` one stored version.
- * - `registers` register export with filters and columns (moved from `/reports/registers`).
- * - `reports` saved reports (moved from `/reports/definitions`).
- * - `audit-packs` audit packs (moved from `/reports/audit-packs`).
- *
- * Open to every member: each output is gated by its own module and permission in
- * the backend. The pages moved from Reports keep the Reports gates.
+ * The catalogue, the archive and a generated file were open to every member, while
+ * the pages under `/reports` need the Reports module. For a caller who cannot open
+ * them, these three keep rendering here (`toReportsWhenReachable`), so links in
+ * e-mails and backend `url` fields (`/library/generated/{id}`) still work.
  */
 export default [
   {
@@ -32,60 +18,40 @@ export default [
     children: [
       {
         path: '',
+        pathMatch: 'full',
         title: 'outputs.title',
+        canActivate: [toReportsWhenReachable(libraryRootTarget)],
         loadComponent: () => import('./library-outputs').then((m) => m.LibraryOutputs),
       },
       {
         path: 'saved',
         title: 'outputs.saved.title',
+        canActivate: [toReportsWhenReachable(() => ['/reports/saved'])],
         loadComponent: () => import('./generated-list').then((m) => m.GeneratedListPage),
       },
       {
         path: 'generated/:id',
         title: 'outputs.generated.title',
+        canActivate: [toReportsWhenReachable((r) => ['/reports/generated', r.params['id']])],
         loadComponent: () => import('./generated-detail').then((m) => m.GeneratedDetailPage),
       },
+      { path: 'registers', redirectTo: moved(() => ['/reports/exports']) },
+      { path: 'reports', pathMatch: 'full', redirectTo: moved(() => ['/reports/custom']) },
+      { path: 'reports/new', redirectTo: moved(() => ['/reports/custom/new']) },
       {
-        path: 'registers',
-        canActivate: reports('reports:read'),
-        loadComponent: () =>
-          import('../reports/registers/registers-page').then((m) => m.RegistersPage),
-      },
-      {
-        path: 'reports',
-        canActivate: reports('reports:read'),
-        loadComponent: () =>
-          import('../reports/definitions/definitions-list').then((m) => m.DefinitionsList),
-      },
-      {
-        path: 'reports/new',
-        canActivate: reports('reports:write', toSavedReports),
-        loadComponent: () =>
-          import('../reports/definitions/definition-form').then((m) => m.DefinitionForm),
-      },
-      {
+        // Full match: a prefix match would also swallow `reports/:id/edit` and drop `/edit`.
         path: 'reports/:id',
-        canActivate: reports('reports:read'),
-        loadComponent: () =>
-          import('../reports/definitions/definition-detail').then((m) => m.DefinitionDetail),
+        pathMatch: 'full',
+        redirectTo: moved((p) => ['/reports/custom', p['id']]),
       },
       {
         path: 'reports/:id/edit',
-        canActivate: reports('reports:write', toSavedReports),
-        loadComponent: () =>
-          import('../reports/definitions/definition-form').then((m) => m.DefinitionForm),
+        redirectTo: moved((p) => ['/reports/custom', p['id'], 'edit']),
       },
-      {
-        path: 'audit-packs',
-        canActivate: reports('reports:audit_pack'),
-        loadComponent: () =>
-          import('../reports/audit-packs/audit-packs-list').then((m) => m.AuditPacksList),
-      },
+      { path: 'audit-packs', pathMatch: 'full', redirectTo: moved(() => ['/reports/audit-packs']) },
       {
         path: 'audit-packs/:id',
-        canActivate: reports('reports:audit_pack'),
-        loadComponent: () =>
-          import('../reports/audit-packs/audit-pack-detail').then((m) => m.AuditPackDetail),
+        redirectTo: moved((p) => ['/reports/audit-packs', p['id']]),
       },
     ],
   },

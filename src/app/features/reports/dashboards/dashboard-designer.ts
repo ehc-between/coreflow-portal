@@ -130,7 +130,7 @@ export function startingLayout(
         titleKey="reports.designer.title"
         descriptionKey="reports.designer.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'modules.names.reports', link: '/reports' },
+          { labelKey: 'reports.hub.title', link: '/reports' },
           { labelKey: 'reports.nav.dashboards' },
         ]"
       />

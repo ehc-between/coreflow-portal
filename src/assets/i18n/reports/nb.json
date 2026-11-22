@@ -1,11 +1,16 @@
 {
   "nav": {
+    "hub": "Rapporter",
+    "status": "Status og nøkkeltall",
+    "custom": "Egne rapporter",
+    "auditPacks": "Revisjonspakker",
+    "exports": "Eksport av registre",
+    "archive": "Arkiv",
     "overview": "Oversikt",
     "calendar": "Kalender",
     "registers": "Registre og eksport",
-    "definitions": "Lagrede rapporter",
-    "library": "Dokumenter og rapporter",
-    "auditPacks": "Revisjonspakker",
+    "definitions": "Egne rapporter",
+    "library": "Rapporter",
     "dashboards": "Rolleoversikter"
   },
   "common": {
@@ -722,5 +727,65 @@
     "auditPackDeleted": "Revisjonspakke slettet",
     "dashboardUpdated": "Rolleoversikt endret",
     "dashboardReset": "Rolleoversikt tilbakestilt"
+  },
+  "hub": {
+    "title": "Rapporter",
+    "intro": "Hva skal du levere, og til hvem? Alt lages fra det dere allerede har registrert. Mangler noe, sier vi hva og hvor du fyller det ut.",
+    "standards": "Standarder (ekspertvisning)",
+    "allRecipients": "← Alle mottakere",
+    "error": "Vi fikk ikke hentet rapportene. Prøv igjen.",
+    "empty": "Ingenting å levere her ennå.",
+    "showAll": "Vis alle ({{count}})",
+    "recordHint": "Rapporter om én bestemt sak, revisjon eller person lager du fra den saken. De dukker opp her når de er laget.",
+    "downloadError": "Vi fikk ikke lastet ned filen. Prøv igjen.",
+    "more": "Mer i Rapporter",
+    "groups": {
+      "auditor": {
+        "title": "Til revisor",
+        "hint": "Intern og ekstern revisjon"
+      },
+      "authority": {
+        "title": "Til Datatilsynet",
+        "hint": "Og andre myndigheter"
+      },
+      "board": {
+        "title": "Til styret",
+        "hint": "Styret og ledelsen"
+      },
+      "people": {
+        "title": "Til kunder og ansatte",
+        "hint": "Kunder, ansatte og jobbsøkere"
+      }
+    },
+    "status": {
+      "ready": "Klar",
+      "missing": "Mangler {{count}}",
+      "draft": "Utkast",
+      "new": "Ny",
+      "gaps": "Med mangler"
+    },
+    "actions": {
+      "download": "Last ned",
+      "missing": "Se hva som mangler",
+      "open": "Åpne"
+    },
+    "meta": {
+      "made": "Laget {{date}}",
+      "lastMade": "Sist laget {{date}}",
+      "standards": "For {{count}} standarder"
+    },
+    "links": {
+      "status": "Status og nøkkeltall",
+      "custom": "Egne rapporter",
+      "archive": "Arkiv",
+      "exports": "Eksport av registre",
+      "all": "Alt CoreFlow kan lage",
+      "registers": "Alle registre (A–Å)",
+      "branding": "Utseende på rapporter"
+    },
+    "all": {
+      "title": "Alt CoreFlow kan lage",
+      "description": "Alle dokumenter og rapporter du kan lage, med søk og filter på modul og standard."
+    }
   }
 }

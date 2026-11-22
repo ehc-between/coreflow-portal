@@ -35,7 +35,7 @@ import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { FrameworkSelect } from '../components/framework-select';
-import { LibraryNav } from '../../../shared/outputs/library-nav';
+import { ReportsNav } from '../components/reports-nav';
 import { blobErrorKey, reportErrorKey, saveBlob } from '../data/report-errors';
 import {
   formatBytes,
@@ -75,7 +75,7 @@ export function auditPlanRef(plan: LinkedRecord) {
 }
 
 /**
- * `/library/audit-packs` (`reports:audit_pack`): one-click audit packs — a zip with
+ * `/reports/audit-packs` (`reports:audit_pack`): one-click audit packs — a zip with
  * the Statement of Applicability, the evidence index, requirement coverage, the
  * registers an auditor of those standards expects, approved policies and a
  * checksummed manifest — for one or more standards, optionally for an audit and a
@@ -105,7 +105,7 @@ export function auditPlanRef(plan: LinkedRecord) {
     PageHeader,
     Pager,
     FrameworkSelect,
-    LibraryNav,
+    ReportsNav,
     GeneratePackDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -115,7 +115,7 @@ export function auditPlanRef(plan: LinkedRecord) {
         titleKey="reports.packs.title"
         descriptionKey="reports.packs.subtitle"
         [breadcrumbs]="[
-          { labelKey: 'outputs.title', link: '/library' },
+          { labelKey: 'reports.hub.title', link: '/reports' },
           { labelKey: 'reports.nav.auditPacks' },
         ]"
       >
@@ -124,7 +124,7 @@ export function auditPlanRef(plan: LinkedRecord) {
           {{ 'reports.packs.generate' | transloco }}
         </app-button>
       </app-page-header>
-      <app-library-nav />
+      <app-reports-nav />
       <app-help-strip scope="reports" page="auditPacks" tour="auditPacks" lesson="audit-ready" />
 
       <div class="mb-4 flex flex-wrap items-center gap-2" role="search">
@@ -177,7 +177,7 @@ export function auditPlanRef(plan: LinkedRecord) {
               >
                 <div class="min-w-0">
                   <a
-                    [routerLink]="['/library/audit-packs', pack.id]"
+                    [routerLink]="['/reports/audit-packs', pack.id]"
                     class="block text-body font-semibold text-fg after:absolute after:inset-0 after:content-[''] hover:underline focus-visible:outline-none focus-visible:after:rounded-tile focus-visible:after:ring-2 focus-visible:after:ring-accent"
                   >
                     {{ pack.title }}
@@ -409,7 +409,7 @@ export class AuditPacksList {
       // Ends the flow: "Koblet til AUD-…" (the pack also shows on the audit structurally).
       this.flows.complete(pack.id, 'audit_pack').subscribe();
     }
-    void this.router.navigate(['/library/audit-packs', pack.id]);
+    void this.router.navigate(['/reports/audit-packs', pack.id]);
   }
 
   private load(

@@ -16,7 +16,7 @@ import { OutputsApi } from '../../core/outputs/outputs-api';
 import { GeneratedOutput } from '../../core/outputs/outputs.models';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { StandardChoice } from '../../shared/outputs/generate-dialog';
-import { LibraryNav } from '../../shared/outputs/library-nav';
+import { ReportsNav } from '../reports/components/reports-nav';
 import { OutputsPanel } from '../../shared/outputs/outputs-panel';
 import { SECONDARY_LINK, TEXT_LINK } from '../../shared/requirement-locations/location-links';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -36,15 +36,22 @@ const RECENT = 5;
  */
 @Component({
   selector: 'app-library-outputs',
-  imports: [RouterLink, TranslocoPipe, Icon, LibraryNav, OutputsPanel, PageHeader, GeneratedRow],
+  imports: [RouterLink, TranslocoPipe, Icon, ReportsNav, OutputsPanel, PageHeader, GeneratedRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <app-page-header titleKey="outputs.title" descriptionKey="outputs.description">
+      <app-page-header
+        titleKey="reports.hub.all.title"
+        descriptionKey="reports.hub.all.description"
+        [breadcrumbs]="[
+          { labelKey: 'reports.hub.title', link: '/reports' },
+          { labelKey: 'reports.hub.all.title' },
+        ]"
+      >
         @if (canExportRegisters()) {
           <a
             secondary
-            routerLink="/library/registers"
+            routerLink="/reports/exports"
             [class]="secondaryLink"
             data-testid="library-registers"
           >
@@ -64,7 +71,7 @@ const RECENT = 5;
           </a>
         }
       </app-page-header>
-      <app-library-nav />
+      <app-reports-nav />
 
       <div class="mb-5 flex flex-wrap items-end gap-3" data-testid="library-filters">
         <label class="flex min-w-[220px] flex-1 flex-col gap-1">
