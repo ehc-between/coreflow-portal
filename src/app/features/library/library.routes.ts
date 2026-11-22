@@ -38,7 +38,12 @@ export default [
       { path: 'registers', redirectTo: moved(() => ['/reports/exports']) },
       { path: 'reports', pathMatch: 'full', redirectTo: moved(() => ['/reports/custom']) },
       { path: 'reports/new', redirectTo: moved(() => ['/reports/custom/new']) },
-      { path: 'reports/:id', redirectTo: moved((p) => ['/reports/custom', p['id']]) },
+      {
+        // Full match: a prefix match would also swallow `reports/:id/edit` and drop `/edit`.
+        path: 'reports/:id',
+        pathMatch: 'full',
+        redirectTo: moved((p) => ['/reports/custom', p['id']]),
+      },
       {
         path: 'reports/:id/edit',
         redirectTo: moved((p) => ['/reports/custom', p['id'], 'edit']),
