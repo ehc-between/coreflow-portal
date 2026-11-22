@@ -145,79 +145,81 @@ const ROW =
             <h2 class="mb-3 font-display text-section font-bold text-fg">
               {{ 'handbook.process.howWeWork' | transloco }}
             </h2>
-            @if (p.steps.length === 0) {
-              <div class="mb-6 rounded-card border border-dashed border-border bg-surface p-5">
-                <b class="block text-fg">{{ 'handbook.process.noSteps' | transloco }}</b>
-                <p class="mt-1 text-body text-fg-muted">
-                  {{ 'handbook.process.noStepsBody' | transloco }}
-                </p>
-                @if (p.can_edit) {
-                  <a
-                    class="mt-3 inline-flex font-semibold text-accent hover:underline"
-                    [routerLink]="['/processes', p.process.id, 'map']"
-                    >{{ 'handbook.actions.makeSteps' | transloco }}</a
-                  >
-                }
-              </div>
-            } @else {
-              <div
-                class="mb-6 flex items-stretch overflow-x-auto pb-1.5 max-[820px]:flex-col"
-                data-testid="handbook-flow"
-              >
-                @if (p.is_first_core) {
-                  <span [class]="navEnd">{{ 'handbook.process.fromCustomer' | transloco }}</span>
-                  <app-handbook-arrow />
-                } @else if (p.prev; as prev) {
-                  <a
-                    [class]="navEnd + ' hover:underline'"
-                    [routerLink]="['/handbook', prev.id]"
-                    [attr.aria-label]="'handbook.process.prevProcess' | transloco"
-                    data-testid="handbook-prev"
-                    >{{ 'handbook.process.from' | transloco: { title: prev.title } }}</a
-                  >
-                  <app-handbook-arrow />
-                }
-                @for (s of p.steps; track s.node_id; let first = $first) {
-                  @if (!first) {
-                    <app-handbook-arrow />
-                  }
-                  <div
-                    class="flex min-w-[170px] flex-1 basis-0 flex-col gap-2 rounded-[12px] border border-border bg-surface p-3.5 max-[820px]:min-w-0"
-                    data-testid="handbook-step"
-                  >
-                    <span
-                      class="text-[12px] font-semibold tracking-[.06em] text-fg-subtle uppercase"
-                      >{{ 'handbook.process.step' | transloco: { n: s.n } }}</span
+            <div
+              class="mb-6 flex items-stretch overflow-x-auto pb-1.5 max-[820px]:flex-col"
+              data-testid="handbook-flow"
+            >
+              @if (p.is_first_core) {
+                <span [class]="navEnd">{{ 'handbook.process.fromCustomer' | transloco }}</span>
+                <app-handbook-arrow />
+              } @else if (p.prev; as prev) {
+                <a
+                  [class]="navEnd + ' hover:underline'"
+                  [routerLink]="['/handbook', prev.id]"
+                  [attr.aria-label]="'handbook.process.prevProcess' | transloco"
+                  data-testid="handbook-prev"
+                  >{{ 'handbook.process.from' | transloco: { title: prev.title } }}</a
+                >
+                <app-handbook-arrow />
+              }
+              @if (p.steps.length === 0) {
+                <div
+                  class="min-w-[220px] flex-1 basis-0 rounded-[12px] border border-dashed border-border bg-surface p-4 max-[820px]:min-w-0"
+                  data-testid="handbook-no-steps"
+                >
+                  <b class="block text-fg">{{ 'handbook.process.noSteps' | transloco }}</b>
+                  <p class="mt-1 text-body text-fg-muted">
+                    {{ 'handbook.process.noStepsBody' | transloco }}
+                  </p>
+                  @if (p.can_edit) {
+                    <a
+                      class="mt-3 inline-flex font-semibold text-accent hover:underline"
+                      [routerLink]="['/processes', p.process.id, 'map']"
+                      >{{ 'handbook.actions.makeSteps' | transloco }}</a
                     >
-                    <b class="font-semibold [overflow-wrap:anywhere] text-fg">{{ s.label }}</b>
-                    @if (s.role) {
-                      <span class="text-[13px] text-fg-muted">{{ s.role }}</span>
-                    }
-                    @if (s.document; as d) {
-                      <a
-                        class="inline-flex w-fit max-w-full items-center gap-1.5 rounded-[8px] bg-accent-soft px-2 py-1 text-[13px] text-accent no-underline hover:underline"
-                        [routerLink]="d.url ?? ['/documents', d.id]"
-                        ><span aria-hidden="true">¶</span
-                        ><span class="[overflow-wrap:anywhere]">{{ d.title }}</span></a
-                      >
-                    }
-                  </div>
+                  }
+                </div>
+              }
+              @for (s of p.steps; track s.node_id; let first = $first) {
+                @if (!first) {
+                  <app-handbook-arrow />
                 }
-                @if (p.is_last_core) {
-                  <app-handbook-arrow />
-                  <span [class]="navEnd">{{ 'handbook.process.toCustomer' | transloco }}</span>
-                } @else if (p.next; as next) {
-                  <app-handbook-arrow />
-                  <a
-                    [class]="navEnd + ' hover:underline'"
-                    [routerLink]="['/handbook', next.id]"
-                    [attr.aria-label]="'handbook.process.nextProcess' | transloco"
-                    data-testid="handbook-next"
-                    >{{ 'handbook.process.to' | transloco: { title: next.title } }}</a
+                <div
+                  class="flex min-w-[170px] flex-1 basis-0 flex-col gap-2 rounded-[12px] border border-border bg-surface p-3.5 max-[820px]:min-w-0"
+                  data-testid="handbook-step"
+                >
+                  <span
+                    class="text-[12px] font-semibold tracking-[.06em] text-fg-subtle uppercase"
+                    >{{ 'handbook.process.step' | transloco: { n: s.n } }}</span
                   >
-                }
-              </div>
-            }
+                  <b class="font-semibold [overflow-wrap:anywhere] text-fg">{{ s.label }}</b>
+                  @if (s.role) {
+                    <span class="text-[13px] text-fg-muted">{{ s.role }}</span>
+                  }
+                  @if (s.document; as d) {
+                    <a
+                      class="inline-flex w-fit max-w-full items-center gap-1.5 rounded-[8px] bg-accent-soft px-2 py-1 text-[13px] text-accent no-underline hover:underline"
+                      [routerLink]="d.url ?? ['/documents', d.id]"
+                      ><span aria-hidden="true">¶</span
+                      ><span class="[overflow-wrap:anywhere]">{{ d.title }}</span></a
+                    >
+                  }
+                </div>
+              }
+              @if (p.is_last_core) {
+                <app-handbook-arrow />
+                <span [class]="navEnd">{{ 'handbook.process.toCustomer' | transloco }}</span>
+              } @else if (p.next; as next) {
+                <app-handbook-arrow />
+                <a
+                  [class]="navEnd + ' hover:underline'"
+                  [routerLink]="['/handbook', next.id]"
+                  [attr.aria-label]="'handbook.process.nextProcess' | transloco"
+                  data-testid="handbook-next"
+                  >{{ 'handbook.process.to' | transloco: { title: next.title } }}</a
+                >
+              }
+            </div>
 
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <section [class]="cardClass" data-testid="handbook-card-procedures">
@@ -347,7 +349,8 @@ const ROW =
                         data-testid="handbook-cases"
                       >
                         <app-badge [tone]="p.performance.cases_12m.open ? 'fail' : 'neutral'">{{
-                          'handbook.cards.casesSummary' | transloco: p.performance.cases_12m
+                          pluralKey('handbook.cards.casesSummary', p.performance.cases_12m.open)
+                            | transloco: p.performance.cases_12m
                         }}</app-badge>
                       </a>
                     } @else {

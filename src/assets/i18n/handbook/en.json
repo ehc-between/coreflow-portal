@@ -112,6 +112,7 @@
     "target": "target {{ value }}",
     "cases": "Cases in the last 12 months",
     "casesSummary": "{{ open }} open · {{ closed }} closed",
+    "casesSummaryOne": "{{ open }} open · {{ closed }} closed",
     "casesNone": "No cases"
   },
   "procedure": {

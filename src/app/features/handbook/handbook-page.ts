@@ -459,7 +459,9 @@ export class HandbookPage {
         return;
       }
       untracked(() => {
-        this.store.load();
+        // Always refresh: processes may have been created, edited or deleted elsewhere
+        // since the map was cached (the cached map stays shown meanwhile).
+        this.store.load(true);
         this.loadDocuments();
         this.loadWork(orgId);
       });

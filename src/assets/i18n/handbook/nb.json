@@ -112,6 +112,7 @@
     "target": "mål {{ value }}",
     "cases": "Saker siste 12 måneder",
     "casesSummary": "{{ open }} åpne · {{ closed }} lukket",
+    "casesSummaryOne": "{{ open }} åpen · {{ closed }} lukket",
     "casesNone": "Ingen saker"
   },
   "procedure": {

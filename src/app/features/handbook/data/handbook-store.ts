@@ -34,7 +34,10 @@ export class HandbookStore {
     allBoxes(this.map()).map((b) => ({ id: b.id, title: b.title, path: `/handbook/${b.id}` })),
   );
 
-  /** Load the map for the selected org unless it is loaded or on its way (`force` reloads). */
+  /**
+   * Load the map for the selected org unless it is loaded or on its way. `force` reloads;
+   * a map already shown stays on screen while it refreshes (no skeleton flash).
+   */
   load(force = false): void {
     const orgId = this.org.currentOrgId();
     if (!orgId) {
@@ -44,10 +47,14 @@ export class HandbookStore {
     if (!force && s.orgId === orgId && (s.status === 'ready' || s.status === 'loading')) {
       return;
     }
-    this.state.set({ status: 'loading', orgId });
+    const shown = s.status === 'ready' && s.orgId === orgId ? s.map : null;
+    if (!shown) {
+      this.state.set({ status: 'loading', orgId });
+    }
     this.api.map(orgId).subscribe({
       next: (map) => this.state.set({ status: 'ready', orgId, map }),
-      error: () => this.state.set({ status: 'error', orgId }),
+      error: () =>
+        this.state.set(shown ? { status: 'ready', orgId, map: shown } : { status: 'error', orgId }),
     });
   }
 

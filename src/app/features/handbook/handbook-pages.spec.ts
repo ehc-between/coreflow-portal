@@ -171,4 +171,33 @@ describe('HandbookProcessPage', () => {
     // No documents:draft: no "+ Ny prosedyre".
     expect(el.querySelector('[data-testid="handbook-new-procedure"]')).toBeNull();
   });
+
+  it('keeps prev / next along the chain when the process has no steps yet', async () => {
+    const empty: PageDto = {
+      ...PAGE,
+      prev: { id: 'c1', title: 'Prosess c1' },
+      next: { id: 'c3', title: 'Prosess c3' },
+      is_first_core: false,
+      steps: [],
+      roles: [],
+    };
+    const api = { page: vi.fn(() => of(empty)) };
+    TestBed.configureTestingModule({
+      imports: [HandbookProcessPage, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: providers(api),
+    });
+    const fixture = TestBed.createComponent(HandbookProcessPage);
+    fixture.componentRef.setInput('id', 'c2');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="handbook-no-steps"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="handbook-prev"]')?.getAttribute('href')).toBe(
+      '/handbook/c1',
+    );
+    expect(el.querySelector('[data-testid="handbook-next"]')?.getAttribute('href')).toBe(
+      '/handbook/c3',
+    );
+  });
 });
