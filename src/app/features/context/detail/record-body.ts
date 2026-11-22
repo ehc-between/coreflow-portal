@@ -114,14 +114,21 @@ export function exclusionFramework(exclusion: ScopeExclusion, fallback: string):
                 </dd>
               </div>
               <div class="flex items-baseline gap-1.5">
-                <dt class="text-fg-muted">{{ 'context.fields.framework' | transloco }}</dt>
-                <dd class="font-semibold text-fg">
-                  {{
-                    (r.framework
-                      ? 'context.frameworks.' + r.framework
-                      : 'context.fields.allFrameworks'
-                    ) | transloco
-                  }}
+                <dt class="text-fg-muted">{{ 'context.fields.appliesTo' | transloco }}</dt>
+                <dd class="flex flex-wrap gap-1" data-testid="analysis-frameworks">
+                  @for (fw of analysisFrameworks(r); track fw) {
+                    <span
+                      class="rounded-full border border-accent-border bg-accent-soft px-2 py-0.5 text-meta font-semibold text-accent"
+                    >
+                      {{ 'context.frameworks.' + fw | transloco }}
+                    </span>
+                  } @empty {
+                    <span
+                      class="rounded-full border border-border px-2 py-0.5 text-meta font-semibold text-fg"
+                    >
+                      {{ 'context.fields.allFrameworks' | transloco }}
+                    </span>
+                  }
                 </dd>
               </div>
               <div class="flex items-baseline gap-1.5">
@@ -494,6 +501,14 @@ export class RecordBody {
 
   protected addressed(r: InterestedParty) {
     return addressedBadge(r.addressed_status);
+  }
+
+  /** The standards an analysis applies to (legacy single value as fallback). */
+  protected analysisFrameworks(r: ContextAnalysis): readonly string[] {
+    if (r.frameworks?.length) {
+      return r.frameworks;
+    }
+    return r.framework ? [r.framework] : [];
   }
 
   protected frameworkNames(keys: readonly string[]): string {

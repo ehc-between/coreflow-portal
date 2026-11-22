@@ -100,24 +100,14 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
               }
             </select>
           </app-context-form-row>
-          <app-context-form-row
-            labelKey="context.fields.framework"
-            inputId="f-framework"
-            [page]="page()"
-            help="framework"
-          >
-            <select id="f-framework" (change)="patch({ framework: $any($event.target).value })">
-              <option value="" [selected]="!draft().framework">
-                {{ 'context.fields.allFrameworks' | transloco }}
-              </option>
-              @for (fw of frameworkOrder(); track fw) {
-                <option [value]="fw" [selected]="fw === draft().framework">
-                  {{ 'context.frameworks.' + fw | transloco }}
-                </option>
-              }
-            </select>
-          </app-context-form-row>
         </div>
+        <app-context-framework-picker
+          labelKey="context.fields.appliesTo"
+          hintKey="context.form.analysisFrameworksHint"
+          allKey="context.fields.allFrameworks"
+          [value]="draft().frameworks"
+          (valueChange)="patch({ frameworks: $event })"
+        />
         <app-context-form-row
           labelKey="context.fields.summary"
           inputId="f-summary"

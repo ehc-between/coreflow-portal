@@ -219,7 +219,10 @@ export interface FollowUpRequest {
 export interface ContextAnalysis extends ContextRecordBase, ControlledFields {
   readonly title: string;
   readonly method: AnalysisMethod;
+  /** Legacy single standard (kept in sync by the API); `frameworks` is the truth. */
   readonly framework: string | null;
+  /** The standards the analysis applies to; empty = the whole management system. */
+  readonly frameworks?: readonly string[];
   readonly summary: string | null;
   readonly items: readonly AnalysisItem[];
   readonly counts: Readonly<Record<string, number>>;
@@ -231,6 +234,7 @@ export interface AnalysisCreate {
   readonly title: string;
   readonly method: AnalysisMethod;
   readonly framework?: string | null;
+  readonly frameworks?: readonly string[];
   readonly summary?: string | null;
   readonly items?: readonly AnalysisItem[];
   readonly owner_user_id?: string | null;
