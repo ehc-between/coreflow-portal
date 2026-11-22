@@ -1,17 +1,10 @@
 import { Routes } from '@angular/router';
-import { provideTranslocoScope } from '@jsverse/transloco';
-import { Dashboard } from './dashboard';
 
 /**
- * Home (Oversikt), lazy-loaded from app.routes. Its strings live in the `home` scope
- * (`assets/i18n/home/<lang>.json`), shared with the journey page under Standards.
+ * The old dashboard is Oversikt now (IA v2 §7: `/dashboard` → `/home`). Kept as a
+ * redirect so any route still loading this file lands on the new page; query
+ * strings are not used by the home page.
  */
-const routes: Routes = [
-  {
-    path: '',
-    providers: [provideTranslocoScope('home', 'tasks')],
-    children: [{ path: '', component: Dashboard }],
-  },
-];
+const routes: Routes = [{ path: '', pathMatch: 'full', redirectTo: '/home' }];
 
 export default routes;

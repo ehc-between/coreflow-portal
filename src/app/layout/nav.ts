@@ -66,7 +66,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     labelKey: 'nav.sections.home',
     items: [
       {
-        path: 'dashboard',
+        path: 'home',
         labelKey: 'nav.dashboard',
         icon: 'home',
         permission: 'dashboard:view',

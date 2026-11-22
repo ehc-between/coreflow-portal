@@ -206,7 +206,6 @@ describe('permissionGuard', () => {
     }
 
     const cases: readonly [string, Route, string, string][] = [
-      ['/dashboard', find(shell.children!, 'dashboard'), 'dashboard:view', '/my-work'],
       ['/documents', find(shell.children!, 'documents'), 'documents:read', '/dashboard'],
       ['/deviations', find(shell.children!, 'deviations'), 'deviations:read', '/dashboard'],
       ['/documents/new', find(documentRoutes, 'new'), 'documents:draft', '/documents'],
@@ -261,7 +260,7 @@ describe('permissionGuard', () => {
 
     it('gates the Documents and Deviations nav items on the read permission', () => {
       const perm = (path: string) => NAV_ITEMS.find((i) => i.path === path)?.permission;
-      expect(perm('dashboard')).toBe('dashboard:view');
+      expect(perm('home')).toBe('dashboard:view');
       expect(perm('documents')).toBe('documents:read');
       expect(perm('deviations')).toBe('deviations:read');
     });

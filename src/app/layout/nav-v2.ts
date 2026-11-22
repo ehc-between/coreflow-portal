@@ -66,7 +66,7 @@ const ALL: readonly NavWorkspace[] = ['lead', 'auditor', 'employee'];
 export const NAV_DESTINATIONS: readonly NavDestination[] = [
   {
     key: 'home',
-    path: 'dashboard',
+    path: 'home',
     labelKey: 'shell.nav.home',
     icon: 'home',
     permission: 'dashboard:view',
