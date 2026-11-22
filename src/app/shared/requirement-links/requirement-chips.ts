@@ -11,6 +11,7 @@ import {
   frameworkOf,
   shortNameKey,
 } from './requirement-label';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** Chips shown before the "+N" overflow chip. */
 export const REQUIREMENT_CHIPS_MAX = 6;
@@ -30,6 +31,7 @@ interface ChipView {
  */
 @Component({
   selector: 'app-requirement-chips',
+  host: { '[style.display]': "reqVis.show() ? null : 'none'" },
   imports: [TranslocoPipe, RequirementChip],
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +62,8 @@ interface ChipView {
   `,
 })
 export class RequirementChips {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   private readonly transloco = inject(TranslocoService);
 
   /** The record's links (rejected ones are ignored). */

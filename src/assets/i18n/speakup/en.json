@@ -1,0 +1,183 @@
+{
+  "meld": {
+    "title": "Report",
+    "intro": "Tell us in your own words what happened. We suggest the rest, and you check it before it is saved.",
+    "steps": {
+      "label": "Step",
+      "one": "1 · What happened?",
+      "two": "2 · Check the suggestion",
+      "three": "3 · Done"
+    },
+    "whatHappened": "What happened?",
+    "chipsLabel": "What kind of case",
+    "placeholder": "Write it the way you would tell a colleague: what happened, where and when, and who is affected.",
+    "makeProposal": "Make a suggestion",
+    "making": "Making a suggestion …",
+    "attach": "Attach a picture",
+    "removeAttachment": "Remove {{name}}",
+    "seeCases": "See all cases ({{count}} open) →",
+    "seeCasesNoCount": "See all cases →",
+    "fullForm": "Use the full form",
+    "noTypes": "You do not have access to report here. Talk to your manager or the person responsible for quality in the company.",
+    "textRequired": "Write a few words about what happened first.",
+    "aiNoteLead": "Suggestion from CoreFlow.",
+    "aiNote": "Based on what you wrote and what we know about the company. Change anything that is not right.",
+    "aiWhy": "Why: {{why}}",
+    "manualNote": "Fill it in yourself – suggestions are not available right now.",
+    "fields": {
+      "title": "Short heading",
+      "type": "What kind of event",
+      "kind": "Which kind",
+      "severity": "How serious",
+      "affected": "Who is affected",
+      "affectedNone": "None selected",
+      "removeAffected": "Remove {{name}}",
+      "customer": "Which customer",
+      "owner": "Responsible",
+      "ownerMe": "Me",
+      "description": "What happened",
+      "immediate": "What has already been done",
+      "due": "Deadline",
+      "dueHint": "When the case should be followed up."
+    },
+    "severity": {
+      "high": "High – may have to be reported",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "affectedTypes": {
+      "customer": "customer",
+      "supplier": "supplier",
+      "process": "process",
+      "asset": "equipment"
+    },
+    "deadline": {
+      "gdpr72h": "Decide on notifying the data protection authority by {{when}}",
+      "gdpr72hHint": "72 hours from when you became aware of it"
+    },
+    "submit": "Report",
+    "submitting": "Reporting …",
+    "back": "Back",
+    "error": "The case could not be saved. Check the fields and try again.",
+    "customerRequired": "Write which customer it concerns.",
+    "done": {
+      "title": "Thank you, it has been reported",
+      "created": "{{code}} has been created and {{owner}} has been told. What happens next:",
+      "createdNoOwner": "{{code}} has been created. What happens next:",
+      "openCase": "Open the case",
+      "toOverview": "To the overview",
+      "again": "Report something else",
+      "attached": "The picture is attached to the case.",
+      "attachFailed": "The picture was not attached. You can attach it from the case."
+    }
+  },
+  "types": {
+    "deviation": {
+      "chip": "Something went wrong",
+      "label": "Deviation"
+    },
+    "near_miss": {
+      "chip": "Someone was hurt or nearly hurt",
+      "label": "Injury or near miss"
+    },
+    "data_breach": {
+      "chip": "Personal data went astray",
+      "label": "Personal data breach"
+    },
+    "security_incident": {
+      "chip": "Security incident",
+      "label": "Security incident"
+    },
+    "complaint": {
+      "chip": "A customer complained",
+      "label": "Complaint"
+    },
+    "improvement": {
+      "chip": "I have an idea",
+      "label": "Improvement idea"
+    },
+    "feedback": {
+      "chip": "Customer suggestions",
+      "label": "Customer suggestion"
+    },
+    "intake": {
+      "chip": "Whistleblowing",
+      "label": "Whistleblowing report"
+    }
+  },
+  "kinds": {
+    "near_miss": "Near miss",
+    "injury": "Injury",
+    "occupational_illness": "Occupational illness",
+    "dangerous_condition": "Dangerous condition",
+    "property_damage": "Damage to equipment or buildings",
+    "phishing": "Phishing",
+    "malware": "Malware",
+    "unauthorised_access": "Unauthorised access",
+    "data_loss": "Data loss",
+    "denial_of_service": "Denial of service",
+    "lost_device": "Lost or stolen device",
+    "other": "Other"
+  },
+  "next": {
+    "assessAuthority": "{{owner}} decides by {{deadline}} whether it must be reported to the data protection authority.",
+    "informCustomerRisk": "{{customer}} is told if the risk to them is high.",
+    "breachLearn": "When the case is closed, we suggest measures so it does not happen again, for example not storing customer data locally.",
+    "breachAsIncident": "{{owner}} follows up the case and decides by {{deadline}} whether it must be reported to the data protection authority.",
+    "hseFollowUp": "{{owner}} follows up and makes sure nobody gets hurt.",
+    "securityContain": "{{owner}} limits the damage, for example by blocking access.",
+    "findCause": "You find the cause and decide what to do.",
+    "closeAndLearn": "When the measures work, the case is closed and you learn from it.",
+    "complaintAnswer": "{{owner}} answers {{customer}} by {{due}}.",
+    "complaintAnswerNoDate": "{{owner}} answers {{customer}}.",
+    "ideaEvaluated": "{{owner}} looks at the suggestion.",
+    "ideaFeedback": "You will hear what happens with the idea.",
+    "ownerFollowsUp": "{{owner}} follows up the case by {{due}}.",
+    "ownerFollowsUpNoDate": "{{owner}} follows up the case.",
+    "theOwner": "The person responsible",
+    "theCustomer": "the customer"
+  },
+  "cases": {
+    "title": "Cases",
+    "intro": "Everything that has been reported: deviations, incidents, breaches, complaints and ideas. Follow each case from report to close.",
+    "report": "Report",
+    "tabs": {
+      "label": "Cases",
+      "open": "Open ({{count}})",
+      "mine": "Mine ({{count}})",
+      "closed": "Closed ({{count}})"
+    },
+    "filterLabel": "Show",
+    "all": "All",
+    "search": "Search cases",
+    "searchPlaceholder": "Search by title or number",
+    "columns": {
+      "case": "Case",
+      "where": "Where in the company",
+      "status": "Status",
+      "due": "Deadline"
+    },
+    "noDue": "–",
+    "overdue": "Overdue {{date}}",
+    "links": {
+      "label": "More about the cases",
+      "actions": "Actions",
+      "stats": "Statistics",
+      "intake": "Whistleblowing",
+      "intakeCount": "Whistleblowing ({{count}})",
+      "advanced": "Advanced list"
+    },
+    "more": "Show more",
+    "shown": "Showing {{shown}} of {{total}}",
+    "empty": {
+      "open": "No open cases",
+      "openBody": "Everything reported has been followed up. If something has happened, you can report it right away.",
+      "mine": "You have no open cases",
+      "mineBody": "Here you see cases you reported or are responsible for.",
+      "closed": "No closed cases yet",
+      "closedBody": "Cases that have been followed up and closed end up here.",
+      "filtered": "No cases match",
+      "filteredBody": "Try another filter or search word."
+    }
+  }
+}

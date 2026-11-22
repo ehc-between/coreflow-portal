@@ -104,7 +104,7 @@ describe('policiesToDocuments (U16)', () => {
   it('lands on the documents list filtered to policies, keeping the status filter', () => {
     const result = run(['documents:read'], { status: 'approved' });
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe(
-      '/documents?type=policy&status=approved',
+      '/documents/all?type=policy&status=approved',
     );
   });
 

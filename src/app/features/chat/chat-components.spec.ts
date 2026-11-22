@@ -86,8 +86,8 @@ describe('chat i18n', () => {
       expect(typeof modules['entities']['chat_conversation']).toBe('string');
       expect(typeof modules['entities']['chat_message']).toBe('string');
     }
-    expect(shellEn.nav.chat).toBe('Messages');
-    expect(shellNb.nav.chat).toBe('Meldinger');
+    expect(shellEn.inbox.tabs.messages).toBe('Messages');
+    expect(shellNb.inbox.tabs.messages).toBe('Meldinger');
     expect((nb.modules.names as Record<string, string>)['chat']).toBe('Meldinger');
   });
 

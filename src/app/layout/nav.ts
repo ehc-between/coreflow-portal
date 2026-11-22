@@ -1,4 +1,10 @@
-/** A single sidebar navigation item. */
+/**
+ * Module metadata (labels, icons, gates, assistant names) for the command palette, the
+ * assistant and the module placeholder. Since IA v2 this is NOT the menu: the top menu is
+ * `areas.ts` (docs/ia-v2.md §4.2). Kept in the old section order for those callers.
+ */
+
+/** A single module entry. */
 export interface NavItem {
   /** Route path segment under the shell (e.g. 'my-work'). */
   readonly path: string;
@@ -56,17 +62,16 @@ export function legacyNavKey(key: string): string {
 }
 
 /**
- * The sidebar (docs/ux-guide.md, "Navigation"): sections named after jobs, not ISO
- * chapters, with the standards hub first under "Krav og styring". Every module is
- * gated on being enabled and on its read permission. "Trenger din gjennomgang"
- * lives in My work; `/review` still works for old links.
+ * Every workspace page and module, grouped as the retired sidebar grouped them (search
+ * and the assistant still use the order and groups). Every module is gated on being
+ * enabled and on its read permission.
  */
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
     labelKey: 'nav.sections.home',
     items: [
       {
-        path: 'dashboard',
+        path: 'home',
         labelKey: 'nav.dashboard',
         icon: 'home',
         permission: 'dashboard:view',
@@ -187,7 +192,7 @@ export const LEARNING_NAV_ITEM: NavItem = {
 
 /**
  * Org Settings nav item. Kept out of NAV_SECTIONS / NAV_ITEMS because its route
- * is registered explicitly (with the settingsGuard), and the side-nav shows it
+ * is registered explicitly (with the settingsGuard); the account menu shows it
  * when the user holds `org:manage` OR `users:invite` in the current org.
  */
 export const SETTINGS_NAV_ITEM: NavItem = {
@@ -199,7 +204,7 @@ export const SETTINGS_NAV_ITEM: NavItem = {
 
 /**
  * Super-admin-only section. Kept out of NAV_SECTIONS / NAV_ITEMS because its
- * routes are registered explicitly (with the superAdminGuard), and the side-nav
+ * routes are registered explicitly (with the superAdminGuard), and the account menu
  * gates it on `isSuperuser()`.
  */
 export const ADMIN_SECTION: NavSection = {

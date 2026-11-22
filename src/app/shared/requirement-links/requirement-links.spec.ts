@@ -4,6 +4,7 @@ import { Component, provideZonelessChangeDetection, signal } from '@angular/core
 import { TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -232,7 +233,9 @@ describe('ClausePicker', () => {
     expect(toRefs(null)).toEqual([]);
   });
 
-  async function mount(multiple: boolean, initial: string[] | string | null) {
+  afterEach(() => localStorage.clear());
+
+  async function mount(multiple: boolean, initial: string[] | string | null, showReq = true) {
     @Component({
       imports: [ClausePicker, ReactiveFormsModule],
       template: `<app-clause-picker
@@ -246,6 +249,8 @@ describe('ClausePicker', () => {
       multiple = multiple;
     }
     const http = configure(['standards:read'], [Host]);
+    // IA v2: the picker is editable only with "Vis krav" on.
+    TestBed.inject(RequirementsVisibilityService).set(showReq);
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -300,6 +305,21 @@ describe('ClausePicker', () => {
     el.querySelector<HTMLButtonElement>('[data-testid="clause-picker-value"] button')!.click();
     await render();
     expect(host.control.value).toEqual(['iso27001:A.8.13']);
+  });
+
+  it('with Vis krav off: a hint when empty, read-only values otherwise (IA v2 §4.3)', async () => {
+    const empty = await mount(true, [], false);
+    expect(empty.el.querySelector('[data-testid="clause-picker-hidden"]')).not.toBeNull();
+    expect(empty.el.querySelector('input[role="combobox"]')).toBeNull();
+    TestBed.resetTestingModule();
+    const filled = await mount(true, ['iso27001:A.8.13'], false);
+    filled.http.match(() => true);
+    expect(filled.el.querySelector('[data-testid="clause-picker-hidden"]')).toBeNull();
+    expect(filled.el.querySelectorAll('[data-testid="clause-picker-value"]').length).toBe(1);
+    expect(filled.el.querySelector('[data-testid="clause-picker-value"] button')).toBeNull();
+    expect(filled.el.querySelector<HTMLInputElement>('input[role="combobox"]')?.disabled).toBe(
+      true,
+    );
   });
 
   it('holds one ref in single mode and follows the disabled state', async () => {

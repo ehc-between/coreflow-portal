@@ -1,0 +1,195 @@
+{
+  "title": "Kontakter",
+  "intro": "Alle dere har avtaler med: kunder, leverandører og databehandlere. Én bedrift er ett kort, selv om den har flere roller.",
+  "new": {
+    "label": "Ny kontakt",
+    "customer": "Kunde",
+    "supplier": "Leverandør",
+    "processor": "Databehandler",
+    "agreement": "Avtale"
+  },
+  "duplicates": "Mulige duplikater",
+  "search": {
+    "label": "Søk i kontakter",
+    "placeholder": "Søk etter navn eller org.nr."
+  },
+  "tabs": {
+    "label": "Vis",
+    "all": "Alle",
+    "customers": "Kunder",
+    "suppliers": "Leverandører",
+    "processors": "Databehandlere",
+    "agreements": "Avtaler"
+  },
+  "columns": {
+    "name": "Navn",
+    "role": "Rolle",
+    "status": "Status",
+    "next": "Neste",
+    "agreement": "Avtale",
+    "party": "Motpart",
+    "type": "Type",
+    "deadline": "Fornyes / oppsigelsesfrist"
+  },
+  "roles": {
+    "customer": "Kunde",
+    "supplier": "Leverandør",
+    "processor": "Databehandler"
+  },
+  "status": {
+    "approved": "Godkjent",
+    "conditional": "Godkjent med vilkår",
+    "active": "Aktiv",
+    "missing_dpa": "Mangler avtale",
+    "blocked": "Sperret",
+    "prospect": "Under vurdering",
+    "former": "Tidligere"
+  },
+  "next": {
+    "signDpa": "Signer databehandleravtale",
+    "evaluationOverdue": "Evaluering er forsinket",
+    "noticeIn": "Oppsigelsesfrist om {{ days }} dager",
+    "evaluationIn": "Evaluering om {{ days }} dager",
+    "dpaPending": "Databehandleravtale venter på signering",
+    "openComplaints": "{{ count }} åpne reklamasjoner",
+    "openComplaintsOne": "1 åpen reklamasjon",
+    "renewsOn": "Kontrakt fornyes i {{ month }}",
+    "none": "–"
+  },
+  "orgNumber": "Org.nr. {{ number }}",
+  "orgNumberPlace": "Org.nr. {{ number }} · {{ place }}",
+  "plain": "{{ text }}",
+  "empty": {
+    "title": "Ingen kontakter ennå",
+    "body": "Legg til kunder, leverandører og databehandlere. En bedrift med flere roller blir ett kort.",
+    "filtered": "Ingen kontakter passer søket.",
+    "noAccess": "Du har ikke tilgang til kunde-, leverandør- eller databehandlerregisteret."
+  },
+  "error": "Kunne ikke hente kontaktene.",
+  "registers": {
+    "label": "Hele registeret",
+    "customers": "Åpne kunderegisteret",
+    "suppliers": "Åpne leverandørregisteret",
+    "evaluations": "Alle evalueringer",
+    "processors": "Åpne databehandlerregisteret",
+    "contracts": "Åpne avtaleregisteret",
+    "deadlines": "Frister",
+    "surveys": "Kundeundersøkelser"
+  },
+  "agreements": {
+    "empty": "Ingen avtaler ennå.",
+    "renews": "Fornyes {{ date }}",
+    "notice": "Oppsigelsesfrist {{ date }}",
+    "noDate": "Løper til den sies opp",
+    "counterpartyNone": "–"
+  },
+  "contractType": {
+    "customer": "Kundeavtale",
+    "supplier": "Leverandøravtale",
+    "nda": "Taushetserklæring",
+    "dpa": "Databehandleravtale",
+    "employment": "Arbeidsavtale",
+    "sla": "Driftsavtale",
+    "partner": "Partneravtale",
+    "licence": "Lisensavtale",
+    "other": "Annen avtale"
+  },
+  "contractStatus": {
+    "draft": "Utkast",
+    "in_review": "Til godkjenning",
+    "approved": "Godkjent",
+    "active": "Aktiv",
+    "expired": "Utløpt",
+    "terminated": "Avsluttet"
+  },
+  "card": {
+    "breadcrumb": "Kontakter",
+    "notFound": "Fant ikke denne kontakten. Den kan være slettet, eller du har ikke tilgang.",
+    "back": "Tilbake til kontakter",
+    "error": "Kunne ikke hente kontakten.",
+    "startEvaluation": "Start evaluering",
+    "edit": "Rediger",
+    "editAs": {
+      "customer": "Kundekortet",
+      "supplier": "Leverandørkortet",
+      "processor": "Databehandleren"
+    },
+    "add": "Legg til",
+    "orgLine": "Org.nr. {{ number }}",
+    "sentence": {
+      "dpaMissing": "<b>Databehandleravtale mangler</b> – den må signeres før de behandler personopplysninger for dere.",
+      "evaluationOverdue": "<b>Evalueringen er forsinket</b> – start en ny evaluering.",
+      "dpaSignedRenewal": "<b>Databehandleravtalen er signert</b>, men <b>avtalen fornyes {{ date }}</b> og må vurderes før det.",
+      "renewal": "<b>Avtalen fornyes {{ date }}</b> og må vurderes før det.",
+      "dpaPending": "<b>Databehandleravtalen er ikke signert ennå.</b>",
+      "openComplaints": "<b>{{ count }} åpne reklamasjoner</b> venter på svar.",
+      "dpaSigned": "<b>Databehandleravtalen er signert</b> og alt er i orden.",
+      "evaluationDue": "Neste evaluering er <b>{{ date }}</b>.",
+      "prospect": "Ikke tatt i bruk ennå.",
+      "former": "Dere har ikke lenger et aktivt forhold til denne bedriften.",
+      "allGood": "Alt er i orden – ingen frister de neste månedene."
+    },
+    "agreements": {
+      "title": "Avtaler",
+      "dpa": "Databehandleravtale",
+      "signed": "Signert {{ date }}",
+      "renews": "Fornyes {{ date }}",
+      "noticeMonths": "oppsigelse {{ months }} mnd",
+      "noticeDays": "oppsigelse {{ days }} dager",
+      "days": "{{ days }} dager",
+      "signedPill": "Signert",
+      "empty": "Ingen avtaler registrert."
+    },
+    "personalData": {
+      "title": "Personopplysninger de behandler",
+      "empty": "Ingen behandlinger er koblet til denne bedriften.",
+      "eea": "{{ country }} (EØS)",
+      "outside": "{{ country }} (utenfor EØS)"
+    },
+    "risks": {
+      "title": "Risiko",
+      "empty": "Ingen risikoer er koblet til denne bedriften.",
+      "afterTreatment": "etter tiltak",
+      "level": {
+        "low": "Lav",
+        "medium": "Middels",
+        "high": "Høy",
+        "critical": "Kritisk",
+        "very_high": "Svært høy",
+        "very_low": "Svært lav",
+        "moderate": "Moderat"
+      }
+    },
+    "evaluations": {
+      "title": "Evalueringer og hendelser",
+      "next": "Neste evaluering {{ date }}",
+      "nextIn": "Neste om {{ days }} dager",
+      "result": {
+        "approved": "Godkjent",
+        "conditional": "Godkjent med vilkår",
+        "rejected": "Ikke godkjent",
+        "pending": "Pågår"
+      },
+      "draft": "Pågår",
+      "empty": "Ingen evalueringer eller hendelser.",
+      "incident": "Hendelse: {{ title }}",
+      "open": "Åpen",
+      "closed": "Lukket"
+    },
+    "customer": {
+      "title": "Kunde",
+      "openComplaints": "Åpne reklamasjoner",
+      "openDeviations": "Åpne avvik",
+      "projects": "Aktive prosjekter",
+      "satisfaction": "Kundetilfredshet",
+      "satisfactionValue": "{{ score }} av 100",
+      "since": "Kunde siden {{ date }}",
+      "none": "Ingen"
+    },
+    "registers": {
+      "customer": "Åpne i kunderegisteret",
+      "supplier": "Åpne i leverandørregisteret",
+      "processor": "Åpne i databehandlerregisteret"
+    }
+  }
+}
