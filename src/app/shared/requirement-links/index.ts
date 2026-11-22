@@ -14,3 +14,4 @@ export {
   labelText,
   reqIndexOf,
 } from './requirement-label';
+export { ReqPills } from './req-pills';

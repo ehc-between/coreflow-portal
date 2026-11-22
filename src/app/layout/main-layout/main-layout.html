@@ -3,51 +3,19 @@
     'ui.shell.skipToContent' | transloco
   }}</a>
 
-  <app-top-bar [v2]="shell.navV2()" />
+  <app-top-bar />
 
-  <div class="flex min-h-0 flex-1">
-    <!-- Below lg the side nav is an off-canvas drawer (hamburger in the top bar). -->
-    @if (drawer.open()) {
-      <button
-        type="button"
-        tabindex="-1"
-        data-testid="nav-backdrop"
-        class="fixed inset-0 z-40 cursor-default bg-black/40 lg:hidden"
-        [attr.aria-label]="'ui.shell.closeMenu' | transloco"
-        (click)="drawer.close()"
-      ></button>
+  <!-- pb-20 keeps the end of every page clear of the floating "Spør CoreFlow" button. -->
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="min-h-0 min-w-0 flex-1 overflow-y-auto pb-20 outline-none"
+  >
+    @defer (when registrer.created()) {
+      <app-registrer-complete />
     }
-    <div
-      #navPanel
-      data-testid="nav-panel"
-      tabindex="-1"
-      class="flex min-h-0 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[min(300px,86vw)] max-lg:shadow-pop max-lg:transition-transform max-lg:duration-200 motion-reduce:transition-none"
-      [class.max-lg:-translate-x-full]="!drawer.open()"
-      [class.max-lg:invisible]="!drawer.open()"
-      [attr.role]="drawer.open() ? 'dialog' : null"
-      [attr.aria-modal]="drawer.open() ? 'true' : null"
-      [attr.aria-label]="drawer.open() ? ('ui.shell.mainNav' | transloco) : null"
-      (keydown)="onNavKeydown($event)"
-    >
-      @if (shell.navV2()) {
-        <!-- Shell v2 (U03) loads on demand, so orgs on the old menu don't pay for it. -->
-        @defer (on immediate) {
-          <app-side-nav-v2 class="w-full" />
-        } @placeholder {
-          <div class="w-full border-r border-border bg-surface lg:w-[248px]"></div>
-        }
-      } @else {
-        <app-side-nav class="w-full" />
-      }
-    </div>
-    <!-- pb-20 keeps the end of every page clear of the floating assistant button. -->
-    <main id="main-content" tabindex="-1" class="min-w-0 flex-1 overflow-y-auto pb-20 outline-none">
-      @defer (when registrer.created()) {
-        <app-registrer-complete />
-      }
-      <router-outlet />
-    </main>
-  </div>
+    <router-outlet />
+  </main>
 
   @if (!ask.open()) {
     <button
@@ -57,9 +25,10 @@
       [title]="launcherTitle()"
       aria-keyshortcuts="Control+J Meta+J"
       data-testid="ask-launcher"
-      class="fixed right-4 bottom-4 z-[30] flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-white shadow-pop hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-5 sm:bottom-5"
+      class="fixed right-[max(16px,calc(env(safe-area-inset-right)+16px))] bottom-[max(16px,calc(env(safe-area-inset-bottom)+16px))] z-[30] flex h-12 w-12 items-center justify-center gap-2 rounded-full bg-accent font-semibold text-white shadow-pop hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:right-[max(20px,calc(env(safe-area-inset-right)+20px))] sm:bottom-[max(20px,calc(env(safe-area-inset-bottom)+20px))] sm:h-auto sm:w-auto sm:px-[18px] sm:py-3"
     >
-      <app-icon name="spark" [size]="22" />
+      <span aria-hidden="true" class="text-[17px] leading-none">✦</span>
+      <span class="hidden text-ui sm:inline">{{ 'ui.shell.ask' | transloco }}</span>
       @if (ask.streaming() || ask.hasConversation()) {
         <span
           class="absolute top-1 right-1 h-2.5 w-2.5 rounded-full border-2 border-surface bg-pass"

@@ -214,7 +214,7 @@ export class UxMetricsService {
 
 /**
  * The click source of a link or button, or null when it is not one we count.
- * A `data-ux-source` tag counts for links and buttons; the implicit side-nav
+ * A `data-ux-source` tag counts for links and buttons; the implicit top-menu
  * and stat-tile rules count links only (the nav's own toggles do not navigate).
  */
 export function clickSource(control: Element): UxClickSource | null {
@@ -225,7 +225,8 @@ export function clickSource(control: Element): UxClickSource | null {
   if (control.tagName !== 'A') {
     return null;
   }
-  if (control.closest('app-side-nav')) {
+  // The top menu (IA v2) and its dropdowns; app-side-nav kept for old markup in tests.
+  if (control.closest('app-top-menu, app-side-nav')) {
     return 'nav';
   }
   if (control.closest('app-kpi-tile') || control.querySelector('app-kpi-tile')) {

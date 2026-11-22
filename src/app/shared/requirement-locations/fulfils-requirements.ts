@@ -29,6 +29,7 @@ import { Icon } from '../ui/icon/icon';
 import { provideLocationContext } from './location-context';
 import { FROM_REQUIREMENT_PARAM, TEXT_LINK } from './location-links';
 import { LocationStatusIcon, worstOutcome } from './location-status-icon';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** Clause chips shown before "+ N". */
 export const FULFILS_CHIPS_MAX = 4;
@@ -113,7 +114,7 @@ export function routeOfRef(ref: string) {
   imports: [RouterLink, TranslocoPipe, Icon, LocationStatusIcon, RequirementChip],
   viewProviders: [provideSharedScope('locations', 'standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block empty:hidden' },
+  host: { class: 'block empty:hidden', '[style.display]': "reqVis.show() ? null : 'none'" },
   template: `
     @if (from(); as f) {
       <div
@@ -222,6 +223,8 @@ export function routeOfRef(ref: string) {
   `,
 })
 export class FulfilsRequirements {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   private readonly locations = inject(LocationsService);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly language = inject(LanguageService);

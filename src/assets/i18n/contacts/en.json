@@ -1,0 +1,195 @@
+{
+  "title": "Contacts",
+  "intro": "Everyone you have agreements with: customers, suppliers and data processors. One company is one card, even when it has several roles.",
+  "new": {
+    "label": "New contact",
+    "customer": "Customer",
+    "supplier": "Supplier",
+    "processor": "Data processor",
+    "agreement": "Agreement"
+  },
+  "duplicates": "Possible duplicates",
+  "search": {
+    "label": "Search contacts",
+    "placeholder": "Search by name or org. no."
+  },
+  "tabs": {
+    "label": "Show",
+    "all": "All",
+    "customers": "Customers",
+    "suppliers": "Suppliers",
+    "processors": "Data processors",
+    "agreements": "Agreements"
+  },
+  "columns": {
+    "name": "Name",
+    "role": "Role",
+    "status": "Status",
+    "next": "Next",
+    "agreement": "Agreement",
+    "party": "Counterparty",
+    "type": "Type",
+    "deadline": "Renews / notice deadline"
+  },
+  "roles": {
+    "customer": "Customer",
+    "supplier": "Supplier",
+    "processor": "Data processor"
+  },
+  "status": {
+    "approved": "Approved",
+    "conditional": "Approved with conditions",
+    "active": "Active",
+    "missing_dpa": "Agreement missing",
+    "blocked": "Blocked",
+    "prospect": "Being assessed",
+    "former": "Former"
+  },
+  "next": {
+    "signDpa": "Sign the data processing agreement",
+    "evaluationOverdue": "Evaluation is overdue",
+    "noticeIn": "Notice deadline in {{ days }} days",
+    "evaluationIn": "Evaluation in {{ days }} days",
+    "dpaPending": "Data processing agreement awaits signature",
+    "openComplaints": "{{ count }} open complaints",
+    "openComplaintsOne": "1 open complaint",
+    "renewsOn": "Contract renews in {{ month }}",
+    "none": "–"
+  },
+  "orgNumber": "Org. no. {{ number }}",
+  "orgNumberPlace": "Org. no. {{ number }} · {{ place }}",
+  "plain": "{{ text }}",
+  "empty": {
+    "title": "No contacts yet",
+    "body": "Add customers, suppliers and data processors. A company with several roles becomes one card.",
+    "filtered": "No contacts match the search.",
+    "noAccess": "You don't have access to the customer, supplier or data processor register."
+  },
+  "error": "Could not load the contacts.",
+  "registers": {
+    "label": "Full register",
+    "customers": "Open the customer register",
+    "suppliers": "Open the supplier register",
+    "evaluations": "All evaluations",
+    "processors": "Open the data processor register",
+    "contracts": "Open the contract register",
+    "deadlines": "Deadlines",
+    "surveys": "Customer surveys"
+  },
+  "agreements": {
+    "empty": "No agreements yet.",
+    "renews": "Renews {{ date }}",
+    "notice": "Notice deadline {{ date }}",
+    "noDate": "Runs until terminated",
+    "counterpartyNone": "–"
+  },
+  "contractType": {
+    "customer": "Customer agreement",
+    "supplier": "Supplier agreement",
+    "nda": "Non-disclosure agreement",
+    "dpa": "Data processing agreement",
+    "employment": "Employment contract",
+    "sla": "Service agreement",
+    "partner": "Partner agreement",
+    "licence": "Licence agreement",
+    "other": "Other agreement"
+  },
+  "contractStatus": {
+    "draft": "Draft",
+    "in_review": "Awaiting approval",
+    "approved": "Approved",
+    "active": "Active",
+    "expired": "Expired",
+    "terminated": "Terminated"
+  },
+  "card": {
+    "breadcrumb": "Contacts",
+    "notFound": "This contact was not found. It may have been deleted, or you don't have access.",
+    "back": "Back to contacts",
+    "error": "Could not load the contact.",
+    "startEvaluation": "Start evaluation",
+    "edit": "Edit",
+    "editAs": {
+      "customer": "The customer card",
+      "supplier": "The supplier card",
+      "processor": "The data processor"
+    },
+    "add": "Add",
+    "orgLine": "Org. no. {{ number }}",
+    "sentence": {
+      "dpaMissing": "<b>The data processing agreement is missing</b> – it must be signed before they process personal data for you.",
+      "evaluationOverdue": "<b>The evaluation is overdue</b> – start a new evaluation.",
+      "dpaSignedRenewal": "<b>The data processing agreement is signed</b>, but <b>the agreement renews on {{ date }}</b> and must be reviewed before then.",
+      "renewal": "<b>The agreement renews on {{ date }}</b> and must be reviewed before then.",
+      "dpaPending": "<b>The data processing agreement is not signed yet.</b>",
+      "openComplaints": "<b>{{ count }} open complaints</b> are waiting for an answer.",
+      "dpaSigned": "<b>The data processing agreement is signed</b> and everything is in order.",
+      "evaluationDue": "The next evaluation is on <b>{{ date }}</b>.",
+      "prospect": "Not in use yet.",
+      "former": "You no longer have an active relationship with this company.",
+      "allGood": "Everything is in order – no deadlines in the coming months."
+    },
+    "agreements": {
+      "title": "Agreements",
+      "dpa": "Data processing agreement",
+      "signed": "Signed {{ date }}",
+      "renews": "Renews {{ date }}",
+      "noticeMonths": "notice {{ months }} mo.",
+      "noticeDays": "notice {{ days }} days",
+      "days": "{{ days }} days",
+      "signedPill": "Signed",
+      "empty": "No agreements registered."
+    },
+    "personalData": {
+      "title": "Personal data they process",
+      "empty": "No processing activities are linked to this company.",
+      "eea": "{{ country }} (EEA)",
+      "outside": "{{ country }} (outside the EEA)"
+    },
+    "risks": {
+      "title": "Risk",
+      "empty": "No risks are linked to this company.",
+      "afterTreatment": "after treatment",
+      "level": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical",
+        "very_high": "Very high",
+        "very_low": "Very low",
+        "moderate": "Moderate"
+      }
+    },
+    "evaluations": {
+      "title": "Evaluations and incidents",
+      "next": "Next evaluation {{ date }}",
+      "nextIn": "Next in {{ days }} days",
+      "result": {
+        "approved": "Approved",
+        "conditional": "Approved with conditions",
+        "rejected": "Not approved",
+        "pending": "In progress"
+      },
+      "draft": "In progress",
+      "empty": "No evaluations or incidents.",
+      "incident": "Incident: {{ title }}",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "customer": {
+      "title": "Customer",
+      "openComplaints": "Open complaints",
+      "openDeviations": "Open deviations",
+      "projects": "Active projects",
+      "satisfaction": "Customer satisfaction",
+      "satisfactionValue": "{{ score }} of 100",
+      "since": "Customer since {{ date }}",
+      "none": "None"
+    },
+    "registers": {
+      "customer": "Open in the customer register",
+      "supplier": "Open in the supplier register",
+      "processor": "Open in the data processor register"
+    }
+  }
+}

@@ -19,7 +19,6 @@ import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { countKey, departmentsWithoutLead } from '../departments/departments-page';
-import { OrgNavSettings } from '../nav-settings/org-nav-settings';
 import { HomeWorkspaceSettings } from '../../dashboard/settings/home-workspace-settings';
 import { SettingsLinks } from '../settings-links/settings-links';
 
@@ -40,7 +39,6 @@ import { SettingsLinks } from '../settings-links/settings-links';
     Icon,
     PageHeader,
     SettingsLinks,
-    OrgNavSettings,
     HomeWorkspaceSettings,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

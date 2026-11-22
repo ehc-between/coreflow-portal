@@ -1,20 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  computed,
-  effect,
-  inject,
-  untracked,
-  viewChild,
-} from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { filter } from 'rxjs';
 import { LanguageService } from '../../core/i18n/language.service';
 import { loadSearchScope } from '../../core/search/search-scope';
-import { ShellPreferencesService } from '../../core/shell/shell-preferences.service';
 import { AskPanel } from '../../features/ask/ask-panel';
 import { AskPanelService } from '../../features/ask/ask-panel.service';
 import { CommandPalette } from '../../features/command-palette/command-palette';
@@ -24,27 +12,17 @@ import { RegistrerComplete } from '../../shared/registrer/registrer-complete';
 import { RegistrerDialog } from '../../shared/registrer/registrer-dialog';
 import { isRegistrerShortcut } from '../../shared/registrer/registrer-data';
 import { RegistrerService } from '../../shared/registrer/registrer.service';
-import { trapTabKey } from '../../shared/ui/focus-trap';
-import { Icon } from '../../shared/ui/icon/icon';
-import { NavDrawerService } from '../nav-drawer.service';
-import { SideNav } from '../side-nav/side-nav';
-import { SideNavV2 } from '../side-nav-v2/side-nav-v2';
 import { TopBar } from '../top-bar/top-bar';
 
 /**
- * Application shell: skip link, top bar, side nav and the routed content. All
- * authenticated feature routes render inside this.
+ * Application shell (IA v2 §4.6): skip link, the top bar with the nine-area top menu,
+ * and the routed content below it. No side nav: every area is in the top menu, which
+ * scrolls sideways on small screens. All authenticated feature routes render here.
  *
- * Below `lg` the side nav is an off-canvas drawer: the top-bar hamburger opens it,
- * focus is trapped inside, Escape / the backdrop / any navigation closes it and
- * focus returns to the hamburger.
- *
- * The assistant is reachable from every page: a floating Ask button (bottom
- * right, hidden while the panel is open) and the Ctrl/Cmd + J shortcut, which
- * toggles the panel (Ctrl/Cmd + K stays the command palette).
- *
- * Shell v2 (U03): when the org has `coreflow.nav.v2` on (and the user has not
- * switched back), the seven-destination nav and top bar replace the module list.
+ * The assistant is reachable from every page: the floating "✦ Spør CoreFlow" button
+ * (bottom right, hidden while the panel is open; text from `sm`, icon below) and the
+ * Ctrl/Cmd + J shortcut, which toggles the panel (Ctrl/Cmd + K is search). N opens the
+ * quick "Registrer" dialog.
  */
 @Component({
   selector: 'app-main-layout',
@@ -52,14 +30,11 @@ import { TopBar } from '../top-bar/top-bar';
     RouterOutlet,
     TranslocoPipe,
     TopBar,
-    SideNav,
-    SideNavV2,
     Notifications,
     AskPanel,
     CommandPalette,
     RegistrerDialog,
     RegistrerComplete,
-    Icon,
   ],
   host: { '(document:keydown)': 'onKeydown($event)' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,67 +43,31 @@ import { TopBar } from '../top-bar/top-bar';
 export class MainLayout {
   protected readonly ask = inject(AskPanelService);
   protected readonly palette = inject(CommandPaletteService);
-  protected readonly drawer = inject(NavDrawerService);
-  protected readonly shell = inject(ShellPreferencesService);
   protected readonly registrer = inject(RegistrerService);
-  private readonly navPanel = viewChild.required<ElementRef<HTMLElement>>('navPanel');
 
   /** The shortcut as shown to the user (Cmd on Apple platforms). */
   protected readonly shortcut = isApplePlatform() ? '⌘J' : 'Ctrl+J';
 
   private readonly language = inject(LanguageService);
-  protected readonly launcherLabel = computed(() =>
-    this.language.translate('search.launcher.label'),
-  );
+  protected readonly launcherLabel = computed(() => this.language.translate('ui.shell.ask'));
   protected readonly launcherTitle = computed(() =>
     this.language.translate('search.launcher.title', { shortcut: this.shortcut }),
   );
 
-  /** Element focused before the drawer opened (the hamburger), to return focus to. */
-  private returnFocus: HTMLElement | null = null;
-
   constructor() {
-    // The launcher's strings live in the search scope (not provided here, so the
+    // The launcher's title lives in the search scope (not provided here, so the
     // routed pages below keep their own scopes).
     loadSearchScope();
-
-    const sub = inject(Router)
-      .events.pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(() => this.drawer.close());
-    inject(DestroyRef).onDestroy(() => sub.unsubscribe());
-
-    effect(() => {
-      const open = this.drawer.open();
-      untracked(() => {
-        if (open) {
-          this.returnFocus = document.activeElement as HTMLElement | null;
-          queueMicrotask(() =>
-            this.navPanel().nativeElement.querySelector<HTMLElement>('a[href], button')?.focus(),
-          );
-        } else if (this.returnFocus) {
-          this.returnFocus.focus?.();
-          this.returnFocus = null;
-        }
-      });
-    });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
     if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === 'j') {
       event.preventDefault();
       this.ask.toggle();
-    } else if (event.key === 'Escape' && this.drawer.open()) {
-      this.drawer.close();
     } else if (isRegistrerShortcut(event) && !this.registrer.open()) {
       // U05: N opens "Registrer" from any page (not while typing or in another dialog).
       event.preventDefault();
       this.registrer.show();
-    }
-  }
-
-  protected onNavKeydown(event: KeyboardEvent): void {
-    if (this.drawer.open()) {
-      trapTabKey(this.navPanel().nativeElement, event);
     }
   }
 

@@ -1,38 +1,4 @@
 {
-  "nav": {
-    "home": "Hjem",
-    "myWork": "Mitt arbeid",
-    "chat": "Meldinger",
-    "standards": "Standarder",
-    "registers": "Registre",
-    "library": "Dokumenter og rapporter",
-    "settings": "Innstillinger"
-  },
-  "registrer": {
-    "label": "Registrer",
-    "heading": "Hva vil du registrere?",
-    "deviation": "Avvik eller hendelse",
-    "breach": "Personvernbrudd",
-    "feedback": "Kundetilbakemelding",
-    "risk": "Risiko",
-    "task": "Oppgave",
-    "document": "Dokument",
-    "supplier": "Leverandør",
-    "customer": "Kunde"
-  },
-  "groups": {
-    "governance": "Styring",
-    "risk": "Risiko",
-    "improvement": "Hendelser og forbedring",
-    "suppliersAssets": "Leverandører og eiendeler",
-    "people": "Mennesker",
-    "privacy": "Personvern",
-    "ai": "KI",
-    "envHse": "Miljø og HMS",
-    "continuity": "Beredskap",
-    "library": "Dokumenter og rapporter",
-    "customers": "Kunder"
-  },
   "pins": {
     "heading": "Festet",
     "edit": "Endre",
@@ -50,32 +16,54 @@
     "aiAssessments": "KI-vurderinger",
     "auditFindings": "Revisjonsfunn"
   },
-  "help": {
-    "label": "Hjelp og læring",
-    "lessons": "Mine leksjoner",
-    "ask": "Spør assistenten"
-  },
-  "search": {
-    "placeholder": "Finn eller spør …"
-  },
   "account": {
-    "heading": "Meny",
-    "showAll": "Vis alt",
-    "showAllHint": "Vis alle menypunkter du har tilgang til, ikke bare dem for rollen din.",
-    "newMenu": "Ny, enklere meny",
-    "newMenuOnHint": "Slå av for å gå tilbake til den gamle menyen.",
-    "newMenuOffHint": "Sju faste menypunkter i stedet for ett per modul."
+    "switchOrg": "Bytt bedrift",
+    "me": "Meg",
+    "profile": "Min profil og passord",
+    "myNotifications": "Mine varsler",
+    "appearance": "Utseende og språk",
+    "help": "Hjelp og læring",
+    "learning": "Læringssenter",
+    "shortcuts": "Hurtigtaster",
+    "shortcutsHint": "{{ search }} søk · {{ ask }} spør CoreFlow · N registrer",
+    "admin": "Administrasjon",
+    "settings": "Innstillinger",
+    "modules": "Moduler",
+    "setup": "Oppsett av bedriften",
+    "organizations": "Alle organisasjoner"
   },
   "prefs": {
     "saveFailed": "Kunne ikke lagre menyvalget. Prøv igjen."
   },
-  "orgSettings": {
-    "title": "Meny",
-    "label": "Ny, enklere meny",
-    "hint": "Sju faste menypunkter (Registrer, Hjem, Mitt arbeid, Standarder, Registre, Dokumenter og rapporter, Innstillinger) i stedet for ett per modul. Hver bruker kan bytte tilbake i kontomenyen.",
-    "loadError": "Kunne ikke hente menyinnstillingen.",
-    "savedOn": "Den nye menyen er slått på for organisasjonen.",
-    "savedOff": "Organisasjonen bruker den gamle menyen igjen.",
-    "saveFailed": "Kunne ikke lagre menyinnstillingen. Prøv igjen."
+  "showRequirements": {
+    "label": "Vis krav",
+    "aria": "Vis hvilke standardkrav ting oppfyller"
+  },
+  "ask": {
+    "label": "Spør CoreFlow"
+  },
+  "inbox": {
+    "label": "Innboks",
+    "labelCount": "Innboks, {{ count }} nye",
+    "title": "Innboks",
+    "close": "Lukk innboksen",
+    "loading": "Henter …",
+    "retry": "Prøv igjen",
+    "tabs": {
+      "tasks": "Oppgaver",
+      "messages": "Meldinger",
+      "notifications": "Varsler"
+    },
+    "tasks": {
+      "empty": "Ingenting haster. Alt er i rute.",
+      "error": "Kunne ikke hente oppgavene dine.",
+      "open": "Åpne",
+      "seeAll": "Se alt arbeid →",
+      "allTasks": "Alle oppgaver"
+    },
+    "messages": {
+      "empty": "Ingen uleste meldinger.",
+      "open": "Åpne chat →"
+    }
   }
 }

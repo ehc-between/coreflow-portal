@@ -1,10 +1,29 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { RedirectFunction, Router, Routes } from '@angular/router';
 import { provideTranslocoScope } from '@jsverse/transloco';
 import { permissionGuard } from '../../core/auth/permission.guard';
 import { moduleConfigRedirect } from '../../core/modules/module-config';
 
 const write = permissionGuard('deviations:write', { redirectTo: '/deviations' });
 const intake = permissionGuard('deviations:intake', { redirectTo: '/deviations' });
+
+/** Query keys the Saker page understands; anything else is a filter of the full list. */
+const CASES_QUERY = new Set(['type', 'tab', 'q']);
+
+/**
+ * IA v2 §7: `/deviations` (exact) now lands on Saker filtered to deviations
+ * (`/cases?type=deviation`, keeping `tab` / `q`). A link that carries list filters
+ * (`?status=`, `?kpi=1`, saved views …) goes to the full list at `/deviations/all`
+ * with its query string intact, so dashboards, KPI tiles and bookmarks keep working.
+ */
+export const deviationsLanding: RedirectFunction = (route) => {
+  const router = inject(Router);
+  const params = route.queryParams;
+  if (Object.keys(params).some((key) => !CASES_QUERY.has(key))) {
+    return router.createUrlTree(['/deviations/all'], { queryParams: params });
+  }
+  return router.createUrlTree(['/cases'], { queryParams: { ...params, type: 'deviation' } });
+};
 
 /**
  * Deviations feature routes (M03; lazy-loaded, `app.routes.ts` already wraps the
@@ -21,8 +40,9 @@ export default [
     path: '',
     providers: [provideTranslocoScope('deviations')],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: deviationsLanding },
       {
-        path: '',
+        path: 'all',
         loadComponent: () => import('./deviations-list').then((m) => m.DeviationsList),
       },
       {
