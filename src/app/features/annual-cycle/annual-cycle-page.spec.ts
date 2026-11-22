@@ -174,6 +174,18 @@ describe('AnnualCyclePage', () => {
     const rows = el.querySelectorAll('[data-testid="annual-row"]');
     rows[2].querySelector<HTMLButtonElement>('button')!.click();
     await fixture.whenStable();
-    expect(api.propose).toHaveBeenCalled();
+    // Plans the gap's own year, not next year's wheel.
+    expect(api.propose).toHaveBeenCalledWith('org-1', Number(THIS_MONTH.slice(0, 4)));
+  });
+
+  it('links to the module instead of planning when the user cannot propose', async () => {
+    const { fixture, el, api } = setup();
+    api.year.mockReturnValue(of({ ...RESPONSE, can_propose: false }));
+    (fixture.componentInstance as unknown as { load(): void }).load();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const gapRow = el.querySelectorAll('[data-testid="annual-row"]')[2];
+    expect(gapRow.querySelector('button')).toBeNull();
+    expect(gapRow.querySelector('a')?.getAttribute('href')).toBe('/audits');
   });
 });

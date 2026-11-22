@@ -245,14 +245,23 @@ const PLAN = `${ACTION_BASE} border-transparent bg-accent text-white hover:bg-ac
                               </button>
                             }
                             @case ('plan') {
-                              <button
-                                type="button"
-                                [class]="planClass"
-                                (click)="openProposal(item)"
-                                [disabled]="!d.can_propose"
-                              >
-                                {{ item.action.label_key | transloco }}
-                              </button>
+                              @if (d.can_propose) {
+                                <button
+                                  type="button"
+                                  [class]="planClass"
+                                  (click)="openProposal(item)"
+                                >
+                                  {{ item.action.label_key | transloco }}
+                                </button>
+                              } @else if (link(item); as l) {
+                                <!-- No tasks:write: plan it in the module itself. -->
+                                <a
+                                  [class]="actionClass"
+                                  [routerLink]="l.path"
+                                  [queryParams]="l.queryParams"
+                                  >{{ 'annual.actions.open' | transloco }}</a
+                                >
+                              }
                             }
                             @default {
                               @if (link(item); as l) {
@@ -293,7 +302,7 @@ const PLAN = `${ACTION_BASE} border-transparent bg-accent text-white hover:bg-ac
 
     <app-annual-propose-dialog
       [open]="proposing()"
-      [year]="nextYear()"
+      [year]="proposalFor()"
       [onlyKey]="onlyKey()"
       (closed)="proposing.set(false)"
       (accepted)="onAccepted()"
@@ -326,6 +335,8 @@ export class AnnualCyclePage {
   protected readonly exporting = signal(false);
   protected readonly proposing = signal(false);
   protected readonly onlyKey = signal<string | null>(null);
+  /** Year the dialog proposes for: the gap row's own year, else next year from November. */
+  protected readonly proposalFor = signal<number | null>(null);
 
   private readonly today = new Date();
   protected readonly nextYear = signal(proposalYear(this.today));
@@ -506,7 +517,9 @@ export class AnnualCyclePage {
   }
 
   protected openProposal(item: YearItem | null): void {
-    this.onlyKey.set(item?.id.startsWith('gap:') ? item.id.slice(4) : null);
+    const gap = item?.id.startsWith('gap:') ? item : null;
+    this.onlyKey.set(gap ? gap.id.slice(4) : null);
+    this.proposalFor.set(gap ? Number(gap.month.slice(0, 4)) : this.nextYear());
     this.proposing.set(true);
   }
 
