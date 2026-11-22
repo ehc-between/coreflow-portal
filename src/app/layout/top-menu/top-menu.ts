@@ -30,6 +30,8 @@ export interface DropdownRow {
 
 /** Delay before a hover-opened dropdown closes once the pointer leaves (prototype: 180 ms). */
 const HOVER_CLOSE_MS = 180;
+/** A click on ▾ this soon after hover opened the dropdown is the same intent: keep it open. */
+const HOVER_GRACE_MS = 600;
 /** Gap between the menu item and its dropdown, and the viewport margin. */
 const GAP = 6;
 const MARGIN = 16;
@@ -172,6 +174,8 @@ export class TopMenu {
   private readonly finePointer =
     typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
+  /** When hover last opened a dropdown: a click on ▾ right after keeps it open instead of closing it. */
+  private hoverOpenedAt = 0;
 
   protected readonly areas = computed(() =>
     visibleAreas(AREAS, {
@@ -253,6 +257,7 @@ export class TopMenu {
   protected onToggleClick(event: MouseEvent, area: AreaDef): void {
     event.stopPropagation();
     if (this.openKey() === area.key) {
+      if (Date.now() - this.hoverOpenedAt < HOVER_GRACE_MS) return;
       this.close(false);
     } else {
       this.open(area);
@@ -269,7 +274,10 @@ export class TopMenu {
   protected onHover(area: AreaDef): void {
     if (!this.finePointer || (!area.items.length && !area.dynamicItems)) return;
     this.cancelClose();
-    if (this.openKey() !== area.key) this.open(area);
+    if (this.openKey() !== area.key) {
+      this.open(area);
+      this.hoverOpenedAt = Date.now();
+    }
   }
 
   protected scheduleClose(): void {
