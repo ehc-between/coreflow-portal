@@ -281,8 +281,10 @@
         "nextNumber": "Neste nummer",
         "nextCode": "Neste kode",
         "documents": "Dokumenter",
-        "ack": "Krev lest og forstått"
+        "ack": "Krev lest og forstått",
+        "handbook": "Vises i Håndboka"
       },
+      "handbookHint": "Dokumenter av denne typen er arbeidsprosedyrer og vises i Håndbok. Andre typer ligger under Dokumenter.",
       "advanced": "Avansert",
       "keyAuto": "Lages fra navnet",
       "format": "Kodeformat",

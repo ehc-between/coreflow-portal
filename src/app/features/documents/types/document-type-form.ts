@@ -47,6 +47,8 @@ export interface TypeFormValue {
   readonly ack: boolean;
   readonly retentionId: string;
   readonly active: boolean;
+  /** Shows in Håndbok as a work procedure (IA v2); null = the server's default for the key. */
+  readonly handbook?: boolean | null;
 }
 
 const EMPTY: TypeFormValue = {
@@ -60,6 +62,7 @@ const EMPTY: TypeFormValue = {
   ack: false,
   retentionId: '',
   active: true,
+  handbook: null,
 };
 
 export function typeToForm(t: DocumentType): TypeFormValue {
@@ -74,6 +77,7 @@ export function typeToForm(t: DocumentType): TypeFormValue {
     ack: t.default_acknowledgement_required,
     retentionId: t.retention_rule_id ?? '',
     active: t.active,
+    handbook: t.handbook ?? null,
   };
 }
 
@@ -98,6 +102,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
     default_acknowledgement_required: v.ack,
     retention_rule_id: v.retentionId || null,
     active: v.active,
+    ...(typeof v.handbook === 'boolean' ? { handbook: v.handbook } : {}),
   };
 }
 
@@ -342,6 +347,21 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                     {{ 'documents.control.types.fields.ack' | transloco }}
                     <span class="block text-meta text-fg-subtle">{{
                       'documents.control.types.ackHint' | transloco
+                    }}</span>
+                  </span>
+                </label>
+                <label class="inline-flex items-start gap-2 text-ui text-fg sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    class="mt-0.5"
+                    [checked]="!!form().handbook"
+                    (change)="set('handbook', $any($event.target).checked)"
+                    data-testid="type-handbook"
+                  />
+                  <span>
+                    {{ 'documents.control.types.fields.handbook' | transloco }}
+                    <span class="block text-meta text-fg-subtle">{{
+                      'documents.control.types.handbookHint' | transloco
                     }}</span>
                   </span>
                 </label>

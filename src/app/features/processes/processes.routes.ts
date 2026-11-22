@@ -6,7 +6,8 @@ import type { ProcessMapEditor } from './map/process-map-editor';
 const toList = { redirectTo: '/processes' };
 
 /**
- * `/processes` (scope `processes`, M02): the process register, a process's detail
+ * `/processes` (scope `processes`, M02). IA v2: the bare `/processes` redirects to Håndbok
+ * (`/handbook`, the process map); the full register moved to `/processes/all`. The process register, a process's detail
  * (map, turtle diagram, description document, interactions, review tasks and the
  * record kit tabs), the swimlane map editor and the interaction map. `app.routes`
  * already gates the whole area on the `processes` module and `processes:read`;
@@ -19,8 +20,9 @@ export default [
     path: '',
     providers: [provideTranslocoScope('processes')],
     children: [
+      { path: '', pathMatch: 'full', redirectTo: '/handbook' },
       {
-        path: '',
+        path: 'all',
         loadComponent: () => import('./processes-list').then((m) => m.ProcessesList),
       },
       {

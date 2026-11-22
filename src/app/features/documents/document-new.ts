@@ -542,11 +542,32 @@ export class DocumentNew {
     return control.invalid && (control.touched || this.submitted());
   }
 
+  /**
+   * `?type=<key>` (Håndbok "+ Ny prosedyre", Oversikt "Ny policy") preselects that type when
+   * the org has it, or fills the free-text type when no types are set up.
+   */
+  private presetType(types: readonly DocumentType[]): void {
+    const key = this.route.snapshot.queryParamMap.get('type')?.trim();
+    const control = this.form.controls.type;
+    if (!key || control.value) {
+      return;
+    }
+    if (types.length === 0 || types.some((t) => t.key === key)) {
+      control.setValue(key);
+    }
+  }
+
   /** Types and templates; without them (none set up, or no access) the form stays free text. */
   private loadSetup(orgId: string): void {
     this.controlApi.listTypes(orgId).subscribe({
-      next: (types) => this.types.set(types),
-      error: () => this.types.set([]),
+      next: (types) => {
+        this.types.set(types);
+        this.presetType(types);
+      },
+      error: () => {
+        this.types.set([]);
+        this.presetType([]);
+      },
     });
     this.controlApi.listTemplates(orgId).subscribe({
       next: (templates) => this.templates.set(templates),

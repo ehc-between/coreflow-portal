@@ -1,0 +1,136 @@
+{
+  "title": "Håndbok",
+  "intro": "Slik jobber dere, fra kunden har et behov til kunden er fornøyd. Klikk på en prosess for å se trinnene, hvem som gjør hva, og prosedyrene dere følger.",
+  "actions": {
+    "propose": "Foreslå prosesskart",
+    "newProcedure": "+ Ny prosedyre",
+    "newProcess": "+ Ny prosess",
+    "askProcess": "Spør om prosessen",
+    "details": "Detaljer og redigering",
+    "interactions": "Samspill mellom prosessene",
+    "allProcesses": "Alle prosesser",
+    "order": "Rekkefølge",
+    "orderDone": "Ferdig",
+    "moveUp": "Flytt «{{ title }}» opp",
+    "moveDown": "Flytt «{{ title }}» ned",
+    "add": "Legg til",
+    "makeSteps": "Lag trinnene",
+    "openProcess": "Åpne prosessen"
+  },
+  "tabs": {
+    "label": "Håndbok",
+    "map": "Prosesskart",
+    "procedures": "Alle prosedyrer",
+    "proceduresCount": "Alle prosedyrer ({{ count }})",
+    "waiting": "Venter på deg",
+    "waitingCount": "Venter på deg ({{ count }})"
+  },
+  "bands": {
+    "management": {
+      "eyebrow": "Ledelse · styrer retningen",
+      "kind": "Ledelsesprosess"
+    },
+    "core": {
+      "eyebrow": "Kjerneprosesser · det dere lever av",
+      "kind": "Kjerneprosess"
+    },
+    "support": {
+      "eyebrow": "Støtteprosesser · gjør leveransen mulig",
+      "kind": "Støtteprosess"
+    }
+  },
+  "map": {
+    "governs": "styrer og følger opp",
+    "supports": "støtter",
+    "customerNeed": "Kunden har et behov",
+    "satisfied": "Fornøyd kunde",
+    "emptyBand": "Ingen prosesser her ennå.",
+    "procedures": "{{ count }} prosedyrer",
+    "proceduresOne": "1 prosedyre",
+    "draft": "Utkast",
+    "footnote": "Prikkene viser om noe trenger oppmerksomhet: grønn er i orden, gul har noe som snart forfaller, og rød har et åpent avvik eller en prosedyre som har gått ut på dato.",
+    "dots": {
+      "ok": "I orden",
+      "warn": "Noe forfaller snart",
+      "bad": "Trenger oppmerksomhet nå"
+    },
+    "orderHint": "Flytt prosessene i den rekkefølgen arbeidet går. Kjerneprosessene leses fra venstre mot høyre.",
+    "orderSaved": "Rekkefølgen er lagret",
+    "orderFailed": "Klarte ikke å lagre rekkefølgen. Prøv igjen.",
+    "empty": {
+      "title": "Dere har ikke laget prosesskartet ennå",
+      "body": "Prosesskartet viser hvordan bedriften jobber, fra kunden har et behov til kunden er fornøyd. Få et forslag ut fra bedriftsprofilen, eller lag den første prosessen selv."
+    }
+  },
+  "procedures": {
+    "intro": "Alle prosedyrer, instrukser og sjekklister, gruppert per prosess.",
+    "noProcess": "Uten prosess",
+    "empty": "Ingen prosedyrer ennå. Lag den første med «+ Ny prosedyre».",
+    "version": "Versjon {{ rev }}",
+    "owner": "Eier: {{ name }}"
+  },
+  "waiting": {
+    "intro": "Prosedyrer som venter på at du godkjenner dem eller bekrefter at du har lest dem.",
+    "empty": "Ingenting venter på deg nå.",
+    "approve": "Godkjenn",
+    "read": "Les og bekreft",
+    "open": "Åpne"
+  },
+  "process": {
+    "breadcrumbMap": "Prosesskart",
+    "owner": "Eier: {{ name }}",
+    "ownerLabel": "Eier:",
+    "noOwner": "Ingen eier ennå",
+    "procedures": "{{ count }} prosedyrer",
+    "proceduresOne": "1 prosedyre",
+    "openCases": "{{ count }} åpne avvik",
+    "openCasesOne": "1 åpent avvik",
+    "draft": "Utkast",
+    "howWeWork": "Slik gjør vi det",
+    "step": "Trinn {{ n }}",
+    "from": "← Fra: {{ title }}",
+    "to": "Til: {{ title }} →",
+    "fromCustomer": "← Kunden har et behov",
+    "toCustomer": "Fornøyd kunde →",
+    "noSteps": "Ingen trinn ennå",
+    "noStepsBody": "Tegn trinnene i prosessen, hvem som gjør dem og hvilken prosedyre de følger.",
+    "noDocument": "Ingen prosedyre koblet",
+    "notFound": "Fant ikke prosessen. Den kan være slettet, eller du har ikke tilgang.",
+    "prevProcess": "Forrige prosess",
+    "nextProcess": "Neste prosess"
+  },
+  "cards": {
+    "procedures": "Prosedyrer og skjemaer",
+    "proceduresEmpty": "Ingen prosedyrer er koblet til prosessen ennå.",
+    "who": "Hvem gjør hva",
+    "responsible": "Ansvarlig for prosessen",
+    "whoEmpty": "Legg rollene inn i trinnene, så ser alle hvem som gjør hva.",
+    "risks": "Hva kan gå galt",
+    "risksEmpty": "Ingen risikoer er koblet til prosessen ennå.",
+    "performance": "Hvordan går det",
+    "performanceEmpty": "Ingen måltall ennå.",
+    "target": "mål {{ value }}",
+    "cases": "Saker siste 12 måneder",
+    "casesSummary": "{{ open }} åpne · {{ closed }} lukket",
+    "casesSummaryOne": "{{ open }} åpen · {{ closed }} lukket",
+    "casesNone": "Ingen saker"
+  },
+  "procedure": {
+    "reviewOverdue": "Bør oppdateres",
+    "reviewSoon": "Snart til gjennomgang",
+    "readPct": "Lest av {{ pct }} %",
+    "approved": "Godkjent",
+    "draft": "Utkast",
+    "approvedIn": "Versjon {{ rev }} · godkjent {{ month }}",
+    "version": "Versjon {{ rev }}"
+  },
+  "risk": {
+    "high": "Høy",
+    "medium": "Middels",
+    "low": "Lav",
+    "none": "Ikke vurdert"
+  },
+  "ask": {
+    "prompt": "Forklar prosessen «{{ title }}»: trinnene, hvem som gjør hva og hvilke prosedyrer vi følger."
+  }
+}
