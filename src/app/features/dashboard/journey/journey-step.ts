@@ -34,7 +34,9 @@ const STATE_ICON: Record<string, string> = {
  * covers, how far it is, and one clear way forward:
  *
  * - to do: the step's own action ("Opprett", "Åpne"), plus "Make it a task";
- * - records exist but are not linked yet: "Link to the requirement";
+ * - a record step whose requirement-location rule is not met: the plain reason
+ *   ("1 analysis registered, but not approved yet") and a direct action to fix it
+ *   (no manual requirement link is needed: records in the right register count);
  * - module off: "Turn on <module>" (Settings › Modules);
  * - done / skipped: why it is done, with "Undo" / "Include again" when it was set by hand.
  *
@@ -104,6 +106,13 @@ const STATE_ICON: Record<string, string> = {
           <p class="mt-2 max-w-[72ch] rounded-tile bg-warn-soft px-3 py-2 text-ui text-warn-ink">
             {{ 'home.journey.step.needsLink' | transloco: { refs: firstRef() } }}
           </p>
+        } @else if (state() === 'todo' && reason(); as r) {
+          <p
+            class="mt-2 max-w-[72ch] rounded-tile bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+            data-testid="journey-step-reason"
+          >
+            {{ r.text }}
+          </p>
         } @else if (state() === 'module_off') {
           <p class="mt-2 max-w-[72ch] rounded-tile bg-surface-2 px-3 py-2 text-ui text-fg-muted">
             {{ 'home.journey.step.moduleOff' | transloco: { module: moduleName() } }}
@@ -134,7 +143,16 @@ const STATE_ICON: Record<string, string> = {
               </a>
             }
             @case ('todo') {
-              @if (actionLink(); as a) {
+              @if (reason(); as r) {
+                <a
+                  [routerLink]="reasonLink()!.path"
+                  [queryParams]="reasonLink()!.query"
+                  [class]="primaryClass"
+                  data-testid="journey-step-fix"
+                >
+                  {{ r.action_label }}
+                </a>
+              } @else if (actionLink(); as a) {
                 <a [routerLink]="a.path" [queryParams]="a.query" [class]="primaryClass">
                   {{ actionKey() | transloco }}
                 </a>
@@ -279,6 +297,15 @@ export class JourneyStepRow {
   protected readonly actionLink = computed(() => {
     const url = stepActionUrl(this.step());
     return url ? splitUrl(url) : null;
+  });
+  /** Why a record step is not done yet (its requirement-location rule is not met). */
+  protected readonly reason = computed(() => {
+    const location = this.step().location;
+    return location && location.outcome !== 'met' && location.text ? location : null;
+  });
+  protected readonly reasonLink = computed(() => {
+    const r = this.reason();
+    return r ? splitUrl(r.url) : null;
   });
   protected readonly reqLink = computed(() =>
     splitUrl(this.step().requirement_url ?? '/standards'),

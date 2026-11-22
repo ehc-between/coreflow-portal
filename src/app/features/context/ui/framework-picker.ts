@@ -46,6 +46,26 @@ export function visibleFrameworks(
         {{ hintKey() | transloco }}
       </p>
       <div class="flex flex-wrap gap-1.5">
+        @if (allKey(); as all) {
+          <label
+            class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-meta font-semibold focus-within:ring-2 focus-within:ring-accent"
+            [class]="
+              value().length === 0
+                ? 'border-accent bg-accent-soft text-accent'
+                : 'border-border text-fg-muted hover:text-fg'
+            "
+          >
+            <input
+              type="checkbox"
+              class="sr-only"
+              [id]="id + '-all'"
+              [checked]="value().length === 0"
+              [disabled]="disabled()"
+              (change)="valueChange.emit([])"
+            />
+            {{ all | transloco }}
+          </label>
+        }
         @for (key of shown(); track key) {
           <label
             class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-meta font-semibold focus-within:ring-2 focus-within:ring-accent"
@@ -86,6 +106,8 @@ export class FrameworkPicker {
   readonly labelKey = input('context.fields.frameworks');
   readonly hintKey = input('context.form.frameworksHint');
   readonly disabled = input(false);
+  /** Optional first chip meaning "every management system" (an empty list). */
+  readonly allKey = input<string | null>(null);
   readonly valueChange = output<readonly string[]>();
 
   protected readonly id = `cf-fw-${++nextId}`;

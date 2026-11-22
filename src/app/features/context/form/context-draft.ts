@@ -164,6 +164,7 @@ export function draftFrom(kind: ContextKind, record: ContextRecord): ContextDraf
         title: r.title,
         method: r.method,
         framework: r.framework ?? '',
+        frameworks: r.frameworks?.length ? r.frameworks : r.framework ? [r.framework] : [],
         summary: r.summary ?? '',
         items: r.items.map((item) => ({
           id: item.id || localItemId(),
@@ -286,7 +287,7 @@ export function payloadOf(kind: ContextKind, d: ContextDraft): Record<string, un
       return {
         title: d.title.trim(),
         method: d.method,
-        framework: d.framework || null,
+        frameworks: [...d.frameworks],
         summary: text(d.summary),
         items: d.items
           .filter((item) => item.text.trim())
@@ -500,7 +501,9 @@ export function draftFromPrefill(
   switch (kind) {
     case 'analysis':
       fill('summary', str('summary') || body);
-      fill('framework', str('framework'));
+      if (str('framework') && draft.frameworks.length === 0) {
+        next['frameworks'] = [str('framework')];
+      }
       break;
     case 'party':
       fill('description', str('description'));

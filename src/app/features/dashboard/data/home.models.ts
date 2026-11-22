@@ -218,6 +218,16 @@ export interface StepTask {
   readonly url: string;
 }
 
+export interface JourneyStepLocation {
+  readonly outcome: 'met' | 'partial' | 'not_met' | string;
+  /** Plain reason, e.g. "1 kontekstanalyse registrert, men ikke godkjent ennå". */
+  readonly text: string;
+  /** e.g. "Godkjenn kontekstanalyse" / "Legg til interessenter". */
+  readonly action_label: string;
+  readonly url: string;
+  readonly location: string;
+}
+
 export interface JourneyStep {
   readonly key: string;
   readonly phase: string;
@@ -235,6 +245,12 @@ export interface JourneyStep {
   readonly progress: StepProgress | null;
   /** The records exist but none is confirmed evidence for the step's requirements yet. */
   readonly needs_link: boolean;
+  /**
+   * Record steps with requirements: the requirement-location verdict the step's
+   * completion comes from (no manual link needed), with the plain reason and a
+   * direct action when it is not met yet.
+   */
+  readonly location?: JourneyStepLocation | null;
   /** Where the step's evidence is linked (the requirement page). */
   readonly requirement_url: string | null;
   readonly done_at: string | null;
