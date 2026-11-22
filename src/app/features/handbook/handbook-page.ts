@@ -208,7 +208,7 @@ const TEXT_LINK = 'text-ui font-semibold text-accent hover:underline';
                         ) {
                           <app-handbook-arrow />
                           <app-handbook-process-box
-                            class="min-w-[150px] flex-1 basis-0 max-[820px]:min-w-0"
+                            class="min-w-[120px] flex-1 basis-0 max-[820px]:min-w-0"
                             [box]="b"
                             [ordering]="ordering()"
                             [first]="f"
@@ -420,7 +420,7 @@ export class HandbookPage {
   protected readonly primarySmall = `${SMALL.replace('border-border bg-surface', 'border-transparent bg-accent').replace('text-fg hover:border-border-strong hover:bg-surface-2', 'text-white hover:bg-accent-2')}`;
   protected readonly textLink = TEXT_LINK;
   protected readonly endClass =
-    'grid flex-none min-w-[110px] place-items-center rounded-[12px] bg-accent-soft p-2.5 text-center text-[13.5px] font-semibold text-accent max-[820px]:min-w-0';
+    'grid w-[104px] flex-none place-items-center rounded-[12px] bg-accent-soft p-2.5 text-center text-[13.5px] font-semibold text-accent max-[820px]:w-auto';
   protected readonly starterProvider = 'processes.map';
   protected readonly starter = viewChild(StarterSetup);
 
