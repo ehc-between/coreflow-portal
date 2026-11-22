@@ -89,7 +89,7 @@ export const routes: Routes = [
     // An org that requires MFA keeps the member on the setup page until they enrol.
     canActivateChild: [mfaEnrolmentGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
       {
         // A deep link to an org the user doesn't belong to.
         path: 'no-access',
@@ -98,12 +98,14 @@ export const routes: Routes = [
           import('./features/org-access/no-org-access').then((m) => m.NoOrgAccess),
       },
       {
-        path: 'dashboard',
+        // Oversikt (IA v2 §5.1): the landing page. Not permission-guarded.
+        path: 'home',
         title: 'nav.dashboard',
-        // The default landing page. A user without dashboard:view falls back
-        // silently to My Work (always available) — no warning, since they may
-        // simply have signed in. Must not redirect to /dashboard (loop).
-        canActivate: [permissionGuard('dashboard:view', { redirectTo: '/my-work', notify: false })],
+        loadChildren: () => import('./features/home/home.routes'),
+      },
+      {
+        // Legacy URL; the old dashboard is Oversikt now.
+        path: 'dashboard',
         loadChildren: () => import('./features/dashboard/dashboard.routes'),
       },
       {
