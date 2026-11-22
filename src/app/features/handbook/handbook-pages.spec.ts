@@ -172,6 +172,26 @@ describe('HandbookProcessPage', () => {
     expect(el.querySelector('[data-testid="handbook-new-procedure"]')).toBeNull();
   });
 
+  it('"+ Ny prosedyre" opens a procedure already linked to the process', async () => {
+    const api = { page: vi.fn(() => of(PAGE)) };
+    TestBed.configureTestingModule({
+      imports: [HandbookProcessPage, TranslocoTestingModule.forRoot({ langs: { en: {} } })],
+      providers: providers(api, ['documents:draft']),
+    });
+    const fixture = TestBed.createComponent(HandbookProcessPage);
+    fixture.componentRef.setInput('id', 'c1');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const href = el.querySelector('[data-testid="handbook-new-procedure"]')?.getAttribute('href');
+    const url = new URL(href ?? '', 'http://x');
+    expect(url.pathname).toBe('/documents/new');
+    expect(url.searchParams.get('type')).toBe('procedure');
+    expect(url.searchParams.get('related')).toBe('process:c1');
+    expect(url.searchParams.get('relatedTitle')).toBe('Prosess c1');
+  });
+
   it('keeps prev / next along the chain when the process has no steps yet', async () => {
     const empty: PageDto = {
       ...PAGE,

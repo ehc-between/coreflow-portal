@@ -135,7 +135,7 @@ const ROW =
                   primary
                   [class]="primaryClass"
                   routerLink="/documents/new"
-                  [queryParams]="{ type: 'procedure', process: p.process.id }"
+                  [queryParams]="newProcedureQuery(p)"
                   data-testid="handbook-new-procedure"
                   >{{ 'handbook.actions.newProcedure' | transloco }}</a
                 >
@@ -231,7 +231,7 @@ const ROW =
                     <a
                       class="text-ui font-semibold text-accent hover:underline"
                       routerLink="/documents/new"
-                      [queryParams]="{ type: 'procedure', process: p.process.id }"
+                      [queryParams]="newProcedureQuery(p)"
                       >{{ 'handbook.actions.add' | transloco }}</a
                     >
                   }
@@ -441,6 +441,15 @@ export class HandbookProcessPage {
         this.state.set({ status: 'error', notFound: status === 404 || status === 422 });
       },
     });
+  }
+
+  /** "+ Ny prosedyre": a work procedure, already linked to this process (`?related=`). */
+  protected newProcedureQuery(p: HandbookPage): Record<string, string> {
+    return {
+      type: 'procedure',
+      related: `process:${p.process.id}`,
+      relatedTitle: p.process.title,
+    };
   }
 
   protected ask(p: HandbookPage): void {
