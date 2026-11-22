@@ -214,8 +214,14 @@ export function buildRows(
   return rows;
 }
 
-/** Rows that need something first ("Mangler", "Utkast", "Med mangler"), then the rest. */
+/**
+ * The audit pack first (it is what the auditor asks for, as in the prototype), then
+ * rows that need something ("Mangler", "Utkast", "Med mangler"), then the rest.
+ */
 function weight(row: ReportRow): number {
+  if (row.action === 'flow') {
+    return -1;
+  }
   return row.status.key === 'ready' ? 1 : row.status.key === 'new' ? 2 : 0;
 }
 

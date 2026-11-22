@@ -192,6 +192,29 @@ describe('report groups', () => {
     expect(groups[3].rows.map((r) => r.id)).toEqual(['a']);
   });
 
+  it('puts the audit pack first for the auditor', () => {
+    const rows = buildRows(
+      [
+        output({
+          key: 'a',
+          audience: ['auditor'],
+          readiness: { ready: false, missing: 1, recommended: 0 },
+        }),
+        output({
+          key: 'reports.audit_pack',
+          kind: 'pack',
+          generates: false,
+          route: '/reports/audit-packs',
+          readiness: null,
+          audience: ['auditor'],
+        }),
+      ],
+      [],
+      [],
+    );
+    expect(groupRows(rows)[0].rows.map((r) => r.id)).toEqual(['reports.audit_pack', 'a']);
+  });
+
   it('shortens framework names', () => {
     expect(shortStandardLabel('ISO 27001 – informasjonssikkerhet')).toBe('ISO 27001');
     expect(shortStandardLabel('KI-forordningen (EU)')).toBe('KI-forordningen (EU)');
