@@ -258,7 +258,13 @@ export function parseType(raw: string | null): CaseType | null {
               <span class="text-ui text-fg-muted">{{
                 'speakup.cases.shown' | transloco: { shown: items().length, total: d.total }
               }}</span>
-              <app-button variant="secondary" size="sm" (click)="more()">
+              <app-button
+                variant="secondary"
+                size="sm"
+                data-testid="more"
+                [loading]="loadingMore()"
+                (click)="more()"
+              >
                 {{ 'speakup.cases.more' | transloco }}
               </app-button>
             </div>
@@ -302,7 +308,7 @@ export class CasesPage {
   protected readonly q = computed(() => this.query().get('q') ?? '');
   protected readonly filtered = computed(() => this.type() !== null || this.q() !== '');
 
-  private readonly limit = signal(PAGE);
+  protected readonly loadingMore = signal(false);
   protected readonly data = signal<CaseList | null>(null);
   protected readonly error = signal(false);
   protected readonly items = computed(() => this.data()?.items ?? []);
@@ -346,17 +352,22 @@ export class CasesPage {
   constructor() {
     effect(() => {
       const orgId = this.org.currentOrgId();
-      const query = {
-        tab: this.tab(),
-        type: this.type(),
-        q: this.q() || null,
-        limit: this.limit(),
-        lang: this.language.active(),
-      };
+      const query = this.currentQuery();
       if (orgId) {
         untracked(() => this.load(orgId, query));
       }
     });
+  }
+
+  private currentQuery(offset = 0): Parameters<SpeakUpApi['cases']>[1] {
+    return {
+      tab: this.tab(),
+      type: this.type(),
+      q: this.q() || null,
+      limit: PAGE,
+      offset,
+      lang: this.language.active(),
+    };
   }
 
   private load(orgId: string, query: Parameters<SpeakUpApi['cases']>[1]): void {
@@ -371,18 +382,11 @@ export class CasesPage {
     this.data.set(null);
     const orgId = this.org.currentOrgId();
     if (orgId) {
-      this.load(orgId, {
-        tab: this.tab(),
-        type: this.type(),
-        q: this.q() || null,
-        limit: this.limit(),
-        lang: this.language.active(),
-      });
+      this.load(orgId, this.currentQuery());
     }
   }
 
   protected go(changes: Record<string, string | null>): void {
-    this.limit.set(PAGE);
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: changes,
@@ -391,8 +395,24 @@ export class CasesPage {
     });
   }
 
+  /** "Vis flere": append the next page (the API caps `limit`, so page by `offset`). */
   protected more(): void {
-    this.limit.update((n) => n + PAGE);
+    const orgId = this.org.currentOrgId();
+    const current = this.data();
+    if (!orgId || !current || this.loadingMore()) {
+      return;
+    }
+    this.loadingMore.set(true);
+    this.api.cases(orgId, this.currentQuery(current.items.length)).subscribe({
+      next: (next) => {
+        this.loadingMore.set(false);
+        this.data.set({ ...next, items: [...current.items, ...next.items] });
+      },
+      error: () => {
+        this.loadingMore.set(false);
+        this.error.set(true);
+      },
+    });
   }
 
   protected count(tab: CaseTab): number {

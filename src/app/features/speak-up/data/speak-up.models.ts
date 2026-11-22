@@ -158,5 +158,7 @@ export interface CaseQuery {
   readonly type: CaseType | null;
   readonly q: string | null;
   readonly limit: number;
+  /** Rows to skip ("Vis flere" appends the next page). */
+  readonly offset?: number;
   readonly lang: string | null;
 }

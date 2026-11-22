@@ -82,6 +82,7 @@ describe('CasesPage', () => {
       type: null,
       q: null,
       limit: 50,
+      offset: 0,
       lang: 'nb',
     });
     const row = root.querySelector('[data-testid="case-row"]')!;
@@ -97,6 +98,26 @@ describe('CasesPage', () => {
       '/deviations/intake',
       '/deviations/all',
     ]);
+  });
+
+  it('appends the next page by offset (the API caps the page size)', async () => {
+    const { root, fixture, api } = await setup();
+    const page = (id: string) => ({ ...LIST.items[0], id, url: '/privacy/breaches/' + id });
+    const first: CaseList = { ...LIST, items: [page('a')], total: 3 };
+    api.cases.mockReturnValue(of(first));
+    fixture.componentInstance['reload']();
+    await fixture.whenStable();
+    api.cases.mockReturnValue(of({ ...LIST, items: [page('b'), page('c')], total: 3 }));
+    (
+      root.querySelector('[data-testid="more"] button, [data-testid="more"]') as HTMLElement
+    ).click();
+    await fixture.whenStable();
+    expect(api.cases).toHaveBeenLastCalledWith(
+      'org1',
+      expect.objectContaining({ limit: 50, offset: 1 }),
+    );
+    expect(root.querySelectorAll('[data-testid="case-row"]').length).toBe(3);
+    expect(root.querySelector('[data-testid="more"]')).toBeNull();
   });
 
   it('hides intake for callers without the permission', async () => {

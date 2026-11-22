@@ -31,6 +31,9 @@ export class SpeakUpApi {
 
   cases(orgId: string, query: CaseQuery): Observable<CaseList> {
     const params: Record<string, string | number> = { tab: query.tab, limit: query.limit };
+    if (query.offset) {
+      params['offset'] = query.offset;
+    }
     if (query.type) {
       params['type'] = query.type;
     }
