@@ -383,6 +383,19 @@
       "open": "{{ count }} not followed up",
       "showOpen": "Show the factors that are not followed up",
       "allDone": "All key factors are followed up"
+    },
+    "factorPlaceholder": "Describe the factor",
+    "addTo": {
+      "strength": "Add strength",
+      "weakness": "Add weakness",
+      "opportunity": "Add opportunity",
+      "threat": "Add threat",
+      "political": "Add political factor",
+      "economic": "Add economic factor",
+      "social": "Add social factor",
+      "technological": "Add technological factor",
+      "legal": "Add legal factor",
+      "environmental": "Add environmental factor"
     }
   },
   "party": {

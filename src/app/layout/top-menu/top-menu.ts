@@ -35,6 +35,8 @@ const HOVER_GRACE_MS = 600;
 /** Gap between the menu item and its dropdown, and the viewport margin. */
 const GAP = 6;
 const MARGIN = 16;
+/** Below this width the area row collapses into the "Meny" button and its panel. */
+const PANEL_MAX_WIDTH = 1180;
 
 /**
  * The top menu (IA v2 §4.6, the approved prototype): nine areas in one horizontally
@@ -53,15 +55,88 @@ const MARGIN = 16;
   host: {
     class: 'block min-w-0',
     '(document:click)': 'onDocumentClick($event)',
-    '(window:resize)': 'close(false)',
+    '(window:resize)': 'onResize()',
     '(document:keydown.escape)': 'onEscape()',
   },
   template: `
+    <button
+      type="button"
+      id="menu-panel-btn"
+      data-testid="menu-panel-button"
+      aria-haspopup="true"
+      [attr.aria-expanded]="panelOpen()"
+      [attr.aria-controls]="panelOpen() ? 'menu-panel' : null"
+      [attr.aria-label]="'nav.areas.menu' | transloco"
+      class="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-ui font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none min-[1180px]:hidden"
+      [class]="
+        panelOpen() ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2 hover:text-fg'
+      "
+      (click)="togglePanel($event)"
+    >
+      <app-icon [name]="panelOpen() ? 'x' : 'menu'" [size]="18" />
+      <span class="hidden sm:inline">{{ 'nav.areas.menu' | transloco }}</span>
+    </button>
+
+    @if (panelOpen()) {
+      <div
+        class="fixed inset-x-0 bottom-0 z-30 bg-black/30 min-[1180px]:hidden"
+        [style.top.px]="panelTop()"
+        aria-hidden="true"
+        data-testid="menu-panel-backdrop"
+      ></div>
+      <nav
+        id="menu-panel"
+        data-testid="menu-panel"
+        [attr.aria-label]="'nav.areas.mainMenu' | transloco"
+        class="fixed inset-x-0 z-40 overflow-y-auto border-t border-border bg-surface shadow-pop min-[1180px]:hidden"
+        [style.top.px]="panelTop()"
+        [style.max-height]="'calc(100dvh - ' + panelTop() + 'px)'"
+      >
+        <div
+          class="mx-auto max-w-[1240px] columns-1 gap-x-6 px-[max(16px,env(safe-area-inset-left))] pt-4 pb-2 sm:columns-2 md:columns-3"
+        >
+          @for (group of panelGroups(); track group.area.key) {
+            @let on = active() === group.area.key;
+            <section
+              class="mb-5 break-inside-avoid"
+              [attr.data-testid]="'panel-area-' + group.area.key"
+            >
+              <a
+                [routerLink]="group.area.path"
+                [attr.aria-current]="on ? 'page' : null"
+                data-panel-item
+                class="flex items-center gap-1 rounded-lg px-2 py-1.5 font-display text-body font-bold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                [class]="on ? 'bg-accent-soft text-accent' : 'text-fg hover:bg-surface-2'"
+                (click)="closePanel(false)"
+                >{{ group.area.labelKey | transloco }}</a
+              >
+              @if (group.rows.length) {
+                <ul class="mt-0.5 flex flex-col">
+                  @for (row of group.rows; track row.key) {
+                    <li>
+                      <a
+                        [routerLink]="row.link"
+                        data-panel-item
+                        [attr.data-testid]="'panel-' + group.area.key + '-' + row.key"
+                        class="block rounded-lg px-2 py-1.5 text-ui text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                        (click)="closePanel(false)"
+                        >{{ row.labelKey ? (row.labelKey | transloco) : row.label }}</a
+                      >
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+          }
+        </div>
+      </nav>
+    }
+
     <nav
       #row
       data-testid="top-menu"
       [attr.aria-label]="'nav.areas.mainMenu' | transloco"
-      class="flex min-w-0 gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      class="hidden min-w-0 gap-px overflow-x-auto [scrollbar-width:none] min-[1180px]:flex [&::-webkit-scrollbar]:hidden"
       (scroll)="close(false)"
     >
       @for (area of areas(); track area.key) {
@@ -80,9 +155,7 @@ const MARGIN = 16;
             [attr.data-testid]="'area-' + area.key"
             class="inline-flex items-center rounded-lg py-2 text-ui font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             [class]="
-              (area.items.length || area.dynamicItems
-                ? 'rounded-r-none pr-1 pl-[11px]'
-                : 'px-[11px]') +
+              (area.items.length || area.dynamicItems ? 'rounded-r-none pr-0.5 pl-2' : 'px-2') +
               (on ? ' text-accent' : isOpen ? ' text-fg' : ' text-fg-muted hover:text-fg')
             "
             (click)="close(false)"
@@ -99,7 +172,7 @@ const MARGIN = 16;
               [attr.aria-label]="
                 'nav.areas.openMenu' | transloco: { area: (area.labelKey | transloco) }
               "
-              class="grid place-items-center rounded-lg rounded-l-none py-2 pr-2 pl-0.5 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              class="grid place-items-center rounded-lg rounded-l-none py-2 pr-1.5 pl-0.5 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
               [class]="on ? 'text-accent' : 'text-fg-muted hover:text-fg'"
               (click)="onToggleClick($event, area)"
               (keydown)="onToggleKeydown($event, area)"
@@ -195,7 +268,17 @@ export class TopMenu {
   /** The open dropdown's rows; Håndbok adds one row per process after "Prosesskart". */
   protected readonly rows = computed<DropdownRow[]>(() => {
     const area = this.openArea();
-    if (!area) return [];
+    return area ? this.rowsFor(area) : [];
+  });
+
+  /** The "Meny" panel (below 1180 px): every area with its sub-items, in menu order. */
+  protected readonly panelOpen = signal(false);
+  protected readonly panelTop = signal(0);
+  protected readonly panelGroups = computed(() =>
+    this.panelOpen() ? this.areas().map((area) => ({ area, rows: this.rowsFor(area) })) : [],
+  );
+
+  private rowsFor(area: AreaDef): DropdownRow[] {
     const rows: DropdownRow[] = area.items.map((i) => ({
       key: i.key,
       link: this.router.parseUrl(i.path),
@@ -212,7 +295,7 @@ export class TopMenu {
       rows.splice(1, 0, ...processes);
     }
     return rows;
-  });
+  }
 
   constructor() {
     const sub = this.router.events
@@ -220,6 +303,7 @@ export class TopMenu {
       .subscribe((e) => {
         this.active.set(activeAreaKey(e.urlAfterRedirects));
         this.close(false);
+        this.closePanel(false);
         afterNextRender(() => this.scrollActiveIntoView(), { injector: this.injector });
       });
     inject(DestroyRef).onDestroy(() => {
@@ -252,6 +336,38 @@ export class TopMenu {
     if (restoreFocus) {
       this.root().querySelector<HTMLElement>(`#dd-btn-${key}`)?.focus();
     }
+  }
+
+  protected togglePanel(event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.panelOpen()) {
+      this.closePanel(false);
+      return;
+    }
+    this.close(false);
+    if (this.areas().some((a) => a.dynamicItems === 'processes')) {
+      this.handbook.ensureLoaded();
+    }
+    const header = this.root().closest('header') ?? this.root();
+    this.panelTop.set(Math.round(header.getBoundingClientRect().bottom));
+    this.panelOpen.set(true);
+    afterNextRender(
+      () => this.root().querySelector<HTMLElement>('#menu-panel [data-panel-item]')?.focus(),
+      { injector: this.injector },
+    );
+  }
+
+  closePanel(restoreFocus: boolean): void {
+    if (!this.panelOpen()) return;
+    this.panelOpen.set(false);
+    if (restoreFocus) {
+      this.root().querySelector<HTMLElement>('#menu-panel-btn')?.focus();
+    }
+  }
+
+  protected onResize(): void {
+    this.close(false);
+    if (window.innerWidth >= PANEL_MAX_WIDTH) this.closePanel(false);
   }
 
   protected onToggleClick(event: MouseEvent, area: AreaDef): void {
@@ -328,10 +444,19 @@ export class TopMenu {
     if (this.openKey() && !this.root().contains(event.target as Node)) {
       this.close(false);
     }
+    // Outside the panel (the backdrop included) closes it; the Meny button toggles itself.
+    const target = event.target as Element | null;
+    if (this.panelOpen() && !target?.closest?.('#menu-panel, #menu-panel-btn')) {
+      this.closePanel(false);
+    }
   }
 
   /** Escape anywhere closes an open dropdown (the menu handler covers focus inside it). */
   onEscape(): void {
+    if (this.panelOpen()) {
+      this.closePanel(true);
+      return;
+    }
     this.close(true);
   }
 

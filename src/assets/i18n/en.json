@@ -274,7 +274,8 @@
       },
       "mainMenu": "Main menu",
       "seeAll": "See the whole overview →",
-      "openMenu": "Show submenu for {{ area }}"
+      "openMenu": "Show submenu for {{ area }}",
+      "menu": "Menu"
     }
   },
   "topbar": {

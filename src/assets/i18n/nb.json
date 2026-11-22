@@ -274,7 +274,8 @@
       },
       "mainMenu": "Hovedmeny",
       "seeAll": "Se hele oversikten →",
-      "openMenu": "Vis undermeny for {{ area }}"
+      "openMenu": "Vis undermeny for {{ area }}",
+      "menu": "Meny"
     }
   },
   "topbar": {

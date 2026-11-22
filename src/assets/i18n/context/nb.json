@@ -383,6 +383,19 @@
       "open": "{{ count }} ikke fulgt opp",
       "showOpen": "Vis faktorene som ikke er fulgt opp",
       "allDone": "Alle viktige faktorer er fulgt opp"
+    },
+    "factorPlaceholder": "Beskriv faktoren",
+    "addTo": {
+      "strength": "Legg til styrke",
+      "weakness": "Legg til svakhet",
+      "opportunity": "Legg til mulighet",
+      "threat": "Legg til trussel",
+      "political": "Legg til politisk faktor",
+      "economic": "Legg til økonomisk faktor",
+      "social": "Legg til sosial faktor",
+      "technological": "Legg til teknologisk faktor",
+      "legal": "Legg til juridisk faktor",
+      "environmental": "Legg til miljøfaktor"
     }
   },
   "party": {

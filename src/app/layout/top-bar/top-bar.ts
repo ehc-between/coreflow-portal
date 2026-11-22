@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { NotificationService } from '../../core/notifications/notification.service';
-import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 import { CommandPaletteService } from '../../features/command-palette/command-palette.service';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -12,12 +11,13 @@ import { InboxButton } from '../inbox/inbox-button';
 import { TopMenu } from '../top-menu/top-menu';
 
 /**
- * The top bar (IA v2 §4.6, the approved prototype): ✦ CoreFlow (to Oversikt, with the
- * current company's name under it from `md`), the nine-area top menu, and on the right
- * the "Vis krav" switch, search (Ctrl/Cmd K), the inbox and the account menu.
+ * The top bar (IA v2 §4.6, the approved prototype): ✦ CoreFlow (to Oversikt; the
+ * company name lives in the account menu), the nine-area top menu, and on the right the
+ * "Vis krav" switch, search (Ctrl/Cmd K), the inbox and the account menu.
  *
- * From `lg` everything sits on one row; below that the menu moves to a second,
- * full-width row (still horizontally scrollable), so the right cluster never collides.
+ * Always one row: below 1180 px the area list collapses into a "Meny" button with a
+ * full panel, and with the full menu on the row "Vis krav" shows as an icon + switch (label as tooltip;
+ * the 1240 px row has no room for the label next to all nine areas).
  */
 @Component({
   selector: 'app-top-bar',
@@ -28,7 +28,7 @@ import { TopMenu } from '../top-menu/top-menu';
   template: `
     <header class="sticky top-0 z-[6] border-b border-border bg-surface" data-testid="top-bar">
       <div
-        class="mx-auto flex max-w-[1240px] flex-wrap items-center gap-x-5 gap-y-0 pt-2 pr-[max(16px,env(safe-area-inset-right))] pl-[max(16px,env(safe-area-inset-left))] lg:flex-nowrap lg:py-2.5"
+        class="mx-auto flex max-w-[1240px] items-center gap-x-2 py-2 pr-[max(16px,env(safe-area-inset-right))] pl-[max(16px,env(safe-area-inset-left))] sm:gap-x-4 lg:py-2.5"
       >
         <a
           routerLink="/home"
@@ -41,29 +41,22 @@ import { TopMenu } from '../top-menu/top-menu';
             aria-hidden="true"
             >✦</span
           >
-          <span class="flex min-w-0 flex-col leading-tight">
-            <span class="font-display text-[18px] font-bold whitespace-nowrap text-fg"
-              >CoreFlow</span
-            >
-            @if (orgName(); as name) {
-              <span
-                class="hidden max-w-[160px] truncate text-micro text-fg-subtle md:block"
-                data-testid="brand-org"
-                >{{ name }}</span
-              >
-            }
-          </span>
+          <span class="font-display text-[18px] leading-tight font-bold whitespace-nowrap text-fg"
+            >CoreFlow</span
+          >
         </a>
 
-        <app-top-menu
-          class="order-last -mx-1 w-full pb-1.5 lg:order-none lg:mx-0 lg:w-auto lg:flex-1 lg:pb-0"
-        />
+        <app-top-menu class="min-w-0 flex-1" />
 
         <div class="ml-auto flex flex-none items-center gap-1 sm:gap-2.5">
-          <span class="flex items-center gap-2 text-meta whitespace-nowrap text-fg-muted">
-            <span class="hidden sm:inline" id="show-req-label">{{
+          <span
+            class="flex items-center gap-1.5 text-meta whitespace-nowrap text-fg-muted"
+            [title]="'shell.showRequirements.label' | transloco"
+          >
+            <span class="hidden sm:max-[1179px]:inline" id="show-req-label">{{
               'shell.showRequirements.label' | transloco
             }}</span>
+            <app-icon class="hidden min-[1180px]:flex" name="iso" [size]="17" aria-hidden="true" />
             <button
               type="button"
               role="switch"
@@ -104,9 +97,6 @@ export class TopBar {
   protected readonly palette = inject(CommandPaletteService);
   protected readonly req = inject(RequirementsVisibilityService);
   private readonly toasts = inject(NotificationService);
-  private readonly selectedOrg = inject(SelectedOrgService);
-
-  protected readonly orgName = computed(() => this.selectedOrg.currentOrg()?.name ?? null);
 
   private readonly apple = isApplePlatform();
   protected readonly shortcutLabel = this.apple ? '⌘K' : 'Ctrl+K';

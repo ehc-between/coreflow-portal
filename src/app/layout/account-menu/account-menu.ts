@@ -50,6 +50,7 @@ import { SETTINGS_NAV_ITEM } from '../nav';
       data-testid="account-menu-button"
       [attr.aria-expanded]="open()"
       [attr.aria-label]="'auth.menu.label' | transloco"
+      [title]="org?.name ?? ''"
       (click)="toggle()"
       class="relative flex rounded-full focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
     >
