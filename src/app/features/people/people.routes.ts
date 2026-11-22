@@ -8,7 +8,9 @@ const toPositions = { redirectTo: '/people/positions' };
 const toCompetences = { redirectTo: '/people/competences' };
 
 /**
- * People, roles and competence (M09, scope `people`; nav label and h1 "Personer"). `app.routes.ts` already gates
+ * People, roles and competence (M09, scope `people`; nav label and h1 "Personer"). `/people`
+ * itself is the Folk hub (IA v2, `features/people-hub`, mounted by app.routes before
+ * these routes), so there is no '' route here any more. `app.routes.ts` already gates
  * the area on the `people` module and `people:read`. Employees are written with
  * `people:write`; positions and competences need `people:manage`. The backend links
  * records as `/people/employees/<id>`, `/people/positions/<id>`,
@@ -21,7 +23,6 @@ export default [
     path: '',
     providers: [provideTranslocoScope('people')],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'employees' },
       {
         path: 'employees',
         loadComponent: () => import('./employees-list').then((m) => m.EmployeesList),

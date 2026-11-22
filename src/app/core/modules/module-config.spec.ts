@@ -65,7 +65,6 @@ const OLD_URLS: readonly [Routes, string, string, string][] = [
   [documentsRoutes, 'documents', 'types', 'types'],
   [documentsRoutes, 'documents', 'types/new', 'types/new'],
   [documentsRoutes, 'documents', 'types/:id', 'types/:id'],
-  [documentsRoutes, 'documents', 'templates', 'templates'],
   [documentsRoutes, 'documents', 'templates/new', 'templates/new'],
   [documentsRoutes, 'documents', 'templates/:id', 'templates/:id'],
   [documentsRoutes, 'documents', 'retention', 'retention'],
