@@ -16,6 +16,7 @@ import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { StandardsApi } from '../../core/standards/standards-api';
 import { CatalogueClause } from '../../core/standards/standards.models';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 import { Icon } from '../ui/icon/icon';
 import { fixedShortName, frameworkOf, shortNameKey } from './requirement-label';
 
@@ -83,114 +84,120 @@ interface Option {
     '(document:click)': 'onDocumentClick($event)',
   },
   template: `
-    <div
-      class="flex min-h-10 flex-wrap items-center gap-1.5 rounded-tile border border-border bg-bg px-2 py-1.5 focus-within:border-accent"
-      [class.opacity-60]="disabled()"
-    >
-      @for (ref of refs(); track ref) {
-        @let p = parsed(ref);
-        <span
-          class="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-border-strong bg-surface py-0.5 pr-1 pl-2 text-meta font-medium text-fg"
-          [title]="titles()[ref] ?? ''"
-          data-testid="clause-picker-value"
-        >
-          <span class="min-w-0 truncate">
-            @if (shortKey(p.framework); as key) {
-              {{ key | transloco }}
-            } @else {
-              {{ fixedShort(p.framework) ?? p.framework }}
-            }
-            @if (p.framework) {
-              ·
-            }
-            {{ p.number }}</span
+    @if (hiddenEmpty()) {
+      <p class="text-meta text-fg-muted" data-testid="clause-picker-hidden">
+        {{ 'ui.showRequirements.pickerHidden' | transloco }}
+      </p>
+    } @else {
+      <div
+        class="flex min-h-10 flex-wrap items-center gap-1.5 rounded-tile border border-border bg-bg px-2 py-1.5 focus-within:border-accent"
+        [class.opacity-60]="locked()"
+      >
+        @for (ref of refs(); track ref) {
+          @let p = parsed(ref);
+          <span
+            class="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border border-border-strong bg-surface py-0.5 pr-1 pl-2 text-meta font-medium text-fg"
+            [title]="titles()[ref] ?? ''"
+            data-testid="clause-picker-value"
           >
-          @if (!disabled()) {
-            <button
-              type="button"
-              class="flex flex-none rounded-full p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
-              [attr.aria-label]="'standards.reqs.picker.remove' | transloco: { ref: p.number }"
-              (click)="remove(ref)"
+            <span class="min-w-0 truncate">
+              @if (shortKey(p.framework); as key) {
+                {{ key | transloco }}
+              } @else {
+                {{ fixedShort(p.framework) ?? p.framework }}
+              }
+              @if (p.framework) {
+                ·
+              }
+              {{ p.number }}</span
             >
-              <app-icon name="x" [size]="12" />
-            </button>
-          }
-        </span>
-      }
-      @if (multiple() || refs().length === 0) {
-        <input
-          #box
-          type="text"
-          role="combobox"
-          autocomplete="off"
-          class="h-7 min-w-[10rem] flex-1 bg-transparent px-1 text-ui text-fg outline-none placeholder:text-fg-placeholder"
-          [id]="inputId() || autoId"
-          [disabled]="disabled()"
-          [value]="query()"
-          [placeholder]="placeholderKey() || 'standards.reqs.picker.placeholder' | transloco"
-          [attr.aria-label]="ariaLabel() || null"
-          [attr.aria-expanded]="open()"
-          [attr.aria-controls]="listId"
-          [attr.aria-activedescendant]="activeId()"
-          aria-autocomplete="list"
-          (input)="onInput(box.value)"
-          (focus)="onFocus()"
-          (keydown)="onKeydown($event)"
-          (blur)="touch()"
-        />
-      }
-    </div>
-    <div class="relative">
-      @if (open()) {
-        <div
-          class="absolute top-1 right-0 left-0 z-30 max-h-72 overflow-y-auto rounded-tile border border-border bg-surface p-1 shadow-pop"
-        >
-          @if (searching()) {
-            <p class="px-2 py-1.5 text-meta text-fg-muted">{{ 'common.loading' | transloco }}</p>
-          } @else if (error()) {
-            <p class="px-2 py-1.5 text-meta text-fail" role="alert">
-              {{ 'standards.reqs.picker.error' | transloco }}
-            </p>
-          } @else if (options().length === 0) {
-            <p class="px-2 py-1.5 text-meta text-fg-muted">
-              {{ 'standards.reqs.picker.noResults' | transloco }}
-            </p>
-          }
-          <ul [id]="listId" role="listbox" [attr.aria-multiselectable]="multiple()">
-            @for (option of options(); track option.id; let i = $index) {
-              <li
-                [id]="option.id"
-                role="option"
-                [attr.aria-selected]="i === active()"
-                class="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5"
-                [class.bg-surface-2]="i === active()"
-                (mousedown)="$event.preventDefault()"
-                tabindex="-1"
-                (click)="pick(option.clause)"
-                (keydown.enter)="pick(option.clause)"
-                (mouseenter)="active.set(i)"
-                data-testid="clause-picker-option"
+            @if (!locked()) {
+              <button
+                type="button"
+                class="flex flex-none rounded-full p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                [attr.aria-label]="'standards.reqs.picker.remove' | transloco: { ref: p.number }"
+                (click)="remove(ref)"
               >
-                <span class="min-w-0 flex-1">
-                  <span class="block text-ui font-semibold text-fg"
-                    >{{ option.clause.short }} · {{ option.clause.number }}</span
-                  >
-                  <span class="block truncate text-meta text-fg-muted">{{
-                    option.clause.title
-                  }}</span>
-                </span>
-                @if (!option.clause.enabled) {
-                  <span
-                    class="mt-0.5 flex-none rounded-full border border-border px-1.5 text-micro font-semibold text-fg-subtle"
-                    >{{ 'standards.reqs.picker.notEnabled' | transloco }}</span
-                  >
-                }
-              </li>
+                <app-icon name="x" [size]="12" />
+              </button>
             }
-          </ul>
-        </div>
-      }
-    </div>
+          </span>
+        }
+        @if (multiple() || refs().length === 0) {
+          <input
+            #box
+            type="text"
+            role="combobox"
+            autocomplete="off"
+            class="h-7 min-w-[10rem] flex-1 bg-transparent px-1 text-ui text-fg outline-none placeholder:text-fg-placeholder"
+            [id]="inputId() || autoId"
+            [disabled]="locked()"
+            [value]="query()"
+            [placeholder]="placeholderKey() || 'standards.reqs.picker.placeholder' | transloco"
+            [attr.aria-label]="ariaLabel() || null"
+            [attr.aria-expanded]="open()"
+            [attr.aria-controls]="listId"
+            [attr.aria-activedescendant]="activeId()"
+            aria-autocomplete="list"
+            (input)="onInput(box.value)"
+            (focus)="onFocus()"
+            (keydown)="onKeydown($event)"
+            (blur)="touch()"
+          />
+        }
+      </div>
+      <div class="relative">
+        @if (open()) {
+          <div
+            class="absolute top-1 right-0 left-0 z-30 max-h-72 overflow-y-auto rounded-tile border border-border bg-surface p-1 shadow-pop"
+          >
+            @if (searching()) {
+              <p class="px-2 py-1.5 text-meta text-fg-muted">{{ 'common.loading' | transloco }}</p>
+            } @else if (error()) {
+              <p class="px-2 py-1.5 text-meta text-fail" role="alert">
+                {{ 'standards.reqs.picker.error' | transloco }}
+              </p>
+            } @else if (options().length === 0) {
+              <p class="px-2 py-1.5 text-meta text-fg-muted">
+                {{ 'standards.reqs.picker.noResults' | transloco }}
+              </p>
+            }
+            <ul [id]="listId" role="listbox" [attr.aria-multiselectable]="multiple()">
+              @for (option of options(); track option.id; let i = $index) {
+                <li
+                  [id]="option.id"
+                  role="option"
+                  [attr.aria-selected]="i === active()"
+                  class="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5"
+                  [class.bg-surface-2]="i === active()"
+                  (mousedown)="$event.preventDefault()"
+                  tabindex="-1"
+                  (click)="pick(option.clause)"
+                  (keydown.enter)="pick(option.clause)"
+                  (mouseenter)="active.set(i)"
+                  data-testid="clause-picker-option"
+                >
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-ui font-semibold text-fg"
+                      >{{ option.clause.short }} · {{ option.clause.number }}</span
+                    >
+                    <span class="block truncate text-meta text-fg-muted">{{
+                      option.clause.title
+                    }}</span>
+                  </span>
+                  @if (!option.clause.enabled) {
+                    <span
+                      class="mt-0.5 flex-none rounded-full border border-border px-1.5 text-micro font-semibold text-fg-subtle"
+                      >{{ 'standards.reqs.picker.notEnabled' | transloco }}</span
+                    >
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
   `,
 })
 export class ClausePicker implements ControlValueAccessor {
@@ -218,6 +225,10 @@ export class ClausePicker implements ControlValueAccessor {
   protected readonly open = signal(false);
   protected readonly active = signal(-1);
   protected readonly disabled = signal(false);
+  /** "Vis krav" (IA v2 §4.3): with the switch off the field is read-only, and an empty one is a hint. */
+  private readonly reqVis = inject(RequirementsVisibilityService);
+  protected readonly locked = computed(() => this.disabled() || !this.reqVis.show());
+  protected readonly hiddenEmpty = computed(() => !this.reqVis.show() && this.refs().length === 0);
   /** Clause titles seen in search results, for the tooltip of a chosen ref. */
   protected readonly titles = signal<Readonly<Record<string, string>>>({});
 

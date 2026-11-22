@@ -25,7 +25,7 @@ interface DocumentsNavItem {
  * gear, under `/settings/modules/documents`.
  */
 export const DOCUMENTS_NAV: readonly DocumentsNavItem[] = [
-  { key: 'documents', link: '/documents', exact: true },
+  { key: 'documents', link: '/documents/all', exact: true },
   { key: 'register', link: '/documents/register', exact: false },
   { key: 'campaigns', link: '/documents/campaigns', exact: false, distribute: true },
   { key: 'external', link: '/documents/external', exact: false },

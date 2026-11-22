@@ -23,7 +23,7 @@ import {
   PreflightItem,
 } from '../../core/outputs/outputs.models';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { REPORTS_REDIRECTS } from '../../features/library/library-redirects';
+import { LEGACY_REDIRECTS } from '../../layout/legacy-redirects';
 import { PageHeader } from '../ui/page-header/page-header';
 import { GenerateDialog } from './generate-dialog';
 import { LIBRARY_SECTIONS } from './library-nav';
@@ -502,7 +502,7 @@ describe('Reports redirects', () => {
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([
-          ...REPORTS_REDIRECTS,
+          ...LEGACY_REDIRECTS,
           { path: 'reports/custom/:id/edit', children: [] },
           { path: 'reports/custom/new', children: [] },
           { path: 'reports/exports', children: [] },

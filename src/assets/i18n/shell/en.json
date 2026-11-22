@@ -1,38 +1,4 @@
 {
-  "nav": {
-    "home": "Home",
-    "myWork": "My work",
-    "chat": "Messages",
-    "standards": "Standards",
-    "registers": "Registers",
-    "library": "Documents and reports",
-    "settings": "Settings"
-  },
-  "registrer": {
-    "label": "Add new",
-    "heading": "What do you want to add?",
-    "deviation": "Deviation or incident",
-    "breach": "Personal data breach",
-    "feedback": "Customer feedback",
-    "risk": "Risk",
-    "task": "Task",
-    "document": "Document",
-    "supplier": "Supplier",
-    "customer": "Customer"
-  },
-  "groups": {
-    "governance": "Governance",
-    "risk": "Risk",
-    "improvement": "Incidents and improvement",
-    "suppliersAssets": "Suppliers and assets",
-    "people": "People",
-    "privacy": "Privacy",
-    "ai": "AI",
-    "envHse": "Environment and health and safety",
-    "continuity": "Preparedness",
-    "library": "Documents and reports",
-    "customers": "Customers"
-  },
   "pins": {
     "heading": "Pinned",
     "edit": "Change",
@@ -50,32 +16,54 @@
     "aiAssessments": "AI assessments",
     "auditFindings": "Audit findings"
   },
-  "help": {
-    "label": "Help and learning",
-    "lessons": "My lessons",
-    "ask": "Ask the assistant"
-  },
-  "search": {
-    "placeholder": "Find or ask…"
-  },
   "account": {
-    "heading": "Menu",
-    "showAll": "Show everything",
-    "showAllHint": "Show every menu item you have access to, not just the ones for your role.",
-    "newMenu": "New, simpler menu",
-    "newMenuOnHint": "Turn off to go back to the old menu.",
-    "newMenuOffHint": "Seven fixed menu items instead of one per module."
+    "switchOrg": "Switch company",
+    "me": "Me",
+    "profile": "My profile and password",
+    "myNotifications": "My notifications",
+    "appearance": "Appearance and language",
+    "help": "Help and learning",
+    "learning": "Learning centre",
+    "shortcuts": "Keyboard shortcuts",
+    "shortcutsHint": "{{ search }} search · {{ ask }} ask CoreFlow · N register",
+    "admin": "Administration",
+    "settings": "Settings",
+    "modules": "Modules",
+    "setup": "Company setup",
+    "organizations": "All organisations"
   },
   "prefs": {
     "saveFailed": "Could not save your menu choice. Try again."
   },
-  "orgSettings": {
-    "title": "Menu",
-    "label": "New, simpler menu",
-    "hint": "Seven fixed menu items (Add new, Home, My work, Standards, Registers, Documents and reports, Settings) instead of one per module. Each member can switch back in their account menu.",
-    "loadError": "Could not load the menu setting.",
-    "savedOn": "The new menu is now on for the organisation.",
-    "savedOff": "The organisation uses the old menu again.",
-    "saveFailed": "Could not save the menu setting. Try again."
+  "showRequirements": {
+    "label": "Show requirements",
+    "aria": "Show which standard requirements things meet"
+  },
+  "ask": {
+    "label": "Ask CoreFlow"
+  },
+  "inbox": {
+    "label": "Inbox",
+    "labelCount": "Inbox, {{ count }} new",
+    "title": "Inbox",
+    "close": "Close the inbox",
+    "loading": "Loading …",
+    "retry": "Try again",
+    "tabs": {
+      "tasks": "Tasks",
+      "messages": "Messages",
+      "notifications": "Notifications"
+    },
+    "tasks": {
+      "empty": "Nothing urgent. Everything is on track.",
+      "error": "Could not load your tasks.",
+      "open": "Open",
+      "seeAll": "See all work →",
+      "allTasks": "All tasks"
+    },
+    "messages": {
+      "empty": "No unread messages.",
+      "open": "Open chat →"
+    }
   }
 }

@@ -1,0 +1,246 @@
+{
+  "common": {
+    "attentionTitle": "Needs attention",
+    "nothingUrgent": "Nothing urgent right now.",
+    "things": "{{count}} things",
+    "onTrack": "All on track",
+    "moreLinks": "More here",
+    "open": "Open"
+  },
+  "company": {
+    "eyebrow": "The company on one page",
+    "editProfile": "Edit profile",
+    "orgNumber": "Org. no. {{value}}",
+    "employees": "{{value}} employees",
+    "kv": {
+      "standards": "Standards",
+      "ceo": "Managing director",
+      "nextAudit": "Next external audit",
+      "attention": "Needs attention",
+      "notSet": "Not set"
+    },
+    "hubTitle": "All about the company",
+    "hubIntro": "Who you are, what you want to achieve and how you are run. This is the foundation every standard builds on.",
+    "tiles": {
+      "interestedParties": {
+        "label": "Interested parties",
+        "hint": "Who has requirements and expectations of you"
+      },
+      "policies": {
+        "label": "Policies",
+        "hint": "What management commits to"
+      },
+      "responsibilities": {
+        "label": "Roles and responsibilities",
+        "hint": "Who does what, and who decides"
+      },
+      "objectives": {
+        "label": "Objectives and KPIs",
+        "hint": "What you want to achieve this year"
+      },
+      "risk": {
+        "label": "Risks and opportunities",
+        "hint": "What can go wrong, and what you do about it"
+      },
+      "processes": {
+        "label": "Processes",
+        "hint": "How you work"
+      },
+      "obligations": {
+        "label": "Laws and regulations",
+        "hint": "What you are obliged to follow"
+      },
+      "scope": {
+        "label": "Scope and context",
+        "hint": "What the management system covers, and strengths, weaknesses, opportunities and threats"
+      },
+      "projects": {
+        "label": "Projects",
+        "hint": "What you are working on now"
+      }
+    },
+    "links": {
+      "matrix": "Responsibility matrix",
+      "analyses": "Context analyses",
+      "departments": "Departments",
+      "interview": "Suggest with an interview"
+    },
+    "start": {
+      "title": "Get started with the company",
+      "body": "Answer four questions about the company, and we suggest interested parties, scope and context for you to review.",
+      "cta": "Suggest with an interview"
+    }
+  },
+  "topics": {
+    "title": "Topic areas",
+    "intro": "Privacy, IT, AI, environment and preparedness. The areas you manage on top of the daily work.",
+    "crumb": "Company",
+    "tiles": {
+      "privacy": {
+        "label": "Privacy",
+        "hint": "Processing of personal data, assessments and requests"
+      },
+      "assets": {
+        "label": "IT and equipment",
+        "hint": "Equipment, systems, calibration and changes"
+      },
+      "ai": {
+        "label": "AI systems",
+        "hint": "AI you use or build, and how it is assessed"
+      },
+      "environment": {
+        "label": "Environment",
+        "hint": "Environmental aspects, measurements and emissions"
+      },
+      "continuity": {
+        "label": "Preparedness and continuity",
+        "hint": "What you do if something stops"
+      }
+    },
+    "status": {
+      "attention": "{{count}} things need attention",
+      "ok": "Nothing urgent"
+    },
+    "empty": "None of the topic areas is switched on"
+  },
+  "people": {
+    "title": "People",
+    "intro": "Everyone who works for you, what they know, and what they need to learn.",
+    "newEmployee": "+ New employee",
+    "tiles": {
+      "employees": {
+        "label": "People",
+        "hint": "Employees and contractors"
+      },
+      "training": {
+        "label": "Training",
+        "hint": "Courses and who has taken them"
+      },
+      "competences": {
+        "label": "Competence",
+        "hint": "What each role requires"
+      },
+      "recruitment": {
+        "label": "Recruitment",
+        "hint": "Positions you are hiring for now"
+      },
+      "hse": {
+        "label": "Health and safety",
+        "hint": "Safety rounds, near misses and protective equipment"
+      },
+      "access": {
+        "label": "Access reviews",
+        "hint": "Who has access to what"
+      }
+    },
+    "links": {
+      "members": "Users in CoreFlow",
+      "checklists": "Joiner and leaver checklists",
+      "positions": "Positions",
+      "matrix": "Competence matrix",
+      "literacy": "AI literacy"
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "introBefore": "Everything that is not a work procedure: policies, plans, agreement templates, external standards and laws, and the archive. You find the procedures in the ",
+    "introLink": "Handbook",
+    "introAfter": ".",
+    "newDocument": "+ New document",
+    "addExternal": "Register external document",
+    "tiles": {
+      "policies": {
+        "label": "Policies",
+        "hint": "What management commits to"
+      },
+      "plans": {
+        "label": "Plans",
+        "hint": "Preparedness, training, audits"
+      },
+      "templates": {
+        "label": "Templates",
+        "hint": "Start from a ready draft"
+      },
+      "external": {
+        "label": "External documents",
+        "hint": "Standards, laws and customer requirements"
+      },
+      "archive": {
+        "label": "Archive",
+        "hint": "Approved reports and minutes"
+      },
+      "waiting": {
+        "label": "Waiting for you",
+        "hint": "Approval or read confirmation"
+      }
+    },
+    "otherPlans": "Plans in other registers:",
+    "continuityPlans": "Continuity plans ({{count}})",
+    "emergencyPlans": "Environmental emergency plans ({{count}})",
+    "table": {
+      "label": "Documents",
+      "document": "Document",
+      "type": "Type",
+      "status": "Status",
+      "nextReview": "Next review"
+    },
+    "version": "version {{rev}}",
+    "allDocuments": "All documents →",
+    "emptyTitle": "No documents yet",
+    "emptyBody": "Create the first document, and we suggest the text from the company profile.",
+    "status": {
+      "draft": "Draft",
+      "in_review": "Awaiting approval",
+      "approved": "Approved",
+      "obsolete": "Obsolete"
+    },
+    "review": {
+      "overdue": "Overdue",
+      "inDays": "In {{count}} days",
+      "inWeeks": "In {{count}} weeks",
+      "none": "Not set"
+    },
+    "links": {
+      "register": "Document register",
+      "campaigns": "Read campaigns",
+      "readConfirm": "Read confirmations"
+    },
+    "systemTypes": {
+      "process": "Process description",
+      "scope": "Scope",
+      "context_analysis": "Context analysis"
+    }
+  },
+  "templates": {
+    "title": "Templates",
+    "intro": "Start from a ready draft. Pick a template, and we create a new document from it.",
+    "use": "Use template",
+    "edit": "Edit the templates in Settings",
+    "noType": "No type",
+    "emptyTitle": "No templates yet",
+    "emptyBody": "Templates are created in Settings under Documents."
+  },
+  "archive": {
+    "title": "Archive",
+    "intro": "Approved reports and minutes, locked and archived. Every version is kept unchanged.",
+    "total": "{{count}} files in the archive",
+    "more": "Show more",
+    "emptyTitle": "The archive is empty",
+    "emptyBody": "Reports you create under Reports land here when they are final.",
+    "emptyCta": "Go to Reports",
+    "deleted": "Deleted documents"
+  },
+  "waiting": {
+    "title": "Waiting for you",
+    "intro": "Documents you need to approve or read and confirm.",
+    "approve": "Read and approve",
+    "acknowledge": "Read and confirm",
+    "kindApprove": "Approval",
+    "kindAcknowledge": "Read confirmation",
+    "overdue": "Overdue",
+    "due": "Due {{date}}",
+    "emptyTitle": "Nothing is waiting for you",
+    "emptyBody": "When someone asks you to approve or read a document, it shows up here.",
+    "allWork": "See all your work →"
+  }
+}

@@ -6,7 +6,7 @@ import { permissionGuard } from './core/auth/permission.guard';
 import { superAdminGuard } from './core/auth/super-admin.guard';
 import { moduleGuard } from './core/modules/module.service';
 import { orgDeepLinkGuard } from './core/org/org-deep-link.guard';
-import { REPORTS_REDIRECTS } from './features/library/library-redirects';
+import { LEGACY_REDIRECTS } from './layout/legacy-redirects';
 import { MainLayout } from './layout/main-layout/main-layout';
 
 /**
@@ -25,6 +25,33 @@ function moduleRoute(
     title: `modules.names.${key}`,
     canActivate: [moduleGuard(key), permissionGuard(`${key}:read`)],
     loadChildren,
+  };
+}
+
+/**
+ * An area whose overview sits at a module's root (IA v2 §9.2): `/<path>` shows the
+ * area overview (open to every member), and the module's own pages below it keep
+ * their module + read-permission gate.
+ */
+function hubRoute(
+  path: string,
+  key: string,
+  title: string,
+  loadHub: NonNullable<Route['loadChildren']>,
+  loadModule: NonNullable<Route['loadChildren']>,
+): Route {
+  return {
+    path,
+    title,
+    children: [
+      { path: '', pathMatch: 'full', loadChildren: loadHub },
+      {
+        path: '',
+        title: `modules.names.${key}`,
+        canActivate: [moduleGuard(key), permissionGuard(`${key}:read`)],
+        loadChildren: loadModule,
+      },
+    ],
   };
 }
 
@@ -89,7 +116,9 @@ export const routes: Routes = [
     // An org that requires MFA keeps the member on the setup page until they enrol.
     canActivateChild: [mfaEnrolmentGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
+      // Old landing pages (IA v2 §7); query strings are kept.
+      ...LEGACY_REDIRECTS,
       {
         // A deep link to an org the user doesn't belong to.
         path: 'no-access',
@@ -97,15 +126,71 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/org-access/no-org-access').then((m) => m.NoOrgAccess),
       },
+      // IA v2 (docs/ia-v2.md §2, §9.2): the nine area overview pages. Overviews are
+      // open to every member (they show the sections the user can see); only Håndbok is
+      // gated, since it is entirely the processes module (D15).
       {
-        path: 'dashboard',
-        title: 'nav.dashboard',
-        // The default landing page. A user without dashboard:view falls back
-        // silently to My Work (always available) — no warning, since they may
-        // simply have signed in. Must not redirect to /dashboard (loop).
-        canActivate: [permissionGuard('dashboard:view', { redirectTo: '/my-work', notify: false })],
-        loadChildren: () => import('./features/dashboard/dashboard.routes'),
+        path: 'home',
+        title: 'nav.areas.home.label',
+        loadChildren: () => import('./features/home/home.routes'),
       },
+      {
+        path: 'speak-up',
+        title: 'nav.areas.speakUp.label',
+        loadChildren: () => import('./features/speak-up/speak-up.routes'),
+      },
+      {
+        path: 'cases',
+        title: 'nav.areas.speakUp.items.cases.label',
+        loadChildren: () => import('./features/cases/cases.routes'),
+      },
+      {
+        path: 'annual-cycle',
+        title: 'nav.areas.annual.label',
+        loadChildren: () => import('./features/annual-cycle/annual-cycle.routes'),
+      },
+      {
+        path: 'company',
+        title: 'nav.areas.company.label',
+        loadChildren: () => import('./features/company/company.routes'),
+      },
+      {
+        path: 'contacts',
+        title: 'nav.areas.contacts.label',
+        loadChildren: () => import('./features/contacts/contacts.routes'),
+      },
+      {
+        path: 'handbook',
+        title: 'nav.areas.handbook.label',
+        canActivate: [
+          moduleGuard('processes'),
+          permissionGuard('processes:read', { redirectTo: '/documents' }),
+        ],
+        loadChildren: () => import('./features/handbook/handbook.routes'),
+      },
+      // Folk, Dokumenter and Rapporter: the area overview at the module root, the
+      // module's own pages (gated as before) below it.
+      hubRoute(
+        'people',
+        'people',
+        'nav.areas.people.label',
+        () => import('./features/people-hub/people-hub.routes'),
+        () => import('./features/people/people.routes'),
+      ),
+      hubRoute(
+        'documents',
+        'documents',
+        'nav.areas.documents.label',
+        () => import('./features/documents-hub/documents-hub.routes'),
+        () => import('./features/documents/documents.routes'),
+      ),
+      hubRoute(
+        'reports',
+        'reports',
+        'nav.areas.reports.label',
+        () => import('./features/reports/reports-hub.routes'),
+        () => import('./features/reports/reports.routes'),
+      ),
       {
         path: 'my-work',
         title: 'nav.myWork',
@@ -188,11 +273,8 @@ export const routes: Routes = [
         title: 'nav.library',
         loadChildren: () => import('./features/library/library.routes'),
       },
-      ...REPORTS_REDIRECTS,
-      moduleRoute('reports', 'reports', () => import('./features/reports/reports.routes')),
       // Operations
       moduleRoute('processes', 'processes', () => import('./features/processes/processes.routes')),
-      moduleRoute('documents', 'documents', () => import('./features/documents/documents.routes')),
       moduleRoute('customers', 'customers', () => import('./features/customers/customers.routes')),
       moduleRoute('projects', 'projects', () => import('./features/projects/projects.routes')),
       moduleRoute('suppliers', 'suppliers', () => import('./features/suppliers/suppliers.routes')),
@@ -218,7 +300,6 @@ export const routes: Routes = [
       moduleRoute('risk', 'risk', () => import('./features/risk/risk.routes')),
       moduleRoute('feedback', 'feedback', () => import('./features/feedback/feedback.routes')),
       // People
-      moduleRoute('people', 'people', () => import('./features/people/people.routes')),
       moduleRoute(
         'recruitment',
         'recruitment',
@@ -240,12 +321,6 @@ export const routes: Routes = [
       ),
       moduleRoute('hse', 'hse', () => import('./features/hse/hse.routes')),
 
-      // The module used to live at /iso (placeholder) — keep old links working.
-      { path: 'iso', pathMatch: 'full', redirectTo: 'standards' },
-      // Procedures became the process register.
-      { path: 'procedures', pathMatch: 'full', redirectTo: 'processes' },
-      // The learning centre has a nav entry now; give it a short, guessable URL.
-      { path: 'learning', pathMatch: 'full', redirectTo: 'account/learning' },
       {
         path: 'admin/organizations',
         canActivate: [authGuard, superAdminGuard],

@@ -50,7 +50,232 @@
     "learning": "Læringssenter",
     "customizeDone": "Ferdig",
     "showItem": "Vis {{ name }} i menyen",
-    "library": "Dokumenter og rapporter"
+    "library": "Dokumenter og rapporter",
+    "areas": {
+      "home": {
+        "label": "Oversikt"
+      },
+      "speakUp": {
+        "label": "Meld fra",
+        "items": {
+          "report": {
+            "label": "Meld fra",
+            "hint": "Noe har skjedd"
+          },
+          "cases": {
+            "label": "Alle saker",
+            "hint": "Avvik, hendelser, brudd og klager"
+          },
+          "myCases": {
+            "label": "Mine saker",
+            "hint": "Det du følger opp"
+          },
+          "actions": {
+            "label": "Tiltak",
+            "hint": "Det som er bestemt for å rette opp"
+          },
+          "intake": {
+            "label": "Varslinger",
+            "hint": "Anonyme meldinger og varsling"
+          }
+        }
+      },
+      "annual": {
+        "label": "Årshjul",
+        "items": {
+          "cycle": {
+            "label": "Årshjulet",
+            "hint": "Alt som skal skje i år"
+          },
+          "audits": {
+            "label": "Revisjoner",
+            "hint": "Intern og ekstern revisjon"
+          },
+          "inspections": {
+            "label": "Inspeksjoner og vernerunder",
+            "hint": "Med sjekkliste på mobil"
+          },
+          "managementReview": {
+            "label": "Ledelsens gjennomgang",
+            "hint": "Grunnlaget samles automatisk"
+          },
+          "recurring": {
+            "label": "Gjentakende oppgaver",
+            "hint": "Det som kommer igjen hver uke, måned eller år"
+          }
+        }
+      },
+      "company": {
+        "label": "Bedriften",
+        "items": {
+          "interestedParties": {
+            "label": "Interessenter",
+            "hint": "Hvem har krav til dere"
+          },
+          "policies": {
+            "label": "Policyer",
+            "hint": "Det ledelsen forplikter seg til"
+          },
+          "responsibilities": {
+            "label": "Roller og ansvar",
+            "hint": "Hvem gjør hva"
+          },
+          "objectives": {
+            "label": "Mål og KPI-er",
+            "hint": "Hva dere vil oppnå"
+          },
+          "risk": {
+            "label": "Risikoer og muligheter",
+            "hint": "Hva kan gå galt"
+          },
+          "obligations": {
+            "label": "Lover og regler",
+            "hint": "Det dere må følge"
+          },
+          "scope": {
+            "label": "Omfang og kontekst",
+            "hint": "Hva systemet dekker"
+          },
+          "projects": {
+            "label": "Prosjekter",
+            "hint": "Det dere jobber med nå"
+          },
+          "topics": {
+            "label": "Fagområder",
+            "hint": "Personvern, IT, KI, miljø og beredskap"
+          }
+        }
+      },
+      "people": {
+        "label": "Folk",
+        "items": {
+          "employees": {
+            "label": "Personer",
+            "hint": "Ansatte og innleide"
+          },
+          "training": {
+            "label": "Opplæring",
+            "hint": "Kurs og hvem som har tatt dem"
+          },
+          "competences": {
+            "label": "Kompetanse",
+            "hint": "Hva hver rolle krever"
+          },
+          "recruitment": {
+            "label": "Rekruttering",
+            "hint": "Stillinger dere ansetter til"
+          },
+          "hse": {
+            "label": "HMS",
+            "hint": "Vernerunder, nestenulykker og verneutstyr"
+          },
+          "access": {
+            "label": "Tilgang",
+            "hint": "Hvem har tilgang til hva"
+          }
+        }
+      },
+      "contacts": {
+        "label": "Kontakter",
+        "items": {
+          "customers": {
+            "label": "Kunder",
+            "hint": "Med reklamasjoner og kontrakter"
+          },
+          "suppliers": {
+            "label": "Leverandører",
+            "hint": "Med evaluering og risiko"
+          },
+          "processors": {
+            "label": "Databehandlere",
+            "hint": "Med databehandleravtale"
+          },
+          "agreements": {
+            "label": "Avtaler",
+            "hint": "Alle kontrakter og frister"
+          },
+          "surveys": {
+            "label": "Kundeundersøkelser",
+            "hint": "Hva kundene mener"
+          }
+        }
+      },
+      "handbook": {
+        "label": "Håndbok",
+        "items": {
+          "map": {
+            "label": "Prosesskart",
+            "hint": "Hele bedriften fra start til slutt"
+          },
+          "procedures": {
+            "label": "Alle prosedyrer",
+            "hint": "Instrukser og sjekklister, per prosess"
+          }
+        },
+        "kinds": {
+          "core": "Kjerneprosess",
+          "management": "Ledelsesprosess",
+          "support": "Støtteprosess"
+        }
+      },
+      "documents": {
+        "label": "Dokumenter",
+        "items": {
+          "policies": {
+            "label": "Policyer",
+            "hint": "Det ledelsen forplikter seg til"
+          },
+          "plans": {
+            "label": "Planer",
+            "hint": "Beredskap, opplæring, revisjon"
+          },
+          "templates": {
+            "label": "Maler",
+            "hint": "Start fra et ferdig utkast"
+          },
+          "external": {
+            "label": "Eksterne dokumenter",
+            "hint": "Standarder og lover"
+          },
+          "archive": {
+            "label": "Arkiv",
+            "hint": "Låste rapporter og referater"
+          },
+          "waiting": {
+            "label": "Venter på deg",
+            "hint": "Godkjenning eller lesebekreftelse"
+          }
+        }
+      },
+      "reports": {
+        "label": "Rapporter",
+        "items": {
+          "auditor": {
+            "label": "Til revisor",
+            "hint": "Revisjonspakke og SoA"
+          },
+          "authority": {
+            "label": "Til Datatilsynet",
+            "hint": "Protokoll og bruddvarsel"
+          },
+          "board": {
+            "label": "Til styret",
+            "hint": "Ledelsens gjennomgang"
+          },
+          "people": {
+            "label": "Til kunder og ansatte",
+            "hint": "Personvernerklæring og håndbok"
+          },
+          "standards": {
+            "label": "Standarder (ekspertvisning)",
+            "hint": "Krav for krav, for revisorer og konsulenter"
+          }
+        }
+      },
+      "mainMenu": "Hovedmeny",
+      "seeAll": "Se hele oversikten →",
+      "openMenu": "Vis undermeny for {{ area }}"
+    }
   },
   "topbar": {
     "searchPlaceholder": "Søk, eller spør CoreFlow …",
@@ -2648,7 +2873,8 @@
       "appearance": "Utseende",
       "lightTheme": "Bytt til lyst utseende",
       "darkTheme": "Bytt til mørkt utseende",
-      "home": "CoreFlow, til forsiden"
+      "home": "CoreFlow, til forsiden",
+      "ask": "Spør CoreFlow"
     },
     "countries": {
       "EU": "Den europeiske union (EU)",
@@ -2680,6 +2906,11 @@
       "inProgress": "Pågår",
       "overdue": "Forfalt",
       "closed": "Lukket"
+    },
+    "showRequirements": {
+      "on": "Viser hvilke krav hver ting oppfyller",
+      "off": "Kravene er skjult igjen",
+      "pickerHidden": "Slå på «Vis krav» for å koble til krav."
     }
   },
   "account": {

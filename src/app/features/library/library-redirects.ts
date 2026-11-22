@@ -1,11 +1,5 @@
 import { inject } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivateFn,
-  RedirectFunction,
-  Route,
-  Router,
-} from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, RedirectFunction, Router } from '@angular/router';
 import { Observable, map } from 'rxjs';
 import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
@@ -73,29 +67,3 @@ export function libraryRootTarget(route: Pick<ActivatedRouteSnapshot, 'queryPara
   }
   return CATALOGUE_PARAMS.some((p) => query[p]) ? ['/reports/all'] : ['/reports'];
 }
-
-/**
- * Old `/reports/*` sub-page URLs (U11 moved them to `/library`, IA v2 brings them back
- * under Rapporter). Mounted by app.routes before the Reports module route. The IA v2
- * shell carries the same entries in `layout/legacy-redirects.ts`; this list can go
- * once app.routes no longer imports it.
- */
-export const REPORTS_REDIRECTS: Route[] = [
-  { path: 'reports/registers', pathMatch: 'full', redirectTo: moved(() => ['/reports/exports']) },
-  { path: 'reports/definitions', pathMatch: 'full', redirectTo: moved(() => ['/reports/custom']) },
-  {
-    path: 'reports/definitions/new',
-    pathMatch: 'full',
-    redirectTo: moved(() => ['/reports/custom/new']),
-  },
-  {
-    path: 'reports/definitions/:id',
-    pathMatch: 'full',
-    redirectTo: moved((p) => ['/reports/custom', p['id']]),
-  },
-  {
-    path: 'reports/definitions/:id/edit',
-    pathMatch: 'full',
-    redirectTo: moved((p) => ['/reports/custom', p['id'], 'edit']),
-  },
-];

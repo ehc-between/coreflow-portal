@@ -1,0 +1,246 @@
+{
+  "common": {
+    "attentionTitle": "Dette trenger oppmerksomhet",
+    "nothingUrgent": "Ingenting som haster akkurat nå.",
+    "things": "{{count}} ting",
+    "onTrack": "Alt i rute",
+    "moreLinks": "Mer her",
+    "open": "Åpne"
+  },
+  "company": {
+    "eyebrow": "Bedriften på én side",
+    "editProfile": "Rediger profil",
+    "orgNumber": "Org.nr. {{value}}",
+    "employees": "{{value}} ansatte",
+    "kv": {
+      "standards": "Standarder",
+      "ceo": "Daglig leder",
+      "nextAudit": "Neste ekstern revisjon",
+      "attention": "Trenger oppmerksomhet",
+      "notSet": "Ikke satt"
+    },
+    "hubTitle": "Alt om bedriften",
+    "hubIntro": "Hvem dere er, hva dere skal oppnå og hvordan dere styrer. Dette er grunnmuren alle standardene bygger på.",
+    "tiles": {
+      "interestedParties": {
+        "label": "Interessenter",
+        "hint": "Hvem som har krav og forventninger til dere"
+      },
+      "policies": {
+        "label": "Policyer",
+        "hint": "Det ledelsen forplikter seg til"
+      },
+      "responsibilities": {
+        "label": "Roller og ansvar",
+        "hint": "Hvem gjør hva, og hvem bestemmer"
+      },
+      "objectives": {
+        "label": "Mål og KPI-er",
+        "hint": "Hva dere vil oppnå i år"
+      },
+      "risk": {
+        "label": "Risikoer og muligheter",
+        "hint": "Hva kan gå galt, og hva dere gjør med det"
+      },
+      "processes": {
+        "label": "Prosesser",
+        "hint": "Slik jobber dere"
+      },
+      "obligations": {
+        "label": "Lover og regler",
+        "hint": "Det dere er pliktige til å følge"
+      },
+      "scope": {
+        "label": "Omfang og kontekst",
+        "hint": "Hva styringssystemet dekker, og styrker, svakheter, muligheter og trusler"
+      },
+      "projects": {
+        "label": "Prosjekter",
+        "hint": "Det dere jobber med nå"
+      }
+    },
+    "links": {
+      "matrix": "Ansvarsmatrise",
+      "analyses": "Kontekstanalyser",
+      "departments": "Avdelinger",
+      "interview": "Foreslå med intervju"
+    },
+    "start": {
+      "title": "Kom i gang med bedriften",
+      "body": "Svar på fire spørsmål om bedriften, så foreslår vi interessenter, omfang og kontekst som du kan se over.",
+      "cta": "Foreslå med intervju"
+    }
+  },
+  "topics": {
+    "title": "Fagområder",
+    "intro": "Personvern, IT, KI, miljø og beredskap. Områdene dere styrer i tillegg til det daglige arbeidet.",
+    "crumb": "Bedriften",
+    "tiles": {
+      "privacy": {
+        "label": "Personvern",
+        "hint": "Behandlinger av personopplysninger, vurderinger og henvendelser"
+      },
+      "assets": {
+        "label": "IT og utstyr",
+        "hint": "Utstyr, systemer, kalibrering og endringer"
+      },
+      "ai": {
+        "label": "KI-systemer",
+        "hint": "KI dere bruker eller lager, og vurderingene av dem"
+      },
+      "environment": {
+        "label": "Miljø",
+        "hint": "Miljøaspekter, målinger og utslipp"
+      },
+      "continuity": {
+        "label": "Beredskap og kontinuitet",
+        "hint": "Hva dere gjør hvis noe stopper"
+      }
+    },
+    "status": {
+      "attention": "{{count}} ting trenger oppmerksomhet",
+      "ok": "Ingenting som haster"
+    },
+    "empty": "Ingen av fagområdene er slått på"
+  },
+  "people": {
+    "title": "Folk",
+    "intro": "Alle som jobber for dere, hva de kan, og hva de må lære.",
+    "newEmployee": "+ Ny ansatt",
+    "tiles": {
+      "employees": {
+        "label": "Personer",
+        "hint": "Ansatte og innleide"
+      },
+      "training": {
+        "label": "Opplæring",
+        "hint": "Kurs og hvem som har tatt dem"
+      },
+      "competences": {
+        "label": "Kompetanse",
+        "hint": "Hva hver rolle krever"
+      },
+      "recruitment": {
+        "label": "Rekruttering",
+        "hint": "Stillinger dere ansetter til nå"
+      },
+      "hse": {
+        "label": "HMS",
+        "hint": "Vernerunder, nestenulykker og verneutstyr"
+      },
+      "access": {
+        "label": "Tilgangsgjennomgang",
+        "hint": "Hvem har tilgang til hva"
+      }
+    },
+    "links": {
+      "members": "Brukere i CoreFlow",
+      "checklists": "Sjekklister for start og slutt",
+      "positions": "Stillinger",
+      "matrix": "Kompetansematrise",
+      "literacy": "KI-kompetanse"
+    }
+  },
+  "documents": {
+    "title": "Dokumenter",
+    "introBefore": "Alt som ikke er en arbeidsprosedyre: policyer, planer, avtalemaler, eksterne standarder og lover, og arkivet. Prosedyrene finner du i ",
+    "introLink": "Håndbok",
+    "introAfter": ".",
+    "newDocument": "+ Nytt dokument",
+    "addExternal": "Registrer eksternt dokument",
+    "tiles": {
+      "policies": {
+        "label": "Policyer",
+        "hint": "Det ledelsen forplikter seg til"
+      },
+      "plans": {
+        "label": "Planer",
+        "hint": "Beredskap, opplæring, revisjon"
+      },
+      "templates": {
+        "label": "Maler",
+        "hint": "Start fra et ferdig utkast"
+      },
+      "external": {
+        "label": "Eksterne dokumenter",
+        "hint": "Standarder, lover og kundekrav"
+      },
+      "archive": {
+        "label": "Arkiv",
+        "hint": "Godkjente rapporter og referater"
+      },
+      "waiting": {
+        "label": "Venter på deg",
+        "hint": "Godkjenning eller lesebekreftelse"
+      }
+    },
+    "otherPlans": "Planer i andre registre:",
+    "continuityPlans": "Kontinuitetsplaner ({{count}})",
+    "emergencyPlans": "Beredskapsplaner for miljø ({{count}})",
+    "table": {
+      "label": "Dokumenter",
+      "document": "Dokument",
+      "type": "Type",
+      "status": "Status",
+      "nextReview": "Neste gjennomgang"
+    },
+    "version": "versjon {{rev}}",
+    "allDocuments": "Alle dokumenter →",
+    "emptyTitle": "Ingen dokumenter ennå",
+    "emptyBody": "Lag det første dokumentet, så foreslår vi teksten ut fra bedriftsprofilen.",
+    "status": {
+      "draft": "Utkast",
+      "in_review": "Venter på godkjenning",
+      "approved": "Godkjent",
+      "obsolete": "Utgått"
+    },
+    "review": {
+      "overdue": "Forfalt",
+      "inDays": "Om {{count}} dager",
+      "inWeeks": "Om {{count}} uker",
+      "none": "Ikke satt"
+    },
+    "links": {
+      "register": "Dokumentregister",
+      "campaigns": "Lesekampanjer",
+      "readConfirm": "Lesebekreftelser"
+    },
+    "systemTypes": {
+      "process": "Prosessbeskrivelse",
+      "scope": "Omfang",
+      "context_analysis": "Kontekstanalyse"
+    }
+  },
+  "templates": {
+    "title": "Maler",
+    "intro": "Start fra et ferdig utkast. Velg en mal, så lager vi et nytt dokument fra den.",
+    "use": "Bruk mal",
+    "edit": "Endre malene i Innstillinger",
+    "noType": "Uten type",
+    "emptyTitle": "Ingen maler ennå",
+    "emptyBody": "Maler lages i Innstillinger under Dokumenter."
+  },
+  "archive": {
+    "title": "Arkiv",
+    "intro": "Godkjente rapporter og referater som er låst og arkivert. Hver versjon lagres uendret.",
+    "total": "{{count}} filer i arkivet",
+    "more": "Vis flere",
+    "emptyTitle": "Arkivet er tomt",
+    "emptyBody": "Rapporter du lager under Rapporter, havner her når de er ferdige.",
+    "emptyCta": "Gå til Rapporter",
+    "deleted": "Slettede dokumenter"
+  },
+  "waiting": {
+    "title": "Venter på deg",
+    "intro": "Dokumenter du skal godkjenne eller lese og bekrefte.",
+    "approve": "Les og godkjenn",
+    "acknowledge": "Les og bekreft",
+    "kindApprove": "Godkjenning",
+    "kindAcknowledge": "Lesebekreftelse",
+    "overdue": "Forfalt",
+    "due": "Frist {{date}}",
+    "emptyTitle": "Ingenting venter på deg",
+    "emptyBody": "Når noen ber deg godkjenne eller lese et dokument, dukker det opp her.",
+    "allWork": "Se alt arbeidet ditt →"
+  }
+}

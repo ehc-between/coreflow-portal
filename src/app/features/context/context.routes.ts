@@ -7,7 +7,8 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { ContextKind } from './data/context.models';
 import { KINDS, KIND_ORDER } from './context-kinds';
 
-const toOverview = { redirectTo: '/context' };
+/** Bedriften (`/company`) replaces the context overview (IA v2 §5.4). */
+const toOverview = { redirectTo: '/company' };
 
 /**
  * U16 — one policy concept: policies are controlled documents, so the policy list is
@@ -20,7 +21,7 @@ export const policiesToDocuments: CanActivateFn = (route) => {
   if (modules.isEnabled('documents') && permissions.includes('documents:read')) {
     // Keep the list filters of the link (e.g. `?status=approved` from an overview tile).
     const status = route.queryParamMap.get('status');
-    return inject(Router).createUrlTree(['/documents'], {
+    return inject(Router).createUrlTree(['/documents/all'], {
       queryParams: { type: 'policy', ...(status ? { status } : {}) },
     });
   }
@@ -70,18 +71,15 @@ function kindRoutes(kind: ContextKind): Routes {
  * gates the module on `moduleGuard('context')` + `context:read`; creating and
  * editing need `context:write`. Detail URLs match the backend's
  * `/context/<segment>/<id>` (analyses, interested-parties, scopes, policies,
- * responsibilities).
+ * responsibilities). IA v2 (docs/ia-v2.md §7): the overview itself moved to
+ * Bedriften, so `/context` redirects to `/company` (query string kept).
  */
 export default [
   {
     path: '',
     providers: [provideTranslocoScope('context')],
     children: [
-      {
-        path: '',
-        loadComponent: () =>
-          import('./overview/context-overview').then((m) => m.ContextOverviewPage),
-      },
+      { path: '', pathMatch: 'full', redirectTo: '/company' },
       {
         // U34: the beginner's four-question interview (drafts analysis, parties, scope).
         path: 'interview',

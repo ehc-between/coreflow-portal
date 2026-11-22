@@ -2,8 +2,6 @@ import globalEn from '../../../assets/i18n/en.json';
 import globalNb from '../../../assets/i18n/nb.json';
 import kitEn from '../../../assets/i18n/kit/en.json';
 import kitNb from '../../../assets/i18n/kit/nb.json';
-import shellEn from '../../../assets/i18n/shell/en.json';
-import shellNb from '../../../assets/i18n/shell/nb.json';
 import en from '../../../assets/i18n/customers/en.json';
 import nb from '../../../assets/i18n/customers/nb.json';
 import { expectKeyParity } from '../../../testing/i18n-parity';
@@ -88,7 +86,7 @@ describe('customers i18n', () => {
     }
   });
 
-  it('adds the module, entity, shell and create-flow keys in every language', () => {
+  it('adds the module, entity and create-flow keys in every language', () => {
     for (const lang of [globalEn, globalNb]) {
       expect(lookup(lang, 'modules.names.customers')).toEqual(expect.any(String));
       expect(lookup(lang, 'modules.descriptions.customers')).toEqual(expect.any(String));
@@ -96,10 +94,6 @@ describe('customers i18n', () => {
       expect(lookup(lang, 'modules.entities.customer_contact')).toEqual(expect.any(String));
     }
     expect(lookup(globalNb, 'modules.names.customers')).toBe('Kunder');
-    for (const lang of [shellEn, shellNb]) {
-      expect(lookup(lang, 'groups.customers')).toEqual(expect.any(String));
-      expect(lookup(lang, 'registrer.customer')).toEqual(expect.any(String));
-    }
     for (const lang of [kitEn, kitNb]) {
       for (const flow of FLOWS) {
         expect(lookup(lang, `flows.customer.${flow}`), flow).toEqual(expect.any(String));
