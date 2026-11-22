@@ -425,57 +425,54 @@ The nav label for obligations is "Lover og forskrifter", and so is its h1. A rec
 
 ## 8. Navigation and information architecture
 
-```
-Hjem:            Oversikt · Mitt arbeid
-Krav og styring: Standarder og krav · Lover og forskrifter · Kontekst og ledelse · Mål og KPI-er ·
-                 Risiko og muligheter · Ledelsens gjennomgang
-Daglig drift:    Prosesser · Dokumenter · Prosjekter · Leverandører · Kontrakter ·
-                 Eiendeler og endringer · Kontinuitet og beredskap
-Oppfølging:      Avvik · Inspeksjoner · Revisjoner · Kundetilbakemeldinger · Rapporter
-Fagområder:      Personvern · KI-styring · Miljø · HMS
-Mennesker:       Personer · Rekruttering · Opplæring
-(bottom)         Læringssenter · Innstillinger · Tilpass menyen
-```
-
-- Defined in `src/app/layout/nav.ts`. Labels are `modules.names.<key>` (global files).
-- Sections collapse; the state is remembered per org (`coreflow.nav.collapsed.<orgId>`). A
-  collapsed section opens while one of its pages is open.
-- "Tilpass menyen" hides items per org (`coreflow.nav.hidden.<orgId>`). Hidden items are
-  still found through search.
-- "Trenger din gjennomgang" is no longer a nav item; it becomes a tab in Mitt arbeid (P5).
-  `/review` still works.
-- Every module icon is distinct.
-
-### 8.1 Shell v2 (U03, behind the per-org flag `coreflow.nav.v2`)
+IA v2 ("Fiken for compliance", `docs/ia-v2.md`, prototype `docs/prototype/fiken-style-ia.html`)
+replaced the left sidebar and shell v2 (2026-11-22). The menu is organised around what happens
+in the company, not around ISO clauses.
 
 ```
-[+ Registrer] · Hjem · Mitt arbeid · Standarder · Registre · Dokumenter og rapporter · (Festet ≤ 5) · Innstillinger
-Top bar: Finn eller spør (Ctrl K) · ? Hjelp og læring (Mine leksjoner, Spør assistenten) · bell · account menu
+✦ CoreFlow  Oversikt · Meld fra ▾ · Årshjul ▾ · Bedriften ▾ · Folk ▾ · Kontakter ▾ · Håndbok ▾ · Dokumenter ▾ · Rapporter ▾
+            Vis krav ◯ · 🔍 (Ctrl K) · Innboks · avatar
+                                                                         ✦ Spør CoreFlow (floating, Ctrl J)
 ```
 
-- Defined in `src/app/layout/nav-v2.ts` (labels in the `shell` scope); `nav.ts` stays the
-  data source for the old menu. Registre (`/registers`, U04) lists every register from
-  the locations registry (`GET /locations/counts`), grouped by job area, with counts,
-  "Oppdatert …", synonym search and "Flere registre (N)"; the old menu has no entry for it.
-- Off by default. An admin turns it on in Innstillinger → Meny (`nav_v2` in org settings);
-  each member can switch back, or opt in early, in the account menu (`/me/orgs/{org}/preferences`).
-- Role decides what shows: an employee (only the `member` role) gets Registrer, Hjem, Mitt
-  arbeid and Dokumenter og rapporter; "Vis alt" in the account menu shows the rest.
-  Permissions and enabled modules always apply.
-- Pins: one list, keyed by route path (`privacy/ropa`, `assets/calibration`): the user's own
-  (stored on the server), else role defaults (`ROLE_DEFAULT_PINS`; DPO: Behandlingsprotokoll,
-  Personvernbrudd, Henvendelser, Databehandlere; HMS: SJA, Avvik, Verneutstyr; …). Pin and
-  unpin on Registre; the menu names any register it does not know by heart from the
-  locations registry (`RegisterCatalogService`).
-- Theme and language live in the account menu at every width.
+- **Single source:** `src/app/layout/areas.ts` (`AREAS`): each area's overview route, URL
+  prefixes (active highlighting, longest prefix wins) and dropdown items with module and
+  permission gates. Labels and hints are global keys `nav.areas.<area>.label` and
+  `nav.areas.<area>.items.<item>.{label,hint}`; copy from the prototype's `MENU`.
+- **Label vs ▾:** clicking an area's label opens its overview page; the ▾ button (click, tap,
+  Enter, Space, ArrowDown, or hover with a fine pointer) opens the dropdown, whose rows go
+  straight to sub-areas and end with "Se hele oversikten →". Escape closes and returns focus
+  to ▾; arrow keys move between rows. Oversikt has no dropdown. Håndbok adds one row per
+  process (`GET /processes/handbook`).
+- **Visibility:** an item shows when its module is on and the user holds its permission. An
+  area overview is open to every member (only Håndbok needs the processes module), so an
+  enabled area never disappears. No role trimming, no pins, no "Tilpass menyen".
+- **Mobile:** the menu row scrolls sideways at every width; below `lg` it sits on its own
+  row under the brand and the right cluster. The dropdown is fixed under its item and
+  clamped to the viewport.
+- **Vis krav** (top bar): requirement chips and panels (`shared/requirement-links`,
+  `shared/requirement-locations`, `<app-req-pills>`) are hidden until the user switches it
+  on; remembered per user and org (`coreflow.showReq.<orgId>`). Expert pages
+  (`/standards/**`, `/settings/modules/**`, audit packs) always show them. With it off the
+  clause picker in forms is read-only, and an empty one says "Slå på «Vis krav» for å koble
+  til krav".
+- **Innboks** replaces the bell and the chat button: one badge (tasks due + unread chat +
+  unread notifications) and three tabs, Oppgaver, Meldinger and Varsler.
+- **Account menu** (avatar): Bytt bedrift (more than one company), Meg, Utseende og språk
+  (theme, language, guidance level), Hjelp og læring (Læringssenter, Spør CoreFlow,
+  Hurtigtaster), Administrasjon (Innstillinger, Moduler, Oppsett av bedriften, Alle
+  organisasjoner; only with the permissions) and sign out.
+- **Old landing pages** redirect and keep the query string (`layout/legacy-redirects.ts`,
+  `/` and `/dashboard` → `/home`, `/procedures` → `/handbook`, …). Record URLs never change.
+- `layout/nav.ts` is now only module metadata for search and the assistant; it is not a menu.
 
 ## 9. Mobile and accessibility rules
 
 - Works at **375 px**: no horizontal scroll (`scrollWidth ≤ innerWidth`), the list is in the
   first screen, tap targets ≥ 24 px (prefer 36-40 px), dialogs fit.
-- Below `lg` (1024 px) the side nav is a drawer (hamburger, focus trap, Escape, closes on
-  navigation). Below `md` the search is an icon, and theme and language are in the account
-  menu.
+- Below `lg` (1024 px) the top menu moves to its own row under the brand and scrolls
+  sideways (§8); there is no drawer. Search is an icon at every width, and theme and language
+  are in the account menu.
 - `app-help-strip` starts collapsed on phones.
 - A skip link ("Hopp til innholdet") is the first focusable element. `<main>` is
   `#main-content`.

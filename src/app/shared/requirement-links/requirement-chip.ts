@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, inject } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -6,6 +6,7 @@ import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { LinkOrigin, RequirementLabel } from '../../core/standards/standards.models';
 import { Icon } from '../ui/icon/icon';
 import { labelText, positionText, requirementRoute } from './requirement-label';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /**
  * Evidence chip for one requirement (plan 2.1, "two visual languages"): an
@@ -20,7 +21,10 @@ import { labelText, positionText, requirementRoute } from './requirement-label';
   imports: [NgTemplateOutlet, RouterLink, TranslocoPipe, Icon],
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex max-w-full min-w-0' },
+  host: {
+    class: 'inline-flex max-w-full min-w-0',
+    '[style.display]': "reqVis.show() ? null : 'none'",
+  },
   template: `
     @if (link()) {
       <a
@@ -64,6 +68,8 @@ import { labelText, positionText, requirementRoute } from './requirement-label';
   `,
 })
 export class RequirementChip {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   readonly label = input.required<RequirementLabel>();
   /** `plain`: a reference without evidence (e.g. a gap), no status icon. */
   readonly status = input<'confirmed' | 'suggested' | 'plain'>('confirmed');

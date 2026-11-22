@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, inject } from '@angular/core';
 import { LocationOutcome } from '../../core/locations/locations.models';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** Text colour per outcome. Not met is neutral, never red (polish D11). */
 export const OUTCOME_TONE: Readonly<Record<LocationOutcome, string>> = {
@@ -30,6 +31,7 @@ export function worstOutcome(outcomes: readonly LocationOutcome[]): LocationOutc
   selector: 'app-location-status-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
+    '[style.display]': "reqVis.show() ? null : 'none'",
     '[class]': 'tone()',
     '[attr.data-outcome]': 'outcome()',
     '[attr.role]': "label() ? 'img' : null",
@@ -71,6 +73,8 @@ export function worstOutcome(outcomes: readonly LocationOutcome[]): LocationOutc
   `,
 })
 export class LocationStatusIcon {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   readonly outcome = input.required<LocationOutcome>();
   readonly size = input(14);
   /** Accessible name; leave empty when adjacent text already states the outcome. */

@@ -5,6 +5,7 @@ import { RequirementCoverageCounts } from '../../core/standards/standards.models
 import { pluralKey } from '../i18n/plural';
 import { Icon } from '../ui/icon/icon';
 import { RequirementCoverageService } from './requirement-coverage.service';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** What a coverage chip says. */
 export type CoverageState = 'documents' | 'suggested' | 'none';
@@ -32,7 +33,10 @@ export function coverageState(counts: RequirementCoverageCounts): CoverageState 
   imports: [TranslocoPipe, Icon],
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex max-w-full items-center align-middle' },
+  host: {
+    class: 'inline-flex max-w-full items-center align-middle',
+    '[style.display]': "reqVis.show() ? null : 'none'",
+  },
   template: `
     @if (resolved(); as c) {
       @switch (state()) {
@@ -111,6 +115,8 @@ export function coverageState(counts: RequirementCoverageCounts): CoverageState 
   `,
 })
 export class CoverageChip {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   private readonly coverage = inject(RequirementCoverageService);
 
   readonly counts = input<RequirementCoverageCounts | null | undefined>(undefined);

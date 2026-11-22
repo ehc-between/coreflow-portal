@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
@@ -8,6 +8,7 @@ import { Icon } from '../ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../ui/overflow-menu/overflow-menu';
 import { PRIMARY_LINK, SECONDARY_LINK, TEXT_LINK, locationLink, placeName } from './location-links';
 import { LocationStatusIcon } from './location-status-icon';
+import { RequirementsVisibilityService } from '../../core/shell/requirements-visibility.service';
 
 /** What the "Tilpass" menu of a card asks for. */
 export type LocationAdjustAction = 'repoint' | 'rules' | 'disable';
@@ -36,7 +37,7 @@ export const LOCATION_SAMPLES_MAX = 5;
   ],
   viewProviders: [provideSharedScope('locations')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block', '[style.display]': "reqVis.show() ? null : 'none'" },
   template: `
     @let loc = location();
     <article
@@ -173,6 +174,8 @@ export const LOCATION_SAMPLES_MAX = 5;
   `,
 })
 export class LocationCard {
+  /** "Vis krav" (IA v2 §4.3): hidden unless the switch is on or on an expert page. */
+  protected readonly reqVis = inject(RequirementsVisibilityService);
   readonly location = input.required<LocationResult>();
   /** The requirement the card belongs to (carried on the links as `?fromRequirement=`). */
   readonly ref = input.required<string>();
