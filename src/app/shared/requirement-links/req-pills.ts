@@ -9,7 +9,10 @@ import { RequirementsVisibilityService } from '../../core/shell/requirements-vis
     @if (vis.show() && refs().length) {
       <div class="mt-1.5 flex flex-wrap gap-1.5" data-testid="req-pills">
         @for (r of refs(); track r) {
-          <span class="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11.5px] text-fg-muted">{{ r }}</span>
+          <span
+            class="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11.5px] text-fg-muted"
+            >{{ r }}</span
+          >
         }
       </div>
     }
