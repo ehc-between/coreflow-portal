@@ -1,0 +1,90 @@
+{
+  "title": "Årshjul",
+  "intro": "Alt som skal skje jevnlig, samlet på ett sted. Vi sier fra i god tid før fristen.",
+  "propose": "Foreslå årshjul",
+  "proposeFor": "Foreslå årshjul for {{year}}",
+  "subscribe": "Abonner i kalenderen",
+  "subscribeFailed": "Kunne ikke lage kalenderfilen. Prøv igjen.",
+  "filters": {
+    "label": "Vis",
+    "all": "Alle",
+    "mine": "Bare mine"
+  },
+  "areas": {
+    "speakUp": "Meld fra",
+    "annual": "Årshjul",
+    "company": "Bedriften",
+    "people": "Folk",
+    "contacts": "Kontakter",
+    "handbook": "Håndbok",
+    "documents": "Dokumenter"
+  },
+  "strip": {
+    "label": "Måneder",
+    "month": "{{month}}: {{count}} ting",
+    "monthOne": "{{month}}: 1 ting",
+    "now": "denne måneden"
+  },
+  "status": {
+    "overdue": "Forfalt",
+    "today": "I dag",
+    "days": "{{days}} dager",
+    "daysOne": "1 dag",
+    "planned": "Planlagt",
+    "notPlanned": "Ikke planlagt"
+  },
+  "recurrence": {
+    "yearly": "Hvert år",
+    "half_yearly": "Hvert halvår",
+    "quarterly": "Hvert kvartal",
+    "monthly": "Hver måned"
+  },
+  "owner": "Ansvarlig: {{name}}",
+  "actions": {
+    "open": "Åpne",
+    "openSupplier": "Åpne leverandør",
+    "openContract": "Åpne avtale",
+    "openPlan": "Åpne planen",
+    "seeBasis": "Se grunnlaget",
+    "start": "Start",
+    "remind": "Send påminnelse",
+    "nudge": "Minn på",
+    "plan": "Planlegg",
+    "reminded": "Påminnet"
+  },
+  "list": {
+    "showAll": "Vis alle {{count}}",
+    "showLess": "Vis færre"
+  },
+  "empty": {
+    "title": "Ingenting i årshjulet ennå",
+    "body": "Når dere har frister og faste gjøremål, dukker de opp her. Start gjerne med et forslag.",
+    "filtered": "Ingenting her med dette filteret."
+  },
+  "truncated": "Viser de første 500 fristene. Bruk filtrene for å se resten.",
+  "remind": {
+    "sent": "Påminnelse sendt til {{name}}",
+    "sentNoName": "Påminnelse sendt",
+    "already": "{{name}} har allerede fått en påminnelse i dag",
+    "noOwner": "Ingen er ansvarlig for dette ennå",
+    "failed": "Kunne ikke sende påminnelsen. Prøv igjen."
+  },
+  "dialog": {
+    "title": "Forslag til årshjul for {{year}}",
+    "subtitle": "Forslag til nytt årshjul er laget – se gjennom og godkjenn",
+    "intro": "Dette er de faste gjøremålene et styringssystem trenger. Kryss av for det dere vil ha med, og velg måned.",
+    "planned": "Allerede planlagt",
+    "month": "Måned",
+    "recurrence": "Hvor ofte",
+    "ownerYou": "Ansvarlig: deg",
+    "accept": "Legg i årshjulet ({{count}})",
+    "cancel": "Avbryt",
+    "close": "Lukk",
+    "error": "Kunne ikke lage forslaget. Prøv igjen.",
+    "none": "Det er ingen faste gjøremål å foreslå for modulene dere bruker.",
+    "accepted": "{{count}} gjøremål er lagt i årshjulet",
+    "acceptedOne": "1 gjøremål er lagt i årshjulet",
+    "acceptFailed": "Kunne ikke legge gjøremålene i årshjulet. Prøv igjen."
+  },
+  "retry": "Prøv igjen"
+}

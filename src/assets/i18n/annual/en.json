@@ -1,0 +1,90 @@
+{
+  "title": "Year planner",
+  "intro": "Everything that happens regularly, in one place. We remind you well before each deadline.",
+  "propose": "Suggest a year plan",
+  "proposeFor": "Suggest a year plan for {{year}}",
+  "subscribe": "Subscribe in your calendar",
+  "subscribeFailed": "Could not create the calendar file. Try again.",
+  "filters": {
+    "label": "Show",
+    "all": "All",
+    "mine": "Only mine"
+  },
+  "areas": {
+    "speakUp": "Report",
+    "annual": "Year planner",
+    "company": "Company",
+    "people": "People",
+    "contacts": "Contacts",
+    "handbook": "Handbook",
+    "documents": "Documents"
+  },
+  "strip": {
+    "label": "Months",
+    "month": "{{month}}: {{count}} items",
+    "monthOne": "{{month}}: 1 item",
+    "now": "this month"
+  },
+  "status": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "days": "{{days}} days",
+    "daysOne": "1 day",
+    "planned": "Planned",
+    "notPlanned": "Not planned"
+  },
+  "recurrence": {
+    "yearly": "Every year",
+    "half_yearly": "Every six months",
+    "quarterly": "Every quarter",
+    "monthly": "Every month"
+  },
+  "owner": "Owner: {{name}}",
+  "actions": {
+    "open": "Open",
+    "openSupplier": "Open supplier",
+    "openContract": "Open contract",
+    "openPlan": "Open plan",
+    "seeBasis": "See the input",
+    "start": "Start",
+    "remind": "Send reminder",
+    "nudge": "Remind",
+    "plan": "Plan",
+    "reminded": "Reminded"
+  },
+  "list": {
+    "showAll": "Show all {{count}}",
+    "showLess": "Show fewer"
+  },
+  "empty": {
+    "title": "Nothing in the year planner yet",
+    "body": "When you have deadlines and recurring duties, they show up here. A suggested plan is a good start.",
+    "filtered": "Nothing here with this filter."
+  },
+  "truncated": "Showing the first 500 deadlines. Use the filters to see the rest.",
+  "remind": {
+    "sent": "Reminder sent to {{name}}",
+    "sentNoName": "Reminder sent",
+    "already": "{{name}} already got a reminder today",
+    "noOwner": "Nobody owns this yet",
+    "failed": "Could not send the reminder. Try again."
+  },
+  "dialog": {
+    "title": "Suggested year plan for {{year}}",
+    "subtitle": "A new year plan has been suggested – review and approve it",
+    "intro": "These are the recurring duties a management system needs. Tick the ones you want and pick a month.",
+    "planned": "Already planned",
+    "month": "Month",
+    "recurrence": "How often",
+    "ownerYou": "Owner: you",
+    "accept": "Add to the year planner ({{count}})",
+    "cancel": "Cancel",
+    "close": "Close",
+    "error": "Could not create the suggestion. Try again.",
+    "none": "There are no recurring duties to suggest for the modules you use.",
+    "accepted": "{{count}} duties added to the year planner",
+    "acceptedOne": "1 duty added to the year planner",
+    "acceptFailed": "Could not add the duties to the year planner. Try again."
+  },
+  "retry": "Try again"
+}
