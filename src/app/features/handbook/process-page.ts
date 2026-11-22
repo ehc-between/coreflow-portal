@@ -44,7 +44,7 @@ const BTN =
 const PRIMARY = `${BTN} border-transparent bg-accent text-white hover:bg-accent-2`;
 const SECONDARY = `${BTN} border-border bg-surface text-fg hover:border-border-strong hover:bg-surface-2`;
 const NAV_END =
-  'grid flex-none min-w-[110px] place-items-center rounded-[12px] bg-accent-soft p-2.5 text-center text-[13.5px] font-semibold text-accent max-[820px]:min-w-0';
+  'grid flex-none min-w-[110px] max-w-[160px] place-items-center rounded-[12px] bg-accent-soft p-2.5 text-center text-[13.5px] font-semibold text-accent max-[820px]:min-w-0 max-[820px]:max-w-none';
 const CARD = 'rounded-card border border-border bg-surface p-4';
 const ROW =
   'flex items-center justify-between gap-3 border-t border-border py-2.5 first:border-t-0';

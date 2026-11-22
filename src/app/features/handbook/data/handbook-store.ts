@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { HandbookMenu } from '../../../layout/top-menu/handbook-menu';
 import { HandbookApi } from './handbook-api';
 import { allBoxes } from './handbook.logic';
 import { HandbookMap } from './handbook.models';
@@ -17,6 +18,8 @@ type State =
 export class HandbookStore {
   private readonly api = inject(HandbookApi);
   private readonly org = inject(SelectedOrgService);
+  /** The top menu's own copy of the process rows: dropped on a change so it re-reads. */
+  private readonly menu = inject(HandbookMenu);
   private readonly state = signal<State>({ status: 'idle', orgId: null });
 
   readonly status = computed(() => {
@@ -64,9 +67,11 @@ export class HandbookStore {
     if (orgId) {
       this.state.set({ status: 'ready', orgId, map });
     }
+    this.menu.invalidate();
   }
 
   invalidate(): void {
     this.state.set({ status: 'idle', orgId: null });
+    this.menu.invalidate();
   }
 }
