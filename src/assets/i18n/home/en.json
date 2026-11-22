@@ -367,5 +367,67 @@
         "auditor": "Standards, audit packs and documents."
       }
     }
+  },
+  "oversikt": {
+    "title": "Overview",
+    "greeting": {
+      "morning": "Good morning, {{ name }}",
+      "day": "Good afternoon, {{ name }}",
+      "evening": "Good evening, {{ name }}"
+    },
+    "summary": {
+      "none": "Everything is on track this week.",
+      "one": "You have 1 thing to do this week.",
+      "many": "You have {{ count }} things to do this week.",
+      "top": "The most important now: {{ title }}."
+    },
+    "quick": {
+      "title": "Shortcuts",
+      "speakUp": {
+        "label": "Report something",
+        "hint": "Something has happened"
+      },
+      "supplier": {
+        "label": "Add supplier",
+        "hint": "With agreement and assessment"
+      },
+      "policy": {
+        "label": "New policy",
+        "hint": "We suggest the full text"
+      },
+      "report": {
+        "label": "Create report",
+        "hint": "For the auditor, the board and others"
+      },
+      "fallbackHints": {
+        "report_issue": "Something has happened",
+        "suggest_improvement": "An idea that makes things better",
+        "find_document": "Search documents and procedures",
+        "prepare_audit": "Plan and carry out",
+        "export_document": "Download as PDF or Excel",
+        "audit_pack": "Everything the auditor needs, in one place",
+        "standards": "See where you stand"
+      }
+    },
+    "todo": {
+      "title": "What you should do now",
+      "count": "{{ shown }} of {{ total }}",
+      "empty": "Nothing is urgent right now. Well done!",
+      "allWork": "See all your work ({{ count }})"
+    },
+    "deadlines": {
+      "title": "Coming up",
+      "all": "The whole year planner",
+      "owner": "Responsible: {{ name }}",
+      "empty": "No deadlines in the next 30 days.",
+      "error": "We could not load the deadlines."
+    },
+    "standards": {
+      "title": "Where do you stand?",
+      "percent": "{{ percent }}%",
+      "more": "Show {{ count }} more",
+      "footnote": "The numbers are calculated from what you have actually recorded. Switch on \"Show requirements\" to see which requirements each thing covers."
+    },
+    "retry": "Try again"
   }
 }
