@@ -115,9 +115,12 @@ const FINDING_FIELDS = ['overdue', 'open_actions', 'overdue_actions', 'overdue_i
   template: `
     <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
-        titleKey="modules.names.reports"
+        titleKey="reports.nav.status"
         descriptionKey="reports.overview.description"
-        [breadcrumbs]="[{ labelKey: 'modules.names.reports' }]"
+        [breadcrumbs]="[
+          { labelKey: 'reports.hub.title', link: '/reports' },
+          { labelKey: 'reports.nav.status' },
+        ]"
         [settingsLink]="canManage() ? '/reports/dashboards' : null"
       >
         <span meta>
@@ -162,7 +165,7 @@ const FINDING_FIELDS = ['overdue', 'open_actions', 'overdue_actions', 'overdue_i
                 [value]="d.overdue.total"
                 [hint]="'reports.overview.kpi.overdueHint' | transloco"
                 [tone]="d.overdue.total > 0 ? 'warn' : 'pass'"
-                link="/reports/calendar"
+                link="/annual-cycle"
                 [queryParams]="{ overdue: '1', view: 'list' }"
               />
               <app-report-kpi
@@ -202,7 +205,7 @@ const FINDING_FIELDS = ['overdue', 'open_actions', 'overdue_actions', 'overdue_i
                       {{ 'reports.overview.overdue.title' | transloco }}
                     </h2>
                     <a
-                      routerLink="/reports/calendar"
+                      routerLink="/annual-cycle"
                       [queryParams]="{ overdue: '1', view: 'list' }"
                       class="text-meta font-semibold text-accent hover:underline"
                     >
@@ -218,7 +221,7 @@ const FINDING_FIELDS = ['overdue', 'open_actions', 'overdue_actions', 'overdue_i
                       @for (m of d.overdue.by_module; track m.module) {
                         <li>
                           <a
-                            routerLink="/reports/calendar"
+                            routerLink="/annual-cycle"
                             [queryParams]="{ overdue: '1', view: 'list', module: m.module }"
                             class="inline-flex min-h-7 items-center gap-1 rounded-full border border-warn/30 bg-warn-soft px-2.5 text-meta font-semibold text-warn-ink hover:border-warn"
                             [attr.aria-label]="

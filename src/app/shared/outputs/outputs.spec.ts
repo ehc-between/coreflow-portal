@@ -497,27 +497,24 @@ describe('"Dokumenter og rapporter" in the page header', () => {
 });
 
 describe('Reports redirects', () => {
-  it('moves /reports/* to the library and keeps the query string', async () => {
+  it('moves old /reports/* sub-pages under Rapporter and keeps the query string', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([
           ...REPORTS_REDIRECTS,
-          { path: 'library/audit-packs', children: [] },
-          { path: 'library/audit-packs/:id', children: [] },
-          { path: 'library/reports/:id/edit', children: [] },
-          { path: 'library/registers', children: [] },
+          { path: 'reports/custom/:id/edit', children: [] },
+          { path: 'reports/custom/new', children: [] },
+          { path: 'reports/exports', children: [] },
         ]),
       ],
     });
     const router = TestBed.inject(Router);
-    await router.navigateByUrl('/reports/audit-packs?flow=t');
-    expect(router.url).toBe('/library/audit-packs?flow=t');
-    await router.navigateByUrl('/reports/audit-packs/p1');
-    expect(router.url).toBe('/library/audit-packs/p1');
     await router.navigateByUrl('/reports/definitions/d1/edit');
-    expect(router.url).toBe('/library/reports/d1/edit');
+    expect(router.url).toBe('/reports/custom/d1/edit');
+    await router.navigateByUrl('/reports/definitions/new?x=1');
+    expect(router.url).toBe('/reports/custom/new?x=1');
     await router.navigateByUrl('/reports/registers?register=deviations');
-    expect(router.url).toBe('/library/registers?register=deviations');
+    expect(router.url).toBe('/reports/exports?register=deviations');
   });
 });

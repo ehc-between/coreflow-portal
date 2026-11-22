@@ -11,7 +11,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { OutputsApi } from '../../core/outputs/outputs-api';
 import { GeneratedOutput } from '../../core/outputs/outputs.models';
 import { GeneratedRow } from '../../shared/outputs/generated-row';
-import { LibraryNav } from '../../shared/outputs/library-nav';
+import { ReportsNav } from '../reports/components/reports-nav';
 import { Button } from '../../shared/ui/button/button';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
@@ -36,7 +36,7 @@ type State = 'loading' | 'error' | 'loaded';
     EmptyState,
     ErrorState,
     GeneratedRow,
-    LibraryNav,
+    ReportsNav,
     LoadingState,
     PageHeader,
     Switch,
@@ -48,11 +48,11 @@ type State = 'loading' | 'error' | 'loaded';
         titleKey="outputs.saved.title"
         descriptionKey="outputs.saved.description"
         [breadcrumbs]="[
-          { labelKey: 'outputs.title', link: '/library' },
+          { labelKey: 'reports.hub.title', link: '/reports' },
           { labelKey: 'outputs.saved.title' },
         ]"
       />
-      <app-library-nav />
+      <app-reports-nav />
 
       <div class="mb-4 max-w-sm">
         <app-switch
@@ -78,7 +78,7 @@ type State = 'loading' | 'error' | 'loaded';
               titleKey="outputs.saved.emptyTitle"
               bodyKey="outputs.saved.emptyBody"
               ctaKey="outputs.saved.emptyCta"
-              ctaLink="/library"
+              ctaLink="/reports"
             />
           } @else {
             <p class="mb-2 text-meta text-fg-muted" data-testid="saved-total">

@@ -261,7 +261,7 @@ describe('report display helpers', () => {
     expect(widgetSpan('lg')).toContain('xl:col-span-4');
     expect(widgetSpan('weird')).toContain('xl:col-span-2');
     expect(widgetLink('reports.overdue_items')).toEqual({
-      path: '/reports/calendar',
+      path: '/annual-cycle',
       queryParams: { overdue: '1' },
     });
     expect(widgetLink('risk.heat_map')).toBeNull();

@@ -81,11 +81,11 @@ export function widgetLink(
     case 'documents.reviews':
       return { path: '/documents' };
     case 'reports.overdue_items':
-      return { path: '/reports/calendar', queryParams: { overdue: '1' } };
+      return { path: '/annual-cycle', queryParams: { overdue: '1' } };
     case 'reports.upcoming':
-      return { path: '/reports/calendar' };
+      return { path: '/annual-cycle' };
     case 'reports.audit_packs':
-      return { path: '/library/audit-packs' };
+      return { path: '/reports/audit-packs' };
   }
   const url = data?.['url'];
   if (typeof url === 'string' && url.startsWith('/') && !url.startsWith('//')) {

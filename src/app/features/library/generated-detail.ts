@@ -80,7 +80,7 @@ type State =
             <app-page-header
               [title]="f.title"
               [breadcrumbs]="[
-                { labelKey: 'outputs.title', link: '/library' },
+                { labelKey: 'reports.hub.title', link: '/reports' },
                 { labelKey: 'outputs.saved.title', link: '/library/saved' },
                 { label: f.title },
               ]"
