@@ -37,7 +37,7 @@ import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { OverflowMenu } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { ReportsAsk } from '../components/ask-button';
-import { LibraryNav } from '../../../shared/outputs/library-nav';
+import { ReportsNav } from '../components/reports-nav';
 import { registerStatusLabel } from '../components/register-filters';
 import { blobErrorKey, fileStem, reportErrorKey, saveBlob } from '../data/report-errors';
 import {
@@ -91,7 +91,7 @@ export function shortHash(sha: string | null | undefined): string {
 }
 
 /**
- * `/library/reports/:id`: a saved report — what it exports, run it (one button,
+ * `/reports/custom/:id`: a saved report — what it exports, run it (one button,
  * other formats in its menu), the active schedule (how often, next run, who), every
  * run so far (who, when, format, rows, checksum, and the file when it was kept), and
  * the report's tasks, links, activity, comments and revision history. A run is
@@ -123,7 +123,7 @@ export function shortHash(sha: string | null | undefined): string {
     MenuItem,
     OverflowMenu,
     ReportsAsk,
-    LibraryNav,
+    ReportsNav,
     ScheduleDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -132,7 +132,7 @@ export function shortHash(sha: string | null | undefined): string {
       <div class="mx-auto max-w-[860px] px-4 pt-8 sm:px-8">
         <app-alert>{{ key | transloco }}</app-alert>
         <a
-          routerLink="/library/reports"
+          routerLink="/reports/custom"
           class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'reports.definitions.back' | transloco }}
@@ -144,14 +144,14 @@ export function shortHash(sha: string | null | undefined): string {
         [entityId]="d.id"
         [title]="d.name"
         [breadcrumbs]="[
-          { labelKey: 'outputs.title', link: '/library' },
-          { labelKey: 'reports.nav.definitions', link: '/library/reports' },
+          { labelKey: 'reports.hub.title', link: '/reports' },
+          { labelKey: 'reports.nav.definitions', link: '/reports/custom' },
           { label: d.name },
         ]"
         [tabs]="tabs"
         [canEdit]="d.can_edit"
         [fieldLabels]="fieldLabels"
-        backLink="/library/reports"
+        backLink="/reports/custom"
         backLabelKey="reports.definitions.back"
       >
         <ng-container meta>
@@ -208,7 +208,7 @@ export function shortHash(sha: string | null | undefined): string {
           </ng-container>
         }
 
-        <app-library-nav nav />
+        <app-reports-nav nav />
 
         <app-card class="mb-4 block">
           <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -492,7 +492,7 @@ export class DefinitionDetail {
   protected readonly registerLink = computed(() => {
     const d = this.definition();
     return d
-      ? internalLink(`/library/registers?register=${encodeURIComponent(d.register_key)}`)
+      ? internalLink(`/reports/exports?register=${encodeURIComponent(d.register_key)}`)
       : null;
   });
 
@@ -571,7 +571,7 @@ export class DefinitionDetail {
   }
 
   protected edit(): void {
-    void this.router.navigate(['/library/reports', this.id(), 'edit']);
+    void this.router.navigate(['/reports/custom', this.id(), 'edit']);
   }
 
   protected size(bytes: number): string {
@@ -653,7 +653,7 @@ export class DefinitionDetail {
         this.deleting.set(false);
         this.deleteOpen.set(false);
         this.notifications.success('reports.detail.deleted');
-        void this.router.navigate(['/library/reports']);
+        void this.router.navigate(['/reports/custom']);
       },
       error: (error: unknown) => {
         this.deleting.set(false);

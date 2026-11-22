@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { GuidanceContentService } from '../../../core/guidance/guidance-content.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { ModuleService } from '../../../core/modules/module.service';
 import { DashboardConfig, WidgetCatalogItem } from '../data/reports.models';
 import { ReportsApi } from '../data/reports-api';
 import { DashboardDesigner } from './dashboard-designer';
@@ -57,6 +58,7 @@ function setup() {
       provideRouter([]),
       { provide: ReportsApi, useValue: api },
       { provide: NotificationService, useValue: toasts },
+      { provide: ModuleService, useValue: { isEnabled: () => true } },
       {
         provide: GuidanceContentService,
         useValue: {

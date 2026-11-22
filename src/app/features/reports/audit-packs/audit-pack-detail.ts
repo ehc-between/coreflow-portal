@@ -35,7 +35,7 @@ import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { ProgressBar } from '../../../shared/ui/progress-bar/progress-bar';
 import { ReportsAsk } from '../components/ask-button';
-import { LibraryNav } from '../../../shared/outputs/library-nav';
+import { ReportsNav } from '../components/reports-nav';
 import { blobErrorKey, reportErrorKey, saveBlob } from '../data/report-errors';
 import {
   formatBytes,
@@ -83,7 +83,7 @@ export function packCoverage(pack: AuditPack): AuditPackStandard[] {
 }
 
 /**
- * `/library/audit-packs/:id`: what a generated pack holds — requirement coverage per
+ * `/reports/audit-packs/:id`: what a generated pack holds — requirement coverage per
  * standard in plain words ("9 av 364 gjeldende krav dokumentert"), the audit and
  * period it was made for, each file with its rows and size, the SHA-256 checksum —
  * plus download, delete, links, activity and comments.
@@ -112,7 +112,7 @@ export function packCoverage(pack: AuditPack): AuditPackStandard[] {
     MenuItem,
     ProgressBar,
     ReportsAsk,
-    LibraryNav,
+    ReportsNav,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -120,7 +120,7 @@ export function packCoverage(pack: AuditPack): AuditPackStandard[] {
       <div class="mx-auto max-w-[860px] px-4 pt-8 sm:px-8">
         <app-alert>{{ key | transloco }}</app-alert>
         <a
-          routerLink="/library/audit-packs"
+          routerLink="/reports/audit-packs"
           class="mt-3 inline-block text-ui font-semibold text-accent hover:underline"
         >
           {{ 'reports.packs.back' | transloco }}
@@ -132,13 +132,13 @@ export function packCoverage(pack: AuditPack): AuditPackStandard[] {
         [entityId]="p.id"
         [title]="p.title"
         [breadcrumbs]="[
-          { labelKey: 'outputs.title', link: '/library' },
-          { labelKey: 'reports.nav.auditPacks', link: '/library/audit-packs' },
+          { labelKey: 'reports.hub.title', link: '/reports' },
+          { labelKey: 'reports.nav.auditPacks', link: '/reports/audit-packs' },
           { label: p.title },
         ]"
         [tabs]="tabs"
         [canEdit]="canDelete()"
-        backLink="/library/audit-packs"
+        backLink="/reports/audit-packs"
         backLabelKey="reports.packs.back"
       >
         <ng-container meta>
@@ -163,7 +163,7 @@ export function packCoverage(pack: AuditPack): AuditPackStandard[] {
           </button>
         }
 
-        <app-library-nav nav />
+        <app-reports-nav nav />
 
         <app-card class="mb-4 block">
           <section aria-labelledby="pack-coverage" data-testid="pack-coverage-card">
@@ -497,7 +497,7 @@ export class AuditPackDetail {
         this.deleting.set(false);
         this.deleteOpen.set(false);
         this.notifications.success('reports.packs.deleted');
-        void this.router.navigate(['/library/audit-packs']);
+        void this.router.navigate(['/reports/audit-packs']);
       },
       error: (error: unknown) => {
         this.deleting.set(false);

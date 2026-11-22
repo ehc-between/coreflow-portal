@@ -1,8 +1,15 @@
 import { Routes } from '@angular/router';
-import { modulePlaceholderRoutes } from '../module-placeholder/module-placeholder.routes';
+import { provideTranslocoScope } from '@jsverse/transloco';
 
 /**
- * STUB (IA v2 §9.2): the shell wires this route so its branch builds alone. The area
- * engineer delivers the real file at this path; their version wins on merge.
+ * The Rapporter hub (`/reports`, IA v2 §5.9 / §9.2): open to every member (no module
+ * gate). app.routes mounts it at `/reports` with `pathMatch: 'full'`, before the Reports
+ * module pages (`reports.routes.ts`).
  */
-export default [...modulePlaceholderRoutes('nav.areas.reports.label')] satisfies Routes;
+export default [
+  {
+    path: '',
+    providers: [provideTranslocoScope('reports', 'outputs')],
+    loadComponent: () => import('./hub/reports-hub').then((m) => m.ReportsHub),
+  },
+] satisfies Routes;

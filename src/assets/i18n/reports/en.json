@@ -1,11 +1,16 @@
 {
   "nav": {
+    "hub": "Reports",
+    "status": "Status and key figures",
+    "custom": "Custom reports",
+    "auditPacks": "Audit packs",
+    "exports": "Register export",
+    "archive": "Archive",
     "overview": "Overview",
     "calendar": "Calendar",
-    "registers": "Registers and exports",
-    "definitions": "Saved reports",
-    "library": "Documents and reports",
-    "auditPacks": "Audit packs",
+    "registers": "Registers and export",
+    "definitions": "Custom reports",
+    "library": "Reports",
     "dashboards": "Role overviews"
   },
   "common": {
@@ -722,5 +727,65 @@
     "auditPackDeleted": "Audit pack deleted",
     "dashboardUpdated": "Role overview changed",
     "dashboardReset": "Role overview reset"
+  },
+  "hub": {
+    "title": "Reports",
+    "intro": "What do you need to deliver, and to whom? Everything is made from what you have already recorded. If something is missing, we tell you what and where to fill it in.",
+    "standards": "Standards (expert view)",
+    "allRecipients": "← All recipients",
+    "error": "We could not load the reports. Try again.",
+    "empty": "Nothing to deliver here yet.",
+    "showAll": "Show all ({{count}})",
+    "recordHint": "Reports about one specific case, audit or person are made from that record. They show up here once they have been made.",
+    "downloadError": "We could not download the file. Try again.",
+    "more": "More in Reports",
+    "groups": {
+      "auditor": {
+        "title": "For the auditor",
+        "hint": "Internal and external audit"
+      },
+      "authority": {
+        "title": "For the Data Protection Authority",
+        "hint": "And other authorities"
+      },
+      "board": {
+        "title": "For the board",
+        "hint": "The board and management"
+      },
+      "people": {
+        "title": "For customers and employees",
+        "hint": "Customers, employees and applicants"
+      }
+    },
+    "status": {
+      "ready": "Ready",
+      "missing": "{{count}} missing",
+      "draft": "Draft",
+      "new": "New",
+      "gaps": "With gaps"
+    },
+    "actions": {
+      "download": "Download",
+      "missing": "See what is missing",
+      "open": "Open"
+    },
+    "meta": {
+      "made": "Made {{date}}",
+      "lastMade": "Last made {{date}}",
+      "standards": "For {{count}} standards"
+    },
+    "links": {
+      "status": "Status and key figures",
+      "custom": "Custom reports",
+      "archive": "Archive",
+      "exports": "Register export",
+      "all": "Everything CoreFlow can make",
+      "registers": "All registers (A–Z)",
+      "branding": "Report appearance"
+    },
+    "all": {
+      "title": "Everything CoreFlow can make",
+      "description": "Every document and report you can make, with search and filters by module and standard."
+    }
   }
 }
