@@ -1,0 +1,183 @@
+{
+  "meld": {
+    "title": "Meld fra",
+    "intro": "Fortell med egne ord hva som skjedde. Vi foreslår resten, og du sjekker før det lagres.",
+    "steps": {
+      "label": "Steg",
+      "one": "1 · Hva har skjedd?",
+      "two": "2 · Sjekk forslaget",
+      "three": "3 · Ferdig"
+    },
+    "whatHappened": "Hva har skjedd?",
+    "chipsLabel": "Hva slags sak",
+    "placeholder": "Skriv det som du ville sagt det til en kollega: hva skjedde, hvor og når, og hvem som er berørt.",
+    "makeProposal": "Lag forslag",
+    "making": "Lager forslag …",
+    "attach": "Legg ved bilde",
+    "removeAttachment": "Fjern {{name}}",
+    "seeCases": "Se alle saker ({{count}} åpne) →",
+    "seeCasesNoCount": "Se alle saker →",
+    "fullForm": "Bruk fullt skjema",
+    "noTypes": "Du har ikke tilgang til å melde fra her. Snakk med lederen din eller den som er ansvarlig for kvalitet i bedriften.",
+    "textRequired": "Skriv noen ord om hva som har skjedd først.",
+    "aiNoteLead": "Forslag fra CoreFlow.",
+    "aiNote": "Laget ut fra det du skrev og det vi vet om bedriften. Endre det som ikke stemmer.",
+    "aiWhy": "Hvorfor: {{why}}",
+    "manualNote": "Fyll ut selv – forslag er ikke tilgjengelig nå.",
+    "fields": {
+      "title": "Kort overskrift",
+      "type": "Hva slags hendelse",
+      "kind": "Hva slags",
+      "severity": "Hvor alvorlig",
+      "affected": "Hvem er berørt",
+      "affectedNone": "Ingen valgt",
+      "removeAffected": "Fjern {{name}}",
+      "customer": "Hvilken kunde",
+      "owner": "Ansvarlig",
+      "ownerMe": "Meg selv",
+      "description": "Hva skjedde",
+      "immediate": "Hva er gjort allerede",
+      "due": "Frist",
+      "dueHint": "Når saken bør være fulgt opp."
+    },
+    "severity": {
+      "high": "Høy – kan måtte meldes",
+      "medium": "Middels",
+      "low": "Lav"
+    },
+    "affectedTypes": {
+      "customer": "kunde",
+      "supplier": "leverandør",
+      "process": "prosess",
+      "asset": "utstyr"
+    },
+    "deadline": {
+      "gdpr72h": "Vurder melding til Datatilsynet innen {{when}}",
+      "gdpr72hHint": "72 timer fra dere ble kjent med det"
+    },
+    "submit": "Meld fra",
+    "submitting": "Melder fra …",
+    "back": "Tilbake",
+    "error": "Det gikk ikke å lagre saken. Sjekk feltene og prøv igjen.",
+    "customerRequired": "Skriv hvilken kunde det gjelder.",
+    "done": {
+      "title": "Takk, det er meldt fra",
+      "created": "{{code}} er opprettet, og {{owner}} har fått beskjed. Dette skjer videre:",
+      "createdNoOwner": "{{code}} er opprettet. Dette skjer videre:",
+      "openCase": "Åpne saken",
+      "toOverview": "Til oversikten",
+      "again": "Meld noe annet",
+      "attached": "Bildet er lagt ved saken.",
+      "attachFailed": "Bildet ble ikke lagt ved. Du kan legge det ved fra saken."
+    }
+  },
+  "types": {
+    "deviation": {
+      "chip": "Noe gikk galt",
+      "label": "Avvik"
+    },
+    "near_miss": {
+      "chip": "Noen ble skadet eller nesten skadet",
+      "label": "Skade eller nestenulykke"
+    },
+    "data_breach": {
+      "chip": "Personopplysninger på avveie",
+      "label": "Brudd på personopplysninger"
+    },
+    "security_incident": {
+      "chip": "Sikkerhetshendelse",
+      "label": "Sikkerhetshendelse"
+    },
+    "complaint": {
+      "chip": "En kunde klaget",
+      "label": "Reklamasjon"
+    },
+    "improvement": {
+      "chip": "Jeg har en idé",
+      "label": "Forbedringsforslag"
+    },
+    "feedback": {
+      "chip": "Forslag fra kunder",
+      "label": "Forslag fra kunde"
+    },
+    "intake": {
+      "chip": "Varslinger",
+      "label": "Varsling"
+    }
+  },
+  "kinds": {
+    "near_miss": "Nestenulykke",
+    "injury": "Personskade",
+    "occupational_illness": "Arbeidsrelatert sykdom",
+    "dangerous_condition": "Farlig forhold",
+    "property_damage": "Skade på utstyr eller bygg",
+    "phishing": "Phishing",
+    "malware": "Skadevare",
+    "unauthorised_access": "Uautorisert tilgang",
+    "data_loss": "Tap av data",
+    "denial_of_service": "Tjenestenekt",
+    "lost_device": "Tapt eller stjålet utstyr",
+    "other": "Annet"
+  },
+  "next": {
+    "assessAuthority": "{{owner}} vurderer innen {{deadline}} om det må meldes til Datatilsynet.",
+    "informCustomerRisk": "{{customer}} får beskjed hvis risikoen for dem er høy.",
+    "breachLearn": "Når saken lukkes, foreslår vi tiltak så det ikke skjer igjen, for eksempel at kundedata ikke lagres lokalt.",
+    "breachAsIncident": "{{owner}} følger opp saken og vurderer innen {{deadline}} om den må meldes til Datatilsynet.",
+    "hseFollowUp": "{{owner}} følger opp og sørger for at ingen blir skadet.",
+    "securityContain": "{{owner}} sørger for at skaden begrenses, for eksempel ved å sperre tilganger.",
+    "findCause": "Dere finner årsaken og bestemmer hva som skal gjøres.",
+    "closeAndLearn": "Når tiltakene virker, lukkes saken, og dere lærer av den.",
+    "complaintAnswer": "{{owner}} svarer {{customer}} innen {{due}}.",
+    "complaintAnswerNoDate": "{{owner}} svarer {{customer}}.",
+    "ideaEvaluated": "{{owner}} vurderer forslaget.",
+    "ideaFeedback": "Du får beskjed om hva som skjer med ideen.",
+    "ownerFollowsUp": "{{owner}} følger opp saken innen {{due}}.",
+    "ownerFollowsUpNoDate": "{{owner}} følger opp saken.",
+    "theOwner": "Ansvarlig",
+    "theCustomer": "kunden"
+  },
+  "cases": {
+    "title": "Saker",
+    "intro": "Alt som er meldt fra: avvik, hendelser, brudd, klager og ideer. Følg saken fra den er meldt til den er lukket.",
+    "report": "Meld fra",
+    "tabs": {
+      "label": "Saker",
+      "open": "Åpne ({{count}})",
+      "mine": "Mine ({{count}})",
+      "closed": "Lukket ({{count}})"
+    },
+    "filterLabel": "Vis",
+    "all": "Alle",
+    "search": "Søk i saker",
+    "searchPlaceholder": "Søk etter tittel eller nummer",
+    "columns": {
+      "case": "Sak",
+      "where": "Hvor i bedriften",
+      "status": "Status",
+      "due": "Frist"
+    },
+    "noDue": "–",
+    "overdue": "Forfalt {{date}}",
+    "links": {
+      "label": "Mer om sakene",
+      "actions": "Tiltak",
+      "stats": "Statistikk",
+      "intake": "Varslinger",
+      "intakeCount": "Varslinger ({{count}})",
+      "advanced": "Avansert liste"
+    },
+    "more": "Vis flere",
+    "shown": "Viser {{shown}} av {{total}}",
+    "empty": {
+      "open": "Ingen åpne saker",
+      "openBody": "Alt som er meldt fra er fulgt opp. Har noe skjedd, kan du melde fra med én gang.",
+      "mine": "Du har ingen åpne saker",
+      "mineBody": "Her ser du saker du har meldt fra om eller er ansvarlig for.",
+      "closed": "Ingen lukkede saker ennå",
+      "closedBody": "Saker som er fulgt opp og lukket, havner her.",
+      "filtered": "Ingen saker passer",
+      "filteredBody": "Prøv et annet filter eller søkeord."
+    }
+  }
+}
