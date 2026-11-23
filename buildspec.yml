@@ -1,0 +1,24 @@
+# AWS CodeBuild — builds the portal image and pushes it to ECR.
+# CodeBuild project: Linux standard image, "Privileged" ON (Docker builds).
+# Optional env vars: ECS_CLUSTER + ECS_SERVICE -> roll the ECS service after the push.
+version: 0.2
+env:
+  variables:
+    ECR_REPO: 024848440172.dkr.ecr.eu-north-1.amazonaws.com/sandbox-coreflow-portal
+    AWS_DEFAULT_REGION: eu-north-1
+phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password | docker login --username AWS --password-stdin "${ECR_REPO%%/*}"
+      - TAG="$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c1-8)"; TAG="${TAG:-manual}"
+  build:
+    commands:
+      - docker build -t "$ECR_REPO:$TAG" -t "$ECR_REPO:latest" .
+  post_build:
+    commands:
+      - docker push "$ECR_REPO:$TAG"
+      - docker push "$ECR_REPO:latest"
+      - |
+        if [ -n "$ECS_CLUSTER" ] && [ -n "$ECS_SERVICE" ]; then
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --force-new-deployment > /dev/null
+        fi
