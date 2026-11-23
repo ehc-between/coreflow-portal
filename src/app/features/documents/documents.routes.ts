@@ -33,6 +33,9 @@ export default [
       {
         path: 'all',
         canActivate: [kindToType],
+        // The menu links Policyer / Planer to this same page with another ?kind=: re-run
+        // the guard on query changes so ?kind= always becomes ?type=.
+        runGuardsAndResolvers: 'paramsOrQueryParamsChange',
         loadComponent: () => import('./documents-list').then((m) => m.DocumentsList),
       },
       {
