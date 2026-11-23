@@ -1212,3 +1212,31 @@ hit the network or a model.
 - **D-22** Thread replies never nest; a reply to a reply attaches to the root.
 - **D-23** Retention hard-deletes (tombstone only while younger replies exist); deletes by
   users are soft with immediate content scrubbing.
+
+### 8.1 Deviations from this design in the shipped code (logged 2026-11-23)
+
+The chat shipped as designed except for these two points, found and decided during the
+integration step (core `ed4a7f2`, portal `96499ff4`). The code is the reference; the
+sections above are left as written so the original intent stays readable.
+
+- **D-24 Typing guard: server 1 s, client 3 s** (changes §3.5 and §4.4 composer). §3.5 says
+  the server drops more than one `chat.typing` per 3 s per conversation per connection.
+  Shipped: the server guard is a 1 s flood guard (`TYPING_INTERVAL = 1.0` in
+  `app/modules/chat/realtime_handlers.py`); the 3 s throttle lives in the client
+  (`ChatStore.notifyTyping`), and the client restarts its throttle after each sent message.
+  Why: with a 3 s server guard, the first "typing" frame of the next message (sent right
+  after a send) was silently swallowed, so the others did not see "Kari skriver …" for
+  follow-up messages. The client throttle keeps the normal rate at one frame per 3 s; the
+  server guard only stops floods.
+- **D-25 "Diskuter" on every record detail page, not only anatomy mode** (changes §4.7 and
+  D-18). §4.7 adds `app-discuss-button` to the header in anatomy mode only. Shipped:
+  `app-record-detail-layout` renders it in the `[secondary]` slot for every record page
+  (anatomy and classic layouts), left of "Spør KI"; it still hides itself without the chat
+  module or `chat:use`, and it still does not count against the "≤ 2 secondary" rule.
+  Why: most record pages were not yet on the anatomy layout, so a discussion could only be
+  started from a minority of records; one consistent place on every record page is easier
+  to learn.
+
+Related, not a deviation of the chat itself: with IA v2 (`docs/ia-v2.md` W9/W10) the chat
+is reached from the top-bar **inbox** (tab "Meldinger", unread count in the inbox badge);
+the separate chat button of §4.5 is retired. The badge rule of D-14 is unchanged.

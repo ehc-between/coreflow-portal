@@ -453,12 +453,11 @@ interface Kpi {
                       [labelKey]="'suppliers.criticality.' + row.criticality"
                     />
                     @if (row.dpa_status && row.dpa_status !== 'not_needed') {
-                      @let dp = dpaBadge(row.dpa_status);
                       <app-status-badge
                         badges
                         data-testid="row-dpa"
-                        [meaning]="dp.meaning"
-                        [value]="dp.value"
+                        [meaning]="dpaBadge(row.dpa_status).meaning"
+                        [value]="dpaBadge(row.dpa_status).value"
                         [labelKey]="'suppliers.agreements.dpaStatus.' + row.dpa_status"
                       />
                     }
