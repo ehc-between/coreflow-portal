@@ -24,7 +24,8 @@ import { OrgRole } from '../../../core/org/org.models';
 import { relevantRoles } from '../../../core/org/roles';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Switch } from '../../../shared/ui/switch/switch';
 
@@ -35,107 +36,95 @@ import { Switch } from '../../../shared/ui/switch/switch';
  */
 @Component({
   selector: 'app-reminder-settings-form',
-  imports: [TranslocoPipe, ReactiveFormsModule, Card, FormField, Switch, Button, Alert],
+  imports: [
+    TranslocoPipe,
+    ReactiveFormsModule,
+    FormActions,
+    FormField,
+    FormSection,
+    Switch,
+    Button,
+    Alert,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-card>
-      <h2
-        id="reminder-settings-title"
-        class="font-display text-section font-bold tracking-[-0.02em] text-fg"
+    <form
+      class="flex flex-col gap-5"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      data-testid="reminder-settings"
+    >
+      <app-form-section
+        [title]="'activity.reminders.title' | transloco"
+        [description]="'activity.reminders.subtitle' | transloco"
       >
-        {{ 'activity.reminders.title' | transloco }}
-      </h2>
-      <p class="mt-0.5 text-ui text-fg-muted">
-        {{ 'activity.reminders.subtitle' | transloco }}
-      </p>
-
-      <form
-        class="mt-4 flex flex-col gap-4"
-        [formGroup]="form"
-        (ngSubmit)="save()"
-        aria-labelledby="reminder-settings-title"
-        data-testid="reminder-settings"
-      >
-        <div class="grid gap-4 sm:grid-cols-2">
-          <app-form-field
-            inputId="reminder-days"
-            [label]="'activity.reminders.reminderDays' | transloco"
-          >
-            <input
-              id="reminder-days"
-              type="number"
-              min="0"
-              [max]="reminderMax"
-              formControlName="reminder_days"
-              aria-describedby="reminder-days-help"
-            />
-          </app-form-field>
-          <app-form-field
-            inputId="escalation-days"
-            [label]="'activity.reminders.escalationDays' | transloco"
-          >
-            <input
-              id="escalation-days"
-              type="number"
-              [min]="escalationMin"
-              [max]="escalationMax"
-              formControlName="escalation_days"
-              aria-describedby="escalation-days-help"
-            />
-          </app-form-field>
-          <p id="reminder-days-help" class="-mt-2 text-meta text-fg-muted">
-            {{ 'activity.reminders.reminderDaysHelp' | transloco: { max: reminderMax } }}
-          </p>
-          <p id="escalation-days-help" class="-mt-2 text-meta text-fg-muted">
-            {{ 'activity.reminders.escalationDaysHelp' | transloco: { max: escalationMax } }}
-          </p>
-        </div>
-
         <app-form-field
+          inputId="reminder-days"
+          [label]="'activity.reminders.reminderDays' | transloco"
+          [hint]="'activity.reminders.reminderDaysHelp' | transloco: { max: reminderMax }"
+        >
+          <input
+            id="reminder-days"
+            type="number"
+            min="0"
+            [max]="reminderMax"
+            formControlName="reminder_days"
+          />
+        </app-form-field>
+        <app-form-field
+          inputId="escalation-days"
+          [label]="'activity.reminders.escalationDays' | transloco"
+          [hint]="'activity.reminders.escalationDaysHelp' | transloco: { max: escalationMax }"
+        >
+          <input
+            id="escalation-days"
+            type="number"
+            [min]="escalationMin"
+            [max]="escalationMax"
+            formControlName="escalation_days"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
           inputId="escalation-role"
           [label]="'activity.reminders.escalationRole' | transloco"
+          [hint]="'activity.reminders.escalationRoleHelp' | transloco"
         >
-          <select
-            id="escalation-role"
-            formControlName="escalation_role_key"
-            aria-describedby="escalation-role-help"
-          >
+          <select id="escalation-role" formControlName="escalation_role_key">
             <option [ngValue]="null">{{ 'activity.reminders.noRole' | transloco }}</option>
             @for (role of shownRoles(); track role.key) {
               <option [ngValue]="role.key">{{ roleLabel(role) }}</option>
             }
           </select>
         </app-form-field>
-        <p id="escalation-role-help" class="-mt-2 text-meta text-fg-muted">
-          {{ 'activity.reminders.escalationRoleHelp' | transloco }}
-        </p>
-
-        <div>
-          <app-switch
-            [checked]="form.controls.escalate_to_department_lead.value"
-            (checkedChange)="form.controls.escalate_to_department_lead.setValue($event)"
-          >
-            {{ 'activity.reminders.escalateToLead' | transloco }}
-          </app-switch>
-          <p class="mt-1 pl-1 text-meta text-fg-muted">
+        <div class="sm:col-span-2">
+          <div class="flex min-h-10 items-center rounded-tile border border-border px-3">
+            <app-switch
+              [checked]="form.controls.escalate_to_department_lead.value"
+              (checkedChange)="form.controls.escalate_to_department_lead.setValue($event)"
+            >
+              {{ 'activity.reminders.escalateToLead' | transloco }}
+            </app-switch>
+          </div>
+          <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
             {{ 'activity.reminders.escalateToLeadHelp' | transloco }}
           </p>
         </div>
+      </app-form-section>
 
-        @if (invalid()) {
-          <app-alert tone="info">{{ 'activity.reminders.invalid' | transloco }}</app-alert>
-        }
-        @if (errorKey(); as e) {
-          <app-alert data-testid="settings-error">{{ e | transloco }}</app-alert>
-        }
+      @if (invalid()) {
+        <app-alert tone="info">{{ 'activity.reminders.invalid' | transloco }}</app-alert>
+      }
+      @if (errorKey(); as e) {
+        <app-alert data-testid="settings-error">{{ e | transloco }}</app-alert>
+      }
 
-        <div class="flex justify-end">
-          <app-button type="submit" [loading]="saving()" data-testid="settings-save">
-            {{ 'activity.reminders.save' | transloco }}
-          </app-button>
-        </div>
-      </form>
-    </app-card>
+      <app-form-actions>
+        <app-button type="submit" [loading]="saving()" data-testid="settings-save">
+          {{ 'activity.reminders.save' | transloco }}
+        </app-button>
+      </app-form-actions>
+    </form>
   `,
 })
 export class ReminderSettingsForm {

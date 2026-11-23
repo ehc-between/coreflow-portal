@@ -22,7 +22,9 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
@@ -83,7 +85,9 @@ export function mergeDraft(
     AskAbout,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     FormField,
     AiGovPage,
     AiUserSelect,
@@ -97,6 +101,7 @@ export function mergeDraft(
       page="assessmentEdit"
       [nav]="false"
       [why]="false"
+      [narrow]="true"
       [backLink]="['/ai-governance/assessments', id()]"
       backLabelKey="aiGovernance.assessmentEdit.back"
     >
@@ -120,7 +125,7 @@ export function mergeDraft(
           <app-alert tone="info">{{ 'aiGovernance.assessmentEdit.locked' | transloco }}</app-alert>
         } @else {
           <form
-            class="flex max-w-[760px] flex-col gap-5"
+            class="mt-5 flex flex-col gap-5"
             (submit)="$event.preventDefault(); save()"
             novalidate
           >
@@ -133,123 +138,113 @@ export function mergeDraft(
               [editing]="hasAnswers()"
               (applied)="applySuggestion($event)"
             />
-            <app-card>
-              <p class="mb-3 text-ui text-fg-muted">
-                {{ kindKey(a.kind) | transloco }} · {{ a.ai_system.code }} {{ a.ai_system.name }}
-              </p>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div class="md:col-span-3">
-                  <app-form-field
-                    [label]="'aiGovernance.fields.title' | transloco"
-                    inputId="aie-title"
-                  >
-                    <input
-                      id="aie-title"
-                      type="text"
-                      maxlength="200"
-                      required
-                      [value]="title()"
-                      (input)="title.set($any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'aiGovernance.fields.owner' | transloco"
-                    inputId="aie-owner"
-                  >
-                    <app-ai-user-select
-                      selectId="aie-owner"
-                      [currentName]="a.owner?.name ?? null"
-                      [(value)]="owner"
-                    />
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'aiGovernance.fields.dueAt' | transloco"
-                    inputId="aie-due"
-                  >
-                    <input
-                      id="aie-due"
-                      type="date"
-                      [value]="due()"
-                      (input)="due.set($any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'aiGovernance.fields.nextReview' | transloco"
-                    inputId="aie-review"
-                  >
-                    <input
-                      id="aie-review"
-                      type="date"
-                      [value]="nextReview()"
-                      (input)="nextReview.set($any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
-                <div class="md:col-span-3">
-                  <app-form-field
-                    [label]="'aiGovernance.fields.changeReason' | transloco"
-                    inputId="aie-reason"
-                  >
-                    <input
-                      id="aie-reason"
-                      type="text"
-                      maxlength="1000"
-                      [value]="reason()"
-                      (input)="reason.set($any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
-              </div>
-            </app-card>
+            <app-form-section
+              [title]="'aiGovernance.assessmentEdit.basics' | transloco"
+              [description]="
+                (kindKey(a.kind) | transloco) + ' · ' + a.ai_system.code + ' ' + a.ai_system.name
+              "
+            >
+              <app-form-field
+                span="full"
+                [label]="'aiGovernance.fields.title' | transloco"
+                inputId="aie-title"
+              >
+                <input
+                  id="aie-title"
+                  type="text"
+                  maxlength="200"
+                  required
+                  [value]="title()"
+                  (input)="title.set($any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field [label]="'aiGovernance.fields.owner' | transloco" inputId="aie-owner">
+                <app-ai-user-select
+                  selectId="aie-owner"
+                  [currentName]="a.owner?.name ?? null"
+                  [(value)]="owner"
+                />
+              </app-form-field>
+              <app-form-field [label]="'aiGovernance.fields.dueAt' | transloco" inputId="aie-due">
+                <app-date-input
+                  inputId="aie-due"
+                  [value]="due()"
+                  (valueChange)="due.set($event ?? '')"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'aiGovernance.fields.nextReview' | transloco"
+                inputId="aie-review"
+              >
+                <app-date-input
+                  inputId="aie-review"
+                  [value]="nextReview()"
+                  (valueChange)="nextReview.set($event ?? '')"
+                />
+              </app-form-field>
+            </app-form-section>
 
             @for (key of sectionKeys(); track key) {
-              <app-card>
-                <div class="mb-1 flex items-start justify-between gap-2">
-                  <label [for]="'aie-s-' + key" class="text-card font-bold text-fg">
-                    {{ sectionKey(a.kind, key) | transloco }}
-                    @if (required().has(key)) {
-                      <span class="ml-1 text-meta font-semibold text-warn">{{
-                        'aiGovernance.assessmentEdit.required' | transloco
-                      }}</span>
-                    }
-                  </label>
-                  <app-ask-about
-                    [prompt]="
-                      'aiGovernance.assessmentEdit.ask'
-                        | transloco: { section: (sectionKey(a.kind, key) | transloco) }
-                    "
-                    [field]="key"
-                    labelKey="aiGovernance.wizard.askAbout"
-                  />
-                </div>
-                <p [id]="'aie-h-' + key" class="mb-2 text-meta text-fg-muted">
-                  {{ sectionHintKey(a.kind, key) | transloco }}
-                </p>
-                <textarea
-                  [id]="'aie-s-' + key"
-                  rows="5"
-                  maxlength="20000"
-                  [attr.aria-describedby]="'aie-h-' + key"
-                  class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg"
-                  [class.border-fail]="missing().has(key)"
-                  [value]="sections()[key] ?? ''"
-                  (input)="setSection(key, $any($event.target).value)"
-                ></textarea>
-              </app-card>
+              <app-form-section
+                [title]="sectionKey(a.kind, key) | transloco"
+                [description]="sectionHintKey(a.kind, key) | transloco"
+                [columns]="1"
+              >
+                @if (required().has(key)) {
+                  <span
+                    title-suffix
+                    class="ml-1 rounded-full bg-warn-soft px-2 py-0.5 text-micro font-semibold text-warn-ink"
+                    >{{ 'aiGovernance.assessmentEdit.required' | transloco }}</span
+                  >
+                }
+                <app-ask-about
+                  section-actions
+                  [prompt]="
+                    'aiGovernance.assessmentEdit.ask'
+                      | transloco: { section: (sectionKey(a.kind, key) | transloco) }
+                  "
+                  [field]="key"
+                  labelKey="aiGovernance.wizard.askAbout"
+                />
+                <app-form-field
+                  [inputId]="'aie-s-' + key"
+                  [error]="
+                    missing().has(key)
+                      ? ('aiGovernance.assessmentEdit.fillRequired' | transloco)
+                      : ''
+                  "
+                >
+                  <textarea
+                    [id]="'aie-s-' + key"
+                    rows="5"
+                    maxlength="20000"
+                    [attr.aria-label]="sectionKey(a.kind, key) | transloco"
+                    [value]="sections()[key] ?? ''"
+                    (input)="setSection(key, $any($event.target).value)"
+                  ></textarea>
+                </app-form-field>
+              </app-form-section>
             }
+
+            <app-form-section [columns]="1">
+              <app-form-field
+                [label]="'aiGovernance.fields.changeReason' | transloco"
+                inputId="aie-reason"
+              >
+                <input
+                  id="aie-reason"
+                  type="text"
+                  maxlength="1000"
+                  [value]="reason()"
+                  (input)="reason.set($any($event.target).value)"
+                />
+              </app-form-field>
+            </app-form-section>
 
             @if (error()) {
               <app-alert tone="error">{{ error()! | transloco }}</app-alert>
             }
-            <div
-              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-            >
+            <app-form-actions>
               <app-button variant="secondary" (click)="back()">{{
                 'aiGovernance.common.cancel' | transloco
               }}</app-button>
@@ -261,7 +256,7 @@ export function mergeDraft(
               >
                 {{ 'aiGovernance.common.save' | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
         }
       } @else {

@@ -18,6 +18,7 @@ import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
@@ -99,6 +100,7 @@ function toRef(link: EntityLink | null | undefined): EntityChipRef | null {
     LocalDatePipe,
     Alert,
     Button,
+    FormActions,
     Card,
     ConfirmDialog,
     ErrorState,
@@ -228,7 +230,7 @@ function toRef(link: EntityLink | null | undefined): EntityChipRef | null {
               <ul class="flex flex-col divide-y divide-border">
                 @for (kind of linkKinds; track kind) {
                   <li class="py-3 first:pt-0 last:pb-0" [attr.data-testid]="'set-link-' + kind">
-                    <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="flex flex-col items-start gap-2">
                       <div class="min-w-0">
                         <h3 class="text-body font-semibold text-fg">
                           {{ 'recruitment.settings.links.' + kind + '.title' | transloco }}
@@ -448,22 +450,19 @@ function toRef(link: EntityLink | null | undefined): EntityChipRef | null {
                 </p>
               </app-card>
 
-              @if (saveError(); as key) {
-                <app-alert>{{ key | transloco }}</app-alert>
-              }
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-meta text-fg-subtle">
-                  @if (s.updated_at) {
+              <app-form-actions [message]="saveError() ? (saveError()! | transloco) : ''">
+                @if (s.updated_at) {
+                  <span start class="text-meta text-fg-subtle">
                     {{
                       'recruitment.settings.updatedAt'
                         | transloco: { date: (s.updated_at | localDate) }
                     }}
-                  }
-                </span>
+                  </span>
+                }
                 <app-button type="submit" [loading]="busy() === 'save'" data-testid="set-save">
                   {{ 'recruitment.common.save' | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             </form>
           </div>
 

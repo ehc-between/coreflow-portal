@@ -243,14 +243,18 @@
       "identity": "Who they are",
       "role": "Role",
       "employment": "Employment",
-      "security": "Terms of employment and security"
+      "security": "Terms of employment and security",
+      "identityHint": "Name, contact details and the user account they sign in with.",
+      "roleHint": "Position, department and who they report to.",
+      "employmentHint": "Type of employment, status and when it starts and ends.",
+      "screeningHint": "What was checked, on what legal basis, and when to check again."
     },
     "noUser": "Not linked to a user account",
     "currentUser": "Current user account",
     "noPosition": "No position",
     "noDepartment": "No department",
     "noManager": "No manager",
-    "securityHint": "Record when the person signed the confidentiality agreement and accepted the security terms, the background check, and that they acknowledged their duties after leaving.",
+    "securityHint": "Confidentiality, security terms and duties after the employment ends.",
     "privateHint": "Phone, HR notes, what was checked and the legal basis are only shown to people who can edit people, and to the person.",
     "startOnboarding": "Start an onboarding checklist from the default template",
     "changeReason": "Reason for the change",
@@ -270,7 +274,8 @@
     "screeningTitle": "Background check",
     "screeningRequired": "The position has a high security risk. Record the background check and when it must be repeated.",
     "legalBasisHint": "Why you may check this. A police certificate needs a legal basis.",
-    "recheckHint": "For high-risk roles we suggest a new check every three years."
+    "recheckHint": "For high-risk roles we suggest a new check every three years.",
+    "fixErrors": "Correct the marked fields."
   },
   "detail": {
     "number": "No. {{ n }}",
@@ -387,7 +392,11 @@
     "editTitle": "Edit {{ name }}",
     "create": "Add competence",
     "nameRequired": "Enter a name.",
-    "validityRange": "Enter a whole number of months between 1 and 240, or leave it empty."
+    "validityRange": "Enter a whole number of months between 1 and 240, or leave it empty.",
+    "sections": {
+      "basics": "The competence",
+      "basicsHint": "What the competence is and how long it stays valid."
+    }
   },
   "positions": {
     "title": "Positions",
@@ -458,7 +467,17 @@
     "riskHint": "High means people in the role must have a background check.",
     "ownerHint": "The person who keeps the job description up to date.",
     "jobDescriptionHint": "The controlled document that describes the role, if you have one.",
-    "nextReviewDefault": "Leave empty for one year from today."
+    "nextReviewDefault": "Leave empty for one year from today.",
+    "sections": {
+      "basics": "The position",
+      "basicsHint": "Name, code, security risk and a short description of the position.",
+      "duties": "Responsibilities and authority",
+      "dutiesHint": "What the position is responsible for and may decide.",
+      "organisation": "Organisation and review",
+      "organisationHint": "Where the position sits, who owns it and when it is reviewed."
+    },
+    "draftIntro": "Get a draft of responsibilities and authority based on the title.",
+    "draftNeedsTitle": "Enter a title first to get a draft of responsibilities."
   },
   "requirements": {
     "title": "Competence requirements",

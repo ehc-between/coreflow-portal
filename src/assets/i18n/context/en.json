@@ -698,6 +698,10 @@
       "framework": "Choose which standard the scope is for.",
       "interval": "Choose a review interval from the list.",
       "exclusion": "Each requirement that does not apply needs both a clause and a reason."
+    },
+    "sections": {
+      "main": "Details",
+      "mainHint": "What this record says. Fields marked * are required."
     }
   },
   "communicate": {

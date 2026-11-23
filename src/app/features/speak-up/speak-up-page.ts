@@ -22,6 +22,7 @@ import { QuickType } from '../../shared/registrer/registrer.models';
 import { ReqPills } from '../../shared/requirement-links/req-pills';
 import { Button } from '../../shared/ui/button/button';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -68,11 +69,21 @@ const FULL_FORM: Record<string, string> = {
  */
 @Component({
   selector: 'app-speak-up-page',
-  imports: [RouterLink, TranslocoPipe, Button, ErrorState, FormField, Icon, LoadingState, ReqPills],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Button,
+    DateInput,
+    ErrorState,
+    FormField,
+    Icon,
+    LoadingState,
+    ReqPills,
+  ],
   viewProviders: [provideSharedScope('speakup')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1240px] px-4 py-7 sm:px-6" data-testid="speak-up-page">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7" data-testid="speak-up-page">
       <header class="mb-6">
         <h1 class="font-display text-page font-bold text-fg">
           {{ 'speakup.meld.title' | transloco }}
@@ -98,7 +109,7 @@ const FULL_FORM: Record<string, string> = {
         }
       </ol>
 
-      <div class="max-w-[760px] rounded-card border border-border bg-surface p-5">
+      <div class="rounded-card border border-border bg-surface p-4 shadow-card sm:p-5">
         @if (typesError()) {
           <app-error-state (retry)="loadTypes()" />
         } @else if (types() === null) {
@@ -239,7 +250,7 @@ const FULL_FORM: Record<string, string> = {
                   </div>
                 }
 
-                <div class="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
                   <div class="sm:col-span-2">
                     <app-form-field
                       [label]="'speakup.meld.fields.title' | transloco"
@@ -407,20 +418,17 @@ const FULL_FORM: Record<string, string> = {
                       </p>
                     } @else {
                       <app-form-field
+                        class="sm:max-w-[calc(50%-8px)]"
                         [label]="'speakup.meld.fields.due' | transloco"
                         inputId="f-due-date"
+                        [hint]="'speakup.meld.fields.dueHint' | transloco"
                       >
-                        <input
-                          id="f-due-date"
-                          type="date"
-                          class="sm:max-w-[220px]"
+                        <app-date-input
+                          inputId="f-due-date"
                           [value]="f.due"
-                          (input)="patch({ due: $any($event.target).value })"
+                          (changed)="patch({ due: $event })"
                         />
                       </app-form-field>
-                      <p class="mt-1 text-meta text-fg-subtle">
-                        {{ 'speakup.meld.fields.dueHint' | transloco }}
-                      </p>
                     }
                     <app-req-pills [refs]="refs()" />
                   </div>
@@ -431,14 +439,16 @@ const FULL_FORM: Record<string, string> = {
                     {{ key | transloco }}
                   </p>
                 }
-                <div class="mt-5 flex flex-wrap gap-2.5">
+                <div
+                  class="mt-6 flex flex-wrap items-center justify-end gap-2.5 border-t border-border pt-4"
+                >
+                  <app-button variant="secondary" (click)="step.set(1)">
+                    {{ 'speakup.meld.back' | transloco }}
+                  </app-button>
                   <app-button data-testid="submit" [loading]="submitting()" (click)="submit()">
                     {{
                       (submitting() ? 'speakup.meld.submitting' : 'speakup.meld.submit') | transloco
                     }}
-                  </app-button>
-                  <app-button variant="secondary" (click)="step.set(1)">
-                    {{ 'speakup.meld.back' | transloco }}
                   </app-button>
                 </div>
               }

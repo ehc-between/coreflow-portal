@@ -57,6 +57,7 @@ import { DocumentRef, Employee, PERM_MANAGE, PositionDetail } from './data/peopl
 import { PositionRequirements } from './position-requirements';
 import { PeopleField } from './ui/people-field';
 import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -153,6 +154,7 @@ export function positionMissing(
 @Component({
   selector: 'app-people-position-detail',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDatePipe,
@@ -473,12 +475,11 @@ export function positionMissing(
                 [required]="true"
                 hintKey="people.positions.nextReviewHint"
               >
-                <input
-                  id="cf-pos-next"
-                  type="date"
+                <app-date-input
+                  inputId="cf-pos-next"
                   [min]="today"
                   [value]="nextReview()"
-                  (change)="nextReview.set($any($event.target).value)"
+                  (valueChange)="nextReview.set($event ?? '')"
                 />
               </app-people-field>
               <app-people-field labelKey="people.positions.reviewNote" inputId="cf-pos-note">

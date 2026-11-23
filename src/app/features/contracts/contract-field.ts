@@ -1,53 +1,60 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { GuidanceService } from '../../core/guidance/guidance.service';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
-import { FormField } from '../../shared/ui/form-field/form-field';
+import { FormField, FormFieldSpan } from '../../shared/ui/form-field/form-field';
 
 /**
- * A contract form field whose help sits where people look for it: the `?` toggle
- * and the "ask" icon inline after the label (beginners read the help as text under
- * the control instead). Wraps `app-form-field`, so the projected control gets the
- * shared styling.
+ * A contract form field (docs/ux-guide.md §2.4): renders through `app-form-field`,
+ * so the label sits on top in the label row with the `?` toggletip and the "ask"
+ * icon after it, the control gets the shared 40 px styling, and `hint` / `error`
+ * show as one muted line / the message under the control.
  *
  *   <app-contract-field [label]="…" inputId="cf-c-notice" helpField="notice_period_days"
  *                       [ask]="'contracts.ask.noticePeriod' | transloco">
  *     <input id="cf-c-notice" … />
  *   </app-contract-field>
+ *
+ * `span="full"` takes both columns of an `app-form-section` grid.
  */
 @Component({
   selector: 'app-contract-field',
   imports: [AskAbout, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: {
+    class: 'block min-w-0',
+    '[class.sm:col-span-2]': "span() === 'full'",
+  },
   template: `
-    <div class="flex flex-col gap-1.5">
-      <div class="flex min-h-[20px] flex-wrap items-center gap-1.5">
-        <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
-          {{ label() }}
-        </label>
-        @if (helpField() && !beginner()) {
-          <app-field-help scope="contracts" [page]="page()" [field]="helpField()!" />
-        }
-        @if (ask()) {
-          <app-ask-about
-            [prompt]="ask()"
-            [field]="helpField() ?? inputId()"
-            [fieldLabel]="label()"
-            [requirements]="requirements()"
-          />
-        }
-      </div>
-      <app-form-field [inputId]="inputId()"><ng-content /></app-form-field>
-      @if (helpField() && beginner()) {
-        <app-field-help scope="contracts" [page]="page()" [field]="helpField()!" />
+    <app-form-field
+      [label]="label()"
+      [inputId]="inputId()"
+      [required]="required()"
+      [hint]="hint()"
+      [error]="error()"
+    >
+      @if (helpField()) {
+        <app-field-help
+          label-suffix
+          scope="contracts"
+          [page]="page()"
+          [field]="helpField()!"
+          [label]="label()"
+        />
       }
-    </div>
+      @if (ask()) {
+        <app-ask-about
+          label-suffix
+          [prompt]="ask()"
+          [field]="helpField() ?? inputId()"
+          [fieldLabel]="label()"
+          [requirements]="requirements()"
+        />
+      }
+      <ng-content />
+    </app-form-field>
   `,
 })
 export class ContractField {
-  private readonly guidance = inject(GuidanceService);
-
   readonly label = input('');
   readonly inputId = input('');
   /** Guidance key (`pages.<page>.fields.<field>`) of the help text. */
@@ -56,6 +63,12 @@ export class ContractField {
   /** Translated question for the assistant (shows the "ask" icon). */
   readonly ask = input<string | null>(null);
   readonly requirements = input<readonly string[] | null>(null);
-
-  protected readonly beginner = this.guidance.isBeginner;
+  /** Marks the label required ("*"). */
+  readonly required = input(false);
+  /** One muted line under the control (already translated). */
+  readonly hint = input<string | null | undefined>('');
+  /** Validation message under the control (already translated). */
+  readonly error = input<string | null | undefined>('');
+  /** `full` spans both columns of an `app-form-section` grid. */
+  readonly span = input<FormFieldSpan>('half');
 }

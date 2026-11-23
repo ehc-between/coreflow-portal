@@ -19,7 +19,9 @@ import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import {
   DEFAULT_INTERVAL_MONTHS,
@@ -146,7 +148,9 @@ export function fieldsFrom(d: Draft): SupplierFields {
     TranslocoPipe,
     AskAbout,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     CountryPicker,
     FieldHelp,
     FormField,
@@ -157,385 +161,399 @@ export function fieldsFrom(d: Draft): SupplierFields {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'suppliers.form.sections.identity' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'suppliers.fields.name' | transloco"
-              inputId="sup-name"
-              [required]="true"
-            >
-              <input
-                id="sup-name"
-                type="text"
-                maxlength="255"
-                required
-                aria-required="true"
-                [attr.aria-invalid]="showErrors() && !d().name.trim()"
-                aria-describedby="sup-name-err"
-                [value]="d().name"
-                (input)="set('name', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !d().name.trim()) {
-              <p id="sup-name-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'suppliers.form.nameRequired' | transloco }}
-              </p>
+      <app-form-section
+        [title]="'suppliers.form.sections.identity' | transloco"
+        [description]="'suppliers.form.sections.identityHint' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'suppliers.fields.name' | transloco"
+          inputId="sup-name"
+          [required]="true"
+          [error]="
+            showErrors() && !d().name.trim() ? ('suppliers.form.nameRequired' | transloco) : ''
+          "
+        >
+          <input
+            id="sup-name"
+            type="text"
+            maxlength="255"
+            required
+            [value]="d().name"
+            (input)="set('name', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.category' | transloco" inputId="sup-cat">
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="form"
+            field="category"
+            [label]="'suppliers.fields.category' | transloco"
+          />
+          <select id="sup-cat" (change)="set('category', $any($event.target).value)">
+            @for (c of categories; track c) {
+              <option [value]="c" [selected]="d().category === c">
+                {{ 'suppliers.category.' + c | transloco }}
+              </option>
             }
-          </div>
-          <app-form-field [label]="'suppliers.fields.category' | transloco" inputId="sup-cat">
-            <app-field-help label-suffix scope="suppliers" page="form" field="category" />
-            <select id="sup-cat" (change)="set('category', $any($event.target).value)">
-              @for (c of categories; track c) {
-                <option [value]="c" [selected]="d().category === c">
-                  {{ 'suppliers.category.' + c | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <div>
-            <app-form-field
-              [label]="'suppliers.form.criticalityQuestion' | transloco"
-              inputId="sup-crit"
-            >
-              <app-field-help label-suffix scope="suppliers" page="form" field="criticality" />
-              <app-ask-about
-                label-suffix
-                [prompt]="'suppliers.ai.prompts.criticality' | transloco"
-                field="criticality"
-                [fieldLabel]="'suppliers.fields.criticality' | transloco"
-              />
-              <select
-                id="sup-crit"
-                aria-describedby="sup-crit-hint"
-                (change)="set('criticality', $any($event.target).value)"
-              >
-                @for (c of criticalities; track c) {
-                  <option [value]="c" [selected]="d().criticality === c">
-                    {{ 'suppliers.criticality.' + c | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <p
-              id="sup-crit-hint"
-              class="mt-1 text-meta text-fg-muted"
-              data-testid="criticality-hint"
-            >
-              {{
-                'suppliers.form.criticalityMeaning.' + d().criticality
-                  | transloco: { months: defaultInterval() }
-              }}
-            </p>
-          </div>
-          <app-form-field [label]="'suppliers.fields.legalName' | transloco" inputId="sup-legal">
-            <input
-              id="sup-legal"
-              type="text"
-              maxlength="255"
-              [value]="d().legal_name"
-              (input)="set('legal_name', $any($event.target).value)"
-            />
-          </app-form-field>
-          <app-form-field
-            [label]="'suppliers.fields.registrationNumber' | transloco"
-            inputId="sup-reg"
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'suppliers.form.criticalityQuestion' | transloco"
+          inputId="sup-crit"
+        >
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="form"
+            field="criticality"
+            [label]="'suppliers.fields.criticality' | transloco"
+          />
+          <app-ask-about
+            label-suffix
+            [prompt]="'suppliers.ai.prompts.criticality' | transloco"
+            field="criticality"
+            [fieldLabel]="'suppliers.fields.criticality' | transloco"
+          />
+          <select
+            id="sup-crit"
+            aria-describedby="sup-crit-hint"
+            (change)="set('criticality', $any($event.target).value)"
           >
-            <input
-              id="sup-reg"
-              type="text"
-              maxlength="64"
-              [value]="d().registration_number"
-              (input)="set('registration_number', $any($event.target).value)"
-            />
-          </app-form-field>
-          <div>
-            <app-form-field [label]="'suppliers.fields.country' | transloco" inputId="sup-country">
-              <app-country-picker
-                inputId="sup-country"
-                [multiple]="false"
-                [options]="countryCodes()"
-                [value]="d().country ? [d().country] : []"
-                [invalid]="countryInvalid()"
-                (valueChange)="set('country', $event[0] ?? '')"
-              />
-            </app-form-field>
-            <p
-              id="sup-country-hint"
-              class="mt-1 text-meta"
-              [class.text-fail-ink]="countryInvalid()"
-              [class.text-fg-subtle]="!countryInvalid()"
-            >
-              @if (serverInvalid('country')) {
-                {{ 'suppliers.form.invalidCountry' | transloco: { values: rejected() } }}
-              } @else {
-                {{ 'suppliers.form.countryHint' | transloco }}
-              }
-            </p>
-          </div>
-          <app-form-field [label]="'suppliers.fields.website' | transloco" inputId="sup-web">
-            <input
-              id="sup-web"
-              type="url"
-              maxlength="500"
-              [value]="d().website"
-              (input)="set('website', $any($event.target).value)"
-            />
-          </app-form-field>
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'suppliers.fields.description' | transloco" inputId="sup-desc">
-              <textarea
-                id="sup-desc"
-                rows="4"
-                maxlength="20000"
-                [value]="d().description"
-                (input)="set('description', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
-        </div>
-      </app-card>
+            @for (c of criticalities; track c) {
+              <option [value]="c" [selected]="d().criticality === c">
+                {{ 'suppliers.criticality.' + c | transloco }}
+              </option>
+            }
+          </select>
+          <p
+            hint
+            id="sup-crit-hint"
+            class="text-meta leading-snug text-fg-subtle"
+            data-testid="criticality-hint"
+          >
+            {{
+              'suppliers.form.criticalityMeaning.' + d().criticality
+                | transloco: { months: defaultInterval() }
+            }}
+          </p>
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.legalName' | transloco" inputId="sup-legal">
+          <input
+            id="sup-legal"
+            type="text"
+            maxlength="255"
+            [value]="d().legal_name"
+            (input)="set('legal_name', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'suppliers.fields.registrationNumber' | transloco"
+          inputId="sup-reg"
+        >
+          <input
+            id="sup-reg"
+            type="text"
+            maxlength="64"
+            [value]="d().registration_number"
+            (input)="set('registration_number', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'suppliers.fields.country' | transloco"
+          inputId="sup-country"
+          [hint]="serverInvalid('country') ? '' : ('suppliers.form.countryHint' | transloco)"
+          [error]="
+            serverInvalid('country')
+              ? ('suppliers.form.invalidCountry' | transloco: { values: rejected() })
+              : ''
+          "
+        >
+          <app-country-picker
+            inputId="sup-country"
+            [multiple]="false"
+            [options]="countryCodes()"
+            [value]="d().country ? [d().country] : []"
+            [invalid]="countryInvalid()"
+            (valueChange)="set('country', $event[0] ?? '')"
+          />
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.website' | transloco" inputId="sup-web">
+          <input
+            id="sup-web"
+            type="url"
+            maxlength="500"
+            [value]="d().website"
+            (input)="set('website', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'suppliers.fields.description' | transloco"
+          inputId="sup-desc"
+        >
+          <textarea
+            id="sup-desc"
+            rows="4"
+            maxlength="20000"
+            [value]="d().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'suppliers.form.sections.responsibility' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <app-form-field [label]="'suppliers.fields.owner' | transloco" inputId="sup-owner">
-            <app-field-help label-suffix scope="suppliers" page="form" field="owner" />
-            <app-supplier-user-select
-              inputId="sup-owner"
-              [value]="d().owner_user_id"
-              [currentName]="value()?.owner?.name ?? null"
-              (valueChange)="set('owner_user_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'suppliers.fields.department' | transloco" inputId="sup-dept">
-            <app-supplier-department-select
-              inputId="sup-dept"
-              [value]="d().department_id"
-              (valueChange)="set('department_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'suppliers.fields.contactName' | transloco" inputId="sup-cname">
-            <input
-              id="sup-cname"
-              type="text"
-              maxlength="255"
-              autocomplete="off"
-              [value]="d().contact_name"
-              (input)="set('contact_name', $any($event.target).value)"
-            />
-          </app-form-field>
-          <app-form-field
-            [label]="'suppliers.fields.contactEmail' | transloco"
-            inputId="sup-cemail"
-          >
-            <input
-              id="sup-cemail"
-              type="email"
-              maxlength="320"
-              autocomplete="off"
-              [value]="d().contact_email"
-              (input)="set('contact_email', $any($event.target).value)"
-            />
-          </app-form-field>
-          <app-form-field
-            [label]="'suppliers.fields.contactPhone' | transloco"
-            inputId="sup-cphone"
-          >
-            <input
-              id="sup-cphone"
-              type="tel"
-              maxlength="64"
-              autocomplete="off"
-              [value]="d().contact_phone"
-              (input)="set('contact_phone', $any($event.target).value)"
-            />
-          </app-form-field>
-        </div>
-      </app-card>
+      <app-form-section
+        [title]="'suppliers.form.sections.responsibility' | transloco"
+        [description]="'suppliers.form.sections.responsibilityHint' | transloco"
+      >
+        <app-form-field [label]="'suppliers.fields.owner' | transloco" inputId="sup-owner">
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="form"
+            field="owner"
+            [label]="'suppliers.fields.owner' | transloco"
+          />
+          <app-supplier-user-select
+            inputId="sup-owner"
+            [value]="d().owner_user_id"
+            [currentName]="value()?.owner?.name ?? null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.department' | transloco" inputId="sup-dept">
+          <app-supplier-department-select
+            inputId="sup-dept"
+            [value]="d().department_id"
+            (valueChange)="set('department_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'suppliers.fields.contactName' | transloco"
+          inputId="sup-cname"
+        >
+          <input
+            id="sup-cname"
+            type="text"
+            maxlength="255"
+            autocomplete="off"
+            [value]="d().contact_name"
+            (input)="set('contact_name', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.contactEmail' | transloco" inputId="sup-cemail">
+          <input
+            id="sup-cemail"
+            type="email"
+            maxlength="320"
+            autocomplete="off"
+            [value]="d().contact_email"
+            (input)="set('contact_email', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'suppliers.fields.contactPhone' | transloco" inputId="sup-cphone">
+          <input
+            id="sup-cphone"
+            type="tel"
+            maxlength="64"
+            autocomplete="off"
+            [value]="d().contact_phone"
+            (input)="set('contact_phone', $any($event.target).value)"
+          />
+        </app-form-field>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-1 font-display text-card font-bold text-fg">
-          {{ 'suppliers.form.sections.profile' | transloco }}
-        </h2>
-        <p class="mb-3 text-ui text-fg-muted">
-          {{ 'suppliers.form.profileHint' | transloco }}
-        </p>
-        <fieldset class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <app-form-section
+        [title]="'suppliers.form.sections.profile' | transloco"
+        [description]="'suppliers.form.profileHint' | transloco"
+      >
+        <fieldset class="grid grid-cols-1 gap-2 sm:col-span-2 sm:grid-cols-2">
           <legend class="sr-only">{{ 'suppliers.form.sections.profile' | transloco }}</legend>
           @for (flag of flags; track flag) {
-            <div class="flex items-start gap-2">
+            <div
+              class="flex min-h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2"
+            >
               <input
                 type="checkbox"
-                class="mt-0.5 h-4 w-4 flex-none"
+                class="h-4 w-4 flex-none accent-[var(--accent)]"
                 [id]="'sup-flag-' + flag"
                 [checked]="d()[flag]"
                 (change)="set(flag, $any($event.target).checked)"
               />
-              <label [for]="'sup-flag-' + flag" class="text-body text-fg">
+              <label
+                [for]="'sup-flag-' + flag"
+                class="min-w-0 flex-1 cursor-pointer text-ui text-fg"
+              >
                 {{ 'suppliers.flags.' + flag | transloco }}
               </label>
-              <app-field-help scope="suppliers" page="form" [field]="flag" />
+              <app-field-help
+                scope="suppliers"
+                page="form"
+                [field]="flag"
+                [label]="'suppliers.flags.' + flag | transloco"
+              />
             </div>
           }
         </fieldset>
         @if (profileNeeds().length) {
           <p
-            class="mb-4 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted"
+            class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted sm:col-span-2"
             data-testid="profile-needs"
           >
             {{ 'suppliers.form.profileNeeds' | transloco: { kinds: profileNeeds() } }}
           </p>
         }
-        <div>
-          <app-form-field [label]="'suppliers.fields.dataLocations' | transloco" inputId="sup-locs">
-            <app-field-help label-suffix scope="suppliers" page="form" field="data_locations" />
-            <app-ask-about
-              label-suffix
-              [prompt]="'suppliers.ai.prompts.dataLocations' | transloco"
-              field="data_locations"
-              [fieldLabel]="'suppliers.fields.dataLocations' | transloco"
-            />
-            <app-country-picker
-              inputId="sup-locs"
-              [label]="'suppliers.fields.dataLocations' | transloco"
-              [options]="locationCodes()"
-              [value]="d().data_locations"
-              [flagged]="flaggedLocations()"
-              [invalid]="serverInvalid('data_locations')"
-              (valueChange)="set('data_locations', $event)"
-            />
-          </app-form-field>
-          @if (serverInvalid('data_locations')) {
-            <p class="mt-1 text-meta text-fail-ink" role="alert" data-testid="locations-invalid">
-              {{ 'suppliers.form.invalidCountry' | transloco: { values: rejected() } }}
-            </p>
-          }
-          @if (flaggedLocations().length) {
-            <p class="mt-1 text-meta text-warn-ink" data-testid="locations-review">
-              {{
-                'suppliers.form.locationsReview'
-                  | transloco: { codes: flaggedLocations().join(', ') }
-              }}
-            </p>
-          }
-          @if (thirdCountries().length) {
-            <p class="mt-1 text-meta text-warn-ink" data-testid="locations-transfer">
-              {{ 'suppliers.form.transferNeeded' | transloco: { countries: thirdCountryNames() } }}
-            </p>
-          }
-        </div>
-      </app-card>
-
-      <app-card>
-        <div class="mb-1 flex flex-wrap items-center gap-1.5">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'suppliers.fields.certifications' | transloco }}
-          </h2>
-          <app-field-help scope="suppliers" page="form" field="certifications" />
-          <app-ask-about
-            [prompt]="'suppliers.ai.prompts.certificates' | transloco"
-            field="certifications"
-            [fieldLabel]="'suppliers.fields.certifications' | transloco"
+        <app-form-field
+          span="full"
+          [label]="'suppliers.fields.dataLocations' | transloco"
+          inputId="sup-locs"
+        >
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="form"
+            field="data_locations"
+            [label]="'suppliers.fields.dataLocations' | transloco"
           />
-        </div>
-        <p class="mb-3 text-ui text-fg-muted">{{ 'suppliers.certificates.hint' | transloco }}</p>
+          <app-ask-about
+            label-suffix
+            [prompt]="'suppliers.ai.prompts.dataLocations' | transloco"
+            field="data_locations"
+            [fieldLabel]="'suppliers.fields.dataLocations' | transloco"
+          />
+          <app-country-picker
+            inputId="sup-locs"
+            [label]="'suppliers.fields.dataLocations' | transloco"
+            [options]="locationCodes()"
+            [value]="d().data_locations"
+            [flagged]="flaggedLocations()"
+            [invalid]="serverInvalid('data_locations')"
+            (valueChange)="set('data_locations', $event)"
+          />
+          <div hint class="flex flex-col gap-1 empty:hidden">
+            @if (serverInvalid('data_locations')) {
+              <p
+                class="text-meta leading-snug font-medium text-fail-ink"
+                role="alert"
+                data-testid="locations-invalid"
+              >
+                {{ 'suppliers.form.invalidCountry' | transloco: { values: rejected() } }}
+              </p>
+            }
+            @if (flaggedLocations().length) {
+              <p class="text-meta leading-snug text-warn-ink" data-testid="locations-review">
+                {{
+                  'suppliers.form.locationsReview'
+                    | transloco: { codes: flaggedLocations().join(', ') }
+                }}
+              </p>
+            }
+            @if (thirdCountries().length) {
+              <p class="text-meta leading-snug text-warn-ink" data-testid="locations-transfer">
+                {{
+                  'suppliers.form.transferNeeded' | transloco: { countries: thirdCountryNames() }
+                }}
+              </p>
+            }
+          </div>
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'suppliers.fields.certifications' | transloco"
+        [description]="'suppliers.certificates.hint' | transloco"
+        [columns]="1"
+      >
+        <app-field-help
+          title-suffix
+          scope="suppliers"
+          page="form"
+          field="certifications"
+          [label]="'suppliers.fields.certifications' | transloco"
+        />
+        <app-ask-about
+          title-suffix
+          [prompt]="'suppliers.ai.prompts.certificates' | transloco"
+          field="certifications"
+          [fieldLabel]="'suppliers.fields.certifications' | transloco"
+        />
         <app-supplier-certificates-editor
           [rows]="d().certificates"
           [supplierId]="value()?.id ?? null"
           (rowsChange)="set('certificates', $event)"
         />
-      </app-card>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'suppliers.form.sections.schedule' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <app-form-field
-              [label]="'suppliers.fields.intervalMonths' | transloco"
-              inputId="sup-interval"
-            >
-              <app-field-help
-                label-suffix
-                scope="suppliers"
-                page="form"
-                field="evaluation_interval_months"
-              />
-              <input
-                id="sup-interval"
-                type="number"
-                min="1"
-                max="60"
-                aria-describedby="sup-interval-hint"
-                [attr.aria-invalid]="showErrors() && !intervalValid()"
-                [value]="d().evaluation_interval_months"
-                (input)="set('evaluation_interval_months', $any($event.target).value)"
-              />
-            </app-form-field>
-            <p
-              id="sup-interval-hint"
-              class="mt-1 text-meta"
-              [class.text-fail-ink]="showErrors() && !intervalValid()"
-              [class.text-fg-subtle]="!(showErrors() && !intervalValid())"
-            >
-              {{
-                'suppliers.form.intervalHint'
-                  | transloco
-                    : {
-                        months: defaultInterval(),
-                        level: ('suppliers.criticality.' + d().criticality | transloco),
-                      }
-              }}
-            </p>
-          </div>
-          <div>
-            <app-form-field
-              [label]="'suppliers.fields.nextEvaluation' | transloco"
-              inputId="sup-next"
-            >
-              <input
-                id="sup-next"
-                type="date"
-                [attr.lang]="lang()"
-                aria-describedby="sup-next-hint"
-                [value]="d().next_evaluation_at"
-                (input)="set('next_evaluation_at', $any($event.target).value)"
-              />
-            </app-form-field>
-            <p id="sup-next-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'suppliers.form.nextEvaluationHint' | transloco }}
-            </p>
-          </div>
-        </div>
-      </app-card>
+      <app-form-section
+        [title]="'suppliers.form.sections.schedule' | transloco"
+        [description]="'suppliers.form.sections.scheduleHint' | transloco"
+      >
+        <app-form-field
+          [label]="'suppliers.fields.intervalMonths' | transloco"
+          inputId="sup-interval"
+          [hint]="
+            'suppliers.form.intervalHint'
+              | transloco
+                : {
+                    months: defaultInterval(),
+                    level: ('suppliers.criticality.' + d().criticality | transloco),
+                  }
+          "
+          [error]="
+            showErrors() && !intervalValid() ? ('suppliers.form.intervalInvalid' | transloco) : ''
+          "
+        >
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="form"
+            field="evaluation_interval_months"
+            [label]="'suppliers.fields.intervalMonths' | transloco"
+          />
+          <input
+            id="sup-interval"
+            type="number"
+            min="1"
+            max="60"
+            [value]="d().evaluation_interval_months"
+            (input)="set('evaluation_interval_months', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'suppliers.fields.nextEvaluation' | transloco"
+          inputId="sup-next"
+          [hint]="'suppliers.form.nextEvaluationHint' | transloco"
+        >
+          <app-date-input
+            inputId="sup-next"
+            [value]="d().next_evaluation_at"
+            (valueChange)="set('next_evaluation_at', $event ?? '')"
+          />
+        </app-form-field>
+      </app-form-section>
 
       @if (editing()) {
-        <app-card>
-          <app-form-field [label]="'suppliers.form.changeReason' | transloco" inputId="sup-reason">
+        <app-form-section [columns]="1">
+          <app-form-field
+            [label]="'suppliers.form.changeReason' | transloco"
+            inputId="sup-reason"
+            [hint]="'suppliers.form.changeReasonHint' | transloco"
+          >
             <textarea
               id="sup-reason"
               rows="2"
               maxlength="2000"
-              aria-describedby="sup-reason-hint"
               [value]="reason()"
               (input)="reason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="sup-reason-hint" class="mt-1 text-meta text-fg-subtle">
-            {{ 'suppliers.form.changeReasonHint' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+      <app-form-actions
+        [message]="showErrors() && hasErrors() ? ('suppliers.form.fixErrors' | transloco) : ''"
       >
         <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
@@ -543,7 +561,7 @@ export function fieldsFrom(d: Draft): SupplierFields {
         <app-button type="submit" [loading]="busy()">
           {{ (editing() ? 'suppliers.form.save' : 'suppliers.form.create') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
@@ -607,7 +625,9 @@ export class SupplierForm {
   protected readonly defaultInterval = computed(
     () => DEFAULT_INTERVAL_MONTHS[this.d().criticality],
   );
-  protected readonly lang = computed(() => (this.language.active() === 'nb' ? 'nb' : 'en'));
+  protected readonly hasErrors = computed(
+    () => !this.d().name.trim() || !this.countryValid() || !this.intervalValid(),
+  );
   /** The assessments the ticked risk flags call for ("Personvernvurdering, Sikkerhetsvurdering"). */
   protected readonly profileNeeds = computed(() => {
     const d = this.d();

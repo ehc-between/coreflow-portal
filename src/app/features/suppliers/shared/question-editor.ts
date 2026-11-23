@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
+import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import {
@@ -92,12 +93,12 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-question-editor',
-  imports: [FormsModule, TranslocoPipe, ClausePicker, FormField, Icon],
+  imports: [FormsModule, TranslocoPipe, Button, ClausePicker, FormField, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ol class="flex flex-col gap-3" [attr.aria-label]="'suppliers.questions.listLabel' | transloco">
       @for (q of questions(); track $index; let i = $index; let first = $first; let last = $last) {
-        <li class="rounded-tile border border-border bg-bg p-3" data-testid="question-row">
+        <li class="rounded-tile border border-border bg-bg p-4" data-testid="question-row">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-meta font-semibold text-fg-subtle">
               {{ 'suppliers.questions.number' | transloco: { n: i + 1 } }}
@@ -132,7 +133,7 @@ let nextId = 0;
               </button>
             </span>
           </div>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-6">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-6">
             <div class="sm:col-span-6">
               <app-form-field
                 [label]="'suppliers.questions.text' | transloco"
@@ -182,22 +183,21 @@ let nextId = 0;
                     {{ 'suppliers.questionCategory.other' | transloco }}
                   </option>
                 </select>
+                @if (choice(q.category) === 'other') {
+                  <label class="sr-only" [attr.for]="id + '-catname-' + i">
+                    {{ 'suppliers.questions.categoryName' | transloco }}
+                  </label>
+                  <input
+                    [id]="id + '-catname-' + i"
+                    type="text"
+                    maxlength="64"
+                    [placeholder]="'suppliers.questions.categoryName' | transloco"
+                    [value]="q.category === 'other' ? '' : q.category"
+                    [disabled]="disabled()"
+                    (input)="patch(i, { category: $any($event.target).value || 'other' })"
+                  />
+                }
               </app-form-field>
-              @if (choice(q.category) === 'other') {
-                <label class="sr-only" [attr.for]="id + '-catname-' + i">
-                  {{ 'suppliers.questions.categoryName' | transloco }}
-                </label>
-                <input
-                  [id]="id + '-catname-' + i"
-                  type="text"
-                  maxlength="64"
-                  class="mt-2 h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
-                  [placeholder]="'suppliers.questions.categoryName' | transloco"
-                  [value]="q.category === 'other' ? '' : q.category"
-                  [disabled]="disabled()"
-                  (input)="patch(i, { category: $any($event.target).value || 'other' })"
-                />
-              }
             </div>
             <div class="sm:col-span-3">
               <app-form-field
@@ -221,21 +221,18 @@ let nextId = 0;
               <app-form-field
                 [label]="'suppliers.questions.weight' | transloco"
                 [inputId]="id + '-weight-' + i"
+                [hint]="'suppliers.questions.weightHint' | transloco"
               >
                 <input
                   [id]="id + '-weight-' + i"
                   type="number"
                   min="1"
                   max="10"
-                  [attr.aria-describedby]="id + '-weight-hint-' + i"
                   [value]="q.weight"
                   [disabled]="disabled() || q.type === 'text'"
                   (change)="patchNumber(i, 'weight', $any($event.target).value)"
                 />
               </app-form-field>
-              <p [id]="id + '-weight-hint-' + i" class="mt-1 text-meta text-fg-subtle">
-                {{ 'suppliers.questions.weightHint' | transloco }}
-              </p>
             </div>
             @if (q.type === 'score') {
               <div class="sm:col-span-3">
@@ -259,6 +256,7 @@ let nextId = 0;
               <app-form-field
                 [label]="'suppliers.questions.refs' | transloco"
                 [inputId]="id + '-refs-' + i"
+                [hint]="'suppliers.questions.refsHint' | transloco: { max: maxRefs }"
               >
                 <app-clause-picker
                   [inputId]="id + '-refs-' + i"
@@ -268,16 +266,13 @@ let nextId = 0;
                   (ngModelChange)="setRefs(i, $event)"
                 />
               </app-form-field>
-              <p class="mt-1 text-meta text-fg-subtle">
-                {{ 'suppliers.questions.refsHint' | transloco: { max: maxRefs } }}
-              </p>
             </div>
           </div>
           <div class="mt-3 flex flex-col gap-2 text-ui text-fg">
             <label class="inline-flex items-start gap-2">
               <input
                 type="checkbox"
-                class="mt-0.5 h-4 w-4 flex-none"
+                class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
                 [checked]="q.critical"
                 [disabled]="disabled() || q.type === 'text'"
                 (change)="patch(i, { critical: $any($event.target).checked })"
@@ -307,16 +302,17 @@ let nextId = 0;
         </li>
       }
     </ol>
-    <button
-      type="button"
-      class="mt-3 inline-flex items-center gap-1.5 rounded-tile px-3 py-1.5 text-ui font-semibold text-accent hover:bg-accent-soft disabled:opacity-50"
+    <app-button
+      class="mt-3 inline-block"
+      variant="secondary"
+      size="sm"
       [disabled]="disabled()"
       (click)="add()"
       data-testid="question-add"
     >
       <app-icon name="plus" [size]="14" />
       {{ 'suppliers.questions.add' | transloco }}
-    </button>
+    </app-button>
   `,
 })
 export class QuestionEditor {

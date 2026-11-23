@@ -214,7 +214,8 @@
     "evaluatedBy": "Vurderer resultatene",
     "reviewForum": "Gjennomgås hvor og hvor ofte",
     "startDate": "Første periode starter",
-    "reminders": "Gi eieren en gjentakende oppgave om å registrere verdien"
+    "reminders": "Gi eieren en gjentakende oppgave om å registrere verdien",
+    "remindersLabel": "Påminnelser"
   },
   "form": {
     "newTitle": "Nytt mål",
@@ -222,9 +223,9 @@
     "create": "Opprett mål",
     "save": "Lagre endringene",
     "required": "(må fylles ut)",
-    "group1": "1. Hva vil organisasjonen oppnå?",
-    "group2": "2. Hvem og når",
-    "group3": "3. Plan og oppfølging",
+    "group1": "Målet",
+    "group2": "Ansvar og tidsplan",
+    "group3": "Plan og oppfølging",
     "primarySystem": "hovedsystem",
     "noOwner": "Ingen eier",
     "noDepartment": "Ingen avdeling",
@@ -237,15 +238,19 @@
     "overrideProgress": "Sett fremdriften manuelt i stedet",
     "createSuggestedKpis": "Opprett også de {{ count }} foreslåtte KPI-ene når jeg lagrer",
     "createSuggestedKpisOne": "Opprett også den foreslåtte KPI-en når jeg lagrer",
-    "progressRange": "Skriv et heltall fra 0 til 100."
+    "progressRange": "Skriv et heltall fra 0 til 100.",
+    "group1Hint": "Hva organisasjonen vil oppnå, hvordan det måles og hvor det kommer fra.",
+    "group2Hint": "Hvem som har ansvaret, og når arbeidet starter og skal være ferdig.",
+    "group3Hint": "Hva som skal gjøres, hva som trengs, og hvordan resultatet vurderes og deles.",
+    "approvalLabel": "Godkjenning"
   },
   "kpiForm": {
     "newTitle": "Ny KPI",
     "editTitle": "Rediger KPI",
     "create": "Opprett KPI",
-    "group1": "1. Hva som måles",
-    "group2": "2. Målverdi og grenser",
-    "group3": "3. Måling og oppfølging",
+    "group1": "Hva som måles",
+    "group2": "Målverdi og grenser",
+    "group3": "Måling og oppfølging",
     "noObjective": "Ikke knyttet til et mål",
     "inheritSystem": "Samme som målet",
     "remindersHint": "Oppgaven følger frekvensen og tildeles den som registrerer verdiene.",
@@ -255,7 +260,10 @@
       "lower": "{{ target }} eller mindre er på sporet, mellom {{ target }} og {{ warning }} er i faresonen, og over {{ warning }} er utenfor målverdien.",
       "higherNoWarning": "{{ target }} eller mer er på sporet. Alt lavere er utenfor målverdien.",
       "lowerNoWarning": "{{ target }} eller mindre er på sporet. Alt høyere er utenfor målverdien."
-    }
+    },
+    "group1Hint": "Indikatoren, målet den hører til og enheten den måles i.",
+    "group2Hint": "Hvor dere starter, hvor dere vil, og når den er i fare.",
+    "group3Hint": "Hvem som registrerer verdiene, hvor ofte, og hvor KPI-en gjennomgås."
   },
   "progress": {
     "percent": "{{ value }} % fullført",

@@ -101,7 +101,8 @@
       "register": "Process basics",
       "turtle": "Process sheet (in, out, who, with what and how we measure)",
       "review": "Review",
-      "basics": "Process basics"
+      "basics": "Process basics",
+      "basicsHint": "What the process is called, who owns it and what it is for."
     },
     "errors": {
       "titleRequired": "Give the process a title.",

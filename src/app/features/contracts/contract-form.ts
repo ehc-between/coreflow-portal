@@ -12,7 +12,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../core/i18n/language.service';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { Icon } from '../../shared/ui/icon/icon';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { ContractField } from './contract-field';
@@ -67,7 +69,9 @@ const SUPPLY_TYPES: readonly ContractType[] = [
   imports: [
     TranslocoPipe,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     Icon,
     AskAbout,
     ContractField,
@@ -78,123 +82,116 @@ const SUPPLY_TYPES: readonly ContractType[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'contracts.form.sections.basics' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div class="md:col-span-2">
-            <app-contract-field [label]="'contracts.fields.title' | transloco" inputId="cf-c-title">
-              <input
-                id="cf-c-title"
-                type="text"
-                maxlength="255"
-                required
-                [value]="form().title"
-                (input)="set('title', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['title']"
-                [attr.aria-describedby]="shownErrors()['title'] ? 'cf-c-title-err' : null"
-                data-testid="contract-title"
-              />
-            </app-contract-field>
-            @if (shownErrors()['title']; as key) {
-              <p id="cf-c-title-err" class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
+      <app-form-section
+        [title]="'contracts.form.sections.basics' | transloco"
+        [description]="'contracts.form.sections.basicsHint' | transloco"
+      >
+        <app-contract-field
+          span="full"
+          [label]="'contracts.fields.title' | transloco"
+          inputId="cf-c-title"
+          [required]="true"
+          [error]="shownErrors()['title'] ?? '' | transloco"
+        >
+          <input
+            id="cf-c-title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="form().title"
+            (input)="set('title', $any($event.target).value)"
+            data-testid="contract-title"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.contractType' | transloco"
+          inputId="cf-c-type"
+          helpField="contract_type"
+        >
+          <select id="cf-c-type" (change)="setType($any($event.target).value)">
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="form().contract_type === t">
+                {{ 'contracts.types.' + t | transloco }}
+              </option>
             }
-          </div>
-          <app-contract-field
-            [label]="'contracts.fields.contractType' | transloco"
-            inputId="cf-c-type"
-            helpField="contract_type"
-          >
-            <select id="cf-c-type" (change)="setType($any($event.target).value)">
-              @for (t of types; track t) {
-                <option [value]="t" [selected]="form().contract_type === t">
-                  {{ 'contracts.types.' + t | transloco }}
-                </option>
-              }
-            </select>
-          </app-contract-field>
-          @if (customers.enabled()) {
-            <app-contract-field
-              [label]="'contracts.fields.customer' | transloco"
-              inputId="cf-c-customer"
-            >
-              <app-customer-picker
-                inputId="cf-c-customer"
-                [value]="form().customer_id || null"
-                [current]="form().customer"
-                (valueChange)="set('customer_id', $event ?? '')"
-                (refChange)="set('customer', $event)"
-                data-testid="contract-customer"
-              />
-            </app-contract-field>
-          }
-          <app-contract-field
-            [label]="'contracts.fields.owner' | transloco"
+          </select>
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.owner' | transloco"
+          inputId="cf-c-owner"
+          helpField="owner"
+        >
+          <app-contract-person-picker
             inputId="cf-c-owner"
-            helpField="owner"
+            [value]="form().owner_user_id"
+            [fallbackName]="ownerName()"
+            [emptyLabel]="mode() === 'create' ? ('contracts.form.ownerMe' | transloco) : null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-contract-field>
+        <app-contract-field [label]="'contracts.fields.department' | transloco" inputId="cf-c-dept">
+          <select id="cf-c-dept" (change)="set('department_id', $any($event.target).value)">
+            <option value="" [selected]="!form().department_id">
+              {{ 'contracts.form.noDepartment' | transloco }}
+            </option>
+            @for (d of departments(); track d.id) {
+              <option [value]="d.id" [selected]="form().department_id === d.id">
+                {{ d.label }}
+              </option>
+            }
+          </select>
+        </app-contract-field>
+        @if (customers.enabled()) {
+          <app-contract-field
+            [label]="'contracts.fields.customer' | transloco"
+            inputId="cf-c-customer"
           >
-            <app-contract-person-picker
-              inputId="cf-c-owner"
-              [value]="form().owner_user_id"
-              [fallbackName]="ownerName()"
-              [emptyLabel]="mode() === 'create' ? ('contracts.form.ownerMe' | transloco) : null"
-              (valueChange)="set('owner_user_id', $event)"
+            <app-customer-picker
+              inputId="cf-c-customer"
+              [value]="form().customer_id || null"
+              [current]="form().customer"
+              (valueChange)="set('customer_id', $event ?? '')"
+              (refChange)="set('customer', $event)"
+              data-testid="contract-customer"
             />
           </app-contract-field>
-          <app-contract-field
-            [label]="'contracts.fields.department' | transloco"
-            inputId="cf-c-dept"
-          >
-            <select id="cf-c-dept" (change)="set('department_id', $any($event.target).value)">
-              <option value="" [selected]="!form().department_id">
-                {{ 'contracts.form.noDepartment' | transloco }}
-              </option>
-              @for (d of departments(); track d.id) {
-                <option [value]="d.id" [selected]="form().department_id === d.id">
-                  {{ d.label }}
-                </option>
-              }
-            </select>
-          </app-contract-field>
-          <div class="flex flex-col justify-end gap-1">
-            <label class="flex h-10 items-center gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="h-4 w-4 accent-[var(--accent)]"
-                [checked]="form().confidential"
-                (change)="set('confidential', $any($event.target).checked)"
-              />
-              {{ 'contracts.fields.confidential' | transloco }}
-            </label>
-          </div>
-          <div class="md:col-span-2">
-            <app-contract-field
-              [label]="'contracts.fields.description' | transloco"
-              inputId="cf-c-description"
-            >
-              <textarea
-                id="cf-c-description"
-                rows="3"
-                maxlength="20000"
-                [value]="form().description"
-                (input)="set('description', $any($event.target).value)"
-              ></textarea>
-            </app-contract-field>
-          </div>
-        </div>
-      </app-card>
+        }
+        <app-contract-field
+          span="full"
+          [label]="'contracts.fields.description' | transloco"
+          inputId="cf-c-description"
+        >
+          <textarea
+            id="cf-c-description"
+            rows="3"
+            maxlength="20000"
+            [value]="form().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-contract-field>
+        <label
+          class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+        >
+          <input
+            type="checkbox"
+            class="h-4 w-4 accent-[var(--accent)]"
+            [checked]="form().confidential"
+            (change)="set('confidential', $any($event.target).checked)"
+          />
+          {{ 'contracts.fields.confidential' | transloco }}
+        </label>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-1 font-display text-section font-bold text-fg">
-          {{ 'contracts.form.sections.privacy' | transloco }}
-        </h2>
-        <p class="mb-4 text-meta text-fg-muted">
-          {{ 'contracts.form.privacyIntro' | transloco }}
-        </p>
-        <fieldset class="flex flex-col gap-2" data-testid="contract-personal-data-role">
+      <app-form-section
+        [title]="'contracts.form.sections.privacy' | transloco"
+        [description]="'contracts.form.privacyIntro' | transloco"
+      >
+        <fieldset
+          class="flex flex-col gap-1.5 sm:col-span-2"
+          data-testid="contract-personal-data-role"
+        >
           <legend
-            class="mb-1.5 flex flex-wrap items-center gap-1.5 text-ui font-semibold text-fg-muted"
+            class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5 text-ui font-semibold text-fg-muted"
           >
             {{ 'contracts.fields.personalDataRole' | transloco }}
             <app-ask-about
@@ -204,7 +201,7 @@ const SUPPLY_TYPES: readonly ContractType[] = [
               [requirements]="['gdpr:28', 'gdpr:26']"
             />
           </legend>
-          <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             @for (r of roles; track r) {
               <label
                 class="flex cursor-pointer items-start gap-2 rounded-tile border px-3 py-2.5 text-ui"
@@ -236,403 +233,378 @@ const SUPPLY_TYPES: readonly ContractType[] = [
         </fieldset>
 
         @if (showTransfer()) {
-          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <app-contract-field
-              [label]="'contracts.fields.transferBasis' | transloco"
-              inputId="cf-c-transfer"
-              helpField="transfer_basis"
-              [ask]="'contracts.ask.transferBasis' | transloco"
-              [requirements]="['gdpr:44', 'gdpr:46']"
-            >
-              <select
-                id="cf-c-transfer"
-                (change)="setBasis($any($event.target).value)"
-                data-testid="contract-transfer-basis"
-              >
-                <option value="" [selected]="!form().transfer_basis">
-                  {{ 'contracts.form.transferUnknown' | transloco }}
-                </option>
-                @for (b of bases; track b) {
-                  <option [value]="b" [selected]="form().transfer_basis === b">
-                    {{ 'contracts.transferBases.' + b | transloco }}
-                  </option>
-                }
-              </select>
-            </app-contract-field>
-            @if (form().transfer_basis && form().transfer_basis !== 'none') {
-              <app-contract-field
-                [label]="'contracts.fields.transferCountries' | transloco"
-                inputId="cf-c-countries"
-              >
-                <input
-                  id="cf-c-countries"
-                  type="text"
-                  maxlength="255"
-                  [placeholder]="'contracts.form.countriesPlaceholder' | transloco"
-                  [value]="form().transfer_countries"
-                  (input)="set('transfer_countries', $any($event.target).value)"
-                />
-              </app-contract-field>
-            }
-          </div>
-        }
-
-        @if (supplyType()) {
-          <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-            <label class="flex items-start gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
-                [checked]="form().ict_critical"
-                (change)="set('ict_critical', $any($event.target).checked)"
-                data-testid="contract-ict-critical"
-              />
-              <span>
-                <span class="block font-semibold">{{
-                  'contracts.fields.ictCritical' | transloco
-                }}</span>
-                <span class="block text-meta text-fg-muted">
-                  {{ 'contracts.form.ictCriticalHint' | transloco }}
-                </span>
-              </span>
-            </label>
-            <label class="flex items-start gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
-                [checked]="form().involves_ai_system"
-                (change)="set('involves_ai_system', $any($event.target).checked)"
-                data-testid="contract-ai-system"
-              />
-              <span>
-                <span class="block font-semibold">{{
-                  'contracts.fields.involvesAiSystem' | transloco
-                }}</span>
-                <span class="block text-meta text-fg-muted">
-                  {{ 'contracts.form.aiSystemHint' | transloco }}
-                </span>
-              </span>
-            </label>
-          </div>
-        }
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'contracts.form.sections.terms' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <app-contract-field
-            [label]="'contracts.fields.startDate' | transloco"
-            inputId="cf-c-start"
+            [label]="'contracts.fields.transferBasis' | transloco"
+            inputId="cf-c-transfer"
+            helpField="transfer_basis"
+            [ask]="'contracts.ask.transferBasis' | transloco"
+            [requirements]="['gdpr:44', 'gdpr:46']"
           >
-            <input
-              id="cf-c-start"
-              type="date"
-              [value]="form().start_date"
-              (change)="set('start_date', $any($event.target).value)"
-            />
-          </app-contract-field>
-          <div>
-            <app-contract-field [label]="'contracts.fields.endDate' | transloco" inputId="cf-c-end">
-              <input
-                id="cf-c-end"
-                type="date"
-                [value]="form().end_date"
-                (change)="set('end_date', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['end_date']"
-              />
-            </app-contract-field>
-            @if (shownErrors()['end_date']; as key) {
-              <p class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
-            }
-          </div>
-          <app-contract-field
-            [label]="'contracts.fields.signedDate' | transloco"
-            inputId="cf-c-signed"
-          >
-            <input
-              id="cf-c-signed"
-              type="date"
-              [value]="form().signed_date"
-              (change)="set('signed_date', $any($event.target).value)"
-            />
-          </app-contract-field>
-          <app-contract-field
-            [label]="'contracts.fields.reviewDate' | transloco"
-            inputId="cf-c-review"
-            helpField="review_date"
-          >
-            <input
-              id="cf-c-review"
-              type="date"
-              [value]="form().review_date"
-              (change)="set('review_date', $any($event.target).value)"
-            />
-          </app-contract-field>
-          <div>
-            <app-contract-field
-              [label]="'contracts.fields.noticePeriodDays' | transloco"
-              inputId="cf-c-notice"
-              helpField="notice_period_days"
-              [ask]="'contracts.ask.noticePeriod' | transloco"
+            <select
+              id="cf-c-transfer"
+              (change)="setBasis($any($event.target).value)"
+              data-testid="contract-transfer-basis"
             >
-              <input
-                id="cf-c-notice"
-                type="number"
-                min="0"
-                max="3650"
-                inputmode="numeric"
-                [value]="form().notice_period_days"
-                (input)="set('notice_period_days', $any($event.target).value)"
-              />
-            </app-contract-field>
-            @if (shownErrors()['notice_period_days']; as key) {
-              <p class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
-            }
-          </div>
-          <app-contract-field
-            [label]="'contracts.fields.governingLaw' | transloco"
-            inputId="cf-c-law"
-          >
-            <input
-              id="cf-c-law"
-              type="text"
-              maxlength="100"
-              [value]="form().governing_law"
-              (input)="set('governing_law', $any($event.target).value)"
-            />
-          </app-contract-field>
-
-          <fieldset
-            class="flex flex-col gap-3 rounded-tile border border-border p-3 sm:col-span-2"
-            data-testid="renewal-group"
-          >
-            <legend class="px-1 text-ui font-semibold text-fg-muted">
-              {{ 'contracts.fields.renewal' | transloco }}
-            </legend>
-            <label class="flex items-center gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="h-4 w-4 accent-[var(--accent)]"
-                [checked]="form().auto_renew"
-                (change)="set('auto_renew', $any($event.target).checked)"
-                data-testid="contract-auto-renew"
-              />
-              {{ 'contracts.fields.autoRenew' | transloco }}
-            </label>
-            @if (form().auto_renew) {
-              <div class="max-w-[240px]">
-                <app-contract-field
-                  [label]="'contracts.fields.renewalTermMonths' | transloco"
-                  inputId="cf-c-term"
-                  helpField="auto_renew"
-                >
-                  <input
-                    id="cf-c-term"
-                    type="number"
-                    min="1"
-                    max="240"
-                    inputmode="numeric"
-                    [value]="form().renewal_term_months"
-                    (input)="set('renewal_term_months', $any($event.target).value)"
-                    data-testid="contract-renewal-term"
-                  />
-                </app-contract-field>
-                @if (shownErrors()['renewal_term_months']; as key) {
-                  <p class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
-                }
-              </div>
-            }
-            <app-contract-field
-              [label]="'contracts.fields.renewalNotes' | transloco"
-              inputId="cf-c-renewal-notes"
-            >
-              <textarea
-                id="cf-c-renewal-notes"
-                rows="2"
-                maxlength="5000"
-                [value]="form().renewal_notes"
-                (input)="set('renewal_notes', $any($event.target).value)"
-              ></textarea>
-            </app-contract-field>
-          </fieldset>
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'contracts.form.sections.value' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <app-contract-field
-              [label]="'contracts.fields.valueAmount' | transloco"
-              inputId="cf-c-amount"
-            >
-              <input
-                id="cf-c-amount"
-                type="text"
-                inputmode="decimal"
-                [value]="form().value_amount"
-                (input)="set('value_amount', $any($event.target).value)"
-                (blur)="formatAmountField()"
-                [attr.aria-invalid]="!!shownErrors()['value_amount']"
-                data-testid="contract-amount"
-              />
-            </app-contract-field>
-            @if (shownErrors()['value_amount']; as key) {
-              <p class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
-            }
-          </div>
-          <div>
-            <app-contract-field
-              [label]="'contracts.fields.currency' | transloco"
-              inputId="cf-c-currency"
-            >
-              <input
-                id="cf-c-currency"
-                type="text"
-                maxlength="3"
-                autocomplete="off"
-                [placeholder]="'contracts.form.currencyPlaceholder' | transloco"
-                [value]="form().currency"
-                (input)="set('currency', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['currency']"
-              />
-            </app-contract-field>
-            @if (shownErrors()['currency']; as key) {
-              <p class="mt-1 text-meta text-fail">{{ key | transloco }}</p>
-            }
-          </div>
-          <app-contract-field
-            [label]="'contracts.fields.valuePeriod' | transloco"
-            inputId="cf-c-period"
-          >
-            <select id="cf-c-period" (change)="setPeriod($any($event.target).value)">
-              <option value="" [selected]="!form().value_period">
-                {{ 'contracts.form.noPeriod' | transloco }}
+              <option value="" [selected]="!form().transfer_basis">
+                {{ 'contracts.form.transferUnknown' | transloco }}
               </option>
-              @for (p of periods; track p) {
-                <option [value]="p" [selected]="form().value_period === p">
-                  {{ 'contracts.valuePeriods.' + p | transloco }}
+              @for (b of bases; track b) {
+                <option [value]="b" [selected]="form().transfer_basis === b">
+                  {{ 'contracts.transferBases.' + b | transloco }}
                 </option>
               }
             </select>
           </app-contract-field>
+          @if (form().transfer_basis && form().transfer_basis !== 'none') {
+            <app-contract-field
+              [label]="'contracts.fields.transferCountries' | transloco"
+              inputId="cf-c-countries"
+            >
+              <input
+                id="cf-c-countries"
+                type="text"
+                maxlength="255"
+                [placeholder]="'contracts.form.countriesPlaceholder' | transloco"
+                [value]="form().transfer_countries"
+                (input)="set('transfer_countries', $any($event.target).value)"
+              />
+            </app-contract-field>
+          } @else {
+            <span class="hidden sm:block" aria-hidden="true"></span>
+          }
+        }
+
+        @if (supplyType()) {
+          <label
+            class="flex cursor-pointer items-start gap-2 rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg"
+          >
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
+              [checked]="form().ict_critical"
+              (change)="set('ict_critical', $any($event.target).checked)"
+              data-testid="contract-ict-critical"
+            />
+            <span>
+              <span class="block font-semibold">{{
+                'contracts.fields.ictCritical' | transloco
+              }}</span>
+              <span class="block text-meta text-fg-muted">
+                {{ 'contracts.form.ictCriticalHint' | transloco }}
+              </span>
+            </span>
+          </label>
+          <label
+            class="flex cursor-pointer items-start gap-2 rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg"
+          >
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 flex-none accent-[var(--accent)]"
+              [checked]="form().involves_ai_system"
+              (change)="set('involves_ai_system', $any($event.target).checked)"
+              data-testid="contract-ai-system"
+            />
+            <span>
+              <span class="block font-semibold">{{
+                'contracts.fields.involvesAiSystem' | transloco
+              }}</span>
+              <span class="block text-meta text-fg-muted">
+                {{ 'contracts.form.aiSystemHint' | transloco }}
+              </span>
+            </span>
+          </label>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'contracts.form.sections.terms' | transloco"
+        [description]="'contracts.form.sections.termsHint' | transloco"
+      >
+        <app-contract-field [label]="'contracts.fields.startDate' | transloco" inputId="cf-c-start">
+          <app-date-input
+            inputId="cf-c-start"
+            [value]="form().start_date"
+            (valueChange)="set('start_date', $event ?? '')"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.endDate' | transloco"
+          inputId="cf-c-end"
+          [error]="shownErrors()['end_date'] ?? '' | transloco"
+        >
+          <app-date-input
+            inputId="cf-c-end"
+            [value]="form().end_date"
+            [invalid]="!!shownErrors()['end_date']"
+            (valueChange)="set('end_date', $event ?? '')"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.signedDate' | transloco"
+          inputId="cf-c-signed"
+        >
+          <app-date-input
+            inputId="cf-c-signed"
+            [value]="form().signed_date"
+            (valueChange)="set('signed_date', $event ?? '')"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.reviewDate' | transloco"
+          inputId="cf-c-review"
+          helpField="review_date"
+        >
+          <app-date-input
+            inputId="cf-c-review"
+            [value]="form().review_date"
+            (valueChange)="set('review_date', $event ?? '')"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.noticePeriodDays' | transloco"
+          inputId="cf-c-notice"
+          helpField="notice_period_days"
+          [ask]="'contracts.ask.noticePeriod' | transloco"
+          [error]="shownErrors()['notice_period_days'] ?? '' | transloco"
+        >
+          <input
+            id="cf-c-notice"
+            type="number"
+            min="0"
+            max="3650"
+            inputmode="numeric"
+            [value]="form().notice_period_days"
+            (input)="set('notice_period_days', $any($event.target).value)"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.governingLaw' | transloco"
+          inputId="cf-c-law"
+        >
+          <input
+            id="cf-c-law"
+            type="text"
+            maxlength="100"
+            [value]="form().governing_law"
+            (input)="set('governing_law', $any($event.target).value)"
+          />
+        </app-contract-field>
+
+        <div class="flex flex-col gap-1.5" data-testid="renewal-group">
+          <span class="flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+            {{ 'contracts.fields.renewal' | transloco }}
+          </span>
+          <label
+            class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 accent-[var(--accent)]"
+              [checked]="form().auto_renew"
+              (change)="set('auto_renew', $any($event.target).checked)"
+              data-testid="contract-auto-renew"
+            />
+            {{ 'contracts.fields.autoRenew' | transloco }}
+          </label>
         </div>
-      </app-card>
+        @if (form().auto_renew) {
+          <app-contract-field
+            [label]="'contracts.fields.renewalTermMonths' | transloco"
+            inputId="cf-c-term"
+            helpField="auto_renew"
+            [error]="shownErrors()['renewal_term_months'] ?? '' | transloco"
+          >
+            <input
+              id="cf-c-term"
+              type="number"
+              min="1"
+              max="240"
+              inputmode="numeric"
+              [value]="form().renewal_term_months"
+              (input)="set('renewal_term_months', $any($event.target).value)"
+              data-testid="contract-renewal-term"
+            />
+          </app-contract-field>
+        } @else {
+          <span class="hidden sm:block" aria-hidden="true"></span>
+        }
+        <app-contract-field
+          span="full"
+          [label]="'contracts.fields.renewalNotes' | transloco"
+          inputId="cf-c-renewal-notes"
+        >
+          <textarea
+            id="cf-c-renewal-notes"
+            rows="2"
+            maxlength="5000"
+            [value]="form().renewal_notes"
+            (input)="set('renewal_notes', $any($event.target).value)"
+          ></textarea>
+        </app-contract-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'contracts.form.sections.value' | transloco"
+        [description]="'contracts.form.sections.valueHint' | transloco"
+      >
+        <app-contract-field
+          [label]="'contracts.fields.valueAmount' | transloco"
+          inputId="cf-c-amount"
+          [error]="shownErrors()['value_amount'] ?? '' | transloco"
+        >
+          <input
+            id="cf-c-amount"
+            type="text"
+            inputmode="decimal"
+            [value]="form().value_amount"
+            (input)="set('value_amount', $any($event.target).value)"
+            (blur)="formatAmountField()"
+            data-testid="contract-amount"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.currency' | transloco"
+          inputId="cf-c-currency"
+          [error]="shownErrors()['currency'] ?? '' | transloco"
+        >
+          <input
+            id="cf-c-currency"
+            type="text"
+            maxlength="3"
+            autocomplete="off"
+            [placeholder]="'contracts.form.currencyPlaceholder' | transloco"
+            [value]="form().currency"
+            (input)="set('currency', $any($event.target).value)"
+          />
+        </app-contract-field>
+        <app-contract-field
+          [label]="'contracts.fields.valuePeriod' | transloco"
+          inputId="cf-c-period"
+        >
+          <select id="cf-c-period" (change)="setPeriod($any($event.target).value)">
+            <option value="" [selected]="!form().value_period">
+              {{ 'contracts.form.noPeriod' | transloco }}
+            </option>
+            @for (p of periods; track p) {
+              <option [value]="p" [selected]="form().value_period === p">
+                {{ 'contracts.valuePeriods.' + p | transloco }}
+              </option>
+            }
+          </select>
+        </app-contract-field>
+      </app-form-section>
 
       @if (mode() === 'create') {
-        <app-card>
-          <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-            <h2 class="font-display text-section font-bold text-fg">
-              {{ 'contracts.form.sections.parties' | transloco }}
-            </h2>
-            <app-button
-              variant="secondary"
-              size="sm"
-              [disabled]="form().parties.length >= maxParties"
-              (click)="addParty()"
-              data-testid="add-party"
-            >
-              <app-icon name="plus" [size]="14" />
-              {{ 'contracts.parties.add' | transloco }}
-            </app-button>
-          </div>
-          <p class="mb-2 text-meta text-fg-muted">{{ 'contracts.parties.intro' | transloco }}</p>
+        <app-form-section
+          [title]="'contracts.form.sections.parties' | transloco"
+          [description]="'contracts.form.sections.partiesHint' | transloco"
+          [columns]="1"
+        >
+          <app-button
+            section-actions
+            variant="secondary"
+            size="sm"
+            [disabled]="form().parties.length >= maxParties"
+            (click)="addParty()"
+            data-testid="add-party"
+          >
+            <app-icon name="plus" [size]="14" />
+            {{ 'contracts.parties.add' | transloco }}
+          </app-button>
           @if (form().parties.length === 0) {
-            <p class="mt-2 text-ui text-fg-muted">{{ 'contracts.parties.none' | transloco }}</p>
-          }
-          <ul class="mt-2 flex flex-col gap-3">
-            @for (p of form().parties; track $index; let i = $index) {
-              <li class="rounded-tile border border-border p-3">
-                <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <legend class="sr-only">
-                    {{ 'contracts.parties.legend' | transloco: { n: i + 1 } }}
-                  </legend>
-                  <app-contract-field
-                    [label]="'contracts.parties.name' | transloco"
-                    [inputId]="'cf-p-name-' + i"
-                  >
-                    <app-contract-party-name
+            <p class="text-ui text-fg-muted">{{ 'contracts.parties.none' | transloco }}</p>
+          } @else {
+            <ol class="flex flex-col gap-3">
+              @for (p of form().parties; track $index; let i = $index) {
+                <li class="rounded-tile border border-border bg-bg p-4">
+                  <fieldset class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <legend class="sr-only">
+                      {{ 'contracts.parties.legend' | transloco: { n: i + 1 } }}
+                    </legend>
+                    <app-contract-field
+                      [label]="'contracts.parties.name' | transloco"
                       [inputId]="'cf-p-name-' + i"
-                      [name]="p.name"
-                      [supplierId]="p.supplier_id"
-                      [supplierLabel]="p.supplier_label"
-                      [isInternal]="p.is_internal"
-                      (changed)="setPartyName(i, $event)"
-                    />
-                  </app-contract-field>
-                  <app-contract-field
-                    [label]="'contracts.parties.role' | transloco"
-                    [inputId]="'cf-p-role-' + i"
-                  >
-                    <select
-                      [id]="'cf-p-role-' + i"
-                      (change)="setParty(i, { role: $any($event.target).value })"
                     >
-                      <option value="" [selected]="!p.role">
-                        {{ 'contracts.parties.roleFromType' | transloco }}
-                      </option>
-                      @for (r of partyRoles; track r) {
-                        <option [value]="r" [selected]="p.role === r">
-                          {{ 'contracts.partyRoles.' + r | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-contract-field>
-                  <app-contract-field
-                    [label]="'contracts.parties.orgNumber' | transloco"
-                    [inputId]="'cf-p-org-' + i"
-                  >
-                    <input
-                      [id]="'cf-p-org-' + i"
-                      type="text"
-                      maxlength="64"
-                      [value]="p.org_number"
-                      (input)="setParty(i, { org_number: $any($event.target).value })"
-                    />
-                  </app-contract-field>
-                  <app-contract-field
-                    [label]="'contracts.parties.contactEmail' | transloco"
-                    [inputId]="'cf-p-email-' + i"
-                  >
-                    <input
-                      [id]="'cf-p-email-' + i"
-                      type="email"
-                      maxlength="320"
-                      [value]="p.contact_email"
-                      (input)="setParty(i, { contact_email: $any($event.target).value })"
-                    />
-                  </app-contract-field>
-                  <div class="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
-                    <label class="flex items-center gap-2 text-ui text-fg">
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                        [checked]="p.is_internal"
-                        (change)="setParty(i, { is_internal: $any($event.target).checked })"
+                      <app-contract-party-name
+                        [inputId]="'cf-p-name-' + i"
+                        [name]="p.name"
+                        [supplierId]="p.supplier_id"
+                        [supplierLabel]="p.supplier_label"
+                        [isInternal]="p.is_internal"
+                        (changed)="setPartyName(i, $event)"
                       />
-                      {{ 'contracts.parties.isInternal' | transloco }}
-                    </label>
-                    <app-button variant="ghost" size="sm" (click)="removeParty(i)">
-                      <app-icon name="trash" [size]="14" />
-                      {{ 'contracts.parties.remove' | transloco }}
-                    </app-button>
-                  </div>
-                </fieldset>
-              </li>
-            }
-          </ul>
-        </app-card>
+                    </app-contract-field>
+                    <app-contract-field
+                      [label]="'contracts.parties.role' | transloco"
+                      [inputId]="'cf-p-role-' + i"
+                    >
+                      <select
+                        [id]="'cf-p-role-' + i"
+                        (change)="setParty(i, { role: $any($event.target).value })"
+                      >
+                        <option value="" [selected]="!p.role">
+                          {{ 'contracts.parties.roleFromType' | transloco }}
+                        </option>
+                        @for (r of partyRoles; track r) {
+                          <option [value]="r" [selected]="p.role === r">
+                            {{ 'contracts.partyRoles.' + r | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </app-contract-field>
+                    <app-contract-field
+                      [label]="'contracts.parties.orgNumber' | transloco"
+                      [inputId]="'cf-p-org-' + i"
+                    >
+                      <input
+                        [id]="'cf-p-org-' + i"
+                        type="text"
+                        maxlength="64"
+                        [value]="p.org_number"
+                        (input)="setParty(i, { org_number: $any($event.target).value })"
+                      />
+                    </app-contract-field>
+                    <app-contract-field
+                      [label]="'contracts.parties.contactEmail' | transloco"
+                      [inputId]="'cf-p-email-' + i"
+                    >
+                      <input
+                        [id]="'cf-p-email-' + i"
+                        type="email"
+                        maxlength="320"
+                        [value]="p.contact_email"
+                        (input)="setParty(i, { contact_email: $any($event.target).value })"
+                      />
+                    </app-contract-field>
+                    <div class="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+                      <label class="flex items-center gap-2 text-ui text-fg">
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 accent-[var(--accent)]"
+                          [checked]="p.is_internal"
+                          (change)="setParty(i, { is_internal: $any($event.target).checked })"
+                        />
+                        {{ 'contracts.parties.isInternal' | transloco }}
+                      </label>
+                      <app-button variant="ghost" size="sm" (click)="removeParty(i)">
+                        <app-icon name="trash" [size]="14" />
+                        {{ 'contracts.parties.remove' | transloco }}
+                      </app-button>
+                    </div>
+                  </fieldset>
+                </li>
+              }
+            </ol>
+          }
+        </app-form-section>
       }
 
       @if (mode() === 'edit') {
-        <app-card>
+        <app-form-section [columns]="1">
           <app-contract-field
             [label]="'contracts.form.changeReason' | transloco"
             inputId="cf-c-reason"
+            [hint]="'contracts.form.backToDraftNotice' | transloco"
           >
             <input
               id="cf-c-reason"
@@ -643,21 +615,17 @@ const SUPPLY_TYPES: readonly ContractType[] = [
               (input)="changeReason.set($any($event.target).value)"
             />
           </app-contract-field>
-          <p class="mt-2 text-meta text-fg-muted">
-            {{ 'contracts.form.backToDraftNotice' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      @if (attempted() && errorCount() > 0) {
-        <p class="text-ui font-semibold text-fail" role="alert" data-testid="form-errors">
-          {{ 'contracts.form.fixErrors' | transloco: { count: errorCount() } }}
-        </p>
-      }
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
+      <app-form-actions
+        [message]="
+          attempted() && errorCount() > 0
+            ? ('contracts.form.fixErrors' | transloco: { count: errorCount() })
+            : ''
+        "
       >
-        <app-button variant="ghost" (click)="cancelled.emit()">
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button
@@ -668,7 +636,7 @@ const SUPPLY_TYPES: readonly ContractType[] = [
         >
           {{ (mode() === 'create' ? 'contracts.form.create' : 'common.save') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })

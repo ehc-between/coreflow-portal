@@ -615,7 +615,9 @@
     "addCompetence": "Add competence",
     "criteriaPlaceholder": "For example: no repeat deviations of this kind for six months",
     "lessonBodyHint": "Write in short paragraphs. Start a line with ## to begin a new step, and with - for a bullet point.",
-    "externalHint": "External training usually needs no lessons. Add one if you want to describe the course or its learning goals."
+    "externalHint": "External training usually needs no lessons. Add one if you want to describe the course or its learning goals.",
+    "basicsHint": "What the course is, who owns it and the document it builds on.",
+    "lessonsHint": "The lessons people go through, each with an optional short quiz."
   },
   "ai": {
     "draftTitle": "Draft a course with AI",
@@ -784,7 +786,9 @@
   "assignNew": {
     "title": "Assign training",
     "subtitle": "Choose a published course, the people who must take it and a due date. They are notified and see it in My work.",
-    "noCourses": "No published courses yet. Publish a course first."
+    "noCourses": "No published courses yet. Publish a course first.",
+    "courseSection": "Course, people and due date",
+    "courseHint": "Who must take which course, and by when."
   },
   "person": {
     "title": "Training: {{ name }}",

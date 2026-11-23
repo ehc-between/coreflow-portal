@@ -59,7 +59,10 @@ async function setup(permissions: string[] = ['deviations:read', 'deviations:int
         useValue: { currentOrgId: signal('org1'), currentOrg: signal({ permissions }) },
       },
       { provide: ModuleService, useValue: { isEnabled: () => true } },
-      { provide: LanguageService, useValue: { active: signal('nb'), locale: signal('nb') } },
+      {
+        provide: LanguageService,
+        useValue: { active: signal('nb'), locale: signal('nb'), translate: (key: string) => key },
+      },
     ],
   });
   const fixture = TestBed.createComponent(CasesPage);

@@ -42,26 +42,28 @@ let nextId = 0;
   template: `
     <div class="flex flex-col gap-6">
       <section [attr.aria-labelledby]="id + '-fields'">
-        <div class="mb-2 flex flex-wrap items-end justify-between gap-3">
-          <h3 [id]="id + '-fields'" class="font-display text-card font-bold text-fg">
-            {{ 'records.fields.title' | transloco }}
-          </h3>
+        <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0 flex-1 basis-[min(100%,320px)]">
+            <h3 [id]="id + '-fields'" class="font-display text-card font-bold text-fg">
+              {{ 'records.fields.title' | transloco }}
+            </h3>
+            <app-records-field-help class="mt-0.5 block" page="designer" field="fields" />
+          </div>
           @if (!readonly()) {
-            <div class="flex items-end gap-2">
-              <app-form-field
-                [label]="'records.fields.addType' | transloco"
-                [inputId]="id + '-add-type'"
+            <div class="flex items-center gap-2">
+              <label class="sr-only" [attr.for]="id + '-add-type'">{{
+                'records.fields.addType' | transloco
+              }}</label>
+              <select
+                class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                [id]="id + '-add-type'"
+                [ngModel]="addType()"
+                (ngModelChange)="addType.set($event)"
               >
-                <select
-                  [id]="id + '-add-type'"
-                  [ngModel]="addType()"
-                  (ngModelChange)="addType.set($event)"
-                >
-                  @for (type of types; track type) {
-                    <option [value]="type">{{ 'records.fieldTypes.' + type | transloco }}</option>
-                  }
-                </select>
-              </app-form-field>
+                @for (type of types; track type) {
+                  <option [value]="type">{{ 'records.fieldTypes.' + type | transloco }}</option>
+                }
+              </select>
               <app-button variant="secondary" (click)="add()">
                 <app-icon name="plus" [size]="14" />
                 {{ 'records.fields.add' | transloco }}
@@ -69,8 +71,7 @@ let nextId = 0;
             </div>
           }
         </div>
-        <app-records-field-help page="designer" field="fields" />
-        <ul class="mt-2 flex flex-col gap-2">
+        <ul class="flex flex-col gap-2">
           @for (field of fields(); track $index; let i = $index, first = $first, last = $last) {
             <li>
               <app-field-editor
@@ -99,23 +100,25 @@ let nextId = 0;
       </section>
 
       <section [attr.aria-labelledby]="id + '-sections'">
-        <div class="mb-2 flex items-center justify-between gap-3">
-          <h3 [id]="id + '-sections'" class="font-display text-card font-bold text-fg">
-            {{ 'records.layout.title' | transloco }}
-          </h3>
+        <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0 flex-1 basis-[min(100%,320px)]">
+            <h3 [id]="id + '-sections'" class="font-display text-card font-bold text-fg">
+              {{ 'records.layout.title' | transloco }}
+            </h3>
+            <app-records-field-help class="mt-0.5 block" page="designer" field="layout" />
+          </div>
           @if (!readonly()) {
-            <app-button variant="secondary" size="sm" (click)="addSection()">
+            <app-button variant="secondary" (click)="addSection()">
               <app-icon name="plus" [size]="14" />
               {{ 'records.layout.add' | transloco }}
             </app-button>
           }
         </div>
-        <app-records-field-help page="designer" field="layout" />
-        <ul class="mt-2 flex flex-col gap-2">
+        <ul class="flex flex-col gap-2">
           @for (section of sections(); track section.key; let i = $index) {
             <li class="rounded-tile border border-border bg-surface p-3">
               <fieldset
-                class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_150px_auto]"
+                class="grid grid-cols-1 items-start gap-3 sm:grid-cols-[1fr_150px_auto]"
                 [disabled]="readonly()"
               >
                 <app-localized-input
@@ -139,7 +142,7 @@ let nextId = 0;
                 @if (!readonly()) {
                   <button
                     type="button"
-                    class="flex self-end rounded-lg p-2 text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
+                    class="flex h-10 w-10 items-center justify-center self-end rounded-lg text-fg-subtle hover:bg-surface-2 hover:text-fail disabled:opacity-40"
                     [disabled]="sections().length <= 1"
                     [attr.aria-label]="'records.layout.remove' | transloco"
                     (click)="removeSection(i)"

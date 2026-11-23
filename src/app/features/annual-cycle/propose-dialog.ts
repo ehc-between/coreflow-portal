@@ -22,6 +22,7 @@ import { SlideOver } from '../../shared/ui/slide-over/slide-over';
 import { AnnualCycleApi } from './data/annual-cycle-api';
 import { monthHeading, proposalMonths } from './data/annual-cycle.logic';
 import { Proposal, RECURRENCES, Recurrence } from './data/annual-cycle.models';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 interface Row {
   readonly key: string;
@@ -42,7 +43,7 @@ interface Row {
  */
 @Component({
   selector: 'app-annual-propose-dialog',
-  imports: [TranslocoPipe, Button, LoadingState, ReqPills, SlideOver],
+  imports: [TranslocoPipe, Button, LoadingState, ReqPills, SlideOver, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -94,11 +95,15 @@ interface Row {
                     </span>
                   </label>
                   @if (row.selected) {
-                    <div class="mt-3 grid grid-cols-1 gap-2 pl-7 sm:grid-cols-2">
-                      <label class="flex flex-col gap-1 text-meta text-fg-muted">
-                        {{ 'annual.dialog.month' | transloco }}
+                    <div
+                      class="mt-3 grid grid-cols-1 items-start gap-x-3 gap-y-3 pl-7 sm:grid-cols-2"
+                    >
+                      <app-form-field
+                        [label]="'annual.dialog.month' | transloco"
+                        [inputId]="'pm-month-' + row.key"
+                      >
                         <select
-                          class="h-9 rounded-tile border border-border bg-surface px-2 text-ui text-fg"
+                          [id]="'pm-month-' + row.key"
                           [value]="row.month"
                           (change)="setMonth(row, $event)"
                         >
@@ -108,21 +113,20 @@ interface Row {
                             </option>
                           }
                         </select>
-                      </label>
-                      <label class="flex flex-col gap-1 text-meta text-fg-muted">
-                        {{ 'annual.dialog.recurrence' | transloco }}
-                        <select
-                          class="h-9 rounded-tile border border-border bg-surface px-2 text-ui text-fg"
-                          (change)="setRecurrence(row, $event)"
-                        >
+                      </app-form-field>
+                      <app-form-field
+                        [label]="'annual.dialog.recurrence' | transloco"
+                        [inputId]="'pm-rec-' + row.key"
+                      >
+                        <select [id]="'pm-rec-' + row.key" (change)="setRecurrence(row, $event)">
                           @for (r of recurrences; track r) {
                             <option [value]="r" [selected]="r === row.recurrence">
                               {{ 'annual.recurrence.' + r | transloco }}
                             </option>
                           }
                         </select>
-                      </label>
-                      <span class="text-meta text-fg-muted sm:col-span-2">{{
+                      </app-form-field>
+                      <span class="text-meta text-fg-subtle sm:col-span-2">{{
                         'annual.dialog.ownerYou' | transloco
                       }}</span>
                     </div>
@@ -132,7 +136,7 @@ interface Row {
             </ul>
           }
         </div>
-        <div class="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">
+        <div class="flex flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-3">
           <app-button variant="secondary" (click)="closed.emit()">
             {{ 'annual.dialog.cancel' | transloco }}
           </app-button>

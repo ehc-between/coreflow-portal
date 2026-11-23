@@ -21,6 +21,8 @@ import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { RiskApi } from '../data/risk-api';
@@ -165,6 +167,8 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
     Button,
     Card,
     ConfirmDialog,
+    FormActions,
+    FormSection,
     Icon,
     MatrixGrid,
     Badge,
@@ -179,68 +183,73 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
     <ng-template #editor>
       <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
         <fieldset class="flex flex-col gap-5" [disabled]="!perms.canManage()">
-          <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-risk-field inputId="matrix-name" labelKey="risk.matrices.name">
-                <input
-                  id="matrix-name"
-                  required
-                  maxlength="255"
-                  [value]="draft().name"
-                  (input)="patch({ name: $any($event.target).value })"
-                />
-              </app-risk-field>
-              @if (!id()) {
-                <app-risk-field
-                  inputId="matrix-template"
-                  labelKey="risk.matrices.template"
-                  helpPage="matrixEditor"
-                  helpField="template"
-                >
-                  <select id="matrix-template" (change)="applyTemplate($any($event.target).value)">
-                    @for (t of templateKeys; track t) {
-                      <option [value]="t" [selected]="t === template()">
-                        {{ 'risk.matrices.templates.' + t | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-risk-field>
-              }
-              <div class="sm:col-span-2">
-                <app-risk-field inputId="matrix-description" labelKey="risk.fields.description">
-                  <textarea
-                    id="matrix-description"
-                    rows="2"
-                    [value]="draft().description"
-                    (input)="patch({ description: $any($event.target).value })"
-                  ></textarea>
-                </app-risk-field>
-              </div>
+          <app-form-section
+            [title]="'risk.matrices.sections.basics' | transloco"
+            [description]="'risk.matrices.sections.basicsHint' | transloco"
+          >
+            <app-risk-field inputId="matrix-name" labelKey="risk.matrices.name" [required]="true">
+              <input
+                id="matrix-name"
+                required
+                maxlength="255"
+                [value]="draft().name"
+                (input)="patch({ name: $any($event.target).value })"
+              />
+            </app-risk-field>
+            @if (!id()) {
               <app-risk-field
-                inputId="matrix-appetite"
-                labelKey="risk.matrices.appetite"
+                inputId="matrix-template"
+                labelKey="risk.matrices.template"
                 helpPage="matrixEditor"
-                helpField="appetite"
+                helpField="template"
               >
-                <input
-                  id="matrix-appetite"
-                  type="number"
-                  min="0"
-                  [max]="maxScore()"
-                  [value]="draft().acceptable_max_score"
-                  (input)="patch({ acceptable_max_score: $any($event.target).value })"
-                />
+                <select id="matrix-template" (change)="applyTemplate($any($event.target).value)">
+                  @for (t of templateKeys; track t) {
+                    <option [value]="t" [selected]="t === template()">
+                      {{ 'risk.matrices.templates.' + t | transloco }}
+                    </option>
+                  }
+                </select>
               </app-risk-field>
-              <label class="inline-flex items-center gap-2 self-end pb-2 text-ui text-fg">
-                <input
-                  type="checkbox"
-                  [checked]="draft().is_default"
-                  (change)="patch({ is_default: $any($event.target).checked })"
-                />
-                {{ 'risk.matrices.isDefault' | transloco }}
-              </label>
-            </div>
-          </app-card>
+            }
+            <app-risk-field
+              span="full"
+              inputId="matrix-description"
+              labelKey="risk.fields.description"
+            >
+              <textarea
+                id="matrix-description"
+                rows="2"
+                [value]="draft().description"
+                (input)="patch({ description: $any($event.target).value })"
+              ></textarea>
+            </app-risk-field>
+            <app-risk-field
+              inputId="matrix-appetite"
+              labelKey="risk.matrices.appetite"
+              helpPage="matrixEditor"
+              helpField="appetite"
+            >
+              <input
+                id="matrix-appetite"
+                type="number"
+                min="0"
+                [max]="maxScore()"
+                [value]="draft().acceptable_max_score"
+                (input)="patch({ acceptable_max_score: $any($event.target).value })"
+              />
+            </app-risk-field>
+            <label
+              class="flex h-10 cursor-pointer items-center gap-2 self-end rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+            >
+              <input
+                type="checkbox"
+                [checked]="draft().is_default"
+                (change)="patch({ is_default: $any($event.target).checked })"
+              />
+              {{ 'risk.matrices.isDefault' | transloco }}
+            </label>
+          </app-form-section>
 
           <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
             @for (axis of axes; track axis) {
@@ -295,7 +304,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                         </label>
                         <input
                           [id]="axis + '-label-' + i"
-                          class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg"
+                          class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                           maxlength="64"
                           [value]="level.label"
                           (input)="setLevel(axis, i, { label: $any($event.target).value })"
@@ -305,7 +314,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                         </label>
                         <input
                           [id]="axis + '-desc-' + i"
-                          class="h-9 rounded-tile border border-border bg-bg px-2.5 text-meta text-fg"
+                          class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                           maxlength="500"
                           [placeholder]="descriptionPlaceholder(axis, i)"
                           [value]="level.description ?? ''"
@@ -359,7 +368,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   <input
                     [id]="'band-color-' + i"
                     type="color"
-                    class="h-9 w-10 cursor-pointer rounded-tile border border-border bg-bg"
+                    class="h-10 w-10 cursor-pointer rounded-tile border border-border bg-bg"
                     [value]="band.color"
                     (input)="setBand(i, { color: $any($event.target).value })"
                   />
@@ -368,7 +377,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   }}</label>
                   <input
                     [id]="'band-label-' + i"
-                    class="h-9 rounded-tile border border-border bg-bg px-2.5 text-ui text-fg"
+                    class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                     maxlength="64"
                     [value]="band.label"
                     (input)="setBand(i, { label: $any($event.target).value })"
@@ -381,7 +390,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                     type="number"
                     min="1"
                     [max]="maxScore()"
-                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                    class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                     [value]="band.min_score"
                     [attr.title]="'risk.matrices.bandMin' | transloco"
                     (input)="setBand(i, { min_score: +$any($event.target).value || 1 })"
@@ -484,7 +493,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
           </app-card>
 
           @if (id()) {
-            <app-card>
+            <app-form-section [columns]="1">
               <app-risk-field inputId="matrix-change-reason" labelKey="risk.fields.changeReason">
                 <input
                   id="matrix-change-reason"
@@ -492,11 +501,9 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
                   [value]="changeReason()"
                   (input)="changeReason.set($any($event.target).value)"
                 />
+                <span hint>{{ 'risk.matrices.recalcNote' | transloco }}</span>
               </app-risk-field>
-              <p class="mt-2 text-meta text-fg-muted">
-                {{ 'risk.matrices.recalcNote' | transloco }}
-              </p>
-            </app-card>
+            </app-form-section>
           }
         </fieldset>
 
@@ -504,8 +511,8 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
           <app-alert tone="error">{{ key | transloco: errorParams() }}</app-alert>
         }
         @if (perms.canManage()) {
-          <div class="flex flex-wrap justify-end gap-2">
-            <app-button variant="ghost" (click)="cancel()">{{
+          <app-form-actions>
+            <app-button variant="secondary" (click)="cancel()">{{
               'risk.common.cancel' | transloco
             }}</app-button>
             <app-button
@@ -515,7 +522,7 @@ export function draftBody(d: MatrixDraft): MatrixCreate {
             >
               {{ (id() ? 'risk.common.save' : 'risk.matrices.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         }
       </form>
     </ng-template>

@@ -159,7 +159,11 @@
       "terms": "Datoer og fornyelse",
       "value": "Verdi",
       "parties": "Parter",
-      "privacy": "Personopplysninger og sikkerhet"
+      "privacy": "Personopplysninger og sikkerhet",
+      "basicsHint": "Hva kontrakten er, hvem som eier den og hva den gjelder.",
+      "termsHint": "Når den starter, slutter og må gjennomgås eller fornyes.",
+      "valueHint": "Hva kontrakten er verdt og hvor ofte den betales.",
+      "partiesHint": "Hvem som har signert. Velg motparten fra leverandørregisteret når du kan."
     },
     "invalid": {
       "titleRequired": "Gi kontrakten en tittel.",

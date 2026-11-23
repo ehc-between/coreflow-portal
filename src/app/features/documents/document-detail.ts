@@ -323,12 +323,15 @@ const WIDE_QUERY = '(min-width: 1024px)';
                   }}
                 </span>
               }
+              @if (doc.status === 'in_review' && doc.segregation_required !== false) {
+                <span
+                  class="mt-0.5 block text-meta font-normal opacity-80"
+                  data-testid="segregation-explained"
+                >
+                  {{ 'documents.approval.segregationExplained' | transloco }}
+                </span>
+              }
             </app-record-status-line>
-          }
-          @if (doc.status === 'in_review' && doc.segregation_required !== false) {
-            <p class="-mt-2 mb-4 text-meta text-fg-muted" data-testid="segregation-explained">
-              {{ 'documents.approval.segregationExplained' | transloco }}
-            </p>
           }
 
           <app-field-item

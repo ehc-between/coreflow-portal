@@ -393,7 +393,7 @@ function isFlag(value: string | null | undefined): value is EmployeeFlag {
                   </app-record-row>
                 }
               </div>
-              <div class="border-t border-border px-4 py-2.5">
+              <div class="border-t border-border px-4 pb-3" [class.hidden]="total() <= pageSize">
                 <app-pager
                   [offset]="offset()"
                   [pageSize]="pageSize"

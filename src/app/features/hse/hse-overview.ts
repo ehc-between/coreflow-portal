@@ -407,7 +407,7 @@ export function overviewSections(o: HseOverview): Section[] {
               </section>
             }
 
-            <div class="grid items-start gap-4 md:grid-cols-2" appTourStep="hse-overview-cards">
+            <div class="grid gap-4 md:grid-cols-2" appTourStep="hse-overview-cards">
               @for (section of sections(); track section.key) {
                 <section
                   class="rounded-card border border-border bg-surface p-5 shadow-card"

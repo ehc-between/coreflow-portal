@@ -540,7 +540,28 @@
     "addRecord": "Add a record…",
     "noRecords": "No records to choose from",
     "crumbRecord": "{{ code }}",
-    "removeCustomer": "Remove customer"
+    "removeCustomer": "Remove customer",
+    "sectionHints": {
+      "basics": "What the record is and who is responsible for it.",
+      "processing": "Why the personal data is processed and on what legal basis.",
+      "data": "Which data is processed, about whom, and who receives it.",
+      "security": "How the data is protected and whether it leaves the EEA.",
+      "review": "When the record was last checked and when it is next due.",
+      "screening": "Whether a full impact assessment (DPIA) is needed.",
+      "assessment": "The risks to the people concerned and how they are reduced.",
+      "requester": "Who made the request and what they asked for.",
+      "handling": "How the request is handled and answered.",
+      "timing": "When the request came in and when the answer is due.",
+      "impact": "What happened, which data and people it affects, and the likely consequences.",
+      "dpa": "The data processing agreement and its key dates.",
+      "mechanism": "Where the data goes and the legal basis for the transfer.",
+      "tia": "Whether the data is adequately protected in the receiving country.",
+      "rule": "How long the data is kept and what happens then.",
+      "evidence": "Documents that show the rule is followed.",
+      "tests": "The tests that show the legal basis holds.",
+      "facts": "Key dates and the outcome.",
+      "execution": "When the data was deleted, and how."
+    }
   },
   "common": {
     "loading": "Loading…",
@@ -1140,7 +1161,11 @@
     },
     "save": "Save the settings",
     "saved": "The privacy settings are saved.",
-    "readOnly": "Only privacy managers can change these settings."
+    "readOnly": "Only privacy managers can change these settings.",
+    "sectionHints": {
+      "controller": "The organisation responsible for the processing, as shown in the records.",
+      "dpo": "Who people and the authority can contact about privacy."
+    }
   },
   "next": {
     "activateRopa": "Mark as active",

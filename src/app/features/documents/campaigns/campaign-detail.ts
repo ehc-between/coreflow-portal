@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { toneFor } from '../../../shared/ui/tones';
 import { Observable, Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -55,6 +56,7 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
 @Component({
   selector: 'app-campaign-detail',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     WatchButton,
@@ -208,11 +210,10 @@ export const RECIPIENT_FILTERS: readonly RecipientFilter[] = [
                     inputId="camp-edit-due"
                     [label]="'documents.control.campaigns.fields.due' | transloco"
                   >
-                    <input
-                      id="camp-edit-due"
-                      type="date"
+                    <app-date-input
+                      inputId="camp-edit-due"
                       [value]="editDue()"
-                      (input)="editDue.set($any($event.target).value)"
+                      (valueChange)="editDue.set($event ?? '')"
                     />
                   </app-form-field>
                   <app-audience-editor

@@ -2898,6 +2898,10 @@
       "placeholder": "mm/dd/yyyy",
       "pick": "Pick a date from the calendar"
     },
+    "dateTimeInput": {
+      "time": "Time",
+      "timePlaceholder": "hh:mm"
+    },
     "due": {
       "by": "by {{ date }}",
       "overdueSince": "overdue since {{ date }}"

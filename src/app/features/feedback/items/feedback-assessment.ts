@@ -5,6 +5,7 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FeedbackApi } from '../data/feedback-api';
 import { feedbackErrorKey } from '../data/feedback-errors';
@@ -32,7 +33,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-feedback-assessment',
-  imports: [TranslocoPipe, AskAbout, FieldHelp, Button, Icon],
+  imports: [TranslocoPipe, AskAbout, FieldHelp, Button, Icon, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let f = feedback();
@@ -100,17 +101,19 @@ let nextId = 0;
           </div>
         </dl>
       } @else {
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
           @for (q of questions; track q.key) {
             <fieldset>
-              <legend class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted">
+              <legend
+                class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+              >
                 {{ q.labelKey | transloco }}
                 <app-field-help scope="feedback" page="detail" [field]="q.help" />
               </legend>
               <div class="flex flex-wrap gap-2" role="radiogroup">
                 @for (o of options; track o) {
                   <label
-                    class="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-tile border px-3 text-ui font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent"
+                    class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-tile border px-3 text-ui font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent"
                     [class]="
                       draft()[q.key] === o
                         ? 'border-accent bg-accent-soft text-accent'
@@ -131,27 +134,26 @@ let nextId = 0;
               </div>
             </fieldset>
           }
-          <div>
-            <label
-              [attr.for]="causeId"
-              class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted"
-            >
-              {{ 'feedback.assessment.rootCause' | transloco }}
-              <app-field-help scope="feedback" page="detail" field="root_cause" />
-            </label>
+          <app-form-field [label]="'feedback.assessment.rootCause' | transloco" [inputId]="causeId">
+            <app-field-help
+              label-suffix
+              scope="feedback"
+              page="detail"
+              field="root_cause"
+              [label]="'feedback.assessment.rootCause' | transloco"
+            />
             <textarea
               [id]="causeId"
               rows="3"
               maxlength="20000"
-              class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
               [value]="rootCause()"
               (input)="rootCause.set($any($event.target).value)"
               [placeholder]="'feedback.assessment.rootCausePlaceholder' | transloco"
               data-testid="assessment-root-cause-input"
             ></textarea>
-          </div>
-          <div class="flex flex-wrap justify-end gap-2">
-            <app-button variant="ghost" size="sm" (click)="editing.set(false)">
+          </app-form-field>
+          <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+            <app-button variant="secondary" size="sm" (click)="editing.set(false)">
               {{ 'common.cancel' | transloco }}
             </app-button>
             <app-button type="submit" size="sm" [loading]="busy()" [disabled]="busy()">

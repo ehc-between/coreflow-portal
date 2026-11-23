@@ -243,14 +243,18 @@
       "identity": "Hvem det er",
       "role": "Rolle",
       "employment": "Ansettelse",
-      "security": "Ansettelsesvilkår og sikkerhet"
+      "security": "Ansettelsesvilkår og sikkerhet",
+      "identityHint": "Navn, kontaktinformasjon og brukerkontoen personen logger inn med.",
+      "roleHint": "Stilling, avdeling og hvem personen rapporterer til.",
+      "employmentHint": "Ansettelsesform, status og når ansettelsen starter og slutter.",
+      "screeningHint": "Hva som ble sjekket, på hvilket rettslig grunnlag, og når det skal sjekkes på nytt."
     },
     "noUser": "Ikke koblet til en brukerkonto",
     "currentUser": "Nåværende brukerkonto",
     "noPosition": "Ingen stilling",
     "noDepartment": "Ingen avdeling",
     "noManager": "Ingen leder",
-    "securityHint": "Registrer når personen signerte taushetserklæringen og aksepterte sikkerhetsvilkårene, bakgrunnssjekken, og at personen har bekreftet pliktene etter avsluttet arbeidsforhold.",
+    "securityHint": "Taushetserklæring, sikkerhetsvilkår og plikter etter avsluttet arbeidsforhold.",
     "privateHint": "Telefon, HR-notater, hva som ble sjekket og rettslig grunnlag vises bare for dem som kan redigere personer, og for personen selv.",
     "startOnboarding": "Start en sjekkliste for oppstart fra standardmalen",
     "changeReason": "Begrunnelse for endringen",
@@ -270,7 +274,8 @@
     "screeningTitle": "Bakgrunnssjekk",
     "screeningRequired": "Stillingen har høy sikkerhetsrisiko. Registrer bakgrunnssjekken og når den skal gjentas.",
     "legalBasisHint": "Hvorfor dere har lov til å sjekke dette. Politiattest krever hjemmel.",
-    "recheckHint": "For roller med høy risiko anbefaler vi ny sjekk hvert tredje år."
+    "recheckHint": "For roller med høy risiko anbefaler vi ny sjekk hvert tredje år.",
+    "fixErrors": "Rett feltene som er markert."
   },
   "detail": {
     "number": "Nr. {{ n }}",
@@ -387,7 +392,11 @@
     "editTitle": "Rediger {{ name }}",
     "create": "Legg til kompetanse",
     "nameRequired": "Skriv inn et navn.",
-    "validityRange": "Skriv inn et helt antall måneder mellom 1 og 240, eller la feltet stå tomt."
+    "validityRange": "Skriv inn et helt antall måneder mellom 1 og 240, eller la feltet stå tomt.",
+    "sections": {
+      "basics": "Kompetansen",
+      "basicsHint": "Hva kompetansen er og hvor lenge den er gyldig."
+    }
   },
   "positions": {
     "title": "Stillinger",
@@ -458,7 +467,17 @@
     "riskHint": "Høy betyr at alle i rollen må ha en bakgrunnssjekk.",
     "ownerHint": "Personen som holder stillingsbeskrivelsen oppdatert.",
     "jobDescriptionHint": "Det styrte dokumentet som beskriver rollen, hvis dere har et.",
-    "nextReviewDefault": "La stå tomt for ett år fra i dag."
+    "nextReviewDefault": "La stå tomt for ett år fra i dag.",
+    "sections": {
+      "basics": "Stillingen",
+      "basicsHint": "Navn, kode, sikkerhetsrisiko og en kort beskrivelse av stillingen.",
+      "duties": "Ansvar og myndighet",
+      "dutiesHint": "Hva stillingen har ansvar for og kan bestemme.",
+      "organisation": "Organisering og gjennomgang",
+      "organisationHint": "Hvor stillingen hører hjemme, hvem som eier den og når den gjennomgås."
+    },
+    "draftIntro": "Få et utkast til ansvar og myndighet ut fra tittelen.",
+    "draftNeedsTitle": "Skriv inn en tittel først for å få et utkast til ansvar."
   },
   "requirements": {
     "title": "Kompetansekrav",

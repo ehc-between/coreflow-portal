@@ -18,6 +18,7 @@ import { documentErrorKey, errorCodeOf } from '../../../core/documents/document-
 import { DocumentsApi } from '../../../core/documents/documents-api';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../../shared/ui/form-field/form-field';
@@ -54,7 +55,16 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-document-workflow-actions',
-  imports: [TranslocoPipe, Button, Icon, ConfirmDialog, PromptDialog, FormField, AudienceEditor],
+  imports: [
+    TranslocoPipe,
+    Button,
+    DateInput,
+    Icon,
+    ConfirmDialog,
+    PromptDialog,
+    FormField,
+    AudienceEditor,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap items-center gap-2 empty:hidden' },
   template: `
@@ -196,11 +206,10 @@ let nextId = 0;
             [inputId]="ids.readBy"
             [label]="'documents.readConfirm.publish.readBy' | transloco"
           >
-            <input
-              type="date"
-              [id]="ids.readBy"
+            <app-date-input
+              [inputId]="ids.readBy"
               [value]="readBy()"
-              (change)="readBy.set($any($event.target).value)"
+              (valueChange)="readBy.set($event ?? '')"
               data-testid="approve-read-by"
             />
           </app-form-field>

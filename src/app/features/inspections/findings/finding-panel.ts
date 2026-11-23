@@ -61,6 +61,7 @@ import {
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 import { TextAssist } from '../data/text-assist';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 interface FindingEdit {
   readonly title: string;
@@ -110,6 +111,7 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
 @Component({
   selector: 'app-finding-panel',
   imports: [
+    DateInput,
     TranslocoPipe,
     FieldHelp,
     ConnectionsPanel,
@@ -331,11 +333,10 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
               />
             </app-form-field>
             <app-form-field [label]="'inspections.fields.dueAt' | transloco" inputId="fp-due">
-              <input
-                id="fp-due"
-                type="date"
+              <app-date-input
+                inputId="fp-due"
                 [value]="edit().dueDate"
-                (input)="patchEdit({ dueDate: $any($event.target).value })"
+                (valueChange)="patchEdit({ dueDate: $event ?? '' })"
               />
             </app-form-field>
           </div>
@@ -722,11 +723,10 @@ export function showsQuestion(f: Pick<Finding, 'title' | 'question_text'>): bool
                     [label]="'inspections.fields.dueAt' | transloco"
                     inputId="fp-action-due"
                   >
-                    <input
-                      id="fp-action-due"
-                      type="date"
+                    <app-date-input
+                      inputId="fp-action-due"
                       [value]="actionDue()"
-                      (input)="actionDue.set($any($event.target).value)"
+                      (valueChange)="actionDue.set($event ?? '')"
                     />
                   </app-form-field>
                 </div>

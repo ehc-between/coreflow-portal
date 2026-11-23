@@ -81,6 +81,9 @@ list             app-record-row-header + app-record-row … (or a table with the
   **owner** · **date** (`dateKind`: due / updated / created / next / date; `overdue` turns it
   amber and adds "Forfalt").
 - Column headers (`app-record-row-header`) show from 1024 px. Below 640 px the row stacks.
+- A column that no row in the list fills (no coverage, owner or date anywhere) collapses
+  so the title gets the room; header and rows stay aligned (needs the `role="list"` wrapper).
+  Badges stay on one line from 1024 px; what does not fit shows as "+N" (tooltip lists them).
 - Wrap the rows in an element with `role="list"`; the whole row is clickable.
 - U30 "list diet": search plus **two** filters chosen per register; everything else (sort,
   "mine", secondary dimensions) goes into `[more-filters]`. Pass `moreFiltersActive` so the
@@ -168,7 +171,10 @@ aside             1 [aside-requirements]  Krav dette dokumenterer (requirementsP
 Header (title, one meta line: code · type · status badge, ≤ 1 primary + ≤ 2 secondary
 actions, Slett in "Mer ⋯") → Hovedinformasjon (`app-record-lead`, 2-4 fields) → tabs with
 `app-record-details` → one "Oppfølging" card in the aside. Labels sit above values
-(`app-field-item`), empty values are hidden.
+(`app-field-item`), empty values are hidden. The "Oppfølging" card hides its empty
+blocks, and itself when nothing is left; `app-supports-requirements` hides itself when it has
+nothing to show and the user cannot add links. Crowded header actions turn "Diskuter" /
+"Spør KI" into icon buttons to stay on one row.
 
 ### 2.4 Form page (form anatomy)
 
@@ -204,7 +210,8 @@ app-form-actions sticky bottom bar: [error summary] … Avbryt (secondary) · La
    date, number, short text) are half width. Pair related fields (From | Until, Owner | Dept).
    Never leave a lone half field mid-section; move it to the end of the section.
 6. **Control heights**: input/select/date/customer/country pickers are 40 px; use
-   `app-date-input` (nb day-first format), never `<input type="date">`. Don't add
+   `app-date-input` (nb day-first format), never `<input type="date">`, and
+   `app-datetime-input` (day + 24 h time), never `<input type="datetime-local">`. Don't add
    `h-*`/`border`/`rounded` classes to controls inside a field – the field styles them. A
    composite picker whose inner input must not get the field style marks it `class="cf-bare"`.
 7. **Sections** = `app-form-section` with a short noun title and one-line description that
@@ -307,20 +314,44 @@ app-form-actions sticky bottom bar: [error summary] … Avbryt (secondary) · La
 
 **Component API** (`src/app/shared/ui`)
 
-| Component               | Inputs / slots                                                                                                                                                                                       |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `app-form-field`        | `label`, `inputId`, `required`, `hint`, `error`, `span` (`half` \| `full`); slots `[label-suffix]` (`?`, ✦ ask), default (the control), `[hint]` (rich hint). Unchanged API is backwards compatible. |
-| `app-form-section`      | `title`, `description`, `columns` (`2` default \| `1`); slots `[title-suffix]`, `[section-actions]`, default (grid cells).                                                                           |
-| `app-form-actions`      | `message` (error summary); slots `[start]` (rare left extra), default (Avbryt, Lagre).                                                                                                               |
-| `app-preset-picker`     | `title`, `description`, `options` (`{ key, label? , labelKey? }[]`), `selected`, `appliedText`, `visible` (6), `icon` (`book`), `testIdPrefix`; output `picked(key)`.                                |
-| `app-recurrence-picker` | new `[plain]="true"` drops the grey box so it sits in a section grid (span both columns).                                                                                                            |
+| Component               | Inputs / slots                                                                                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app-form-field`        | `label`, `inputId`, `required`, `hint`, `error`, `span` (`half` \| `full`); slots `[label-suffix]` (`?`, ✦ ask), default (the control), `[hint]` (rich hint). Unchanged API is backwards compatible.                  |
+| `app-form-section`      | `title`, `description`, `columns` (`2` default \| `1`); slots `[title-suffix]`, `[section-actions]`, default (grid cells).                                                                                            |
+| `app-form-actions`      | `message` (error summary); slots `[start]` (rare left extra), default (Avbryt, Lagre).                                                                                                                                |
+| `app-preset-picker`     | `title`, `description`, `options` (`{ key, label? , labelKey? }[]`), `selected`, `appliedText`, `visible` (6), `icon` (`book`), `testIdPrefix`; output `picked(key)`.                                                 |
+| `app-date-input`        | `[(value)]` / `formControlName` (`YYYY-MM-DD`), `inputId`, `required`, `invalid`, `disabled`, `min`, `max`, `describedBy`, `ariaLabel`; output `changed`. 40 px.                                                      |
+| `app-datetime-input`    | Same inputs as `app-date-input`; value `YYYY-MM-DDTHH:mm` (what `datetime-local` gave; seconds dropped), `defaultTime` (`00:00`, used when only a day is set). Day field gets `inputId`, time field `<inputId>-time`. |
+| `app-recurrence-picker` | new `[plain]="true"` drops the grey box so it sits in a section grid (span both columns).                                                                                                                             |
+
+**Date and time** (`app-datetime-input`, exported from `shared/ui`):
+
+```html
+<app-form-field [label]="'x.fields.occurredAt' | transloco" inputId="x-occurred">
+  <app-datetime-input inputId="x-occurred" [(value)]="occurredAt" />
+</app-form-field>
+<!-- or as a form control -->
+<app-datetime-input inputId="x-occurred" formControlName="occurred_at" />
+```
+
+The day follows the app language (nb `03.12.2026`), the time is typed 24 h (`9`, `930`,
+`09:30`, `09.30`). The value is '' until a day is set. Convert to UTC for the API the same
+way as the old `datetime-local` value.
+
+**Spacing and small parts**
+
+- `app-help-strip` has its own bottom margin (20 px, `mb-5`); don't add `class="mb-5 block"`.
+- The ✦ `app-ask-about` button is 24 px and fits the label row; no `-my-*` hacks.
+- `app-form-actions` with a single button (settings pages) drops its card look and shows
+  just the button on the right.
 
 **Checklist for moving a form over**
 
 - [ ] No `<div class="mb-1.5 flex …"><label>` blocks left; every control in `app-form-field`.
 - [ ] No `<p class="mt-1 text-meta …">` hints/errors under fields; use `[hint]` / `[error]`.
 - [ ] `app-card` + `<h2>` sections replaced by `app-form-section` (title + one-line description).
-- [ ] Native `type="date"` replaced by `app-date-input`.
+- [ ] Native `type="date"` replaced by `app-date-input`; `type="datetime-local"` by
+      `app-datetime-input` (same value string, so the model needs no change).
 - [ ] Chip walls replaced by `app-preset-picker`; AI buttons in a compact strip.
 - [ ] Bottom buttons in `app-form-actions`.
 - [ ] New i18n keys in en + nb; screenshots at 1280 and 390 px: labels/controls line up.

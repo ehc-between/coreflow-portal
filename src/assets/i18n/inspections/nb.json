@@ -353,6 +353,10 @@
       "medium": "Middels og høyere",
       "high": "Høy og kritisk",
       "critical": "Bare kritiske"
+    },
+    "sections": {
+      "basics": "Malen",
+      "basicsHint": "Navn, kategori, bestått-grense og standardene den dokumenterer."
     }
   },
   "form": {
@@ -367,7 +371,14 @@
     "optional": "(valgfritt)",
     "titleHint": "La feltet stå tomt for å bruke sjekkliste og sted, for eksempel «Vernerunde – Lager».",
     "rolesHint": "Inspektøren gjennomfører inspeksjonen. Eieren følger opp resultatet og funnene.",
-    "askPlan": "Hva bør jeg tenke på når jeg planlegger denne inspeksjonen?"
+    "askPlan": "Hva bør jeg tenke på når jeg planlegger denne inspeksjonen?",
+    "sections": {
+      "basics": "Inspeksjonen",
+      "basicsHint": "Hvilken mal som brukes, hva som inspiseres og hva man skal se etter.",
+      "when": "Tid og sted",
+      "whenHint": "Hvor den skjer, når den skal være ferdig og avdelingen den gjelder.",
+      "people": "Personer"
+    }
   },
   "detail": {
     "back": "Tilbake til inspeksjonen",

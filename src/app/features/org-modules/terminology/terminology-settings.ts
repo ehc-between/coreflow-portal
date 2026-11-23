@@ -15,6 +15,7 @@ import { TerminologyService } from '../../../core/modules/terminology.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Alert } from '../../../shared/ui/alert/alert';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
@@ -43,6 +44,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
     Button,
     Card,
     ConfirmDialog,
+    FormActions,
     Icon,
     HelpStrip,
     WhyItMatters,
@@ -51,7 +53,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let t = 'modules.terminology';
-    <div class="mx-auto max-w-[1080px] px-4 pt-7 pb-12 sm:px-8">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="t + '.title'"
         [descriptionKey]="t + '.subtitle'"
@@ -148,8 +150,9 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
             <app-alert class="mt-4 block">{{ message | transloco }}</app-alert>
           }
 
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <app-form-actions class="mt-5">
             <app-button
+              start
               variant="ghost"
               (click)="confirmReset.set(true)"
               [disabled]="!hasOverrides()"
@@ -159,7 +162,7 @@ type Defaults = Readonly<Record<string, Readonly<Record<string, { one: string; o
             <app-button type="submit" [loading]="saving()">{{
               'common.save' | transloco
             }}</app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
 

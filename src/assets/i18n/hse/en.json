@@ -258,7 +258,10 @@
       "responsibleHint": "Pick a member, or choose “Someone outside” and type the name.",
       "responsibleExternal": "Someone outside the organisation",
       "responsibleName": "Name of the person responsible",
-      "ppeHint": "The equipment everyone doing the job must wear. The analysis shows which items in the PPE register cover it."
+      "ppeHint": "The equipment everyone doing the job must wear. The analysis shows which items in the PPE register cover it.",
+      "jobSectionHint": "A safe job analysis plans a risky job before it starts. Write it with the people who will do the work.",
+      "peopleSection": "Who takes part",
+      "peopleSectionHint": "The people who do the job and go through the analysis together."
     },
     "detail": {
       "jobTitle": "The job",
@@ -463,7 +466,10 @@
       "courseHint": "The course a holder must have done, for example working at height. Issuing warns if the holder has not done it.",
       "coursePlaceholder": "Search for a course",
       "intervalHint": "How often the item must be inspected. Choose a common interval or type the number of days.",
-      "days": "days"
+      "days": "days",
+      "whatSectionHint": "The equipment, its category and how many there are.",
+      "whoSectionHint": "Where the equipment is kept and who follows it up.",
+      "inspectionSectionHint": "When it was last checked, when it is due again and when it expires."
     },
     "detail": {
       "aboutTitle": "About the item",
@@ -608,7 +614,10 @@
       "outcomeSection": "Outcome",
       "repsHint": "Pick the safety representative if they are a member; add others by name.",
       "repAuto": "Ticked because a representative is listed.",
-      "decisionsHint": "New decisions become follow-up tasks: add them as tasks on the record."
+      "decisionsHint": "New decisions become follow-up tasks: add them as tasks on the record.",
+      "meetingSectionHint": "What the meeting is about, when and where it is held.",
+      "peopleSectionHint": "Who takes part, including the safety representatives.",
+      "outcomeSectionHint": "What was discussed and decided in the meeting."
     },
     "detail": {
       "aboutTitle": "About the meeting",

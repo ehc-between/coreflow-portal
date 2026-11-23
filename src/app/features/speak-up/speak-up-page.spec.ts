@@ -95,7 +95,10 @@ async function setup(opts: { propose?: 'ok' | 'off'; available?: string[] } = {}
         provide: AuthService,
         useValue: { user: signal({ id: 'me', full_name: 'Kari Nordmann', email: 'k@x' }) },
       },
-      { provide: LanguageService, useValue: { active: signal('nb'), locale: signal('nb') } },
+      {
+        provide: LanguageService,
+        useValue: { active: signal('nb'), locale: signal('nb'), translate: (k: string) => k },
+      },
     ],
   });
   const fixture = TestBed.createComponent(SpeakUpPage);

@@ -198,7 +198,9 @@
     "description": "Plan the review: what it covers, the period, and the meeting where top management goes through it.",
     "frameworksAdopted": "Only the standards the organisation follows are shown.",
     "meetingIntro": "The review is held in a meeting with top management. You can change all of this later.",
-    "topManagementHint": "Mark who is top management on the meeting. People marked at the last review are marked again."
+    "topManagementHint": "Mark who is top management on the meeting. People marked at the last review are marked again.",
+    "basicsHeading": "The review",
+    "basicsHint": "What the review covers, the period it looks back on and who owns it."
   },
   "standardAgenda": {
     "previousActions": "Status of actions from previous management reviews",
@@ -216,7 +218,13 @@
     "agenda": "Agenda",
     "agendaPlaceholder": "One agenda item per line",
     "description": "A meeting where decisions are taken. Add what it concerns, so the decisions are linked to the right records.",
-    "relatedOnPage": "Add or remove linked records under the Related tab on the meeting page."
+    "relatedOnPage": "Add or remove linked records under the Related tab on the meeting page.",
+    "sections": {
+      "basics": "The meeting",
+      "basicsHint": "What the meeting is about, when and where it is held.",
+      "people": "People and agenda",
+      "peopleHint": "Who leads the meeting, who writes the minutes and who is invited."
+    }
   },
   "detail": {
     "edit": "Edit",
@@ -985,7 +993,9 @@
     "reminderHint": "From {{ days }} days before the due date the review shows on the home page and in My work.",
     "save": "Save settings",
     "invalidInterval": "Choose an interval of 1 to 36 months.",
-    "invalidReminder": "Enter 0 to 180 days."
+    "invalidReminder": "Enter 0 to 180 days.",
+    "sectionTitle": "Review cycle",
+    "sectionHint": "How often top management reviews the management system, and when CoreFlow reminds the owner."
   },
   "nextActions": {
     "overdue": {

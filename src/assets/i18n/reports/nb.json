@@ -402,7 +402,15 @@
     "create": "Lagre rapporten",
     "saveChanges": "Lagre endringene",
     "created": "Rapporten er lagret.",
-    "saved": "Endringene er lagret."
+    "saved": "Endringene er lagret.",
+    "fixErrors": "Rett feltene som er markert.",
+    "sections": {
+      "basics": "Rapporten",
+      "basicsHint": "Hva rapporten heter, og hvilket register den henter fra.",
+      "contentHint": "Velg hvilke rader og kolonner rapporten tar med.",
+      "output": "Fil",
+      "outputHint": "Formatet og språket på filen du laster ned."
+    }
   },
   "detail": {
     "run": "Kjør rapporten ({{ format }})",

@@ -53,7 +53,8 @@ import {
 import { AiDraftPanel } from './designer/ai-draft-panel';
 import { VersionEntry, VersionHistory } from './designer/version-history';
 import { WorkflowEditor } from './designer/workflow-editor';
-import { RecordsFieldHelp } from './guidance/records-guidance';
+import { FieldHelp } from '../../shared/guidance/field-help';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { providePageContext } from '../../core/ai/page-context';
 
 /**
@@ -81,7 +82,8 @@ import { providePageContext } from '../../core/ai/page-context';
     AiDraftPanel,
     VersionHistory,
     WorkflowEditor,
-    RecordsFieldHelp,
+    FieldHelp,
+    FormSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -157,10 +159,16 @@ import { providePageContext } from '../../core/ai/page-context';
 
         <div class="grid gap-5 lg:grid-cols-[1fr_300px]">
           <div class="flex min-w-0 flex-col gap-5">
-            <app-card>
-              <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2" [disabled]="readonly()">
-                <legend class="sr-only">{{ 'records.designer.basics' | transloco }}</legend>
-                <app-form-field [label]="'records.workflow.name' | transloco" inputId="wf-name">
+            <fieldset class="contents" [disabled]="readonly()">
+              <app-form-section
+                [title]="'records.designer.basics' | transloco"
+                [description]="'records.workflow.basicsHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'records.workflow.name' | transloco"
+                  inputId="wf-name"
+                  [required]="true"
+                >
                   <input
                     id="wf-name"
                     type="text"
@@ -194,9 +202,10 @@ import { providePageContext } from '../../core/ai/page-context';
                     (ngModelChange)="key.set($event); keyTouched.set(true)"
                     [disabled]="!isNew() || readonly()"
                   />
-                  <app-records-field-help page="designer" field="key" />
+                  <app-field-help label-suffix scope="records" page="designer" field="key" />
                 </app-form-field>
                 <app-form-field
+                  span="full"
                   [label]="'records.designer.description' | transloco"
                   inputId="wf-description"
                 >
@@ -208,8 +217,8 @@ import { providePageContext } from '../../core/ai/page-context';
                     (ngModelChange)="description.set($event)"
                   ></textarea>
                 </app-form-field>
-              </fieldset>
-            </app-card>
+              </app-form-section>
+            </fieldset>
 
             <app-workflow-editor
               [definition]="definition()"

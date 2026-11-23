@@ -12,7 +12,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, filter, last } from 'rxjs';
 import { AttachmentsApi } from '../../core/attachments/attachments-api';
 import { Attachment } from '../../core/attachments/attachment.models';
-import { GuidanceService } from '../../core/guidance/guidance.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
@@ -24,6 +23,7 @@ import { ContractField } from './contract-field';
 import { ContractsApi } from './data/contracts-api';
 import { ContractVersion } from './data/contract.models';
 import { contractErrorKey } from './data/contract-errors';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 interface VersionDraft {
   readonly change_summary: string;
@@ -52,7 +52,16 @@ export function copyMissing(v: ContractVersion): boolean {
  */
 @Component({
   selector: 'app-contract-versions',
-  imports: [TranslocoPipe, FieldHelp, LocalDayPipe, Button, Icon, StatusBadge, ContractField],
+  imports: [
+    DateInput,
+    TranslocoPipe,
+    FieldHelp,
+    LocalDayPipe,
+    Button,
+    Icon,
+    StatusBadge,
+    ContractField,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-versions-h">
@@ -62,9 +71,7 @@ export function copyMissing(v: ContractVersion): boolean {
           class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
         >
           {{ 'contracts.versions.title' | transloco }}
-          @if (!beginner()) {
-            <app-field-help scope="contracts" page="detail" field="versions" />
-          }
+          <app-field-help scope="contracts" page="detail" field="versions" />
         </h2>
         @if (canEdit() && !adding()) {
           <app-button
@@ -78,9 +85,6 @@ export function copyMissing(v: ContractVersion): boolean {
           </app-button>
         }
       </div>
-      @if (beginner()) {
-        <app-field-help scope="contracts" page="detail" field="versions" />
-      }
 
       @if (adding()) {
         <form
@@ -107,11 +111,10 @@ export function copyMissing(v: ContractVersion): boolean {
             [label]="'contracts.versions.effectiveDate' | transloco"
             inputId="cf-v-effective"
           >
-            <input
-              id="cf-v-effective"
-              type="date"
+            <app-date-input
+              inputId="cf-v-effective"
               [value]="draft().effective_date"
-              (change)="patch({ effective_date: $any($event.target).value })"
+              (valueChange)="patch({ effective_date: $event ?? '' })"
             />
           </app-contract-field>
           <app-contract-field
@@ -274,7 +277,6 @@ export class ContractVersions {
   private readonly attachmentsApi = inject(AttachmentsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly guidance = inject(GuidanceService);
 
   readonly contractId = input.required<string>();
   readonly versions = input.required<readonly ContractVersion[]>();
@@ -282,7 +284,6 @@ export class ContractVersions {
   readonly canEdit = input(false);
   readonly changed = output<void>();
 
-  protected readonly beginner = this.guidance.isBeginner;
   protected readonly missing = copyMissing;
   protected readonly adding = signal(false);
   protected readonly busy = signal(false);

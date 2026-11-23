@@ -39,12 +39,11 @@ export function visibleFrameworks(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset [attr.aria-describedby]="id + '-hint'">
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">
+      <legend
+        class="mb-1.5 flex min-h-6 items-center text-ui leading-6 font-semibold text-fg-muted"
+      >
         {{ labelKey() | transloco }}
       </legend>
-      <p [id]="id + '-hint'" class="mb-2 text-meta text-fg-muted">
-        {{ hintKey() | transloco }}
-      </p>
       <div class="flex flex-wrap gap-1.5">
         @if (allKey(); as all) {
           <label
@@ -96,6 +95,9 @@ export function visibleFrameworks(
           </button>
         }
       </div>
+      <p [id]="id + '-hint'" class="mt-1.5 text-meta leading-snug text-fg-subtle">
+        {{ hintKey() | transloco }}
+      </p>
     </fieldset>
   `,
 })

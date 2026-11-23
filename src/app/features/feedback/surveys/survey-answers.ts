@@ -194,18 +194,18 @@ const CONTROL =
               {{ 'feedback.list.countOf' | transloco: { shown: items().length, total: total() } }}
             </p>
             <div
-              class="hidden border-b border-border px-1 pb-2 text-micro font-semibold tracking-wide text-fg-subtle uppercase sm:grid sm:grid-cols-[120px_minmax(0,1fr)_96px_minmax(0,220px)] sm:gap-3"
+              class="hidden border-b border-border px-1 pb-2 text-micro font-semibold tracking-wide text-fg-subtle uppercase sm:grid sm:grid-cols-[176px_minmax(0,1fr)_96px_auto] sm:gap-3"
               aria-hidden="true"
             >
               <span>{{ 'feedback.answers.columns.date' | transloco }}</span>
               <span>{{ 'feedback.answers.columns.answer' | transloco }}</span>
               <span>{{ 'feedback.answers.columns.score' | transloco }}</span>
-              <span>{{ 'feedback.answers.columns.followUp' | transloco }}</span>
+              <span class="text-right">{{ 'feedback.answers.columns.followUp' | transloco }}</span>
             </div>
             <ul class="divide-y divide-border" data-testid="survey-responses">
               @for (r of items(); track r.id) {
                 <li
-                  class="flex flex-col gap-2 px-1 py-3 sm:grid sm:grid-cols-[120px_minmax(0,1fr)_96px_minmax(0,220px)] sm:items-start sm:gap-3"
+                  class="flex flex-col gap-2 px-1 py-3.5 sm:grid sm:grid-cols-[176px_minmax(0,1fr)_96px_auto] sm:items-start sm:gap-3"
                   [class.bg-warn-soft]="r.low_score"
                   [attr.data-testid]="'answer-' + r.id"
                 >
@@ -217,9 +217,10 @@ const CONTROL =
                     @if (!survey() && r.survey_id) {
                       <a
                         [routerLink]="['/feedback/surveys', r.survey_id]"
-                        class="font-semibold break-words text-accent hover:underline"
+                        class="mt-0.5 line-clamp-2 font-semibold break-words text-accent hover:underline"
+                        [attr.title]="r.survey_title"
                         [attr.data-testid]="'answer-survey-' + r.id"
-                        >{{ r.survey_code }} {{ r.survey_title }}</a
+                        ><span class="font-mono">{{ r.survey_code }}</span> {{ r.survey_title }}</a
                       >
                     }
                   </div>
@@ -261,7 +262,9 @@ const CONTROL =
                       }}</app-badge>
                     }
                   </div>
-                  <div class="flex flex-wrap items-center gap-2 text-meta">
+                  <div
+                    class="flex flex-wrap items-center gap-2 text-meta sm:flex-nowrap sm:justify-end"
+                  >
                     @if (r.feedback_id) {
                       <a
                         [routerLink]="['/feedback/items', r.feedback_id]"

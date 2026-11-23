@@ -20,7 +20,9 @@ import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../../sha
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { FeedbackApi } from '../data/feedback-api';
 import {
@@ -46,10 +48,6 @@ export interface FeedbackFormSubmit {
   readonly changeReason: string;
 }
 
-const TEXTAREA =
-  'w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent';
-const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted';
-
 /**
  * The feedback form (create and edit). `value` seeds the form; every edit is
  * emitted on `changed`. The reply date is filled from the module's default
@@ -64,541 +62,528 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
     AskAbout,
     FieldHelp,
     Button,
-    Card,
+    DateInput,
+    FormActions,
     FormField,
+    FormSection,
     FeedbackSubjectPicker,
     CustomerPicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'feedback.form.sections.what' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <fieldset class="sm:col-span-2">
-            <legend [class]="label">
-              {{ 'feedback.fields.kind' | transloco }}
-              <app-field-help scope="feedback" page="form" field="kind" />
-              <app-ask-about
-                [prompt]="'feedback.ask.kind' | transloco"
-                field="kind"
-                [fieldLabel]="'feedback.fields.kind' | transloco"
-              />
-            </legend>
-            <div class="flex flex-wrap gap-2" role="radiogroup">
-              @for (k of kinds; track k) {
-                <label
-                  class="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-tile border px-3 text-ui font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent"
-                  [class]="
-                    form().kind === k
-                      ? 'border-accent bg-accent-soft text-accent'
-                      : 'border-border text-fg-muted hover:text-fg'
-                  "
-                >
-                  <input
-                    type="radio"
-                    name="cf-fb-kind"
-                    class="sr-only"
-                    [value]="k"
-                    [checked]="form().kind === k"
-                    (change)="setKind(k)"
-                    [attr.data-testid]="'kind-' + k"
-                  />
-                  {{ kindKey(k) | transloco }}
-                </label>
-              }
-            </div>
-            <p class="mt-1.5 text-meta text-fg-subtle">
-              {{ 'feedback.form.kindHint.' + form().kind | transloco }}
-            </p>
-          </fieldset>
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'feedback.fields.title' | transloco" inputId="cf-fb-title">
-              <input
-                id="cf-fb-title"
-                type="text"
-                maxlength="255"
-                required
-                [value]="form().title"
-                (input)="set('title', $any($event.target).value)"
-                [placeholder]="'feedback.form.titlePlaceholder' | transloco"
-                [attr.aria-invalid]="!!shownErrors()['title']"
-                [attr.aria-describedby]="shownErrors()['title'] ? 'cf-fb-title-err' : null"
-                data-testid="field-title"
-              />
-            </app-form-field>
-            @if (shownErrors()['title']; as e) {
-              <p id="cf-fb-title-err" class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'feedback.fields.description' | transloco"
-              inputId="cf-fb-description"
-            >
-              <textarea
-                id="cf-fb-description"
-                rows="5"
-                maxlength="20000"
-                [value]="form().description"
-                (input)="set('description', $any($event.target).value)"
-                aria-describedby="cf-fb-description-hint"
-              ></textarea>
-            </app-form-field>
-            <p id="cf-fb-description-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'feedback.form.descriptionHint' | transloco }}
-            </p>
-          </div>
-          <app-form-field [label]="'feedback.fields.channel' | transloco" inputId="cf-fb-channel">
-            <select id="cf-fb-channel" (change)="set('channel', $any($event.target).value)">
-              @for (c of channels; track c) {
-                <option [value]="c" [selected]="form().channel === c">
-                  {{ channelKey(c) | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-form-field
-            [label]="'feedback.fields.receivedOn' | transloco"
-            inputId="cf-fb-received"
+      <app-form-section
+        [title]="'feedback.form.sections.what' | transloco"
+        [description]="'feedback.form.sections.whatHint' | transloco"
+      >
+        <fieldset class="sm:col-span-2">
+          <legend
+            class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
           >
-            <input
-              id="cf-fb-received"
-              type="date"
-              [value]="form().received_on"
-              (change)="setReceived($any($event.target).value)"
+            {{ 'feedback.fields.kind' | transloco }}
+            <app-field-help
+              scope="feedback"
+              page="form"
+              field="kind"
+              [label]="'feedback.fields.kind' | transloco"
             />
-          </app-form-field>
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-1 flex items-center gap-1 font-display text-section font-bold text-fg">
-          {{ 'feedback.form.sections.about' | transloco }}
-          <app-field-help scope="feedback" page="form" field="subjects" />
-        </h2>
-        <p class="mb-4 text-meta text-fg-muted">{{ 'feedback.form.aboutHint' | transloco }}</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <p [class]="label" id="cf-fb-subjects-label">
-              {{ 'feedback.subjects.title' | transloco }}
-            </p>
-            <div role="group" aria-labelledby="cf-fb-subjects-label">
-              <app-feedback-subject-picker
-                [picked]="form().subjects"
-                (selected)="addSubject($event)"
-                (removed)="removeSubject($event)"
-              />
-            </div>
-            @if (shownErrors()['subjects']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <app-form-field
-            [label]="'feedback.fields.productOrService' | transloco"
-            inputId="cf-fb-product"
-          >
-            <input
-              id="cf-fb-product"
-              type="text"
-              maxlength="255"
-              [value]="form().product_or_service"
-              (input)="set('product_or_service', $any($event.target).value)"
+            <app-ask-about
+              class="-my-0.5"
+              [prompt]="'feedback.ask.kind' | transloco"
+              field="kind"
+              [fieldLabel]="'feedback.fields.kind' | transloco"
             />
-          </app-form-field>
-          <div>
-            <app-form-field
-              [label]="'feedback.fields.category' | transloco"
-              inputId="cf-fb-category"
-            >
-              <input
-                id="cf-fb-category"
-                type="text"
-                maxlength="64"
-                list="cf-fb-category-options"
-                autocomplete="off"
-                [value]="form().category"
-                (input)="set('category', $any($event.target).value)"
-                aria-describedby="cf-fb-category-hint"
-                data-testid="field-category"
-              />
-            </app-form-field>
-            <datalist id="cf-fb-category-options">
-              @for (c of categories(); track c) {
-                <option [value]="c"></option>
-              }
-            </datalist>
-            <p id="cf-fb-category-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'feedback.form.categoryHint' | transloco }}
-            </p>
-          </div>
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'feedback.fields.tags' | transloco" inputId="cf-fb-tags">
-              <input
-                id="cf-fb-tags"
-                type="text"
-                [value]="form().tags"
-                (input)="set('tags', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['tags']"
-                aria-describedby="cf-fb-tags-hint"
-              />
-            </app-form-field>
-            <p id="cf-fb-tags-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'feedback.form.tagsHint' | transloco }}
-            </p>
-            @if (shownErrors()['tags']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-1 font-display text-section font-bold text-fg">
-          {{ 'feedback.form.sections.impact' | transloco }}
-        </h2>
-        <p class="mb-4 text-meta text-fg-muted">{{ 'feedback.form.impactHint' | transloco }}</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div>
-            <label for="cf-fb-severity" [class]="label">
-              {{ 'feedback.fields.severity' | transloco }}
-              <app-field-help scope="feedback" page="form" field="severity" />
-              <app-ask-about
-                [prompt]="'feedback.ask.severity' | transloco"
-                field="severity"
-                [fieldLabel]="'feedback.fields.severity' | transloco"
-              />
-            </label>
-            <app-form-field inputId="cf-fb-severity">
-              <select id="cf-fb-severity" (change)="set('severity', $any($event.target).value)">
-                <option value="" [selected]="!form().severity">
-                  {{ 'feedback.common.none' | transloco }}
-                </option>
-                @for (s of severities; track s) {
-                  <option [value]="s" [selected]="form().severity === s">
-                    {{ severityKey(s) | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div>
-            <label for="cf-fb-score" [class]="label">
-              {{ 'feedback.fields.satisfactionScore' | transloco }}
-              <app-field-help scope="feedback" page="form" field="satisfaction_score" />
-            </label>
-            <app-form-field inputId="cf-fb-score">
-              <select
-                id="cf-fb-score"
-                (change)="set('satisfaction_score', $any($event.target).value)"
+          </legend>
+          <div class="flex flex-wrap gap-2" role="radiogroup">
+            @for (k of kinds; track k) {
+              <label
+                class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-tile border px-3.5 text-ui font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent"
+                [class]="
+                  form().kind === k
+                    ? 'border-accent bg-accent-soft text-accent'
+                    : 'border-border text-fg-muted hover:text-fg'
+                "
               >
-                <option value="" [selected]="!form().satisfaction_score">
-                  {{ 'feedback.form.scoreUnknown' | transloco }}
-                </option>
-                @for (n of scores; track n) {
-                  <option [value]="n" [selected]="form().satisfaction_score === n">
-                    {{ 'feedback.form.scoreOption.' + n | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div>
-            <label for="cf-fb-sentiment" [class]="label">
-              {{ 'feedback.fields.sentiment' | transloco }}
-              <app-field-help scope="feedback" page="form" field="sentiment" />
-            </label>
-            <app-form-field inputId="cf-fb-sentiment">
-              <select id="cf-fb-sentiment" (change)="set('sentiment', $any($event.target).value)">
-                <option value="" [selected]="!form().sentiment">
-                  {{ 'feedback.common.none' | transloco }}
-                </option>
-                @for (s of sentiments; track s) {
-                  <option [value]="s" [selected]="form().sentiment === s">
-                    {{ sentimentKey(s) | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-1 flex items-center gap-1 font-display text-section font-bold text-fg">
-          {{ 'feedback.form.sections.customer' | transloco }}
-          <app-field-help scope="feedback" page="form" field="customer" />
-        </h2>
-        <p class="mb-4 text-meta text-fg-muted">
-          {{ 'feedback.form.customerHint' | transloco }}
-        </p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          @if (customers.enabled()) {
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'feedback.fields.customer' | transloco"
-                inputId="cf-fb-customer"
-              >
-                <app-customer-picker
-                  inputId="cf-fb-customer"
-                  [value]="form().customer_id || null"
-                  [current]="form().customer"
-                  (valueChange)="set('customer_id', $event ?? '')"
-                  (refChange)="set('customer', $event)"
-                  data-testid="feedback-customer"
+                <input
+                  type="radio"
+                  name="cf-fb-kind"
+                  class="sr-only"
+                  [value]="k"
+                  [checked]="form().kind === k"
+                  (change)="setKind(k)"
+                  [attr.data-testid]="'kind-' + k"
                 />
-              </app-form-field>
-            </div>
-          }
+                {{ kindKey(k) | transloco }}
+              </label>
+            }
+          </div>
+          <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
+            {{ 'feedback.form.kindHint.' + form().kind | transloco }}
+          </p>
+        </fieldset>
+        <app-form-field
+          span="full"
+          [label]="'feedback.fields.title' | transloco"
+          inputId="cf-fb-title"
+          [required]="true"
+          [error]="shownErrors()['title'] ?? '' | transloco"
+        >
+          <input
+            id="cf-fb-title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="form().title"
+            (input)="set('title', $any($event.target).value)"
+            [placeholder]="'feedback.form.titlePlaceholder' | transloco"
+            data-testid="field-title"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'feedback.fields.description' | transloco"
+          inputId="cf-fb-description"
+          [hint]="'feedback.form.descriptionHint' | transloco"
+        >
+          <textarea
+            id="cf-fb-description"
+            rows="5"
+            maxlength="20000"
+            [value]="form().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.channel' | transloco" inputId="cf-fb-channel">
+          <select id="cf-fb-channel" (change)="set('channel', $any($event.target).value)">
+            @for (c of channels; track c) {
+              <option [value]="c" [selected]="form().channel === c">
+                {{ channelKey(c) | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.receivedOn' | transloco" inputId="cf-fb-received">
+          <app-date-input
+            inputId="cf-fb-received"
+            [value]="form().received_on"
+            (changed)="setReceived($event)"
+          />
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'feedback.form.sections.about' | transloco"
+        [description]="'feedback.form.aboutHint' | transloco"
+      >
+        <app-field-help
+          title-suffix
+          scope="feedback"
+          page="form"
+          field="subjects"
+          [label]="'feedback.form.sections.about' | transloco"
+        />
+        <app-form-field
+          span="full"
+          [label]="'feedback.subjects.title' | transloco"
+          [error]="shownErrors()['subjects'] ?? '' | transloco"
+        >
+          <app-feedback-subject-picker
+            [picked]="form().subjects"
+            (selected)="addSubject($event)"
+            (removed)="removeSubject($event)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.fields.productOrService' | transloco"
+          inputId="cf-fb-product"
+        >
+          <input
+            id="cf-fb-product"
+            type="text"
+            maxlength="255"
+            [value]="form().product_or_service"
+            (input)="set('product_or_service', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.fields.category' | transloco"
+          inputId="cf-fb-category"
+          [hint]="'feedback.form.categoryHint' | transloco"
+        >
+          <input
+            id="cf-fb-category"
+            type="text"
+            maxlength="64"
+            list="cf-fb-category-options"
+            autocomplete="off"
+            [value]="form().category"
+            (input)="set('category', $any($event.target).value)"
+            data-testid="field-category"
+          />
+          <datalist id="cf-fb-category-options">
+            @for (c of categories(); track c) {
+              <option [value]="c"></option>
+            }
+          </datalist>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'feedback.fields.tags' | transloco"
+          inputId="cf-fb-tags"
+          [hint]="'feedback.form.tagsHint' | transloco"
+          [error]="shownErrors()['tags'] ?? '' | transloco"
+        >
+          <input
+            id="cf-fb-tags"
+            type="text"
+            [value]="form().tags"
+            (input)="set('tags', $any($event.target).value)"
+          />
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'feedback.form.sections.impact' | transloco"
+        [description]="'feedback.form.impactHint' | transloco"
+      >
+        <app-form-field [label]="'feedback.fields.severity' | transloco" inputId="cf-fb-severity">
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="form"
+            field="severity"
+            [label]="'feedback.fields.severity' | transloco"
+          />
+          <app-ask-about
+            label-suffix
+            class="-my-0.5"
+            [prompt]="'feedback.ask.severity' | transloco"
+            field="severity"
+            [fieldLabel]="'feedback.fields.severity' | transloco"
+          />
+          <select id="cf-fb-severity" (change)="set('severity', $any($event.target).value)">
+            <option value="" [selected]="!form().severity">
+              {{ 'feedback.common.none' | transloco }}
+            </option>
+            @for (s of severities; track s) {
+              <option [value]="s" [selected]="form().severity === s">
+                {{ severityKey(s) | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.fields.satisfactionScore' | transloco"
+          inputId="cf-fb-score"
+        >
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="form"
+            field="satisfaction_score"
+            [label]="'feedback.fields.satisfactionScore' | transloco"
+          />
+          <select id="cf-fb-score" (change)="set('satisfaction_score', $any($event.target).value)">
+            <option value="" [selected]="!form().satisfaction_score">
+              {{ 'feedback.form.scoreUnknown' | transloco }}
+            </option>
+            @for (n of scores; track n) {
+              <option [value]="n" [selected]="form().satisfaction_score === n">
+                {{ 'feedback.form.scoreOption.' + n | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.sentiment' | transloco" inputId="cf-fb-sentiment">
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="form"
+            field="sentiment"
+            [label]="'feedback.fields.sentiment' | transloco"
+          />
+          <select id="cf-fb-sentiment" (change)="set('sentiment', $any($event.target).value)">
+            <option value="" [selected]="!form().sentiment">
+              {{ 'feedback.common.none' | transloco }}
+            </option>
+            @for (s of sentiments; track s) {
+              <option [value]="s" [selected]="form().sentiment === s">
+                {{ sentimentKey(s) | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'feedback.form.sections.customer' | transloco"
+        [description]="'feedback.form.customerHint' | transloco"
+      >
+        <app-field-help
+          title-suffix
+          scope="feedback"
+          page="form"
+          field="customer"
+          [label]="'feedback.form.sections.customer' | transloco"
+        />
+        @if (customers.enabled()) {
           <app-form-field
-            [label]="'feedback.fields.customerName' | transloco"
-            inputId="cf-fb-cname"
+            span="full"
+            [label]="'feedback.fields.customer' | transloco"
+            inputId="cf-fb-customer"
+          >
+            <app-customer-picker
+              inputId="cf-fb-customer"
+              [value]="form().customer_id || null"
+              [current]="form().customer"
+              (valueChange)="set('customer_id', $event ?? '')"
+              (refChange)="set('customer', $event)"
+              data-testid="feedback-customer"
+            />
+          </app-form-field>
+        }
+        <app-form-field [label]="'feedback.fields.customerName' | transloco" inputId="cf-fb-cname">
+          <input
+            id="cf-fb-cname"
+            type="text"
+            maxlength="255"
+            autocomplete="off"
+            [value]="form().customer_name"
+            (input)="set('customer_name', $any($event.target).value)"
+          />
+        </app-form-field>
+        <!-- The free-text organisation gives way to the Kunde field; kept for old records. -->
+        @if (!customers.enabled() || (!form().customer_id && form().customer_organisation)) {
+          <app-form-field
+            [label]="'feedback.fields.customerOrganisation' | transloco"
+            inputId="cf-fb-corg"
           >
             <input
-              id="cf-fb-cname"
+              id="cf-fb-corg"
               type="text"
               maxlength="255"
               autocomplete="off"
-              [value]="form().customer_name"
-              (input)="set('customer_name', $any($event.target).value)"
+              [value]="form().customer_organisation"
+              (input)="set('customer_organisation', $any($event.target).value)"
             />
           </app-form-field>
-          <!-- The free-text organisation gives way to the Kunde field; kept for old records. -->
-          @if (!customers.enabled() || (!form().customer_id && form().customer_organisation)) {
-            <app-form-field
-              [label]="'feedback.fields.customerOrganisation' | transloco"
-              inputId="cf-fb-corg"
-            >
-              <input
-                id="cf-fb-corg"
-                type="text"
-                maxlength="255"
-                autocomplete="off"
-                [value]="form().customer_organisation"
-                (input)="set('customer_organisation', $any($event.target).value)"
-              />
-            </app-form-field>
-          }
-          <div>
-            <app-form-field
-              [label]="'feedback.fields.customerEmail' | transloco"
-              inputId="cf-fb-cemail"
-            >
-              <input
-                id="cf-fb-cemail"
-                type="email"
-                autocomplete="off"
-                [value]="form().customer_email"
-                (input)="set('customer_email', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['customer_email']"
-              />
-            </app-form-field>
-            @if (shownErrors()['customer_email']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <app-form-field
-            [label]="'feedback.fields.customerPhone' | transloco"
-            inputId="cf-fb-cphone"
-          >
-            <input
-              id="cf-fb-cphone"
-              type="tel"
-              maxlength="64"
-              autocomplete="off"
-              [value]="form().customer_phone"
-              (input)="set('customer_phone', $any($event.target).value)"
-            />
-          </app-form-field>
-        </div>
-      </app-card>
+        }
+        <app-form-field
+          [label]="'feedback.fields.customerEmail' | transloco"
+          inputId="cf-fb-cemail"
+          [error]="shownErrors()['customer_email'] ?? '' | transloco"
+        >
+          <input
+            id="cf-fb-cemail"
+            type="email"
+            autocomplete="off"
+            [value]="form().customer_email"
+            (input)="set('customer_email', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.fields.customerPhone' | transloco"
+          inputId="cf-fb-cphone"
+        >
+          <input
+            id="cf-fb-cphone"
+            type="tel"
+            maxlength="64"
+            autocomplete="off"
+            [value]="form().customer_phone"
+            (input)="set('customer_phone', $any($event.target).value)"
+          />
+        </app-form-field>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'feedback.form.sections.handling' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label for="cf-fb-due" [class]="label">
-              {{ 'feedback.fields.responseDueOn' | transloco }}
-              <app-field-help scope="feedback" page="form" field="response_due_on" />
-            </label>
-            <app-form-field inputId="cf-fb-due">
-              <input
-                id="cf-fb-due"
-                type="date"
-                [value]="form().response_due_on"
-                (change)="setDue($any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['response_due_on']"
-                aria-describedby="cf-fb-due-hint"
-                data-testid="field-due"
-              />
-            </app-form-field>
-            <p id="cf-fb-due-hint" class="mt-1 text-meta text-fg-subtle" data-testid="due-hint">
-              @if (defaultDue(); as d) {
-                {{
-                  (d.days === null
-                    ? 'feedback.form.dueNoDefault'
-                    : d.working_days
-                      ? 'feedback.form.dueDefaultWorking'
-                      : 'feedback.form.dueDefault'
-                  ) | transloco: { days: d.days, kind: (kindKey(d.kind) | transloco) }
-                }}
-              } @else {
-                {{ 'feedback.form.dueHint' | transloco }}
-              }
-            </p>
-            @if (shownErrors()['response_due_on']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
+      <app-form-section
+        [title]="'feedback.form.sections.handling' | transloco"
+        [description]="'feedback.form.sections.handlingHint' | transloco"
+      >
+        <app-form-field
+          [label]="'feedback.fields.responseDueOn' | transloco"
+          inputId="cf-fb-due"
+          [error]="shownErrors()['response_due_on'] ?? '' | transloco"
+        >
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="form"
+            field="response_due_on"
+            [label]="'feedback.fields.responseDueOn' | transloco"
+          />
+          <app-date-input
+            inputId="cf-fb-due"
+            [value]="form().response_due_on"
+            [invalid]="!!shownErrors()['response_due_on']"
+            (changed)="setDue($event)"
+            data-testid="field-due"
+          />
+          <p hint class="text-meta leading-snug text-fg-subtle" data-testid="due-hint">
+            @if (defaultDue(); as d) {
+              {{
+                (d.days === null
+                  ? 'feedback.form.dueNoDefault'
+                  : d.working_days
+                    ? 'feedback.form.dueDefaultWorking'
+                    : 'feedback.form.dueDefault'
+                ) | transloco: { days: d.days, kind: (kindKey(d.kind) | transloco) }
+              }}
+            } @else {
+              {{ 'feedback.form.dueHint' | transloco }}
             }
-          </div>
-          <app-form-field [label]="'feedback.fields.owner' | transloco" inputId="cf-fb-owner">
-            <select id="cf-fb-owner" (change)="set('owner_user_id', $any($event.target).value)">
-              <option value="" [selected]="!form().owner_user_id">
-                {{
-                  (mode() === 'create' ? 'feedback.form.ownerMe' : 'feedback.form.ownerKeep')
-                    | transloco
-                }}
+          </p>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.owner' | transloco" inputId="cf-fb-owner">
+          <select id="cf-fb-owner" (change)="set('owner_user_id', $any($event.target).value)">
+            <option value="" [selected]="!form().owner_user_id">
+              {{
+                (mode() === 'create' ? 'feedback.form.ownerMe' : 'feedback.form.ownerKeep')
+                  | transloco
+              }}
+            </option>
+            @if (ownerOrphan()) {
+              <option [value]="form().owner_user_id" selected>
+                {{ ownerName() || ('feedback.form.currentOwner' | transloco) }}
               </option>
-              @if (ownerOrphan()) {
-                <option [value]="form().owner_user_id" selected>
-                  {{ ownerName() || ('feedback.form.currentOwner' | transloco) }}
-                </option>
-              }
-              @for (u of users(); track u.id) {
-                <option [value]="u.id" [selected]="form().owner_user_id === u.id">
-                  {{ u.label }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-form-field [label]="'feedback.fields.department' | transloco" inputId="cf-fb-dept">
-            <select id="cf-fb-dept" (change)="set('department_id', $any($event.target).value)">
-              <option value="" [selected]="!form().department_id">
-                {{ 'feedback.common.none' | transloco }}
+            }
+            @for (u of users(); track u.id) {
+              <option [value]="u.id" [selected]="form().owner_user_id === u.id">
+                {{ u.label }}
               </option>
-              @for (d of departments(); track d.id) {
-                <option [value]="d.id" [selected]="form().department_id === d.id">
-                  {{ d.label }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-        </div>
-      </app-card>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.department' | transloco" inputId="cf-fb-dept">
+          <select id="cf-fb-dept" (change)="set('department_id', $any($event.target).value)">
+            <option value="" [selected]="!form().department_id">
+              {{ 'feedback.common.none' | transloco }}
+            </option>
+            @for (d of departments(); track d.id) {
+              <option [value]="d.id" [selected]="form().department_id === d.id">
+                {{ d.label }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+      </app-form-section>
 
       @if (mode() === 'edit') {
         @if (form().kind === 'complaint') {
-          <app-card>
-            <h2 class="mb-1 font-display text-section font-bold text-fg">
-              {{ 'feedback.assessment.title' | transloco }}
-            </h2>
-            <p class="mb-4 text-meta text-fg-muted">
-              {{ 'feedback.assessment.intro' | transloco }}
-            </p>
-            <div class="flex flex-col gap-4">
-              @for (q of assessment; track q.key) {
-                <fieldset>
-                  <legend [class]="label">
-                    {{ q.labelKey | transloco }}
-                    <app-field-help scope="feedback" page="detail" [field]="q.key" />
-                  </legend>
-                  <div class="flex flex-wrap gap-2" role="radiogroup">
-                    @for (o of choices; track o) {
-                      <label [class]="choiceClass(form()[q.key] === o)">
-                        <input
-                          type="radio"
-                          class="sr-only"
-                          [name]="'cf-fb-' + q.key"
-                          [checked]="form()[q.key] === o"
-                          (change)="set(q.key, o)"
-                        />
-                        {{ 'feedback.assessment.answers.' + (o || 'unset') | transloco }}
-                      </label>
-                    }
-                  </div>
-                </fieldset>
-              }
-              <div>
-                <label for="cf-fb-root-cause" [class]="label">
-                  {{ 'feedback.assessment.rootCause' | transloco }}
-                  <app-field-help scope="feedback" page="detail" field="root_cause" />
-                </label>
-                <textarea
-                  id="cf-fb-root-cause"
-                  rows="3"
-                  maxlength="20000"
-                  [class]="textarea"
-                  [value]="form().root_cause"
-                  (input)="set('root_cause', $any($event.target).value)"
-                ></textarea>
-              </div>
-            </div>
-          </app-card>
+          <app-form-section
+            [title]="'feedback.assessment.title' | transloco"
+            [description]="'feedback.assessment.intro' | transloco"
+            [columns]="1"
+          >
+            @for (q of assessment; track q.key) {
+              <fieldset>
+                <legend
+                  class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+                >
+                  {{ q.labelKey | transloco }}
+                  <app-field-help
+                    scope="feedback"
+                    page="detail"
+                    [field]="q.key"
+                    [label]="q.labelKey | transloco"
+                  />
+                </legend>
+                <div class="flex flex-wrap gap-2" role="radiogroup">
+                  @for (o of choices; track o) {
+                    <label [class]="choiceClass(form()[q.key] === o)">
+                      <input
+                        type="radio"
+                        class="sr-only"
+                        [name]="'cf-fb-' + q.key"
+                        [checked]="form()[q.key] === o"
+                        (change)="set(q.key, o)"
+                      />
+                      {{ 'feedback.assessment.answers.' + (o || 'unset') | transloco }}
+                    </label>
+                  }
+                </div>
+              </fieldset>
+            }
+            <app-form-field
+              [label]="'feedback.assessment.rootCause' | transloco"
+              inputId="cf-fb-root-cause"
+            >
+              <app-field-help
+                label-suffix
+                scope="feedback"
+                page="detail"
+                field="root_cause"
+                [label]="'feedback.assessment.rootCause' | transloco"
+              />
+              <textarea
+                id="cf-fb-root-cause"
+                rows="3"
+                maxlength="20000"
+                [value]="form().root_cause"
+                (input)="set('root_cause', $any($event.target).value)"
+              ></textarea>
+            </app-form-field>
+          </app-form-section>
         }
 
-        <app-card>
-          <h2 class="mb-4 font-display text-section font-bold text-fg">
-            {{ 'feedback.form.sections.outcome' | transloco }}
-          </h2>
-          <div class="flex flex-col gap-4">
-            <div>
-              <label for="cf-fb-resolution" [class]="label">
-                {{ 'feedback.fields.resolution' | transloco }}
-                <app-ask-about
-                  [prompt]="'feedback.ask.resolution' | transloco"
-                  field="resolution"
-                  [fieldLabel]="'feedback.fields.resolution' | transloco"
-                />
-              </label>
-              <textarea
-                id="cf-fb-resolution"
-                rows="4"
-                maxlength="20000"
-                [class]="textarea"
-                [value]="form().resolution"
-                (input)="set('resolution', $any($event.target).value)"
-              ></textarea>
-            </div>
-            <label class="inline-flex items-center gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="h-4 w-4 accent-[var(--accent)]"
-                [checked]="form().customer_informed"
-                (change)="set('customer_informed', $any($event.target).checked)"
-              />
-              {{ 'feedback.fields.customerInformed' | transloco }}
-            </label>
-            <app-form-field
-              [label]="'feedback.form.changeReason' | transloco"
-              inputId="cf-fb-reason"
-            >
-              <input
-                id="cf-fb-reason"
-                type="text"
-                maxlength="1000"
-                [value]="changeReason()"
-                (input)="changeReason.set($any($event.target).value)"
-                aria-describedby="cf-fb-reason-hint"
-              />
-            </app-form-field>
-            <p id="cf-fb-reason-hint" class="-mt-3 text-meta text-fg-subtle">
-              {{ 'feedback.form.changeReasonHint' | transloco }}
-            </p>
-          </div>
-        </app-card>
+        <app-form-section
+          [title]="'feedback.form.sections.outcome' | transloco"
+          [description]="'feedback.form.sections.outcomeHint' | transloco"
+        >
+          <app-form-field
+            span="full"
+            [label]="'feedback.fields.resolution' | transloco"
+            inputId="cf-fb-resolution"
+          >
+            <app-ask-about
+              label-suffix
+              class="-my-0.5"
+              [prompt]="'feedback.ask.resolution' | transloco"
+              field="resolution"
+              [fieldLabel]="'feedback.fields.resolution' | transloco"
+            />
+            <textarea
+              id="cf-fb-resolution"
+              rows="4"
+              maxlength="20000"
+              [value]="form().resolution"
+              (input)="set('resolution', $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+          <label
+            class="flex h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 accent-[var(--accent)]"
+              [checked]="form().customer_informed"
+              (change)="set('customer_informed', $any($event.target).checked)"
+            />
+            {{ 'feedback.fields.customerInformed' | transloco }}
+          </label>
+        </app-form-section>
+
+        <app-form-section [columns]="1">
+          <app-form-field
+            [label]="'feedback.form.changeReason' | transloco"
+            inputId="cf-fb-reason"
+            [hint]="'feedback.form.changeReasonHint' | transloco"
+          >
+            <input
+              id="cf-fb-reason"
+              type="text"
+              maxlength="1000"
+              [value]="changeReason()"
+              (input)="changeReason.set($any($event.target).value)"
+            />
+          </app-form-field>
+        </app-form-section>
       }
 
-      @if (attempted() && hasErrors()) {
-        <p class="text-ui text-fail" role="alert">{{ 'feedback.form.fixProblems' | transloco }}</p>
-      }
-
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+      <app-form-actions
+        [message]="attempted() && hasErrors() ? ('feedback.form.fixProblems' | transloco) : ''"
       >
-        <app-button variant="ghost" (click)="cancelled.emit()">
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button
@@ -609,7 +594,7 @@ const LABEL = 'mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-mute
         >
           {{ (mode() === 'create' ? 'feedback.form.create' : 'feedback.form.save') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
@@ -629,8 +614,6 @@ export class FeedbackForm {
   readonly submitted = output<FeedbackFormSubmit>();
   readonly cancelled = output<void>();
 
-  protected readonly label = LABEL;
-  protected readonly textarea = TEXTAREA;
   protected readonly kinds = FEEDBACK_KINDS;
   protected readonly channels = FEEDBACK_CHANNELS;
   protected readonly severities = FEEDBACK_SEVERITIES;

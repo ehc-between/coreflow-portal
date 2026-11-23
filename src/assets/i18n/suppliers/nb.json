@@ -146,7 +146,10 @@
       "identity": "Leverandør",
       "responsibility": "Ansvar og kontakt",
       "profile": "Risikoprofil",
-      "schedule": "Revurdering"
+      "schedule": "Revurdering",
+      "identityHint": "Hvem leverandøren er og hvor kritisk den er for dere.",
+      "responsibilityHint": "Hvem som følger opp leverandøren internt, og hvem dere kontakter der.",
+      "scheduleHint": "Hvor ofte leverandøren skal vurderes på nytt."
     },
     "nameRequired": "Gi leverandøren et navn.",
     "countryHint": "Landet der leverandøren er registrert.",
@@ -169,7 +172,9 @@
       "high": "Høy: en svikt rammer produktene, tjenestene eller informasjonen deres hardt. Revurderes hver {{ months }}. måned som standard.",
       "critical": "Kritisk: dere kan ikke levere uten den, eller den har de mest sensitive dataene deres. Revurderes hver {{ months }}. måned som standard."
     },
-    "profileNeeds": "I tillegg til godkjenningen trenger leverandøren: {{ kinds }}."
+    "profileNeeds": "I tillegg til godkjenningen trenger leverandøren: {{ kinds }}.",
+    "intervalInvalid": "Skriv et antall måneder fra 1 til 60.",
+    "fixErrors": "Leverandøren ble ikke lagret. Rett opp feltene som er markert."
   },
   "detail": {
     "notFound": "Denne leverandøren finnes ikke, eller du har ikke tilgang til den.",
@@ -470,7 +475,12 @@
     "focusPlaceholder": "For eksempel data utenfor EU",
     "saved": "Spørreskjemaet er lagret.",
     "deleteTitle": "Slette spørreskjemaet?",
-    "deleteMessage": "«{{ name }}» fjernes. Vurderinger som allerede er startet, beholder spørsmålene sine."
+    "deleteMessage": "«{{ name }}» fjernes. Vurderinger som allerede er startet, beholder spørsmålene sine.",
+    "sections": {
+      "basics": "Spørreskjema",
+      "basicsHint": "Hva skjemaet heter, hvilken vurdering det brukes til og hvilken score som gir bestått.",
+      "questionsHint": "Spørsmålene leverandøren eller vurdereren svarer på, i rekkefølge."
+    }
   },
   "performance": {
     "title": "Ytelseslogg",

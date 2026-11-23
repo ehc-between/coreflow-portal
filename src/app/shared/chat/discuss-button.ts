@@ -43,7 +43,9 @@ import { DiscussPanel } from './discuss-panel';
         (click)="open.set(true)"
       >
         <app-icon name="comment" [size]="16" />
-        <span class="hidden sm:inline">{{ 'chat.discuss.button' | transloco }}</span>
+        <span class="cf-action-label hidden sm:inline">{{
+          'chat.discuss.button' | transloco
+        }}</span>
         @if (count()) {
           <span class="rounded-full bg-accent-soft px-1.5 text-micro font-bold text-accent">{{
             count()

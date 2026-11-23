@@ -166,7 +166,21 @@
     "linkedTo": "Koblet til {{ record }}",
     "create": "Opprett oppgave",
     "saveChanges": "Lagre endringer",
-    "customer": "Kunde (valgfritt)"
+    "customer": "Kunde (valgfritt)",
+    "fixFields": "Rett feltene som er markert",
+    "sections": {
+      "task": {
+        "title": "Oppgave",
+        "description": "Hva som skal gjøres, og hvem som har ansvaret."
+      },
+      "schedule": {
+        "title": "Tidsplan",
+        "description": "Når den skal være ferdig, og om den gjentas."
+      },
+      "checklist": {
+        "description": "Delsteg som krysses av underveis."
+      }
+    }
   },
   "fields": {
     "assignee": "Ansvarlig",

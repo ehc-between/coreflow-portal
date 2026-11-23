@@ -22,7 +22,9 @@ import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
@@ -131,7 +133,9 @@ export function reviewDraftFromPrefill(
     AssetSelect,
     AssetUserSelect,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     ErrorState,
     FieldHelp,
     FlowBanner,
@@ -143,7 +147,7 @@ export function reviewDraftFromPrefill(
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (state() === 'loading') {
         <app-loading-state [rows]="5" />
       } @else if (state() === 'error') {
@@ -190,228 +194,216 @@ export function reviewDraftFromPrefill(
             </div>
           }
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-            <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <fieldset class="sm:col-span-2">
-                  <legend
-                    class="mb-2 flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-                  >
-                    {{ 'assets.fields.system' | transloco }}
-                    <span class="text-fail-ink" aria-hidden="true">*</span>
-                    <app-field-help scope="assets" page="reviewForm" field="system" />
-                  </legend>
-                  <div class="mb-2 flex flex-wrap gap-4 text-ui text-fg">
-                    <label class="inline-flex items-center gap-1.5">
-                      <input
-                        type="radio"
-                        name="ar-system-mode"
-                        value="asset"
-                        [checked]="d().systemMode === 'asset'"
-                        (change)="set('systemMode', 'asset')"
-                      />
-                      {{ 'assets.reviewForm.systemFromInventory' | transloco }}
-                    </label>
-                    <label class="inline-flex items-center gap-1.5">
-                      <input
-                        type="radio"
-                        name="ar-system-mode"
-                        value="name"
-                        [checked]="d().systemMode === 'name'"
-                        (change)="set('systemMode', 'name')"
-                      />
-                      {{ 'assets.reviewForm.systemByName' | transloco }}
-                    </label>
-                  </div>
-                  @if (d().systemMode === 'asset') {
-                    <app-form-field
-                      [label]="'assets.reviewForm.systemAsset' | transloco"
-                      inputId="ar-system-asset"
-                    >
-                      <app-asset-select
-                        inputId="ar-system-asset"
-                        describedBy="ar-system-err"
-                        [types]="showAllAssets() ? null : systemTypes"
-                        [value]="d().system_asset_id"
-                        [currentLabel]="review()?.system_asset?.name ?? null"
-                        (valueChange)="set('system_asset_id', $event)"
-                      />
-                    </app-form-field>
-                    <label class="mt-2 inline-flex items-center gap-1.5 text-meta text-fg-muted">
-                      <input
-                        type="checkbox"
-                        [checked]="showAllAssets()"
-                        (change)="showAllAssets.set($any($event.target).checked)"
-                      />
-                      {{ 'assets.reviewForm.showAllAssets' | transloco }}
-                    </label>
-                  } @else {
-                    <app-form-field
-                      [label]="'assets.fields.systemName' | transloco"
-                      inputId="ar-system-name"
-                    >
-                      <input
-                        id="ar-system-name"
-                        type="text"
-                        maxlength="255"
-                        aria-describedby="ar-system-err"
-                        [placeholder]="'assets.reviewForm.systemNamePlaceholder' | transloco"
-                        [value]="d().system_name"
-                        (input)="set('system_name', $any($event.target).value)"
-                      />
-                    </app-form-field>
-                  }
-                  @if (showErrors() && errors()['system']; as key) {
-                    <p id="ar-system-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                      {{ key | transloco }}
-                    </p>
-                  }
-                </fieldset>
-                <div class="sm:col-span-2">
-                  <app-form-field [label]="'assets.fields.title' | transloco" inputId="ar-title">
-                    <input
-                      id="ar-title"
-                      type="text"
-                      maxlength="255"
-                      aria-describedby="ar-title-hint"
-                      [value]="d().title"
-                      (input)="set('title', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                  <p id="ar-title-hint" class="mt-1 text-meta text-fg-subtle">
-                    {{ 'assets.reviewForm.titleHint' | transloco }}
-                  </p>
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field [label]="'assets.fields.scope' | transloco" inputId="ar-scope">
-                    <app-field-help label-suffix scope="assets" page="reviewForm" field="scope" />
-                    <textarea
-                      id="ar-scope"
-                      rows="3"
-                      maxlength="10000"
-                      [placeholder]="'assets.reviewForm.scopePlaceholder' | transloco"
-                      [value]="d().scope"
-                      (input)="set('scope', $any($event.target).value)"
-                    ></textarea>
-                  </app-form-field>
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'assets.fields.reviewer' | transloco"
-                    inputId="ar-reviewer"
-                    [required]="true"
-                  >
-                    <app-field-help
-                      label-suffix
-                      scope="assets"
-                      page="reviewForm"
-                      field="reviewer"
-                    />
-                    <app-asset-user-select
-                      inputId="ar-reviewer"
-                      describedBy="ar-reviewer-err"
-                      [required]="true"
-                      [invalid]="showErrors() && !!errors()['reviewer']"
-                      [value]="d().reviewer_user_id"
-                      [currentName]="review()?.reviewer?.name ?? null"
-                      (valueChange)="set('reviewer_user_id', $event)"
-                    />
-                  </app-form-field>
-                  @if (showErrors() && errors()['reviewer']; as key) {
-                    <p id="ar-reviewer-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                      {{ key | transloco }}
-                    </p>
-                  }
-                </div>
-                <div>
-                  <app-form-field
-                    [label]="'assets.fields.dueOn' | transloco"
-                    inputId="ar-due"
-                    [required]="true"
+            <app-form-section
+              [title]="'assets.reviewForm.sections.what' | transloco"
+              [description]="'assets.reviewForm.sections.whatHint' | transloco"
+            >
+              <fieldset class="flex flex-col gap-1.5 sm:col-span-2">
+                <legend
+                  class="flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+                >
+                  {{ 'assets.fields.system' | transloco }}
+                  <span class="text-fail-ink" aria-hidden="true">*</span>
+                  <app-field-help scope="assets" page="reviewForm" field="system" />
+                </legend>
+                <div class="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label
+                    class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
                   >
                     <input
-                      id="ar-due"
-                      type="date"
-                      required
-                      aria-required="true"
-                      aria-describedby="ar-due-err"
-                      [attr.lang]="lang()"
-                      [attr.aria-invalid]="showErrors() && !!errors()['due_on']"
-                      [value]="d().due_on"
-                      (input)="set('due_on', $any($event.target).value)"
+                      type="radio"
+                      name="ar-system-mode"
+                      value="asset"
+                      [checked]="d().systemMode === 'asset'"
+                      (change)="set('systemMode', 'asset')"
                     />
-                  </app-form-field>
-                  @if (showErrors() && errors()['due_on']; as key) {
-                    <p id="ar-due-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                      {{ key | transloco }}
-                    </p>
-                  }
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'assets.fields.frequencyMonths' | transloco"
-                    inputId="ar-freq"
+                    {{ 'assets.reviewForm.systemFromInventory' | transloco }}
+                  </label>
+                  <label
+                    class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
                   >
-                    <app-field-help
-                      label-suffix
-                      scope="assets"
-                      page="reviewForm"
-                      field="frequency_months"
+                    <input
+                      type="radio"
+                      name="ar-system-mode"
+                      value="name"
+                      [checked]="d().systemMode === 'name'"
+                      (change)="set('systemMode', 'name')"
                     />
-                    <select
-                      id="ar-freq"
-                      aria-describedby="ar-freq-hint"
-                      (change)="set('frequency_months', $any($event.target).value)"
-                    >
-                      <option value="" [selected]="!d().frequency_months">
-                        {{ 'assets.reviewForm.frequency.oneOff' | transloco }}
-                      </option>
-                      @for (m of frequencies; track m) {
-                        <option [value]="m" [selected]="d().frequency_months === '' + m">
-                          {{ 'assets.reviewForm.frequency.' + m | transloco }}
-                        </option>
-                      }
-                      @if (customFrequency()) {
-                        <option [value]="d().frequency_months" selected>
-                          {{
-                            'assets.reviews.everyMonths'
-                              | transloco: { months: d().frequency_months }
-                          }}
-                        </option>
-                      }
-                    </select>
-                  </app-form-field>
-                  <p id="ar-freq-hint" class="mt-1 text-meta text-fg-subtle">
-                    {{ 'assets.reviewForm.frequencyHint' | transloco }}
-                  </p>
+                    {{ 'assets.reviewForm.systemByName' | transloco }}
+                  </label>
                 </div>
-                @if (!review()) {
-                  <label class="flex items-start gap-2 text-body text-fg sm:col-span-2">
+              </fieldset>
+              @if (d().systemMode === 'asset') {
+                <app-form-field
+                  span="full"
+                  [label]="'assets.reviewForm.systemAsset' | transloco"
+                  inputId="ar-system-asset"
+                  [error]="
+                    showErrors() && errors()['system'] ? (errors()['system']! | transloco) : ''
+                  "
+                >
+                  <app-asset-select
+                    inputId="ar-system-asset"
+                    [types]="showAllAssets() ? null : systemTypes"
+                    [value]="d().system_asset_id"
+                    [currentLabel]="review()?.system_asset?.name ?? null"
+                    (valueChange)="set('system_asset_id', $event)"
+                  />
+                  <label hint class="inline-flex items-center gap-1.5 text-meta text-fg-muted">
                     <input
                       type="checkbox"
-                      class="mt-1"
-                      [checked]="importMembers()"
-                      (change)="importMembers.set($any($event.target).checked)"
+                      [checked]="showAllAssets()"
+                      (change)="showAllAssets.set($any($event.target).checked)"
                     />
-                    <span>
-                      {{ 'assets.reviewForm.importMembers' | transloco }}
-                      <span class="block text-meta text-fg-subtle">
-                        {{ 'assets.reviewForm.importMembersHint' | transloco }}
-                      </span>
-                    </span>
+                    {{ 'assets.reviewForm.showAllAssets' | transloco }}
                   </label>
-                }
-              </div>
-            </app-card>
-            <div
-              class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+                </app-form-field>
+              } @else {
+                <app-form-field
+                  span="full"
+                  [label]="'assets.fields.systemName' | transloco"
+                  inputId="ar-system-name"
+                  [error]="
+                    showErrors() && errors()['system'] ? (errors()['system']! | transloco) : ''
+                  "
+                >
+                  <input
+                    id="ar-system-name"
+                    type="text"
+                    maxlength="255"
+                    [placeholder]="'assets.reviewForm.systemNamePlaceholder' | transloco"
+                    [value]="d().system_name"
+                    (input)="set('system_name', $any($event.target).value)"
+                  />
+                </app-form-field>
+              }
+              <app-form-field
+                span="full"
+                [label]="'assets.fields.title' | transloco"
+                inputId="ar-title"
+                [hint]="'assets.reviewForm.titleHint' | transloco"
+              >
+                <input
+                  id="ar-title"
+                  type="text"
+                  maxlength="255"
+                  [value]="d().title"
+                  (input)="set('title', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
+                [label]="'assets.fields.scope' | transloco"
+                inputId="ar-scope"
+              >
+                <app-field-help label-suffix scope="assets" page="reviewForm" field="scope" />
+                <textarea
+                  id="ar-scope"
+                  rows="3"
+                  maxlength="10000"
+                  [placeholder]="'assets.reviewForm.scopePlaceholder' | transloco"
+                  [value]="d().scope"
+                  (input)="set('scope', $any($event.target).value)"
+                ></textarea>
+              </app-form-field>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'assets.reviewForm.sections.who' | transloco"
+              [description]="'assets.reviewForm.sections.whoHint' | transloco"
             >
-              <app-button variant="ghost" (click)="back()">{{
+              <app-form-field
+                [label]="'assets.fields.reviewer' | transloco"
+                inputId="ar-reviewer"
+                [required]="true"
+                [error]="
+                  showErrors() && errors()['reviewer'] ? (errors()['reviewer']! | transloco) : ''
+                "
+              >
+                <app-field-help label-suffix scope="assets" page="reviewForm" field="reviewer" />
+                <app-asset-user-select
+                  inputId="ar-reviewer"
+                  [required]="true"
+                  [invalid]="showErrors() && !!errors()['reviewer']"
+                  [value]="d().reviewer_user_id"
+                  [currentName]="review()?.reviewer?.name ?? null"
+                  (valueChange)="set('reviewer_user_id', $event)"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'assets.fields.dueOn' | transloco"
+                inputId="ar-due"
+                [required]="true"
+                [error]="
+                  showErrors() && errors()['due_on'] ? (errors()['due_on']! | transloco) : ''
+                "
+              >
+                <app-date-input
+                  inputId="ar-due"
+                  [required]="true"
+                  [invalid]="showErrors() && !!errors()['due_on']"
+                  [value]="d().due_on"
+                  (valueChange)="set('due_on', $event ?? '')"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'assets.fields.frequencyMonths' | transloco"
+                inputId="ar-freq"
+                [hint]="'assets.reviewForm.frequencyHint' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="assets"
+                  page="reviewForm"
+                  field="frequency_months"
+                />
+                <select id="ar-freq" (change)="set('frequency_months', $any($event.target).value)">
+                  <option value="" [selected]="!d().frequency_months">
+                    {{ 'assets.reviewForm.frequency.oneOff' | transloco }}
+                  </option>
+                  @for (m of frequencies; track m) {
+                    <option [value]="m" [selected]="d().frequency_months === '' + m">
+                      {{ 'assets.reviewForm.frequency.' + m | transloco }}
+                    </option>
+                  }
+                  @if (customFrequency()) {
+                    <option [value]="d().frequency_months" selected>
+                      {{
+                        'assets.reviews.everyMonths' | transloco: { months: d().frequency_months }
+                      }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+              @if (!review()) {
+                <label
+                  class="flex cursor-pointer items-start gap-2.5 rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg sm:col-span-2"
+                >
+                  <input
+                    type="checkbox"
+                    class="mt-0.5"
+                    [checked]="importMembers()"
+                    (change)="importMembers.set($any($event.target).checked)"
+                  />
+                  <span>
+                    <span class="font-semibold">{{
+                      'assets.reviewForm.importMembers' | transloco
+                    }}</span>
+                    <span class="block text-meta text-fg-subtle">
+                      {{ 'assets.reviewForm.importMembersHint' | transloco }}
+                    </span>
+                  </span>
+                </label>
+              }
+            </app-form-section>
+            <app-form-actions>
+              <app-button variant="secondary" (click)="back()">{{
                 'common.cancel' | transloco
               }}</app-button>
               <app-button type="submit" [loading]="busy()">
                 {{ (review() ? 'assets.reviewForm.save' : 'assets.reviewForm.create') | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
         }
         <div class="mt-8"><app-why-it-matters scope="assets" page="reviewForm" /></div>
@@ -447,7 +439,6 @@ export class AccessReviewEdit {
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly errors = computed(() => reviewDraftErrors(this.d()));
-  protected readonly lang = computed(() => this.language.active());
   /** A stored interval that is not one of the offered choices (kept selectable). */
   protected readonly customFrequency = computed(() => {
     const value = this.d().frequency_months;

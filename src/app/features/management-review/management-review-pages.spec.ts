@@ -383,7 +383,8 @@ describe('ReviewEditor', () => {
     const boxes = el.querySelectorAll<HTMLInputElement>('fieldset input[type="checkbox"]');
     expect(boxes.length).toBe(2);
     expect(Array.from(boxes).every((b) => b.checked)).toBe(true);
-    expect(el.querySelector<HTMLInputElement>('input[id$="-ps"]')!.value).toBe('2025-12-18');
+    const ps = el.querySelector('input[id$="-ps"]')!.closest('app-date-input')!;
+    expect(ps.querySelector<HTMLInputElement>('input[type="date"]')!.value).toBe('2025-12-18');
     const title = el.querySelector<HTMLInputElement>('input[id$="-title"]')!;
     title.value = 'Annual review';
     title.dispatchEvent(new Event('input'));
@@ -429,14 +430,20 @@ describe('ReviewEditor', () => {
       input.value = value;
       input.dispatchEvent(new Event('input'));
     };
+    const setDate = (sel: string, value: string) => {
+      const host = el.querySelector(sel)!.closest('app-date-input')!;
+      const native = host.querySelector<HTMLInputElement>('input[type="date"]')!;
+      native.value = value;
+      native.dispatchEvent(new Event('change'));
+    };
     set('input[id$="-title"]', 'X');
-    set('input[id$="-ps"]', '2026-12-31');
-    set('input[id$="-pe"]', '2026-01-01');
+    setDate('input[id$="-ps"]', '2026-12-31');
+    setDate('input[id$="-pe"]', '2026-01-01');
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     expect(api.createReview).not.toHaveBeenCalled();
     expect(el.textContent).toContain('managementReview.errors.invalid_period');
-    set('input[id$="-pe"]', '');
+    setDate('input[id$="-pe"]', '');
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     expect(el.textContent).toContain('managementReview.errors.invalid_user');

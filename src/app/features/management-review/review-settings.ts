@@ -16,19 +16,20 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
-import { FieldLabel } from './components/field-label';
 import { ManagementReviewApi } from './data/management-review-api';
 import { mrErrorKey } from './data/management-review-errors';
 import { MrSettings, MrSettingsUpdate } from './data/management-review.models';
 import { MR_MODULE, MR_SCOPE } from './management-review-display';
 import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
 import { moduleConfigCrumbs } from '../../core/modules/module-config';
+import { FormSection } from '../../shared/ui/form-section/form-section';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FieldHelp } from '../../shared/guidance/field-help';
 
 /** The interval options offered (months); any 1-36 value from the API is kept. */
 export const INTERVAL_OPTIONS = [3, 6, 12, 18, 24, 36] as const;
@@ -66,13 +67,14 @@ export function settingsPatch(
     TranslocoPipe,
     Alert,
     Button,
-    Card,
     ErrorState,
     FormField,
     HelpStrip,
     LoadingState,
     PageHeader,
-    FieldLabel,
+    FormSection,
+    FormActions,
+    FieldHelp,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -94,67 +96,74 @@ export function settingsPatch(
         }
         @default {
           @if (settings(); as s) {
-            <form novalidate (submit)="$event.preventDefault(); save()">
-              <app-card>
-                <div class="flex flex-col gap-5">
-                  @if (errorKey(); as key) {
-                    <app-alert tone="error">{{ key | transloco }}</app-alert>
-                  }
-                  @if (!s.can_manage) {
-                    <app-alert tone="info">{{
-                      'managementReview.settings.readOnly' | transloco
-                    }}</app-alert>
-                  }
-                  <div>
-                    <app-mr-field-label
-                      controlId="mr-interval"
-                      [label]="'managementReview.settings.interval' | transloco"
-                      page="settings"
-                      field="interval"
-                    />
-                    <app-form-field inputId="mr-interval">
-                      <select
-                        id="mr-interval"
-                        [disabled]="!s.can_manage"
-                        (change)="months.set($any($event.target).value)"
-                        data-testid="mr-interval"
-                      >
-                        @for (m of intervalOptions(); track m) {
-                          <option [value]="m" [selected]="months() === '' + m">
-                            {{ 'managementReview.settings.months' | transloco: { months: m } }}
-                          </option>
-                        }
-                      </select>
-                    </app-form-field>
-                  </div>
-                  <div>
-                    <app-mr-field-label
-                      controlId="mr-reminder"
-                      [label]="'managementReview.settings.reminder' | transloco"
-                      page="settings"
-                      field="reminder"
-                    />
-                    <app-form-field inputId="mr-reminder">
-                      <input
-                        id="mr-reminder"
-                        type="number"
-                        min="0"
-                        max="180"
-                        step="1"
-                        [disabled]="!s.can_manage"
-                        [value]="days()"
-                        (input)="days.set($any($event.target).value)"
-                        data-testid="mr-reminder"
-                      />
-                    </app-form-field>
-                    <p class="mt-1 text-meta text-fg-subtle">
-                      {{ 'managementReview.settings.reminderHint' | transloco: { days: days() } }}
-                    </p>
-                  </div>
-                </div>
-              </app-card>
+            <form
+              class="mt-5 flex flex-col gap-5"
+              novalidate
+              (submit)="$event.preventDefault(); save()"
+            >
+              @if (errorKey(); as key) {
+                <app-alert tone="error">{{ key | transloco }}</app-alert>
+              }
+              @if (!s.can_manage) {
+                <app-alert tone="info">{{
+                  'managementReview.settings.readOnly' | transloco
+                }}</app-alert>
+              }
+              <app-form-section
+                [title]="'managementReview.settings.sectionTitle' | transloco"
+                [description]="'managementReview.settings.sectionHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'managementReview.settings.interval' | transloco"
+                  inputId="mr-interval"
+                >
+                  <app-field-help
+                    label-suffix
+                    [scope]="scope"
+                    page="settings"
+                    field="interval"
+                    [label]="'managementReview.settings.interval' | transloco"
+                  />
+                  <select
+                    id="mr-interval"
+                    [disabled]="!s.can_manage"
+                    (change)="months.set($any($event.target).value)"
+                    data-testid="mr-interval"
+                  >
+                    @for (m of intervalOptions(); track m) {
+                      <option [value]="m" [selected]="months() === '' + m">
+                        {{ 'managementReview.settings.months' | transloco: { months: m } }}
+                      </option>
+                    }
+                  </select>
+                </app-form-field>
+                <app-form-field
+                  [label]="'managementReview.settings.reminder' | transloco"
+                  inputId="mr-reminder"
+                  [hint]="'managementReview.settings.reminderHint' | transloco: { days: days() }"
+                >
+                  <app-field-help
+                    label-suffix
+                    [scope]="scope"
+                    page="settings"
+                    field="reminder"
+                    [label]="'managementReview.settings.reminder' | transloco"
+                  />
+                  <input
+                    id="mr-reminder"
+                    type="number"
+                    min="0"
+                    max="180"
+                    step="1"
+                    [disabled]="!s.can_manage"
+                    [value]="days()"
+                    (input)="days.set($any($event.target).value)"
+                    data-testid="mr-reminder"
+                  />
+                </app-form-field>
+              </app-form-section>
               @if (s.can_manage) {
-                <div class="mt-4 flex justify-end">
+                <app-form-actions>
                   <app-button
                     type="submit"
                     [variant]="dirty() ? 'primary' : 'secondary'"
@@ -164,7 +173,7 @@ export function settingsPatch(
                   >
                     {{ 'managementReview.settings.save' | transloco }}
                   </app-button>
-                </div>
+                </app-form-actions>
               }
             </form>
           }

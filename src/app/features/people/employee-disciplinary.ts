@@ -29,6 +29,7 @@ import {
   DisciplinaryStatus,
   DisciplinaryType,
 } from './data/people.models';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 interface CaseDraft {
   readonly id: string | null;
@@ -48,6 +49,7 @@ interface CaseDraft {
 @Component({
   selector: 'app-people-employee-disciplinary',
   imports: [
+    DateInput,
     TranslocoPipe,
     LocalDayPipe,
     FieldHelp,
@@ -159,8 +161,15 @@ interface CaseDraft {
       (cancelled)="draft.set(null)"
     >
       @if (draft(); as d) {
-        <div class="mt-4 flex flex-col gap-3">
+        <div class="mt-4 flex flex-col gap-4">
           <app-form-field [label]="'people.fields.caseType' | transloco" inputId="cf-dc-type">
+            <app-field-help
+              label-suffix
+              scope="people"
+              page="detail"
+              field="disciplinary"
+              [label]="'people.fields.caseType' | transloco"
+            />
             <select id="cf-dc-type" (change)="patch({ case_type: $any($event.target).value })">
               @for (t of types; track t) {
                 <option [value]="t" [selected]="d.case_type === t">
@@ -169,15 +178,13 @@ interface CaseDraft {
               }
             </select>
           </app-form-field>
-          <app-field-help scope="people" page="detail" field="disciplinary" />
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
             <app-form-field [label]="'people.fields.openedOn' | transloco" inputId="cf-dc-opened">
-              <input
-                id="cf-dc-opened"
-                type="date"
-                required
+              <app-date-input
+                inputId="cf-dc-opened"
+                [required]="true"
                 [value]="d.opened_on"
-                (change)="patch({ opened_on: $any($event.target).value })"
+                (valueChange)="patch({ opened_on: $event ?? '' })"
               />
             </app-form-field>
             @if (d.id) {

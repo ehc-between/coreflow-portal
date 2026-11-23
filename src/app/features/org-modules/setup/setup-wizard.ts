@@ -103,7 +103,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let w = 'modules.setup';
-    <div class="mx-auto max-w-[880px] px-4 pt-7 pb-12 sm:px-8">
+    <div class="mx-auto max-w-[880px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <div class="mb-[18px]">
         <h1 class="font-display text-page font-bold text-fg">
           {{ w + '.title' | transloco }}

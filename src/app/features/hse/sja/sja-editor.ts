@@ -21,7 +21,6 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { Term } from '../../../shared/guidance/term';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -61,6 +60,8 @@ import {
   HseDirectorySelect,
   HseField,
 } from '../shared/hse-shared';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 /** One editable control of a step: what is done, and where it sits in the hierarchy. */
 export interface ControlDraft {
@@ -163,7 +164,6 @@ export function mergeSuggestions(
     AiAssistButton,
     AskAbout,
     Button,
-    Card,
     ErrorState,
     FlowBanner,
     HelpStrip,
@@ -175,10 +175,12 @@ export function mergeSuggestions(
     HseDirectorySelect,
     HseField,
     HsePeoplePicker,
+    FormSection,
+    FormActions,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-28 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'hse.sja.edit.title' : 'hse.sja.edit.newTitle'"
         [breadcrumbs]="breadcrumbs()"
@@ -207,101 +209,99 @@ export function mergeSuggestions(
               {{ 'hse.common.willLink' | transloco }}
             </p>
           }
-          <app-card>
-            <h2 class="mb-1 font-display text-card font-bold text-fg">
-              {{ 'hse.sja.edit.jobSection' | transloco }}
-            </h2>
-            <p class="mb-4 text-meta text-fg-muted">
-              <app-term key="sja" scope="hse">{{ 'hse.sja.one' | transloco }}</app-term>
-              {{ 'hse.sja.edit.jobIntro' | transloco }}
-            </p>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.sja.fields.title"
-                inputId="sja-title"
-                help="title"
-                [required]="true"
-                [errorKey]="submitted() && !title().trim() ? 'hse.errors.title_required' : null"
-              >
-                <input
-                  id="sja-title"
-                  type="text"
-                  required
-                  maxlength="255"
-                  autocomplete="off"
-                  [value]="title()"
-                  (input)="title.set($any($event.target).value)"
-                  [attr.aria-invalid]="submitted() && !title().trim()"
-                  aria-describedby="sja-title-error"
-                />
-              </app-hse-field>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.sja.fields.job_description"
-                inputId="sja-description"
-                help="job_description"
-              >
-                <textarea
-                  id="sja-description"
-                  rows="4"
-                  [value]="jobDescription()"
-                  (input)="jobDescription.set($any($event.target).value)"
-                ></textarea>
-              </app-hse-field>
-              <app-hse-field labelKey="hse.sja.fields.location" inputId="sja-location">
-                <input
-                  id="sja-location"
-                  type="text"
-                  maxlength="200"
-                  [value]="location()"
-                  (input)="location.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.sja.fields.owner" inputId="sja-owner">
-                <app-hse-directory-select
-                  inputId="sja-owner"
-                  kind="user"
-                  noneKey="hse.common.me"
-                  [value]="ownerId()"
-                  [currentName]="ownerName()"
-                  (valueChange)="ownerId.set($event)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.sja.fields.work_start_at" inputId="sja-start">
-                <input
-                  id="sja-start"
-                  type="datetime-local"
-                  [value]="workStart()"
-                  (input)="workStart.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.sja.fields.work_end_at"
-                inputId="sja-end"
-                [errorKey]="periodInvalid() ? 'hse.errors.invalid_period' : null"
-              >
-                <input
-                  id="sja-end"
-                  type="datetime-local"
-                  [value]="workEnd()"
-                  (input)="workEnd.set($any($event.target).value)"
-                  [attr.aria-invalid]="periodInvalid()"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.common.department" inputId="sja-department">
-                <app-hse-directory-select
-                  inputId="sja-department"
-                  kind="department"
-                  [value]="departmentId()"
-                  (valueChange)="departmentId.set($event)"
-                />
-              </app-hse-field>
-            </div>
-          </app-card>
-
-          <app-card>
+          <app-form-section
+            [title]="'hse.sja.edit.jobSection' | transloco"
+            [description]="'hse.sja.edit.jobSectionHint' | transloco"
+          >
             <app-hse-field
+              span="full"
+              labelKey="hse.sja.fields.title"
+              inputId="sja-title"
+              help="title"
+              [required]="true"
+              [errorKey]="submitted() && !title().trim() ? 'hse.errors.title_required' : null"
+            >
+              <input
+                id="sja-title"
+                type="text"
+                required
+                maxlength="255"
+                autocomplete="off"
+                [value]="title()"
+                (input)="title.set($any($event.target).value)"
+                [attr.aria-invalid]="submitted() && !title().trim()"
+                aria-describedby="sja-title-error"
+              />
+            </app-hse-field>
+            <app-hse-field
+              span="full"
+              labelKey="hse.sja.fields.job_description"
+              inputId="sja-description"
+              help="job_description"
+            >
+              <textarea
+                id="sja-description"
+                rows="4"
+                [value]="jobDescription()"
+                (input)="jobDescription.set($any($event.target).value)"
+              ></textarea>
+            </app-hse-field>
+            <app-hse-field labelKey="hse.sja.fields.location" inputId="sja-location">
+              <input
+                id="sja-location"
+                type="text"
+                maxlength="200"
+                [value]="location()"
+                (input)="location.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.sja.fields.owner" inputId="sja-owner">
+              <app-hse-directory-select
+                inputId="sja-owner"
+                kind="user"
+                noneKey="hse.common.me"
+                [value]="ownerId()"
+                [currentName]="ownerName()"
+                (valueChange)="ownerId.set($event)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.sja.fields.work_start_at" inputId="sja-start">
+              <input
+                id="sja-start"
+                type="datetime-local"
+                [value]="workStart()"
+                (input)="workStart.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.sja.fields.work_end_at"
+              inputId="sja-end"
+              [errorKey]="periodInvalid() ? 'hse.errors.invalid_period' : null"
+            >
+              <input
+                id="sja-end"
+                type="datetime-local"
+                [value]="workEnd()"
+                (input)="workEnd.set($any($event.target).value)"
+                [attr.aria-invalid]="periodInvalid()"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.common.department" inputId="sja-department">
+              <app-hse-directory-select
+                inputId="sja-department"
+                kind="department"
+                [value]="departmentId()"
+                (valueChange)="departmentId.set($event)"
+              />
+            </app-hse-field>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'hse.sja.edit.peopleSection' | transloco"
+            [description]="'hse.sja.edit.peopleSectionHint' | transloco"
+          >
+            <app-hse-field
+              span="full"
               labelKey="hse.sja.fields.participants"
               inputId="sja-participants"
               help="participants"
@@ -317,27 +317,26 @@ export function mergeSuggestions(
                 testId="sja-participants-picker"
               />
             </app-hse-field>
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="font-display text-card font-bold text-fg">
-                {{ 'hse.sja.edit.stepsSection' | transloco }}
-              </h2>
-              <app-ai-assist-button
-                assist="hse.suggest_hazards"
-                labelKey="hse.sja.ai.suggest"
-                [input]="assistInput()"
-                [entityType]="id() ? 'sja' : null"
-                [entityId]="id() ?? null"
-                [disabled]="!title().trim() && !jobDescription().trim() && !id()"
-                (result)="applySuggestions($event)"
-              />
-            </div>
-            <p class="mb-4 text-meta text-fg-muted">{{ 'hse.sja.edit.stepsIntro' | transloco }}</p>
+          <app-form-section
+            [columns]="1"
+            [title]="'hse.sja.edit.stepsSection' | transloco"
+            [description]="'hse.sja.edit.stepsIntro' | transloco"
+          >
+            <app-ai-assist-button
+              section-actions
+              assist="hse.suggest_hazards"
+              labelKey="hse.sja.ai.suggest"
+              [input]="assistInput()"
+              [entityType]="id() ? 'sja' : null"
+              [entityId]="id() ?? null"
+              [disabled]="!title().trim() && !jobDescription().trim() && !id()"
+              (result)="applySuggestions($event)"
+            />
             @if (aiNotes()) {
               <p
-                class="mb-3 rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg-muted"
+                class="rounded-tile border border-border bg-surface-2 px-3 py-2 text-ui text-fg-muted"
                 role="status"
               >
                 {{ aiNotes() }}
@@ -346,12 +345,17 @@ export function mergeSuggestions(
             <ol class="flex flex-col gap-4">
               @for (step of steps(); track step.key; let i = $index; let last = $last) {
                 <li
-                  class="rounded-tile border border-border p-3 sm:p-4"
+                  class="rounded-tile border border-border bg-bg p-3 sm:p-4"
                   [attr.aria-label]="'hse.sja.edit.stepLabel' | transloco: { n: i + 1 }"
                   [attr.data-testid]="'sja-step-editor-' + i"
                 >
                   <div class="mb-3 flex items-center justify-between gap-2">
-                    <span class="text-meta font-bold tracking-wide text-fg-subtle uppercase">
+                    <span class="inline-flex items-center gap-2 text-ui font-semibold text-fg">
+                      <span
+                        class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-soft px-1.5 text-meta font-bold text-accent"
+                        aria-hidden="true"
+                        >{{ i + 1 }}</span
+                      >
                       {{ 'hse.sja.edit.stepLabel' | transloco: { n: i + 1 } }}
                     </span>
                     <div class="flex items-center gap-1">
@@ -383,8 +387,9 @@ export function mergeSuggestions(
                       </button>
                     </div>
                   </div>
-                  <div class="flex flex-col gap-4">
+                  <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
                     <app-hse-field
+                      span="full"
                       labelKey="hse.sja.fields.step_description"
                       [inputId]="'step-desc-' + step.key"
                       [help]="i === 0 ? 'steps' : null"
@@ -398,6 +403,7 @@ export function mergeSuggestions(
                       />
                     </app-hse-field>
                     <app-hse-field
+                      span="full"
                       labelKey="hse.sja.fields.hazards"
                       [inputId]="'step-haz-' + step.key"
                       [help]="i === 0 ? 'hazards' : null"
@@ -419,7 +425,7 @@ export function mergeSuggestions(
                         (input)="patchStep(i, { hazards: $any($event.target).value })"
                       ></textarea>
                     </app-hse-field>
-                    <fieldset>
+                    <fieldset class="min-w-0 sm:col-span-2">
                       <legend
                         class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
                       >
@@ -495,165 +501,154 @@ export function mergeSuggestions(
                         </p>
                       }
                     </fieldset>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <app-hse-field
-                        labelKey="hse.sja.fields.responsible"
+                    <app-hse-field
+                      labelKey="hse.sja.fields.responsible"
+                      [inputId]="'step-resp-' + step.key"
+                      hintKey="hse.sja.edit.responsibleHint"
+                    >
+                      <app-hse-directory-select
                         [inputId]="'step-resp-' + step.key"
-                        hintKey="hse.sja.edit.responsibleHint"
-                      >
-                        <app-hse-directory-select
-                          [inputId]="'step-resp-' + step.key"
-                          kind="user"
-                          noneKey="hse.sja.edit.responsibleExternal"
-                          [value]="step.responsibleUserId"
-                          (valueChange)="patchStep(i, { responsibleUserId: $event })"
+                        kind="user"
+                        noneKey="hse.sja.edit.responsibleExternal"
+                        [value]="step.responsibleUserId"
+                        (valueChange)="patchStep(i, { responsibleUserId: $event })"
+                      />
+                      @if (!step.responsibleUserId) {
+                        <label class="sr-only" [attr.for]="'step-resp-name-' + step.key">{{
+                          'hse.sja.edit.responsibleName' | transloco
+                        }}</label>
+                        <input
+                          class="mt-2"
+                          [id]="'step-resp-name-' + step.key"
+                          type="text"
+                          maxlength="200"
+                          [placeholder]="'hse.sja.edit.responsibleName' | transloco"
+                          [value]="step.responsible"
+                          (input)="patchStep(i, { responsible: $any($event.target).value })"
                         />
-                        @if (!step.responsibleUserId) {
-                          <label class="sr-only" [attr.for]="'step-resp-name-' + step.key">{{
-                            'hse.sja.edit.responsibleName' | transloco
-                          }}</label>
-                          <input
-                            class="mt-2"
-                            [id]="'step-resp-name-' + step.key"
-                            type="text"
-                            maxlength="200"
-                            [placeholder]="'hse.sja.edit.responsibleName' | transloco"
-                            [value]="step.responsible"
-                            (input)="patchStep(i, { responsible: $any($event.target).value })"
-                          />
-                        }
-                      </app-hse-field>
-                      <app-hse-field
-                        labelKey="hse.sja.fields.step_risk"
-                        [inputId]="'step-risk-' + step.key"
+                      }
+                    </app-hse-field>
+                    <app-hse-field
+                      labelKey="hse.sja.fields.step_risk"
+                      [inputId]="'step-risk-' + step.key"
+                    >
+                      <select
+                        [id]="'step-risk-' + step.key"
+                        (change)="patchStep(i, { risk_level: $any($event.target).value })"
                       >
-                        <select
-                          [id]="'step-risk-' + step.key"
-                          (change)="patchStep(i, { risk_level: $any($event.target).value })"
-                        >
-                          <option value="" [selected]="!step.risk_level">
-                            {{ 'hse.risk.none' | transloco }}
+                        <option value="" [selected]="!step.risk_level">
+                          {{ 'hse.risk.none' | transloco }}
+                        </option>
+                        @for (level of riskLevels; track level) {
+                          <option [value]="level" [selected]="level === step.risk_level">
+                            {{ 'hse.risk.' + level | transloco }}
                           </option>
-                          @for (level of riskLevels; track level) {
-                            <option [value]="level" [selected]="level === step.risk_level">
-                              {{ 'hse.risk.' + level | transloco }}
-                            </option>
-                          }
-                        </select>
-                      </app-hse-field>
-                    </div>
+                        }
+                      </select>
+                    </app-hse-field>
                   </div>
                 </li>
               }
             </ol>
-            <div class="mt-3">
+            <div>
               <app-button variant="secondary" size="sm" (click)="addStep()">
                 <app-icon name="plus" [size]="14" />
                 {{ 'hse.sja.edit.addStep' | transloco }}
               </app-button>
             </div>
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-1 font-display text-card font-bold text-fg">
-              {{ 'hse.sja.edit.riskSection' | transloco }}
-            </h2>
-            <p class="mb-4 text-meta text-fg-muted">{{ 'hse.sja.edit.riskIntro' | transloco }}</p>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field
-                labelKey="hse.sja.fields.risk_level"
-                inputId="sja-risk"
-                help="risk_level"
-              >
-                <select id="sja-risk" (change)="riskLevel.set($any($event.target).value)">
-                  <option value="" [selected]="!riskLevel()">
-                    {{ 'hse.risk.none' | transloco }}
+          <app-form-section
+            [title]="'hse.sja.edit.riskSection' | transloco"
+            [description]="'hse.sja.edit.riskIntro' | transloco"
+          >
+            <app-hse-field
+              labelKey="hse.sja.fields.risk_level"
+              inputId="sja-risk"
+              help="risk_level"
+            >
+              <select id="sja-risk" (change)="riskLevel.set($any($event.target).value)">
+                <option value="" [selected]="!riskLevel()">
+                  {{ 'hse.risk.none' | transloco }}
+                </option>
+                @for (level of riskLevels; track level) {
+                  <option [value]="level" [selected]="level === riskLevel()">
+                    {{ 'hse.risk.' + level | transloco }}
                   </option>
-                  @for (level of riskLevels; track level) {
-                    <option [value]="level" [selected]="level === riskLevel()">
-                      {{ 'hse.risk.' + level | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.sja.fields.residual_risk_level"
-                inputId="sja-residual"
-                help="residual_risk_level"
-              >
-                <app-ask-about
-                  label-extra
-                  [prompt]="'hse.sja.ai.residualPrompt' | transloco"
-                  [fieldLabel]="'hse.sja.fields.residual_risk_level' | transloco"
-                  labelKey="hse.sja.ai.askResidual"
-                />
-                <select
-                  id="sja-residual"
-                  (change)="residualRiskLevel.set($any($event.target).value)"
-                >
-                  <option value="" [selected]="!residualRiskLevel()">
-                    {{ 'hse.risk.none' | transloco }}
+                }
+              </select>
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.sja.fields.residual_risk_level"
+              inputId="sja-residual"
+              help="residual_risk_level"
+            >
+              <app-ask-about
+                label-extra
+                [prompt]="'hse.sja.ai.residualPrompt' | transloco"
+                [fieldLabel]="'hse.sja.fields.residual_risk_level' | transloco"
+                labelKey="hse.sja.ai.askResidual"
+              />
+              <select id="sja-residual" (change)="residualRiskLevel.set($any($event.target).value)">
+                <option value="" [selected]="!residualRiskLevel()">
+                  {{ 'hse.risk.none' | transloco }}
+                </option>
+                @for (level of riskLevels; track level) {
+                  <option [value]="level" [selected]="level === residualRiskLevel()">
+                    {{ 'hse.risk.' + level | transloco }}
                   </option>
-                  @for (level of riskLevels; track level) {
-                    <option [value]="level" [selected]="level === residualRiskLevel()">
-                      {{ 'hse.risk.' + level | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-hse-field>
-              @if (residualWarning()) {
-                <p
-                  class="rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-meta text-warn-ink sm:col-span-2"
-                  role="status"
-                  data-testid="sja-residual-warning"
-                >
-                  {{ 'hse.sja.warnings.residual_not_lower' | transloco }}
-                </p>
-              }
-              <fieldset class="sm:col-span-2">
-                <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
-                  {{ 'hse.sja.fields.required_ppe' | transloco }}
-                </legend>
-                <p class="mb-2 text-meta text-fg-muted">{{ 'hse.sja.edit.ppeHint' | transloco }}</p>
-                <div class="flex flex-wrap gap-2">
-                  @for (category of ppeCategories; track category) {
-                    <label
-                      class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-meta font-semibold"
-                      [class]="
-                        ppe().includes(category)
-                          ? 'border-accent-border bg-accent-soft text-accent'
-                          : 'border-border text-fg-muted'
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                        [checked]="ppe().includes(category)"
-                        (change)="togglePpe(category)"
-                      />
-                      {{ 'hse.ppeCategory.' + category | transloco }}
-                    </label>
-                  }
-                </div>
-              </fieldset>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.sja.fields.emergency_measures"
-                inputId="sja-emergency"
-                help="emergency_measures"
+                }
+              </select>
+            </app-hse-field>
+            @if (residualWarning()) {
+              <p
+                class="rounded-tile border border-warn/40 bg-warn-soft px-3 py-2 text-meta text-warn-ink sm:col-span-2"
+                role="status"
+                data-testid="sja-residual-warning"
               >
-                <textarea
-                  id="sja-emergency"
-                  rows="3"
-                  [value]="emergency()"
-                  (input)="emergency.set($any($event.target).value)"
-                ></textarea>
-              </app-hse-field>
-            </div>
-          </app-card>
+                {{ 'hse.sja.warnings.residual_not_lower' | transloco }}
+              </p>
+            }
+            <fieldset class="min-w-0 sm:col-span-2">
+              <legend class="flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+                {{ 'hse.sja.fields.required_ppe' | transloco }}
+              </legend>
+              <div class="mt-1.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                @for (category of ppeCategories; track category) {
+                  <label
+                    class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 accent-[var(--accent)]"
+                      [checked]="ppe().includes(category)"
+                      (change)="togglePpe(category)"
+                    />
+                    <span class="truncate">{{ 'hse.ppeCategory.' + category | transloco }}</span>
+                  </label>
+                }
+              </div>
+              <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
+                {{ 'hse.sja.edit.ppeHint' | transloco }}
+              </p>
+            </fieldset>
+            <app-hse-field
+              span="full"
+              labelKey="hse.sja.fields.emergency_measures"
+              inputId="sja-emergency"
+              help="emergency_measures"
+            >
+              <textarea
+                id="sja-emergency"
+                rows="3"
+                [value]="emergency()"
+                (input)="emergency.set($any($event.target).value)"
+              ></textarea>
+            </app-hse-field>
+          </app-form-section>
 
           @if (id()) {
-            <app-card>
+            <app-form-section [columns]="1">
               <app-hse-field
                 labelKey="hse.common.changeReason"
                 inputId="sja-reason"
@@ -667,14 +662,12 @@ export function mergeSuggestions(
                   (input)="changeReason.set($any($event.target).value)"
                 />
               </app-hse-field>
-            </app-card>
+            </app-form-section>
           }
 
-          <div
-            class="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
-          >
+          <app-form-actions>
             <app-hse-ask-button
-              class="mr-auto"
+              start
               labelKey="hse.sja.ai.review"
               promptKey="hse.sja.ai.reviewPrompt"
             />
@@ -684,7 +677,7 @@ export function mergeSuggestions(
             <app-button type="submit" [loading]="saving()" [disabled]="saving()">
               {{ (id() ? 'hse.common.save' : 'hse.sja.edit.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

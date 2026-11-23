@@ -18,6 +18,8 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
@@ -91,6 +93,8 @@ export function parseNumber(text: string): number | null {
     Button,
     Card,
     ConfirmDialog,
+    DateInput,
+    FormField,
     Icon,
     Pager,
     StatusBadge,
@@ -167,18 +171,19 @@ export function parseNumber(text: string): number | null {
 
       @if (formOpen()) {
         <form
-          class="mb-4 grid grid-cols-1 gap-3 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-3"
+          class="mb-4 grid grid-cols-1 items-start gap-x-4 gap-y-4 rounded-tile border border-border bg-surface-2 p-4 sm:grid-cols-2"
           (submit)="$event.preventDefault(); save()"
           (keydown.escape)="close()"
           data-testid="monitoring-form"
         >
           @if (metrics().length) {
-            <label
-              class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-2 lg:col-span-3"
+            <app-form-field
+              span="full"
+              [label]="'aiGovernance.monitoring.pickMetric' | transloco"
+              inputId="aim-pick"
             >
-              {{ 'aiGovernance.monitoring.pickMetric' | transloco }}
               <select
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                id="aim-pick"
                 (change)="pickMetric($any($event.target).value)"
                 data-testid="monitoring-pick"
               >
@@ -187,59 +192,59 @@ export function parseNumber(text: string): number | null {
                   <option [value]="i">{{ m.metric }}</option>
                 }
               </select>
-            </label>
+            </app-form-field>
           }
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-            {{ 'aiGovernance.monitoring.kind' | transloco }}
-            <select
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
-              (change)="patch({ kind: $any($event.target).value })"
-            >
+          <app-form-field
+            [label]="'aiGovernance.monitoring.metric' | transloco"
+            inputId="aim-metric"
+            [required]="true"
+          >
+            <input
+              id="aim-metric"
+              type="text"
+              required
+              maxlength="120"
+              [placeholder]="'aiGovernance.monitoring.metricPlaceholder' | transloco"
+              [value]="draft().metric"
+              (input)="patch({ metric: $any($event.target).value })"
+            />
+          </app-form-field>
+          <app-form-field [label]="'aiGovernance.monitoring.kind' | transloco" inputId="aim-kind">
+            <select id="aim-kind" (change)="patch({ kind: $any($event.target).value })">
               @for (k of kinds; track k) {
                 <option [value]="k" [selected]="draft().kind === k">
                   {{ kindKey(k) | transloco }}
                 </option>
               }
             </select>
-          </label>
-          <label
-            class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-1 lg:col-span-2"
-          >
-            {{ 'aiGovernance.monitoring.metric' | transloco }}
+          </app-form-field>
+          <app-form-field [label]="'aiGovernance.monitoring.value' | transloco" inputId="aim-value">
             <input
-              type="text"
-              required
-              maxlength="120"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
-              [placeholder]="'aiGovernance.monitoring.metricPlaceholder' | transloco"
-              [value]="draft().metric"
-              (input)="patch({ metric: $any($event.target).value })"
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-            {{ 'aiGovernance.monitoring.value' | transloco }}
-            <input
+              id="aim-value"
               type="text"
               inputmode="decimal"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().value"
               (input)="patch({ value: $any($event.target).value })"
             />
-          </label>
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-            {{ 'aiGovernance.monitoring.threshold' | transloco }}
+          </app-form-field>
+          <app-form-field
+            [label]="'aiGovernance.monitoring.threshold' | transloco"
+            inputId="aim-threshold"
+          >
             <input
+              id="aim-threshold"
               type="text"
               inputmode="decimal"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().threshold"
               (input)="patch({ threshold: $any($event.target).value })"
             />
-          </label>
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-            {{ 'aiGovernance.monitoring.result' | transloco }}
+          </app-form-field>
+          <app-form-field
+            [label]="'aiGovernance.monitoring.result' | transloco"
+            inputId="aim-result"
+          >
             <select
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+              id="aim-result"
               (change)="patch({ result: $any($event.target).value })"
               data-testid="monitoring-result"
             >
@@ -252,28 +257,32 @@ export function parseNumber(text: string): number | null {
                 </option>
               }
             </select>
-          </label>
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-            {{ 'aiGovernance.monitoring.measuredAt' | transloco }}
-            <input
-              type="date"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
+          </app-form-field>
+          <app-form-field
+            [label]="'aiGovernance.monitoring.measuredAt' | transloco"
+            inputId="aim-measured"
+          >
+            <app-date-input
+              inputId="aim-measured"
               [value]="draft().measured"
-              (input)="patch({ measured: $any($event.target).value })"
+              (valueChange)="patch({ measured: $event ?? '' })"
             />
-          </label>
-          <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted sm:col-span-2">
-            {{ 'aiGovernance.monitoring.notes' | transloco }}
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'aiGovernance.monitoring.notes' | transloco"
+            inputId="aim-notes"
+          >
             <input
+              id="aim-notes"
               type="text"
               maxlength="4000"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [value]="draft().notes"
               (input)="patch({ notes: $any($event.target).value })"
             />
-          </label>
-          <div class="flex items-end justify-end gap-2 sm:col-span-2 lg:col-span-3">
-            <app-button size="sm" variant="ghost" (click)="close()">{{
+          </app-form-field>
+          <div class="flex justify-end gap-2 sm:col-span-2">
+            <app-button size="sm" variant="secondary" (click)="close()">{{
               'aiGovernance.common.cancel' | transloco
             }}</app-button>
             <app-button

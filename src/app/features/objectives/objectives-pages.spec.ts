@@ -474,6 +474,9 @@ describe('ObjectiveEditor', () => {
     fixture.detectChanges();
     expect(api.create).not.toHaveBeenCalled();
     expect(el.textContent).toContain('objectives.errors.title_required');
-    expect(el.textContent).toContain('objectives.form.required');
+    const titleLabel = [...el.querySelectorAll('[data-testid="form-field-label"]')].find((l) =>
+      l.textContent?.includes('objectives.fields.title'),
+    );
+    expect(titleLabel?.textContent).toContain('*');
   });
 });

@@ -452,7 +452,9 @@ interface Kpi {
                       [value]="cr.value"
                       [labelKey]="'suppliers.criticality.' + row.criticality"
                     />
-                    @if (row.dpa_status && row.dpa_status !== 'not_needed') {
+                    @if (
+                      row.dpa_status && row.dpa_status !== 'not_needed' && !row.attention?.length
+                    ) {
                       <app-status-badge
                         badges
                         data-testid="row-dpa"

@@ -1,15 +1,13 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 
 /**
- * One control of an audit form: the label (with a required marker), the field
- * help "?" and an optional `[ask]` button on the same row as the label, never
- * as a lone "?" under the input; then the control inside `app-form-field`
- * (or as is with `plain` for pickers that draw their own box); then the error
- * ("what to fix") or a `[hint]`.
+ * One control of an audit form, a thin layer over the shared `app-form-field`
+ * (docs/ux-guide.md §2.4): label row (label, required `*`, the field help "?" and an
+ * optional `[ask]` button), then the control, then the hint (`[hint]`) and the
+ * error ("what to fix"). `span="full"` takes both columns of an `app-form-section`.
  *
  *   <app-audit-field inputId="plan-title" labelKey="audits.fields.title" [required]="true"
  *       helpPage="planForm" helpField="title">
@@ -18,48 +16,35 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
  */
 @Component({
   selector: 'app-audit-field',
-  imports: [NgTemplateOutlet, TranslocoPipe, FieldHelp, FormField],
+  imports: [TranslocoPipe, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: {
+    class: 'block min-w-0',
+    '[class.sm:col-span-2]': "span() === 'full'",
+  },
   template: `
-    <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-      @if (legend()) {
-        <span class="text-ui font-semibold text-fg-muted" [id]="inputId() + '-label'">
-          {{ labelKey() | transloco }}
-        </span>
-      } @else {
-        <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
-          {{ labelKey() | transloco }}
-          @if (required()) {
-            <span class="text-fail-ink" aria-hidden="true">*</span>
-            <span class="sr-only">{{ 'audits.common.required' | transloco }}</span>
-          }
-        </label>
-      }
-      @if (helpField(); as field) {
-        <app-field-help scope="audits" [page]="helpPage()" [field]="field" />
-      }
-      <ng-content select="[ask]" />
-    </div>
-    <ng-template #control><ng-content /></ng-template>
-    @if (plain()) {
-      <ng-container [ngTemplateOutlet]="control" />
-    } @else {
-      <app-form-field [inputId]="inputId()">
-        <ng-container [ngTemplateOutlet]="control" />
-      </app-form-field>
-    }
-    @if (error(); as key) {
-      <p
-        class="mt-1 text-meta font-semibold text-fail-ink"
-        role="alert"
-        [id]="inputId() + '-error'"
-      >
-        {{ key | transloco }}
-      </p>
-    } @else {
-      <div class="mt-1 text-meta text-fg-subtle empty:hidden"><ng-content select="[hint]" /></div>
-    }
+    <app-form-field
+      [label]="labelKey() | transloco"
+      [inputId]="legend() ? '' : inputId()"
+      [required]="required()"
+      [error]="error() ? (error()! | transloco) : ''"
+    >
+      <span label-suffix class="inline-flex items-center gap-1.5 empty:hidden">
+        @if (helpField(); as field) {
+          <app-field-help
+            scope="audits"
+            [page]="helpPage()"
+            [field]="field"
+            [label]="labelKey() | transloco"
+          />
+        }
+        <ng-content select="[ask]" />
+      </span>
+      <ng-content />
+      <div hint class="text-meta leading-snug text-fg-subtle empty:hidden">
+        <ng-content select="[hint]" />
+      </div>
+    </app-form-field>
   `,
 })
 export class AuditField {
@@ -69,10 +54,12 @@ export class AuditField {
   /** Guidance page of the field help (`pages.<page>.fields.<field>` in audits.json). */
   readonly helpPage = input('planForm');
   readonly helpField = input<string | null>(null);
-  /** Render the control as is (pickers and checkbox groups that style their own box). */
+  /** Kept for callers: pickers that draw their own box. The shared field leaves them alone. */
   readonly plain = input(false);
-  /** The label names a group (checkboxes), not one input: render it as text with an id. */
+  /** The label names a group (checkboxes), not one input. */
   readonly legend = input(false);
   /** i18n key of the error to show under the control. */
   readonly error = input<string | null>(null);
+  /** Grid span inside an `app-form-section`. */
+  readonly span = input<'half' | 'full'>('half');
 }

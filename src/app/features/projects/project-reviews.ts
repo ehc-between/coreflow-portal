@@ -27,6 +27,7 @@ import { EntityTasks } from '../../shared/tasks/entity-tasks';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -157,6 +158,7 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
     Button,
     ConfirmDialog,
     ErrorState,
+    DateInput,
     FormField,
     Icon,
     LoadingState,
@@ -273,13 +275,14 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
         <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
           <fieldset class="flex flex-col gap-4" [disabled]="!canContribute()">
             <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-rv-kind" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.reviews.kind' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="detail" field="review_kind" />
-              </div>
-              <app-form-field inputId="cf-rv-kind">
+              <app-form-field [label]="'projects.reviews.kind' | transloco" inputId="cf-rv-kind">
+                <app-field-help
+                  label-suffix
+                  scope="projects"
+                  page="detail"
+                  field="review_kind"
+                  [label]="'projects.reviews.kind' | transloco"
+                />
                 <select
                   id="cf-rv-kind"
                   (change)="setKind($any($event.target).value)"
@@ -324,42 +327,44 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
                       </option>
                     }
                   </select>
+                  @if (draftPhase(); as phase) {
+                    <p
+                      hint
+                      class="text-meta leading-snug text-fg-subtle"
+                      data-testid="review-phase"
+                    >
+                      {{ 'projects.reviews.phaseFromMilestone' | transloco: { phase } }}
+                    </p>
+                  }
                 </app-form-field>
-                @if (draftPhase(); as phase) {
-                  <p class="mt-1 text-meta text-fg-subtle" data-testid="review-phase">
-                    {{ 'projects.reviews.phaseFromMilestone' | transloco: { phase } }}
-                  </p>
-                }
               </div>
             }
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
               <app-form-field
                 [label]="'projects.reviews.plannedDate' | transloco"
                 inputId="cf-rv-plan"
               >
-                <input
-                  id="cf-rv-plan"
-                  type="date"
+                <app-date-input
+                  inputId="cf-rv-plan"
                   [value]="d.planned_date"
-                  (change)="patch({ planned_date: $any($event.target).value })"
+                  (valueChange)="patch({ planned_date: $event ?? '' })"
                 />
               </app-form-field>
               <app-form-field
                 [label]="'projects.reviews.heldOnLabel' | transloco"
                 inputId="cf-rv-held"
               >
-                <input
-                  id="cf-rv-held"
-                  type="date"
+                <app-date-input
+                  inputId="cf-rv-held"
                   [value]="d.held_on"
-                  (change)="patch({ held_on: $any($event.target).value })"
+                  (valueChange)="patch({ held_on: $event ?? '' })"
                   data-testid="review-held"
                 />
               </app-form-field>
             </div>
 
             <div>
-              <p class="mb-1 text-ui font-semibold text-fg-muted">
+              <p class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
                 {{ 'projects.reviews.participants' | transloco }}
               </p>
               <ul class="mb-2 flex flex-wrap gap-1.5">
@@ -403,11 +408,16 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
             </div>
 
             <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <span class="text-ui font-semibold text-fg-muted">{{
+              <div class="mb-1.5 flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+                <span class="text-ui leading-6 font-semibold text-fg-muted">{{
                   'projects.reviews.inputDocuments' | transloco
                 }}</span>
-                <app-field-help scope="projects" page="detail" field="review_documents" />
+                <app-field-help
+                  scope="projects"
+                  page="detail"
+                  field="review_documents"
+                  [label]="'projects.reviews.inputDocuments' | transloco"
+                />
               </div>
               @if (d.input_documents.length) {
                 <ul class="mb-2 flex flex-col gap-1.5" data-testid="review-documents">
@@ -468,13 +478,17 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
             </div>
 
             <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-rv-inputs" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.reviews.inputs' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="detail" field="review_inputs" />
-              </div>
-              <app-form-field inputId="cf-rv-inputs">
+              <app-form-field
+                [label]="'projects.reviews.inputs' | transloco"
+                inputId="cf-rv-inputs"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="projects"
+                  page="detail"
+                  field="review_inputs"
+                  [label]="'projects.reviews.inputs' | transloco"
+                />
                 <textarea
                   id="cf-rv-inputs"
                   rows="2"
@@ -485,18 +499,23 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
               </app-form-field>
             </div>
             <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-rv-findings" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.reviews.findings' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="detail" field="review_findings" />
+              <app-form-field
+                [label]="'projects.reviews.findings' | transloco"
+                inputId="cf-rv-findings"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="projects"
+                  page="detail"
+                  field="review_findings"
+                  [label]="'projects.reviews.findings' | transloco"
+                />
                 <app-ask-about
+                  label-suffix
                   [prompt]="'projects.ask.findings' | transloco"
                   field="findings"
                   [fieldLabel]="'projects.reviews.findings' | transloco"
                 />
-              </div>
-              <app-form-field inputId="cf-rv-findings">
                 <textarea
                   id="cf-rv-findings"
                   rows="4"
@@ -510,11 +529,11 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
               <app-form-field
                 [label]="'projects.reviews.outcome' | transloco"
                 inputId="cf-rv-outcome"
+                [hint]="'projects.reviews.decisionHint' | transloco"
               >
                 <select
                   id="cf-rv-outcome"
                   (change)="setOutcome($any($event.target).value)"
-                  aria-describedby="cf-rv-outcome-hint"
                   data-testid="review-outcome"
                 >
                   @for (o of outcomes; track o) {
@@ -524,9 +543,6 @@ export function reviewNeedsDate(d: ReviewDraft): boolean {
                   }
                 </select>
               </app-form-field>
-              <p id="cf-rv-outcome-hint" class="mt-1 text-meta text-fg-subtle">
-                {{ 'projects.reviews.decisionHint' | transloco }}
-              </p>
             </div>
             @if (needsDate()) {
               <p class="text-meta text-fail-ink" role="alert" data-testid="review-needs-date">

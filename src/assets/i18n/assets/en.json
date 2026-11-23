@@ -283,7 +283,15 @@
     "reviewIntervalDefault": "Every 12 months (default)",
     "quarantinedHint": "Out of use: the asset may not be used until it is fixed or calibrated. A passed calibration puts it back in use.",
     "nextCalibrationComputed": "Calculated from the last calibration plus the interval, and updated when you record a calibration.",
-    "nextCalibrationOverride": "Set a different date"
+    "nextCalibrationOverride": "Set a different date",
+    "sectionHints": {
+      "identity": "The name and kind of asset, so others recognise it.",
+      "classification": "How sensitive it is and how important it is to the business.",
+      "responsibility": "Who owns it, who looks after it and where it is.",
+      "lifecycle": "Where it is in its life and when it is reviewed.",
+      "notes": "Anything else worth knowing about the asset."
+    },
+    "fixFields": "Correct the marked fields."
   },
   "detail": {
     "notFound": "This asset does not exist or you do not have access to it.",
@@ -463,6 +471,12 @@
       "6": "Every six months",
       "12": "Yearly",
       "oneOff": "One-off"
+    },
+    "sections": {
+      "what": "What is reviewed",
+      "whatHint": "The system whose access you check, and what the review covers.",
+      "who": "Who and when",
+      "whoHint": "Who does the review, when it is due and how often it repeats."
     }
   },
   "reviewDetail": {
@@ -645,7 +659,12 @@
     "save": "Save changes",
     "created": "{{ code }} raised.",
     "saved": "Changes saved.",
-    "relatedHint": "Search for the processes, documents, suppliers and risks the change affects. They are linked to the change when you save."
+    "relatedHint": "Search for the processes, documents, suppliers and risks the change affects. They are linked to the change when you save.",
+    "sectionHints": {
+      "request": "What you want to change, why, and what it affects.",
+      "assessment": "The consequences and risk of the change, before it is approved.",
+      "implementation": "When it was done and whether it worked as planned."
+    }
   },
   "changeStep": {
     "title": "Before the next step",

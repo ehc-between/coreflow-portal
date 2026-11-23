@@ -82,7 +82,7 @@ function toRef(o: CustomerOption | CustomerRef): CustomerRef {
         "
         [class]="
           mode() === 'filter'
-            ? 'h-10 w-full min-w-[180px] rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent'
+            ? 'h-10 w-full min-w-[180px] rounded-tile border border-border bg-bg px-2.5 text-ui text-fg outline-none placeholder:text-fg focus:border-accent'
             : ''
         "
         (focus)="openList()"

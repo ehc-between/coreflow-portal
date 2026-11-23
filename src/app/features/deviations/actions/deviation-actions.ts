@@ -23,6 +23,8 @@ import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Attachments } from '../../../shared/attachments/attachments';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import {
   ACTION_KIND_OPTIONS,
   ACTION_STATUS_OPTIONS,
@@ -54,6 +56,8 @@ interface OwnerOption {
 @Component({
   selector: 'app-deviation-actions',
   imports: [
+    DateInput,
+    FormField,
     LocalDayPipe,
     FormsModule,
     RouterLink,
@@ -84,98 +88,88 @@ interface OwnerOption {
       </div>
 
       @if (adding()) {
-        <div class="mb-3 flex flex-col gap-3 rounded-tile border border-border bg-surface-2 p-3.5">
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="new-action-kind" class="text-ui font-semibold text-fg-muted">
-                {{ 'deviations.actions.fields.kind' | transloco }}
-              </label>
-              <div class="cf-select">
-                <select
-                  id="new-action-kind"
-                  [ngModel]="newKind()"
-                  (ngModelChange)="newKind.set($event)"
-                >
-                  @for (option of kindOptions; track option) {
-                    <option [value]="option">{{ actionKindLabelKey(option) | transloco }}</option>
-                  }
-                </select>
-              </div>
-              <p class="text-meta text-fg-muted" data-testid="kind-help">
-                {{ 'deviations.capa.kindHelp.' + newKind() | transloco }}
-              </p>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="new-action-owner" class="text-ui font-semibold text-fg-muted">
-                {{ 'deviations.actions.fields.owner' | transloco }}
-              </label>
-              <div class="cf-select">
-                <select
-                  id="new-action-owner"
-                  [ngModel]="newOwner()"
-                  (ngModelChange)="newOwner.set($event)"
-                >
-                  <option value="">{{ 'deviations.actions.unassigned' | transloco }}</option>
-                  @for (user of owners(); track user.id) {
-                    <option [value]="user.id">{{ user.name }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label for="new-action-desc" class="text-ui font-semibold text-fg-muted">
-              {{ 'deviations.actions.fields.description' | transloco }}
-              <span class="text-fail-ink" aria-hidden="true">*</span>
-            </label>
+        <div
+          class="mb-3 grid grid-cols-1 items-start gap-x-4 gap-y-4 rounded-tile border border-border bg-surface-2 p-4 sm:grid-cols-2"
+        >
+          <app-form-field
+            [label]="'deviations.actions.fields.kind' | transloco"
+            inputId="new-action-kind"
+          >
+            <select
+              id="new-action-kind"
+              [ngModel]="newKind()"
+              (ngModelChange)="newKind.set($event)"
+            >
+              @for (option of kindOptions; track option) {
+                <option [value]="option">{{ actionKindLabelKey(option) | transloco }}</option>
+              }
+            </select>
+            <p hint class="text-meta leading-snug text-fg-subtle" data-testid="kind-help">
+              {{ 'deviations.capa.kindHelp.' + newKind() | transloco }}
+            </p>
+          </app-form-field>
+          <app-form-field
+            [label]="'deviations.actions.fields.owner' | transloco"
+            inputId="new-action-owner"
+          >
+            <select
+              id="new-action-owner"
+              [ngModel]="newOwner()"
+              (ngModelChange)="newOwner.set($event)"
+            >
+              <option value="">{{ 'deviations.actions.unassigned' | transloco }}</option>
+              @for (user of owners(); track user.id) {
+                <option [value]="user.id">{{ user.name }}</option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'deviations.actions.fields.description' | transloco"
+            inputId="new-action-desc"
+            [required]="true"
+          >
             <textarea
               id="new-action-desc"
               [ngModel]="newDescription()"
               (ngModelChange)="newDescription.set($event)"
               rows="2"
-              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
             ></textarea>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="flex flex-col gap-1.5">
-              <label for="new-action-due" class="text-ui font-semibold text-fg-muted">
-                {{ 'deviations.actions.fields.due' | transloco }}
-              </label>
-              <input
-                id="new-action-due"
-                type="date"
-                [ngModel]="newDue()"
-                (ngModelChange)="newDue.set($event)"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-              />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <span class="flex items-center gap-1.5">
-                <label for="new-action-review" class="text-ui font-semibold text-fg-muted">
-                  {{ 'deviations.capa.reviewDue' | transloco }}
-                  @if (newKind() === 'containment') {
-                    <span class="font-normal text-fg-muted"
-                      >({{ 'deviations.capa.optional' | transloco }})</span
-                    >
-                  }
-                </label>
-                <app-field-help scope="deviations" page="detail" field="effectiveness_review" />
-              </span>
-              <input
-                id="new-action-review"
-                type="date"
-                [ngModel]="newReviewDue()"
-                (ngModelChange)="newReviewDue.set($event)"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-              />
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
+          </app-form-field>
+          <app-form-field
+            [label]="'deviations.actions.fields.due' | transloco"
+            inputId="new-action-due"
+          >
+            <app-date-input
+              inputId="new-action-due"
+              [value]="newDue()"
+              (valueChange)="newDue.set($event ?? '')"
+            />
+          </app-form-field>
+          <app-form-field
+            [label]="'deviations.capa.reviewDue' | transloco"
+            [hint]="newKind() === 'containment' ? ('deviations.capa.optionalHint' | transloco) : ''"
+            inputId="new-action-review"
+          >
+            <app-field-help
+              label-suffix
+              scope="deviations"
+              page="detail"
+              field="effectiveness_review"
+              [label]="'deviations.capa.reviewDue' | transloco"
+            />
+            <app-date-input
+              inputId="new-action-review"
+              [value]="newReviewDue()"
+              (valueChange)="newReviewDue.set($event ?? '')"
+            />
+          </app-form-field>
+          <div class="flex items-center justify-end gap-2 sm:col-span-2">
+            <app-button variant="secondary" size="sm" (click)="cancelAdd()">
+              {{ 'deviations.actions.cancel' | transloco }}
+            </app-button>
             <app-button size="sm" [loading]="saving()" (click)="submitAdd()">
               {{ 'deviations.actions.save' | transloco }}
-            </app-button>
-            <app-button variant="ghost" size="sm" (click)="cancelAdd()">
-              {{ 'deviations.actions.cancel' | transloco }}
             </app-button>
           </div>
         </div>

@@ -23,7 +23,10 @@ import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { EntityChip, EntityChipRef } from '../../../shared/kit/entity-chip';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-header';
@@ -81,7 +84,10 @@ const DEFAULT_CHECKS: CheckPolicy = {
     EntityChip,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormField,
+    FormSection,
     HelpStrip,
     LoadingState,
     PageHeader,
@@ -92,7 +98,7 @@ const DEFAULT_CHECKS: CheckPolicy = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="
           editId()
@@ -107,7 +113,12 @@ const DEFAULT_CHECKS: CheckPolicy = {
           <span meta class="font-mono">{{ req.code }}</span>
         }
       </app-page-header>
-      <app-help-strip scope="recruitment" page="requisitionForm" lesson="fair-screening" />
+      <app-help-strip
+        class="mb-5 block"
+        scope="recruitment"
+        page="requisitionForm"
+        lesson="fair-screening"
+      />
 
       @if (loadError(); as key) {
         <app-alert class="mt-4 block">{{ key | transloco }}</app-alert>
@@ -131,20 +142,20 @@ const DEFAULT_CHECKS: CheckPolicy = {
           (submit)="$event.preventDefault(); save()"
           data-testid="requisition-form"
         >
-          <p class="text-meta text-fg-muted">{{ 'recruitment.form.requiredNote' | transloco }}</p>
-          <app-card>
-            <h2 class="mb-1 text-section font-bold text-fg">
-              {{ 'recruitment.requisitionForm.roleSection' | transloco }}
-            </h2>
-            <p class="mb-4 text-meta text-fg-muted">
-              {{ 'recruitment.requisitionForm.positionIntro' | transloco }}
-            </p>
-            <div class="mb-4">
-              <div class="mb-1.5 text-ui font-semibold text-fg-muted">
-                {{ 'recruitment.fields.position' | transloco }}
-              </div>
+          <app-form-section
+            [title]="'recruitment.requisitionForm.roleSection' | transloco"
+            [description]="'recruitment.requisitionForm.positionIntro' | transloco"
+          >
+            <app-form-field
+              span="full"
+              [label]="'recruitment.fields.position' | transloco"
+              [hint]="prefilled() ? ('recruitment.requisitionForm.prefilled' | transloco) : ''"
+            >
               @if (positionRef(); as ref) {
-                <div class="flex flex-wrap items-center gap-2" data-testid="req-form-position">
+                <div
+                  class="flex min-h-10 flex-wrap items-center gap-2"
+                  data-testid="req-form-position"
+                >
                   <app-entity-chip [ref]="ref" [showType]="false" />
                   @if (!locked()) {
                     <button
@@ -165,145 +176,141 @@ const DEFAULT_CHECKS: CheckPolicy = {
                   (picked)="pickPosition($event)"
                 />
               }
-              @if (prefilled()) {
-                <p class="mt-1.5 text-meta text-pass-ink" role="status">
-                  {{ 'recruitment.requisitionForm.prefilled' | transloco }}
-                </p>
-              }
-            </div>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.title"
-                inputId="req-title"
-                help="title"
-                [required]="true"
-                [error]="shown()['title']"
+            </app-form-field>
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.title"
+              inputId="req-title"
+              help="title"
+              [required]="true"
+              [error]="shown()['title']"
+            >
+              <input
+                id="req-title"
+                required
+                maxlength="255"
+                [value]="draft().title"
+                (input)="set('title', $any($event.target).value)"
+                data-testid="req-title"
+              />
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.department"
+              inputId="req-department"
+            >
+              <select
+                id="req-department"
+                [disabled]="locked()"
+                (change)="set('department_id', $any($event.target).value)"
               >
-                <input
-                  id="req-title"
-                  required
-                  maxlength="255"
-                  [value]="draft().title"
-                  (input)="set('title', $any($event.target).value)"
-                  [attr.aria-invalid]="!!shown()['title']"
-                  [attr.aria-describedby]="shown()['title'] ? 'req-title-err' : null"
-                  data-testid="req-title"
-                />
-              </app-recruitment-field>
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.description"
-                inputId="req-description"
-              >
-                <textarea
-                  id="req-description"
-                  rows="4"
-                  maxlength="20000"
-                  [value]="draft().description"
-                  (input)="set('description', $any($event.target).value)"
-                ></textarea>
-              </app-recruitment-field>
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.justification"
-                inputId="req-justification"
-                help="justification"
-                [ask]="'recruitment.ask.justification' | transloco"
-                [requirements]="justificationRefs"
-              >
-                <textarea
-                  id="req-justification"
-                  rows="3"
-                  maxlength="5000"
-                  [disabled]="locked()"
-                  [value]="draft().justification"
-                  (input)="set('justification', $any($event.target).value)"
-                ></textarea>
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.department"
-                inputId="req-department"
-              >
-                <select
-                  id="req-department"
-                  [disabled]="locked()"
-                  (change)="set('department_id', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!draft().department_id">
-                    {{ 'common.empty.notSet' | transloco }}
+                <option value="" [selected]="!draft().department_id">
+                  {{ 'common.empty.notSet' | transloco }}
+                </option>
+                @for (d of people.departments(); track d.id) {
+                  <option [value]="d.id" [selected]="d.id === draft().department_id">
+                    {{ d.name }}
                   </option>
-                  @for (d of people.departments(); track d.id) {
-                    <option [value]="d.id" [selected]="d.id === draft().department_id">
-                      {{ d.name }}
-                    </option>
-                  }
-                </select>
-              </app-recruitment-field>
-              <app-recruitment-field labelKey="recruitment.fields.location" inputId="req-location">
-                <input
-                  id="req-location"
-                  maxlength="200"
-                  [value]="draft().location"
-                  (input)="set('location', $any($event.target).value)"
-                />
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.employmentType"
-                inputId="req-type"
-                [required]="true"
+                }
+              </select>
+            </app-recruitment-field>
+            <app-recruitment-field labelKey="recruitment.fields.location" inputId="req-location">
+              <input
+                id="req-location"
+                maxlength="200"
+                [value]="draft().location"
+                (input)="set('location', $any($event.target).value)"
+              />
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.employmentType"
+              inputId="req-type"
+              [required]="true"
+            >
+              <select
+                id="req-type"
+                [disabled]="locked()"
+                (change)="set('employment_type', $any($event.target).value)"
               >
-                <select
-                  id="req-type"
-                  [disabled]="locked()"
-                  (change)="set('employment_type', $any($event.target).value)"
-                >
-                  @for (t of employmentTypes; track t) {
-                    <option [value]="t" [selected]="t === draft().employment_type">
-                      {{ 'recruitment.employmentType.' + t | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.headcount"
-                inputId="req-headcount"
-                [required]="true"
-                [error]="shown()['headcount']"
+                @for (t of employmentTypes; track t) {
+                  <option [value]="t" [selected]="t === draft().employment_type">
+                    {{ 'recruitment.employmentType.' + t | transloco }}
+                  </option>
+                }
+              </select>
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.headcount"
+              inputId="req-headcount"
+              [required]="true"
+              [error]="shown()['headcount']"
+            >
+              <input
+                id="req-headcount"
+                type="number"
+                min="1"
+                max="500"
+                [disabled]="locked()"
+                [value]="draft().headcount"
+                (input)="set('headcount', +$any($event.target).value)"
+              />
+            </app-recruitment-field>
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.description"
+              inputId="req-description"
+            >
+              <textarea
+                id="req-description"
+                rows="4"
+                maxlength="20000"
+                [value]="draft().description"
+                (input)="set('description', $any($event.target).value)"
+              ></textarea>
+            </app-recruitment-field>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'recruitment.requisitionForm.needSection' | transloco"
+            [description]="'recruitment.requisitionForm.needHint' | transloco"
+          >
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.justification"
+              inputId="req-justification"
+              help="justification"
+              [ask]="'recruitment.ask.justification' | transloco"
+              [requirements]="justificationRefs"
+            >
+              <textarea
+                id="req-justification"
+                rows="3"
+                maxlength="5000"
+                [disabled]="locked()"
+                [value]="draft().justification"
+                (input)="set('justification', $any($event.target).value)"
+              ></textarea>
+            </app-recruitment-field>
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.roleRisk"
+              inputId="req-risk"
+              help="role_risk"
+              [required]="true"
+              [ask]="'recruitment.ask.roleRisk' | transloco"
+              [requirements]="riskRefs"
+            >
+              <select
+                id="req-risk"
+                [disabled]="locked()"
+                (change)="set('role_risk', $any($event.target).value)"
               >
-                <input
-                  id="req-headcount"
-                  type="number"
-                  min="1"
-                  max="500"
-                  [disabled]="locked()"
-                  [value]="draft().headcount"
-                  (input)="set('headcount', +$any($event.target).value)"
-                  [attr.aria-invalid]="!!shown()['headcount']"
-                />
-              </app-recruitment-field>
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.roleRisk"
-                inputId="req-risk"
-                help="role_risk"
-                [required]="true"
-                [ask]="'recruitment.ask.roleRisk' | transloco"
-                [requirements]="riskRefs"
-              >
-                <select
-                  id="req-risk"
-                  [disabled]="locked()"
-                  (change)="set('role_risk', $any($event.target).value)"
-                >
-                  @for (r of risks; track r) {
-                    <option [value]="r" [selected]="r === draft().role_risk">
-                      {{ 'recruitment.roleRisk.' + r | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-recruitment-field>
-              <p class="-mt-2 text-meta text-fg-muted sm:col-span-2" data-testid="required-checks">
+                @for (r of risks; track r) {
+                  <option [value]="r" [selected]="r === draft().role_risk">
+                    {{ 'recruitment.roleRisk.' + r | transloco }}
+                  </option>
+                }
+              </select>
+              <p class="text-meta leading-snug text-fg-subtle" data-testid="required-checks">
                 {{ 'recruitment.requisitionForm.checksForRisk' | transloco }}
                 {{ checksText() }}
                 @if (draft().role_risk === 'high') {
@@ -312,85 +319,82 @@ const DEFAULT_CHECKS: CheckPolicy = {
                   }}</span>
                 }
               </p>
-              <app-recruitment-field
-                labelKey="recruitment.fields.targetStartDate"
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.hiringManager"
+              inputId="req-manager"
+            >
+              <select
+                id="req-manager"
+                (change)="set('hiring_manager_user_id', $any($event.target).value)"
+              >
+                <option value="" [selected]="!draft().hiring_manager_user_id">
+                  {{ 'common.empty.notSet' | transloco }}
+                </option>
+                @for (u of people.users(); track u.id) {
+                  <option [value]="u.id" [selected]="u.id === draft().hiring_manager_user_id">
+                    {{ u.name }}
+                  </option>
+                }
+              </select>
+            </app-recruitment-field>
+            <app-recruitment-field labelKey="recruitment.fields.recruiter" inputId="req-recruiter">
+              <select
+                id="req-recruiter"
+                (change)="set('recruiter_user_id', $any($event.target).value)"
+              >
+                <option value="" [selected]="!draft().recruiter_user_id">
+                  {{ 'common.empty.notSet' | transloco }}
+                </option>
+                @for (u of people.users(); track u.id) {
+                  <option [value]="u.id" [selected]="u.id === draft().recruiter_user_id">
+                    {{ u.name }}
+                  </option>
+                }
+              </select>
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.targetStartDate"
+              inputId="req-start"
+            >
+              <app-date-input
                 inputId="req-start"
-              >
-                <input
-                  id="req-start"
-                  type="date"
-                  [value]="draft().target_start_date"
-                  (input)="set('target_start_date', $any($event.target).value)"
-                />
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.hiringManager"
-                inputId="req-manager"
-              >
-                <select
-                  id="req-manager"
-                  (change)="set('hiring_manager_user_id', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!draft().hiring_manager_user_id">
-                    {{ 'common.empty.notSet' | transloco }}
-                  </option>
-                  @for (u of people.users(); track u.id) {
-                    <option [value]="u.id" [selected]="u.id === draft().hiring_manager_user_id">
-                      {{ u.name }}
-                    </option>
-                  }
-                </select>
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.recruiter"
-                inputId="req-recruiter"
-              >
-                <select
-                  id="req-recruiter"
-                  (change)="set('recruiter_user_id', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!draft().recruiter_user_id">
-                    {{ 'common.empty.notSet' | transloco }}
-                  </option>
-                  @for (u of people.users(); track u.id) {
-                    <option [value]="u.id" [selected]="u.id === draft().recruiter_user_id">
-                      {{ u.name }}
-                    </option>
-                  }
-                </select>
-              </app-recruitment-field>
-            </div>
-          </app-card>
+                [value]="draft().target_start_date"
+                (changed)="set('target_start_date', $event)"
+              />
+            </app-recruitment-field>
+          </app-form-section>
 
-          <app-card>
-            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="flex flex-wrap items-center gap-1.5 text-section font-bold text-fg">
-                {{ 'recruitment.requisitionForm.criteriaSection' | transloco }}
-                <app-field-help
-                  scope="recruitment"
-                  page="requisitionForm"
-                  field="screening_criteria"
-                  [requirements]="criteriaRefs"
-                />
-                <app-ask-about
-                  field="screening_criteria"
-                  [prompt]="'recruitment.ask.criteria' | transloco"
-                  [requirements]="criteriaRefs"
-                />
-              </h2>
-              @if (canWrite()) {
-                <app-ai-assist-button
-                  assist="recruitment.suggest_criteria"
-                  labelKey="recruitment.ai.suggestCriteria"
-                  [input]="{ title: draft().title, description: draft().description }"
-                  [disabled]="!draft().title.trim()"
-                  (result)="onCriteria($event)"
-                />
-              }
-            </div>
+          <app-form-section
+            [title]="'recruitment.requisitionForm.criteriaSection' | transloco"
+            [description]="'recruitment.requisitionForm.criteriaHint' | transloco"
+            [columns]="1"
+          >
+            <app-field-help
+              title-suffix
+              scope="recruitment"
+              page="requisitionForm"
+              field="screening_criteria"
+              [requirements]="criteriaRefs"
+            />
+            <app-ask-about
+              title-suffix
+              field="screening_criteria"
+              [prompt]="'recruitment.ask.criteria' | transloco"
+              [requirements]="criteriaRefs"
+            />
+            @if (canWrite()) {
+              <app-ai-assist-button
+                section-actions
+                assist="recruitment.suggest_criteria"
+                labelKey="recruitment.ai.suggestCriteria"
+                [input]="{ title: draft().title, description: draft().description }"
+                [disabled]="!draft().title.trim()"
+                (result)="onCriteria($event)"
+              />
+            }
             @if (suggestions().length > 0) {
               <app-recruitment-ai-output
-                class="my-3"
                 useLabelKey="recruitment.ai.addAll"
                 (used)="addSuggestions(suggestions())"
                 (dismissed)="suggestions.set([])"
@@ -421,75 +425,72 @@ const DEFAULT_CHECKS: CheckPolicy = {
               (criteriaChange)="set('screening_criteria', $event)"
               [disabled]="!canWrite()"
             />
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="text-section font-bold text-fg">
-                {{ 'recruitment.requisitionForm.postingSection' | transloco }}
-              </h2>
-              @if (canWrite()) {
-                <app-ai-assist-button
-                  assist="recruitment.draft_job_ad"
-                  labelKey="recruitment.ai.draftJobAd"
-                  [input]="jobAdInput()"
-                  [disabled]="!draft().title.trim()"
-                  (text)="jobAd.set($event)"
-                />
-              }
-            </div>
+          <app-form-section
+            [title]="'recruitment.requisitionForm.postingSection' | transloco"
+            [description]="'recruitment.requisitionForm.postingHint' | transloco"
+          >
+            @if (canWrite()) {
+              <app-ai-assist-button
+                section-actions
+                assist="recruitment.draft_job_ad"
+                labelKey="recruitment.ai.draftJobAd"
+                [input]="jobAdInput()"
+                [disabled]="!draft().title.trim()"
+                (text)="jobAd.set($event)"
+              />
+            }
             @if (jobAd()) {
               <app-recruitment-ai-output
-                class="mb-3"
+                class="sm:col-span-2"
                 [text]="jobAd()"
                 useLabelKey="recruitment.ai.useAsPosting"
                 (used)="usePosting()"
                 (dismissed)="jobAd.set(null)"
               />
             }
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.postingTitle"
-                inputId="req-posting-title"
-              >
-                <input
-                  id="req-posting-title"
-                  maxlength="255"
-                  [value]="draft().posting_title"
-                  (input)="set('posting_title', $any($event.target).value)"
-                />
-              </app-recruitment-field>
-              <app-recruitment-field
-                class="sm:col-span-2"
-                labelKey="recruitment.fields.postingText"
-                inputId="req-posting-text"
-                help="posting_text"
-              >
-                <textarea
-                  id="req-posting-text"
-                  rows="8"
-                  maxlength="20000"
-                  [value]="draft().posting_text"
-                  (input)="set('posting_text', $any($event.target).value)"
-                ></textarea>
-              </app-recruitment-field>
-              <app-recruitment-field
-                labelKey="recruitment.fields.postingClosesAt"
-                inputId="req-closes"
-              >
-                <input
-                  id="req-closes"
-                  type="datetime-local"
-                  [value]="draft().posting_closes_at"
-                  (input)="set('posting_closes_at', $any($event.target).value)"
-                />
-              </app-recruitment-field>
-            </div>
-          </app-card>
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.postingTitle"
+              inputId="req-posting-title"
+            >
+              <input
+                id="req-posting-title"
+                maxlength="255"
+                [value]="draft().posting_title"
+                (input)="set('posting_title', $any($event.target).value)"
+              />
+            </app-recruitment-field>
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.fields.postingText"
+              inputId="req-posting-text"
+              help="posting_text"
+            >
+              <textarea
+                id="req-posting-text"
+                rows="8"
+                maxlength="20000"
+                [value]="draft().posting_text"
+                (input)="set('posting_text', $any($event.target).value)"
+              ></textarea>
+            </app-recruitment-field>
+            <app-recruitment-field
+              labelKey="recruitment.fields.postingClosesAt"
+              inputId="req-closes"
+            >
+              <input
+                id="req-closes"
+                type="datetime-local"
+                [value]="draft().posting_closes_at"
+                (input)="set('posting_closes_at', $any($event.target).value)"
+              />
+            </app-recruitment-field>
+          </app-form-section>
 
           @if (editId()) {
-            <app-card>
+            <app-form-section [columns]="1">
               <app-recruitment-field
                 labelKey="recruitment.fields.changeReason"
                 inputId="req-reason"
@@ -502,15 +503,10 @@ const DEFAULT_CHECKS: CheckPolicy = {
                   (input)="changeReason.set($any($event.target).value)"
                 />
               </app-recruitment-field>
-            </app-card>
+            </app-form-section>
           }
 
-          @if (saveError(); as key) {
-            <app-alert>{{ key | transloco }}</app-alert>
-          }
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-          >
+          <app-form-actions [message]="saveError() ? (saveError()! | transloco) : ''">
             <a [routerLink]="backLink()">
               <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
             </a>
@@ -525,7 +521,7 @@ const DEFAULT_CHECKS: CheckPolicy = {
                   | transloco
               }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
         <app-why-it-matters class="mt-8 block" scope="recruitment" page="requisitionForm" />
       }

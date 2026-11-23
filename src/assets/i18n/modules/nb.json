@@ -168,7 +168,8 @@
       "basics": "Om organisasjonen",
       "frameworks": "Standarder i omfang",
       "targets": "Sertifiseringsmål",
-      "sites": "Lokasjoner"
+      "sites": "Lokasjoner",
+      "basicsHint": "Bransje, størrelse og land. CoreFlow bruker dette i forslag og svar."
     },
     "industry": "Bransje",
     "sizeBand": "Størrelse",
@@ -192,7 +193,8 @@
     "errors": {
       "countries": "Bruk landkoder på to bokstaver skilt med komma, for eksempel NO, SE.",
       "site": "En lokasjon trenger et navn og en landkode på to bokstaver.",
-      "save": "Profilen kunne ikke lagres. Sjekk feltene og prøv igjen."
+      "save": "Profilen kunne ikke lagres. Sjekk feltene og prøv igjen.",
+      "fix": "Rett feltene som er markert."
     },
     "savedToast": "Organisasjonsprofilen er lagret.",
     "standardOn": "Slått på i Standarder og krav",

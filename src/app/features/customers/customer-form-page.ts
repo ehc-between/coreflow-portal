@@ -27,7 +27,8 @@ import {
 import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { DateInput } from '../../shared/ui/date-input/date-input';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { FormField } from '../../shared/ui/form-field/form-field';
@@ -166,7 +167,8 @@ const PREFILL_FIELDS: readonly (keyof CustomerDraft)[] = [
     FlowBanner,
     Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     DateInput,
     ErrorState,
     FormField,
@@ -176,7 +178,7 @@ const PREFILL_FIELDS: readonly (keyof CustomerDraft)[] = [
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="titleKey()"
         [title]="isEdit() ? loadedName() : null"
@@ -185,7 +187,7 @@ const PREFILL_FIELDS: readonly (keyof CustomerDraft)[] = [
         backLabelKey="customers.common.back"
       />
       @if (!isEdit()) {
-        <app-flow-banner [flow]="flow()" />
+        <app-flow-banner class="empty:hidden" [flow]="flow()" />
       }
 
       @switch (state()) {
@@ -197,7 +199,7 @@ const PREFILL_FIELDS: readonly (keyof CustomerDraft)[] = [
         }
         @default {
           @if (error(); as key) {
-            <div class="mb-4" data-testid="form-error">
+            <div data-testid="form-error">
               <app-alert>
                 {{ key | transloco }}
                 @if (taken(); as t) {
@@ -209,326 +211,306 @@ const PREFILL_FIELDS: readonly (keyof CustomerDraft)[] = [
             </div>
           }
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-            <app-card>
-              <h2 class="mb-3 font-display text-card font-bold text-fg">
-                {{ 'customers.form.sections.company' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-form-field
-                  [label]="'customers.fields.orgNumber' | transloco"
-                  inputId="cus-orgnr"
-                >
-                  <input
-                    id="cus-orgnr"
-                    type="text"
-                    inputmode="numeric"
-                    maxlength="32"
-                    autocomplete="off"
-                    aria-describedby="cus-orgnr-note"
-                    [value]="d().org_number"
-                    (input)="onOrgNumber($any($event.target).value)"
-                    (blur)="lookup()"
-                    data-testid="orgnr-input"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'customers.fields.country' | transloco"
-                  inputId="cus-country"
-                >
-                  <input
-                    id="cus-country"
-                    type="text"
-                    maxlength="2"
-                    autocomplete="country"
-                    [value]="d().country"
-                    (input)="set('country', $any($event.target).value.toUpperCase())"
-                  />
-                </app-form-field>
-                <div
-                  id="cus-orgnr-note"
-                  class="flex flex-col gap-1.5 empty:hidden sm:col-span-2"
-                  aria-live="polite"
-                >
-                  @switch (lookupState().kind) {
-                    @case ('loading') {
-                      <p class="text-meta text-fg-muted" data-testid="lookup-loading">
-                        {{ 'customers.lookup.loading' | transloco }}
-                      </p>
-                    }
-                    @case ('notFound') {
-                      <p class="text-meta text-fg-muted" data-testid="lookup-not-found">
-                        {{ 'customers.lookup.notFound' | transloco }}
-                      </p>
-                    }
-                    @case ('unavailable') {
-                      <p class="text-meta text-warn-ink" data-testid="lookup-unavailable">
-                        {{ 'customers.lookup.unavailable' | transloco }}
-                      </p>
-                    }
-                  }
-                  @if (found(); as f) {
-                    @if (f.filled.length) {
-                      <p class="text-meta text-fg-muted" data-testid="lookup-filled">
-                        {{ 'customers.lookup.filled' | transloco }}
-                      </p>
-                    } @else {
-                      <p class="text-meta text-fg-muted" data-testid="lookup-nothing">
-                        {{ 'customers.lookup.nothingToFill' | transloco }}
-                      </p>
-                    }
-                    @if (f.existing; as e) {
-                      <p
-                        class="text-meta font-semibold text-warn-ink"
-                        data-testid="lookup-existing"
-                      >
-                        {{ 'customers.lookup.exists' | transloco: { name: e.name } }}
-                        <a [routerLink]="['/customers', e.id]" class="ml-1 text-accent underline">
-                          {{ 'customers.lookup.open' | transloco }}
-                        </a>
-                      </p>
-                    }
-                    @if (f.supplier; as s) {
-                      <p class="text-meta text-fg-muted" data-testid="lookup-supplier">
-                        {{ 'customers.lookup.alsoSupplier' | transloco: { name: s.name } }}
-                      </p>
-                    }
-                  }
-                  @if (checksumWarning()) {
-                    <p class="text-meta text-warn-ink" data-testid="orgnr-checksum">
-                      {{ 'customers.form.checksumWarning' | transloco }}
-                    </p>
-                  }
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'customers.fields.name' | transloco"
-                    inputId="cus-name"
-                    [required]="true"
-                  >
-                    <input
-                      id="cus-name"
-                      type="text"
-                      maxlength="255"
-                      required
-                      aria-required="true"
-                      [attr.aria-invalid]="showErrors() && !d().name.trim()"
-                      [value]="d().name"
-                      (input)="set('name', $any($event.target).value)"
-                      data-testid="name-input"
-                    />
-                  </app-form-field>
-                  @if (showErrors() && !d().name.trim()) {
-                    <p class="mt-1 text-meta text-fail-ink" role="alert">
-                      {{ 'customers.form.nameRequired' | transloco }}
-                    </p>
-                  }
-                </div>
-                <app-form-field
-                  [label]="'customers.fields.legalName' | transloco"
-                  inputId="cus-legal"
-                >
-                  <input
-                    id="cus-legal"
-                    type="text"
-                    maxlength="255"
-                    [value]="d().legal_name"
-                    (input)="set('legal_name', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field [label]="'customers.fields.orgForm' | transloco" inputId="cus-form">
-                  <input
-                    id="cus-form"
-                    type="text"
-                    maxlength="16"
-                    [value]="d().org_form"
-                    (input)="set('org_form', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'customers.fields.address' | transloco"
-                    inputId="cus-address"
-                  >
-                    <input
-                      id="cus-address"
-                      type="text"
-                      maxlength="255"
-                      autocomplete="street-address"
-                      [value]="d().address_line"
-                      (input)="set('address_line', $any($event.target).value)"
-                      data-testid="address-input"
-                    />
-                  </app-form-field>
-                </div>
-                <app-form-field
-                  [label]="'customers.fields.postalCode' | transloco"
-                  inputId="cus-postal"
-                >
-                  <input
-                    id="cus-postal"
-                    type="text"
-                    maxlength="16"
-                    autocomplete="postal-code"
-                    [value]="d().postal_code"
-                    (input)="set('postal_code', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field [label]="'customers.fields.city' | transloco" inputId="cus-city">
-                  <input
-                    id="cus-city"
-                    type="text"
-                    maxlength="100"
-                    [value]="d().city"
-                    (input)="set('city', $any($event.target).value)"
-                    data-testid="city-input"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'customers.fields.industryCode' | transloco"
-                  inputId="cus-nace"
-                >
-                  <input
-                    id="cus-nace"
-                    type="text"
-                    maxlength="16"
-                    [value]="d().industry_code"
-                    (input)="set('industry_code', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'customers.fields.industry' | transloco"
-                  inputId="cus-industry"
-                >
-                  <input
-                    id="cus-industry"
-                    type="text"
-                    maxlength="255"
-                    [value]="d().industry_label"
-                    (input)="set('industry_label', $any($event.target).value)"
-                  />
-                </app-form-field>
-              </div>
-            </app-card>
-
-            <app-card>
-              <h2 class="mb-3 font-display text-card font-bold text-fg">
-                {{ 'customers.form.sections.relationship' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-form-field
-                  [label]="'customers.fields.status' | transloco"
-                  inputId="cus-status"
-                >
-                  <select id="cus-status" (change)="set('status', $any($event.target).value)">
-                    @for (s of statuses; track s) {
-                      <option [value]="s" [selected]="d().status === s">
-                        {{ 'customers.status.' + s | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-form-field
-                  [label]="'customers.fields.segment' | transloco"
-                  inputId="cus-segment"
-                >
-                  <input
-                    id="cus-segment"
-                    type="text"
-                    maxlength="64"
-                    list="cus-segments"
-                    [value]="d().segment"
-                    (input)="set('segment', $any($event.target).value)"
-                  />
-                  <datalist id="cus-segments">
-                    @for (s of segments(); track s) {
-                      <option [value]="s"></option>
-                    }
-                  </datalist>
-                </app-form-field>
-                <app-form-field [label]="'customers.fields.owner' | transloco" inputId="cus-owner">
-                  <app-customer-owner-select
-                    inputId="cus-owner"
-                    [value]="d().owner_user_id"
-                    [currentName]="ownerName()"
-                    (valueChange)="set('owner_user_id', $event)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'customers.fields.customerSince' | transloco"
-                  inputId="cus-since"
-                >
-                  <app-date-input
-                    inputId="cus-since"
-                    [value]="d().customer_since"
-                    (changed)="set('customer_since', $event)"
-                  />
-                </app-form-field>
-              </div>
-            </app-card>
-
-            <app-card>
-              <h2 class="mb-3 font-display text-card font-bold text-fg">
-                {{ 'customers.form.sections.contact' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-form-field [label]="'customers.fields.email' | transloco" inputId="cus-email">
-                  <input
-                    id="cus-email"
-                    type="email"
-                    maxlength="320"
-                    [value]="d().email"
-                    (input)="set('email', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field [label]="'customers.fields.phone' | transloco" inputId="cus-phone">
-                  <input
-                    id="cus-phone"
-                    type="tel"
-                    maxlength="64"
-                    [value]="d().phone"
-                    (input)="set('phone', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'customers.fields.website' | transloco"
-                    inputId="cus-web"
-                  >
-                    <input
-                      id="cus-web"
-                      type="url"
-                      maxlength="500"
-                      [value]="d().website"
-                      (input)="set('website', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                </div>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'customers.fields.description' | transloco"
-                    inputId="cus-desc"
-                  >
-                    <textarea
-                      id="cus-desc"
-                      rows="4"
-                      [value]="d().description"
-                      (input)="set('description', $any($event.target).value)"
-                    ></textarea>
-                  </app-form-field>
-                </div>
-              </div>
-            </app-card>
-
-            <div
-              class="sticky bottom-0 -mx-4 flex justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
+            <app-form-section
+              [title]="'customers.form.sections.company' | transloco"
+              [description]="'customers.form.sections.companyHint' | transloco"
             >
+              <app-form-field
+                [label]="'customers.fields.orgNumber' | transloco"
+                inputId="cus-orgnr"
+              >
+                <input
+                  id="cus-orgnr"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="32"
+                  autocomplete="off"
+                  aria-describedby="cus-orgnr-note"
+                  [value]="d().org_number"
+                  (input)="onOrgNumber($any($event.target).value)"
+                  (blur)="lookup()"
+                  data-testid="orgnr-input"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.country' | transloco"
+                inputId="cus-country"
+              >
+                <input
+                  id="cus-country"
+                  type="text"
+                  maxlength="2"
+                  autocomplete="country"
+                  [value]="d().country"
+                  (input)="set('country', $any($event.target).value.toUpperCase())"
+                />
+              </app-form-field>
+              <div
+                id="cus-orgnr-note"
+                class="flex flex-col gap-1.5 empty:hidden sm:col-span-2"
+                aria-live="polite"
+              >
+                @switch (lookupState().kind) {
+                  @case ('loading') {
+                    <p class="text-meta text-fg-muted" data-testid="lookup-loading">
+                      {{ 'customers.lookup.loading' | transloco }}
+                    </p>
+                  }
+                  @case ('notFound') {
+                    <p class="text-meta text-fg-muted" data-testid="lookup-not-found">
+                      {{ 'customers.lookup.notFound' | transloco }}
+                    </p>
+                  }
+                  @case ('unavailable') {
+                    <p class="text-meta text-warn-ink" data-testid="lookup-unavailable">
+                      {{ 'customers.lookup.unavailable' | transloco }}
+                    </p>
+                  }
+                }
+                @if (found(); as f) {
+                  @if (f.filled.length) {
+                    <p class="text-meta text-fg-muted" data-testid="lookup-filled">
+                      {{ 'customers.lookup.filled' | transloco }}
+                    </p>
+                  } @else {
+                    <p class="text-meta text-fg-muted" data-testid="lookup-nothing">
+                      {{ 'customers.lookup.nothingToFill' | transloco }}
+                    </p>
+                  }
+                  @if (f.existing; as e) {
+                    <p class="text-meta font-semibold text-warn-ink" data-testid="lookup-existing">
+                      {{ 'customers.lookup.exists' | transloco: { name: e.name } }}
+                      <a [routerLink]="['/customers', e.id]" class="ml-1 text-accent underline">
+                        {{ 'customers.lookup.open' | transloco }}
+                      </a>
+                    </p>
+                  }
+                  @if (f.supplier; as s) {
+                    <p class="text-meta text-fg-muted" data-testid="lookup-supplier">
+                      {{ 'customers.lookup.alsoSupplier' | transloco: { name: s.name } }}
+                    </p>
+                  }
+                }
+                @if (checksumWarning()) {
+                  <p class="text-meta text-warn-ink" data-testid="orgnr-checksum">
+                    {{ 'customers.form.checksumWarning' | transloco }}
+                  </p>
+                }
+              </div>
+              <app-form-field
+                span="full"
+                [label]="'customers.fields.name' | transloco"
+                inputId="cus-name"
+                [required]="true"
+                [error]="
+                  showErrors() && !d().name.trim()
+                    ? ('customers.form.nameRequired' | transloco)
+                    : ''
+                "
+              >
+                <input
+                  id="cus-name"
+                  type="text"
+                  maxlength="255"
+                  required
+                  [value]="d().name"
+                  (input)="set('name', $any($event.target).value)"
+                  data-testid="name-input"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.legalName' | transloco"
+                inputId="cus-legal"
+              >
+                <input
+                  id="cus-legal"
+                  type="text"
+                  maxlength="255"
+                  [value]="d().legal_name"
+                  (input)="set('legal_name', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field [label]="'customers.fields.orgForm' | transloco" inputId="cus-form">
+                <input
+                  id="cus-form"
+                  type="text"
+                  maxlength="16"
+                  [value]="d().org_form"
+                  (input)="set('org_form', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
+                [label]="'customers.fields.address' | transloco"
+                inputId="cus-address"
+              >
+                <input
+                  id="cus-address"
+                  type="text"
+                  maxlength="255"
+                  autocomplete="street-address"
+                  [value]="d().address_line"
+                  (input)="set('address_line', $any($event.target).value)"
+                  data-testid="address-input"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.postalCode' | transloco"
+                inputId="cus-postal"
+              >
+                <input
+                  id="cus-postal"
+                  type="text"
+                  maxlength="16"
+                  autocomplete="postal-code"
+                  [value]="d().postal_code"
+                  (input)="set('postal_code', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field [label]="'customers.fields.city' | transloco" inputId="cus-city">
+                <input
+                  id="cus-city"
+                  type="text"
+                  maxlength="100"
+                  [value]="d().city"
+                  (input)="set('city', $any($event.target).value)"
+                  data-testid="city-input"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.industryCode' | transloco"
+                inputId="cus-nace"
+              >
+                <input
+                  id="cus-nace"
+                  type="text"
+                  maxlength="16"
+                  [value]="d().industry_code"
+                  (input)="set('industry_code', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.industry' | transloco"
+                inputId="cus-industry"
+              >
+                <input
+                  id="cus-industry"
+                  type="text"
+                  maxlength="255"
+                  [value]="d().industry_label"
+                  (input)="set('industry_label', $any($event.target).value)"
+                />
+              </app-form-field>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'customers.form.sections.relationship' | transloco"
+              [description]="'customers.form.sections.relationshipHint' | transloco"
+            >
+              <app-form-field [label]="'customers.fields.status' | transloco" inputId="cus-status">
+                <select id="cus-status" (change)="set('status', $any($event.target).value)">
+                  @for (s of statuses; track s) {
+                    <option [value]="s" [selected]="d().status === s">
+                      {{ 'customers.status.' + s | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.segment' | transloco"
+                inputId="cus-segment"
+              >
+                <input
+                  id="cus-segment"
+                  type="text"
+                  maxlength="64"
+                  list="cus-segments"
+                  [value]="d().segment"
+                  (input)="set('segment', $any($event.target).value)"
+                />
+                <datalist id="cus-segments">
+                  @for (s of segments(); track s) {
+                    <option [value]="s"></option>
+                  }
+                </datalist>
+              </app-form-field>
+              <app-form-field [label]="'customers.fields.owner' | transloco" inputId="cus-owner">
+                <app-customer-owner-select
+                  inputId="cus-owner"
+                  [value]="d().owner_user_id"
+                  [currentName]="ownerName()"
+                  (valueChange)="set('owner_user_id', $event)"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'customers.fields.customerSince' | transloco"
+                inputId="cus-since"
+              >
+                <app-date-input
+                  inputId="cus-since"
+                  [value]="d().customer_since"
+                  (changed)="set('customer_since', $event)"
+                />
+              </app-form-field>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'customers.form.sections.contact' | transloco"
+              [description]="'customers.form.sections.contactHint' | transloco"
+            >
+              <app-form-field [label]="'customers.fields.email' | transloco" inputId="cus-email">
+                <input
+                  id="cus-email"
+                  type="email"
+                  maxlength="320"
+                  [value]="d().email"
+                  (input)="set('email', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field [label]="'customers.fields.phone' | transloco" inputId="cus-phone">
+                <input
+                  id="cus-phone"
+                  type="tel"
+                  maxlength="64"
+                  [value]="d().phone"
+                  (input)="set('phone', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
+                [label]="'customers.fields.website' | transloco"
+                inputId="cus-web"
+              >
+                <input
+                  id="cus-web"
+                  type="url"
+                  maxlength="500"
+                  [value]="d().website"
+                  (input)="set('website', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
+                [label]="'customers.fields.description' | transloco"
+                inputId="cus-desc"
+              >
+                <textarea
+                  id="cus-desc"
+                  rows="4"
+                  [value]="d().description"
+                  (input)="set('description', $any($event.target).value)"
+                ></textarea>
+              </app-form-field>
+            </app-form-section>
+
+            <app-form-actions>
               <app-button variant="secondary" (click)="cancel()">
                 {{ 'customers.common.cancel' | transloco }}
               </app-button>
               <app-button type="submit" [loading]="busy()" data-testid="save-customer">
                 {{ 'customers.common.save' | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
         }
       }

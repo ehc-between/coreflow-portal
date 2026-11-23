@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldDef } from '../../core/deviations/deviation.models';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 /** A pickable subject (org user or department) for `user` / `department` fields. */
 export interface DynamicFieldOption {
@@ -21,51 +23,72 @@ export interface DynamicFieldOption {
  */
 @Component({
   selector: 'app-dynamic-field',
-  imports: [FormsModule, TranslocoPipe],
+  imports: [FormsModule, TranslocoPipe, DateInput, FormField],
+  host: { class: 'block min-w-0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-1.5">
-      @if (field().type !== 'checkbox') {
-        <label [attr.for]="controlId()" class="text-ui font-semibold text-fg-muted">
+    @if (field().type === 'checkbox') {
+      <!-- A single on/off option: one 40 px bordered row, aligned with neighbouring controls. -->
+      <div class="flex flex-col gap-1.5 sm:pt-[30px]">
+        <label
+          class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+        >
+          <input
+            [id]="controlId()"
+            type="checkbox"
+            [ngModel]="booleanValue()"
+            (ngModelChange)="valueChange.emit($event)"
+            class="h-4 w-4 accent-[var(--accent)]"
+          />
           {{ field().label }}
           @if (field().required) {
             <span class="text-fail-ink" aria-hidden="true">*</span>
           }
         </label>
-      }
-
-      @switch (field().type) {
-        @case ('textarea') {
-          <textarea
-            [id]="controlId()"
-            [ngModel]="stringValue()"
-            (ngModelChange)="valueChange.emit($event)"
-            [placeholder]="field().placeholder ?? ''"
-            rows="3"
-            class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-          ></textarea>
+        @if (field().help) {
+          <p class="text-meta leading-snug text-fg-subtle">{{ field().help }}</p>
         }
-        @case ('number') {
-          <input
-            [id]="controlId()"
-            type="number"
-            [ngModel]="value()"
-            (ngModelChange)="valueChange.emit($event)"
-            [placeholder]="field().placeholder ?? ''"
-            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-          />
+        @if (error()) {
+          <p class="text-meta leading-snug font-medium text-fail-ink">
+            {{ error()! | transloco }}
+          </p>
         }
-        @case ('date') {
-          <input
-            [id]="controlId()"
-            type="date"
-            [ngModel]="stringValue()"
-            (ngModelChange)="valueChange.emit($event)"
-            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-          />
-        }
-        @case ('select') {
-          <div class="cf-select">
+      </div>
+    } @else {
+      <app-form-field
+        [label]="field().label"
+        [inputId]="field().type === 'multiselect' ? '' : controlId()"
+        [required]="!!field().required"
+        [hint]="field().help ?? ''"
+        [error]="error() ? (error()! | transloco) : ''"
+      >
+        @switch (field().type) {
+          @case ('textarea') {
+            <textarea
+              [id]="controlId()"
+              [ngModel]="stringValue()"
+              (ngModelChange)="valueChange.emit($event)"
+              [placeholder]="field().placeholder ?? ''"
+              rows="3"
+            ></textarea>
+          }
+          @case ('number') {
+            <input
+              [id]="controlId()"
+              type="number"
+              [ngModel]="value()"
+              (ngModelChange)="valueChange.emit($event)"
+              [placeholder]="field().placeholder ?? ''"
+            />
+          }
+          @case ('date') {
+            <app-date-input
+              [inputId]="controlId()"
+              [value]="stringValue()"
+              (valueChange)="valueChange.emit($event ?? '')"
+            />
+          }
+          @case ('select') {
             <select
               [id]="controlId()"
               [ngModel]="stringValue()"
@@ -76,41 +99,26 @@ export interface DynamicFieldOption {
                 <option [value]="option">{{ option }}</option>
               }
             </select>
-          </div>
-        }
-        @case ('multiselect') {
-          <div class="flex flex-wrap gap-x-4 gap-y-2">
-            @for (option of field().options ?? []; track option) {
-              <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
-                <input
-                  type="checkbox"
-                  [checked]="isSelected(option)"
-                  (change)="toggleOption(option)"
-                  class="h-4 w-4 accent-[var(--accent)]"
-                />
-                {{ option }}
-              </label>
-            }
-          </div>
-        }
-        @case ('checkbox') {
-          <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
-            <input
-              [id]="controlId()"
-              type="checkbox"
-              [ngModel]="booleanValue()"
-              (ngModelChange)="valueChange.emit($event)"
-              class="h-4 w-4 accent-[var(--accent)]"
-            />
-            {{ field().label }}
-            @if (field().required) {
-              <span class="text-fail-ink" aria-hidden="true">*</span>
-            }
-          </label>
-        }
-        @default {
-          @if (field().type === 'user' || field().type === 'department') {
-            <div class="cf-select">
+          }
+          @case ('multiselect') {
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" role="group">
+              @for (option of field().options ?? []; track option) {
+                <label
+                  class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(option)"
+                    (change)="toggleOption(option)"
+                    class="h-4 w-4 accent-[var(--accent)]"
+                  />
+                  {{ option }}
+                </label>
+              }
+            </div>
+          }
+          @default {
+            @if (field().type === 'user' || field().type === 'department') {
               <select
                 [id]="controlId()"
                 [ngModel]="stringValue()"
@@ -121,52 +129,21 @@ export interface DynamicFieldOption {
                   <option [value]="option.id">{{ option.name }}</option>
                 }
               </select>
-            </div>
-          } @else {
-            <input
-              [id]="controlId()"
-              type="text"
-              [ngModel]="stringValue()"
-              (ngModelChange)="valueChange.emit($event)"
-              [placeholder]="field().placeholder ?? ''"
-              autocomplete="off"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-            />
+            } @else {
+              <input
+                [id]="controlId()"
+                type="text"
+                [ngModel]="stringValue()"
+                (ngModelChange)="valueChange.emit($event)"
+                [placeholder]="field().placeholder ?? ''"
+                autocomplete="off"
+              />
+            }
           }
         }
-      }
-
-      @if (field().help) {
-        <p class="text-meta text-fg-subtle">{{ field().help }}</p>
-      }
-      @if (error()) {
-        <p class="text-meta font-medium text-fail-ink">{{ error()! | transloco }}</p>
-      }
-    </div>
+      </app-form-field>
+    }
   `,
-  styles: [
-    `
-      .cf-select select {
-        width: 100%;
-        height: 40px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-family: inherit;
-        font-size: 13.5px;
-        padding: 0 12px;
-        outline: none;
-        transition:
-          border-color 0.15s ease,
-          box-shadow 0.15s ease;
-      }
-      .cf-select select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-    `,
-  ],
 })
 export class DynamicField {
   readonly field = input.required<FieldDef>();

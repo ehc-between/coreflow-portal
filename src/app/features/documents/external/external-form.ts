@@ -8,7 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -17,9 +17,12 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
 import {
@@ -115,252 +118,269 @@ export function externalBody(v: ExternalFormValue): ExternalCreate {
 @Component({
   selector: 'app-external-form',
   imports: [
-    RouterLink,
     TranslocoPipe,
     FieldHelp,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
     FormField,
-    Icon,
+    FormSection,
+    LoadingState,
+    PageHeader,
     DocumentsPageGuide,
     DocumentsPersonSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        [routerLink]="backLink()"
-        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'documents.control.external.back' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
-        {{
-          (id() ? 'documents.control.external.editTitle' : 'documents.control.external.new')
-            | transloco
-        }}
-      </h1>
-      <app-documents-page-guide class="mb-4" page="externalForm" />
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        [titleKey]="titleKey()"
+        [breadcrumbs]="[
+          { labelKey: 'documents.control.nav.documents', link: '/documents' },
+          { labelKey: 'documents.control.nav.external', link: '/documents/external' },
+          { labelKey: titleKey() },
+        ]"
+        [backLink]="backLink()"
+        backLabelKey="documents.control.external.back"
+      />
+      <app-documents-page-guide page="externalForm" />
 
       @if (errorKey(); as key) {
         <app-alert class="mb-4 block" tone="error">{{ key | transloco }}</app-alert>
       }
 
       @if (ready()) {
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
-          <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-form-field
-                class="sm:col-span-2"
-                inputId="ext-title"
-                [label]="'documents.control.fields.title' | transloco"
-              >
-                <input
-                  id="ext-title"
-                  type="text"
-                  required
-                  maxlength="255"
-                  [value]="form().title"
-                  (input)="set('title', $any($event.target).value)"
-                  data-testid="external-title"
-                />
-              </app-form-field>
-              <div>
-                <app-form-field
-                  inputId="ext-publisher"
-                  [label]="'documents.control.external.fields.publisher' | transloco"
-                >
-                  <input
-                    id="ext-publisher"
-                    type="text"
-                    maxlength="255"
-                    [value]="form().publisher"
-                    (input)="set('publisher', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="documents" page="externalForm" field="publisher" />
-              </div>
-              <app-form-field
-                inputId="ext-reference"
-                [label]="'documents.control.external.fields.reference' | transloco"
-              >
-                <input
-                  id="ext-reference"
-                  type="text"
-                  maxlength="120"
-                  [value]="form().reference"
-                  (input)="set('reference', $any($event.target).value)"
-                />
-              </app-form-field>
-              <div>
-                <app-form-field
-                  inputId="ext-version"
-                  [label]="'documents.control.external.fields.version' | transloco"
-                >
-                  <input
-                    id="ext-version"
-                    type="text"
-                    maxlength="64"
-                    [value]="form().version"
-                    (input)="set('version', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="documents" page="externalForm" field="version" />
-              </div>
-              <app-form-field
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <app-form-section
+            [title]="'documents.control.external.sections.source' | transloco"
+            [description]="'documents.control.external.sections.sourceHint' | transloco"
+          >
+            <app-form-field
+              span="full"
+              inputId="ext-title"
+              [required]="true"
+              [label]="'documents.control.fields.title' | transloco"
+            >
+              <input
+                id="ext-title"
+                type="text"
+                required
+                maxlength="255"
+                [value]="form().title"
+                (input)="set('title', $any($event.target).value)"
+                data-testid="external-title"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-publisher"
+              [label]="'documents.control.external.fields.publisher' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="externalForm"
+                field="publisher"
+                [label]="'documents.control.external.fields.publisher' | transloco"
+              />
+              <input
+                id="ext-publisher"
+                type="text"
+                maxlength="255"
+                [value]="form().publisher"
+                (input)="set('publisher', $any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-reference"
+              [label]="'documents.control.external.fields.reference' | transloco"
+            >
+              <input
+                id="ext-reference"
+                type="text"
+                maxlength="120"
+                [value]="form().reference"
+                (input)="set('reference', $any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-version"
+              [label]="'documents.control.external.fields.version' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="externalForm"
+                field="version"
+                [label]="'documents.control.external.fields.version' | transloco"
+              />
+              <input
+                id="ext-version"
+                type="text"
+                maxlength="64"
+                [value]="form().version"
+                (input)="set('version', $any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-issued"
+              [label]="'documents.control.external.fields.issuedOn' | transloco"
+            >
+              <app-date-input
                 inputId="ext-issued"
-                [label]="'documents.control.external.fields.issuedOn' | transloco"
-              >
-                <input
-                  id="ext-issued"
-                  type="date"
-                  [value]="form().issuedOn"
-                  (input)="set('issuedOn', $any($event.target).value)"
-                />
-              </app-form-field>
-              <app-form-field
-                inputId="ext-code"
-                [label]="'documents.control.external.fields.code' | transloco"
-              >
-                <input
-                  id="ext-code"
-                  type="text"
-                  maxlength="40"
-                  [value]="form().code"
-                  (input)="set('code', $any($event.target).value)"
-                />
-              </app-form-field>
-              <app-form-field
-                inputId="ext-status"
-                [label]="'documents.control.fields.status' | transloco"
-              >
-                <select id="ext-status" (change)="set('status', $any($event.target).value)">
-                  @for (s of statuses; track s) {
-                    <option [value]="s" [selected]="s === form().status">
-                      {{ 'documents.control.external.status.' + s | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-form-field>
-              <app-form-field
-                class="sm:col-span-2"
-                inputId="ext-url"
-                [label]="'documents.control.external.fields.url' | transloco"
-              >
-                <input
-                  id="ext-url"
-                  type="url"
-                  maxlength="1000"
-                  placeholder="https://"
-                  [value]="form().url"
-                  (input)="set('url', $any($event.target).value)"
-                />
-              </app-form-field>
-            </div>
-          </app-card>
+                [value]="form().issuedOn"
+                (valueChange)="set('issuedOn', $event ?? '')"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-code"
+              [label]="'documents.control.external.fields.code' | transloco"
+            >
+              <input
+                id="ext-code"
+                type="text"
+                maxlength="40"
+                [value]="form().code"
+                (input)="set('code', $any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-status"
+              [label]="'documents.control.fields.status' | transloco"
+            >
+              <select id="ext-status" (change)="set('status', $any($event.target).value)">
+                @for (s of statuses; track s) {
+                  <option [value]="s" [selected]="s === form().status">
+                    {{ 'documents.control.external.status.' + s | transloco }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field
+              span="full"
+              inputId="ext-url"
+              [label]="'documents.control.external.fields.url' | transloco"
+            >
+              <input
+                id="ext-url"
+                type="url"
+                maxlength="1000"
+                placeholder="https://"
+                [value]="form().url"
+                (input)="set('url', $any($event.target).value)"
+              />
+            </app-form-field>
+          </app-form-section>
 
-          <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-form-field
+          <app-form-section
+            [title]="'documents.control.external.sections.care' | transloco"
+            [description]="'documents.control.external.sections.careHint' | transloco"
+          >
+            <app-form-field
+              inputId="ext-owner"
+              [label]="'documents.control.fields.owner' | transloco"
+            >
+              <app-documents-person-select
                 inputId="ext-owner"
-                [label]="'documents.control.fields.owner' | transloco"
-              >
-                <app-documents-person-select
-                  inputId="ext-owner"
-                  [value]="form().ownerId"
-                  [currentName]="ownerName()"
-                  (valueChange)="set('ownerId', $event)"
-                />
-              </app-form-field>
-              <app-form-field
-                inputId="ext-type"
-                [label]="'documents.control.fields.type' | transloco"
-              >
-                <select id="ext-type" (change)="set('typeId', $any($event.target).value)">
-                  <option value="" [selected]="!form().typeId">
-                    {{ 'documents.control.common.none' | transloco }}
-                  </option>
-                  @for (t of types(); track t.id) {
-                    <option [value]="t.id" [selected]="t.id === form().typeId">{{ t.name }}</option>
-                  }
-                </select>
-              </app-form-field>
-              <div>
-                <app-form-field
-                  inputId="ext-interval"
-                  [label]="'documents.control.fields.reviewInterval' | transloco"
-                >
-                  <input
-                    id="ext-interval"
-                    type="number"
-                    min="1"
-                    max="120"
-                    [value]="form().interval"
-                    (input)="set('interval', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-field-help scope="documents" page="externalForm" field="reviewInterval" />
-              </div>
-              <app-form-field
+                [value]="form().ownerId"
+                [currentName]="ownerName()"
+                (valueChange)="set('ownerId', $event)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-type"
+              [label]="'documents.control.fields.type' | transloco"
+            >
+              <select id="ext-type" (change)="set('typeId', $any($event.target).value)">
+                <option value="" [selected]="!form().typeId">
+                  {{ 'documents.control.common.none' | transloco }}
+                </option>
+                @for (t of types(); track t.id) {
+                  <option [value]="t.id" [selected]="t.id === form().typeId">{{ t.name }}</option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field
+              inputId="ext-interval"
+              [label]="'documents.control.fields.reviewInterval' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="externalForm"
+                field="reviewInterval"
+                [label]="'documents.control.fields.reviewInterval' | transloco"
+              />
+              <input
+                id="ext-interval"
+                type="number"
+                min="1"
+                max="120"
+                [value]="form().interval"
+                (input)="set('interval', $any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              inputId="ext-next-review"
+              [label]="'documents.control.fields.nextReview' | transloco"
+            >
+              <app-date-input
                 inputId="ext-next-review"
-                [label]="'documents.control.fields.nextReview' | transloco"
+                [value]="form().nextReview"
+                (valueChange)="set('nextReview', $event ?? '')"
+              />
+            </app-form-field>
+            <app-form-field
+              span="full"
+              inputId="ext-retention"
+              [label]="'documents.control.fields.retentionRule' | transloco"
+            >
+              <select id="ext-retention" (change)="set('retentionId', $any($event.target).value)">
+                <option value="" [selected]="!form().retentionId">
+                  {{ 'documents.control.common.none' | transloco }}
+                </option>
+                @for (r of retentionRules(); track r.id) {
+                  <option [value]="r.id" [selected]="r.id === form().retentionId">
+                    {{ r.name }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field
+              span="full"
+              inputId="ext-notes"
+              [label]="'documents.control.external.fields.notes' | transloco"
+            >
+              <textarea
+                id="ext-notes"
+                rows="3"
+                [value]="form().notes"
+                (input)="set('notes', $any($event.target).value)"
+              ></textarea>
+            </app-form-field>
+          </app-form-section>
+
+          @if (id()) {
+            <app-form-section [columns]="1">
+              <app-form-field
+                inputId="ext-reason"
+                [label]="'documents.control.fields.changeReason' | transloco"
               >
                 <input
-                  id="ext-next-review"
-                  type="date"
-                  [value]="form().nextReview"
-                  (input)="set('nextReview', $any($event.target).value)"
+                  id="ext-reason"
+                  type="text"
+                  maxlength="2000"
+                  [value]="changeReason()"
+                  (input)="changeReason.set($any($event.target).value)"
                 />
               </app-form-field>
-              <app-form-field
-                class="sm:col-span-2"
-                inputId="ext-retention"
-                [label]="'documents.control.fields.retentionRule' | transloco"
-              >
-                <select id="ext-retention" (change)="set('retentionId', $any($event.target).value)">
-                  <option value="" [selected]="!form().retentionId">
-                    {{ 'documents.control.common.none' | transloco }}
-                  </option>
-                  @for (r of retentionRules(); track r.id) {
-                    <option [value]="r.id" [selected]="r.id === form().retentionId">
-                      {{ r.name }}
-                    </option>
-                  }
-                </select>
-              </app-form-field>
-              <app-form-field
-                class="sm:col-span-2"
-                inputId="ext-notes"
-                [label]="'documents.control.external.fields.notes' | transloco"
-              >
-                <textarea
-                  id="ext-notes"
-                  rows="3"
-                  [value]="form().notes"
-                  (input)="set('notes', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-              @if (id()) {
-                <app-form-field
-                  class="sm:col-span-2"
-                  inputId="ext-reason"
-                  [label]="'documents.control.fields.changeReason' | transloco"
-                >
-                  <input
-                    id="ext-reason"
-                    type="text"
-                    maxlength="2000"
-                    [value]="changeReason()"
-                    (input)="changeReason.set($any($event.target).value)"
-                  />
-                </app-form-field>
-              }
-            </div>
-          </app-card>
+            </app-form-section>
+          }
 
-          <div class="flex flex-wrap items-center gap-2">
+          <app-form-actions>
+            <app-button type="button" variant="secondary" (click)="cancel()">
+              {{ 'documents.control.common.cancel' | transloco }}
+            </app-button>
             <app-button
               type="submit"
               [disabled]="!form().title.trim()"
@@ -369,17 +389,10 @@ export function externalBody(v: ExternalFormValue): ExternalCreate {
             >
               {{ 'documents.control.common.save' | transloco }}
             </app-button>
-            <a [routerLink]="backLink()">
-              <app-button type="button" variant="ghost">
-                {{ 'documents.control.common.cancel' | transloco }}
-              </app-button>
-            </a>
-          </div>
+          </app-form-actions>
         </form>
-      } @else {
-        <p class="py-16 text-center text-body text-fg-muted">
-          {{ 'documents.control.common.loading' | transloco }}
-        </p>
+      } @else if (!errorKey()) {
+        <app-loading-state [rows]="6" />
       }
     </div>
   `,
@@ -406,6 +419,10 @@ export class ExternalFormPage {
   protected readonly ready = signal(false);
   protected readonly saving = signal(false);
   protected readonly errorKey = signal<string | null>(null);
+
+  protected readonly titleKey = computed(() =>
+    this.id() ? 'documents.control.external.editTitle' : 'documents.control.external.new',
+  );
 
   protected readonly backLink = computed(() => {
     const id = this.id();
@@ -452,6 +469,10 @@ export class ExternalFormPage {
 
   protected set<K extends keyof ExternalFormValue>(key: K, value: ExternalFormValue[K]): void {
     this.form.update((f) => ({ ...f, [key]: value }));
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(this.backLink());
   }
 
   protected save(): void {

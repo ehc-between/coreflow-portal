@@ -1,45 +1,43 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormField, FormFieldSpan } from '../../../shared/ui/form-field/form-field';
 
 /**
- * One People form field: the label (with a required marker or "valgfritt") and its
- * "?" help on the same row, the control (projected into `app-form-field`), a short
- * always-visible hint and the error message. `[label-extra]` content (e.g. "Spør")
- * sits at the end of the label row.
+ * One People form field on the shared form anatomy (docs/ux-guide.md §2.4): renders
+ * `app-form-field` with the translated label (and `*`), the `?` help as a toggletip in
+ * the label row, the control, one muted hint line and the error under it.
+ * `[label-extra]` content (e.g. "Spør") also sits in the label row. Inside an
+ * `app-form-section` grid, `span="full"` (or `class="sm:col-span-2"`) takes both columns.
  */
 @Component({
   selector: 'app-people-field',
   imports: [TranslocoPipe, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: {
+    class: 'block min-w-0',
+    '[class.sm:col-span-2]': "span() === 'full'",
+  },
   template: `
-    <div class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5">
-      <label [attr.for]="inputId()" class="text-ui font-semibold text-fg-muted">
-        {{ labelKey() | transloco }}
-        @if (required()) {
-          <span class="text-fail" aria-hidden="true">*</span>
-          <span class="sr-only">{{ 'people.form.required' | transloco }}</span>
-        }
-      </label>
+    <app-form-field
+      [label]="labelKey() | transloco"
+      [inputId]="inputId()"
+      [required]="required()"
+      [hint]="error() || !hintKey() ? '' : (hintKey()! | transloco: hintParams())"
+      [error]="error() ? (error()! | transloco) : ''"
+    >
       @if (help()) {
-        <app-field-help [scope]="'people'" [page]="page()" [field]="help()!" />
+        <app-field-help
+          label-suffix
+          [scope]="'people'"
+          [page]="page()"
+          [field]="help()!"
+          [label]="labelKey() | transloco"
+        />
       }
-      <span class="ml-auto"><ng-content select="[label-extra]" /></span>
-    </div>
-    <app-form-field>
+      <span label-suffix class="contents"><ng-content select="[label-extra]" /></span>
       <ng-content />
     </app-form-field>
-    @if (error()) {
-      <p class="mt-1 text-meta text-fail" [id]="inputId() + '-err'" role="alert">
-        {{ error()! | transloco }}
-      </p>
-    } @else if (hintKey()) {
-      <p class="mt-1 text-meta text-fg-muted" [id]="inputId() + '-hint'">
-        {{ hintKey()! | transloco: hintParams() }}
-      </p>
-    }
   `,
 })
 export class PeopleField {
@@ -53,4 +51,6 @@ export class PeopleField {
   readonly required = input(false);
   /** i18n key of the error to show instead of the hint. */
   readonly error = input<string | null | undefined>(null);
+  /** `full` spans both columns of an `app-form-section` grid. */
+  readonly span = input<FormFieldSpan>('half');
 }

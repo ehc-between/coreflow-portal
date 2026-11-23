@@ -200,7 +200,10 @@
       "handling": "Behandling",
       "about": "Hva det gjelder",
       "impact": "Hvor alvorlig det er",
-      "outcome": "Utfall"
+      "outcome": "Utfall",
+      "whatHint": "Hva kunden fortalte, gjerne med kundens egne ord, og hvordan kunden tok kontakt.",
+      "handlingHint": "Hvem som følger opp, og når kunden skal høre fra dere.",
+      "outcomeHint": "Hvordan det ble løst, og om kunden har fått beskjed."
     },
     "scoreOption": {
       "1": "1 – Svært misfornøyd",
@@ -400,7 +403,11 @@
     "fixProblems": "Rett opp de markerte problemene før du lagrer.",
     "sections": {
       "basics": "Undersøkelse",
-      "questions": "Spørsmål"
+      "questions": "Spørsmål",
+      "basicsHint": "Hva undersøkelsen heter, hvorfor dere spør, og hvem som eier den.",
+      "settings": "Utsending og svar",
+      "settingsHint": "Når undersøkelsen er åpen, hvilket språk den bruker, og hvordan svarene behandles.",
+      "questionsHint": "Spørsmålene de som svarer ser, i rekkefølge. Forhåndsvis før du publiserer."
     },
     "starter": {
       "rating": "Alt i alt, hvor fornøyd er du med oss?",

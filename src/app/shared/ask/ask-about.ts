@@ -38,12 +38,15 @@ export function humaniseField(field: string): string {
  *   this field prove?" can be answered.
  * - `labelKey` is the accessible label key (default `search.askAbout.label`).
  *
- * Hidden once AI is known to be off.
+ * The button is 24 px square, so it sits in the 24 px label row of `app-form-field`
+ * without pushing the field down. Hidden once AI is known to be off.
  */
 @Component({
   selector: 'app-ask-about',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // A flex box (no line box): exactly 24 px high, so it fits the form-field label row.
+  host: { class: 'inline-flex flex-none align-middle empty:hidden' },
   template: `
     @if (!availability.unavailable()) {
       <button
@@ -51,9 +54,9 @@ export function humaniseField(field: string): string {
         (click)="ask()"
         [attr.aria-label]="label()"
         [title]="label()"
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md text-accent hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-accent"
+        class="inline-flex h-6 w-6 flex-none items-center justify-center rounded-md text-accent hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-accent"
       >
-        <app-icon name="spark" [size]="15" />
+        <app-icon name="spark" [size]="14" />
       </button>
     }
   `,

@@ -24,6 +24,7 @@ import {
   EvaluationKind,
   Recommendation,
 } from '../data/supplier.models';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const FROM_RECOMMENDATION: Readonly<Record<Recommendation, Decision>> = {
   approve: 'approved',
@@ -43,7 +44,7 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
  */
 @Component({
   selector: 'app-evaluation-decide-dialog',
-  imports: [TranslocoPipe, Alert, Button, FieldHelp, FormField, SlideOver, StatusBadge],
+  imports: [DateInput, TranslocoPipe, Alert, Button, FieldHelp, FormField, SlideOver, StatusBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -92,20 +93,20 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
         </app-alert>
         @if (decision() === 'conditional') {
           <div>
-            <app-form-field [label]="'suppliers.decide.conditions' | transloco" inputId="ev-cond">
+            <app-form-field
+              [label]="'suppliers.decide.conditions' | transloco"
+              inputId="ev-cond"
+              [hint]="'suppliers.decide.conditionsHint' | transloco"
+            >
               <textarea
                 id="ev-cond"
                 rows="3"
                 maxlength="5000"
                 required
-                aria-describedby="ev-cond-hint"
                 [value]="conditions()"
                 (input)="conditions.set($any($event.target).value)"
               ></textarea>
             </app-form-field>
-            <p id="ev-cond-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'suppliers.decide.conditionsHint' | transloco }}
-            </p>
           </div>
         }
         <app-form-field [label]="'suppliers.decide.notes' | transloco" inputId="ev-notes">
@@ -122,18 +123,14 @@ export function decisionValid(decision: Decision | '', conditions: string): bool
             <app-form-field
               [label]="'suppliers.decide.nextEvaluation' | transloco"
               inputId="ev-next"
+              [hint]="'suppliers.decide.nextEvaluationHint' | transloco"
             >
-              <input
-                id="ev-next"
-                type="date"
-                aria-describedby="ev-next-hint"
+              <app-date-input
+                inputId="ev-next"
                 [value]="nextDay()"
-                (input)="nextDay.set($any($event.target).value)"
+                (valueChange)="nextDay.set($event ?? '')"
               />
             </app-form-field>
-            <p id="ev-next-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'suppliers.decide.nextEvaluationHint' | transloco }}
-            </p>
           </div>
         }
         @if (error(); as key) {

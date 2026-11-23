@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LocalDatePipe, LocalDayPipe } from '../../locale/locale-pipes';
@@ -10,9 +21,17 @@ export type RecordRowDateKind = 'due' | 'updated' | 'created' | 'date' | 'next';
 /**
  * Column template shared by `app-record-row` and `app-record-row-header` at ≥ 1024 px:
  * code · title · requirement coverage · badges · owner · date.
+ *
+ * The four optional columns read `--cf-rr-coverage`, `--cf-rr-badges`, `--cf-rr-owner`
+ * and `--cf-rr-date`; a list (`[role=list]`) in which no row fills one of them sets it to
+ * 0 (src/styles.scss), so an empty "Krav" or "Neste" column gives its room to the title
+ * while header and rows stay aligned.
  */
 export const RECORD_ROW_COLUMNS =
-  'lg:grid lg:grid-cols-[minmax(84px,112px)_minmax(0,1fr)_minmax(0,150px)_minmax(0,180px)_minmax(0,140px)_minmax(0,116px)] lg:items-center lg:gap-x-4';
+  'lg:grid lg:grid-cols-[minmax(84px,112px)_minmax(0,1fr)_var(--cf-rr-coverage,minmax(0,150px))_var(--cf-rr-badges,minmax(0,220px))_var(--cf-rr-owner,minmax(0,140px))_var(--cf-rr-date,minmax(0,116px))] lg:items-center lg:gap-x-4';
+
+/** Room kept for the "+N" chip when badges overflow their column. */
+const MORE_CHIP_PX = 34;
 
 /**
  * One row of a record list, with the same slots everywhere (docs/ux-guide.md, "List"):
@@ -60,10 +79,20 @@ export const RECORD_ROW_COLUMNS =
         <ng-content select="[coverage]" />
       </div>
       <div
-        class="flex flex-wrap items-center gap-1.5 empty:hidden lg:empty:block"
+        #badges
+        class="flex min-w-0 flex-wrap items-center gap-1.5 empty:hidden lg:flex-nowrap lg:overflow-hidden lg:empty:block [&>*]:flex-none"
         data-testid="record-row-badges"
       >
         <ng-content select="[badges]" />
+        @if (hiddenBadges().length > 0) {
+          <span
+            class="cf-rr-more rounded-full border border-border bg-surface px-1.5 text-meta leading-5 font-semibold text-fg-muted"
+            aria-hidden="true"
+            data-testid="record-row-badges-more"
+            [title]="hiddenBadges().join(', ')"
+            >+{{ hiddenBadges().length }}</span
+          >
+        }
       </div>
       <span
         class="min-w-0 items-center gap-1.5 text-meta text-fg-muted lg:flex"
@@ -98,6 +127,63 @@ export const RECORD_ROW_COLUMNS =
   `,
 })
 export class RecordRow {
+  private readonly badges = viewChild.required<ElementRef<HTMLElement>>('badges');
+  /** Text of the badges that did not fit the column (≥ 1024 px); shown as "+N". */
+  protected readonly hiddenBadges = signal<readonly string[]>([]);
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      if (typeof ResizeObserver === 'undefined' || typeof MutationObserver === 'undefined') {
+        return;
+      }
+      const el = this.badges().nativeElement;
+      const fit = () => this.fitBadges(el);
+      const resize = new ResizeObserver(fit);
+      const mutate = new MutationObserver(fit);
+      resize.observe(el);
+      mutate.observe(el, { childList: true, subtree: true, characterData: true });
+      destroyRef.onDestroy(() => {
+        resize.disconnect();
+        mutate.disconnect();
+      });
+    });
+  }
+
+  /**
+   * On one line (≥ 1024 px) the badges that do not fit are hidden visually (still read
+   * by screen readers) and counted in a "+N" chip, instead of stacking one per line.
+   */
+  private fitBadges(el: HTMLElement): void {
+    const items = Array.from(el.children).filter(
+      (child): child is HTMLElement => !child.classList.contains('cf-rr-more'),
+    );
+    items.forEach((item) => item.classList.remove('cf-rr-hidden'));
+    const wide = typeof matchMedia === 'function' && matchMedia('(min-width: 1024px)').matches;
+    const hidden: string[] = [];
+    if (wide && items.length > 1) {
+      const right = el.getBoundingClientRect().right;
+      let cut = -1;
+      items.forEach((item, i) => {
+        const room = i === items.length - 1 ? 0 : MORE_CHIP_PX;
+        if (cut < 0 && item.getBoundingClientRect().right > right - room + 0.5) {
+          cut = i;
+        }
+      });
+      if (cut >= 0) {
+        // Always keep the first badge (the status).
+        for (const item of items.slice(Math.max(cut, 1))) {
+          item.classList.add('cf-rr-hidden');
+          hidden.push(item.textContent?.trim() ?? '');
+        }
+      }
+    }
+    const current = this.hiddenBadges();
+    if (current.length !== hidden.length || current.some((text, i) => text !== hidden[i])) {
+      this.hiddenBadges.set(hidden);
+    }
+  }
+
   readonly code = input<string | null | undefined>(null);
   readonly title = input.required<string>();
   readonly subtitle = input<string | null | undefined>(null);
@@ -131,7 +217,7 @@ export class RecordRow {
   host: { class: 'hidden lg:block', 'aria-hidden': 'true' },
   template: `
     <div
-      class="border-b border-border px-4 py-2 text-micro font-semibold tracking-wide text-fg-subtle uppercase"
+      class="border-b border-border px-4 py-2 text-micro font-semibold tracking-wide text-fg-subtle uppercase [&>span]:min-w-0 [&>span]:truncate"
       [class]="columns"
     >
       <span>{{ codeKey() | transloco }}</span>

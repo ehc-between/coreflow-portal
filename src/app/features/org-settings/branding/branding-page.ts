@@ -25,7 +25,10 @@ import {
   OutputLang,
 } from '../../../core/outputs/outputs.models';
 import { OUTPUTS_SCOPE, outputErrorKey } from '../../../shared/outputs/output-display';
+import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -57,11 +60,22 @@ function formOf(b: Branding): Form {
  */
 @Component({
   selector: 'app-branding-page',
-  imports: [TranslocoPipe, Button, ErrorState, FormField, Icon, LoadingState, PageHeader],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    Button,
+    ErrorState,
+    FormActions,
+    FormField,
+    FormSection,
+    Icon,
+    LoadingState,
+    PageHeader,
+  ],
   viewProviders: [provideSharedScope(OUTPUTS_SCOPE)],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="outputs.branding.title"
         descriptionKey="outputs.branding.description"
@@ -76,15 +90,12 @@ function formOf(b: Branding): Form {
       } @else if (!branding()) {
         <app-loading-state [rows]="5" />
       } @else {
-        <section
-          class="mb-5 rounded-card border border-border bg-surface p-5"
+        <app-form-section
+          [title]="'outputs.branding.logo' | transloco"
+          [description]="'outputs.branding.logoHint' | transloco"
           data-testid="branding-logo"
         >
-          <h2 class="font-display text-section font-bold text-fg">
-            {{ 'outputs.branding.logo' | transloco }}
-          </h2>
-          <p class="mt-1 text-meta text-fg-muted">{{ 'outputs.branding.logoHint' | transloco }}</p>
-          <div class="mt-3 flex flex-wrap items-center gap-4">
+          <div class="flex flex-wrap items-center gap-4 sm:col-span-2">
             <div
               class="flex h-16 w-40 items-center justify-center rounded-tile border border-dashed border-border bg-surface-2"
             >
@@ -102,7 +113,7 @@ function formOf(b: Branding): Form {
             </div>
             <div class="flex flex-wrap gap-2">
               <label
-                class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-tile border border-border bg-surface px-4 text-ui font-semibold text-fg hover:bg-surface-2 focus-within:ring-2 focus-within:ring-accent"
+                class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-surface px-4 text-ui font-semibold text-fg hover:bg-surface-2 focus-within:ring-2 focus-within:ring-accent"
               >
                 <app-icon name="upload" [size]="15" />
                 {{
@@ -132,66 +143,50 @@ function formOf(b: Branding): Form {
             </div>
           </div>
           @if (logoError(); as key) {
-            <p class="mt-2 text-meta text-fail" role="alert" data-testid="branding-logo-error">
+            <p
+              class="text-meta font-medium text-fail-ink sm:col-span-2"
+              role="alert"
+              data-testid="branding-logo-error"
+            >
               {{ key | transloco }}
             </p>
           }
-        </section>
+        </app-form-section>
 
         <form
-          class="flex flex-col gap-4 rounded-card border border-border bg-surface p-5"
+          class="mt-5 flex flex-col gap-5"
           (submit)="$event.preventDefault(); save()"
           data-testid="branding-form"
         >
-          <!-- Not an app-form-field: its input styles would stretch the colour swatch. -->
-          <div class="flex flex-col gap-1.5">
-            <label for="branding-accent" class="text-ui font-semibold text-fg-muted">{{
-              'outputs.branding.accent' | transloco
-            }}</label>
-            <div class="flex items-center gap-2">
-              <input
-                type="color"
-                class="h-9 w-12 cursor-pointer rounded-tile border border-border bg-surface p-1"
-                [attr.aria-label]="'outputs.branding.accent' | transloco"
-                [value]="form().accent || branding()!.default_accent"
-                (input)="patch({ accent: asValue($event) })"
-              />
-              <input
-                id="branding-accent"
-                type="text"
-                maxlength="7"
-                class="h-9 w-32 rounded-tile border border-border bg-surface px-3 font-mono text-ui"
-                [placeholder]="branding()!.default_accent"
-                [value]="form().accent"
-                (input)="patch({ accent: asValue($event) })"
-                data-testid="branding-accent"
-              />
-            </div>
-          </div>
-          @if (accentInvalid()) {
-            <p class="-mt-2 text-meta text-fail" role="alert">
-              {{ 'outputs.branding.accentInvalid' | transloco }}
-            </p>
-          }
-
-          <app-form-field [label]="'outputs.branding.footer' | transloco" inputId="branding-footer">
-            <textarea
-              id="branding-footer"
-              rows="2"
-              [attr.maxlength]="footerMax"
-              [value]="form().footer"
-              (input)="patch({ footer: asValue($event) })"
-              data-testid="branding-footer"
-            ></textarea>
-          </app-form-field>
-          <p class="-mt-2 text-micro text-fg-subtle">
-            {{
-              'outputs.branding.footerHint'
-                | transloco: { count: form().footer.length, max: footerMax }
-            }}
-          </p>
-
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-form-section
+            [title]="'outputs.branding.documentTitle' | transloco"
+            [description]="'outputs.branding.documentHint' | transloco"
+          >
+            <app-form-field
+              [label]="'outputs.branding.accent' | transloco"
+              inputId="branding-accent"
+              [error]="accentInvalid() ? ('outputs.branding.accentInvalid' | transloco) : ''"
+            >
+              <div class="flex items-center gap-2">
+                <input
+                  type="color"
+                  class="cf-bare h-10 w-12 shrink-0 cursor-pointer rounded-tile border border-border bg-surface p-1"
+                  [attr.aria-label]="'outputs.branding.accent' | transloco"
+                  [value]="form().accent || branding()!.default_accent"
+                  (input)="patch({ accent: asValue($event) })"
+                />
+                <input
+                  id="branding-accent"
+                  type="text"
+                  maxlength="7"
+                  class="font-mono"
+                  [placeholder]="branding()!.default_accent"
+                  [value]="form().accent"
+                  (input)="patch({ accent: asValue($event) })"
+                  data-testid="branding-accent"
+                />
+              </div>
+            </app-form-field>
             <app-form-field
               [label]="'outputs.branding.classification' | transloco"
               inputId="branding-classification"
@@ -210,6 +205,24 @@ function formOf(b: Branding): Form {
                 }
               </select>
             </app-form-field>
+            <app-form-field
+              span="full"
+              [label]="'outputs.branding.footer' | transloco"
+              inputId="branding-footer"
+              [hint]="
+                'outputs.branding.footerHint'
+                  | transloco: { count: form().footer.length, max: footerMax }
+              "
+            >
+              <textarea
+                id="branding-footer"
+                rows="2"
+                [attr.maxlength]="footerMax"
+                [value]="form().footer"
+                (input)="patch({ footer: asValue($event) })"
+                data-testid="branding-footer"
+              ></textarea>
+            </app-form-field>
             <app-form-field [label]="'outputs.branding.lang' | transloco" inputId="branding-lang">
               <select
                 id="branding-lang"
@@ -225,12 +238,12 @@ function formOf(b: Branding): Form {
                 }
               </select>
             </app-form-field>
-          </div>
+          </app-form-section>
 
           @if (saveError(); as key) {
-            <p class="text-meta text-fail" role="alert">{{ key | transloco }}</p>
+            <app-alert>{{ key | transloco }}</app-alert>
           }
-          <div class="flex justify-end">
+          <app-form-actions>
             <app-button
               type="submit"
               [loading]="saving()"
@@ -239,7 +252,7 @@ function formOf(b: Branding): Form {
             >
               {{ 'outputs.branding.save' | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

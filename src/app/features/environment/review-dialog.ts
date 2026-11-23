@@ -12,6 +12,7 @@ import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { ReviewIn } from './data/environment.models';
 import { dayToDatetime, localDay } from './data/environment-display';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 /**
  * "Mark as reviewed" for an aspect or an emergency plan: the next review date
@@ -19,7 +20,7 @@ import { dayToDatetime, localDay } from './data/environment-display';
  */
 @Component({
   selector: 'app-env-review-dialog',
-  imports: [TranslocoPipe, ConfirmDialog, FormField],
+  imports: [DateInput, TranslocoPipe, ConfirmDialog, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-confirm-dialog
@@ -39,11 +40,10 @@ import { dayToDatetime, localDay } from './data/environment-display';
           [label]="'environment.review.nextReview' | transloco"
           inputId="cf-env-review-next"
         >
-          <input
-            id="cf-env-review-next"
-            type="date"
+          <app-date-input
+            inputId="cf-env-review-next"
             [value]="next()"
-            (change)="next.set($any($event.target).value)"
+            (valueChange)="next.set($event ?? '')"
             data-testid="review-next"
           />
         </app-form-field>

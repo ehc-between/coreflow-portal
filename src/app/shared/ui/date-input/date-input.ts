@@ -100,7 +100,7 @@ export function formatTypedDate(value: string | null | undefined, lang: string):
       type="text"
       inputmode="numeric"
       autocomplete="off"
-      class="h-9 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+      class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg"
       style="padding-right: 38px"
       data-testid="date-input-text"
       [id]="inputId() || null"

@@ -25,7 +25,7 @@ const PAGE_SIZE = 50;
   imports: [LocalDatePipe, RouterLink, TranslocoPipe, Badge, Card, Icon, Pager],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <a
         routerLink="/settings"
         class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"

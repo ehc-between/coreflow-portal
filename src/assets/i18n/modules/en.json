@@ -168,7 +168,8 @@
       "basics": "About the organisation",
       "frameworks": "Standards in scope",
       "targets": "Certification targets",
-      "sites": "Sites and locations"
+      "sites": "Sites and locations",
+      "basicsHint": "Industry, size and countries. CoreFlow uses this for suggestions and answers."
     },
     "industry": "Industry",
     "sizeBand": "Size",
@@ -192,7 +193,8 @@
     "errors": {
       "countries": "Use two-letter country codes separated by commas, for example NO, SE.",
       "site": "A site needs a name and a two-letter country code.",
-      "save": "The profile could not be saved. Check the fields and try again."
+      "save": "The profile could not be saved. Check the fields and try again.",
+      "fix": "Fix the fields that are marked."
     },
     "savedToast": "The organisation profile is saved.",
     "standardOn": "Switched on in Standards and requirements",

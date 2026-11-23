@@ -2,6 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  DestroyRef,
+  afterEveryRender,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -9,6 +12,7 @@ import {
   linkedSignal,
   signal,
   untracked,
+  viewChild,
   viewChildren,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -28,6 +32,7 @@ import { Icon } from '../ui/icon/icon';
 import { MenuItem, OverflowMenu } from '../ui/overflow-menu/overflow-menu';
 import { Breadcrumb, PageHeader } from '../ui/page-header/page-header';
 import { Comments } from './comments';
+import { syncFollowUpCard } from './follow-up-visibility';
 import { ConnectionMap } from './connection-map';
 import { ConnectionsPanel } from './connections-panel';
 import { ConnectionsStore } from './connections-store';
@@ -435,6 +440,7 @@ let nextId = 0;
         >
           <!-- §2.7: one "Oppfølging" card (anatomy) or the separate panels (legacy). -->
           <section
+            #followUp
             [class]="
               anatomy()
                 ? 'flex flex-col rounded-card border border-border bg-surface shadow-card'
@@ -460,6 +466,7 @@ let nextId = 0;
                 "
                 [attr.aria-labelledby]="panelId + '-missing'"
                 data-testid="record-missing"
+                data-follow-up-block
               >
                 <h2
                   [id]="panelId + '-missing'"
@@ -520,6 +527,7 @@ let nextId = 0;
                   : 'contents'
               "
               data-testid="record-follow-up-requirements"
+              data-follow-up-block
             >
               <ng-content select="[aside-requirements]">
                 @if (requirementsPanel()) {
@@ -550,6 +558,7 @@ let nextId = 0;
             <div
               [class]="anatomy() ? 'border-t border-border px-4 py-4' : 'contents'"
               data-testid="record-follow-up-connections"
+              data-follow-up-block
             >
               <ng-content select="[aside-connections]">
                 @if (connectionsPanel()) {
@@ -573,6 +582,7 @@ let nextId = 0;
                   ? 'rounded-b-card border-t border-border bg-surface-2/50 px-4 py-3 empty:hidden'
                   : 'contents'
               "
+              data-follow-up-block
             >
               <ng-content select="[follow-up-meta]" />
             </div>
@@ -669,6 +679,7 @@ export class RecordDetailLayout {
   readonly backLabelKey = input<string | undefined>(undefined);
 
   private readonly tabButtons = viewChildren<ElementRef<HTMLButtonElement>>('tabButton');
+  private readonly followUp = viewChild<ElementRef<HTMLElement>>('followUp');
   private readonly connections = inject(ConnectionsStore);
 
   protected readonly panelId = `cf-record-panel-${++nextId}`;
@@ -764,6 +775,66 @@ export class RecordDetailLayout {
       if (this.hasRelatedTab() || this.connectionsPanel()) {
         untracked(() => this.connections.setRecord(type, id));
       }
+    });
+    // §2.7: the "Oppfølging" card hides its empty blocks, and itself when all are empty
+    // (its panels load on their own, so this re-checks after every render).
+    afterEveryRender(() => {
+      const card = this.followUp()?.nativeElement;
+      if (card && this.anatomy()) {
+        syncFollowUpCard(card);
+      }
+    });
+    this.watchHeaderActions();
+  }
+
+  /**
+   * Keep the header actions on one row: when they wrap (Diskuter, Spør KI, workflow
+   * buttons, Mer, ⚙ on a narrow window), mark the row `data-crowded`, which turns the
+   * built-in "Diskuter" and "Spør KI" into icon buttons (`.cf-action-label`, styles.scss).
+   * The labels come back once the header is clearly wider than where it got crowded.
+   */
+  private watchHeaderActions(): void {
+    const host: HTMLElement = inject(ElementRef).nativeElement;
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      if (typeof ResizeObserver === 'undefined' || typeof MutationObserver === 'undefined') {
+        return;
+      }
+      const row = host.querySelector<HTMLElement>('[data-testid="page-actions"]');
+      const frame = row?.parentElement;
+      if (!row || !frame) {
+        return;
+      }
+      let crowdedAt = 0;
+      // The rendered boxes of the row (hosts with `display: contents` contribute their children).
+      const boxes = (parent: Element): HTMLElement[] =>
+        Array.from(parent.children).flatMap((el) =>
+          getComputedStyle(el).display === 'contents' ? boxes(el) : [el as HTMLElement],
+        );
+      const wraps = () => {
+        const items = boxes(row).filter((el) => el.offsetWidth > 0);
+        const top = Math.min(...items.map((el) => el.getBoundingClientRect().top));
+        return items.some((el) => el.getBoundingClientRect().top > top + 8);
+      };
+      const check = () => {
+        const width = frame.clientWidth;
+        if (crowdedAt && width > crowdedAt + 120) {
+          crowdedAt = 0;
+          row.removeAttribute('data-crowded');
+        }
+        if (!crowdedAt && wraps()) {
+          crowdedAt = width;
+          row.setAttribute('data-crowded', '');
+        }
+      };
+      const resize = new ResizeObserver(check);
+      const mutate = new MutationObserver(check);
+      resize.observe(frame);
+      mutate.observe(row, { childList: true, subtree: true });
+      destroyRef.onDestroy(() => {
+        resize.disconnect();
+        mutate.disconnect();
+      });
     });
   }
 

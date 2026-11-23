@@ -11,7 +11,9 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { NewPasswordFields } from '../../../shared/new-password-fields/new-password-fields';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 
 /**
@@ -20,19 +22,27 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
  */
 @Component({
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule, TranslocoPipe, NewPasswordFields, Alert, Button, Card, FormField],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoPipe,
+    NewPasswordFields,
+    Alert,
+    Button,
+    FormActions,
+    FormField,
+    FormSection,
+    PageHeader,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto w-full max-w-lg px-6 py-8">
-      <h1 class="font-display text-page font-bold text-fg">
-        {{ 'auth.changePassword.title' | transloco }}
-      </h1>
-      <p class="mt-1 text-ui text-fg-muted">
-        {{ 'auth.changePassword.subtitle' | transloco }}
-      </p>
+    <div class="mx-auto w-full max-w-[808px] px-4 pt-5 pb-12 sm:px-8">
+      <app-page-header
+        titleKey="auth.changePassword.title"
+        descriptionKey="auth.changePassword.subtitle"
+      />
 
-      <app-card class="mt-6 block">
-        <form class="flex flex-col gap-4 p-2" [formGroup]="form" (ngSubmit)="submit()">
+      <form class="flex flex-col gap-5" [formGroup]="form" (ngSubmit)="submit()">
+        <app-form-section [columns]="1">
           <app-form-field
             inputId="change-password-current"
             [label]="'auth.changePassword.current' | transloco"
@@ -46,21 +56,21 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
           </app-form-field>
 
           <app-new-password-fields idPrefix="change-password" />
+        </app-form-section>
 
-          @if (error(); as error) {
-            <app-alert>{{ error | transloco }}</app-alert>
-          }
+        @if (error(); as error) {
+          <app-alert>{{ error | transloco }}</app-alert>
+        }
 
-          <div class="mt-1 flex justify-end">
-            <app-button type="submit" [loading]="submitting()">
-              {{
-                (submitting() ? 'auth.changePassword.saving' : 'auth.changePassword.submit')
-                  | transloco
-              }}
-            </app-button>
-          </div>
-        </form>
-      </app-card>
+        <app-form-actions>
+          <app-button type="submit" [loading]="submitting()">
+            {{
+              (submitting() ? 'auth.changePassword.saving' : 'auth.changePassword.submit')
+                | transloco
+            }}
+          </app-button>
+        </app-form-actions>
+      </form>
     </div>
   `,
 })

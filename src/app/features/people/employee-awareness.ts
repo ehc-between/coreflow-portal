@@ -30,6 +30,7 @@ import { peopleErrorKey } from './data/people-errors';
 import { AWARENESS_KINDS, AwarenessIn, AwarenessKind, AwarenessRecord } from './data/people.models';
 import { PeopleDocumentPicker, PickedDocument } from './ui/document-picker';
 import { PeopleField } from './ui/people-field';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 export interface AwarenessDraft {
   readonly id: string | null;
@@ -74,6 +75,7 @@ export function toAwarenessIn(d: AwarenessDraft): AwarenessIn {
 @Component({
   selector: 'app-people-employee-awareness',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -260,12 +262,11 @@ export function toAwarenessIn(d: AwarenessDraft): AwarenessIn {
             inputId="cf-aw-date"
             [required]="true"
           >
-            <input
-              id="cf-aw-date"
-              type="date"
-              required
+            <app-date-input
+              inputId="cf-aw-date"
+              [required]="true"
               [value]="d.completed_on"
-              (change)="patch({ completed_on: $any($event.target).value })"
+              (valueChange)="patch({ completed_on: $event ?? '' })"
             />
           </app-people-field>
           <app-people-field labelKey="people.fields.awarenessNotes" inputId="cf-aw-notes">

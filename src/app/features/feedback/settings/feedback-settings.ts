@@ -17,7 +17,8 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
@@ -76,16 +77,17 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
     FieldHelp,
     Alert,
     Button,
-    Card,
     ErrorState,
+    FormActions,
     FormField,
+    FormSection,
     HelpStrip,
     LoadingState,
     PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="feedback.settings.title"
         descriptionKey="feedback.settings.subtitle"
@@ -114,65 +116,73 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
             }}</app-alert>
           }
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-            <app-card>
-              <h2 class="mb-1 flex items-center gap-1 font-display text-section font-bold text-fg">
-                {{ 'feedback.settings.responseTitle' | transloco }}
-                <app-field-help scope="feedback" page="settings" field="response_days" />
-              </h2>
-              <p class="mb-4 text-meta text-fg-muted">
-                {{ 'feedback.settings.responseIntro' | transloco }}
-              </p>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                @for (k of kinds; track k) {
-                  <div>
-                    <app-form-field [label]="kindKey(k) | transloco" [inputId]="'cf-fbs-' + k">
-                      <input
-                        [id]="'cf-fbs-' + k"
-                        type="number"
-                        inputmode="numeric"
-                        min="1"
-                        max="365"
-                        [disabled]="!canManage()"
-                        [value]="days()[k]"
-                        (input)="setDays(k, $any($event.target).value)"
-                        [placeholder]="'feedback.settings.noDefault' | transloco"
-                        [attr.aria-invalid]="!!errors()[k] || null"
-                        [attr.data-testid]="'days-' + k"
-                      />
-                    </app-form-field>
-                    @if (errors()[k]; as e) {
-                      <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-                    }
-                  </div>
-                }
+            <app-form-section
+              [title]="'feedback.settings.responseTitle' | transloco"
+              [description]="'feedback.settings.responseIntro' | transloco"
+            >
+              <app-field-help
+                title-suffix
+                scope="feedback"
+                page="settings"
+                field="response_days"
+                [label]="'feedback.settings.responseTitle' | transloco"
+              />
+              @for (k of kinds; track k) {
+                <app-form-field
+                  [label]="kindKey(k) | transloco"
+                  [inputId]="'cf-fbs-' + k"
+                  [error]="errors()[k] ?? '' | transloco"
+                >
+                  <input
+                    [id]="'cf-fbs-' + k"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    max="365"
+                    [disabled]="!canManage()"
+                    [value]="days()[k]"
+                    (input)="setDays(k, $any($event.target).value)"
+                    [placeholder]="'feedback.settings.noDefault' | transloco"
+                    [attr.data-testid]="'days-' + k"
+                  />
+                </app-form-field>
+              }
+              <div class="sm:col-span-2">
+                <label
+                  class="flex h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                >
+                  <input
+                    type="checkbox"
+                    class="h-4 w-4 accent-[var(--accent)]"
+                    [disabled]="!canManage()"
+                    [checked]="workingDays()"
+                    (change)="workingDays.set($any($event.target).checked)"
+                    data-testid="working-days"
+                  />
+                  {{ 'feedback.settings.workingDays' | transloco }}
+                </label>
+                <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
+                  {{ 'feedback.settings.emptyMeansNone' | transloco }}
+                </p>
               </div>
-              <label class="mt-4 inline-flex items-center gap-2 text-ui text-fg">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 accent-[var(--accent)]"
-                  [disabled]="!canManage()"
-                  [checked]="workingDays()"
-                  (change)="workingDays.set($any($event.target).checked)"
-                  data-testid="working-days"
-                />
-                {{ 'feedback.settings.workingDays' | transloco }}
-              </label>
-              <p class="mt-1 text-meta text-fg-subtle">
-                {{ 'feedback.settings.emptyMeansNone' | transloco }}
-              </p>
-            </app-card>
+            </app-form-section>
 
-            <app-card>
-              <h2 class="mb-1 flex items-center gap-1 font-display text-section font-bold text-fg">
-                {{ 'feedback.settings.privacyTitle' | transloco }}
-                <app-field-help scope="feedback" page="settings" field="privacy_notice_url" />
-              </h2>
-              <p class="mb-4 text-meta text-fg-muted">
-                {{ 'feedback.settings.privacyIntro' | transloco }}
-              </p>
+            <app-form-section
+              [title]="'feedback.settings.privacyTitle' | transloco"
+              [description]="'feedback.settings.privacyIntro' | transloco"
+            >
+              <app-field-help
+                title-suffix
+                scope="feedback"
+                page="settings"
+                field="privacy_notice_url"
+                [label]="'feedback.settings.privacyTitle' | transloco"
+              />
               <app-form-field
+                span="full"
                 [label]="'feedback.settings.privacyUrl' | transloco"
                 inputId="cf-fbs-privacy"
+                [error]="errors()['privacy_notice_url'] ?? '' | transloco"
               >
                 <input
                   id="cf-fbs-privacy"
@@ -183,19 +193,13 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
                   [value]="url()"
                   (input)="url.set($any($event.target).value)"
                   placeholder="https://"
-                  [attr.aria-invalid]="!!errors()['privacy_notice_url'] || null"
                   data-testid="privacy-url"
                 />
               </app-form-field>
-              @if (errors()['privacy_notice_url']; as e) {
-                <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-              }
-            </app-card>
+            </app-form-section>
 
             @if (canManage()) {
-              <div
-                class="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-              >
+              <app-form-actions>
                 <app-button
                   type="submit"
                   [loading]="saving()"
@@ -204,7 +208,7 @@ export function toSettings(days: DaysForm, workingDays: boolean, url: string): F
                 >
                   {{ 'feedback.settings.save' | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             }
           </form>
         }

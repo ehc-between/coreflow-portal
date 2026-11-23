@@ -13,7 +13,6 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
-import { LanguageService } from '../../../core/i18n/language.service';
 import { CreateFlowService } from '../../../core/kit/create-flow.service';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
@@ -41,6 +40,7 @@ import {
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { PickedDeviation, SupplierDeviationPicker } from '../shared/deviation-picker';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 type TriState = '' | 'yes' | 'no';
 
@@ -104,6 +104,7 @@ export function needsDeviation(e: PerformanceEntry): boolean {
 @Component({
   selector: 'app-supplier-performance-panel',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -336,12 +337,10 @@ export function needsDeviation(e: PerformanceEntry): boolean {
             </select>
           </app-form-field>
           <app-form-field [label]="'suppliers.performance.form.date' | transloco" inputId="pf-date">
-            <input
-              id="pf-date"
-              type="date"
-              [attr.lang]="lang()"
+            <app-date-input
+              inputId="pf-date"
               [value]="d().occurred_on"
-              (input)="set('occurred_on', $any($event.target).value)"
+              (valueChange)="set('occurred_on', $event ?? '')"
             />
           </app-form-field>
         </div>
@@ -474,7 +473,6 @@ export class SupplierPerformancePanel {
   private readonly api = inject(SuppliersApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);
-  private readonly language = inject(LanguageService);
   private readonly flows = inject(CreateFlowService);
 
   readonly supplierId = input.required<string>();
@@ -501,7 +499,6 @@ export class SupplierPerformancePanel {
   protected readonly busy = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly pendingDelete = signal<PerformanceEntry | null>(null);
-  protected readonly lang = computed(() => (this.language.active() === 'nb' ? 'nb' : 'en'));
   /** The entry being written went wrong (late or quality not OK). */
   protected readonly badEntry = computed(
     () => this.d().on_time === 'no' || this.d().quality_ok === 'no',

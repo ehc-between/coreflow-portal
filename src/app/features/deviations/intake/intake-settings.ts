@@ -22,6 +22,9 @@ import { FieldHelp } from '../../../shared/guidance/field-help';
 import { QrCode, qrPath } from '../../../shared/qr-code/qr-code';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
@@ -118,6 +121,9 @@ ${body}
     LoadingState,
     PageHeader,
     QrCode,
+    FormActions,
+    FormField,
+    FormSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -150,95 +156,96 @@ ${body}
             </div>
           }
           <form class="flex flex-col gap-5" (ngSubmit)="save()">
-            <app-card>
-              <div class="flex flex-col gap-4">
-                <app-switch [checked]="enabled()" (checkedChange)="enabled.set($event)">
-                  {{ 'deviations.intake.settings.enabled' | transloco }}
-                </app-switch>
+            <app-form-section
+              [title]="'deviations.intake.settings.formTitle' | transloco"
+              [description]="'deviations.intake.settings.formHint' | transloco"
+              [columns]="1"
+            >
+              <app-switch [checked]="enabled()" (checkedChange)="enabled.set($event)">
+                {{ 'deviations.intake.settings.enabled' | transloco }}
+              </app-switch>
 
-                <fieldset class="flex flex-col gap-2">
-                  <legend
-                    class="mb-1 flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
+              <fieldset class="flex flex-col gap-2">
+                <legend
+                  class="mb-1 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+                >
+                  {{ 'deviations.intake.settings.mode' | transloco }}
+                  <app-field-help scope="deviations" page="intakeSettings" field="mode" />
+                </legend>
+                @for (option of modes; track option) {
+                  <label
+                    class="flex items-start gap-2 rounded-tile border border-border p-3 text-ui"
                   >
-                    {{ 'deviations.intake.settings.mode' | transloco }}
-                    <app-field-help scope="deviations" page="intakeSettings" field="mode" />
-                  </legend>
-                  @for (option of modes; track option) {
-                    <label
-                      class="flex items-start gap-2 rounded-tile border border-border p-3 text-ui"
-                    >
-                      <input
-                        type="radio"
-                        name="mode"
-                        [value]="option"
-                        [ngModel]="mode()"
-                        (ngModelChange)="mode.set($event)"
-                        class="mt-0.5"
-                      />
-                      <span>
-                        <span class="block font-semibold text-fg">{{
-                          'deviations.intake.modes.' + option | transloco
-                        }}</span>
-                        <span class="block text-fg-muted">{{
-                          'deviations.intake.modeHelp.' + option | transloco
-                        }}</span>
-                      </span>
-                    </label>
+                    <input
+                      type="radio"
+                      name="mode"
+                      [value]="option"
+                      [ngModel]="mode()"
+                      (ngModelChange)="mode.set($event)"
+                      class="mt-0.5"
+                    />
+                    <span>
+                      <span class="block font-semibold text-fg">{{
+                        'deviations.intake.modes.' + option | transloco
+                      }}</span>
+                      <span class="block text-fg-muted">{{
+                        'deviations.intake.modeHelp.' + option | transloco
+                      }}</span>
+                    </span>
+                  </label>
+                }
+              </fieldset>
+
+              <app-form-field
+                class="sm:max-w-[50%]"
+                [label]="'deviations.intake.settings.defaultType' | transloco"
+                inputId="intake-type"
+              >
+                <select
+                  id="intake-type"
+                  name="defaultType"
+                  [ngModel]="defaultTypeId()"
+                  (ngModelChange)="defaultTypeId.set($event)"
+                >
+                  <option value="">
+                    {{ 'deviations.intake.settings.noDefaultType' | transloco }}
+                  </option>
+                  @for (type of types(); track type.id) {
+                    <option [value]="type.id">{{ type.name }}</option>
                   }
-                </fieldset>
+                </select>
+              </app-form-field>
 
-                <div class="flex flex-col gap-1.5 sm:max-w-[60%]">
-                  <label for="intake-type" class="text-ui font-semibold text-fg-muted">
-                    {{ 'deviations.intake.settings.defaultType' | transloco }}
-                  </label>
-                  <select
-                    id="intake-type"
-                    name="defaultType"
-                    [ngModel]="defaultTypeId()"
-                    (ngModelChange)="defaultTypeId.set($event)"
-                    class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                  >
-                    <option value="">
-                      {{ 'deviations.intake.settings.noDefaultType' | transloco }}
-                    </option>
-                    @for (type of types(); track type.id) {
-                      <option [value]="type.id">{{ type.name }}</option>
-                    }
-                  </select>
-                </div>
+              <app-form-field
+                [label]="'deviations.intake.settings.instructions' | transloco"
+                inputId="intake-instructions"
+              >
+                <textarea
+                  id="intake-instructions"
+                  name="instructions"
+                  rows="4"
+                  maxlength="4000"
+                  [ngModel]="instructions()"
+                  (ngModelChange)="instructions.set($event)"
+                  [placeholder]="'deviations.intake.settings.instructionsPlaceholder' | transloco"
+                ></textarea>
+              </app-form-field>
 
-                <div class="flex flex-col gap-1.5">
-                  <label for="intake-instructions" class="text-ui font-semibold text-fg-muted">
-                    {{ 'deviations.intake.settings.instructions' | transloco }}
-                  </label>
-                  <textarea
-                    id="intake-instructions"
-                    name="instructions"
-                    rows="4"
-                    maxlength="4000"
-                    [ngModel]="instructions()"
-                    (ngModelChange)="instructions.set($event)"
-                    [placeholder]="'deviations.intake.settings.instructionsPlaceholder' | transloco"
-                    class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
-                  ></textarea>
-                </div>
+              <app-switch [checked]="allowContact()" (checkedChange)="allowContact.set($event)">
+                {{ 'deviations.intake.settings.allowContact' | transloco }}
+              </app-switch>
+            </app-form-section>
 
-                <app-switch [checked]="allowContact()" (checkedChange)="allowContact.set($event)">
-                  {{ 'deviations.intake.settings.allowContact' | transloco }}
-                </app-switch>
-              </div>
-            </app-card>
-
-            <div class="flex items-center justify-end gap-2">
+            <app-form-actions>
               <app-button type="submit" [loading]="saving()">
                 <app-icon name="check" [size]="15" />
                 {{ 'deviations.intake.settings.save' | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
 
-          <app-card class="mt-6 block">
-            <h2 class="mb-2 font-display text-section font-bold tracking-[-0.02em] text-fg">
+          <app-card class="mt-5 block">
+            <h2 class="mb-2 font-display text-card font-bold text-fg">
               {{ 'deviations.intake.settings.linkTitle' | transloco }}
             </h2>
             @if (!current.enabled) {

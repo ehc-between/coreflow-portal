@@ -18,7 +18,6 @@ import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { ContinuityApi } from '../data/continuity-api';
 import { blankToNull, todayIso } from '../data/continuity-display';
@@ -37,6 +36,9 @@ import {
 import { ContinuityDurationInput } from '../shared/duration';
 import { ContinuityMemberPicker, ContinuityUserSelect } from '../shared/user-select';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 export interface ExerciseDraft {
   title: string;
@@ -166,11 +168,13 @@ export interface ExerciseFormValue {
 @Component({
   selector: 'app-exercise-form',
   imports: [
+    FormActions,
+    FormSection,
+    DateInput,
     TranslocoPipe,
     AiAssistButton,
     AskAbout,
     Button,
-    Card,
     ContinuityDurationInput,
     ContinuityMemberPicker,
     ContinuityUserSelect,
@@ -181,319 +185,328 @@ export interface ExerciseFormValue {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'continuity.form.sections.exercise' | transloco }}
-          </h2>
-          @if (!completed()) {
-            <div class="flex flex-col items-end gap-1">
-              <app-ai-assist-button
-                assist="continuity.exercise_scenario"
-                labelKey="continuity.ai.draftScenario"
-                [input]="{
-                  plan_id: d().plan_id || null,
-                  exercise_type: d().exercise_type,
-                  notes: d().title || null,
-                }"
-                [disabled]="!d().plan_id"
-                (result)="applyResult($event)"
-              />
-              @if (!d().plan_id) {
-                <p
-                  class="max-w-[280px] text-right text-meta text-fg-subtle"
-                  data-testid="scenario-hint"
-                >
-                  {{ 'continuity.ai.scenarioNeedsPlan' | transloco }}
-                </p>
-              }
-            </div>
-          }
-        </div>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'continuity.fields.title' | transloco" inputId="ex-title">
-              <input
-                id="ex-title"
-                type="text"
-                maxlength="255"
-                required
-                [attr.aria-invalid]="showErrors() && !d().title.trim()"
-                [value]="d().title"
-                (input)="set('title', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !d().title.trim()) {
-              <p class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'continuity.form.errors.titleRequired' | transloco }}
-              </p>
-            }
-          </div>
-          <app-form-field [label]="'continuity.fields.exerciseType' | transloco" inputId="ex-type">
-            <select
-              id="ex-type"
-              [disabled]="completed()"
-              (change)="set('exercise_type', $any($event.target).value)"
-            >
-              @for (t of types; track t) {
-                <option [value]="t" [selected]="d().exercise_type === t">
-                  {{ 'continuity.exerciseType.' + t | transloco }}
-                </option>
-              }
-            </select>
-            <app-field-help scope="continuity" page="exerciseForm" field="exercise_type" />
-          </app-form-field>
-          <app-form-field [label]="'continuity.fields.scheduledOn' | transloco" inputId="ex-date">
-            <input
-              id="ex-date"
-              type="date"
-              [disabled]="completed()"
-              [value]="d().scheduled_on"
-              (input)="set('scheduled_on', $any($event.target).value)"
-            />
-            @if (d().scheduled_on) {
-              <p class="text-meta text-fg-subtle">{{ d().scheduled_on | localDay: 'longDate' }}</p>
-            }
-          </app-form-field>
-          <app-form-field [label]="'continuity.fields.plan' | transloco" inputId="ex-plan">
-            <select
-              id="ex-plan"
-              [disabled]="completed()"
-              (change)="set('plan_id', $any($event.target).value)"
-            >
-              <option value="" [selected]="!d().plan_id">
-                {{ 'continuity.form.noPlan' | transloco }}
+      <app-form-section
+        [title]="'continuity.form.sections.exercise' | transloco"
+        [description]="'continuity.form.sections.exerciseHint' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.title' | transloco"
+          inputId="ex-title"
+          [required]="true"
+          [error]="
+            showErrors() && !d().title.trim()
+              ? ('continuity.form.errors.titleRequired' | transloco)
+              : ''
+          "
+        >
+          <input
+            id="ex-title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="d().title"
+            (input)="set('title', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.exerciseType' | transloco" inputId="ex-type">
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="exerciseForm"
+            field="exercise_type"
+            [label]="'continuity.fields.exerciseType' | transloco"
+          />
+          <select
+            id="ex-type"
+            [disabled]="completed()"
+            (change)="set('exercise_type', $any($event.target).value)"
+          >
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="d().exercise_type === t">
+                {{ 'continuity.exerciseType.' + t | transloco }}
               </option>
-              @if (orphanPlan(); as p) {
-                <option [value]="p.id" selected>{{ p.code }} {{ p.title }}</option>
-              }
-              @for (p of plans(); track p.id) {
-                <option [value]="p.id" [selected]="d().plan_id === p.id">
-                  {{ p.code }} {{ p.title }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <div>
-            <app-form-field [label]="'continuity.fields.ictSystem' | transloco" inputId="ex-ict">
-              <select
-                id="ex-ict"
-                [disabled]="completed()"
-                (change)="set('ict_system_id', $any($event.target).value)"
-              >
-                <option value="" [selected]="!d().ict_system_id">
-                  {{ 'continuity.form.noIctSystem' | transloco }}
-                </option>
-                @if (orphanIct(); as s) {
-                  <option [value]="s.id" selected>{{ s.code }} {{ s.name }}</option>
-                }
-                @for (s of systems(); track s.id) {
-                  <option [value]="s.id" [selected]="d().ict_system_id === s.id">
-                    {{ s.code }} {{ s.name }}
-                  </option>
-                }
-              </select>
-              <app-field-help scope="continuity" page="exerciseForm" field="ict_system_id" />
-            </app-form-field>
-          </div>
-          <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="ex-owner">
-            <app-continuity-user-select
-              inputId="ex-owner"
-              [disabled]="completed()"
-              [value]="d().owner_user_id"
-              [currentName]="value()?.owner?.name ?? null"
-              (valueChange)="set('owner_user_id', $event)"
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'continuity.fields.scheduledOn' | transloco"
+          inputId="ex-date"
+          [hint]="d().scheduled_on ? (d().scheduled_on | localDay: 'longDate') : ''"
+        >
+          <app-date-input
+            inputId="ex-date"
+            [disabled]="completed()"
+            [value]="d().scheduled_on"
+            (valueChange)="set('scheduled_on', $event ?? '')"
+          />
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.plan' | transloco" inputId="ex-plan">
+          <select
+            id="ex-plan"
+            [disabled]="completed()"
+            (change)="set('plan_id', $any($event.target).value)"
+          >
+            <option value="" [selected]="!d().plan_id">
+              {{ 'continuity.form.noPlan' | transloco }}
+            </option>
+            @if (orphanPlan(); as p) {
+              <option [value]="p.id" selected>{{ p.code }} {{ p.title }}</option>
+            }
+            @for (p of plans(); track p.id) {
+              <option [value]="p.id" [selected]="d().plan_id === p.id">
+                {{ p.code }} {{ p.title }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.ictSystem' | transloco" inputId="ex-ict">
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="exerciseForm"
+            field="ict_system_id"
+            [label]="'continuity.fields.ictSystem' | transloco"
+          />
+          <select
+            id="ex-ict"
+            [disabled]="completed()"
+            (change)="set('ict_system_id', $any($event.target).value)"
+          >
+            <option value="" [selected]="!d().ict_system_id">
+              {{ 'continuity.form.noIctSystem' | transloco }}
+            </option>
+            @if (orphanIct(); as s) {
+              <option [value]="s.id" selected>{{ s.code }} {{ s.name }}</option>
+            }
+            @for (s of systems(); track s.id) {
+              <option [value]="s.id" [selected]="d().ict_system_id === s.id">
+                {{ s.code }} {{ s.name }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="ex-owner">
+          <app-continuity-user-select
+            inputId="ex-owner"
+            [disabled]="completed()"
+            [value]="d().owner_user_id"
+            [currentName]="value()?.owner?.name ?? null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-form-field>
+        @if (!completed()) {
+          <app-form-field
+            [label]="'continuity.fields.targetRecovery' | transloco"
+            inputId="ex-target"
+            [hint]="'continuity.form.targetHint' | transloco"
+          >
+            <app-field-help
+              label-suffix
+              scope="continuity"
+              page="exerciseForm"
+              field="target_recovery_minutes"
+              [label]="'continuity.fields.targetRecovery' | transloco"
+            />
+            <app-continuity-duration-input
+              inputId="ex-target"
+              [value]="d().target_recovery_minutes"
+              describedBy="ex-target-hint"
+              (valueChange)="set('target_recovery_minutes', $event)"
             />
           </app-form-field>
-          @if (!completed()) {
-            <app-form-field
-              [label]="'continuity.fields.targetRecovery' | transloco"
-              inputId="ex-target"
-            >
-              <app-continuity-duration-input
-                inputId="ex-target"
-                [value]="d().target_recovery_minutes"
-                describedBy="ex-target-hint"
-                (valueChange)="set('target_recovery_minutes', $event)"
-              />
-              <p id="ex-target-hint" class="text-meta text-fg-subtle">
-                {{ 'continuity.form.targetHint' | transloco }}
-              </p>
-              <app-field-help
-                scope="continuity"
-                page="exerciseForm"
-                field="target_recovery_minutes"
-              />
-            </app-form-field>
-          }
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'continuity.fields.participantMembers' | transloco"
-              inputId="ex-members"
-            >
-              <app-continuity-member-picker
-                inputId="ex-members"
-                [value]="d().participant_user_ids"
-                [known]="value()?.participant_members ?? []"
-                describedBy="ex-members-hint"
-                (valueChange)="set('participant_user_ids', $event)"
-              />
-              <p id="ex-members-hint" class="text-meta text-fg-subtle">
-                {{ 'continuity.form.membersHint' | transloco }}
-              </p>
-            </app-form-field>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'continuity.form.sections.scenario' | transloco"
+        [description]="'continuity.form.sections.scenarioHint' | transloco"
+      >
+        @if (!completed()) {
+          <div
+            class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-accent-border bg-accent-soft px-3 py-2 sm:col-span-2"
+          >
+            <p class="min-w-0 flex-1 text-ui text-fg-muted" data-testid="scenario-hint">
+              {{
+                (d().plan_id
+                  ? 'continuity.form.sections.scenarioAssist'
+                  : 'continuity.ai.scenarioNeedsPlan'
+                ) | transloco
+              }}
+            </p>
+            <app-ai-assist-button
+              assist="continuity.exercise_scenario"
+              labelKey="continuity.ai.draftScenario"
+              [input]="{
+                plan_id: d().plan_id || null,
+                exercise_type: d().exercise_type,
+                notes: d().title || null,
+              }"
+              [disabled]="!d().plan_id"
+              (result)="applyResult($event)"
+            />
           </div>
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'continuity.fields.participantsOther' | transloco"
-              inputId="ex-participants"
-            >
-              <input
-                id="ex-participants"
-                type="text"
-                maxlength="5000"
-                [value]="d().participants"
-                (input)="set('participants', $any($event.target).value)"
-              />
-            </app-form-field>
-          </div>
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'continuity.fields.successCriteria' | transloco"
-              inputId="ex-criteria"
-            >
-              <textarea
-                id="ex-criteria"
-                rows="3"
-                maxlength="20000"
-                [value]="d().success_criteria"
-                (input)="set('success_criteria', $any($event.target).value)"
-              ></textarea>
-              <span class="flex flex-wrap items-center gap-2">
-                <app-field-help scope="continuity" page="exerciseForm" field="success_criteria" />
-                <app-ask-about
-                  [prompt]="'continuity.ai.prompts.successCriteria' | transloco"
-                  field="success_criteria"
-                />
-              </span>
-            </app-form-field>
-          </div>
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'continuity.fields.scenario' | transloco"
-              inputId="ex-scenario"
-            >
-              <textarea
-                id="ex-scenario"
-                rows="5"
-                maxlength="20000"
-                [value]="d().scenario"
-                (input)="set('scenario', $any($event.target).value)"
-              ></textarea>
-              <app-field-help scope="continuity" page="exerciseForm" field="scenario" />
-            </app-form-field>
-          </div>
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'continuity.fields.objectives' | transloco"
-              inputId="ex-objectives"
-            >
-              <textarea
-                id="ex-objectives"
-                rows="4"
-                maxlength="20000"
-                [value]="d().objectives"
-                (input)="set('objectives', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
-        </div>
-      </app-card>
+        }
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.scenario' | transloco"
+          inputId="ex-scenario"
+        >
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="exerciseForm"
+            field="scenario"
+            [label]="'continuity.fields.scenario' | transloco"
+          />
+          <textarea
+            id="ex-scenario"
+            rows="5"
+            maxlength="20000"
+            [value]="d().scenario"
+            (input)="set('scenario', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.objectives' | transloco"
+          inputId="ex-objectives"
+        >
+          <textarea
+            id="ex-objectives"
+            rows="4"
+            maxlength="20000"
+            [value]="d().objectives"
+            (input)="set('objectives', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.successCriteria' | transloco"
+          inputId="ex-criteria"
+        >
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="exerciseForm"
+            field="success_criteria"
+            [label]="'continuity.fields.successCriteria' | transloco"
+          />
+          <app-ask-about
+            label-suffix
+            [prompt]="'continuity.ai.prompts.successCriteria' | transloco"
+            field="success_criteria"
+          />
+          <textarea
+            id="ex-criteria"
+            rows="3"
+            maxlength="20000"
+            [value]="d().success_criteria"
+            (input)="set('success_criteria', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.participantMembers' | transloco"
+          inputId="ex-members"
+          [hint]="'continuity.form.membersHint' | transloco"
+        >
+          <app-continuity-member-picker
+            inputId="ex-members"
+            [value]="d().participant_user_ids"
+            [known]="value()?.participant_members ?? []"
+            describedBy="ex-members-hint"
+            (valueChange)="set('participant_user_ids', $event)"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.participantsOther' | transloco"
+          inputId="ex-participants"
+        >
+          <input
+            id="ex-participants"
+            type="text"
+            maxlength="5000"
+            [value]="d().participants"
+            (input)="set('participants', $any($event.target).value)"
+          />
+        </app-form-field>
+      </app-form-section>
 
       @if (completed()) {
-        <app-card>
-          <h2 class="mb-3 font-display text-card font-bold text-fg">
-            {{ 'continuity.exercises.results' | transloco }}
-          </h2>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <app-form-field
-              [label]="'continuity.fields.conductedOn' | transloco"
+        <app-form-section
+          [title]="'continuity.exercises.results' | transloco"
+          [description]="'continuity.form.sections.resultsHint' | transloco"
+        >
+          <app-form-field
+            [label]="'continuity.fields.conductedOn' | transloco"
+            inputId="ex-conducted"
+            [hint]="d().conducted_on ? (d().conducted_on | localDay: 'longDate') : ''"
+          >
+            <app-date-input
               inputId="ex-conducted"
-            >
-              <input
-                id="ex-conducted"
-                type="date"
-                [max]="today"
-                [value]="d().conducted_on"
-                (input)="set('conducted_on', $any($event.target).value)"
-              />
-              @if (d().conducted_on) {
-                <p class="text-meta text-fg-subtle">
-                  {{ d().conducted_on | localDay: 'longDate' }}
-                </p>
+              [max]="today"
+              [value]="d().conducted_on"
+              (valueChange)="set('conducted_on', $event ?? '')"
+            />
+          </app-form-field>
+          <app-form-field [label]="'continuity.fields.outcome' | transloco" inputId="ex-outcome">
+            <select id="ex-outcome" (change)="set('outcome', $any($event.target).value)">
+              @for (o of outcomes; track o) {
+                <option [value]="o" [selected]="d().outcome === o">
+                  {{ 'continuity.outcome.' + o | transloco }}
+                </option>
               }
-            </app-form-field>
-            <app-form-field [label]="'continuity.fields.outcome' | transloco" inputId="ex-outcome">
-              <select id="ex-outcome" (change)="set('outcome', $any($event.target).value)">
-                @for (o of outcomes; track o) {
-                  <option [value]="o" [selected]="d().outcome === o">
-                    {{ 'continuity.outcome.' + o | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <app-form-field
-              [label]="'continuity.fields.achievedRecovery' | transloco"
+            </select>
+          </app-form-field>
+          <app-form-field
+            [label]="'continuity.fields.achievedRecovery' | transloco"
+            inputId="ex-achieved"
+          >
+            <app-continuity-duration-input
               inputId="ex-achieved"
-            >
-              <app-continuity-duration-input
-                inputId="ex-achieved"
-                [value]="d().achieved_recovery_minutes"
-                (valueChange)="set('achieved_recovery_minutes', $event)"
-              />
-            </app-form-field>
-            <div class="sm:col-span-3">
-              <app-form-field
-                [label]="'continuity.fields.results' | transloco"
-                inputId="ex-results"
-              >
-                <textarea
-                  id="ex-results"
-                  rows="4"
-                  maxlength="20000"
-                  [value]="d().results"
-                  (input)="set('results', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-            <div class="sm:col-span-3">
-              <app-form-field
-                [label]="'continuity.fields.lessonsLearned' | transloco"
-                inputId="ex-lessons"
-              >
-                <textarea
-                  id="ex-lessons"
-                  rows="4"
-                  maxlength="20000"
-                  [value]="d().lessons_learned"
-                  (input)="set('lessons_learned', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-          </div>
-        </app-card>
+              [value]="d().achieved_recovery_minutes"
+              (valueChange)="set('achieved_recovery_minutes', $event)"
+            />
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'continuity.fields.results' | transloco"
+            inputId="ex-results"
+          >
+            <textarea
+              id="ex-results"
+              rows="4"
+              maxlength="20000"
+              [value]="d().results"
+              (input)="set('results', $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'continuity.fields.lessonsLearned' | transloco"
+            inputId="ex-lessons"
+          >
+            <textarea
+              id="ex-lessons"
+              rows="4"
+              maxlength="20000"
+              [value]="d().lessons_learned"
+              (input)="set('lessons_learned', $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        </app-form-section>
       }
 
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
-      >
-        <app-button variant="ghost" (click)="cancelled.emit()">
+      <app-form-actions>
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()">
           {{ (value() ? 'continuity.form.save' : 'continuity.exercises.create') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })

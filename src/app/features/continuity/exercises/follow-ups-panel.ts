@@ -19,6 +19,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { ContinuityApi } from '../data/continuity-api';
 import { blankToNull } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /**
  * Follow-up of an exercise: the actions (platform tasks of kind `continuity_action`)
@@ -29,6 +30,7 @@ import { continuityErrorKey } from '../data/continuity-errors';
 @Component({
   selector: 'app-exercise-follow-ups',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -150,11 +152,10 @@ import { continuityErrorKey } from '../data/continuity-errors';
             />
           </app-form-field>
           <app-form-field [label]="'continuity.followUps.dueOn' | transloco" inputId="fu-due">
-            <input
-              id="fu-due"
-              type="date"
+            <app-date-input
+              inputId="fu-due"
               [value]="due()"
-              (input)="due.set($any($event.target).value)"
+              (valueChange)="due.set($event ?? '')"
             />
           </app-form-field>
           <div class="sm:col-span-2">

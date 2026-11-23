@@ -17,6 +17,7 @@ import { LanguageSwitcher } from '../../../shared/language-switcher/language-swi
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PublicSurveyApi } from '../data/feedback-api';
@@ -44,6 +45,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     Card,
     Icon,
     SurveyQuestion,
+    FormField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -150,46 +152,33 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     <p class="mb-3 text-meta text-fg-muted">
                       {{ 'feedback.public.aboutYouHint' | transloco }}
                     </p>
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <div>
-                        <label
-                          for="cf-ps-name"
-                          class="mb-1 block text-ui font-semibold text-fg-muted"
-                        >
-                          {{ 'feedback.public.name' | transloco }}
-                        </label>
+                    <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
+                      <app-form-field
+                        [label]="'feedback.public.name' | transloco"
+                        inputId="cf-ps-name"
+                      >
                         <input
                           id="cf-ps-name"
                           type="text"
                           maxlength="255"
                           autocomplete="name"
-                          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent"
                           [value]="name()"
                           (input)="name.set($any($event.target).value)"
                         />
-                      </div>
-                      <div>
-                        <label
-                          for="cf-ps-email"
-                          class="mb-1 block text-ui font-semibold text-fg-muted"
-                        >
-                          {{ 'feedback.public.email' | transloco }}
-                        </label>
+                      </app-form-field>
+                      <app-form-field
+                        [label]="'feedback.public.email' | transloco"
+                        inputId="cf-ps-email"
+                        [error]="emailInvalid() ? ('feedback.form.errors.email' | transloco) : ''"
+                      >
                         <input
                           id="cf-ps-email"
                           type="email"
                           autocomplete="email"
-                          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent"
                           [value]="email()"
                           (input)="email.set($any($event.target).value)"
-                          [attr.aria-invalid]="emailInvalid() || null"
                         />
-                        @if (emailInvalid()) {
-                          <p class="mt-1 text-meta text-fail">
-                            {{ 'feedback.form.errors.email' | transloco }}
-                          </p>
-                        }
-                      </div>
+                      </app-form-field>
                     </div>
                   </app-card>
                 }

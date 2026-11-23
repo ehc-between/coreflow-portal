@@ -15,45 +15,48 @@ import { DeviationFormRow } from './form-row';
   selector: 'app-deviation-event-facts',
   imports: [TranslocoPipe, AskAbout, DeviationFormRow],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col gap-4' },
+  host: { class: 'contents' },
   template: `
-    <div class="grid gap-4 sm:grid-cols-2">
-      <app-deviation-form-row
-        labelKey="deviations.facts.occurredAt"
-        [inputId]="idPrefix() + '-occurred'"
-        [page]="page()"
-        help="occurred_at"
-      >
-        <input
-          [id]="idPrefix() + '-occurred'"
-          type="datetime-local"
-          [max]="max"
-          [value]="occurred()"
-          (change)="occurred.set($any($event.target).value)"
-        />
-      </app-deviation-form-row>
-      <app-deviation-form-row
-        labelKey="deviations.facts.detectedAt"
-        [inputId]="idPrefix() + '-detected'"
-        [page]="page()"
-        help="detected_at"
-        hintKey="deviations.facts.detectedHint"
-      >
-        <input
-          [id]="idPrefix() + '-detected'"
-          type="datetime-local"
-          [max]="max"
-          [value]="detected()"
-          (change)="detected.set($any($event.target).value)"
-        />
-      </app-deviation-form-row>
-    </div>
+    <app-deviation-form-row
+      labelKey="deviations.facts.occurredAt"
+      [inputId]="idPrefix() + '-occurred'"
+      [page]="page()"
+      help="occurred_at"
+    >
+      <input
+        [id]="idPrefix() + '-occurred'"
+        type="datetime-local"
+        [max]="max"
+        [value]="occurred()"
+        (change)="occurred.set($any($event.target).value)"
+      />
+    </app-deviation-form-row>
+    <app-deviation-form-row
+      labelKey="deviations.facts.detectedAt"
+      [inputId]="idPrefix() + '-detected'"
+      [page]="page()"
+      help="detected_at"
+      hintKey="deviations.facts.detectedHint"
+    >
+      <input
+        [id]="idPrefix() + '-detected'"
+        type="datetime-local"
+        [max]="max"
+        [value]="detected()"
+        (change)="detected.set($any($event.target).value)"
+      />
+    </app-deviation-form-row>
     @if (timeError(); as key) {
-      <p class="-mt-2 text-meta font-medium text-fail-ink" role="alert" data-testid="facts-error">
+      <p
+        class="-mt-3 text-meta sm:col-span-2 font-medium text-fail-ink"
+        role="alert"
+        data-testid="facts-error"
+      >
         {{ key | transloco }}
       </p>
     }
     <app-deviation-form-row
+      span="full"
       labelKey="deviations.facts.location"
       [inputId]="idPrefix() + '-location'"
       [page]="page()"
@@ -70,6 +73,7 @@ import { DeviationFormRow } from './form-row';
       />
     </app-deviation-form-row>
     <app-deviation-form-row
+      span="full"
       labelKey="deviations.facts.immediateAction"
       [inputId]="idPrefix() + '-immediate'"
       [page]="page()"

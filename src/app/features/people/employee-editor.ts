@@ -19,12 +19,13 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AskAbout } from '../../shared/ask/ask-about';
-import { Term } from '../../shared/guidance/term';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
@@ -65,12 +66,13 @@ const LIVE_ERRORS = new Set(['email', 'end_date', 'screening_legal_basis', 'scre
   imports: [
     TranslocoPipe,
     AskAbout,
-    Term,
     WhyItMatters,
     Alert,
     Button,
-    Card,
+    DateInput,
     EmptyState,
+    FormActions,
+    FormSection,
     HelpStrip,
     LoadingState,
     PageHeader,
@@ -78,7 +80,7 @@ const LIVE_ERRORS = new Set(['email', 'end_date', 'screening_legal_basis', 'scre
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [title]="
           id() ? ('people.form.editTitle' | transloco: { name: original()?.full_name ?? '' }) : null
@@ -110,405 +112,391 @@ const LIVE_ERRORS = new Set(['email', 'end_date', 'screening_legal_basis', 'scre
               (submit)="$event.preventDefault(); submit()"
               novalidate
             >
-              <p class="text-meta text-fg-muted">{{ 'people.form.requiredNote' | transloco }}</p>
-              <app-card>
-                <h2 class="mb-4 text-section font-bold text-fg">
-                  {{ 'people.form.sections.identity' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-people-field
-                    class="sm:col-span-2"
-                    labelKey="people.fields.fullName"
-                    inputId="cf-e-name"
-                    [required]="true"
-                    [error]="shown()['full_name']"
-                  >
-                    <input
-                      id="cf-e-name"
-                      type="text"
-                      maxlength="200"
-                      required
-                      autocomplete="off"
-                      [value]="form().full_name"
-                      (input)="set('full_name', $any($event.target).value)"
-                      [attr.aria-invalid]="!!shown()['full_name']"
-                      [attr.aria-describedby]="shown()['full_name'] ? 'cf-e-name-err' : null"
-                      data-testid="employee-name"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.user"
-                    inputId="cf-e-user"
-                    help="user_id"
-                  >
-                    <select id="cf-e-user" (change)="set('user_id', $any($event.target).value)">
-                      <option value="" [selected]="!form().user_id">
-                        {{ 'people.form.noUser' | transloco }}
-                      </option>
-                      @if (userOrphan()) {
-                        <option [value]="form().user_id" selected>
-                          {{ original()?.user?.name ?? ('people.form.currentUser' | transloco) }}
-                        </option>
-                      }
-                      @for (u of lookups.users(); track u.id) {
-                        <option [value]="u.id" [selected]="form().user_id === u.id">
-                          {{ u.label }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.employeeNumber"
-                    inputId="cf-e-number"
-                    hintKey="people.form.employeeNumberHint"
-                  >
-                    <input
-                      id="cf-e-number"
-                      type="text"
-                      maxlength="64"
-                      [value]="form().employee_number"
-                      (input)="set('employee_number', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.email"
-                    inputId="cf-e-email"
-                    [error]="shown()['email']"
-                  >
-                    <input
-                      id="cf-e-email"
-                      type="email"
-                      maxlength="320"
-                      autocomplete="off"
-                      [value]="form().email"
-                      (input)="set('email', $any($event.target).value)"
-                      [attr.aria-invalid]="!!shown()['email']"
-                    />
-                  </app-people-field>
-                  <app-people-field labelKey="people.fields.phone" inputId="cf-e-phone">
-                    <input
-                      id="cf-e-phone"
-                      type="tel"
-                      maxlength="64"
-                      autocomplete="off"
-                      [value]="form().phone"
-                      (input)="set('phone', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                </div>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-4 text-section font-bold text-fg">
-                  {{ 'people.form.sections.role' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-people-field
-                    labelKey="people.fields.position"
-                    inputId="cf-e-position"
-                    help="position_id"
-                    [hintKey]="screeningRequired() ? 'people.form.positionNeedsScreening' : null"
-                  >
-                    <select
-                      id="cf-e-position"
-                      (change)="set('position_id', $any($event.target).value)"
-                      data-testid="employee-position"
-                    >
-                      <option value="" [selected]="!form().position_id">
-                        {{ 'people.form.noPosition' | transloco }}
-                      </option>
-                      @if (positionOrphan()) {
-                        <option [value]="form().position_id" selected>
-                          {{ original()?.position?.name ?? '' }}
-                        </option>
-                      }
-                      @for (p of activePositions(); track p.id) {
-                        <option [value]="p.id" [selected]="form().position_id === p.id">
-                          {{ p.title }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.ownTitle"
-                    inputId="cf-e-title"
-                    hintKey="people.form.ownTitleHint"
-                  >
-                    <input
-                      id="cf-e-title"
-                      type="text"
-                      maxlength="200"
-                      [value]="form().job_title"
-                      (input)="set('job_title', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field labelKey="people.fields.department" inputId="cf-e-dept">
-                    <select
-                      id="cf-e-dept"
-                      (change)="set('department_id', $any($event.target).value)"
-                    >
-                      <option value="" [selected]="!form().department_id">
-                        {{ 'people.form.noDepartment' | transloco }}
-                      </option>
-                      @if (departmentOrphan()) {
-                        <option [value]="form().department_id" selected>
-                          {{ original()?.department?.name ?? '' }}
-                        </option>
-                      }
-                      @for (d of lookups.departments(); track d.id) {
-                        <option [value]="d.id" [selected]="form().department_id === d.id">
-                          {{ d.label }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field labelKey="people.fields.manager" inputId="cf-e-manager">
-                    <select
-                      id="cf-e-manager"
-                      (change)="set('manager_id', $any($event.target).value)"
-                    >
-                      <option value="" [selected]="!form().manager_id">
-                        {{ 'people.form.noManager' | transloco }}
-                      </option>
-                      @if (managerOrphan()) {
-                        <option [value]="form().manager_id" selected>
-                          {{ original()?.manager?.name ?? '' }}
-                        </option>
-                      }
-                      @for (m of managers(); track m.id) {
-                        <option [value]="m.id" [selected]="form().manager_id === m.id">
-                          {{ m.full_name }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field labelKey="people.fields.location" inputId="cf-e-location">
-                    <input
-                      id="cf-e-location"
-                      type="text"
-                      maxlength="200"
-                      [value]="form().location"
-                      (input)="set('location', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                </div>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-4 text-section font-bold text-fg">
-                  {{ 'people.form.sections.employment' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-people-field labelKey="people.fields.employmentType" inputId="cf-e-type">
-                    <select
-                      id="cf-e-type"
-                      (change)="set('employment_type', $any($event.target).value)"
-                    >
-                      @for (t of types; track t) {
-                        <option [value]="t" [selected]="form().employment_type === t">
-                          {{ 'people.employmentTypes.' + t | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.status"
-                    inputId="cf-e-status"
-                    help="status"
-                  >
-                    <select id="cf-e-status" (change)="set('status', $any($event.target).value)">
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ 'people.status.' + s | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field labelKey="people.fields.startDate" inputId="cf-e-start">
-                    <input
-                      id="cf-e-start"
-                      type="date"
-                      [value]="form().start_date"
-                      (change)="set('start_date', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.endDate"
-                    inputId="cf-e-end"
-                    [error]="shown()['end_date']"
-                  >
-                    <input
-                      id="cf-e-end"
-                      type="date"
-                      [value]="form().end_date"
-                      (change)="set('end_date', $any($event.target).value)"
-                      [attr.aria-invalid]="!!shown()['end_date']"
-                    />
-                  </app-people-field>
-                </div>
-              </app-card>
-
-              <app-card id="security">
-                <h2 class="mb-1 flex items-center gap-2 text-section font-bold text-fg">
-                  {{ 'people.form.sections.security' | transloco }}
-                  <app-ask-about
-                    [prompt]="'people.ask.securityTerms' | transloco"
-                    field="security_terms"
-                    [fieldLabel]="'people.form.sections.security' | transloco"
-                    [requirements]="securityRefs"
+              <app-form-section
+                [title]="'people.form.sections.identity' | transloco"
+                [description]="'people.form.sections.identityHint' | transloco"
+              >
+                <app-people-field
+                  span="full"
+                  labelKey="people.fields.fullName"
+                  inputId="cf-e-name"
+                  [required]="true"
+                  [error]="shown()['full_name']"
+                >
+                  <input
+                    id="cf-e-name"
+                    type="text"
+                    maxlength="200"
+                    required
+                    autocomplete="off"
+                    [value]="form().full_name"
+                    (input)="set('full_name', $any($event.target).value)"
+                    data-testid="employee-name"
                   />
-                </h2>
-                <p class="mb-4 text-meta text-fg-muted">
-                  {{ 'people.form.securityHint' | transloco }}
-                </p>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-people-field
-                    labelKey="people.fields.confidentialitySignedOn"
-                    inputId="cf-e-conf"
-                    help="confidentiality_signed_on"
-                  >
-                    <input
-                      id="cf-e-conf"
-                      type="date"
-                      [value]="form().confidentiality_signed_on"
-                      (change)="set('confidentiality_signed_on', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.securityTermsAcceptedOn"
-                    inputId="cf-e-terms"
-                    help="security_terms_accepted_on"
-                  >
-                    <input
-                      id="cf-e-terms"
-                      type="date"
-                      [value]="form().security_terms_accepted_on"
-                      (change)="set('security_terms_accepted_on', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                </div>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.email"
+                  inputId="cf-e-email"
+                  [error]="shown()['email']"
+                >
+                  <input
+                    id="cf-e-email"
+                    type="email"
+                    maxlength="320"
+                    autocomplete="off"
+                    [value]="form().email"
+                    (input)="set('email', $any($event.target).value)"
+                  />
+                </app-people-field>
+                <app-people-field labelKey="people.fields.phone" inputId="cf-e-phone">
+                  <input
+                    id="cf-e-phone"
+                    type="tel"
+                    maxlength="64"
+                    autocomplete="off"
+                    [value]="form().phone"
+                    (input)="set('phone', $any($event.target).value)"
+                  />
+                </app-people-field>
+                <app-people-field labelKey="people.fields.user" inputId="cf-e-user" help="user_id">
+                  <select id="cf-e-user" (change)="set('user_id', $any($event.target).value)">
+                    <option value="" [selected]="!form().user_id">
+                      {{ 'people.form.noUser' | transloco }}
+                    </option>
+                    @if (userOrphan()) {
+                      <option [value]="form().user_id" selected>
+                        {{ original()?.user?.name ?? ('people.form.currentUser' | transloco) }}
+                      </option>
+                    }
+                    @for (u of lookups.users(); track u.id) {
+                      <option [value]="u.id" [selected]="form().user_id === u.id">
+                        {{ u.label }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.employeeNumber"
+                  inputId="cf-e-number"
+                  hintKey="people.form.employeeNumberHint"
+                >
+                  <input
+                    id="cf-e-number"
+                    type="text"
+                    maxlength="64"
+                    [value]="form().employee_number"
+                    (input)="set('employee_number', $any($event.target).value)"
+                  />
+                </app-people-field>
+              </app-form-section>
 
-                <h3 class="mt-5 mb-1 text-card font-bold text-fg">
-                  <app-term key="background-check" scope="people">{{
-                    'people.form.screeningTitle' | transloco
-                  }}</app-term>
-                </h3>
+              <app-form-section
+                [title]="'people.form.sections.role' | transloco"
+                [description]="'people.form.sections.roleHint' | transloco"
+              >
+                <app-people-field
+                  labelKey="people.fields.position"
+                  inputId="cf-e-position"
+                  help="position_id"
+                  [hintKey]="screeningRequired() ? 'people.form.positionNeedsScreening' : null"
+                >
+                  <select
+                    id="cf-e-position"
+                    (change)="set('position_id', $any($event.target).value)"
+                    data-testid="employee-position"
+                  >
+                    <option value="" [selected]="!form().position_id">
+                      {{ 'people.form.noPosition' | transloco }}
+                    </option>
+                    @if (positionOrphan()) {
+                      <option [value]="form().position_id" selected>
+                        {{ original()?.position?.name ?? '' }}
+                      </option>
+                    }
+                    @for (p of activePositions(); track p.id) {
+                      <option [value]="p.id" [selected]="form().position_id === p.id">
+                        {{ p.title }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.ownTitle"
+                  inputId="cf-e-title"
+                  hintKey="people.form.ownTitleHint"
+                >
+                  <input
+                    id="cf-e-title"
+                    type="text"
+                    maxlength="200"
+                    [value]="form().job_title"
+                    (input)="set('job_title', $any($event.target).value)"
+                  />
+                </app-people-field>
+                <app-people-field labelKey="people.fields.department" inputId="cf-e-dept">
+                  <select id="cf-e-dept" (change)="set('department_id', $any($event.target).value)">
+                    <option value="" [selected]="!form().department_id">
+                      {{ 'people.form.noDepartment' | transloco }}
+                    </option>
+                    @if (departmentOrphan()) {
+                      <option [value]="form().department_id" selected>
+                        {{ original()?.department?.name ?? '' }}
+                      </option>
+                    }
+                    @for (d of lookups.departments(); track d.id) {
+                      <option [value]="d.id" [selected]="form().department_id === d.id">
+                        {{ d.label }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field labelKey="people.fields.manager" inputId="cf-e-manager">
+                  <select id="cf-e-manager" (change)="set('manager_id', $any($event.target).value)">
+                    <option value="" [selected]="!form().manager_id">
+                      {{ 'people.form.noManager' | transloco }}
+                    </option>
+                    @if (managerOrphan()) {
+                      <option [value]="form().manager_id" selected>
+                        {{ original()?.manager?.name ?? '' }}
+                      </option>
+                    }
+                    @for (m of managers(); track m.id) {
+                      <option [value]="m.id" [selected]="form().manager_id === m.id">
+                        {{ m.full_name }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field labelKey="people.fields.location" inputId="cf-e-location">
+                  <input
+                    id="cf-e-location"
+                    type="text"
+                    maxlength="200"
+                    [value]="form().location"
+                    (input)="set('location', $any($event.target).value)"
+                  />
+                </app-people-field>
+              </app-form-section>
+
+              <app-form-section
+                [title]="'people.form.sections.employment' | transloco"
+                [description]="'people.form.sections.employmentHint' | transloco"
+              >
+                <app-people-field labelKey="people.fields.employmentType" inputId="cf-e-type">
+                  <select
+                    id="cf-e-type"
+                    (change)="set('employment_type', $any($event.target).value)"
+                  >
+                    @for (t of types; track t) {
+                      <option [value]="t" [selected]="form().employment_type === t">
+                        {{ 'people.employmentTypes.' + t | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.status"
+                  inputId="cf-e-status"
+                  help="status"
+                >
+                  <select id="cf-e-status" (change)="set('status', $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="form().status === s">
+                        {{ 'people.status.' + s | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field labelKey="people.fields.startDate" inputId="cf-e-start">
+                  <app-date-input
+                    inputId="cf-e-start"
+                    [value]="form().start_date"
+                    (valueChange)="set('start_date', $event ?? '')"
+                  />
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.endDate"
+                  inputId="cf-e-end"
+                  [error]="shown()['end_date']"
+                >
+                  <app-date-input
+                    inputId="cf-e-end"
+                    [value]="form().end_date"
+                    [invalid]="!!shown()['end_date']"
+                    (valueChange)="set('end_date', $event ?? '')"
+                  />
+                </app-people-field>
+                @if (!id()) {
+                  <label
+                    class="flex min-h-10 items-center gap-2.5 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg sm:col-span-2"
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 accent-[var(--accent)]"
+                      [checked]="startOnboarding()"
+                      (change)="startOnboarding.set($any($event.target).checked)"
+                      data-testid="start-onboarding"
+                    />
+                    {{ 'people.form.startOnboarding' | transloco }}
+                  </label>
+                }
+              </app-form-section>
+
+              <app-form-section
+                id="security"
+                [title]="'people.form.sections.security' | transloco"
+                [description]="'people.form.securityHint' | transloco"
+              >
+                <app-ask-about
+                  title-suffix
+                  [prompt]="'people.ask.securityTerms' | transloco"
+                  field="security_terms"
+                  [fieldLabel]="'people.form.sections.security' | transloco"
+                  [requirements]="securityRefs"
+                />
+                <app-people-field
+                  labelKey="people.fields.confidentialitySignedOn"
+                  inputId="cf-e-conf"
+                  help="confidentiality_signed_on"
+                >
+                  <app-date-input
+                    inputId="cf-e-conf"
+                    [value]="form().confidentiality_signed_on"
+                    (valueChange)="set('confidentiality_signed_on', $event ?? '')"
+                  />
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.securityTermsAcceptedOn"
+                  inputId="cf-e-terms"
+                  help="security_terms_accepted_on"
+                >
+                  <app-date-input
+                    inputId="cf-e-terms"
+                    [value]="form().security_terms_accepted_on"
+                    (valueChange)="set('security_terms_accepted_on', $event ?? '')"
+                  />
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.postEmploymentAckOn"
+                  inputId="cf-e-post"
+                  help="post_employment_ack_on"
+                >
+                  <app-date-input
+                    inputId="cf-e-post"
+                    [value]="form().post_employment_ack_on"
+                    (valueChange)="set('post_employment_ack_on', $event ?? '')"
+                  />
+                </app-people-field>
+              </app-form-section>
+
+              <app-form-section
+                [title]="'people.form.screeningTitle' | transloco"
+                [description]="'people.form.sections.screeningHint' | transloco"
+              >
                 @if (screeningRequired()) {
                   <p
-                    class="mb-3 rounded-tile bg-warn-soft px-3 py-2 text-meta text-warn-ink"
+                    class="rounded-tile bg-warn-soft px-3 py-2 text-meta text-warn-ink sm:col-span-2"
                     data-testid="screening-required"
                   >
                     {{ 'people.form.screeningRequired' | transloco }}
                   </p>
                 }
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-people-field
-                    labelKey="people.fields.screeningStatus"
-                    inputId="cf-e-screen"
-                    help="screening_status"
+                <app-people-field
+                  labelKey="people.fields.screeningStatus"
+                  inputId="cf-e-screen"
+                  help="screening_status"
+                >
+                  <select
+                    id="cf-e-screen"
+                    (change)="set('screening_status', $any($event.target).value)"
                   >
-                    <select
-                      id="cf-e-screen"
-                      (change)="set('screening_status', $any($event.target).value)"
-                    >
-                      @for (s of screenings; track s) {
-                        <option [value]="s" [selected]="form().screening_status === s">
-                          {{ 'people.screening.' + s | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.screeningCompletedOn"
+                    @for (s of screenings; track s) {
+                      <option [value]="s" [selected]="form().screening_status === s">
+                        {{ 'people.screening.' + s | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.screeningCompletedOn"
+                  inputId="cf-e-screen-on"
+                >
+                  <app-date-input
                     inputId="cf-e-screen-on"
+                    [value]="form().screening_completed_on"
+                    (valueChange)="set('screening_completed_on', $event ?? '')"
+                  />
+                </app-people-field>
+                <fieldset class="min-w-0 sm:col-span-2">
+                  <legend
+                    class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted"
                   >
-                    <input
-                      id="cf-e-screen-on"
-                      type="date"
-                      [value]="form().screening_completed_on"
-                      (change)="set('screening_completed_on', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <fieldset class="sm:col-span-2">
-                    <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
-                      {{ 'people.fields.screeningScope' | transloco }}
-                    </legend>
-                    <div class="flex flex-wrap gap-x-4 gap-y-2">
-                      @for (s of scopes; track s) {
-                        <label class="flex items-center gap-2 text-ui text-fg">
-                          <input
-                            type="checkbox"
-                            class="h-4 w-4 accent-[var(--accent)]"
-                            [checked]="form().screening_scope.includes(s)"
-                            (change)="toggleScope(s, $any($event.target).checked)"
-                            [attr.data-testid]="'scope-' + s"
-                          />
-                          {{ 'people.screeningScopes.' + s | transloco }}
-                        </label>
-                      }
-                    </div>
-                  </fieldset>
-                  <app-people-field
-                    class="sm:col-span-2"
-                    labelKey="people.fields.screeningLegalBasis"
-                    inputId="cf-e-basis"
-                    help="screening_legal_basis"
-                    [required]="form().screening_scope.includes('criminal_record')"
-                    [error]="shown()['screening_legal_basis']"
-                    hintKey="people.form.legalBasisHint"
-                  >
-                    <input
-                      id="cf-e-basis"
-                      type="text"
-                      maxlength="500"
-                      [value]="form().screening_legal_basis"
-                      (input)="set('screening_legal_basis', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.screeningRecheckOn"
+                    {{ 'people.fields.screeningScope' | transloco }}
+                  </legend>
+                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    @for (s of scopes; track s) {
+                      <label
+                        class="flex min-h-10 items-center gap-2.5 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+                      >
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 accent-[var(--accent)]"
+                          [checked]="form().screening_scope.includes(s)"
+                          (change)="toggleScope(s, $any($event.target).checked)"
+                          [attr.data-testid]="'scope-' + s"
+                        />
+                        {{ 'people.screeningScopes.' + s | transloco }}
+                      </label>
+                    }
+                  </div>
+                </fieldset>
+                <app-people-field
+                  span="full"
+                  labelKey="people.fields.screeningLegalBasis"
+                  inputId="cf-e-basis"
+                  help="screening_legal_basis"
+                  [required]="form().screening_scope.includes('criminal_record')"
+                  [error]="shown()['screening_legal_basis']"
+                  hintKey="people.form.legalBasisHint"
+                >
+                  <input
+                    id="cf-e-basis"
+                    type="text"
+                    maxlength="500"
+                    [value]="form().screening_legal_basis"
+                    (input)="set('screening_legal_basis', $any($event.target).value)"
+                  />
+                </app-people-field>
+                <app-people-field
+                  labelKey="people.fields.screeningRecheckOn"
+                  inputId="cf-e-recheck"
+                  [error]="shown()['screening_recheck_on']"
+                  [hintKey]="screeningRequired() ? 'people.form.recheckHint' : null"
+                >
+                  <app-date-input
                     inputId="cf-e-recheck"
-                    [error]="shown()['screening_recheck_on']"
-                    [hintKey]="screeningRequired() ? 'people.form.recheckHint' : null"
-                  >
-                    <input
-                      id="cf-e-recheck"
-                      type="date"
-                      [value]="form().screening_recheck_on"
-                      (change)="set('screening_recheck_on', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.fields.postEmploymentAckOn"
-                    inputId="cf-e-post"
-                    help="post_employment_ack_on"
-                  >
-                    <input
-                      id="cf-e-post"
-                      type="date"
-                      [value]="form().post_employment_ack_on"
-                      (change)="set('post_employment_ack_on', $any($event.target).value)"
-                    />
-                  </app-people-field>
-                  <app-people-field
-                    class="sm:col-span-2"
-                    labelKey="people.fields.notes"
-                    inputId="cf-e-notes"
-                    hintKey="people.form.privateHint"
-                  >
-                    <textarea
-                      id="cf-e-notes"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().notes"
-                      (input)="set('notes', $any($event.target).value)"
-                    ></textarea>
-                  </app-people-field>
-                </div>
-              </app-card>
+                    [value]="form().screening_recheck_on"
+                    [invalid]="!!shown()['screening_recheck_on']"
+                    (valueChange)="set('screening_recheck_on', $event ?? '')"
+                  />
+                </app-people-field>
+              </app-form-section>
 
-              @if (id()) {
-                <app-card>
+              <app-form-section
+                [title]="'people.fields.notes' | transloco"
+                [description]="'people.form.privateHint' | transloco"
+                [columns]="1"
+              >
+                <app-people-field labelKey="people.fields.notes" inputId="cf-e-notes">
+                  <textarea
+                    id="cf-e-notes"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="form().notes"
+                    (input)="set('notes', $any($event.target).value)"
+                  ></textarea>
+                </app-people-field>
+                @if (id()) {
                   <app-people-field labelKey="people.form.changeReason" inputId="cf-e-reason">
                     <input
                       id="cf-e-reason"
@@ -519,24 +507,13 @@ const LIVE_ERRORS = new Set(['email', 'end_date', 'screening_legal_basis', 'scre
                       (input)="changeReason.set($any($event.target).value)"
                     />
                   </app-people-field>
-                </app-card>
-              } @else {
-                <label class="flex items-center gap-2 text-body text-fg">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 accent-[var(--accent)]"
-                    [checked]="startOnboarding()"
-                    (change)="startOnboarding.set($any($event.target).checked)"
-                    data-testid="start-onboarding"
-                  />
-                  {{ 'people.form.startOnboarding' | transloco }}
-                </label>
-              }
+                }
+              </app-form-section>
 
-              <div
-                class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+              <app-form-actions
+                [message]="attempted() && hasErrors() ? ('people.form.fixErrors' | transloco) : ''"
               >
-                <app-button variant="ghost" (click)="cancel()">
+                <app-button variant="secondary" (click)="cancel()">
                   {{ 'common.cancel' | transloco }}
                 </app-button>
                 <app-button
@@ -547,7 +524,7 @@ const LIVE_ERRORS = new Set(['email', 'end_date', 'screening_legal_basis', 'scre
                 >
                   {{ (id() ? 'common.save' : 'people.form.create') | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             </form>
           }
         }
@@ -586,7 +563,7 @@ export class EmployeeEditor {
   protected readonly startOnboarding = signal(true);
   protected readonly saving = signal(false);
   protected readonly managers = signal<readonly Employee[]>([]);
-  private readonly attempted = signal(false);
+  protected readonly attempted = signal(false);
 
   protected readonly breadcrumbs = computed(() => {
     const e = this.original();
@@ -599,6 +576,7 @@ export class EmployeeEditor {
   });
 
   protected readonly errors = computed(() => validateEmployeeForm(this.form()));
+  protected readonly hasErrors = computed(() => Object.keys(this.errors()).length > 0);
   protected readonly shown = computed(() => {
     const errors = this.errors();
     if (this.attempted()) {

@@ -16,6 +16,7 @@ import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { RecruitmentApi } from '../data/recruitment-api';
 import { blankToNull } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
@@ -58,7 +59,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-application-screening',
-  imports: [TranslocoPipe, AiAssistButton, FieldHelp, Button, Card, RecruitmentAiOutput],
+  imports: [TranslocoPipe, AiAssistButton, FieldHelp, Button, Card, FormField, RecruitmentAiOutput],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block scroll-mt-20' },
   template: `
@@ -160,25 +161,25 @@ let nextId = 0;
         </ol>
       }
 
-      <div class="mt-4">
-        <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-cover'">
-          {{ 'recruitment.fields.coverNote' | transloco }}
-        </label>
+      <app-form-field
+        class="mt-4"
+        [label]="'recruitment.fields.coverNote' | transloco"
+        [inputId]="uid + '-cover'"
+      >
         @if (canEdit()) {
           <textarea
             [id]="uid + '-cover'"
             rows="4"
             maxlength="20000"
-            class="mt-1.5 w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
             [value]="cover()"
             (input)="cover.set($any($event.target).value)"
           ></textarea>
         } @else {
-          <p [id]="uid + '-cover'" class="mt-1 text-body whitespace-pre-wrap text-fg">
+          <p [id]="uid + '-cover'" class="text-body whitespace-pre-wrap text-fg">
             {{ app().cover_note || '—' }}
           </p>
         }
-      </div>
+      </app-form-field>
 
       @if (canEdit()) {
         <div class="mt-3 flex justify-end">

@@ -27,7 +27,9 @@ import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
@@ -236,7 +238,9 @@ let nextId = 0;
     FlowBanner,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     HelpStrip,
     LoadingState,
     PageHeader,
@@ -248,14 +252,14 @@ let nextId = 0;
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'objectives.form.editTitle' : 'objectives.form.newTitle'"
         [breadcrumbs]="breadcrumbs()"
         [backLink]="backLink()"
         [backLabelKey]="id() ? 'objectives.common.backToObjective' : 'objectives.common.backToList'"
       />
-      <app-help-strip class="mb-4 block" [scope]="scope" page="form" lesson="smart-objectives" />
+      <app-help-strip class="mb-5 block" [scope]="scope" page="form" lesson="smart-objectives" />
       <app-flow-banner [flow]="flow()" (cancelled)="onFlowCancelled()" />
 
       @if (state() === 'loading') {
@@ -279,515 +283,480 @@ let nextId = 0;
           />
 
           <!-- 1. What do you want to achieve -->
-          <app-card>
-            <fieldset class="flex flex-col gap-4">
-              <legend class="mb-1 font-display text-card font-bold text-fg">
-                {{ 'objectives.form.group1' | transloco }}
-              </legend>
-
-              @if (!id()) {
-                <div
-                  class="rounded-tile border border-accent/30 bg-accent-soft p-4"
-                  data-testid="smart-card"
-                >
-                  <h3 class="text-ui font-bold text-fg">
-                    {{ 'objectives.ai.smartTitle' | transloco }}
-                  </h3>
-                  <p class="mt-0.5 text-meta text-fg-muted">
-                    {{ 'objectives.ai.smartHint' | transloco }}
-                  </p>
-                  <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <app-obj-field
-                      class="flex-1"
-                      [label]="'objectives.ai.focusLabel' | transloco"
-                      [inputId]="fid('focus')"
-                    >
-                      <input
-                        [id]="fid('focus')"
-                        type="text"
-                        maxlength="300"
-                        autocomplete="off"
-                        [placeholder]="'objectives.ai.focusPlaceholder' | transloco"
-                        [value]="smartFocus()"
-                        (input)="smartFocus.set($any($event.target).value)"
-                      />
-                    </app-obj-field>
-                    <app-ai-assist-button
-                      [assist]="suggestAssist"
-                      labelKey="objectives.ai.suggestSmart"
-                      [input]="suggestInput()"
-                      (result)="onSuggestions($event)"
+          <app-form-section
+            [title]="'objectives.form.group1' | transloco"
+            [description]="'objectives.form.group1Hint' | transloco"
+          >
+            @if (!id()) {
+              <div
+                class="rounded-tile border border-accent/30 bg-accent-soft p-4 sm:col-span-2"
+                data-testid="smart-card"
+              >
+                <h3 class="text-ui font-bold text-fg">
+                  {{ 'objectives.ai.smartTitle' | transloco }}
+                </h3>
+                <p class="mt-0.5 text-meta text-fg-muted">
+                  {{ 'objectives.ai.smartHint' | transloco }}
+                </p>
+                <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <app-obj-field
+                    class="flex-1"
+                    [label]="'objectives.ai.focusLabel' | transloco"
+                    [inputId]="fid('focus')"
+                  >
+                    <input
+                      [id]="fid('focus')"
+                      type="text"
+                      maxlength="300"
+                      autocomplete="off"
+                      [placeholder]="'objectives.ai.focusPlaceholder' | transloco"
+                      [value]="smartFocus()"
+                      (input)="smartFocus.set($any($event.target).value)"
                     />
-                  </div>
-                  @if (suggestions().length) {
-                    <ul class="mt-3 flex flex-col gap-2" data-testid="smart-suggestions">
-                      @for (s of suggestions(); track $index) {
-                        <li class="rounded-tile border border-border bg-surface p-3">
-                          <p class="text-body font-semibold text-fg">{{ s.title }}</p>
-                          @if (s.target) {
-                            <p class="mt-0.5 text-ui text-fg-muted">{{ s.target }}</p>
-                          }
-                          @if (s.kpis?.length) {
-                            <p class="mt-1 text-meta text-fg-subtle">
-                              {{
-                                'objectives.ai.suggestedKpis' | transloco: { names: kpiNames(s) }
-                              }}
-                            </p>
-                          }
-                          <app-button
-                            class="mt-2 inline-block"
-                            size="sm"
-                            variant="secondary"
-                            (click)="applySuggestion(s)"
-                          >
-                            {{ 'objectives.ai.useSuggestion' | transloco }}
-                          </app-button>
-                        </li>
-                      }
-                    </ul>
-                    <p class="mt-2 text-meta text-fg-subtle">
-                      {{ 'objectives.ai.suggestionNote' | transloco }}
-                    </p>
-                  }
-                </div>
-              }
-
-              <app-obj-field
-                [label]="'objectives.fields.title' | transloco"
-                [inputId]="fid('title')"
-                help="title"
-                [required]="true"
-                [errorKey]="titleMissing() ? 'objectives.errors.title_required' : null"
-              >
-                <input
-                  [id]="fid('title')"
-                  type="text"
-                  maxlength="255"
-                  required
-                  autocomplete="off"
-                  [attr.aria-invalid]="titleMissing() || null"
-                  [value]="form().title"
-                  (input)="set('title', $any($event.target).value)"
-                />
-              </app-obj-field>
-
-              <div id="obj-section-systems">
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <span [id]="fid('systems-label')" class="text-ui font-semibold text-fg-muted">
-                    {{ 'objectives.fields.managementSystems' | transloco }}
-                  </span>
-                  <app-field-help [scope]="scope" page="form" field="managementSystems" />
-                </div>
-                <app-objectives-system-picker
-                  [value]="form().management_systems"
-                  [labelledBy]="fid('systems-label')"
-                  (valueChange)="set('management_systems', $event)"
-                />
-              </div>
-
-              <app-obj-field
-                [label]="'objectives.fields.target' | transloco"
-                [inputId]="fid('target')"
-                help="target"
-              >
-                <div class="flex items-start gap-1">
-                  <textarea
-                    [id]="fid('target')"
-                    class="min-w-0 flex-1"
-                    rows="2"
-                    maxlength="5000"
-                    [value]="form().target"
-                    (input)="set('target', $any($event.target).value)"
-                  ></textarea>
-                  <app-ask-about
-                    field="target"
-                    [fieldLabel]="'objectives.fields.target' | transloco"
-                    labelKey="objectives.ai.askTarget"
-                    [prompt]="askTargetPrompt()"
+                  </app-obj-field>
+                  <app-ai-assist-button
+                    [assist]="suggestAssist"
+                    labelKey="objectives.ai.suggestSmart"
+                    [input]="suggestInput()"
+                    (result)="onSuggestions($event)"
                   />
                 </div>
-              </app-obj-field>
+                @if (suggestions().length) {
+                  <ul class="mt-3 flex flex-col gap-2" data-testid="smart-suggestions">
+                    @for (s of suggestions(); track $index) {
+                      <li class="rounded-tile border border-border bg-surface p-3">
+                        <p class="text-body font-semibold text-fg">{{ s.title }}</p>
+                        @if (s.target) {
+                          <p class="mt-0.5 text-ui text-fg-muted">{{ s.target }}</p>
+                        }
+                        @if (s.kpis?.length) {
+                          <p class="mt-1 text-meta text-fg-subtle">
+                            {{ 'objectives.ai.suggestedKpis' | transloco: { names: kpiNames(s) } }}
+                          </p>
+                        }
+                        <app-button
+                          class="mt-2 inline-block"
+                          size="sm"
+                          variant="secondary"
+                          (click)="applySuggestion(s)"
+                        >
+                          {{ 'objectives.ai.useSuggestion' | transloco }}
+                        </app-button>
+                      </li>
+                    }
+                  </ul>
+                  <p class="mt-2 text-meta text-fg-subtle">
+                    {{ 'objectives.ai.suggestionNote' | transloco }}
+                  </p>
+                }
+              </div>
+            }
 
-              <app-obj-field
-                [label]="'objectives.fields.description' | transloco"
-                [inputId]="fid('description')"
-                help="description"
-              >
-                <textarea
-                  [id]="fid('description')"
-                  rows="3"
-                  maxlength="20000"
-                  [value]="form().description"
-                  (input)="set('description', $any($event.target).value)"
-                ></textarea>
-              </app-obj-field>
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.title' | transloco"
+              [inputId]="fid('title')"
+              help="title"
+              [required]="true"
+              [errorKey]="titleMissing() ? 'objectives.errors.title_required' : null"
+            >
+              <input
+                [id]="fid('title')"
+                type="text"
+                maxlength="255"
+                required
+                autocomplete="off"
+                [attr.aria-invalid]="titleMissing() || null"
+                [value]="form().title"
+                (input)="set('title', $any($event.target).value)"
+              />
+            </app-obj-field>
 
-              <div id="obj-section-origins">
-                <app-obj-field
-                  [label]="'objectives.origins.heading' | transloco"
-                  [inputId]="fid('origins')"
-                  help="origins"
+            <fieldset id="obj-section-systems" class="min-w-0 sm:col-span-2">
+              <legend class="mb-1.5 flex min-h-6 items-center gap-1.5">
+                <span
+                  [id]="fid('systems-label')"
+                  class="text-ui leading-6 font-semibold text-fg-muted"
                 >
-                  @if (flowSourceName(); as name) {
-                    <p class="text-meta text-fg-muted">
-                      {{ 'objectives.origins.fromFlow' | transloco: { name } }}
-                    </p>
-                  }
-                  <app-objectives-origin-picker
-                    [inputId]="fid('origins')"
-                    [value]="form().origins"
-                    [exclude]="flowSourceIds()"
-                    (valueChange)="set('origins', $event)"
-                  />
-                </app-obj-field>
-              </div>
+                  {{ 'objectives.fields.managementSystems' | transloco }}
+                </span>
+                <app-field-help
+                  [scope]="scope"
+                  page="form"
+                  field="managementSystems"
+                  [label]="'objectives.fields.managementSystems' | transloco"
+                />
+              </legend>
+              <app-objectives-system-picker
+                [value]="form().management_systems"
+                [labelledBy]="fid('systems-label')"
+                (valueChange)="set('management_systems', $event)"
+              />
             </fieldset>
-          </app-card>
+
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.target' | transloco"
+              [inputId]="fid('target')"
+              help="target"
+            >
+              <app-ask-about
+                ask
+                field="target"
+                [fieldLabel]="'objectives.fields.target' | transloco"
+                labelKey="objectives.ai.askTarget"
+                [prompt]="askTargetPrompt()"
+              />
+              <textarea
+                [id]="fid('target')"
+                rows="2"
+                maxlength="5000"
+                [value]="form().target"
+                (input)="set('target', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.description' | transloco"
+              [inputId]="fid('description')"
+              help="description"
+            >
+              <textarea
+                [id]="fid('description')"
+                rows="3"
+                maxlength="20000"
+                [value]="form().description"
+                (input)="set('description', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+
+            <app-obj-field
+              id="obj-section-origins"
+              span="full"
+              [label]="'objectives.origins.heading' | transloco"
+              [inputId]="fid('origins')"
+              help="origins"
+              [hint]="
+                flowSourceName()
+                  ? ('objectives.origins.fromFlow' | transloco: { name: flowSourceName() })
+                  : null
+              "
+            >
+              <app-objectives-origin-picker
+                [inputId]="fid('origins')"
+                [value]="form().origins"
+                [exclude]="flowSourceIds()"
+                (valueChange)="set('origins', $event)"
+              />
+            </app-obj-field>
+          </app-form-section>
 
           <!-- 2. Who and when -->
-          <app-card>
-            <fieldset class="flex flex-col gap-4">
-              <legend class="mb-1 font-display text-card font-bold text-fg">
-                {{ 'objectives.form.group2' | transloco }}
-              </legend>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-form-section
+            [title]="'objectives.form.group2' | transloco"
+            [description]="'objectives.form.group2Hint' | transloco"
+          >
+            <app-obj-field
+              [label]="'objectives.fields.owner' | transloco"
+              [inputId]="fid('owner')"
+              help="owner"
+            >
+              <app-objectives-owner-select
+                kind="user"
+                [inputId]="fid('owner')"
+                [value]="form().owner_user_id"
+                [currentName]="original()?.owner?.name ?? null"
+                (valueChange)="set('owner_user_id', $event)"
+              />
+            </app-obj-field>
+            <app-obj-field
+              [label]="'objectives.fields.department' | transloco"
+              [inputId]="fid('department')"
+            >
+              <app-objectives-owner-select
+                kind="department"
+                [inputId]="fid('department')"
+                [value]="form().department_id"
+                (valueChange)="set('department_id', $event)"
+              />
+            </app-obj-field>
+            <app-obj-field
+              [label]="'objectives.fields.startDate' | transloco"
+              [inputId]="fid('start')"
+            >
+              <app-date-input
+                [inputId]="fid('start')"
+                [value]="form().start_date"
+                (changed)="set('start_date', $event)"
+              />
+            </app-obj-field>
+            <app-obj-field
+              [label]="'objectives.fields.dueDate' | transloco"
+              [inputId]="fid('due')"
+              help="dueDate"
+              [errorKey]="datesInvalid() ? 'objectives.errors.invalid_dates' : null"
+            >
+              <app-date-input
+                [inputId]="fid('due')"
+                [invalid]="datesInvalid()"
+                [value]="form().due_date"
+                (changed)="set('due_date', $event)"
+              />
+            </app-obj-field>
+            <app-obj-field
+              [label]="'objectives.fields.periodYear' | transloco"
+              [inputId]="fid('year')"
+              help="periodYear"
+            >
+              <select [id]="fid('year')" (change)="set('period_year', $any($event.target).value)">
+                <option value="" [selected]="!form().period_year">
+                  {{ 'objectives.form.noYear' | transloco }}
+                </option>
+                @for (y of years(); track y) {
+                  <option [value]="y" [selected]="form().period_year === '' + y">
+                    {{ y }}
+                  </option>
+                }
+              </select>
+            </app-obj-field>
+
+            @if (id()) {
+              <app-obj-field
+                [label]="'objectives.fields.status' | transloco"
+                [inputId]="fid('status')"
+                help="status"
+              >
+                <select [id]="fid('status')" (change)="set('status', $any($event.target).value)">
+                  @for (s of statuses; track s) {
+                    <option [value]="s" [selected]="form().status === s">
+                      {{ statusKey(s) | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-obj-field>
+              @if (form().status !== 'draft') {
                 <app-obj-field
-                  [label]="'objectives.fields.owner' | transloco"
-                  [inputId]="fid('owner')"
-                  help="owner"
+                  [label]="'objectives.fields.approvedBy' | transloco"
+                  [inputId]="fid('approver')"
+                  help="approvedBy"
                 >
                   <app-objectives-owner-select
                     kind="user"
-                    [inputId]="fid('owner')"
-                    [value]="form().owner_user_id"
-                    [currentName]="original()?.owner?.name ?? null"
-                    (valueChange)="set('owner_user_id', $event)"
+                    [inputId]="fid('approver')"
+                    [value]="form().approved_by"
+                    [currentName]="original()?.approved_by?.name ?? null"
+                    (valueChange)="set('approved_by', $event)"
                   />
                 </app-obj-field>
+              }
+              @if (closed()) {
                 <app-obj-field
-                  [label]="'objectives.fields.department' | transloco"
-                  [inputId]="fid('department')"
+                  span="full"
+                  [label]="'objectives.fields.closingNote' | transloco"
+                  [inputId]="fid('closing')"
+                  help="closingNote"
                 >
-                  <app-objectives-owner-select
-                    kind="department"
-                    [inputId]="fid('department')"
-                    [value]="form().department_id"
-                    (valueChange)="set('department_id', $event)"
-                  />
+                  <textarea
+                    [id]="fid('closing')"
+                    rows="3"
+                    maxlength="5000"
+                    [value]="form().closing_note"
+                    (input)="set('closing_note', $any($event.target).value)"
+                  ></textarea>
                 </app-obj-field>
-                <app-obj-field
-                  [label]="'objectives.fields.periodYear' | transloco"
-                  [inputId]="fid('year')"
-                  help="periodYear"
+              }
+            } @else {
+              <app-obj-field
+                [label]="'objectives.form.approvalLabel' | transloco"
+                [hint]="'objectives.form.alreadyApprovedHint' | transloco"
+              >
+                <div
+                  class="flex min-h-10 items-center rounded-tile border border-border bg-bg px-3 py-2"
                 >
-                  <select
-                    [id]="fid('year')"
-                    (change)="set('period_year', $any($event.target).value)"
-                  >
-                    <option value="" [selected]="!form().period_year">
-                      {{ 'objectives.form.noYear' | transloco }}
-                    </option>
-                    @for (y of years(); track y) {
-                      <option [value]="y" [selected]="form().period_year === '' + y">
-                        {{ y }}
-                      </option>
-                    }
-                  </select>
-                </app-obj-field>
-                <div class="hidden sm:block"></div>
-                <app-obj-field
-                  [label]="'objectives.fields.startDate' | transloco"
-                  [inputId]="fid('start')"
-                >
-                  <input
-                    [id]="fid('start')"
-                    type="date"
-                    [lang]="lang()"
-                    [value]="form().start_date"
-                    (change)="set('start_date', $any($event.target).value)"
-                  />
-                </app-obj-field>
-                <app-obj-field
-                  [label]="'objectives.fields.dueDate' | transloco"
-                  [inputId]="fid('due')"
-                  help="dueDate"
-                  [errorKey]="datesInvalid() ? 'objectives.errors.invalid_dates' : null"
-                >
-                  <input
-                    [id]="fid('due')"
-                    type="date"
-                    [lang]="lang()"
-                    [attr.aria-invalid]="datesInvalid() || null"
-                    [value]="form().due_date"
-                    (change)="set('due_date', $any($event.target).value)"
-                  />
-                </app-obj-field>
-              </div>
-
-              @if (id()) {
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-obj-field
-                    [label]="'objectives.fields.status' | transloco"
-                    [inputId]="fid('status')"
-                    help="status"
-                  >
-                    <select
-                      [id]="fid('status')"
-                      (change)="set('status', $any($event.target).value)"
-                    >
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ statusKey(s) | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-obj-field>
-                  @if (form().status !== 'draft') {
-                    <app-obj-field
-                      [label]="'objectives.fields.approvedBy' | transloco"
-                      [inputId]="fid('approver')"
-                      help="approvedBy"
-                    >
-                      <app-objectives-owner-select
-                        kind="user"
-                        [inputId]="fid('approver')"
-                        [value]="form().approved_by"
-                        [currentName]="original()?.approved_by?.name ?? null"
-                        (valueChange)="set('approved_by', $event)"
-                      />
-                    </app-obj-field>
-                  }
-                </div>
-                @if (closed()) {
-                  <app-obj-field
-                    [label]="'objectives.fields.closingNote' | transloco"
-                    [inputId]="fid('closing')"
-                    help="closingNote"
-                  >
-                    <textarea
-                      [id]="fid('closing')"
-                      rows="3"
-                      maxlength="5000"
-                      [value]="form().closing_note"
-                      (input)="set('closing_note', $any($event.target).value)"
-                    ></textarea>
-                  </app-obj-field>
-                }
-              } @else {
-                <div>
                   <app-switch
                     [checked]="form().status === 'active'"
                     (checkedChange)="set('status', $event ? 'active' : 'draft')"
                   >
                     {{ 'objectives.form.alreadyApproved' | transloco }}
                   </app-switch>
-                  <p class="mt-1 text-meta text-fg-muted">
-                    {{ 'objectives.form.alreadyApprovedHint' | transloco }}
-                  </p>
-                </div>
-              }
-            </fieldset>
-          </app-card>
-
-          <!-- 3. Plan and follow-up -->
-          <app-card>
-            <fieldset class="flex flex-col gap-4">
-              <legend class="mb-1 font-display text-card font-bold text-fg">
-                {{ 'objectives.form.group3' | transloco }}
-              </legend>
-              <app-obj-field
-                [label]="'objectives.fields.plan' | transloco"
-                [inputId]="fid('plan')"
-                help="plan"
-              >
-                <div class="flex items-start gap-1">
-                  <textarea
-                    [id]="fid('plan')"
-                    class="min-w-0 flex-1"
-                    rows="4"
-                    maxlength="20000"
-                    [value]="form().plan"
-                    (input)="set('plan', $any($event.target).value)"
-                  ></textarea>
-                  <app-ask-about
-                    field="plan"
-                    [fieldLabel]="'objectives.fields.plan' | transloco"
-                    [prompt]="askPlanPrompt()"
-                  />
                 </div>
               </app-obj-field>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-obj-field
-                  [label]="'objectives.fields.resources' | transloco"
-                  [inputId]="fid('resources')"
-                  help="resources"
-                >
-                  <textarea
-                    [id]="fid('resources')"
-                    rows="3"
-                    maxlength="5000"
-                    [value]="form().resources"
-                    (input)="set('resources', $any($event.target).value)"
-                  ></textarea>
-                </app-obj-field>
-                <app-obj-field
-                  [label]="'objectives.fields.evaluationMethod' | transloco"
-                  [inputId]="fid('evaluation')"
-                  help="evaluationMethod"
-                >
-                  <div class="flex items-start gap-1">
-                    <textarea
-                      [id]="fid('evaluation')"
-                      class="min-w-0 flex-1"
-                      rows="3"
-                      maxlength="5000"
-                      [value]="form().evaluation_method"
-                      (input)="set('evaluation_method', $any($event.target).value)"
-                    ></textarea>
-                    <app-ask-about
-                      field="evaluation_method"
-                      [fieldLabel]="'objectives.fields.evaluationMethod' | transloco"
-                      [prompt]="askEvaluationPrompt()"
-                    />
-                  </div>
-                </app-obj-field>
-              </div>
-              <div
-                id="obj-section-communication"
-                class="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]"
-              >
-                <app-obj-field
-                  [label]="'objectives.fields.communicatedTo' | transloco"
-                  [inputId]="fid('communicated')"
-                  help="communicatedTo"
-                >
-                  <textarea
-                    [id]="fid('communicated')"
-                    rows="2"
-                    maxlength="5000"
-                    [value]="form().communicated_to"
-                    (input)="set('communicated_to', $any($event.target).value)"
-                  ></textarea>
-                </app-obj-field>
-                <app-obj-field
-                  [label]="'objectives.fields.lastCommunicatedOn' | transloco"
-                  [inputId]="fid('communicated-on')"
-                  help="lastCommunicatedOn"
-                >
-                  <input
-                    [id]="fid('communicated-on')"
-                    type="date"
-                    [lang]="lang()"
-                    [max]="today"
-                    [value]="form().last_communicated_on"
-                    (change)="set('last_communicated_on', $any($event.target).value)"
-                  />
-                </app-obj-field>
-              </div>
+            }
+          </app-form-section>
 
-              @if (original(); as o) {
-                <div class="rounded-tile border border-border p-3" data-testid="progress-override">
-                  <p class="text-ui font-semibold text-fg">
-                    {{ 'objectives.fields.progress' | transloco }}
-                  </p>
-                  <p class="mt-0.5 text-meta text-fg-muted">
-                    @if (o.computed_progress !== null && o.computed_progress !== undefined) {
-                      {{
-                        countKey(
-                          'objectives.form.computedProgress',
-                          o.computed_progress_kpis ?? o.kpis.total
-                        )
-                          | transloco
-                            : {
-                                value: o.computed_progress,
-                                count: o.computed_progress_kpis ?? o.kpis.total,
-                              }
-                      }}
-                    } @else {
-                      {{ 'objectives.form.noComputedProgress' | transloco }}
-                    }
-                  </p>
-                  <app-switch
-                    class="mt-2 block"
-                    [checked]="override()"
-                    (checkedChange)="setOverride($event)"
-                  >
-                    {{ 'objectives.form.overrideProgress' | transloco }}
-                  </app-switch>
-                  @if (override()) {
-                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[120px_1fr]">
-                      <app-obj-field
-                        [label]="'objectives.fields.progressOverride' | transloco"
-                        [inputId]="fid('progress')"
-                        [errorKey]="progressInvalid() ? 'objectives.form.progressRange' : null"
-                      >
-                        <input
-                          [id]="fid('progress')"
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="1"
-                          inputmode="numeric"
-                          [attr.aria-invalid]="progressInvalid() || null"
-                          [value]="form().progress"
-                          (input)="set('progress', $any($event.target).value)"
-                        />
-                      </app-obj-field>
-                      <app-obj-field
-                        [label]="'objectives.fields.progressNote' | transloco"
-                        [inputId]="fid('progress-note')"
-                        help="progressNote"
-                        [required]="noteRequired()"
-                        [errorKey]="
-                          noteMissing() ? 'objectives.errors.progress_note_required' : null
-                        "
-                      >
-                        <input
-                          [id]="fid('progress-note')"
-                          type="text"
-                          maxlength="2000"
-                          [value]="form().progress_note"
-                          (input)="set('progress_note', $any($event.target).value)"
-                        />
-                      </app-obj-field>
-                    </div>
-                  }
-                </div>
-              }
-
-              @if (pendingKpis().length && !id()) {
-                <div class="rounded-tile border border-border p-3" data-testid="suggested-kpis">
-                  <app-switch [checked]="createKpis()" (checkedChange)="createKpis.set($event)">
-                    {{
-                      countKey('objectives.form.createSuggestedKpis', pendingKpis().length)
-                        | transloco: { count: pendingKpis().length }
-                    }}
-                  </app-switch>
-                  <p class="mt-1 text-meta text-fg-muted">{{ pendingKpiNames() }}</p>
-                </div>
-              }
-
-              @if (id()) {
-                <app-obj-field
-                  [label]="'objectives.fields.changeReason' | transloco"
-                  [inputId]="fid('reason')"
-                  help="changeReason"
-                >
-                  <input
-                    [id]="fid('reason')"
-                    type="text"
-                    maxlength="1000"
-                    [value]="changeReason()"
-                    (input)="changeReason.set($any($event.target).value)"
-                  />
-                </app-obj-field>
-              }
-            </fieldset>
-          </app-card>
-
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+          <!-- 3. Plan and follow-up -->
+          <app-form-section
+            [title]="'objectives.form.group3' | transloco"
+            [description]="'objectives.form.group3Hint' | transloco"
           >
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.plan' | transloco"
+              [inputId]="fid('plan')"
+              help="plan"
+            >
+              <app-ask-about
+                ask
+                field="plan"
+                [fieldLabel]="'objectives.fields.plan' | transloco"
+                [prompt]="askPlanPrompt()"
+              />
+              <textarea
+                [id]="fid('plan')"
+                rows="4"
+                maxlength="20000"
+                [value]="form().plan"
+                (input)="set('plan', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.resources' | transloco"
+              [inputId]="fid('resources')"
+              help="resources"
+            >
+              <textarea
+                [id]="fid('resources')"
+                rows="2"
+                maxlength="5000"
+                [value]="form().resources"
+                (input)="set('resources', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+            <app-obj-field
+              span="full"
+              [label]="'objectives.fields.evaluationMethod' | transloco"
+              [inputId]="fid('evaluation')"
+              help="evaluationMethod"
+            >
+              <app-ask-about
+                ask
+                field="evaluation_method"
+                [fieldLabel]="'objectives.fields.evaluationMethod' | transloco"
+                [prompt]="askEvaluationPrompt()"
+              />
+              <textarea
+                [id]="fid('evaluation')"
+                rows="2"
+                maxlength="5000"
+                [value]="form().evaluation_method"
+                (input)="set('evaluation_method', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+            <app-obj-field
+              id="obj-section-communication"
+              span="full"
+              [label]="'objectives.fields.communicatedTo' | transloco"
+              [inputId]="fid('communicated')"
+              help="communicatedTo"
+            >
+              <textarea
+                [id]="fid('communicated')"
+                rows="2"
+                maxlength="5000"
+                [value]="form().communicated_to"
+                (input)="set('communicated_to', $any($event.target).value)"
+              ></textarea>
+            </app-obj-field>
+            <app-obj-field
+              [label]="'objectives.fields.lastCommunicatedOn' | transloco"
+              [inputId]="fid('communicated-on')"
+              help="lastCommunicatedOn"
+            >
+              <app-date-input
+                [inputId]="fid('communicated-on')"
+                [max]="today"
+                [value]="form().last_communicated_on"
+                (changed)="set('last_communicated_on', $event)"
+              />
+            </app-obj-field>
+
+            @if (pendingKpis().length && !id()) {
+              <div
+                class="rounded-tile border border-border p-3 sm:col-span-2"
+                data-testid="suggested-kpis"
+              >
+                <app-switch [checked]="createKpis()" (checkedChange)="createKpis.set($event)">
+                  {{
+                    countKey('objectives.form.createSuggestedKpis', pendingKpis().length)
+                      | transloco: { count: pendingKpis().length }
+                  }}
+                </app-switch>
+                <p class="mt-1 text-meta text-fg-muted">{{ pendingKpiNames() }}</p>
+              </div>
+            }
+          </app-form-section>
+
+          @if (original(); as o) {
+            <app-form-section
+              [title]="'objectives.fields.progress' | transloco"
+              [description]="progressSummary(o)"
+              data-testid="progress-override"
+            >
+              <div
+                class="flex min-h-10 items-center rounded-tile border border-border bg-bg px-3 py-2 sm:col-span-2"
+              >
+                <app-switch [checked]="override()" (checkedChange)="setOverride($event)">
+                  {{ 'objectives.form.overrideProgress' | transloco }}
+                </app-switch>
+              </div>
+              @if (override()) {
+                <app-obj-field
+                  [label]="'objectives.fields.progressOverride' | transloco"
+                  [inputId]="fid('progress')"
+                  [errorKey]="progressInvalid() ? 'objectives.form.progressRange' : null"
+                >
+                  <input
+                    [id]="fid('progress')"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    inputmode="numeric"
+                    [attr.aria-invalid]="progressInvalid() || null"
+                    [value]="form().progress"
+                    (input)="set('progress', $any($event.target).value)"
+                  />
+                </app-obj-field>
+                <app-obj-field
+                  [label]="'objectives.fields.progressNote' | transloco"
+                  [inputId]="fid('progress-note')"
+                  help="progressNote"
+                  [required]="noteRequired()"
+                  [errorKey]="noteMissing() ? 'objectives.errors.progress_note_required' : null"
+                >
+                  <input
+                    [id]="fid('progress-note')"
+                    type="text"
+                    maxlength="2000"
+                    [value]="form().progress_note"
+                    (input)="set('progress_note', $any($event.target).value)"
+                  />
+                </app-obj-field>
+              }
+            </app-form-section>
+          }
+
+          @if (id()) {
+            <app-form-section [columns]="1">
+              <app-obj-field
+                [label]="'objectives.fields.changeReason' | transloco"
+                [inputId]="fid('reason')"
+                help="changeReason"
+              >
+                <input
+                  [id]="fid('reason')"
+                  type="text"
+                  maxlength="1000"
+                  [value]="changeReason()"
+                  (input)="changeReason.set($any($event.target).value)"
+                />
+              </app-obj-field>
+            </app-form-section>
+          }
+
+          <app-form-actions>
             <app-button variant="secondary" (click)="cancel()">{{
               'common.cancel' | transloco
             }}</app-button>
@@ -799,7 +768,7 @@ let nextId = 0;
             >
               {{ (id() ? 'objectives.form.save' : 'objectives.form.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
 
         <div class="mt-6"><app-why-it-matters [scope]="scope" page="form" /></div>
@@ -826,6 +795,18 @@ export class ObjectiveEditor {
   protected readonly suggestAssist = ASSIST_SUGGEST_SMART;
   protected readonly today = todayIso();
   protected readonly countKey = countKey;
+
+  /** The progress section's description: the calculated progress, or why there is none. */
+  protected progressSummary(o: ObjectiveDetail): string {
+    if (o.computed_progress === null || o.computed_progress === undefined) {
+      return this.language.translate('objectives.form.noComputedProgress');
+    }
+    const count = o.computed_progress_kpis ?? o.kpis.total;
+    return this.language.translate(countKey('objectives.form.computedProgress', count), {
+      value: o.computed_progress,
+      count,
+    });
+  }
   private readonly uid = ++nextId;
 
   /** "Create from here" (risk / opportunity / policy → objective), when opened from one. */
@@ -851,7 +832,6 @@ export class ObjectiveEditor {
   protected readonly pendingKpis = signal<NonNullable<SuggestedObjective['kpis']>>([]);
   protected readonly createKpis = signal(true);
 
-  protected readonly lang = computed(() => this.language.active());
   protected readonly years = computed(() => {
     const years = planYears(this.today);
     const current = Number(this.form().period_year);

@@ -6,6 +6,7 @@ import { AssigneeSelect } from '../../../shared/tasks/assignee-select';
 import { RecurrencePicker } from '../../../shared/tasks/recurrence-picker';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { dayKey } from '../data/report-display';
@@ -37,6 +38,7 @@ export function assigneeFields(
     RecurrencePicker,
     Alert,
     Button,
+    DateInput,
     FormField,
     SlideOver,
   ],
@@ -56,12 +58,11 @@ export function assigneeFields(
           <app-recurrence-picker [(rrule)]="rrule" idPrefix="report-schedule" />
           <div class="grid gap-3 sm:grid-cols-2">
             <app-form-field [label]="'reports.schedule.start' | transloco" inputId="sched-start">
-              <input
-                id="sched-start"
-                type="date"
-                required
+              <app-date-input
+                inputId="sched-start"
+                [required]="true"
                 [value]="start()"
-                (change)="start.set($any($event.target).value)"
+                (valueChange)="start.set($event ?? '')"
               />
             </app-form-field>
             <div>

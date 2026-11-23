@@ -615,7 +615,9 @@
     "addCompetence": "Legg til kompetanse",
     "criteriaPlaceholder": "For eksempel: ingen gjentatte avvik av denne typen på seks måneder",
     "lessonBodyHint": "Skriv i korte avsnitt. Start en linje med ## for å begynne et nytt trinn, og med - for et kulepunkt.",
-    "externalHint": "Ekstern opplæring trenger vanligvis ingen leksjoner. Legg til en hvis du vil beskrive kurset eller læringsmålene."
+    "externalHint": "Ekstern opplæring trenger vanligvis ingen leksjoner. Legg til en hvis du vil beskrive kurset eller læringsmålene.",
+    "basicsHint": "Hva kurset er, hvem som eier det og dokumentet det bygger på.",
+    "lessonsHint": "Leksjonene deltakerne går gjennom, hver med en valgfri kort quiz."
   },
   "ai": {
     "draftTitle": "Lag et kursutkast med KI",
@@ -784,7 +786,9 @@
   "assignNew": {
     "title": "Tildel opplæring",
     "subtitle": "Velg et publisert kurs, hvem som skal ta det, og en frist. De får varsel og ser det i Mitt arbeid.",
-    "noCourses": "Ingen publiserte kurs ennå. Publiser et kurs først."
+    "noCourses": "Ingen publiserte kurs ennå. Publiser et kurs først.",
+    "courseSection": "Kurs, personer og frist",
+    "courseHint": "Hvem som skal ta hvilket kurs, og innen når."
   },
   "person": {
     "title": "Opplæring: {{ name }}",

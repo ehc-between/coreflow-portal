@@ -15,7 +15,7 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../shared/kit/flow-banner';
-import { Card } from '../../shared/ui/card/card';
+import { Icon } from '../../shared/ui/icon/icon';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { ProjectAskButton } from './ask-button';
@@ -37,7 +37,7 @@ import { CustomerRef, customerIdFromRoute } from '../../shared/customers';
     TranslocoPipe,
     WhyItMatters,
     FlowBanner,
-    Card,
+    Icon,
     HelpStrip,
     PageHeader,
     ProjectAskButton,
@@ -45,7 +45,7 @@ import { CustomerRef, customerIdFromRoute } from '../../shared/customers';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="projects.form.newTitle"
         [breadcrumbs]="[
@@ -57,21 +57,27 @@ import { CustomerRef, customerIdFromRoute } from '../../shared/customers';
       />
       <app-help-strip scope="projects" page="form" lesson="project-basics" />
       <app-flow-banner [flow]="flow()" />
-      <app-card class="mb-5 block">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="min-w-0 flex-1 basis-64">
-            <p class="text-body font-semibold text-fg">
-              {{ 'projects.form.assistTitle' | transloco }}
-            </p>
-            <p class="text-meta text-fg-muted">{{ 'projects.form.assistBody' | transloco }}</p>
-          </div>
-          <app-project-ask-button
-            promptKey="projects.ask.draft"
-            labelKey="projects.ask.draftLabel"
-            testId="project-draft"
-          />
-        </div>
-      </app-card>
+      <div
+        class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-accent-border bg-accent-soft/50 px-3 py-2.5"
+      >
+        <span
+          class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-surface text-accent"
+          aria-hidden="true"
+        >
+          <app-icon name="spark" [size]="14" />
+        </span>
+        <p class="min-w-0 flex-1 basis-[min(100%,240px)] text-meta leading-snug text-fg-muted">
+          <span class="font-semibold text-fg">{{ 'projects.form.assistTitle' | transloco }}</span>
+          · {{ 'projects.form.assistBody' | transloco }}
+        </p>
+        <app-project-ask-button
+          variant="secondary"
+          size="sm"
+          promptKey="projects.ask.draft"
+          labelKey="projects.ask.draftLabel"
+          testId="project-draft"
+        />
+      </div>
       <app-project-form
         mode="create"
         [value]="seed"

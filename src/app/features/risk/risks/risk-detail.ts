@@ -41,6 +41,7 @@ import { SupportsRequirements } from '../../../shared/requirement-links/supports
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { FieldItem } from '../../../shared/ui/field-list/field-list';
@@ -205,6 +206,7 @@ type RiskAssist = 'controls' | 'plan';
 @Component({
   selector: 'app-risk-detail',
   imports: [
+    DateInput,
     TourStepDirective,
     RouterLink,
     TranslocoPipe,
@@ -797,15 +799,14 @@ type RiskAssist = 'controls' | 'plan';
           <app-form-field
             [label]="'risk.fields.acceptanceExpires' | transloco"
             inputId="risk-accept-expiry"
+            [hint]="'risk.detail.acceptExpiryHint' | transloco"
           >
-            <input
-              id="risk-accept-expiry"
-              type="date"
+            <app-date-input
+              inputId="risk-accept-expiry"
               [value]="acceptExpiry()"
-              (input)="acceptExpiry.set($any($event.target).value)"
+              (valueChange)="acceptExpiry.set($event ?? '')"
             />
           </app-form-field>
-          <p class="text-meta text-fg-subtle">{{ 'risk.detail.acceptExpiryHint' | transloco }}</p>
         </div>
       </app-confirm-dialog>
 

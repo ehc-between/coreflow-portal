@@ -159,7 +159,11 @@
       "terms": "Dates and renewal",
       "value": "Value",
       "parties": "Parties",
-      "privacy": "Personal data and security"
+      "privacy": "Personal data and security",
+      "basicsHint": "What the contract is, who owns it and what it covers.",
+      "termsHint": "When it starts, ends and must be reviewed or renewed.",
+      "valueHint": "What the contract is worth and how often it is paid.",
+      "partiesHint": "Who signed. Pick the other party from the supplier register when you can."
     },
     "invalid": {
       "titleRequired": "Give the contract a title.",

@@ -20,7 +20,8 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -62,7 +63,8 @@ export function clampMonths(
     LocalDatePipe,
     Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     ErrorState,
     Icon,
     LoadingState,
@@ -93,7 +95,11 @@ export function clampMonths(
           (submit)="$event.preventDefault(); save()"
           novalidate
         >
-          <app-card>
+          <app-form-section
+            [title]="'aiGovernance.settings.sections.policy' | transloco"
+            [description]="'aiGovernance.settings.sections.policyHint' | transloco"
+            [columns]="1"
+          >
             <app-ai-field
               inputId="ais-policy"
               labelKey="aiGovernance.settings.policy"
@@ -154,118 +160,114 @@ export function clampMonths(
                 }
               }
             </app-ai-field>
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <div class="flex flex-col gap-4">
-              <app-ai-field
-                inputId="ais-officer"
-                labelKey="aiGovernance.settings.officer"
-                helpPage="settings"
-                helpField="officer"
-                [plain]="true"
-              >
-                <app-ai-user-select
-                  selectId="ais-officer"
-                  [currentName]="s.officer?.name ?? null"
-                  [disabled]="!store.canManage()"
-                  [(value)]="officer"
-                />
-              </app-ai-field>
+          <app-form-section
+            [title]="'aiGovernance.settings.sections.people' | transloco"
+            [description]="'aiGovernance.settings.sections.peopleHint' | transloco"
+          >
+            <app-ai-field
+              inputId="ais-officer"
+              labelKey="aiGovernance.settings.officer"
+              helpPage="settings"
+              helpField="officer"
+              [plain]="true"
+            >
+              <app-ai-user-select
+                selectId="ais-officer"
+                [currentName]="s.officer?.name ?? null"
+                [disabled]="!store.canManage()"
+                [(value)]="officer"
+              />
+            </app-ai-field>
 
-              <app-ai-field
-                inputId="ais-scope"
-                labelKey="aiGovernance.settings.literacyScope"
-                helpPage="settings"
-                helpField="literacy_scope"
-                [plain]="true"
-                [legend]="true"
-              >
-                <div
-                  class="flex flex-col gap-2"
-                  role="radiogroup"
-                  aria-labelledby="ais-scope-label"
-                >
-                  @for (option of scopes; track option) {
-                    <label class="flex items-start gap-2 text-body text-fg">
-                      <input
-                        type="radio"
-                        name="ais-scope"
-                        class="mt-1"
-                        [value]="option"
-                        [checked]="scope() === option"
-                        [disabled]="!store.canManage()"
-                        (change)="scope.set(option)"
-                        [attr.data-testid]="'settings-scope-' + option"
-                      />
-                      <span>
-                        <span class="font-semibold">{{
-                          'aiGovernance.settings.scopes.' + option + '.label' | transloco
-                        }}</span>
-                        <span class="block text-meta text-fg-muted">{{
-                          'aiGovernance.settings.scopes.' + option + '.hint' | transloco
-                        }}</span>
-                      </span>
-                    </label>
-                  }
-                </div>
-              </app-ai-field>
-
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <app-ai-field
-                  inputId="ais-validity"
-                  labelKey="aiGovernance.settings.literacyValidity"
-                  helpPage="settings"
-                  helpField="literacy_validity_months"
-                >
-                  <input
-                    id="ais-validity"
-                    type="number"
-                    min="1"
-                    max="120"
-                    [disabled]="!store.canManage()"
-                    [value]="validity()"
-                    (input)="validity.set(clamp($any($event.target).value, 1, 120, 24))"
-                  />
-                </app-ai-field>
-                <app-ai-field
-                  inputId="ais-interval"
-                  labelKey="aiGovernance.settings.reviewInterval"
-                  helpPage="settings"
-                  helpField="review_interval_months"
-                >
-                  <input
-                    id="ais-interval"
-                    type="number"
-                    min="1"
-                    max="60"
-                    [disabled]="!store.canManage()"
-                    [value]="interval()"
-                    (input)="interval.set(clamp($any($event.target).value, 1, 60, 12))"
-                  />
-                </app-ai-field>
+            <app-ai-field
+              span="full"
+              inputId="ais-scope"
+              labelKey="aiGovernance.settings.literacyScope"
+              helpPage="settings"
+              helpField="literacy_scope"
+              [plain]="true"
+              [legend]="true"
+            >
+              <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby="ais-scope-label">
+                @for (option of scopes; track option) {
+                  <label
+                    class="flex cursor-pointer items-start gap-2.5 rounded-tile border border-border bg-bg px-3 py-2.5 text-body text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                  >
+                    <input
+                      type="radio"
+                      name="ais-scope"
+                      class="mt-1"
+                      [value]="option"
+                      [checked]="scope() === option"
+                      [disabled]="!store.canManage()"
+                      (change)="scope.set(option)"
+                      [attr.data-testid]="'settings-scope-' + option"
+                    />
+                    <span>
+                      <span class="font-semibold">{{
+                        'aiGovernance.settings.scopes.' + option + '.label' | transloco
+                      }}</span>
+                      <span class="block text-meta text-fg-muted">{{
+                        'aiGovernance.settings.scopes.' + option + '.hint' | transloco
+                      }}</span>
+                    </span>
+                  </label>
+                }
               </div>
-            </div>
+            </app-ai-field>
+
+            <app-ai-field
+              inputId="ais-validity"
+              labelKey="aiGovernance.settings.literacyValidity"
+              helpPage="settings"
+              helpField="literacy_validity_months"
+            >
+              <input
+                id="ais-validity"
+                type="number"
+                min="1"
+                max="120"
+                [disabled]="!store.canManage()"
+                [value]="validity()"
+                (input)="validity.set(clamp($any($event.target).value, 1, 120, 24))"
+              />
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-interval"
+              labelKey="aiGovernance.settings.reviewInterval"
+              helpPage="settings"
+              helpField="review_interval_months"
+            >
+              <input
+                id="ais-interval"
+                type="number"
+                min="1"
+                max="60"
+                [disabled]="!store.canManage()"
+                [value]="interval()"
+                (input)="interval.set(clamp($any($event.target).value, 1, 60, 12))"
+              />
+            </app-ai-field>
             @if (s.updated_at) {
-              <p class="mt-3 text-meta text-fg-subtle">
+              <p class="text-meta text-fg-subtle sm:col-span-2">
                 {{
                   'aiGovernance.settings.updatedAt'
                     | transloco: { date: (s.updated_at | localDate) }
                 }}
               </p>
             }
-          </app-card>
+          </app-form-section>
           @if (error()) {
             <app-alert tone="error">{{ error()! | transloco }}</app-alert>
           }
           @if (store.canManage()) {
-            <div
-              class="sticky bottom-0 z-10 -mx-4 flex justify-end border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-            >
+            <app-form-actions>
               <app-button type="submit" [loading]="saving()" data-testid="settings-save">{{
                 'aiGovernance.common.save' | transloco
               }}</app-button>
-            </div>
+            </app-form-actions>
           }
         </form>
       } @else {

@@ -12,7 +12,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../core/ai/page-context';
 import { AuthService } from '../../core/auth/auth.service';
@@ -37,7 +37,9 @@ import { ClausePicker, toRefs } from '../../shared/requirement-links/clause-pick
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { Icon } from '../../shared/ui/icon/icon';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { DocumentAccessEditor } from './access/document-access-editor';
@@ -80,11 +82,12 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
   imports: [
     FormSuggest,
     ReactiveFormsModule,
-    RouterLink,
     TranslocoPipe,
     PageHeader,
     Card,
+    FormActions,
     FormField,
+    FormSection,
     Button,
     Icon,
     Alert,
@@ -101,7 +104,7 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="documents.new"
         [breadcrumbs]="[
@@ -126,195 +129,179 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
             (applied)="applySuggestion($event)"
           />
         }
-        <app-card>
-          <h2 class="mb-4 font-display text-card font-bold text-fg">
-            {{ 'documents.page.new.about' | transloco }}
-          </h2>
-          <div class="flex flex-col gap-4">
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <label for="doc-type" class="text-ui font-semibold text-fg-muted">{{
-                    'documents.fields.type' | transloco
-                  }}</label>
-                  <app-field-help scope="documents" page="newDocument" field="type" />
-                </div>
-                <app-form-field inputId="doc-type">
-                  @if (types().length) {
-                    <select
-                      id="doc-type"
-                      formControlName="type"
-                      data-testid="doc-type-select"
-                      [attr.aria-invalid]="showError('type')"
-                    >
-                      <option value="">
-                        {{ 'documents.control.newDocument.chooseType' | transloco }}
-                      </option>
-                      @for (t of types(); track t.id) {
-                        <option [value]="t.key">{{ t.name }}</option>
-                      }
-                    </select>
-                  } @else {
-                    <input id="doc-type" type="text" formControlName="type" autocomplete="off" />
-                  }
-                </app-form-field>
-                @if (showError('type')) {
-                  <p class="mt-1 text-meta text-fail-ink" role="alert">
-                    {{ 'documents.page.new.errors.type' | transloco }}
-                  </p>
+        <app-form-section
+          [title]="'documents.page.new.about' | transloco"
+          [description]="'documents.page.new.sections.aboutHint' | transloco"
+        >
+          <app-form-field
+            span="full"
+            inputId="doc-title"
+            [required]="true"
+            [label]="'documents.fields.title' | transloco"
+            [error]="showError('title') ? ('documents.page.new.errors.title' | transloco) : ''"
+          >
+            <input id="doc-title" type="text" formControlName="title" autocomplete="off" />
+          </app-form-field>
+          <app-form-field
+            inputId="doc-type"
+            [required]="true"
+            [label]="'documents.fields.type' | transloco"
+            [error]="showError('type') ? ('documents.page.new.errors.type' | transloco) : ''"
+          >
+            <app-field-help
+              label-suffix
+              scope="documents"
+              page="newDocument"
+              field="type"
+              [label]="'documents.fields.type' | transloco"
+            />
+            @if (types().length) {
+              <select id="doc-type" formControlName="type" data-testid="doc-type-select">
+                <option value="">
+                  {{ 'documents.control.newDocument.chooseType' | transloco }}
+                </option>
+                @for (t of types(); track t.id) {
+                  <option [value]="t.key">{{ t.name }}</option>
                 }
-              </div>
-              <app-form-field
-                inputId="doc-code"
-                [label]="'documents.fields.codeOptional' | transloco"
-              >
-                <input
-                  id="doc-code"
-                  type="text"
-                  formControlName="doc_code"
-                  autocomplete="off"
-                  [placeholder]="selectedType()?.next_code ?? ''"
-                />
-              </app-form-field>
-            </div>
-
-            @if (selectedType(); as t) {
-              <p class="-mt-2 text-meta text-fg-subtle" data-testid="doc-code-hint">
-                @if (t.next_code) {
-                  {{ 'documents.control.newDocument.autoCode' | transloco: { code: t.next_code } }}
-                }
-                @if (t.default_review_interval_months) {
-                  {{
-                    'documents.control.newDocument.reviewDefault'
-                      | transloco: { count: t.default_review_interval_months }
-                  }}
-                }
-                @if (t.default_acknowledgement_required) {
-                  {{ 'documents.control.newDocument.ackDefault' | transloco }}
-                }
-              </p>
+              </select>
+            } @else {
+              <input id="doc-type" type="text" formControlName="type" autocomplete="off" />
             }
+          </app-form-field>
+          <app-form-field inputId="doc-code" [label]="'documents.fields.codeOptional' | transloco">
+            <input
+              id="doc-code"
+              type="text"
+              formControlName="doc_code"
+              autocomplete="off"
+              [placeholder]="selectedType()?.next_code ?? ''"
+            />
+          </app-form-field>
+          @if (selectedType(); as t) {
+            <p
+              class="-mt-3 text-meta leading-snug text-fg-subtle sm:col-span-2"
+              data-testid="doc-code-hint"
+            >
+              @if (t.next_code) {
+                {{ 'documents.control.newDocument.autoCode' | transloco: { code: t.next_code } }}
+              }
+              @if (t.default_review_interval_months) {
+                {{
+                  'documents.control.newDocument.reviewDefault'
+                    | transloco: { count: t.default_review_interval_months }
+                }}
+              }
+              @if (t.default_acknowledgement_required) {
+                {{ 'documents.control.newDocument.ackDefault' | transloco }}
+              }
+            </p>
+          }
+          @if (templates().length) {
+            <app-form-field
+              inputId="doc-template"
+              [label]="'documents.control.newDocument.template' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="newDocument"
+                field="template"
+                [label]="'documents.control.newDocument.template' | transloco"
+              />
+              <select
+                id="doc-template"
+                (change)="templateId.set($any($event.target).value)"
+                data-testid="doc-template"
+              >
+                <option value="" [selected]="!templateId()">
+                  {{ 'documents.control.newDocument.blank' | transloco }}
+                </option>
+                @for (t of templates(); track t.id) {
+                  <option [value]="t.id" [selected]="t.id === templateId()">
+                    {{ t.name }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+          }
+        </app-form-section>
 
-            <div>
-              <app-form-field inputId="doc-title" [label]="'documents.fields.title' | transloco">
-                <input
-                  id="doc-title"
-                  type="text"
-                  formControlName="title"
-                  autocomplete="off"
-                  [attr.aria-invalid]="showError('title')"
-                />
-              </app-form-field>
-              @if (showError('title')) {
-                <p class="mt-1 text-meta text-fail-ink" role="alert">
-                  {{ 'documents.page.new.errors.title' | transloco }}
+        <app-form-section
+          data-testid="link-card"
+          [title]="'documents.link.title' | transloco"
+          [description]="'documents.link.intro' | transloco"
+        >
+          @if (customers.enabled()) {
+            <app-form-field
+              span="full"
+              inputId="doc-customer"
+              [label]="'documents.link.customer' | transloco"
+              [hint]="'documents.link.customerHint' | transloco"
+            >
+              <app-customer-picker
+                inputId="doc-customer"
+                [value]="customerId()"
+                (valueChange)="customerId.set($event)"
+                data-testid="doc-customer"
+              />
+            </app-form-field>
+          }
+          @if (canReadStandards()) {
+            <app-form-field
+              span="full"
+              inputId="doc-requirements"
+              [label]="'documents.link.requirements' | transloco"
+              [hint]="'documents.link.requirementsHint' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="newDocument"
+                field="requirements"
+                [label]="'documents.link.requirements' | transloco"
+              />
+              <app-ask-about
+                label-suffix
+                field="requirements"
+                [fieldLabel]="'documents.link.requirements' | transloco"
+                [prompt]="'documents.link.askWhich' | transloco: { title: titleValue() || '…' }"
+              />
+              @if (flowRequirement(); as req) {
+                <p
+                  class="inline-flex items-center gap-1.5 self-start rounded-full border border-accent-border bg-accent-soft px-2.5 py-1 text-meta font-semibold text-accent"
+                  data-testid="from-requirement"
+                >
+                  <app-icon name="link" [size]="12" />
+                  {{ 'documents.link.fromRequirement' | transloco: { ref: req } }}
                 </p>
               }
-            </div>
-
-            @if (templates().length) {
-              <div>
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <label for="doc-template" class="text-ui font-semibold text-fg-muted">{{
-                    'documents.control.newDocument.template' | transloco
-                  }}</label>
-                  <app-field-help scope="documents" page="newDocument" field="template" />
-                </div>
-                <app-form-field inputId="doc-template">
-                  <select
-                    id="doc-template"
-                    (change)="templateId.set($any($event.target).value)"
-                    data-testid="doc-template"
-                  >
-                    <option value="" [selected]="!templateId()">
-                      {{ 'documents.control.newDocument.blank' | transloco }}
-                    </option>
-                    @for (t of templates(); track t.id) {
-                      <option [value]="t.id" [selected]="t.id === templateId()">
-                        {{ t.name }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-              </div>
-            }
-          </div>
-        </app-card>
-
-        <app-card data-testid="link-card">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'documents.link.title' | transloco }}
-          </h2>
-          <p class="mt-1 mb-4 text-ui text-fg-muted">{{ 'documents.link.intro' | transloco }}</p>
-          <div class="flex flex-col gap-4">
-            @if (customers.enabled()) {
-              <div>
-                <app-form-field
-                  [label]="'documents.link.customer' | transloco"
-                  inputId="doc-customer"
-                >
-                  <app-customer-picker
-                    inputId="doc-customer"
-                    [value]="customerId()"
-                    (valueChange)="customerId.set($event)"
-                    data-testid="doc-customer"
-                  />
-                </app-form-field>
-                <p class="mt-1 text-meta text-fg-subtle">
-                  {{ 'documents.link.customerHint' | transloco }}
-                </p>
-              </div>
-            }
-            @if (canReadStandards()) {
-              <div>
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <label for="doc-requirements" class="text-ui font-semibold text-fg-muted">{{
-                    'documents.link.requirements' | transloco
-                  }}</label>
-                  <app-field-help scope="documents" page="newDocument" field="requirements" />
-                  <app-ask-about
-                    field="requirements"
-                    [fieldLabel]="'documents.link.requirements' | transloco"
-                    [prompt]="'documents.link.askWhich' | transloco: { title: titleValue() || '…' }"
-                  />
-                </div>
-                @if (flowRequirement(); as req) {
-                  <p
-                    class="mb-2 inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-2.5 py-1 text-meta font-semibold text-accent"
-                    data-testid="from-requirement"
-                  >
-                    <app-icon name="link" [size]="12" />
-                    {{ 'documents.link.fromRequirement' | transloco: { ref: req } }}
-                  </p>
-                }
-                <app-clause-picker
-                  inputId="doc-requirements"
-                  [formControl]="requirementControl"
-                  data-testid="requirement-picker"
-                />
-                <p class="mt-1 text-meta text-fg-subtle">
-                  {{ 'documents.link.requirementsHint' | transloco }}
-                </p>
-              </div>
-            }
-            <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="doc-related" class="text-ui font-semibold text-fg-muted">{{
-                  'documents.link.records' | transloco
-                }}</label>
-                <app-field-help scope="documents" page="newDocument" field="related" />
-              </div>
-              <app-form-field inputId="doc-related">
-                <app-record-picker
-                  inputId="doc-related"
-                  [value]="related()"
-                  [max]="maxRelated"
-                  (valueChange)="related.set($event)"
-                />
-              </app-form-field>
-            </div>
-          </div>
-        </app-card>
+              <app-clause-picker
+                inputId="doc-requirements"
+                [formControl]="requirementControl"
+                data-testid="requirement-picker"
+              />
+            </app-form-field>
+          }
+          <app-form-field
+            span="full"
+            inputId="doc-related"
+            [label]="'documents.link.records' | transloco"
+          >
+            <app-field-help
+              label-suffix
+              scope="documents"
+              page="newDocument"
+              field="related"
+              [label]="'documents.link.records' | transloco"
+            />
+            <app-record-picker
+              inputId="doc-related"
+              [value]="related()"
+              [max]="maxRelated"
+              (valueChange)="related.set($event)"
+            />
+          </app-form-field>
+        </app-form-section>
 
         @if (errorKey(); as key) {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
@@ -325,6 +312,14 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
             {{ 'documents.control.newDocument.fromTemplateHint' | transloco }}
           </p>
         } @else {
+          <div class="-mb-2">
+            <h2 class="font-display text-card font-bold text-fg">
+              {{ 'documents.page.new.sections.content' | transloco }}
+            </h2>
+            <p class="mt-0.5 text-meta text-fg-muted">
+              {{ 'documents.page.new.sections.contentHint' | transloco }}
+            </p>
+          </div>
           <app-documents-ai-draft
             [title]="titleValue()"
             [documentType]="typeKey()"
@@ -378,18 +373,14 @@ export function parseRelatedParam(value: string | null): RelatedRecordInput | nu
           }
         </app-card>
 
-        <div
-          class="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
-        >
-          <a routerLink="/documents">
-            <app-button type="button" variant="secondary">
-              {{ 'documents.cancel' | transloco }}
-            </app-button>
-          </a>
+        <app-form-actions>
+          <app-button type="button" variant="secondary" (click)="cancel()">
+            {{ 'documents.cancel' | transloco }}
+          </app-button>
           <app-button type="submit" [loading]="saving()" data-testid="create-document">
             {{ 'documents.create' | transloco }}
           </app-button>
-        </div>
+        </app-form-actions>
       </form>
     </div>
   `,
@@ -623,6 +614,10 @@ export class DocumentNew {
     ) {
       this.related.update((list) => [...list, record]);
     }
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/documents']);
   }
 
   protected submit(): void {

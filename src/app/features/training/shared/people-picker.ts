@@ -22,7 +22,9 @@ let nextId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-2">
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">{{ legend() }}</legend>
+      <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+        {{ legend() }}
+      </legend>
       <label [attr.for]="searchId" class="sr-only">{{
         'training.assign.search' | transloco
       }}</label>

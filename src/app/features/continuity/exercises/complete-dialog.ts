@@ -17,6 +17,7 @@ import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
 import { blankToNull, todayIso } from '../data/continuity-display';
 import { ExerciseCompleteRequest, OUTCOMES, Outcome } from '../data/continuity.models';
 import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /**
  * Record the result of an exercise: the date it was held (not in the future), the
@@ -28,6 +29,7 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
 @Component({
   selector: 'app-exercise-complete-dialog',
   imports: [
+    DateInput,
     TranslocoPipe,
     Alert,
     Button,
@@ -47,25 +49,24 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
       (closed)="cancelled.emit()"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); submit()" novalidate>
-        <app-form-field [label]="'continuity.fields.conductedOn' | transloco" inputId="exc-date">
-          <input
-            id="exc-date"
-            type="date"
-            required
+        <app-form-field
+          [label]="'continuity.fields.conductedOn' | transloco"
+          inputId="exc-date"
+          [required]="true"
+          [hint]="validDate() ? (conductedOn() | localDay: 'longDate') : ''"
+          [error]="
+            showErrors() && !validDate() ? ('continuity.exercises.dateRequired' | transloco) : ''
+          "
+        >
+          <app-date-input
+            inputId="exc-date"
+            [required]="true"
             [max]="today"
-            [attr.aria-invalid]="showErrors() && !validDate()"
+            [invalid]="showErrors() && !validDate()"
             [value]="conductedOn()"
-            (input)="conductedOn.set($any($event.target).value)"
+            (valueChange)="conductedOn.set($event ?? '')"
           />
-          @if (validDate()) {
-            <p class="text-meta text-fg-subtle">{{ conductedOn() | localDay: 'longDate' }}</p>
-          }
         </app-form-field>
-        @if (showErrors() && !validDate()) {
-          <p class="text-meta text-fail-ink" role="alert">
-            {{ 'continuity.exercises.dateRequired' | transloco }}
-          </p>
-        }
         @if (successCriteria(); as criteria) {
           <div class="rounded-tile border border-border bg-surface-2 px-3 py-2">
             <p class="text-meta font-semibold text-fg-muted">
@@ -74,31 +75,33 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             <p class="mt-0.5 text-ui whitespace-pre-line text-fg">{{ criteria }}</p>
           </div>
         }
-        <div>
+        <div class="flex flex-col gap-2">
           <app-form-field
             [label]="'continuity.fields.achievedRecovery' | transloco"
             inputId="exc-achieved"
           >
+            <app-field-help
+              label-suffix
+              scope="continuity"
+              page="exerciseDetail"
+              field="achieved_recovery_minutes"
+              [label]="'continuity.fields.achievedRecovery' | transloco"
+            />
             <app-continuity-duration-input
               inputId="exc-achieved"
               [value]="achieved()"
               (valueChange)="setAchieved($event)"
             />
-            <app-field-help
-              scope="continuity"
-              page="exerciseDetail"
-              field="achieved_recovery_minutes"
-            />
+            @if (targetRto() !== null) {
+              <p hint class="text-meta leading-snug text-fg-subtle">
+                {{ 'continuity.exercises.targetRto' | transloco }}:
+                <app-continuity-duration [minutes]="targetRto()" />
+              </p>
+            }
           </app-form-field>
-          @if (targetRto() !== null) {
-            <p class="mt-1 text-meta text-fg-subtle">
-              {{ 'continuity.exercises.targetRto' | transloco }}:
-              <app-continuity-duration [minutes]="targetRto()" />
-            </p>
-          }
           @if (missed()) {
             <p
-              class="mt-2 rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
+              class="rounded-tile border border-warn/30 bg-warn-soft px-3 py-2 text-ui text-warn-ink"
               role="status"
               data-testid="target-missed"
             >
@@ -106,17 +109,20 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             </p>
           }
         </div>
-        <fieldset>
-          <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+        <fieldset class="flex flex-col gap-1.5">
+          <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
             {{ 'continuity.fields.outcome' | transloco }}
+            <span class="ml-0.5 text-fail-ink" aria-hidden="true">*</span>
           </legend>
-          <div class="flex flex-col gap-1.5">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             @for (o of outcomes; track o) {
-              <label class="flex items-center gap-2 text-body text-fg">
+              <label
+                class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+              >
                 <input
                   type="radio"
                   name="exc-outcome"
-                  class="h-4 w-4"
+                  class="h-4 w-4 accent-[var(--accent)]"
                   [value]="o"
                   [checked]="outcome() === o"
                   (change)="outcome.set(o)"
@@ -126,7 +132,7 @@ import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration'
             }
           </div>
           @if (showErrors() && !outcome()) {
-            <p class="mt-1 text-meta text-fail-ink" role="alert">
+            <p class="text-meta font-medium text-fail-ink" role="alert">
               {{ 'continuity.exercises.outcomeRequired' | transloco }}
             </p>
           }

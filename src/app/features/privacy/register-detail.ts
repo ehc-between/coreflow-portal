@@ -604,14 +604,16 @@ const BREACH_DECISION_FIELDS = [
                 </app-card>
               }
 
-              <app-record-details [columns]="1" [fillLink]="editLink()">
-                <app-privacy-record-fields
-                  [register]="def()"
-                  [record]="r"
-                  [lead]="lead()"
-                  [skip]="skipFields()"
-                />
-              </app-record-details>
+              <app-card>
+                <app-record-details [columns]="1" [fillLink]="editLink()">
+                  <app-privacy-record-fields
+                    [register]="def()"
+                    [record]="r"
+                    [lead]="lead()"
+                    [skip]="skipFields()"
+                  />
+                </app-record-details>
+              </app-card>
 
               @if (hasRecordOutputs()) {
                 <app-card data-testid="record-outputs">

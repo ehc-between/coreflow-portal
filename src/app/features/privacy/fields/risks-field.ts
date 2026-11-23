@@ -13,7 +13,7 @@ const MAX_RISKS = 50;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-3">
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">
+      <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
         {{ 'privacy.fields.risks' | transloco }}
       </legend>
       @if (value().length === 0) {
@@ -48,7 +48,7 @@ const MAX_RISKS = 50;
               <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
                 {{ 'privacy.dpia.' + dim | transloco }}
                 <select
-                  class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                  class="h-10 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
                   (change)="setLevel(i, dim, $any($event.target).value)"
                 >
                   @if (dim === 'residual') {

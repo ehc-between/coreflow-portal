@@ -32,7 +32,7 @@ import { ProjectForm, ProjectFormSubmit } from './project-form';
   imports: [TranslocoPipe, Alert, ErrorState, HelpStrip, LoadingState, PageHeader, ProjectForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="projects.form.editTitle"
         [titleParams]="{ code: project()?.code ?? '' }"

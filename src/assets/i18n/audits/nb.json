@@ -339,7 +339,19 @@
     "searchDocuments": "Søk etter en prosedyre eller policy",
     "noPeople": "Fant ingen personer i organisasjonen.",
     "fixTitle": "Kunne ikke lagre. Fyll ut tittel.",
-    "fixDates": "Kunne ikke lagre. Sluttdatoen må være samme dag som eller etter startdatoen."
+    "fixDates": "Kunne ikke lagre. Sluttdatoen må være samme dag som eller etter startdatoen.",
+    "sections": {
+      "basics": "Revisjonen",
+      "basicsHint": "Hva slags revisjon det er, hvem som eier den og hva den omfatter.",
+      "coverage": "Hva som revideres",
+      "coverageHint": "Prosessene og avdelingene revisjonen ser på.",
+      "criteria": "Kriterier",
+      "criteriaHint": "Hva revisjonen sjekker mot: standarder, krav, prosedyrer og mål.",
+      "when": "Tid og sted",
+      "whenHint": "Når og hvor revisjonen gjennomføres.",
+      "people": "Personer",
+      "peopleHint": "Hvem som intervjues og hvem som får rapporten."
+    }
   },
   "planDetail": {
     "about": "Om denne revisjonen",
@@ -521,7 +533,13 @@
     "riskHint": "Nevn prosessene, risikoene og tidligere funn som avgjør hva som revideres oftere.",
     "quarter": "{{ q }}. kvartal",
     "proposedAudits": "Foreslåtte revisjoner:",
-    "fix": "Kunne ikke lagre. Fyll ut tittel og et år mellom 2000 og 2100."
+    "fix": "Kunne ikke lagre. Fyll ut tittel og et år mellom 2000 og 2100.",
+    "sections": {
+      "basics": "Programmet",
+      "basicsHint": "Navn, år, ansvarlig og en kort beskrivelse.",
+      "basis": "Grunnlag",
+      "basisHint": "Standardene det dekker, målene og risikovurderingen bak planen."
+    }
   },
   "findings": {
     "title": "Det revisjonene fant (funn)",
@@ -545,7 +563,13 @@
     "fixTitle": "Kunne ikke lagre. Fyll ut tittel.",
     "inAudit": "I revisjonen {{ audit }}",
     "askEvidence": "Hva er god objektiv dokumentasjon for dette funnet?",
-    "clauseHint": "Kravet som ikke er oppfylt. Det merkes som et svakt punkt på kravet under Standarder og krav."
+    "clauseHint": "Kravet som ikke er oppfylt. Det merkes som et svakt punkt på kravet under Standarder og krav.",
+    "sections": {
+      "finding": "Funnet",
+      "findingHint": "Hva slags funn det er, hva som ble funnet og dokumentasjonen for det.",
+      "followUp": "Oppfølging",
+      "followUpHint": "Hvem som svarer, innen når, og avdelingen det gjelder."
+    }
   },
   "findingDetail": {
     "askAbout": "Forklar funn {{ code }} og hvordan et godt svar ser ut.",
@@ -648,7 +672,13 @@
     "editTitle": "Rediger sertifiseringen",
     "supplier": "Sertifiseringsorgan fra Leverandører",
     "searchSupplier": "Søk etter en leverandør",
-    "fix": "Kunne ikke lagre. Velg sertifiseringsorganet eller skriv inn navnet."
+    "fix": "Kunne ikke lagre. Velg sertifiseringsorganet eller skriv inn navnet.",
+    "sections": {
+      "basics": "Sertifikatet",
+      "basicsHint": "Hvilken standard, hvem som utstedte det, hva det dekker og hvem som følger opp.",
+      "dates": "Datoer",
+      "datesHint": "Når det ble utstedt, når det utløper og neste overvåkingsrevisjon."
+    }
   },
   "auditors": {
     "title": "Revisorregister",

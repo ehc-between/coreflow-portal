@@ -87,7 +87,11 @@
     "positionIntro": "Start from a position in People to reuse its title, department, risk level and competence requirements.",
     "findPosition": "Find a position in People",
     "removePosition": "Remove the link",
-    "prefilled": "Filled in from the position. Check the fields and change what does not fit."
+    "prefilled": "Filled in from the position. Check the fields and change what does not fit.",
+    "needSection": "Need and responsibility",
+    "needHint": "Why the role is needed, how risky it is and who runs the recruitment.",
+    "criteriaHint": "The job-related criteria every applicant is assessed against.",
+    "postingHint": "The text applicants see and when the application deadline is."
   },
   "requisition": {
     "pipeline": "Pipeline",
@@ -214,7 +218,9 @@
     "noRights": "Only the hiring team, the creator or a recruitment manager can edit this candidate.",
     "created": "Candidate {{ code }} registered.",
     "saved": "Candidate {{ code }} saved.",
-    "create": "Register candidate"
+    "create": "Register candidate",
+    "section": "Candidate",
+    "sectionHint": "Only the personal data the recruitment needs."
   },
   "candidate": {
     "applications": "Applications",
@@ -279,7 +285,12 @@
     "newCandidate": "New candidate",
     "findCandidate": "Find a candidate",
     "submit": "Add application",
-    "created": "Application {{ code }} added."
+    "created": "Application {{ code }} added.",
+    "requisitionSection": "Requisition",
+    "requisitionHint": "The open requisition the candidate applies for.",
+    "candidateHint": "Pick a registered candidate or register a new one.",
+    "applicationSection": "Application",
+    "applicationHint": "A short note about the application, for example how it came in."
   },
   "application": {
     "backToPipeline": "Back to the pipeline",

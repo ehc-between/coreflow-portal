@@ -57,6 +57,7 @@ import {
   Severity,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const PAGE_SIZE = 25;
 
@@ -140,6 +141,7 @@ export function toFindingQuery(q: string, f: FindingListFilters, offset: number)
 @Component({
   selector: 'app-findings-list',
   imports: [
+    DateInput,
     TranslocoPipe,
     TeachingEmpty,
     WhyItMatters,
@@ -277,24 +279,22 @@ export function toFindingQuery(q: string, f: FindingListFilters, offset: number)
             {{ 'inspections.filters.registered' | transloco }}
           </legend>
           <div class="grid grid-cols-2 gap-2">
-            <label class="flex flex-col gap-1 text-meta text-fg-muted">
+            <label for="ff-filter-from" class="flex flex-col gap-1 text-meta text-fg-muted">
               {{ 'inspections.filters.from' | transloco }}
-              <input
-                type="date"
-                class="cf-filter"
+              <app-date-input
+                inputId="ff-filter-from"
                 [value]="filters().from"
-                (change)="setFilter('from', $any($event.target).value)"
                 data-testid="finding-filter-from"
+                (valueChange)="setFilter('from', $event ?? '')"
               />
             </label>
-            <label class="flex flex-col gap-1 text-meta text-fg-muted">
+            <label for="ff-filter-to" class="flex flex-col gap-1 text-meta text-fg-muted">
               {{ 'inspections.filters.to' | transloco }}
-              <input
-                type="date"
-                class="cf-filter"
+              <app-date-input
+                inputId="ff-filter-to"
                 [value]="filters().to"
-                (change)="setFilter('to', $any($event.target).value)"
                 data-testid="finding-filter-to"
+                (valueChange)="setFilter('to', $event ?? '')"
               />
             </label>
           </div>

@@ -83,7 +83,9 @@ export function matchesType(type: DocumentType, q: string): boolean {
         </app-button>
       }
       <ng-container filters>
-        <label class="inline-flex h-10 items-center gap-1.5 text-ui text-fg-muted">
+        <label
+          class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui font-semibold text-fg-muted hover:text-fg"
+        >
           <input
             type="checkbox"
             [checked]="showInactive()"

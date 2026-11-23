@@ -22,7 +22,8 @@ import { FieldHelp } from '../../../shared/guidance/field-help';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -120,7 +121,8 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
     WhyItMatters,
     Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     FormField,
     HelpStrip,
     LoadingState,
@@ -130,7 +132,7 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'reports.form.editTitle' : 'reports.form.newTitle'"
         descriptionKey="reports.form.subtitle"
@@ -145,220 +147,221 @@ export function draftFromDefinition(d: ReportDefinition): DefinitionDraft {
       } @else if (!ready()) {
         <app-loading-state [rows]="5" />
       } @else {
-        <form (submit)="$event.preventDefault(); save()" novalidate>
-          <app-card class="mb-4 block">
-            <div class="flex flex-col gap-4">
-              <div>
-                <app-form-field [label]="'reports.form.name' | transloco" inputId="def-name">
-                  <input
-                    id="def-name"
-                    type="text"
-                    maxlength="200"
-                    required
-                    aria-required="true"
-                    [attr.aria-invalid]="submitted() && !draft().name.trim()"
-                    [value]="draft().name"
-                    [placeholder]="'reports.form.namePlaceholder' | transloco"
-                    (input)="patch({ name: $any($event.target).value })"
-                  />
-                </app-form-field>
-                @if (submitted() && !draft().name.trim()) {
-                  <p class="mt-1 text-meta text-fail-ink" role="alert">
-                    {{ 'reports.form.nameRequired' | transloco }}
-                  </p>
-                }
-              </div>
-              <app-form-field
-                [label]="'reports.form.description' | transloco"
-                inputId="def-description"
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <app-form-section
+            [title]="'reports.form.sections.basics' | transloco"
+            [description]="'reports.form.sections.basicsHint' | transloco"
+          >
+            <app-form-field
+              span="full"
+              [label]="'reports.form.name' | transloco"
+              inputId="def-name"
+              [required]="true"
+              [error]="nameMissing() ? ('reports.form.nameRequired' | transloco) : ''"
+            >
+              <input
+                id="def-name"
+                type="text"
+                maxlength="200"
+                required
+                [value]="draft().name"
+                [placeholder]="'reports.form.namePlaceholder' | transloco"
+                (input)="patch({ name: $any($event.target).value })"
+              />
+            </app-form-field>
+            <app-form-field
+              span="full"
+              [label]="'reports.form.register' | transloco"
+              inputId="def-register"
+              [required]="true"
+              [error]="registerMissing() ? ('reports.form.registerRequired' | transloco) : ''"
+            >
+              <app-field-help
+                label-suffix
+                scope="reports"
+                page="definitionForm"
+                field="register"
+                [label]="'reports.form.register' | transloco"
+              />
+              <app-ask-about
+                label-suffix
+                field="register_key"
+                [fieldLabel]="'reports.form.register' | transloco"
+                [prompt]="'reports.form.askRegister' | transloco"
+              />
+              <select
+                id="def-register"
+                required
+                [disabled]="!!id()"
+                (change)="changeRegister($any($event.target).value)"
               >
-                <textarea
-                  id="def-description"
-                  rows="3"
-                  maxlength="5000"
-                  [value]="draft().description"
-                  [placeholder]="'reports.form.descriptionPlaceholder' | transloco"
-                  (input)="patch({ description: $any($event.target).value })"
-                ></textarea>
-              </app-form-field>
-              <div>
-                <div class="flex items-end gap-1">
-                  <app-form-field
-                    class="min-w-0 flex-1"
-                    [label]="'reports.form.register' | transloco"
-                    inputId="def-register"
-                  >
-                    <select
-                      id="def-register"
-                      required
-                      aria-required="true"
-                      [disabled]="!!id()"
-                      (change)="changeRegister($any($event.target).value)"
-                    >
-                      <option value="" [selected]="!draft().register_key">
-                        {{ 'reports.form.chooseRegister' | transloco }}
+                <option value="" [selected]="!draft().register_key">
+                  {{ 'reports.form.chooseRegister' | transloco }}
+                </option>
+                @for (group of groups(); track group.module) {
+                  <optgroup [label]="group.name">
+                    @for (reg of group.registers; track reg.key) {
+                      <option [value]="reg.key" [selected]="reg.key === draft().register_key">
+                        {{ name(reg) }}
                       </option>
-                      @for (group of groups(); track group.module) {
-                        <optgroup [label]="group.name">
-                          @for (reg of group.registers; track reg.key) {
-                            <option [value]="reg.key" [selected]="reg.key === draft().register_key">
-                              {{ name(reg) }}
-                            </option>
-                          }
-                        </optgroup>
-                      }
-                    </select>
-                  </app-form-field>
-                  <app-ask-about
-                    class="mb-1.5"
-                    field="register_key"
-                    [fieldLabel]="'reports.form.register' | transloco"
-                    [prompt]="'reports.form.askRegister' | transloco"
-                  />
-                </div>
-                <app-field-help
-                  class="mt-1 block"
-                  scope="reports"
-                  page="definitionForm"
-                  field="register"
-                />
-                @if (clauses().length) {
-                  <p class="mt-1 text-meta text-fg-muted" data-testid="form-register-clauses">
-                    {{ 'reports.registers.evidenceFor' | transloco }}
-                    <span class="text-fg">{{ clauses().join(', ') }}</span>
-                  </p>
+                    }
+                  </optgroup>
                 }
-                @if (submitted() && !draft().register_key) {
-                  <p class="mt-1 text-meta text-fail-ink" role="alert">
-                    {{ 'reports.form.registerRequired' | transloco }}
-                  </p>
-                }
-              </div>
-            </div>
-          </app-card>
+              </select>
+              @if (clauses().length) {
+                <p
+                  hint
+                  class="text-meta leading-snug text-fg-subtle"
+                  data-testid="form-register-clauses"
+                >
+                  {{ 'reports.registers.evidenceFor' | transloco }}
+                  <span class="text-fg-muted">{{ clauses().join(', ') }}</span>
+                </p>
+              }
+            </app-form-field>
+            <app-form-field
+              span="full"
+              [label]="'reports.form.description' | transloco"
+              inputId="def-description"
+            >
+              <textarea
+                id="def-description"
+                rows="3"
+                maxlength="5000"
+                [value]="draft().description"
+                [placeholder]="'reports.form.descriptionPlaceholder' | transloco"
+                (input)="patch({ description: $any($event.target).value })"
+              ></textarea>
+            </app-form-field>
+          </app-form-section>
 
           @if (register(); as reg) {
-            <app-card class="mb-4 block">
-              <div class="mb-3 flex items-center justify-between gap-2">
-                <h2 class="text-card font-semibold text-fg">
-                  {{ 'reports.form.filtersTitle' | transloco }}
-                </h2>
-                <app-ask-about
-                  field="filters"
-                  [fieldLabel]="'reports.form.filtersTitle' | transloco"
-                  [prompt]="'reports.form.askFilters' | transloco: { register: name(reg) }"
-                />
-              </div>
+            <app-form-section
+              [title]="'reports.form.filtersTitle' | transloco"
+              [description]="'reports.form.sections.contentHint' | transloco"
+            >
+              <app-ask-about
+                section-actions
+                field="filters"
+                [fieldLabel]="'reports.form.filtersTitle' | transloco"
+                [prompt]="'reports.form.askFilters' | transloco: { register: name(reg) }"
+              />
               <app-register-filters
+                class="sm:col-span-2"
                 [register]="reg"
                 [value]="draft().filters"
                 (valueChange)="patch({ filters: $event })"
               />
-              @if (submitted() && reg.requires_standard && !draft().filters.standard_key) {
-                <p class="mt-1 text-meta text-fail-ink" role="alert">
+              @if (standardMissing()) {
+                <p class="text-meta font-medium text-fail-ink sm:col-span-2" role="alert">
                   {{ 'reports.errors.standard_required' | transloco }}
                 </p>
               }
               <app-column-picker
-                class="mt-4"
+                class="sm:col-span-2"
                 [columns]="reg.columns"
                 [selected]="draft().columns"
                 (selectedChange)="patch({ columns: $event })"
               />
-            </app-card>
+            </app-form-section>
           }
 
-          <app-card class="mb-4 block">
-            <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <app-form-field [label]="'reports.form.format' | transloco" inputId="def-format">
-                  <select
-                    id="def-format"
-                    (change)="patch({ default_format: $any($event.target).value })"
-                  >
-                    @for (f of formats; track f) {
-                      <option [value]="f" [selected]="f === draft().default_format">
-                        {{ 'reports.formats.' + f | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help
-                  class="mt-1 block"
-                  scope="reports"
-                  page="definitionForm"
-                  field="format"
-                />
-              </div>
-              <app-form-field [label]="'reports.form.lang' | transloco" inputId="def-lang">
-                <select id="def-lang" (change)="patch({ lang: $any($event.target).value })">
-                  @for (l of langs; track l) {
-                    <option [value]="l" [selected]="l === draft().lang">
-                      {{ 'reports.langs.' + l | transloco }}
+          <app-form-section
+            [title]="'reports.form.sections.output' | transloco"
+            [description]="'reports.form.sections.outputHint' | transloco"
+          >
+            <app-form-field [label]="'reports.form.format' | transloco" inputId="def-format">
+              <app-field-help
+                label-suffix
+                scope="reports"
+                page="definitionForm"
+                field="format"
+                [label]="'reports.form.format' | transloco"
+              />
+              <select
+                id="def-format"
+                (change)="patch({ default_format: $any($event.target).value })"
+              >
+                @for (f of formats; track f) {
+                  <option [value]="f" [selected]="f === draft().default_format">
+                    {{ 'reports.formats.' + f | transloco }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field [label]="'reports.form.lang' | transloco" inputId="def-lang">
+              <select id="def-lang" (change)="patch({ lang: $any($event.target).value })">
+                @for (l of langs; track l) {
+                  <option [value]="l" [selected]="l === draft().lang">
+                    {{ 'reports.langs.' + l | transloco }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            @if (id() && members().length > 1) {
+              <app-form-field [label]="'reports.form.owner' | transloco" inputId="def-owner">
+                <select
+                  id="def-owner"
+                  (change)="patch({ owner_user_id: $any($event.target).value })"
+                >
+                  @if (!hasOwnerOption()) {
+                    <option [value]="draft().owner_user_id" selected>
+                      {{ original()?.owner?.name || ('reports.detail.unknownUser' | transloco) }}
+                    </option>
+                  }
+                  @for (m of members(); track m.id) {
+                    <option [value]="m.id" [selected]="m.id === draft().owner_user_id">
+                      {{ m.name }}
                     </option>
                   }
                 </select>
               </app-form-field>
-              @if (id() && members().length > 1) {
-                <app-form-field [label]="'reports.form.owner' | transloco" inputId="def-owner">
-                  <select
-                    id="def-owner"
-                    (change)="patch({ owner_user_id: $any($event.target).value })"
-                  >
-                    @if (!hasOwnerOption()) {
-                      <option [value]="draft().owner_user_id" selected>
-                        {{ original()?.owner?.name || ('reports.detail.unknownUser' | transloco) }}
-                      </option>
-                    }
-                    @for (m of members(); track m.id) {
-                      <option [value]="m.id" [selected]="m.id === draft().owner_user_id">
-                        {{ m.name }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-              }
-            </div>
-            @if (id()) {
-              <div class="mt-4">
-                <app-form-field
-                  [label]="'reports.form.changeReason' | transloco"
-                  inputId="def-reason"
-                >
-                  <input
-                    id="def-reason"
-                    type="text"
-                    maxlength="500"
-                    [value]="draft().change_reason"
-                    (input)="patch({ change_reason: $any($event.target).value })"
-                    [placeholder]="'reports.form.changeReasonPlaceholder' | transloco"
-                  />
-                </app-form-field>
+            }
+          </app-form-section>
+
+          @if (id()) {
+            <app-form-section [columns]="1">
+              <app-form-field
+                [label]="'reports.form.changeReason' | transloco"
+                inputId="def-reason"
+              >
                 <app-field-help
-                  class="mt-1 block"
+                  label-suffix
                   scope="reports"
                   page="definitionForm"
                   field="changeReason"
+                  [label]="'reports.form.changeReason' | transloco"
                 />
-              </div>
-            }
-          </app-card>
-
-          @if (saveError(); as key) {
-            <app-alert class="mb-3 block">{{ key | transloco }}</app-alert>
+                <input
+                  id="def-reason"
+                  type="text"
+                  maxlength="500"
+                  [value]="draft().change_reason"
+                  (input)="patch({ change_reason: $any($event.target).value })"
+                  [placeholder]="'reports.form.changeReasonPlaceholder' | transloco"
+                />
+              </app-form-field>
+            </app-form-section>
           }
 
-          <div
-            class="fixed inset-x-0 bottom-0 z-20 flex justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
-            data-testid="form-actions"
+          @if (saveError(); as key) {
+            <app-alert>{{ key | transloco }}</app-alert>
+          }
+
+          <app-form-actions
+            [message]="
+              nameMissing() || registerMissing() || standardMissing()
+                ? ('reports.form.fixErrors' | transloco)
+                : ''
+            "
           >
-            <app-button variant="ghost" (click)="cancel()">{{
+            <app-button variant="secondary" (click)="cancel()">{{
               'common.cancel' | transloco
             }}</app-button>
             <app-button type="submit" [loading]="saving()">
               {{ (id() ? 'reports.form.saveChanges' : 'reports.form.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
 
@@ -407,6 +410,17 @@ export class DefinitionForm {
 
   protected readonly register = computed(
     () => this.registers().find((r) => r.key === this.draft().register_key) ?? null,
+  );
+
+  protected readonly nameMissing = computed(() => this.submitted() && !this.draft().name.trim());
+  protected readonly registerMissing = computed(
+    () => this.submitted() && !this.draft().register_key,
+  );
+  protected readonly standardMissing = computed(
+    () =>
+      this.submitted() &&
+      !!this.register()?.requires_standard &&
+      !this.draft().filters.standard_key,
   );
 
   protected readonly clauses = computed(() => {

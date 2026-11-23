@@ -166,7 +166,9 @@
     "langAuto": "Samme som brukerens språk",
     "save": "Lagre",
     "saved": "Merkevaren er lagret.",
-    "logoSaved": "Logoen er lagret."
+    "logoSaved": "Logoen er lagret.",
+    "documentTitle": "Dokumenter",
+    "documentHint": "Farge, gradering, språk og bunntekst på alle dokumenter CoreFlow lager."
   },
   "classification": {
     "public": "Åpen",

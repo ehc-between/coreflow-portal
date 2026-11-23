@@ -217,7 +217,14 @@
         }
       },
       "needAudience": "Add at least one recipient to start.",
-      "needDocument": "Choose an approved document first."
+      "needDocument": "Choose an approved document first.",
+      "sections": {
+        "what": "What to read",
+        "whatHint": "The approved document and the message people get with it.",
+        "how": "Confirmation and deadline",
+        "howHint": "Whether people must confirm and by when.",
+        "audienceHint": "Who gets the document. Add people, roles or departments."
+      }
     },
     "external": {
       "title": "External documents",
@@ -256,7 +263,14 @@
         "notes": "Notes",
         "lastReviewed": "Last reviewed"
       },
-      "fillMissing": "Add the version and issue date, so everyone can see which edition you work by."
+      "fillMissing": "Add the version and issue date, so everyone can see which edition you work by.",
+      "sections": {
+        "source": "The document",
+        "sourceHint": "What the document is, who publishes it and which edition you use.",
+        "care": "Ownership and review",
+        "careHint": "Who keeps it current, how often it is checked and how long it is kept."
+      },
+      "askAppliesLabel": "How does this apply to us?"
     },
     "types": {
       "title": "Document types",
@@ -288,7 +302,13 @@
       "advanced": "Advanced",
       "keyAuto": "Made from the name",
       "format": "Code format",
-      "formatCustom": "Custom format"
+      "formatCustom": "Custom format",
+      "sections": {
+        "basics": "The type",
+        "basicsHint": "The name people pick when they create a document.",
+        "numberingHint": "How new documents of this type get their code.",
+        "defaultsHint": "What new documents of this type start with. Each document can change it."
+      }
     },
     "templates": {
       "title": "Document templates",
@@ -304,6 +324,12 @@
       "deleteMessage": "\"{{ name }}\" will be removed. Documents made from it are not affected.",
       "fields": {
         "name": "Name"
+      },
+      "sections": {
+        "basics": "The template",
+        "basicsHint": "The name and type people see when they start a new document.",
+        "content": "Content",
+        "contentHint": "The structure every new document from this template starts with."
       }
     },
     "retention": {
@@ -354,7 +380,13 @@
         "usage": "In use"
       },
       "periodYears": "{{ count }} years · {{ trigger }}",
-      "equalsYears": "That is {{ count }} years."
+      "equalsYears": "That is {{ count }} years.",
+      "sections": {
+        "rule": "The rule",
+        "ruleHint": "What the rule covers, how long records are kept and what happens then.",
+        "basis": "Basis",
+        "basisHint": "Why the period is what it is, so others can check it later."
+      }
     },
     "compare": {
       "title": "History: {{ title }}",
@@ -522,6 +554,11 @@
       "errors": {
         "type": "Choose what kind of document this is.",
         "title": "Give the document a title."
+      },
+      "sections": {
+        "aboutHint": "The title, type and code people will find the document by.",
+        "content": "Content",
+        "contentHint": "Write the document, start from a draft, or leave it empty and write it later."
       }
     },
     "editor": {

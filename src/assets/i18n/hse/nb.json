@@ -258,7 +258,10 @@
       "responsibleHint": "Velg et medlem, eller velg «En person utenfor» og skriv navnet.",
       "responsibleExternal": "En person utenfor organisasjonen",
       "responsibleName": "Navn på den ansvarlige",
-      "ppeHint": "Utstyret alle som gjør jobben, må bruke. Analysen viser hvilket utstyr i verneutstyrsregisteret som dekker det."
+      "ppeHint": "Utstyret alle som gjør jobben, må bruke. Analysen viser hvilket utstyr i verneutstyrsregisteret som dekker det.",
+      "jobSectionHint": "En sikker jobbanalyse planlegger en risikofylt jobb før den starter. Skriv den sammen med dem som skal gjøre jobben.",
+      "peopleSection": "Hvem er med",
+      "peopleSectionHint": "De som gjør jobben og går gjennom analysen sammen."
     },
     "detail": {
       "jobTitle": "Jobben",
@@ -463,7 +466,10 @@
       "courseHint": "Kurset innehaveren må ha tatt, for eksempel arbeid i høyden. Ved utlevering varsles du hvis innehaveren mangler det.",
       "coursePlaceholder": "Søk etter et kurs",
       "intervalHint": "Hvor ofte utstyret må kontrolleres. Velg et vanlig intervall, eller skriv inn antall dager.",
-      "days": "dager"
+      "days": "dager",
+      "whatSectionHint": "Utstyret, kategorien og hvor mange det er.",
+      "whoSectionHint": "Hvor utstyret oppbevares og hvem som følger det opp.",
+      "inspectionSectionHint": "Når det sist ble kontrollert, når neste kontroll er og når det går ut på dato."
     },
     "detail": {
       "aboutTitle": "Om utstyret",
@@ -608,7 +614,10 @@
       "outcomeSection": "Resultat",
       "repsHint": "Velg verneombudet hvis det er medlem; legg til andre med navn.",
       "repAuto": "Krysset av fordi et verneombud står på listen.",
-      "decisionsHint": "Nye beslutninger blir oppgaver: legg dem til som oppgaver på registreringen."
+      "decisionsHint": "Nye beslutninger blir oppgaver: legg dem til som oppgaver på registreringen.",
+      "meetingSectionHint": "Hva møtet handler om, når og hvor det holdes.",
+      "peopleSectionHint": "Hvem som deltar, også verneombudene.",
+      "outcomeSectionHint": "Hva som ble drøftet og bestemt i møtet."
     },
     "detail": {
       "aboutTitle": "Om møtet",

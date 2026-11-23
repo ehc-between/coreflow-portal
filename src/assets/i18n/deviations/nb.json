@@ -127,6 +127,7 @@
     "reviewDueLabel": "Vurder effekten innen {{ date }}",
     "intro": "Begrens problemet nå, fjern årsaken og sjekk deretter at det virket.",
     "optional": "valgfritt",
+    "optionalHint": "Valgfritt for strakstiltak.",
     "kindHelp": {
       "containment": "Begrenser skaden her og nå (ISO 10.2 a). Effektkontroll er valgfritt.",
       "corrective": "Fjerner årsaken, så det ikke skjer igjen (ISO 10.2 b–c).",
@@ -195,7 +196,9 @@
       "qrLabel": "QR-kode til rapportskjemaet",
       "posterHint": "Heng opp plakaten på en oppslagstavle eller i pauserommet, så alle finner skjemaet.",
       "poster": "Last ned plakat",
-      "preview": "Åpne skjemaet"
+      "preview": "Åpne skjemaet",
+      "formTitle": "Meldekanal",
+      "formHint": "Om det åpne skjemaet er på, hvem det er for, og hva de som melder ser."
     },
     "inbox": {
       "link": "Mottatte rapporter",
@@ -624,7 +627,15 @@
       "advanced": "Avansert",
       "keyHint": "Lages fra navnet. Endre den bare hvis en integrasjon trenger en fast nøkkel.",
       "defaultClauses": "Typiske krav",
-      "defaultClausesHint": "Tilbys som koblinger med ett klikk på avvik av denne typen. La stå tomt for å bruke standardenes forslag."
+      "defaultClausesHint": "Tilbys som koblinger med ett klikk på avvik av denne typen. La stå tomt for å bruke standardenes forslag.",
+      "sections": {
+        "basics": "Grunnleggende",
+        "basicsHint": "Navnet folk velger når de melder fra, og kodeprefikset for sakene.",
+        "requirements": "Krav",
+        "requirementsHint": "Standardene denne typen saker hører til, og kravene den vanligvis berører.",
+        "workflow": "Arbeidsflyt",
+        "workflowHint": "En valgfri arbeidsflyt med egne felt og steg, og den tekniske nøkkelen."
+      }
     }
   },
   "statusPair": {

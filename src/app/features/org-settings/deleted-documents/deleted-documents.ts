@@ -61,7 +61,7 @@ export class DocumentRestoreApi {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="settings.deletedDocuments.title"
         descriptionKey="settings.deletedDocuments.subtitle"

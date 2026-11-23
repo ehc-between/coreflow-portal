@@ -540,7 +540,28 @@
     "addRecord": "Legg til en post …",
     "noRecords": "Ingen poster å velge",
     "crumbRecord": "{{ code }}",
-    "removeCustomer": "Fjern kunden"
+    "removeCustomer": "Fjern kunden",
+    "sectionHints": {
+      "basics": "Hva registreringen gjelder og hvem som er ansvarlig.",
+      "processing": "Hvorfor personopplysningene behandles, og på hvilket rettslig grunnlag.",
+      "data": "Hvilke opplysninger som behandles, om hvem, og hvem som mottar dem.",
+      "security": "Hvordan opplysningene beskyttes, og om de forlater EØS.",
+      "review": "Når registreringen sist ble gjennomgått, og når neste gjennomgang er.",
+      "screening": "Om det trengs en full personvernkonsekvensvurdering (DPIA).",
+      "assessment": "Risikoen for de registrerte og hvordan den reduseres.",
+      "requester": "Hvem som spør, og hva de ber om.",
+      "handling": "Hvordan henvendelsen behandles og besvares.",
+      "timing": "Når henvendelsen kom, og når svaret må gis.",
+      "impact": "Hva som skjedde, hvilke opplysninger og personer det gjelder, og mulige konsekvenser.",
+      "dpa": "Databehandleravtalen og viktige datoer.",
+      "mechanism": "Hvor opplysningene sendes, og grunnlaget for overføringen.",
+      "tia": "Om opplysningene er godt nok beskyttet i mottakerlandet.",
+      "rule": "Hvor lenge opplysningene lagres, og hva som skjer etterpå.",
+      "evidence": "Dokumenter som viser at regelen følges.",
+      "tests": "Testene som viser at behandlingsgrunnlaget holder.",
+      "facts": "Viktige datoer og resultatet.",
+      "execution": "Når og hvordan opplysningene ble slettet."
+    }
   },
   "common": {
     "loading": "Laster …",
@@ -1140,7 +1161,11 @@
     },
     "save": "Lagre innstillingene",
     "saved": "Innstillingene for personvern er lagret.",
-    "readOnly": "Bare personvernansvarlige kan endre disse innstillingene."
+    "readOnly": "Bare personvernansvarlige kan endre disse innstillingene.",
+    "sectionHints": {
+      "controller": "Virksomheten som er ansvarlig for behandlingen, slik den vises i protokollen.",
+      "dpo": "Hvem de registrerte og Datatilsynet kan kontakte om personvern."
+    }
   },
   "next": {
     "activateRopa": "Sett som aktiv",

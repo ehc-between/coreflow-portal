@@ -106,7 +106,8 @@
     "deletedToast": "Registertypen er slettet.",
     "blockKeyEmpty": "Legg inn en nøkkel under navnet.",
     "codePrefixPlaceholder": "AV",
-    "requirementsHint": "Dette er kravene denne typen post vanligvis støtter. De er bare forslag: et krav regnes som dekket først når det finnes en post av denne typen der de koblede feltene er fylt ut."
+    "requirementsHint": "Dette er kravene denne typen post vanligvis støtter. De er bare forslag: et krav regnes som dekket først når det finnes en post av denne typen der de koblede feltene er fylt ut.",
+    "basicsHint": "Hva registertypen heter og hvilken modul den hører til."
   },
   "workflow": {
     "newTitle": "Ny arbeidsflyt",
@@ -124,7 +125,8 @@
     "deleteTitle": "Slette denne arbeidsflyten?",
     "deleteMessage": "«{{ name }}» fjernes. En arbeidsflyt som fortsatt brukes av en registertype, kan ikke slettes.",
     "deletedToast": "Arbeidsflyten er slettet.",
-    "create": "Opprett arbeidsflyt"
+    "create": "Opprett arbeidsflyt",
+    "basicsHint": "Navnet folk ser og modulen arbeidsflyten brukes i."
   },
   "fields": {
     "title": "Felt",

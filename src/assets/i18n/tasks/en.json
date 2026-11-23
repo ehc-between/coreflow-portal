@@ -166,7 +166,21 @@
     "linkedTo": "Linked to {{ record }}",
     "create": "Create task",
     "saveChanges": "Save changes",
-    "customer": "Customer (optional)"
+    "customer": "Customer (optional)",
+    "fixFields": "Fix the marked fields",
+    "sections": {
+      "task": {
+        "title": "Task",
+        "description": "What needs doing and who is responsible."
+      },
+      "schedule": {
+        "title": "Schedule",
+        "description": "When it is due, and whether it repeats."
+      },
+      "checklist": {
+        "description": "Steps to tick off along the way."
+      }
+    }
   },
   "fields": {
     "assignee": "Assignee",

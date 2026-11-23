@@ -80,7 +80,10 @@
       "obligations": "Lover og forskrifter som gjelder",
       "control": "Styring og eierskap",
       "preparedness": "Beredskap",
-      "evaluateHow": "Slik er vesentligheten vurdert"
+      "evaluateHow": "Slik er vesentligheten vurdert",
+      "identifyHint": "Hva dere gjør, hvordan det kan påvirke miljøet, og når det skjer.",
+      "evaluateHint": "Gi aspektet poeng for å se om det er vesentlig.",
+      "controlHint": "Hvordan dere holder påvirkningen under kontroll, og hvem som følger den opp."
     },
     "notices": {
       "controls": "Aspektet er vesentlig, men ingenting styrer det ennå. Koble en prosedyre, prosess eller et mål, eller beskriv driftskontrollene.",
@@ -183,7 +186,10 @@
       "response": "Tiltak",
       "drillRhythm": "Fast øvelsesrytme",
       "drillsAndReview": "Øvelser og gjennomgang",
-      "ownership": "Eierskap og gjennomgang"
+      "ownership": "Eierskap og gjennomgang",
+      "scenarioHint": "Nødsituasjonen planen forbereder dere på, og hvor den kan skje.",
+      "responseHint": "Hva dere gjør når det skjer, og hva dere trenger for å gjøre det.",
+      "ownershipHint": "Hvem som eier planen, og når den skal gjennomgås neste gang."
     },
     "notices": {
       "drill": "Planen er ikke øvd det siste året. Hold en øvelse eller en skrivebordsøvelse.",
@@ -274,7 +280,9 @@
     "sections": {
       "what": "Hva som måles",
       "emissions": "Klimagassutslipp",
-      "ownership": "Eierskap og påminnelser"
+      "ownership": "Eierskap og påminnelser",
+      "whatHint": "Hva dere måler, i hvilken enhet, og hvordan.",
+      "ownershipHint": "Hvem som eier indikatoren, og når dere får påminnelse om å registrere verdier."
     },
     "unitHint": "For eksempel kWh, m3, kg, liter eller tonn.",
     "targetTitle": "Mål og utvikling",

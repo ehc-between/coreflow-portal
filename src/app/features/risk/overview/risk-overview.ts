@@ -9,6 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, forkJoin, of, throwError } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
@@ -58,6 +59,7 @@ type LoadState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-risk-overview',
   imports: [
+    NgTemplateOutlet,
     RouterLink,
     TranslocoPipe,
     AskAbout,
@@ -132,16 +134,20 @@ type LoadState = 'loading' | 'ready' | 'error';
               }
             </app-card>
           } @else {
-            @if (showWizard()) {
+            <ng-template #quickWizard>
               @if (heatmap(); as h) {
                 <app-risk-quick-wizard
-                  class="mb-5 block"
+                  class="block"
                   [orgId]="perms.orgId() ?? ''"
                   [matrix]="h.matrix"
                   [registerId]="registerId()"
                   (created)="go('/risk/risks/' + $event.id)"
                 />
               }
+            </ng-template>
+            <!-- An empty register starts with the quick wizard; with risks the numbers come first. -->
+            @if (showWizard() && !hasRisks()) {
+              <div class="mb-5"><ng-container [ngTemplateOutlet]="quickWizard" /></div>
             }
             @if (overview(); as o) {
               <section
@@ -404,6 +410,9 @@ type LoadState = 'loading' | 'ready' | 'error';
                 }
               </div>
             </div>
+            @if (showWizard() && hasRisks()) {
+              <div class="mt-5"><ng-container [ngTemplateOutlet]="quickWizard" /></div>
+            }
           }
           <app-why-it-matters class="mt-8 block" scope="risk" page="overview" />
         }
@@ -436,6 +445,7 @@ export class RiskOverviewPage {
   protected readonly current = currentRating;
 
   /** "Hva kan gå galt?" for beginners, and for anyone while the register is empty. */
+  protected readonly hasRisks = computed(() => (this.overview()?.risks.total ?? 0) > 0);
   protected readonly showWizard = computed(
     () =>
       this.perms.canWrite() &&

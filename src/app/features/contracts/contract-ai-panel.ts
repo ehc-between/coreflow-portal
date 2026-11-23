@@ -41,6 +41,7 @@ import { contractErrorKey } from './data/contract-errors';
 import { applyExtraction, formFromContract, toUpdateRequest } from './data/contract-form-model';
 import { obligationFromExtraction } from './data/obligations';
 import { ExtractionSummary, dpaClauseKey } from './extraction-summary';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 /** Files the analysis can read server-side (PDF and plain text). */
 export function isReadableFile(a: Attachment): boolean {
@@ -101,7 +102,7 @@ export function extractionChanges(
  */
 @Component({
   selector: 'app-contract-ai-panel',
-  imports: [TranslocoPipe, AiAssistButton, Badge, Button, Card, Icon, ExtractionSummary],
+  imports: [FormField, TranslocoPipe, AiAssistButton, Badge, Button, Card, Icon, ExtractionSummary],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block', '[class.hidden]': '!shown()', 'data-testid': 'contract-ai-panel' },
   template: `
@@ -118,10 +119,9 @@ export function extractionChanges(
         </p>
       } @else {
         <div class="flex flex-col gap-3">
-          <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
-            {{ 'contracts.ai.file' | transloco }}
+          <app-form-field [label]="'contracts.ai.file' | transloco" inputId="cf-ai-file">
             <select
-              class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+              id="cf-ai-file"
               (change)="fileId.set($any($event.target).value)"
               data-testid="ai-file"
             >
@@ -129,7 +129,7 @@ export function extractionChanges(
                 <option [value]="f.id" [selected]="fileId() === f.id">{{ f.filename }}</option>
               }
             </select>
-          </label>
+          </app-form-field>
           <div class="flex flex-wrap gap-2">
             @if (canWrite()) {
               <app-ai-assist-button

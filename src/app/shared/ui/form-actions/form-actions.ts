@@ -13,6 +13,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * (phones and narrow desktops). Buttons sit on the right in reading order: Cancel (secondary) then the one primary
  * Save. `[start]` holds a rare left-hand extra (e.g. "Lagre som utkast"); `message`
  * shows a one-line error summary (`role="alert"`) on the left.
+ *
+ * With a single button and nothing on the left (a settings page's lone "Lagre") the bar
+ * drops its card chrome and shows just the button on the right (src/styles.scss), so it
+ * does not look like an empty card; it still sticks to the bottom.
  */
 @Component({
   selector: 'app-form-actions',
@@ -25,7 +29,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       class="-mx-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-bg/95 py-3 pr-[76px] pl-4 backdrop-blur sm:mx-0 sm:rounded-card sm:border sm:bg-surface/95 sm:px-5 sm:shadow-card sm:max-[1180px]:pr-[176px]"
       data-testid="form-actions"
     >
-      <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+      <div class="cf-actions-start flex min-w-0 flex-1 flex-wrap items-center gap-2">
         <ng-content select="[start]" />
         @if (message()) {
           <p
@@ -37,7 +41,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           </p>
         }
       </div>
-      <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
+      <div class="cf-actions-end ml-auto flex flex-wrap items-center justify-end gap-2">
         <ng-content />
       </div>
     </div>

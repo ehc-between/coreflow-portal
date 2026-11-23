@@ -20,7 +20,6 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { dayOf } from '../../../shared/tasks/task-display';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -45,6 +44,9 @@ import {
   HseDirectorySelect,
   HseField,
 } from '../shared/hse-shared';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /** A positive whole number from an input value, or null when blank / invalid. */
 export function positiveInt(value: string): number | null {
@@ -70,7 +72,6 @@ export const INTERVAL_PRESETS = [30, 90, 182, 365] as const;
     TranslocoPipe,
     AskAbout,
     Button,
-    Card,
     ErrorState,
     FlowBanner,
     HelpStrip,
@@ -79,10 +80,13 @@ export const INTERVAL_PRESETS = [30, 90, 182, 365] as const;
     HseDirectorySelect,
     HseField,
     HseRecordPicker,
+    FormSection,
+    FormActions,
+    DateInput,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-28 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'hse.ppe.edit.title' : 'hse.ppe.edit.newTitle'"
         [breadcrumbs]="breadcrumbs()"
@@ -104,307 +108,293 @@ export const INTERVAL_PRESETS = [30, 90, 182, 365] as const;
       } @else {
         <app-flow-banner [flow]="flow()" />
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-          <app-card>
-            <h2 class="mb-4 font-display text-card font-bold text-fg">
-              {{ 'hse.ppe.edit.whatSection' | transloco }}
-            </h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.name"
-                inputId="ppe-name"
-                page="ppe-edit"
-                [required]="true"
-                [errorKey]="submitted() && !name().trim() ? 'hse.ppe.edit.nameRequired' : null"
+          <app-form-section
+            [title]="'hse.ppe.edit.whatSection' | transloco"
+            [description]="'hse.ppe.edit.whatSectionHint' | transloco"
+          >
+            <app-hse-field
+              span="full"
+              labelKey="hse.ppe.fields.name"
+              inputId="ppe-name"
+              page="ppe-edit"
+              [required]="true"
+              [errorKey]="submitted() && !name().trim() ? 'hse.ppe.edit.nameRequired' : null"
+            >
+              <input
+                id="ppe-name"
+                type="text"
+                required
+                maxlength="200"
+                autocomplete="off"
+                [value]="name()"
+                (input)="name.set($any($event.target).value)"
+                [attr.aria-invalid]="submitted() && !name().trim()"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.ppe.fields.category"
+              inputId="ppe-category"
+              page="ppe-edit"
+              help="category"
+              [required]="true"
+              [errorKey]="submitted() && !category() ? 'hse.errors.invalid_category' : null"
+            >
+              <select
+                id="ppe-category"
+                required
+                (change)="category.set($any($event.target).value)"
+                [attr.aria-invalid]="submitted() && !category()"
+                data-testid="ppe-category"
               >
-                <input
-                  id="ppe-name"
-                  type="text"
-                  required
-                  maxlength="200"
-                  autocomplete="off"
-                  [value]="name()"
-                  (input)="name.set($any($event.target).value)"
-                  [attr.aria-invalid]="submitted() && !name().trim()"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.ppe.fields.category"
-                inputId="ppe-category"
-                page="ppe-edit"
-                help="category"
-                [required]="true"
-                [errorKey]="submitted() && !category() ? 'hse.errors.invalid_category' : null"
-              >
-                <select
-                  id="ppe-category"
-                  required
-                  (change)="category.set($any($event.target).value)"
-                  [attr.aria-invalid]="submitted() && !category()"
-                  data-testid="ppe-category"
-                >
-                  <option value="" disabled [selected]="!category()">
-                    {{ 'hse.ppe.edit.pickCategory' | transloco }}
+                <option value="" disabled [selected]="!category()">
+                  {{ 'hse.ppe.edit.pickCategory' | transloco }}
+                </option>
+                @for (c of categories; track c) {
+                  <option [value]="c" [selected]="c === category()">
+                    {{ 'hse.ppeCategory.' + c | transloco }}
                   </option>
-                  @for (c of categories; track c) {
-                    <option [value]="c" [selected]="c === category()">
-                      {{ 'hse.ppeCategory.' + c | transloco }}
+                }
+              </select>
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.ppe.fields.standard_ref"
+              inputId="ppe-standard"
+              page="ppe-edit"
+              help="standard_ref"
+              hintKey="hse.ppe.edit.standardHint"
+            >
+              <app-ask-about
+                label-extra
+                [prompt]="'hse.ppe.ai.standardPrompt' | transloco"
+                [fieldLabel]="'hse.ppe.fields.standard_ref' | transloco"
+                labelKey="hse.ppe.ai.askStandard"
+              />
+              <input
+                id="ppe-standard"
+                type="text"
+                maxlength="100"
+                aria-describedby="ppe-standard-hint"
+                [value]="standardRef()"
+                (input)="standardRef.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              span="full"
+              labelKey="hse.ppe.fields.supplier"
+              inputId="ppe-supplier"
+              page="ppe-edit"
+              help="supplier"
+              hintKey="hse.ppe.edit.supplierHint"
+            >
+              <app-hse-record-picker
+                entityType="supplier"
+                inputId="ppe-supplier"
+                placeholderKey="hse.ppe.edit.supplierPlaceholder"
+                describedBy="ppe-supplier-hint"
+                [value]="supplier()"
+                (valueChange)="supplier.set($event)"
+                testId="ppe-supplier"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.ppe.fields.manufacturer" inputId="ppe-manufacturer">
+              <input
+                id="ppe-manufacturer"
+                type="text"
+                maxlength="200"
+                [value]="manufacturer()"
+                (input)="manufacturer.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.ppe.fields.serial_number" inputId="ppe-serial">
+              <input
+                id="ppe-serial"
+                type="text"
+                maxlength="100"
+                [value]="serial()"
+                (input)="serial.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.ppe.fields.quantity"
+              inputId="ppe-quantity"
+              page="ppe-edit"
+              help="quantity"
+              hintKey="hse.ppe.edit.quantityHint"
+            >
+              <input
+                id="ppe-quantity"
+                type="number"
+                min="1"
+                step="1"
+                aria-describedby="ppe-quantity-hint"
+                [value]="quantity()"
+                (input)="quantity.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              span="full"
+              labelKey="hse.ppe.fields.description"
+              inputId="ppe-description"
+            >
+              <textarea
+                id="ppe-description"
+                rows="3"
+                [value]="description()"
+                (input)="description.set($any($event.target).value)"
+              ></textarea>
+            </app-hse-field>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'hse.ppe.edit.whoSection' | transloco"
+            [description]="'hse.ppe.edit.whoSectionHint' | transloco"
+          >
+            <app-hse-field labelKey="hse.ppe.fields.location" inputId="ppe-location">
+              <input
+                id="ppe-location"
+                type="text"
+                maxlength="200"
+                [value]="location()"
+                (input)="location.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.ppe.fields.responsible" inputId="ppe-responsible">
+              <app-hse-directory-select
+                inputId="ppe-responsible"
+                kind="user"
+                [value]="responsibleId()"
+                [currentName]="responsibleName()"
+                (valueChange)="responsibleId.set($event)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              span="full"
+              labelKey="hse.ppe.fields.required_course"
+              inputId="ppe-course"
+              page="ppe-edit"
+              help="required_course"
+              hintKey="hse.ppe.edit.courseHint"
+            >
+              <app-hse-record-picker
+                entityType="course"
+                inputId="ppe-course"
+                placeholderKey="hse.ppe.edit.coursePlaceholder"
+                describedBy="ppe-course-hint"
+                [value]="course()"
+                (valueChange)="course.set($event)"
+                testId="ppe-course"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.common.department" inputId="ppe-department">
+              <app-hse-directory-select
+                inputId="ppe-department"
+                kind="department"
+                [value]="departmentId()"
+                (valueChange)="departmentId.set($event)"
+              />
+            </app-hse-field>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'hse.ppe.edit.inspectionSection' | transloco"
+            [description]="'hse.ppe.edit.inspectionSectionHint' | transloco"
+          >
+            <app-hse-field
+              span="full"
+              labelKey="hse.ppe.fields.inspection_interval"
+              inputId="ppe-interval"
+              page="ppe-edit"
+              help="inspection_interval_days"
+              hintKey="hse.ppe.edit.intervalHint"
+            >
+              <div class="flex flex-wrap items-center gap-2">
+                <input
+                  id="ppe-interval"
+                  class="max-w-[120px]"
+                  type="number"
+                  min="1"
+                  max="3650"
+                  step="1"
+                  aria-describedby="ppe-interval-hint"
+                  [value]="interval()"
+                  (input)="interval.set($any($event.target).value)"
+                />
+                <span class="text-ui text-fg-muted">{{ 'hse.ppe.edit.days' | transloco }}</span>
+                @for (d of presets; track d) {
+                  <button
+                    type="button"
+                    class="inline-flex h-8 items-center rounded-full border px-3 text-meta font-semibold"
+                    [class]="
+                      interval() === '' + d
+                        ? 'border-accent-border bg-accent-soft text-accent'
+                        : 'border-border text-fg-muted hover:text-fg'
+                    "
+                    [attr.aria-pressed]="interval() === '' + d"
+                    (click)="interval.set('' + d)"
+                  >
+                    {{ presetLabel(d) }}
+                  </button>
+                }
+              </div>
+            </app-hse-field>
+            <app-hse-field labelKey="hse.ppe.fields.next_inspection_at" inputId="ppe-next">
+              <app-date-input
+                inputId="ppe-next"
+                [value]="nextInspection()"
+                (valueChange)="nextInspection.set($event ?? '')"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.ppe.fields.expires_at"
+              inputId="ppe-expires"
+              page="ppe-edit"
+              help="expires_at"
+            >
+              <app-date-input
+                inputId="ppe-expires"
+                [value]="expires()"
+                (valueChange)="expires.set($event ?? '')"
+              />
+            </app-hse-field>
+            @if (id()) {
+              <app-hse-field
+                labelKey="hse.common.status"
+                inputId="ppe-status"
+                page="ppe-edit"
+                help="status"
+              >
+                <select id="ppe-status" (change)="status.set($any($event.target).value)">
+                  @if (currentStatus() === 'issued') {
+                    <option value="" [selected]="!status()">
+                      {{ 'hse.ppe.status.issued' | transloco }}
+                    </option>
+                  }
+                  @for (s of settable; track s) {
+                    <option [value]="s" [selected]="s === status()">
+                      {{ 'hse.ppe.status.' + s | transloco }}
                     </option>
                   }
                 </select>
               </app-hse-field>
-              <app-hse-field
-                labelKey="hse.ppe.fields.standard_ref"
-                inputId="ppe-standard"
-                page="ppe-edit"
-                help="standard_ref"
-                hintKey="hse.ppe.edit.standardHint"
-              >
-                <app-ask-about
-                  label-extra
-                  [prompt]="'hse.ppe.ai.standardPrompt' | transloco"
-                  [fieldLabel]="'hse.ppe.fields.standard_ref' | transloco"
-                  labelKey="hse.ppe.ai.askStandard"
-                />
-                <input
-                  id="ppe-standard"
-                  type="text"
-                  maxlength="100"
-                  aria-describedby="ppe-standard-hint"
-                  [value]="standardRef()"
-                  (input)="standardRef.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.supplier"
-                inputId="ppe-supplier"
-                page="ppe-edit"
-                help="supplier"
-                hintKey="hse.ppe.edit.supplierHint"
-              >
-                <app-hse-record-picker
-                  entityType="supplier"
-                  inputId="ppe-supplier"
-                  placeholderKey="hse.ppe.edit.supplierPlaceholder"
-                  describedBy="ppe-supplier-hint"
-                  [value]="supplier()"
-                  (valueChange)="supplier.set($event)"
-                  testId="ppe-supplier"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.ppe.fields.manufacturer" inputId="ppe-manufacturer">
-                <input
-                  id="ppe-manufacturer"
-                  type="text"
-                  maxlength="200"
-                  [value]="manufacturer()"
-                  (input)="manufacturer.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.ppe.fields.serial_number" inputId="ppe-serial">
-                <input
-                  id="ppe-serial"
-                  type="text"
-                  maxlength="100"
-                  [value]="serial()"
-                  (input)="serial.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.ppe.fields.quantity"
-                inputId="ppe-quantity"
-                page="ppe-edit"
-                help="quantity"
-                hintKey="hse.ppe.edit.quantityHint"
-              >
-                <input
-                  id="ppe-quantity"
-                  type="number"
-                  min="1"
-                  step="1"
-                  aria-describedby="ppe-quantity-hint"
-                  [value]="quantity()"
-                  (input)="quantity.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.description"
-                inputId="ppe-description"
-              >
-                <textarea
-                  id="ppe-description"
-                  rows="3"
-                  [value]="description()"
-                  (input)="description.set($any($event.target).value)"
-                ></textarea>
-              </app-hse-field>
-            </div>
-          </app-card>
+            }
+            <app-hse-field span="full" labelKey="hse.ppe.fields.notes" inputId="ppe-notes">
+              <textarea
+                id="ppe-notes"
+                rows="3"
+                [value]="notes()"
+                (input)="notes.set($any($event.target).value)"
+              ></textarea>
+            </app-hse-field>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-4 font-display text-card font-bold text-fg">
-              {{ 'hse.ppe.edit.whoSection' | transloco }}
-            </h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field labelKey="hse.ppe.fields.location" inputId="ppe-location">
-                <input
-                  id="ppe-location"
-                  type="text"
-                  maxlength="200"
-                  [value]="location()"
-                  (input)="location.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.ppe.fields.responsible" inputId="ppe-responsible">
-                <app-hse-directory-select
-                  inputId="ppe-responsible"
-                  kind="user"
-                  [value]="responsibleId()"
-                  [currentName]="responsibleName()"
-                  (valueChange)="responsibleId.set($event)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.common.department" inputId="ppe-department">
-                <app-hse-directory-select
-                  inputId="ppe-department"
-                  kind="department"
-                  [value]="departmentId()"
-                  (valueChange)="departmentId.set($event)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.required_course"
-                inputId="ppe-course"
-                page="ppe-edit"
-                help="required_course"
-                hintKey="hse.ppe.edit.courseHint"
-              >
-                <app-hse-record-picker
-                  entityType="course"
-                  inputId="ppe-course"
-                  placeholderKey="hse.ppe.edit.coursePlaceholder"
-                  describedBy="ppe-course-hint"
-                  [value]="course()"
-                  (valueChange)="course.set($event)"
-                  testId="ppe-course"
-                />
-              </app-hse-field>
-            </div>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-4 font-display text-card font-bold text-fg">
-              {{ 'hse.ppe.edit.inspectionSection' | transloco }}
-            </h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.inspection_interval"
-                inputId="ppe-interval"
-                page="ppe-edit"
-                help="inspection_interval_days"
-                hintKey="hse.ppe.edit.intervalHint"
-              >
-                <div class="flex flex-wrap items-center gap-2">
-                  <input
-                    id="ppe-interval"
-                    class="max-w-[120px]"
-                    type="number"
-                    min="1"
-                    max="3650"
-                    step="1"
-                    aria-describedby="ppe-interval-hint"
-                    [value]="interval()"
-                    (input)="interval.set($any($event.target).value)"
-                  />
-                  <span class="text-ui text-fg-muted">{{ 'hse.ppe.edit.days' | transloco }}</span>
-                  @for (d of presets; track d) {
-                    <button
-                      type="button"
-                      class="inline-flex h-8 items-center rounded-full border px-3 text-meta font-semibold"
-                      [class]="
-                        interval() === '' + d
-                          ? 'border-accent-border bg-accent-soft text-accent'
-                          : 'border-border text-fg-muted hover:text-fg'
-                      "
-                      [attr.aria-pressed]="interval() === '' + d"
-                      (click)="interval.set('' + d)"
-                    >
-                      {{ presetLabel(d) }}
-                    </button>
-                  }
-                </div>
-              </app-hse-field>
-              <app-hse-field labelKey="hse.ppe.fields.next_inspection_at" inputId="ppe-next">
-                <input
-                  id="ppe-next"
-                  type="date"
-                  [value]="nextInspection()"
-                  (input)="nextInspection.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.ppe.fields.expires_at"
-                inputId="ppe-expires"
-                page="ppe-edit"
-                help="expires_at"
-              >
-                <input
-                  id="ppe-expires"
-                  type="date"
-                  [value]="expires()"
-                  (input)="expires.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              @if (id()) {
-                <app-hse-field
-                  labelKey="hse.common.status"
-                  inputId="ppe-status"
-                  page="ppe-edit"
-                  help="status"
-                >
-                  <select id="ppe-status" (change)="status.set($any($event.target).value)">
-                    @if (currentStatus() === 'issued') {
-                      <option value="" [selected]="!status()">
-                        {{ 'hse.ppe.status.issued' | transloco }}
-                      </option>
-                    }
-                    @for (s of settable; track s) {
-                      <option [value]="s" [selected]="s === status()">
-                        {{ 'hse.ppe.status.' + s | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-hse-field>
-              }
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.ppe.fields.notes"
-                inputId="ppe-notes"
-              >
-                <textarea
-                  id="ppe-notes"
-                  rows="3"
-                  [value]="notes()"
-                  (input)="notes.set($any($event.target).value)"
-                ></textarea>
-              </app-hse-field>
-            </div>
-          </app-card>
-
-          <div
-            class="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
-          >
+          <app-form-actions>
             <a [routerLink]="backLink()" tabindex="-1" (click)="cancelFlow()">
               <app-button variant="secondary">{{ 'hse.common.cancel' | transloco }}</app-button>
             </a>
             <app-button type="submit" [loading]="saving()" [disabled]="saving()">
               {{ (id() ? 'hse.common.save' : 'hse.ppe.edit.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

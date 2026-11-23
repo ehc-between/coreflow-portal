@@ -24,7 +24,6 @@ import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -38,6 +37,9 @@ import { ContinuityDurationInput } from '../shared/duration';
 import { prefillText } from '../shared/flow-prefill';
 import { ContinuityRecordPicker } from '../shared/record-picker';
 import { ContinuityUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 export interface IctDraft {
   name: string;
@@ -112,12 +114,14 @@ export function ictFields(d: IctDraft): IctFields {
 @Component({
   selector: 'app-ict-editor',
   imports: [
+    FormActions,
+    FormSection,
+    DateInput,
     TranslocoPipe,
     LocalDayPipe,
     Alert,
     AskAbout,
     Button,
-    Card,
     ContinuityDurationInput,
     ContinuityRecordPicker,
     ContinuityUserSelect,
@@ -151,283 +155,279 @@ export function ictFields(d: IctDraft): IctFields {
             <app-flow-banner [flow]="flow()" (cancelled)="flows.cancel()" />
             <app-help-strip scope="continuity" page="ictForm" lesson="ict-readiness" />
             <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-              <app-card>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div class="sm:col-span-2">
-                    <app-form-field
-                      [label]="'continuity.fields.name' | transloco"
-                      inputId="ict-name"
-                    >
-                      <input
-                        id="ict-name"
-                        type="text"
-                        maxlength="255"
-                        required
-                        [attr.aria-invalid]="showErrors() && !d().name.trim()"
-                        [value]="d().name"
-                        (input)="set('name', $any($event.target).value)"
-                      />
-                    </app-form-field>
-                    @if (showErrors() && !d().name.trim()) {
-                      <p class="mt-1 text-meta text-fail-ink" role="alert">
-                        {{ 'continuity.form.errors.nameRequired' | transloco }}
-                      </p>
-                    }
-                  </div>
-                  <div class="sm:col-span-2">
-                    <app-form-field
-                      [label]="'continuity.fields.asset' | transloco"
-                      inputId="ict-asset"
-                    >
-                      <app-continuity-record-picker
-                        inputId="ict-asset"
-                        [types]="['asset']"
-                        [value]="d().asset"
-                        describedBy="ict-asset-hint"
-                        (picked)="pickAsset($event)"
-                      />
-                      <p id="ict-asset-hint" class="text-meta text-fg-subtle">
-                        {{ 'continuity.form.assetHint' | transloco }}
-                      </p>
-                    </app-form-field>
-                  </div>
-                  <app-form-field
-                    [label]="'continuity.fields.supplier' | transloco"
-                    inputId="ict-supplier"
-                  >
-                    <app-continuity-record-picker
-                      inputId="ict-supplier"
-                      [types]="['supplier']"
-                      [value]="d().supplier"
-                      (picked)="pickSupplier($event)"
-                    />
-                    <app-field-help scope="continuity" page="ictForm" field="supplier_id" />
-                  </app-form-field>
-                  <app-form-field
-                    [label]="'continuity.fields.contract' | transloco"
-                    inputId="ict-contract"
-                  >
-                    <app-continuity-record-picker
-                      inputId="ict-contract"
-                      [types]="['contract']"
-                      [value]="d().contract"
-                      (picked)="set('contract', $event)"
-                    />
-                  </app-form-field>
-                  @if (!d().supplier) {
-                    <app-form-field
-                      [label]="'continuity.fields.providerText' | transloco"
-                      inputId="ict-provider"
-                    >
-                      <input
-                        id="ict-provider"
-                        type="text"
-                        maxlength="255"
-                        [value]="d().provider"
-                        (input)="set('provider', $any($event.target).value)"
-                      />
-                    </app-form-field>
-                  }
-                  <app-form-field
-                    [label]="'continuity.fields.owner' | transloco"
-                    inputId="ict-owner"
-                  >
-                    <app-continuity-user-select
-                      inputId="ict-owner"
-                      [value]="d().owner_user_id"
-                      [currentName]="system()?.owner?.name ?? null"
-                      (valueChange)="set('owner_user_id', $event)"
-                    />
-                  </app-form-field>
-                  <div class="sm:col-span-2">
-                    <app-form-field
-                      [label]="'continuity.fields.description' | transloco"
-                      inputId="ict-desc"
-                    >
-                      <textarea
-                        id="ict-desc"
-                        rows="3"
-                        maxlength="20000"
-                        [value]="d().description"
-                        (input)="set('description', $any($event.target).value)"
-                      ></textarea>
-                    </app-form-field>
-                  </div>
-                </div>
-              </app-card>
-
-              <app-card>
-                <div class="mb-3 flex items-center gap-1">
-                  <h2 class="font-display text-card font-bold text-fg">
-                    {{ 'continuity.ict.capability' | transloco }}
-                  </h2>
-                  <app-ask-about
-                    [prompt]="'continuity.ai.prompts.ictCapability' | transloco"
-                    field="achievable_rto_minutes"
+              <app-form-section
+                [title]="'continuity.ict.sections.system' | transloco"
+                [description]="'continuity.ict.sections.systemHint' | transloco"
+              >
+                <app-form-field
+                  span="full"
+                  [label]="'continuity.fields.name' | transloco"
+                  inputId="ict-name"
+                  [required]="true"
+                  [error]="
+                    showErrors() && !d().name.trim()
+                      ? ('continuity.form.errors.nameRequired' | transloco)
+                      : ''
+                  "
+                >
+                  <input
+                    id="ict-name"
+                    type="text"
+                    maxlength="255"
+                    required
+                    [value]="d().name"
+                    (input)="set('name', $any($event.target).value)"
                   />
-                </div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                </app-form-field>
+                <app-form-field
+                  span="full"
+                  [label]="'continuity.fields.asset' | transloco"
+                  inputId="ict-asset"
+                  [hint]="'continuity.form.assetHint' | transloco"
+                >
+                  <app-continuity-record-picker
+                    inputId="ict-asset"
+                    [types]="['asset']"
+                    [value]="d().asset"
+                    describedBy="ict-asset-hint"
+                    (picked)="pickAsset($event)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'continuity.fields.supplier' | transloco"
+                  inputId="ict-supplier"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="supplier_id"
+                    [label]="'continuity.fields.supplier' | transloco"
+                  />
+                  <app-continuity-record-picker
+                    inputId="ict-supplier"
+                    [types]="['supplier']"
+                    [value]="d().supplier"
+                    (picked)="pickSupplier($event)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'continuity.fields.contract' | transloco"
+                  inputId="ict-contract"
+                >
+                  <app-continuity-record-picker
+                    inputId="ict-contract"
+                    [types]="['contract']"
+                    [value]="d().contract"
+                    (picked)="set('contract', $event)"
+                  />
+                </app-form-field>
+                @if (!d().supplier) {
                   <app-form-field
-                    [label]="'continuity.fields.achievableRto' | transloco"
-                    inputId="ict-rto"
-                  >
-                    <app-continuity-duration-input
-                      inputId="ict-rto"
-                      [value]="d().achievable_rto_minutes"
-                      (valueChange)="set('achievable_rto_minutes', $event)"
-                    />
-                    <app-field-help
-                      scope="continuity"
-                      page="ictForm"
-                      field="achievable_rto_minutes"
-                    />
-                  </app-form-field>
-                  <app-form-field
-                    [label]="'continuity.fields.achievableRpo' | transloco"
-                    inputId="ict-rpo"
-                  >
-                    <app-continuity-duration-input
-                      inputId="ict-rpo"
-                      [value]="d().achievable_rpo_minutes"
-                      (valueChange)="set('achievable_rpo_minutes', $event)"
-                    />
-                    <app-field-help
-                      scope="continuity"
-                      page="ictForm"
-                      field="achievable_rpo_minutes"
-                    />
-                  </app-form-field>
-                  <app-form-field
-                    [label]="'continuity.fields.slaRto' | transloco"
-                    inputId="ict-sla"
-                  >
-                    <app-continuity-duration-input
-                      inputId="ict-sla"
-                      [value]="d().sla_rto_minutes"
-                      (valueChange)="set('sla_rto_minutes', $event)"
-                    />
-                    <span class="flex flex-wrap items-center gap-2">
-                      <app-field-help scope="continuity" page="ictForm" field="sla_rto_minutes" />
-                      <app-ask-about
-                        [prompt]="'continuity.ai.prompts.sla' | transloco"
-                        field="sla_rto_minutes"
-                      />
-                    </span>
-                  </app-form-field>
-                  <div class="sm:col-span-2">
-                    <app-form-field
-                      [label]="'continuity.fields.recoveryStrategy' | transloco"
-                      inputId="ict-recovery"
-                    >
-                      <textarea
-                        id="ict-recovery"
-                        rows="3"
-                        maxlength="20000"
-                        [value]="d().recovery_strategy"
-                        (input)="set('recovery_strategy', $any($event.target).value)"
-                      ></textarea>
-                    </app-form-field>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <app-form-field
-                      [label]="'continuity.fields.backupStrategy' | transloco"
-                      inputId="ict-backup"
-                    >
-                      <textarea
-                        id="ict-backup"
-                        rows="3"
-                        maxlength="20000"
-                        [value]="d().backup_strategy"
-                        (input)="set('backup_strategy', $any($event.target).value)"
-                      ></textarea>
-                      <app-field-help scope="continuity" page="ictForm" field="backup_strategy" />
-                    </app-form-field>
-                  </div>
-                </div>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-3 font-display text-card font-bold text-fg">
-                  {{ 'continuity.ict.testing' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div>
-                    <app-form-field
-                      [label]="'continuity.fields.testInterval' | transloco"
-                      inputId="ict-interval"
-                    >
-                      <input
-                        id="ict-interval"
-                        type="number"
-                        min="1"
-                        max="120"
-                        [attr.aria-invalid]="showErrors() && !intervalValid()"
-                        [value]="d().test_interval_months"
-                        (input)="set('test_interval_months', $any($event.target).value)"
-                      />
-                      <app-field-help
-                        scope="continuity"
-                        page="ictForm"
-                        field="test_interval_months"
-                      />
-                    </app-form-field>
-                    @if (showErrors() && !intervalValid()) {
-                      <p class="mt-1 text-meta text-fail-ink" role="alert">
-                        {{ 'continuity.form.errors.interval' | transloco }}
-                      </p>
-                    }
-                  </div>
-                  <app-form-field
-                    [label]="'continuity.fields.lastTested' | transloco"
-                    inputId="ict-tested"
+                    [label]="'continuity.fields.providerText' | transloco"
+                    inputId="ict-provider"
                   >
                     <input
-                      id="ict-tested"
-                      type="date"
-                      [max]="today"
-                      [value]="d().last_tested_on"
-                      (input)="set('last_tested_on', $any($event.target).value)"
+                      id="ict-provider"
+                      type="text"
+                      maxlength="255"
+                      [value]="d().provider"
+                      (input)="set('provider', $any($event.target).value)"
                     />
-                    @if (d().last_tested_on) {
-                      <p class="text-meta text-fg-subtle">
-                        {{ d().last_tested_on | localDay: 'longDate' }}
-                      </p>
-                    }
                   </app-form-field>
-                  <app-form-field
-                    [label]="'continuity.fields.lastOutcome' | transloco"
-                    inputId="ict-outcome"
+                }
+                <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="ict-owner">
+                  <app-continuity-user-select
+                    inputId="ict-owner"
+                    [value]="d().owner_user_id"
+                    [currentName]="system()?.owner?.name ?? null"
+                    (valueChange)="set('owner_user_id', $event)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  span="full"
+                  [label]="'continuity.fields.description' | transloco"
+                  inputId="ict-desc"
+                >
+                  <textarea
+                    id="ict-desc"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="d().description"
+                    (input)="set('description', $any($event.target).value)"
+                  ></textarea>
+                </app-form-field>
+              </app-form-section>
+
+              <app-form-section
+                [title]="'continuity.ict.capability' | transloco"
+                [description]="'continuity.ict.sections.capabilityHint' | transloco"
+              >
+                <app-ask-about
+                  section-actions
+                  [prompt]="'continuity.ai.prompts.ictCapability' | transloco"
+                  field="achievable_rto_minutes"
+                />
+                <app-form-field
+                  [label]="'continuity.fields.achievableRto' | transloco"
+                  inputId="ict-rto"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="achievable_rto_minutes"
+                    [label]="'continuity.fields.achievableRto' | transloco"
+                  />
+                  <app-continuity-duration-input
+                    inputId="ict-rto"
+                    [value]="d().achievable_rto_minutes"
+                    (valueChange)="set('achievable_rto_minutes', $event)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'continuity.fields.achievableRpo' | transloco"
+                  inputId="ict-rpo"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="achievable_rpo_minutes"
+                    [label]="'continuity.fields.achievableRpo' | transloco"
+                  />
+                  <app-continuity-duration-input
+                    inputId="ict-rpo"
+                    [value]="d().achievable_rpo_minutes"
+                    (valueChange)="set('achievable_rpo_minutes', $event)"
+                  />
+                </app-form-field>
+                <app-form-field [label]="'continuity.fields.slaRto' | transloco" inputId="ict-sla">
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="sla_rto_minutes"
+                    [label]="'continuity.fields.slaRto' | transloco"
+                  />
+                  <app-ask-about
+                    label-suffix
+                    [prompt]="'continuity.ai.prompts.sla' | transloco"
+                    field="sla_rto_minutes"
+                  />
+                  <app-continuity-duration-input
+                    inputId="ict-sla"
+                    [value]="d().sla_rto_minutes"
+                    (valueChange)="set('sla_rto_minutes', $event)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  span="full"
+                  [label]="'continuity.fields.recoveryStrategy' | transloco"
+                  inputId="ict-recovery"
+                >
+                  <textarea
+                    id="ict-recovery"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="d().recovery_strategy"
+                    (input)="set('recovery_strategy', $any($event.target).value)"
+                  ></textarea>
+                </app-form-field>
+                <app-form-field
+                  span="full"
+                  [label]="'continuity.fields.backupStrategy' | transloco"
+                  inputId="ict-backup"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="backup_strategy"
+                    [label]="'continuity.fields.backupStrategy' | transloco"
+                  />
+                  <textarea
+                    id="ict-backup"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="d().backup_strategy"
+                    (input)="set('backup_strategy', $any($event.target).value)"
+                  ></textarea>
+                </app-form-field>
+              </app-form-section>
+
+              <app-form-section
+                [title]="'continuity.ict.testing' | transloco"
+                [description]="'continuity.ict.sections.testingHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'continuity.fields.testInterval' | transloco"
+                  inputId="ict-interval"
+                  [error]="
+                    showErrors() && !intervalValid()
+                      ? ('continuity.form.errors.interval' | transloco)
+                      : ''
+                  "
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="continuity"
+                    page="ictForm"
+                    field="test_interval_months"
+                    [label]="'continuity.fields.testInterval' | transloco"
+                  />
+                  <input
+                    id="ict-interval"
+                    type="number"
+                    min="1"
+                    max="120"
+                    [value]="d().test_interval_months"
+                    (input)="set('test_interval_months', $any($event.target).value)"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'continuity.fields.lastTested' | transloco"
+                  inputId="ict-tested"
+                  [hint]="d().last_tested_on ? (d().last_tested_on | localDay: 'longDate') : ''"
+                >
+                  <app-date-input
+                    inputId="ict-tested"
+                    [max]="today"
+                    [value]="d().last_tested_on"
+                    (valueChange)="set('last_tested_on', $event ?? '')"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'continuity.fields.lastOutcome' | transloco"
+                  inputId="ict-outcome"
+                >
+                  <select
+                    id="ict-outcome"
+                    (change)="set('last_test_outcome', $any($event.target).value)"
                   >
-                    <select
-                      id="ict-outcome"
-                      (change)="set('last_test_outcome', $any($event.target).value)"
-                    >
-                      <option value="" [selected]="!d().last_test_outcome">
-                        {{ 'continuity.common.notSet' | transloco }}
+                    <option value="" [selected]="!d().last_test_outcome">
+                      {{ 'continuity.common.notSet' | transloco }}
+                    </option>
+                    @for (o of outcomes; track o) {
+                      <option [value]="o" [selected]="d().last_test_outcome === o">
+                        {{ 'continuity.outcome.' + o | transloco }}
                       </option>
-                      @for (o of outcomes; track o) {
-                        <option [value]="o" [selected]="d().last_test_outcome === o">
-                          {{ 'continuity.outcome.' + o | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-form-field>
-                </div>
-              </app-card>
+                    }
+                  </select>
+                </app-form-field>
+              </app-form-section>
 
               @if (error(); as key) {
                 <app-alert>{{ key | transloco }}</app-alert>
               }
-              <div
-                class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
-              >
-                <app-button variant="ghost" (click)="back()">{{
+              <app-form-actions>
+                <app-button variant="secondary" (click)="back()">{{
                   'common.cancel' | transloco
                 }}</app-button>
                 <app-button type="submit" [loading]="busy()">
                   {{ (system() ? 'continuity.form.save' : 'continuity.ict.create') | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             </form>
             <div class="mt-8"><app-why-it-matters scope="continuity" page="ictForm" /></div>
           }

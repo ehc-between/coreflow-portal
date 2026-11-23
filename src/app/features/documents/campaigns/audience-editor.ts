@@ -43,7 +43,7 @@ export function addAudience(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-2" [disabled]="disabled()">
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">
+      <legend class="mb-1 text-ui font-semibold text-fg-muted" [class.sr-only]="!showLegend()">
         {{ 'documents.control.campaigns.audience.label' | transloco }}
       </legend>
       <ul class="flex flex-wrap gap-1.5" aria-live="polite">
@@ -72,14 +72,14 @@ export function addAudience(
         }
       </ul>
       @if (!readOnly()) {
-        <div class="flex flex-wrap items-end gap-2">
-          <div class="flex flex-col gap-1">
-            <label [attr.for]="typeId" class="text-meta text-fg-muted">
+        <div class="mt-2 flex flex-wrap items-end gap-3">
+          <div class="flex flex-col gap-1.5">
+            <label [attr.for]="typeId" class="text-ui font-semibold text-fg-muted">
               {{ 'documents.control.campaigns.audience.type' | transloco }}
             </label>
             <select
               [id]="typeId"
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+              class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
               (change)="setType($any($event.target).value)"
               data-testid="audience-type"
             >
@@ -91,13 +91,13 @@ export function addAudience(
             </select>
           </div>
           @if (type() !== 'all') {
-            <div class="flex min-w-[180px] flex-1 flex-col gap-1">
-              <label [attr.for]="valueId" class="text-meta text-fg-muted">
+            <div class="flex min-w-[180px] flex-1 flex-col gap-1.5">
+              <label [attr.for]="valueId" class="text-ui font-semibold text-fg-muted">
                 {{ 'documents.control.campaigns.audience.who' | transloco }}
               </label>
               <select
                 [id]="valueId"
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                 (change)="choice.set($any($event.target).value)"
                 data-testid="audience-value"
               >
@@ -111,7 +111,6 @@ export function addAudience(
             </div>
           }
           <app-button
-            size="sm"
             variant="secondary"
             [disabled]="type() !== 'all' && !choice()"
             (click)="add()"
@@ -133,6 +132,8 @@ export class AudienceEditor {
   readonly disabled = input(false);
   /** Show the chips only (no add / remove controls). */
   readonly readOnly = input(false);
+  /** Show the "Målgruppe" legend (hide it when a section title already says it). */
+  readonly showLegend = input(true);
   readonly valueChange = output<readonly AudienceEntry[]>();
 
   protected readonly types = AUDIENCE_TYPES;

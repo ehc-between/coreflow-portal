@@ -244,7 +244,13 @@
     "slaLine": "The contract (SLA) promises recovery within",
     "supplierContacts": "Who to call at the provider",
     "dependentPlans": "Plans that act when it is down",
-    "closeGapTask": "Create a task to close the gap"
+    "closeGapTask": "Create a task to close the gap",
+    "sections": {
+      "system": "The system",
+      "systemHint": "Which system or service this is, who delivers it, and who owns it.",
+      "capabilityHint": "How fast the system can be restored, and how you recover and back it up.",
+      "testingHint": "How often recovery is tested, and how the last test went."
+    }
   },
   "contacts": {
     "title": "Crisis contacts",
@@ -467,7 +473,19 @@
       "coverage": "Activities covered",
       "content": "Plan content",
       "steps": "Steps",
-      "exercise": "Exercise"
+      "exercise": "Exercise",
+      "activityHint": "The activity the analysis covers, and who owns it.",
+      "targetsHint": "How fast the activity must be back, and how much data you can lose.",
+      "dependenciesHint": "People, systems, suppliers and premises the activity needs.",
+      "planHint": "What the plan is for, where it applies, and who owns it.",
+      "contentHint": "What the plan says: scope, roles, how to recover and how to communicate.",
+      "contentAssist": "The assistant can draft the sections and steps from the chosen impact analyses.",
+      "stepsHint": "What to do, in order, from the first response to normal operation.",
+      "exerciseHint": "What you test, when, and who is responsible.",
+      "scenario": "Scenario and participants",
+      "scenarioHint": "What happens in the exercise, what it should show, and who takes part.",
+      "scenarioAssist": "The assistant can draft a scenario and objectives from the chosen plan.",
+      "resultsHint": "How the exercise went, and what you learned."
     },
     "errors": {
       "titleRequired": "Enter a title.",

@@ -27,6 +27,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -62,8 +63,10 @@ import {
     ConfirmDialog,
     AiAssistButton,
     FieldHelp,
+    FormField,
     LocalDatePipe,
   ],
+
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section [attr.aria-labelledby]="headingId" appTourStep="deviations-root-cause">
@@ -72,6 +75,7 @@ import {
           <h2
             [id]="headingId"
             class="font-display text-section font-bold tracking-[-0.02em] text-fg"
+            [class.sr-only]="quiet()"
           >
             {{ 'deviations.rootCauses.title' | transloco }}
           </h2>
@@ -113,10 +117,10 @@ import {
               }}</span>
             }
           </p>
-          <div class="flex flex-col gap-1.5">
-            <label [for]="ids.problem" class="text-ui font-semibold text-fg-muted">
-              {{ 'deviations.rootCauses.problem' | transloco }}
-            </label>
+          <app-form-field
+            [label]="'deviations.rootCauses.problem' | transloco"
+            [inputId]="ids.problem"
+          >
             <textarea
               [id]="ids.problem"
               name="problem"
@@ -124,9 +128,8 @@ import {
               maxlength="4000"
               [ngModel]="f.problem"
               (ngModelChange)="patch({ problem: $event })"
-              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
             ></textarea>
-          </div>
+          </app-form-field>
 
           @if (f.method === 'five_whys') {
             <ol
@@ -137,7 +140,10 @@ import {
                 <li
                   class="grid gap-2 rounded-tile border border-border bg-surface p-2.5 sm:grid-cols-[auto_1fr_1fr_auto] sm:items-start"
                 >
-                  <span class="pt-2 text-meta font-bold text-fg-subtle">{{ i + 1 }}.</span>
+                  <span
+                    class="flex h-10 w-7 items-center justify-center text-meta font-bold text-fg-subtle"
+                    >{{ i + 1 }}.</span
+                  >
                   <input
                     type="text"
                     [name]="'q' + i"
@@ -145,7 +151,7 @@ import {
                     [ngModel]="step.question"
                     (ngModelChange)="setWhy(i, 'question', $event)"
                     [attr.aria-label]="'deviations.rootCauses.question' | transloco: { n: i + 1 }"
-                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+                    class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                   />
                   <input
                     type="text"
@@ -155,13 +161,13 @@ import {
                     (ngModelChange)="setWhy(i, 'answer', $event)"
                     [placeholder]="'deviations.rootCauses.answerPlaceholder' | transloco"
                     [attr.aria-label]="'deviations.rootCauses.answer' | transloco: { n: i + 1 }"
-                    class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
+                    class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                   />
                   <button
                     type="button"
                     (click)="removeWhy(i)"
                     [attr.aria-label]="'deviations.rootCauses.removeWhy' | transloco: { n: i + 1 }"
-                    class="flex h-9 w-9 items-center justify-center rounded-lg text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                    class="flex h-10 w-10 items-center justify-center rounded-lg text-fg-subtle hover:bg-surface-2 hover:text-fail"
                   >
                     <app-icon name="x" [size]="15" />
                   </button>
@@ -189,30 +195,26 @@ import {
             </p>
             <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
               @for (category of categories; track category) {
-                <div class="flex flex-col gap-1">
-                  <label
-                    [for]="ids.category + category"
-                    class="text-meta font-semibold text-fg-muted"
-                  >
-                    {{ 'deviations.rootCauses.categories.' + category | transloco }}
-                  </label>
+                <app-form-field
+                  [label]="'deviations.rootCauses.categories.' + category | transloco"
+                  [inputId]="ids.category + category"
+                >
                   <textarea
                     [id]="ids.category + category"
                     [name]="'cat-' + category"
                     rows="3"
                     [ngModel]="f.categories[category]"
                     (ngModelChange)="setCategory(category, $event)"
-                    class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
                   ></textarea>
-                </div>
+                </app-form-field>
               }
             </div>
           }
 
-          <div class="flex flex-col gap-1.5">
-            <label [for]="ids.conclusion" class="text-ui font-semibold text-fg-muted">
-              {{ 'deviations.rootCauses.conclusion' | transloco }}
-            </label>
+          <app-form-field
+            [label]="'deviations.rootCauses.conclusion' | transloco"
+            [inputId]="ids.conclusion"
+          >
             <textarea
               [id]="ids.conclusion"
               name="conclusion"
@@ -220,9 +222,8 @@ import {
               maxlength="4000"
               [ngModel]="f.conclusion"
               (ngModelChange)="patch({ conclusion: $event })"
-              class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
             ></textarea>
-          </div>
+          </app-form-field>
           @if (!editingId()) {
             <label class="inline-flex items-center gap-2 text-ui text-fg">
               <input
@@ -235,12 +236,12 @@ import {
               {{ 'deviations.rootCauses.applyOnSave' | transloco }}
             </label>
           }
-          <div class="flex items-center gap-2">
+          <div class="flex items-center justify-end gap-2">
+            <app-button variant="secondary" size="sm" (click)="cancel()">
+              {{ 'common.cancel' | transloco }}
+            </app-button>
             <app-button type="submit" size="sm" [loading]="saving()">
               {{ 'deviations.rootCauses.save' | transloco }}
-            </app-button>
-            <app-button variant="ghost" size="sm" (click)="cancel()">
-              {{ 'common.cancel' | transloco }}
             </app-button>
           </div>
         </form>

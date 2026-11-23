@@ -20,6 +20,7 @@ import { peopleErrorKey } from '../data/people-errors';
 import { PeopleLookups } from '../data/people-lookups';
 import { CourseOption, GapAction, GapActionKind } from '../data/people.models';
 import { PeopleField } from './people-field';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /** The gap to act on: one person and one competence. */
 export interface GapTarget {
@@ -52,7 +53,7 @@ export function gapDraftValid(kind: GapActionKind, courseId: string, hasUser: bo
  */
 @Component({
   selector: 'app-people-gap-action-dialog',
-  imports: [TranslocoPipe, ConfirmDialog, PeopleField],
+  imports: [DateInput, TranslocoPipe, ConfirmDialog, PeopleField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-confirm-dialog
@@ -157,13 +158,12 @@ export function gapDraftValid(kind: GapActionKind, courseId: string, hasUser: bo
             </app-people-field>
           }
 
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
             <app-people-field labelKey="people.fields.dueDate" inputId="cf-gap-due">
-              <input
-                id="cf-gap-due"
-                type="date"
+              <app-date-input
+                inputId="cf-gap-due"
                 [value]="dueDate()"
-                (change)="dueDate.set($any($event.target).value)"
+                (valueChange)="dueDate.set($event ?? '')"
               />
             </app-people-field>
             <app-people-field labelKey="people.gapActions.owner" inputId="cf-gap-owner">

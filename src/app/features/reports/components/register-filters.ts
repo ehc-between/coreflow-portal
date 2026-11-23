@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { frameworkLabelKey, labelOr, localized } from '../data/report-display';
@@ -83,14 +84,18 @@ export function registerStatusLabel(
  */
 @Component({
   selector: 'app-register-filters',
-  imports: [TranslocoPipe, FieldHelp, FormField],
+  imports: [TranslocoPipe, DateInput, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     @if (register(); as reg) {
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
         @if (accepts('q')) {
-          <app-form-field [label]="'reports.filters.q' | transloco" [inputId]="id + '-q'">
+          <app-form-field
+            span="full"
+            [label]="'reports.filters.q' | transloco"
+            [inputId]="id + '-q'"
+          >
             <input
               [id]="id + '-q'"
               type="search"
@@ -100,101 +105,101 @@ export function registerStatusLabel(
             />
           </app-form-field>
         }
-        @if (accepts('standard_key')) {
-          <div>
-            <app-form-field
-              [label]="
-                (reg.requires_standard
-                  ? 'reports.filters.standardRequired'
-                  : 'reports.filters.standard'
-                ) | transloco
-              "
-              [inputId]="id + '-std'"
-            >
-              <select
-                [id]="id + '-std'"
-                [attr.aria-required]="reg.requires_standard"
-                (change)="patch({ standard_key: $any($event.target).value || null })"
-              >
-                <option value="" [selected]="!value().standard_key">
-                  {{
-                    (reg.requires_standard
-                      ? 'reports.filters.chooseStandard'
-                      : 'reports.filters.anyStandard'
-                    ) | transloco
-                  }}
-                </option>
-                @for (s of standards(); track s.standard_key) {
-                  <option
-                    [value]="s.standard_key"
-                    [selected]="s.standard_key === value().standard_key"
-                  >
-                    {{ standardName(s.framework || s.standard_key) }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <app-field-help class="mt-1 block" scope="reports" page="registers" field="standard" />
-          </div>
-        }
         @if (accepts('from')) {
           <app-form-field [label]="fromLabel() | transloco" [inputId]="id + '-from'">
-            <input
-              [id]="id + '-from'"
-              type="date"
-              [attr.lang]="lang()"
+            <app-date-input
+              [inputId]="id + '-from'"
               [value]="day(value().from)"
-              (change)="patch({ from: toFilter($any($event.target).value, 'from') })"
+              (changed)="patch({ from: toFilter($event, 'from') })"
             />
           </app-form-field>
         }
         @if (accepts('to')) {
           <app-form-field [label]="toLabel() | transloco" [inputId]="id + '-to'">
-            <input
-              [id]="id + '-to'"
-              type="date"
-              [attr.lang]="lang()"
+            <app-date-input
+              [inputId]="id + '-to'"
               [value]="day(value().to)"
-              (change)="patch({ to: toFilter($any($event.target).value, 'to') })"
+              (changed)="patch({ to: toFilter($event, 'to') })"
             />
           </app-form-field>
         }
-      </div>
-      @if (accepts('status') && reg.statuses.length) {
-        <fieldset class="mt-3">
-          <legend class="mb-1 text-ui font-semibold text-fg-muted">
-            {{ 'reports.filters.status' | transloco }}
-          </legend>
-          <div class="flex flex-wrap gap-1.5">
-            @for (status of reg.statuses; track status) {
-              <label
-                class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-meta font-medium focus-within:ring-2 focus-within:ring-accent"
-                [class]="
-                  isChecked(status)
-                    ? 'border-accent bg-accent-soft text-accent'
-                    : 'border-border text-fg-muted hover:text-fg'
-                "
-              >
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  [checked]="isChecked(status)"
-                  (change)="toggleStatus(status)"
-                />
-                {{ statusLabel(status) }}
-              </label>
-            }
-          </div>
-          <p class="mt-1 text-meta text-fg-subtle">
-            {{ 'reports.filters.statusHint' | transloco }}
+        @if (accepts('standard_key')) {
+          <app-form-field
+            [label]="
+              (reg.requires_standard
+                ? 'reports.filters.standardRequired'
+                : 'reports.filters.standard'
+              ) | transloco
+            "
+            [inputId]="id + '-std'"
+          >
+            <app-field-help
+              label-suffix
+              scope="reports"
+              page="registers"
+              field="standard"
+              [label]="'reports.filters.standard' | transloco"
+            />
+            <select
+              [id]="id + '-std'"
+              [attr.aria-required]="reg.requires_standard"
+              (change)="patch({ standard_key: $any($event.target).value || null })"
+            >
+              <option value="" [selected]="!value().standard_key">
+                {{
+                  (reg.requires_standard
+                    ? 'reports.filters.chooseStandard'
+                    : 'reports.filters.anyStandard'
+                  ) | transloco
+                }}
+              </option>
+              @for (s of standards(); track s.standard_key) {
+                <option
+                  [value]="s.standard_key"
+                  [selected]="s.standard_key === value().standard_key"
+                >
+                  {{ standardName(s.framework || s.standard_key) }}
+                </option>
+              }
+            </select>
+          </app-form-field>
+        }
+        @if (accepts('status') && reg.statuses.length) {
+          <fieldset class="min-w-0 sm:col-span-2">
+            <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+              {{ 'reports.filters.status' | transloco }}
+            </legend>
+            <div class="flex flex-wrap gap-1.5">
+              @for (status of reg.statuses; track status) {
+                <label
+                  class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-meta font-medium focus-within:ring-2 focus-within:ring-accent"
+                  [class]="
+                    isChecked(status)
+                      ? 'border-accent bg-accent-soft text-accent'
+                      : 'border-border text-fg-muted hover:text-fg'
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    [checked]="isChecked(status)"
+                    (change)="toggleStatus(status)"
+                  />
+                  {{ statusLabel(status) }}
+                </label>
+              }
+            </div>
+            <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
+              {{ 'reports.filters.statusHint' | transloco }}
+            </p>
+          </fieldset>
+        }
+        @if (!reg.params.length) {
+          <p class="text-ui text-fg-muted sm:col-span-2">
+            {{ 'reports.filters.none' | transloco: { register: registerName() } }}
           </p>
-        </fieldset>
-      }
-      @if (!reg.params.length) {
-        <p class="text-ui text-fg-muted">
-          {{ 'reports.filters.none' | transloco: { register: registerName() } }}
-        </p>
-      }
+        }
+      </div>
     }
   `,
 })

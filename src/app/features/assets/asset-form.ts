@@ -10,13 +10,14 @@ import {
   untracked,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LanguageService } from '../../core/i18n/language.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../shared/ask/ask-about';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { blankToNull, dayOrNull } from './data/asset-display';
 import {
@@ -222,96 +223,90 @@ export function applySuggestion(d: AssetDraft, s: ClassificationSuggestion): Ass
     AssetSupplierSelect,
     AssetUserSelect,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     FieldHelp,
     FormField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'assets.form.sections.identity' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'assets.fields.name' | transloco"
-              inputId="ast-name"
-              [required]="true"
-            >
-              <input
-                id="ast-name"
-                type="text"
-                maxlength="255"
-                required
-                aria-required="true"
-                [attr.aria-invalid]="showErrors() && !d().name.trim()"
-                aria-describedby="ast-name-err"
-                [value]="d().name"
-                (input)="set('name', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !d().name.trim()) {
-              <p id="ast-name-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'assets.form.nameRequired' | transloco }}
-              </p>
-            }
-          </div>
-          <app-form-field
-            [label]="'assets.fields.assetType' | transloco"
-            inputId="ast-type"
-            [required]="true"
-          >
-            <app-field-help label-suffix scope="assets" page="form" field="asset_type" />
-            <select id="ast-type" (change)="set('asset_type', $any($event.target).value)">
-              @for (t of types; track t) {
-                <option [value]="t" [selected]="d().asset_type === t">
-                  {{ 'assets.assetType.' + t | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-form-field [label]="'assets.fields.category' | transloco" inputId="ast-cat">
-            <input
-              id="ast-cat"
-              type="text"
-              maxlength="64"
-              [placeholder]="'assets.form.categoryPlaceholder' | transloco"
-              [value]="d().category"
-              (input)="set('category', $any($event.target).value)"
-            />
-          </app-form-field>
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'assets.fields.description' | transloco" inputId="ast-desc">
-              <textarea
-                id="ast-desc"
-                rows="3"
-                maxlength="10000"
-                [value]="d().description"
-                (input)="set('description', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
-        </div>
-      </app-card>
-
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'assets.form.sections.classification' | transloco }}
-          </h2>
-          <app-ai-assist-button
-            assist="assets.suggest_classification"
-            labelKey="assets.ai.suggestClassification"
-            [input]="assistInput()"
-            [disabled]="!d().name.trim()"
-            (result)="onSuggestion($event)"
+      <app-form-section
+        [title]="'assets.form.sections.identity' | transloco"
+        [description]="'assets.form.sectionHints.identity' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'assets.fields.name' | transloco"
+          inputId="ast-name"
+          [required]="true"
+          [error]="showErrors() && !d().name.trim() ? ('assets.form.nameRequired' | transloco) : ''"
+        >
+          <input
+            id="ast-name"
+            type="text"
+            maxlength="255"
+            required
+            aria-required="true"
+            [value]="d().name"
+            (input)="set('name', $any($event.target).value)"
           />
-        </div>
+        </app-form-field>
+        <app-form-field
+          [label]="'assets.fields.assetType' | transloco"
+          inputId="ast-type"
+          [required]="true"
+        >
+          <app-field-help label-suffix scope="assets" page="form" field="asset_type" />
+          <select id="ast-type" (change)="set('asset_type', $any($event.target).value)">
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="d().asset_type === t">
+                {{ 'assets.assetType.' + t | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.category' | transloco" inputId="ast-cat">
+          <input
+            id="ast-cat"
+            type="text"
+            maxlength="64"
+            [placeholder]="'assets.form.categoryPlaceholder' | transloco"
+            [value]="d().category"
+            (input)="set('category', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'assets.fields.description' | transloco"
+          inputId="ast-desc"
+        >
+          <textarea
+            id="ast-desc"
+            rows="3"
+            maxlength="10000"
+            [value]="d().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'assets.form.sections.classification' | transloco"
+        [description]="'assets.form.sectionHints.classification' | transloco"
+      >
+        <app-ai-assist-button
+          section-actions
+          assist="assets.suggest_classification"
+          labelKey="assets.ai.suggestClassification"
+          [input]="assistInput()"
+          [disabled]="!d().name.trim()"
+          (result)="onSuggestion($event)"
+        />
         @if (suggestion(); as s) {
           <div
-            class="mb-4 rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-ui text-fg"
+            class="rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-ui text-fg sm:col-span-2"
             role="status"
           >
             <p class="font-semibold">{{ 'assets.form.suggestionApplied' | transloco }}</p>
@@ -338,517 +333,477 @@ export function applySuggestion(d: AssetDraft, s: ClassificationSuggestion): Ass
             }
           </div>
         }
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <app-form-field
-            [label]="'assets.fields.classification' | transloco"
-            inputId="ast-class"
-            [required]="true"
-          >
-            <app-field-help label-suffix scope="assets" page="form" field="classification" />
-            <app-ask-about
-              label-suffix
-              [prompt]="'assets.ai.prompts.classification' | transloco"
-              field="classification"
-              [fieldLabel]="'assets.fields.classification' | transloco"
-              labelKey="assets.ai.askClassification"
-            />
-            <select id="ast-class" (change)="set('classification', $any($event.target).value)">
-              @for (c of classifications; track c) {
-                <option [value]="c" [selected]="d().classification === c">
-                  {{ 'assets.classificationOption.' + c | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-form-field [label]="'assets.fields.criticality' | transloco" inputId="ast-crit">
-            <app-field-help label-suffix scope="assets" page="form" field="criticality" />
-            <select id="ast-crit" (change)="set('criticality', $any($event.target).value)">
-              <option value="" [selected]="!d().criticality">
-                {{ 'assets.common.notSet' | transloco }}
+        <app-form-field
+          [label]="'assets.fields.classification' | transloco"
+          inputId="ast-class"
+          [required]="true"
+        >
+          <app-field-help label-suffix scope="assets" page="form" field="classification" />
+          <app-ask-about
+            label-suffix
+            [prompt]="'assets.ai.prompts.classification' | transloco"
+            field="classification"
+            [fieldLabel]="'assets.fields.classification' | transloco"
+            labelKey="assets.ai.askClassification"
+          />
+          <select id="ast-class" (change)="set('classification', $any($event.target).value)">
+            @for (c of classifications; track c) {
+              <option [value]="c" [selected]="d().classification === c">
+                {{ 'assets.classificationOption.' + c | transloco }}
               </option>
-              @for (c of criticalities; track c) {
-                <option [value]="c" [selected]="d().criticality === c">
-                  {{ 'assets.criticality.' + c | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <label class="flex items-start gap-2 text-body text-fg sm:col-span-2">
-            <input
-              type="checkbox"
-              class="mt-1"
-              [checked]="d().contains_personal_data"
-              (change)="set('contains_personal_data', $any($event.target).checked)"
-            />
-            <span>
-              {{ 'assets.fields.containsPersonalData' | transloco }}
-              <span class="block text-meta text-fg-subtle">
-                {{ 'assets.form.personalDataHint' | transloco }}
-              </span>
-            </span>
-          </label>
-          <details
-            class="rounded-tile border border-border px-3 py-2 sm:col-span-2"
-            [open]="securityOpen()"
-          >
-            <summary class="cursor-pointer text-ui font-semibold text-fg">
-              {{ 'assets.form.securitySection' | transloco }}
-              <span class="ml-1 font-normal text-fg-muted">{{
-                'assets.form.securitySectionHint' | transloco
-              }}</span>
-            </summary>
-            <div class="mt-3 grid grid-cols-1 gap-4">
-              <fieldset>
-                <legend class="mb-2 flex items-center gap-1.5 text-ui font-semibold text-fg-muted">
-                  {{ 'assets.form.cia' | transloco }}
-                  <app-field-help scope="assets" page="form" field="cia" />
-                  <app-ask-about
-                    [prompt]="'assets.ai.prompts.cia' | transloco"
-                    field="cia"
-                    [fieldLabel]="'assets.form.cia' | transloco"
-                    labelKey="assets.ai.askCia"
-                  />
-                </legend>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  @for (key of ciaKeys; track key) {
-                    <app-form-field
-                      [label]="'assets.fields.' + key | transloco"
-                      [inputId]="'ast-' + key"
-                    >
-                      <select [id]="'ast-' + key" (change)="set(key, $any($event.target).value)">
-                        <option value="" [selected]="!d()[key]">
-                          {{ 'assets.common.notSet' | transloco }}
-                        </option>
-                        @for (l of levels; track l) {
-                          <option [value]="l" [selected]="d()[key] === l">
-                            {{ 'assets.level.' + l | transloco }}
-                          </option>
-                        }
-                      </select>
-                    </app-form-field>
-                  }
-                </div>
-              </fieldset>
-              <app-form-field
-                [label]="'assets.fields.handlingRules' | transloco"
-                inputId="ast-handling"
-              >
-                <app-field-help label-suffix scope="assets" page="form" field="handling_rules" />
-                <textarea
-                  id="ast-handling"
-                  rows="2"
-                  maxlength="10000"
-                  [placeholder]="'assets.form.handlingPlaceholder' | transloco"
-                  [value]="d().handling_rules"
-                  (input)="set('handling_rules', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-          </details>
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'assets.form.sections.responsibility' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <app-form-field [label]="'assets.fields.owner' | transloco" inputId="ast-owner">
-              <app-field-help label-suffix scope="assets" page="form" field="owner" />
-              <app-asset-user-select
-                inputId="ast-owner"
-                [value]="d().owner_user_id"
-                [currentName]="value()?.owner?.name ?? null"
-                (valueChange)="set('owner_user_id', $event)"
-              />
-            </app-form-field>
-            @if (!editing()) {
-              <p class="mt-1 text-meta text-fg-subtle">
-                {{ 'assets.form.ownerHint' | transloco }}
-              </p>
             }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.criticality' | transloco" inputId="ast-crit">
+          <app-field-help label-suffix scope="assets" page="form" field="criticality" />
+          <select id="ast-crit" (change)="set('criticality', $any($event.target).value)">
+            <option value="" [selected]="!d().criticality">
+              {{ 'assets.common.notSet' | transloco }}
+            </option>
+            @for (c of criticalities; track c) {
+              <option [value]="c" [selected]="d().criticality === c">
+                {{ 'assets.criticality.' + c | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <label
+          class="flex cursor-pointer items-start gap-2.5 rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg sm:col-span-2"
+        >
+          <input
+            type="checkbox"
+            class="mt-0.5"
+            [checked]="d().contains_personal_data"
+            (change)="set('contains_personal_data', $any($event.target).checked)"
+          />
+          <span>
+            <span class="font-semibold">{{
+              'assets.fields.containsPersonalData' | transloco
+            }}</span>
+            <span class="block text-meta text-fg-subtle">
+              {{ 'assets.form.personalDataHint' | transloco }}
+            </span>
+          </span>
+        </label>
+        <details
+          class="rounded-tile border border-border bg-surface px-4 py-3 sm:col-span-2"
+          [open]="securityOpen()"
+        >
+          <summary class="cursor-pointer text-ui font-semibold text-fg">
+            {{ 'assets.form.securitySection' | transloco }}
+            <span class="ml-1 font-normal text-fg-muted">{{
+              'assets.form.securitySectionHint' | transloco
+            }}</span>
+          </summary>
+          <div class="mt-4 flex flex-col gap-5">
+            <fieldset>
+              <legend class="flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted">
+                {{ 'assets.form.cia' | transloco }}
+                <app-field-help scope="assets" page="form" field="cia" />
+                <app-ask-about
+                  [prompt]="'assets.ai.prompts.cia' | transloco"
+                  field="cia"
+                  [fieldLabel]="'assets.form.cia' | transloco"
+                  labelKey="assets.ai.askCia"
+                />
+              </legend>
+              <div class="mt-2 grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-3">
+                @for (key of ciaKeys; track key) {
+                  <app-form-field
+                    [label]="'assets.fields.' + key | transloco"
+                    [inputId]="'ast-' + key"
+                  >
+                    <select [id]="'ast-' + key" (change)="set(key, $any($event.target).value)">
+                      <option value="" [selected]="!d()[key]">
+                        {{ 'assets.common.notSet' | transloco }}
+                      </option>
+                      @for (l of levels; track l) {
+                        <option [value]="l" [selected]="d()[key] === l">
+                          {{ 'assets.level.' + l | transloco }}
+                        </option>
+                      }
+                    </select>
+                  </app-form-field>
+                }
+              </div>
+            </fieldset>
+            <app-form-field
+              [label]="'assets.fields.handlingRules' | transloco"
+              inputId="ast-handling"
+            >
+              <app-field-help label-suffix scope="assets" page="form" field="handling_rules" />
+              <textarea
+                id="ast-handling"
+                rows="2"
+                maxlength="10000"
+                [placeholder]="'assets.form.handlingPlaceholder' | transloco"
+                [value]="d().handling_rules"
+                (input)="set('handling_rules', $any($event.target).value)"
+              ></textarea>
+            </app-form-field>
           </div>
-          <app-form-field [label]="'assets.fields.custodian' | transloco" inputId="ast-custodian">
-            <app-field-help label-suffix scope="assets" page="form" field="custodian" />
-            <app-asset-user-select
-              inputId="ast-custodian"
-              [value]="d().custodian_user_id"
-              [currentName]="value()?.custodian?.name ?? null"
-              (valueChange)="set('custodian_user_id', $event)"
+        </details>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'assets.form.sections.responsibility' | transloco"
+        [description]="'assets.form.sectionHints.responsibility' | transloco"
+      >
+        <app-form-field
+          [label]="'assets.fields.owner' | transloco"
+          inputId="ast-owner"
+          [hint]="editing() ? '' : ('assets.form.ownerHint' | transloco)"
+        >
+          <app-field-help label-suffix scope="assets" page="form" field="owner" />
+          <app-asset-user-select
+            inputId="ast-owner"
+            [value]="d().owner_user_id"
+            [currentName]="value()?.owner?.name ?? null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.custodian' | transloco" inputId="ast-custodian">
+          <app-field-help label-suffix scope="assets" page="form" field="custodian" />
+          <app-asset-user-select
+            inputId="ast-custodian"
+            [value]="d().custodian_user_id"
+            [currentName]="value()?.custodian?.name ?? null"
+            (valueChange)="set('custodian_user_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.department' | transloco" inputId="ast-dept">
+          <app-asset-department-select
+            inputId="ast-dept"
+            [value]="d().department_id"
+            (valueChange)="set('department_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.location' | transloco" inputId="ast-location">
+          <input
+            id="ast-location"
+            type="text"
+            maxlength="255"
+            [value]="d().location"
+            (input)="set('location', $any($event.target).value)"
+          />
+        </app-form-field>
+        @if (suppliers.available()) {
+          <app-form-field [label]="'assets.fields.supplier' | transloco" inputId="ast-supplier">
+            <app-field-help label-suffix scope="assets" page="form" field="supplier" />
+            <app-asset-supplier-select
+              inputId="ast-supplier"
+              [value]="d().supplier_id"
+              [currentLabel]="value()?.supplier?.name ?? null"
+              (valueChange)="set('supplier_id', $event)"
             />
           </app-form-field>
-          <app-form-field [label]="'assets.fields.department' | transloco" inputId="ast-dept">
-            <app-asset-department-select
-              inputId="ast-dept"
-              [value]="d().department_id"
-              (valueChange)="set('department_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'assets.fields.location' | transloco" inputId="ast-location">
+        }
+        @if (!suppliers.available() || !d().supplier_id) {
+          <app-form-field
+            [label]="
+              (suppliers.available() ? 'assets.fields.vendorOther' : 'assets.fields.vendor')
+                | transloco
+            "
+            inputId="ast-vendor"
+          >
             <input
-              id="ast-location"
+              id="ast-vendor"
               type="text"
               maxlength="255"
-              [value]="d().location"
-              (input)="set('location', $any($event.target).value)"
+              [value]="d().vendor"
+              (input)="set('vendor', $any($event.target).value)"
             />
           </app-form-field>
-          @if (suppliers.available()) {
-            <app-form-field [label]="'assets.fields.supplier' | transloco" inputId="ast-supplier">
-              <app-field-help label-suffix scope="assets" page="form" field="supplier" />
-              <app-asset-supplier-select
-                inputId="ast-supplier"
-                [value]="d().supplier_id"
-                [currentLabel]="value()?.supplier?.name ?? null"
-                (valueChange)="set('supplier_id', $event)"
-              />
-            </app-form-field>
-          }
-          @if (customers.enabled()) {
-            <app-form-field [label]="'assets.fields.customer' | transloco" inputId="ast-customer">
-              <app-customer-picker
-                inputId="ast-customer"
-                [value]="d().customer_id || null"
-                [current]="d().customer"
-                (valueChange)="set('customer_id', $event ?? '')"
-                (refChange)="set('customer', $event)"
-                data-testid="asset-customer"
-              />
-            </app-form-field>
-          }
-          @if (!suppliers.available() || !d().supplier_id) {
-            <app-form-field
-              [label]="
-                (suppliers.available() ? 'assets.fields.vendorOther' : 'assets.fields.vendor')
-                  | transloco
-              "
-              inputId="ast-vendor"
-            >
-              <input
-                id="ast-vendor"
-                type="text"
-                maxlength="255"
-                [value]="d().vendor"
-                (input)="set('vendor', $any($event.target).value)"
-              />
-            </app-form-field>
-          }
-          @for (key of detailKeys; track key.field) {
-            <app-form-field
-              [label]="'assets.fields.' + key.label | transloco"
-              [inputId]="'ast-' + key.field"
-            >
-              <input
-                [id]="'ast-' + key.field"
-                type="text"
-                [attr.maxlength]="key.max"
-                [value]="d()[key.field]"
-                (input)="set(key.field, $any($event.target).value)"
-              />
-            </app-form-field>
-          }
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'assets.form.sections.lifecycle' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <app-form-field
-            [label]="'assets.fields.lifecycle' | transloco"
-            inputId="ast-life"
-            [required]="true"
-          >
-            <app-field-help label-suffix scope="assets" page="form" field="lifecycle_status" />
-            <select id="ast-life" (change)="set('lifecycle_status', $any($event.target).value)">
-              @for (l of lifecycles; track l) {
-                <option [value]="l" [selected]="d().lifecycle_status === l">
-                  {{ 'assets.lifecycle.' + l | transloco }}
-                </option>
-              }
-            </select>
+        }
+        @if (customers.enabled()) {
+          <app-form-field [label]="'assets.fields.customer' | transloco" inputId="ast-customer">
+            <app-customer-picker
+              inputId="ast-customer"
+              [value]="d().customer_id || null"
+              [current]="d().customer"
+              (valueChange)="set('customer_id', $event ?? '')"
+              (refChange)="set('customer', $event)"
+              data-testid="asset-customer"
+            />
           </app-form-field>
-          <app-form-field [label]="'assets.fields.reviewDate' | transloco" inputId="ast-review">
-            <app-field-help label-suffix scope="assets" page="form" field="review_date" />
+        }
+        @for (key of detailKeys; track key.field) {
+          <app-form-field
+            [label]="'assets.fields.' + key.label | transloco"
+            [inputId]="'ast-' + key.field"
+          >
             <input
-              id="ast-review"
-              type="date"
-              [attr.lang]="lang()"
-              [value]="d().review_date"
-              (input)="set('review_date', $any($event.target).value)"
+              [id]="'ast-' + key.field"
+              type="text"
+              [attr.maxlength]="key.max"
+              [value]="d()[key.field]"
+              (input)="set(key.field, $any($event.target).value)"
             />
           </app-form-field>
-          <app-form-field
-            [label]="'assets.fields.reviewInterval' | transloco"
-            inputId="ast-review-interval"
-          >
-            <select
-              id="ast-review-interval"
-              (change)="set('review_interval_months', $any($event.target).value)"
-            >
-              <option value="" [selected]="!d().review_interval_months">
-                {{ 'assets.form.reviewIntervalDefault' | transloco }}
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'assets.form.sections.lifecycle' | transloco"
+        [description]="'assets.form.sectionHints.lifecycle' | transloco"
+      >
+        <app-form-field
+          [label]="'assets.fields.lifecycle' | transloco"
+          inputId="ast-life"
+          [required]="true"
+        >
+          <app-field-help label-suffix scope="assets" page="form" field="lifecycle_status" />
+          <select id="ast-life" (change)="set('lifecycle_status', $any($event.target).value)">
+            @for (l of lifecycles; track l) {
+              <option [value]="l" [selected]="d().lifecycle_status === l">
+                {{ 'assets.lifecycle.' + l | transloco }}
               </option>
-              @for (m of reviewIntervals; track m) {
-                <option [value]="m" [selected]="d().review_interval_months === '' + m">
-                  {{ 'assets.review.everyMonths' | transloco: { months: m } }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          @for (key of dateKeys; track key.field) {
-            <app-form-field
-              [label]="'assets.fields.' + key.label | transloco"
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'assets.fields.reviewInterval' | transloco"
+          inputId="ast-review-interval"
+        >
+          <select
+            id="ast-review-interval"
+            (change)="set('review_interval_months', $any($event.target).value)"
+          >
+            <option value="" [selected]="!d().review_interval_months">
+              {{ 'assets.form.reviewIntervalDefault' | transloco }}
+            </option>
+            @for (m of reviewIntervals; track m) {
+              <option [value]="m" [selected]="d().review_interval_months === '' + m">
+                {{ 'assets.review.everyMonths' | transloco: { months: m } }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.reviewDate' | transloco" inputId="ast-review">
+          <app-field-help label-suffix scope="assets" page="form" field="review_date" />
+          <app-date-input
+            inputId="ast-review"
+            [value]="d().review_date"
+            (valueChange)="set('review_date', $event ?? '')"
+          />
+        </app-form-field>
+        @for (key of dateKeys; track key.field) {
+          <app-form-field
+            [label]="'assets.fields.' + key.label | transloco"
+            [inputId]="'ast-' + key.field"
+          >
+            <app-date-input
               [inputId]="'ast-' + key.field"
-            >
-              <input
-                [id]="'ast-' + key.field"
-                type="date"
-                [attr.lang]="lang()"
-                [value]="d()[key.field]"
-                (input)="set(key.field, $any($event.target).value)"
-              />
-            </app-form-field>
-          }
-          @if (d().lifecycle_status === 'retired' || d().lifecycle_status === 'disposed') {
-            <app-form-field [label]="'assets.fields.retiredOn' | transloco" inputId="ast-retired">
-              <input
-                id="ast-retired"
-                type="date"
-                aria-describedby="ast-retired-hint"
-                [attr.lang]="lang()"
-                [value]="d().retired_on"
-                (input)="set('retired_on', $any($event.target).value)"
-              />
-            </app-form-field>
-          }
-          @if (d().lifecycle_status === 'disposed') {
-            <app-form-field [label]="'assets.fields.disposedOn' | transloco" inputId="ast-disposed">
-              <input
-                id="ast-disposed"
-                type="date"
-                [attr.lang]="lang()"
-                [value]="d().disposed_on"
-                (input)="set('disposed_on', $any($event.target).value)"
-              />
-            </app-form-field>
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.disposalMethod' | transloco"
-                inputId="ast-disposal"
-              >
-                <app-field-help label-suffix scope="assets" page="form" field="disposal_method" />
-                <input
-                  id="ast-disposal"
-                  type="text"
-                  maxlength="255"
-                  [placeholder]="'assets.form.disposalPlaceholder' | transloco"
-                  [value]="d().disposal_method"
-                  (input)="set('disposal_method', $any($event.target).value)"
-                />
-              </app-form-field>
-            </div>
-          }
-          @if (d().lifecycle_status === 'retired' || d().lifecycle_status === 'disposed') {
-            <p id="ast-retired-hint" class="text-meta text-fg-subtle sm:col-span-2">
-              {{ 'assets.form.retiredHint' | transloco }}
-            </p>
-          }
-          @if (d().lifecycle_status === 'quarantined') {
-            <p class="text-meta text-fg-subtle sm:col-span-2">
-              {{ 'assets.form.quarantinedHint' | transloco }}
-            </p>
-          }
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'assets.form.sections.calibration' | transloco }}
-        </h2>
-        <div class="flex items-start gap-2">
-          <label class="flex items-start gap-2 text-body text-fg">
-            <input
-              id="ast-requires-cal"
-              type="checkbox"
-              class="mt-1"
-              [checked]="d().requires_calibration"
-              (change)="set('requires_calibration', $any($event.target).checked)"
+              [value]="d()[key.field]"
+              (valueChange)="set(key.field, $event ?? '')"
             />
-            <span>
-              {{ 'assets.fields.requiresCalibration' | transloco }}
-              <span class="block text-meta text-fg-subtle">
-                {{ 'assets.form.calibrationHint' | transloco }}
-              </span>
-            </span>
-          </label>
-          <app-field-help scope="assets" page="form" field="requires_calibration" />
-        </div>
+          </app-form-field>
+        }
+        @if (d().lifecycle_status === 'retired' || d().lifecycle_status === 'disposed') {
+          <app-form-field
+            [label]="'assets.fields.retiredOn' | transloco"
+            inputId="ast-retired"
+            [hint]="'assets.form.retiredHint' | transloco"
+          >
+            <app-date-input
+              inputId="ast-retired"
+              [value]="d().retired_on"
+              (valueChange)="set('retired_on', $event ?? '')"
+            />
+          </app-form-field>
+        }
+        @if (d().lifecycle_status === 'disposed') {
+          <app-form-field [label]="'assets.fields.disposedOn' | transloco" inputId="ast-disposed">
+            <app-date-input
+              inputId="ast-disposed"
+              [value]="d().disposed_on"
+              (valueChange)="set('disposed_on', $event ?? '')"
+            />
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.disposalMethod' | transloco"
+            inputId="ast-disposal"
+          >
+            <app-field-help label-suffix scope="assets" page="form" field="disposal_method" />
+            <input
+              id="ast-disposal"
+              type="text"
+              maxlength="255"
+              [placeholder]="'assets.form.disposalPlaceholder' | transloco"
+              [value]="d().disposal_method"
+              (input)="set('disposal_method', $any($event.target).value)"
+            />
+          </app-form-field>
+        }
+        @if (d().lifecycle_status === 'quarantined') {
+          <p class="text-meta text-fg-subtle sm:col-span-2">
+            {{ 'assets.form.quarantinedHint' | transloco }}
+          </p>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'assets.form.sections.calibration' | transloco"
+        [description]="'assets.form.calibrationHint' | transloco"
+      >
+        <app-field-help title-suffix scope="assets" page="form" field="requires_calibration" />
+        <label
+          class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+        >
+          <input
+            id="ast-requires-cal"
+            type="checkbox"
+            [checked]="d().requires_calibration"
+            (change)="set('requires_calibration', $any($event.target).checked)"
+          />
+          {{ 'assets.fields.requiresCalibration' | transloco }}
+        </label>
         @if (d().requires_calibration) {
-          <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <app-form-field
-                [label]="'assets.fields.calibrationInterval' | transloco"
-                inputId="ast-interval"
-              >
-                <app-field-help
-                  label-suffix
-                  scope="assets"
-                  page="form"
-                  field="calibration_interval"
-                />
-                <input
-                  id="ast-interval"
-                  type="number"
-                  min="1"
-                  max="120"
-                  aria-describedby="ast-interval-hint"
-                  [attr.aria-invalid]="showErrors() && !intervalValid()"
-                  [value]="d().calibration_interval_months"
-                  (input)="set('calibration_interval_months', $any($event.target).value)"
-                />
-              </app-form-field>
-              <p
-                id="ast-interval-hint"
-                class="mt-1 text-meta"
-                [class.text-fail-ink]="showErrors() && !intervalValid()"
-                [class.text-fg-subtle]="!(showErrors() && !intervalValid())"
-              >
-                {{ 'assets.form.intervalHint' | transloco }}
+          <app-form-field
+            [label]="'assets.fields.calibrationInterval' | transloco"
+            inputId="ast-interval"
+            [hint]="
+              showErrors() && !intervalValid() ? '' : ('assets.form.intervalHint' | transloco)
+            "
+            [error]="
+              showErrors() && !intervalValid() ? ('assets.form.intervalHint' | transloco) : ''
+            "
+          >
+            <app-field-help label-suffix scope="assets" page="form" field="calibration_interval" />
+            <input
+              id="ast-interval"
+              type="number"
+              min="1"
+              max="120"
+              [value]="d().calibration_interval_months"
+              (input)="set('calibration_interval_months', $any($event.target).value)"
+            />
+          </app-form-field>
+          @if (editing() && !overrideNext()) {
+            <div class="flex flex-col gap-1.5" data-testid="next-calibration-computed">
+              <p class="flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+                {{ 'assets.fields.nextCalibrationDue' | transloco }}
+              </p>
+              <p class="flex min-h-10 items-center text-body text-fg">
+                {{
+                  d().next_calibration_due
+                    ? (d().next_calibration_due | localDay)
+                    : ('assets.common.notSet' | transloco)
+                }}
+              </p>
+              <p class="text-meta text-fg-subtle">
+                {{ 'assets.form.nextCalibrationComputed' | transloco }}
+                <button
+                  type="button"
+                  class="ml-1 font-semibold text-accent hover:underline"
+                  (click)="overrideNext.set(true)"
+                >
+                  {{ 'assets.form.nextCalibrationOverride' | transloco }}
+                </button>
               </p>
             </div>
-            @if (editing() && !overrideNext()) {
-              <div data-testid="next-calibration-computed">
-                <p class="text-ui font-semibold text-fg-muted">
-                  {{ 'assets.fields.nextCalibrationDue' | transloco }}
-                </p>
-                <p class="mt-2 text-body text-fg">
-                  {{
-                    d().next_calibration_due
-                      ? (d().next_calibration_due | localDay)
-                      : ('assets.common.notSet' | transloco)
-                  }}
-                </p>
-                <p class="mt-1 text-meta text-fg-subtle">
-                  {{ 'assets.form.nextCalibrationComputed' | transloco }}
-                  <button
-                    type="button"
-                    class="ml-1 font-semibold text-accent hover:underline"
-                    (click)="overrideNext.set(true)"
-                  >
-                    {{ 'assets.form.nextCalibrationOverride' | transloco }}
-                  </button>
-                </p>
-              </div>
-            } @else {
-              <app-form-field
-                [label]="'assets.fields.nextCalibrationDue' | transloco"
-                inputId="ast-next-cal"
-              >
-                <input
-                  id="ast-next-cal"
-                  type="date"
-                  [attr.lang]="lang()"
-                  [value]="d().next_calibration_due"
-                  (input)="set('next_calibration_due', $any($event.target).value)"
-                />
-              </app-form-field>
-            }
+          } @else {
             <app-form-field
-              [label]="'assets.fields.measurementRange' | transloco"
-              inputId="ast-range"
+              [label]="'assets.fields.nextCalibrationDue' | transloco"
+              inputId="ast-next-cal"
             >
-              <input
-                id="ast-range"
-                type="text"
-                maxlength="120"
-                [placeholder]="'assets.form.rangePlaceholder' | transloco"
-                [value]="d().measurement_range"
-                (input)="set('measurement_range', $any($event.target).value)"
+              <app-date-input
+                inputId="ast-next-cal"
+                [value]="d().next_calibration_due"
+                (valueChange)="set('next_calibration_due', $event ?? '')"
               />
             </app-form-field>
-            <app-form-field [label]="'assets.fields.accuracy' | transloco" inputId="ast-accuracy">
-              <app-field-help label-suffix scope="assets" page="form" field="accuracy" />
-              <input
-                id="ast-accuracy"
-                type="text"
-                maxlength="120"
-                [placeholder]="'assets.form.accuracyPlaceholder' | transloco"
-                [value]="d().accuracy"
-                (input)="set('accuracy', $any($event.target).value)"
+          }
+          <app-form-field
+            [label]="'assets.fields.measurementRange' | transloco"
+            inputId="ast-range"
+          >
+            <input
+              id="ast-range"
+              type="text"
+              maxlength="120"
+              [placeholder]="'assets.form.rangePlaceholder' | transloco"
+              [value]="d().measurement_range"
+              (input)="set('measurement_range', $any($event.target).value)"
+            />
+          </app-form-field>
+          <app-form-field [label]="'assets.fields.accuracy' | transloco" inputId="ast-accuracy">
+            <app-field-help label-suffix scope="assets" page="form" field="accuracy" />
+            <input
+              id="ast-accuracy"
+              type="text"
+              maxlength="120"
+              [placeholder]="'assets.form.accuracyPlaceholder' | transloco"
+              [value]="d().accuracy"
+              (input)="set('accuracy', $any($event.target).value)"
+            />
+          </app-form-field>
+          @if (!editing()) {
+            <app-form-field
+              [label]="'assets.fields.lastCalibratedOn' | transloco"
+              inputId="ast-last-cal"
+              [hint]="'assets.form.lastCalibratedHint' | transloco"
+            >
+              <app-date-input
+                inputId="ast-last-cal"
+                [value]="d().last_calibrated_on"
+                (valueChange)="set('last_calibrated_on', $event ?? '')"
               />
             </app-form-field>
-            @if (!editing()) {
-              <div>
-                <app-form-field
-                  [label]="'assets.fields.lastCalibratedOn' | transloco"
-                  inputId="ast-last-cal"
-                >
-                  <input
-                    id="ast-last-cal"
-                    type="date"
-                    aria-describedby="ast-last-cal-hint"
-                    [attr.lang]="lang()"
-                    [value]="d().last_calibrated_on"
-                    (input)="set('last_calibrated_on', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <p id="ast-last-cal-hint" class="mt-1 text-meta text-fg-subtle">
-                  {{ 'assets.form.lastCalibratedHint' | transloco }}
-                </p>
-              </div>
-            }
-          </div>
+          }
         }
-      </app-card>
+      </app-form-section>
 
-      <app-card>
-        <app-form-field [label]="'assets.fields.notes' | transloco" inputId="ast-notes">
+      <app-form-section
+        [title]="'assets.fields.notes' | transloco"
+        [description]="'assets.form.sectionHints.notes' | transloco"
+        [columns]="1"
+      >
+        <app-form-field inputId="ast-notes">
           <textarea
             id="ast-notes"
             rows="3"
             maxlength="10000"
+            [attr.aria-label]="'assets.fields.notes' | transloco"
             [value]="d().notes"
             (input)="set('notes', $any($event.target).value)"
           ></textarea>
         </app-form-field>
-      </app-card>
+      </app-form-section>
 
       @if (editing()) {
-        <app-card>
-          <app-form-field [label]="'assets.form.changeReason' | transloco" inputId="ast-reason">
+        <app-form-section [columns]="1">
+          <app-form-field
+            [label]="'assets.form.changeReason' | transloco"
+            inputId="ast-reason"
+            [hint]="'assets.form.changeReasonHint' | transloco"
+          >
             <textarea
               id="ast-reason"
               rows="2"
               maxlength="1000"
-              aria-describedby="ast-reason-hint"
               [value]="reason()"
               (input)="reason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="ast-reason-hint" class="mt-1 text-meta text-fg-subtle">
-            {{ 'assets.form.changeReasonHint' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      <div
-        class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+      <app-form-actions
+        [message]="showErrors() && !d().name.trim() ? ('assets.form.fixFields' | transloco) : ''"
       >
-        <app-button variant="ghost" (click)="cancelled.emit()">
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()">
           {{ (editing() ? 'assets.form.save' : 'assets.form.create') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
 export class AssetForm {
-  private readonly language = inject(LanguageService);
   protected readonly suppliers = inject(SupplierOptionsService);
   protected readonly customers = inject(CustomersAvailability);
 
@@ -884,7 +839,6 @@ export class AssetForm {
   protected readonly overrideNext = signal(false);
   protected readonly suggestion = signal<ClassificationSuggestion | null>(null);
   protected readonly editing = computed(() => this.value() !== null);
-  protected readonly lang = computed(() => this.language.active());
 
   /**
    * The information-security block is open unless the asset is measuring equipment or

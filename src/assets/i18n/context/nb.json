@@ -698,6 +698,10 @@
       "framework": "Velg hvilken standard omfanget gjelder.",
       "interval": "Velg et gjennomgangsintervall fra listen.",
       "exclusion": "Hvert krav som ikke gjelder, må ha både et punkt og en begrunnelse."
+    },
+    "sections": {
+      "main": "Opplysninger",
+      "mainHint": "Hva denne posten sier. Felt merket * må fylles ut."
     }
   },
   "communicate": {

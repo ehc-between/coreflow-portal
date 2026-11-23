@@ -25,7 +25,10 @@ import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -106,7 +109,10 @@ export function seededDraft(
     LocalDayPipe,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormField,
+    FormSection,
     ErrorState,
     HelpStrip,
     LoadingState,
@@ -168,130 +174,126 @@ export function seededDraft(
                 (applied)="applyRecordSuggestion($event)"
               />
             }
-            <p class="text-meta text-fg-muted">
-              <span class="text-fail-ink" aria-hidden="true">*</span>
-              {{ 'context.form.requiredLegend' | transloco }}
-            </p>
-            <app-card>
-              <div class="flex flex-col gap-5">
-                <app-context-form-row
-                  [labelKey]="kind() === 'party' ? 'context.fields.name' : 'context.fields.title'"
-                  inputId="f-title"
-                  [page]="page()"
-                  [help]="kind() === 'party' ? 'name' : 'title'"
-                  [required]="true"
-                >
-                  <input
-                    id="f-title"
-                    type="text"
-                    maxlength="255"
-                    required
-                    aria-required="true"
-                    [value]="draft().title"
-                    [attr.aria-invalid]="submitted() && !draft().title.trim()"
-                    (input)="patch({ title: $any($event.target).value })"
-                    [attr.data-tour]="'context-title-' + kind()"
-                  />
-                </app-context-form-row>
-                <app-context-kind-fields
-                  [kind]="kind()"
-                  [draft]="draft()"
-                  [editing]="editing()"
-                  [page]="page()"
-                  [submitted]="submitted()"
-                  [existingDocuments]="existingDocuments()"
-                  (draftChange)="draft.set($event)"
+            <app-form-section
+              [title]="'context.form.sections.main' | transloco"
+              [description]="'context.form.sections.mainHint' | transloco"
+              [columns]="1"
+            >
+              <app-context-form-row
+                [labelKey]="kind() === 'party' ? 'context.fields.name' : 'context.fields.title'"
+                inputId="f-title"
+                [page]="page()"
+                [help]="kind() === 'party' ? 'name' : 'title'"
+                [required]="true"
+              >
+                <input
+                  id="f-title"
+                  type="text"
+                  maxlength="255"
+                  required
+                  aria-required="true"
+                  [value]="draft().title"
+                  [attr.aria-invalid]="submitted() && !draft().title.trim()"
+                  (input)="patch({ title: $any($event.target).value })"
+                  [attr.data-tour]="'context-title-' + kind()"
                 />
-              </div>
-            </app-card>
+              </app-context-form-row>
+              <app-context-kind-fields
+                [kind]="kind()"
+                [draft]="draft()"
+                [editing]="editing()"
+                [page]="page()"
+                [submitted]="submitted()"
+                [existingDocuments]="existingDocuments()"
+                (draftChange)="draft.set($event)"
+              />
+            </app-form-section>
 
-            <app-card>
-              <h2 class="mb-1 font-display text-card font-bold text-fg">
-                {{ 'context.form.ownershipTitle' | transloco }}
-              </h2>
-              <p class="mb-4 text-meta text-fg-muted">
-                {{ 'context.form.ownershipHint' | transloco }}
-              </p>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <app-context-form-row
-                  [labelKey]="
-                    kind() === 'responsibility'
-                      ? 'context.fields.maintainedBy'
-                      : 'context.fields.owner'
-                  "
+            <app-form-section
+              [title]="'context.form.ownershipTitle' | transloco"
+              [description]="'context.form.ownershipHint' | transloco"
+            >
+              <app-context-form-row
+                [labelKey]="
+                  kind() === 'responsibility'
+                    ? 'context.fields.maintainedBy'
+                    : 'context.fields.owner'
+                "
+                inputId="f-owner"
+                [page]="page()"
+                help="owner"
+              >
+                <app-context-owner-select
                   inputId="f-owner"
-                  [page]="page()"
-                  help="owner"
-                >
-                  <app-context-owner-select
-                    inputId="f-owner"
-                    [value]="draft().owner_user_id"
-                    [currentName]="ownerName()"
-                    (valueChange)="patch({ owner_user_id: $event })"
-                  />
-                </app-context-form-row>
-                <app-context-form-row
-                  labelKey="context.fields.reviewInterval"
-                  inputId="f-interval"
-                  [page]="page()"
-                  help="review_interval_months"
-                >
-                  <select id="f-interval" (change)="setInterval($any($event.target).value)">
-                    <option value="" [selected]="!draft().review_interval_months">
-                      {{ 'context.form.noInterval' | transloco }}
+                  [value]="draft().owner_user_id"
+                  [currentName]="ownerName()"
+                  (valueChange)="patch({ owner_user_id: $event })"
+                />
+              </app-context-form-row>
+              <app-context-form-row
+                labelKey="context.fields.reviewInterval"
+                inputId="f-interval"
+                [page]="page()"
+                help="review_interval_months"
+              >
+                <select id="f-interval" (change)="setInterval($any($event.target).value)">
+                  <option value="" [selected]="!draft().review_interval_months">
+                    {{ 'context.form.noInterval' | transloco }}
+                  </option>
+                  @for (months of intervals(); track months) {
+                    <option
+                      [value]="months"
+                      [selected]="'' + months === draft().review_interval_months"
+                    >
+                      {{ 'context.detail.everyMonths' | transloco: { count: months } }}
                     </option>
-                    @for (months of intervals(); track months) {
-                      <option
-                        [value]="months"
-                        [selected]="'' + months === draft().review_interval_months"
-                      >
-                        {{ 'context.detail.everyMonths' | transloco: { count: months } }}
-                      </option>
-                    }
-                  </select>
-                </app-context-form-row>
-                <app-context-form-row
-                  labelKey="context.fields.nextReview"
+                  }
+                </select>
+              </app-context-form-row>
+              <app-context-form-row
+                labelKey="context.fields.nextReview"
+                inputId="f-next"
+                [page]="page()"
+                help="next_review_at"
+              >
+                <app-date-input
                   inputId="f-next"
-                  [page]="page()"
-                  help="next_review_at"
-                >
-                  <input
-                    id="f-next"
-                    type="date"
-                    aria-describedby="f-next-hint"
-                    [value]="draft().next_review_day"
-                    (input)="setNextReview($any($event.target).value)"
-                  />
-                </app-context-form-row>
-              </div>
-              <p id="f-next-hint" class="mt-2 text-meta text-fg-muted">
-                @if (draft().next_review_day && autoNext()) {
-                  {{
-                    'context.form.nextComputed'
-                      | transloco: { date: (draft().next_review_day | localDay) }
-                  }}
-                } @else {
-                  {{ 'context.form.nextHint' | transloco }}
-                }
-              </p>
+                  describedBy="f-next-hint"
+                  [value]="draft().next_review_day"
+                  (changed)="setNextReview($event)"
+                />
+                <p hint id="f-next-hint" class="text-meta leading-snug text-fg-subtle">
+                  @if (draft().next_review_day && autoNext()) {
+                    {{
+                      'context.form.nextComputed'
+                        | transloco: { date: (draft().next_review_day | localDay) }
+                    }}
+                  } @else {
+                    {{ 'context.form.nextHint' | transloco }}
+                  }
+                </p>
+              </app-context-form-row>
               @if (simpleStatus()) {
-                <label class="mt-4 flex min-h-6 items-center gap-2 text-ui text-fg">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4"
-                    [checked]="draft().status === 'archived'"
-                    (change)="
-                      patch({ status: $any($event.target).checked ? 'archived' : 'active' })
-                    "
-                  />
-                  {{ 'context.form.archived' | transloco }}
-                </label>
+                <app-form-field [label]="'context.fields.status' | transloco">
+                  <label
+                    class="flex min-h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4"
+                      [checked]="draft().status === 'archived'"
+                      (change)="
+                        patch({ status: $any($event.target).checked ? 'archived' : 'active' })
+                      "
+                    />
+                    {{ 'context.form.archived' | transloco }}
+                  </label>
+                </app-form-field>
               }
-            </app-card>
+            </app-form-section>
 
             @if (editing()) {
-              <app-card>
+              <app-form-section [columns]="1">
                 <app-context-form-row
                   labelKey="context.fields.changeReason"
                   inputId="f-reason"
@@ -317,7 +319,7 @@ export function seededDraft(
                     (input)="patch({ change_reason: $any($event.target).value })"
                   ></textarea>
                 </app-context-form-row>
-              </app-card>
+              </app-form-section>
             }
 
             @if (submitted() && problems().length) {
@@ -331,9 +333,7 @@ export function seededDraft(
               </app-alert>
             }
 
-            <div
-              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-            >
+            <app-form-actions>
               <a [routerLink]="backLink()" tabindex="-1" (click)="cancelFlow()">
                 <app-button variant="secondary">{{
                   'context.common.cancel' | transloco
@@ -345,7 +345,7 @@ export function seededDraft(
                     | transloco
                 }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
 
           <div class="mt-8">

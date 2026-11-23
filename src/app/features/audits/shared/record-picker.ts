@@ -51,13 +51,13 @@ export function searchItemToRef(item: SearchItem): EntityRef {
   template: `
     <label class="sr-only" [attr.for]="id">{{ placeholderKey() | transloco }}</label>
     <div
-      class="flex h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 focus-within:border-accent"
+      class="flex h-10 items-center gap-2 rounded-[10px] border border-border bg-bg px-3 focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]"
     >
       <app-icon name="search" [size]="15" class="text-fg-subtle" />
       <input
         [id]="inputId() || id"
         type="search"
-        class="h-full min-w-0 flex-1 bg-transparent text-ui text-fg outline-none placeholder:text-fg-placeholder"
+        class="cf-bare h-full min-w-0 flex-1 bg-transparent text-ui text-fg outline-none placeholder:text-fg-placeholder"
         role="combobox"
         aria-autocomplete="list"
         [attr.aria-expanded]="open()"

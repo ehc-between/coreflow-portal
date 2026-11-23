@@ -77,6 +77,8 @@ import { Alert } from '../../shared/ui/alert/alert';
 import { Badge } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { CustomerChip, CustomerPicker, CustomersAvailability } from '../../shared/customers';
@@ -209,6 +211,8 @@ interface ClauseChip {
 @Component({
   selector: 'app-deviation-detail',
   imports: [
+    DateInput,
+    FormSection,
     CustomerChip,
     CustomerPicker,
     TourStepDirective,
@@ -674,187 +678,174 @@ interface ClauseChip {
             </app-card>
           } @else {
             <!-- Edit form -->
-            <app-card>
-              <h2 class="mb-4 font-display text-section font-bold text-fg">
-                {{ 'deviations.create.sections.what' | transloco }}
-              </h2>
-              <div class="flex flex-col gap-4">
-                <app-deviation-form-row
-                  labelKey="deviations.create.fields.title"
-                  inputId="edit-title"
-                  page="detail"
-                  [required]="true"
-                  [errorKey]="titleError() ? 'deviations.create.titleRequired' : null"
-                >
-                  <input
-                    id="edit-title"
-                    type="text"
-                    maxlength="255"
-                    autocomplete="off"
-                    [ngModel]="title()"
-                    (ngModelChange)="title.set($event); titleError.set(false)"
-                  />
-                </app-deviation-form-row>
-                <app-deviation-form-row
-                  labelKey="deviations.create.fields.description"
-                  inputId="edit-desc"
-                  page="detail"
-                >
-                  <textarea
-                    id="edit-desc"
-                    rows="3"
-                    [ngModel]="description()"
-                    (ngModelChange)="description.set($event)"
-                  ></textarea>
-                </app-deviation-form-row>
-                <app-deviation-event-facts
-                  idPrefix="edit"
-                  page="detail"
-                  [(occurred)]="occurredAt"
-                  [(detected)]="detectedAt"
-                  [(location)]="location"
-                  [(immediateAction)]="immediateAction"
+            <app-form-section
+              [title]="'deviations.create.sections.what' | transloco"
+              [description]="'deviations.create.sections.whatHint' | transloco"
+            >
+              <app-deviation-form-row
+                span="full"
+                labelKey="deviations.create.fields.title"
+                inputId="edit-title"
+                page="detail"
+                [required]="true"
+                [errorKey]="titleError() ? 'deviations.create.titleRequired' : null"
+              >
+                <input
+                  id="edit-title"
+                  type="text"
+                  maxlength="255"
+                  autocomplete="off"
+                  [ngModel]="title()"
+                  (ngModelChange)="title.set($event); titleError.set(false)"
                 />
-              </div>
-            </app-card>
+              </app-deviation-form-row>
+              <app-deviation-form-row
+                span="full"
+                labelKey="deviations.create.fields.description"
+                inputId="edit-desc"
+                page="detail"
+              >
+                <textarea
+                  id="edit-desc"
+                  rows="3"
+                  [ngModel]="description()"
+                  (ngModelChange)="description.set($event)"
+                ></textarea>
+              </app-deviation-form-row>
+              <app-deviation-event-facts
+                idPrefix="edit"
+                page="detail"
+                [(occurred)]="occurredAt"
+                [(detected)]="detectedAt"
+                [(location)]="location"
+                [(immediateAction)]="immediateAction"
+              />
+            </app-form-section>
 
-            <app-card>
-              <h2 class="mb-4 font-display text-section font-bold text-fg">
-                {{ 'deviations.create.sections.classify' | transloco }}
-              </h2>
-              <div class="flex flex-col gap-4">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.severity"
-                    inputId="edit-severity"
-                    page="detail"
-                  >
-                    <select
-                      id="edit-severity"
-                      [ngModel]="severity()"
-                      (ngModelChange)="severity.set($event)"
-                    >
-                      @for (option of severityOptions; track option) {
-                        <option [value]="option">{{ severityLabelKey(option) | transloco }}</option>
-                      }
-                    </select>
-                  </app-deviation-form-row>
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.source"
-                    inputId="edit-source"
-                    page="detail"
-                  >
-                    <select
-                      id="edit-source"
-                      [ngModel]="source()"
-                      (ngModelChange)="source.set($event)"
-                    >
-                      @for (option of sourceOptions; track option) {
-                        <option [value]="option">{{ sourceLabelKey(option) | transloco }}</option>
-                      }
-                    </select>
-                  </app-deviation-form-row>
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.due"
-                    inputId="edit-due"
-                    page="detail"
-                  >
-                    <input
-                      id="edit-due"
-                      type="date"
-                      [ngModel]="dueAt()"
-                      (ngModelChange)="dueAt.set($event)"
-                    />
-                  </app-deviation-form-row>
-                  @if (departments().length) {
-                    <app-deviation-form-row
-                      labelKey="deviations.create.fields.department"
-                      inputId="edit-dept"
-                      page="detail"
-                    >
-                      <select
-                        id="edit-dept"
-                        [ngModel]="departmentId()"
-                        (ngModelChange)="departmentId.set($event)"
-                      >
-                        <option value="">{{ 'deviations.create.none' | transloco }}</option>
-                        @for (dept of departments(); track dept.id) {
-                          <option [value]="dept.id">{{ dept.name }}</option>
-                        }
-                      </select>
-                    </app-deviation-form-row>
+            <app-form-section
+              [title]="'deviations.create.sections.classify' | transloco"
+              [description]="'deviations.create.sections.classifyHint' | transloco"
+            >
+              <app-deviation-form-row
+                labelKey="deviations.create.fields.severity"
+                inputId="edit-severity"
+                page="detail"
+              >
+                <select
+                  id="edit-severity"
+                  [ngModel]="severity()"
+                  (ngModelChange)="severity.set($event)"
+                >
+                  @for (option of severityOptions; track option) {
+                    <option [value]="option">{{ severityLabelKey(option) | transloco }}</option>
                   }
-                  @if (customers.enabled()) {
-                    <app-deviation-form-row
-                      labelKey="deviations.create.fields.customer"
-                      inputId="edit-customer"
-                      page="detail"
-                    >
-                      <app-customer-picker
-                        inputId="edit-customer"
-                        [value]="customerId()"
-                        [current]="dev.customer ?? null"
-                        (valueChange)="customerId.set($event ?? '')"
-                        data-testid="deviation-edit-customer"
-                      />
-                    </app-deviation-form-row>
+                </select>
+              </app-deviation-form-row>
+              <app-deviation-form-row
+                labelKey="deviations.create.fields.source"
+                inputId="edit-source"
+                page="detail"
+              >
+                <select id="edit-source" [ngModel]="source()" (ngModelChange)="source.set($event)">
+                  @for (option of sourceOptions; track option) {
+                    <option [value]="option">{{ sourceLabelKey(option) | transloco }}</option>
                   }
-                </div>
-                <app-deviation-classification-fields
-                  idPrefix="edit"
-                  page="detail"
-                  [typical]="typicalRefs()"
-                  [(refs)]="refs"
-                  [(tags)]="tags"
+                </select>
+              </app-deviation-form-row>
+              <app-deviation-form-row
+                labelKey="deviations.create.fields.due"
+                inputId="edit-due"
+                page="detail"
+              >
+                <app-date-input
+                  inputId="edit-due"
+                  [value]="dueAt()"
+                  (valueChange)="dueAt.set($event ?? '')"
                 />
-              </div>
-            </app-card>
-
-            <app-card>
-              <h2 class="mb-1 font-display text-section font-bold text-fg">
-                {{ 'deviations.detail.rootCauseOverride' | transloco }}
-              </h2>
-              <p class="mb-4 text-meta text-fg-muted">
-                {{ 'deviations.detail.rootCauseOverrideHint' | transloco }}
-              </p>
-              <div class="grid gap-4 sm:grid-cols-2">
+              </app-deviation-form-row>
+              @if (departments().length) {
                 <app-deviation-form-row
-                  labelKey="deviations.create.fields.rootCauseMethod"
-                  inputId="edit-rcm"
+                  labelKey="deviations.create.fields.department"
+                  inputId="edit-dept"
                   page="detail"
                 >
                   <select
-                    id="edit-rcm"
-                    [ngModel]="rootCauseMethod()"
-                    (ngModelChange)="rootCauseMethod.set($event)"
+                    id="edit-dept"
+                    [ngModel]="departmentId()"
+                    (ngModelChange)="departmentId.set($event)"
                   >
                     <option value="">{{ 'deviations.create.none' | transloco }}</option>
-                    @for (option of rootCauseMethodOptions; track option) {
-                      <option [value]="option">
-                        {{ rootCauseMethodLabelKey(option) | transloco }}
-                      </option>
+                    @for (dept of departments(); track dept.id) {
+                      <option [value]="dept.id">{{ dept.name }}</option>
                     }
                   </select>
                 </app-deviation-form-row>
+              }
+              @if (customers.enabled()) {
                 <app-deviation-form-row
-                  [labelKey]="
-                    rootCauseMethod() === 'not_needed'
-                      ? 'deviations.detail.notNeededReason'
-                      : 'deviations.create.fields.rootCause'
-                  "
-                  inputId="edit-rc"
+                  span="full"
+                  labelKey="deviations.create.fields.customer"
+                  inputId="edit-customer"
                   page="detail"
-                  class="sm:col-span-2"
                 >
-                  <textarea
-                    id="edit-rc"
-                    rows="2"
-                    [ngModel]="rootCause()"
-                    (ngModelChange)="rootCause.set($event)"
-                  ></textarea>
+                  <app-customer-picker
+                    inputId="edit-customer"
+                    [value]="customerId()"
+                    [current]="dev.customer ?? null"
+                    (valueChange)="customerId.set($event ?? '')"
+                    data-testid="deviation-edit-customer"
+                  />
                 </app-deviation-form-row>
-              </div>
-            </app-card>
+              }
+              <app-deviation-classification-fields
+                idPrefix="edit"
+                page="detail"
+                [typical]="typicalRefs()"
+                [(refs)]="refs"
+                [(tags)]="tags"
+              />
+            </app-form-section>
+
+            <app-form-section
+              [title]="'deviations.detail.rootCauseOverride' | transloco"
+              [description]="'deviations.detail.rootCauseOverrideHint' | transloco"
+            >
+              <app-deviation-form-row
+                labelKey="deviations.create.fields.rootCauseMethod"
+                inputId="edit-rcm"
+                page="detail"
+              >
+                <select
+                  id="edit-rcm"
+                  [ngModel]="rootCauseMethod()"
+                  (ngModelChange)="rootCauseMethod.set($event)"
+                >
+                  <option value="">{{ 'deviations.create.none' | transloco }}</option>
+                  @for (option of rootCauseMethodOptions; track option) {
+                    <option [value]="option">
+                      {{ rootCauseMethodLabelKey(option) | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-deviation-form-row>
+              <app-deviation-form-row
+                [labelKey]="
+                  rootCauseMethod() === 'not_needed'
+                    ? 'deviations.detail.notNeededReason'
+                    : 'deviations.create.fields.rootCause'
+                "
+                inputId="edit-rc"
+                page="detail"
+                span="full"
+              >
+                <textarea
+                  id="edit-rc"
+                  rows="2"
+                  [ngModel]="rootCause()"
+                  (ngModelChange)="rootCause.set($event)"
+                ></textarea>
+              </app-deviation-form-row>
+            </app-form-section>
           }
 
           @if (recordVersion(); as version) {
@@ -907,17 +898,16 @@ interface ClauseChip {
                       @if (!section.isDefault) {
                         <h3 class="text-ui font-semibold text-fg-muted">{{ section.title }}</h3>
                       }
-                      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
                         @for (def of section.fields; track def.key) {
-                          <div [class.sm:col-span-2]="def.width === 'full'">
-                            <app-dynamic-field
-                              [field]="def"
-                              [value]="data()[def.key]"
-                              [options]="optionsFor(def.type)"
-                              [error]="dataErrors()[def.key] ?? null"
-                              (valueChange)="setData(def.key, $event)"
-                            />
-                          </div>
+                          <app-dynamic-field
+                            [class.sm:col-span-2]="def.width === 'full'"
+                            [field]="def"
+                            [value]="data()[def.key]"
+                            [options]="optionsFor(def.type)"
+                            [error]="dataErrors()[def.key] ?? null"
+                            (valueChange)="setData(def.key, $event)"
+                          />
                         }
                       </div>
                     </div>

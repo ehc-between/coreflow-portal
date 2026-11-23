@@ -40,6 +40,7 @@ import {
 } from '../data/continuity.models';
 import { ContinuityRecordPicker } from './record-picker';
 import { ContinuityUserSelect } from './user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 interface ContactDraft {
   name: string;
@@ -129,6 +130,7 @@ export function moveId(ids: readonly string[], from: number, to: number): string
 @Component({
   selector: 'app-continuity-contacts-panel',
   imports: [
+    DateInput,
     TranslocoPipe,
     LocalDayPipe,
     Alert,
@@ -371,28 +373,34 @@ export function moveId(ids: readonly string[], from: number, to: number): string
       (closed)="editorOpen.set(false)"
     >
       <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
-        <div>
-          <app-form-field [label]="'continuity.contacts.fields.name' | transloco" inputId="cc-name">
-            <input
-              id="cc-name"
-              type="text"
-              maxlength="255"
-              required
-              [attr.aria-invalid]="showErrors() && !d().name.trim()"
-              [value]="d().name"
-              (input)="set('name', $any($event.target).value)"
-            />
-          </app-form-field>
-          @if (showErrors() && !d().name.trim()) {
-            <p class="mt-1 text-meta text-fail-ink" role="alert">
-              {{ 'continuity.contacts.nameRequired' | transloco }}
-            </p>
-          }
-        </div>
+        <app-form-field
+          [label]="'continuity.contacts.fields.name' | transloco"
+          inputId="cc-name"
+          [required]="true"
+          [error]="
+            showErrors() && !d().name.trim() ? ('continuity.contacts.nameRequired' | transloco) : ''
+          "
+        >
+          <input
+            id="cc-name"
+            type="text"
+            maxlength="255"
+            required
+            [value]="d().name"
+            (input)="set('name', $any($event.target).value)"
+          />
+        </app-form-field>
         <app-form-field
           [label]="'continuity.contacts.fields.crisisRole' | transloco"
           inputId="cc-role"
         >
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="contacts"
+            field="crisis_role"
+            [label]="'continuity.contacts.fields.crisisRole' | transloco"
+          />
           <input
             id="cc-role"
             type="text"
@@ -400,7 +408,6 @@ export function moveId(ids: readonly string[], from: number, to: number): string
             [value]="d().crisis_role"
             (input)="set('crisis_role', $any($event.target).value)"
           />
-          <app-field-help scope="continuity" page="contacts" field="crisis_role" />
         </app-form-field>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <app-form-field [label]="'continuity.contacts.fields.type' | transloco" inputId="cc-type">
@@ -438,7 +445,11 @@ export function moveId(ids: readonly string[], from: number, to: number): string
             />
           </app-form-field>
         }
-        <app-form-field [label]="'continuity.contacts.fields.member' | transloco" inputId="cc-user">
+        <app-form-field
+          [label]="'continuity.contacts.fields.member' | transloco"
+          inputId="cc-user"
+          [hint]="'continuity.contacts.memberHint' | transloco"
+        >
           <app-continuity-user-select
             inputId="cc-user"
             [value]="d().user_id"
@@ -446,9 +457,6 @@ export function moveId(ids: readonly string[], from: number, to: number): string
             describedBy="cc-user-hint"
             (valueChange)="set('user_id', $event)"
           />
-          <p id="cc-user-hint" class="text-meta text-fg-subtle">
-            {{ 'continuity.contacts.memberHint' | transloco }}
-          </p>
         </app-form-field>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <app-form-field
@@ -493,10 +501,12 @@ export function moveId(ids: readonly string[], from: number, to: number): string
             {{ 'continuity.errors.contact_unreachable' | transloco }}
           </p>
         }
-        <label class="flex min-h-6 items-center gap-2 text-body text-fg">
+        <label
+          class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+        >
           <input
             type="checkbox"
-            class="h-4 w-4"
+            class="h-4 w-4 accent-[var(--accent)]"
             [checked]="d().available_24_7"
             (change)="set('available_24_7', $any($event.target).checked)"
           />
@@ -505,18 +515,21 @@ export function moveId(ids: readonly string[], from: number, to: number): string
         <app-form-field
           [label]="'continuity.contacts.fields.verifiedOn' | transloco"
           inputId="cc-verified"
+          [hint]="d().verified_on ? (d().verified_on | localDay: 'longDate') : ''"
         >
-          <input
-            id="cc-verified"
-            type="date"
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="contacts"
+            field="verified_on"
+            [label]="'continuity.contacts.fields.verifiedOn' | transloco"
+          />
+          <app-date-input
+            inputId="cc-verified"
             [max]="today"
             [value]="d().verified_on"
-            (input)="set('verified_on', $any($event.target).value)"
+            (valueChange)="set('verified_on', $event ?? '')"
           />
-          @if (d().verified_on) {
-            <p class="text-meta text-fg-subtle">{{ d().verified_on | localDay: 'longDate' }}</p>
-          }
-          <app-field-help scope="continuity" page="contacts" field="verified_on" />
         </app-form-field>
         <app-form-field [label]="'continuity.contacts.fields.notes' | transloco" inputId="cc-notes">
           <textarea
@@ -531,7 +544,7 @@ export function moveId(ids: readonly string[], from: number, to: number): string
           <app-alert>{{ key | transloco }}</app-alert>
         }
         <div class="flex justify-end gap-2">
-          <app-button variant="ghost" (click)="editorOpen.set(false)">
+          <app-button variant="secondary" (click)="editorOpen.set(false)">
             {{ 'common.cancel' | transloco }}
           </app-button>
           <app-button type="submit" [loading]="busy()">{{ 'common.save' | transloco }}</app-button>

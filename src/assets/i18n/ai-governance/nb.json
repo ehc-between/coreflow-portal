@@ -339,7 +339,13 @@
     "directionMin": "minst terskelen",
     "directionMax": "høyst terskelen",
     "unit": "Enhet (valgfritt)",
-    "changeReasonHint": "Lagres i endringshistorikken."
+    "changeReasonHint": "Lagres i endringshistorikken.",
+    "sectionHints": {
+      "what": "Hva systemet gjør, og hva det brukes til.",
+      "source": "Hvem som leverer det, og hvilke data det bruker.",
+      "people": "Hvem som eier det, fører tilsyn med det og når det gjennomgås."
+    },
+    "fixFields": "Rett feltene som er markert."
   },
   "systemDetail": {
     "about": "Om systemet",
@@ -550,7 +556,11 @@
     "created": "{{ code }} opprettet. Skriv delene nå.",
     "friaNotRequired": "(ikke påkrevd for dette systemet)",
     "whatIsFria": "Hva er en FRIA?",
-    "nextReviewHint": "La stå tom for å bruke gjennomgangsintervallet fra innstillingene."
+    "nextReviewHint": "La stå tom for å bruke gjennomgangsintervallet fra innstillingene.",
+    "sections": {
+      "what": "Vurdering",
+      "whatHint": "Hvilket system dere vurderer, hva slags vurdering og hvem som skriver den."
+    }
   },
   "assessmentEdit": {
     "title": "Rediger {{ code }}",
@@ -562,7 +572,9 @@
     "nothingDrafted": "Ingenting å fylle inn: alle delene har allerede tekst.",
     "saved": "Vurderingen er lagret.",
     "draftedOne": "1 tom del har fått et utkast. Gå gjennom og rediger den før du lagrer.",
-    "inWizard": "Klassifiseringer endres i klassifiseringsveiviseren, trinn for trinn."
+    "inWizard": "Klassifiseringer endres i klassifiseringsveiviseren, trinn for trinn.",
+    "basics": "Om vurderingen",
+    "fillRequired": "Fyll ut denne delen før du sender inn."
   },
   "assessmentDetail": {
     "complete": "Fullfør",
@@ -932,6 +944,12 @@
         "label": "Personer som arbeider med KI-systemer",
         "hint": "Eiere av og tilsynsansvarlige for KI-systemer i bruk (art. 4 gjelder ansatte som driver eller bruker KI)."
       }
+    },
+    "sections": {
+      "policy": "KI-policy",
+      "policyHint": "Dokumentet som setter reglene deres for bruk av KI.",
+      "people": "Ansvar og opplæring",
+      "peopleHint": "Hvem som følger opp KI-styringen, hvem som trenger opplæring og hvor ofte ting gjennomgås."
     }
   },
   "ai": {

@@ -38,7 +38,7 @@ export function createAssetBody(value: AssetFormValue): CreateAssetRequest {
   imports: [TranslocoPipe, Alert, AssetForm, FlowBanner, HelpStrip, PageHeader, WhyItMatters],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="assets.form.newTitle"
         descriptionKey="assets.form.newSubtitle"

@@ -160,7 +160,11 @@
       "plan": "Plan",
       "people": "People",
       "security": "Information security",
-      "change": "Change planning"
+      "change": "Change planning",
+      "purposeHint": "What the project is, why it exists and what it covers.",
+      "planHint": "When it starts, when it must be done and how important it is.",
+      "peopleHint": "Who owns the project and who works on it.",
+      "securityHint": "Whether the project affects information security, and what it must meet."
     },
     "ownerMe": "Me",
     "currentOwner": "Current owner",

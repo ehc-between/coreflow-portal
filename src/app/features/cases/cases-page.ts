@@ -15,6 +15,7 @@ import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { LanguageService } from '../../core/i18n/language.service';
 import { ModuleService } from '../../core/modules/module.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
+import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { Badge, BadgeTone } from '../../shared/ui/badge/badge';
 import { Button } from '../../shared/ui/button/button';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
@@ -60,24 +61,29 @@ export function parseType(raw: string | null): CaseType | null {
  */
 @Component({
   selector: 'app-cases-page',
-  imports: [RouterLink, TranslocoPipe, Badge, Button, EmptyState, ErrorState, Icon, LoadingState],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Badge,
+    Button,
+    EmptyState,
+    ErrorState,
+    Icon,
+    LoadingState,
+    PageHeader,
+  ],
   viewProviders: [provideSharedScope('speakup')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1240px] px-4 py-7 sm:px-6" data-testid="cases-page">
-      <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div class="min-w-0">
-          <h1 class="font-display text-page font-bold text-fg">
-            {{ 'speakup.cases.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 max-w-[62ch] text-body text-fg-muted">
-            {{ 'speakup.cases.intro' | transloco }}
-          </p>
-        </div>
-        <a routerLink="/speak-up" tabindex="-1" data-testid="report"
-          ><app-button>{{ 'speakup.cases.report' | transloco }}</app-button></a
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7" data-testid="cases-page">
+      <app-page-header titleKey="speakup.cases.title" descriptionKey="speakup.cases.intro">
+        <a primary routerLink="/speak-up" tabindex="-1" data-testid="report"
+          ><app-button>
+            <app-icon name="plus" [size]="15" />
+            {{ 'speakup.cases.report' | transloco }}</app-button
+          ></a
         >
-      </header>
+      </app-page-header>
 
       <div
         class="mb-4 flex gap-1 overflow-x-auto border-b border-border"
@@ -103,9 +109,9 @@ export function parseType(raw: string | null): CaseType | null {
         }
       </div>
 
-      <div class="mb-4 flex flex-wrap items-center gap-3">
+      <div class="mb-4 flex flex-col-reverse gap-3 lg:flex-row lg:items-start">
         <div
-          class="flex flex-wrap gap-1.5"
+          class="flex flex-1 flex-wrap gap-1.5"
           role="group"
           [attr.aria-label]="'speakup.cases.filterLabel' | transloco"
         >
@@ -131,7 +137,7 @@ export function parseType(raw: string | null): CaseType | null {
             </button>
           }
         </div>
-        <label class="relative ml-auto w-full sm:w-64">
+        <label class="relative w-full flex-none sm:w-72">
           <span class="sr-only">{{ 'speakup.cases.search' | transloco }}</span>
           <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-subtle"
             ><app-icon name="search" [size]="15"
@@ -139,7 +145,7 @@ export function parseType(raw: string | null): CaseType | null {
           <input
             type="search"
             data-testid="cases-search"
-            class="h-9 w-full rounded-tile border border-border bg-bg pr-3 pl-9 text-ui text-fg outline-none focus:border-accent"
+            class="h-9 w-full rounded-tile border border-border bg-surface pr-3 pl-9 text-ui text-fg outline-none focus:border-accent"
             [placeholder]="'speakup.cases.searchPlaceholder' | transloco"
             [value]="q()"
             (change)="go({ q: $any($event.target).value || null })"
@@ -197,7 +203,7 @@ export function parseType(raw: string | null): CaseType | null {
                     >
                     <span class="block text-ui text-fg-muted">{{ sub(item) }}</span>
                   </td>
-                  <td class="px-4 py-3.5 align-middle text-body text-fg">
+                  <td class="px-4 py-3.5 align-middle text-ui text-fg-muted">
                     {{ item.where.label || '–' }}
                   </td>
                   <td class="px-4 py-3.5 align-middle">
@@ -210,10 +216,10 @@ export function parseType(raw: string | null): CaseType | null {
                           d.text
                         }}</app-badge>
                       } @else {
-                        <span class="text-body text-fg-muted">{{ d.text }}</span>
+                        <span class="text-ui text-fg-muted">{{ d.text }}</span>
                       }
                     } @else {
-                      <span class="text-body text-fg-subtle">{{
+                      <span class="text-ui text-fg-subtle">{{
                         'speakup.cases.noDue' | transloco
                       }}</span>
                     }

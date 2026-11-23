@@ -14,24 +14,28 @@ import { RegisterColumn } from '../data/reports.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <fieldset>
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">
+    <fieldset class="min-w-0">
+      <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
         {{ 'reports.columns.legend' | transloco }}
       </legend>
-      <div class="flex flex-wrap gap-x-4 gap-y-1">
+      <div class="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3">
         @for (column of columns(); track column.key) {
-          <label class="inline-flex min-h-8 items-center gap-1.5 text-ui text-fg">
+          <label
+            class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg hover:border-border-strong"
+          >
             <input
               type="checkbox"
-              class="h-4 w-4 accent-[var(--accent)]"
+              class="h-4 w-4 shrink-0 accent-[var(--accent)]"
               [checked]="isSelected(column.key)"
               (change)="toggle(column.key)"
             />
-            {{ label(column) }}
+            <span class="min-w-0 truncate">{{ label(column) }}</span>
           </label>
         }
       </div>
-      <p class="mt-1 text-meta text-fg-subtle">{{ 'reports.columns.hint' | transloco }}</p>
+      <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
+        {{ 'reports.columns.hint' | transloco }}
+      </p>
     </fieldset>
   `,
 })

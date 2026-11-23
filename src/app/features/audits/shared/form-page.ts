@@ -1,21 +1,21 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-header';
 
 /**
  * Layout of an audit create / edit page (docs/ux-guide.md, "Form"): the shared
- * page header with breadcrumbs, the help strip, the projected fields in one
- * card at most 760 px wide, and Cancel / Save bottom-right (sticky on phones).
+ * page header with breadcrumbs, the help strip, the projected `app-form-section`
+ * cards (808 px column) and the sticky `app-form-actions` bar (Cancel / Save right).
  * Submitting the form (Enter in a field or Save) emits `save`; when the form is
  * not valid yet, `invalidKey` says what to fill in.
  */
 @Component({
   selector: 'app-audit-form-page',
-  imports: [TranslocoPipe, Button, Card, HelpStrip, LoadingState, PageHeader],
+  imports: [TranslocoPipe, Button, FormActions, HelpStrip, LoadingState, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
@@ -23,27 +23,18 @@ import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-head
       <app-help-strip scope="audits" [page]="guidePage()" [lesson]="lesson()" />
       <ng-content select="[before]" />
       @if (ready()) {
-        <form novalidate (submit)="$event.preventDefault(); submit()">
-          <app-card>
-            <div class="flex flex-col gap-5">
-              <ng-content />
-            </div>
-          </app-card>
-          <div
-            class="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg py-3 sm:static sm:border-0 sm:bg-transparent"
+        <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); submit()">
+          <ng-content />
+          <app-form-actions
+            [message]="attempted() && !canSave() && invalidKey() ? (invalidKey()! | transloco) : ''"
           >
-            @if (attempted() && !canSave() && invalidKey()) {
-              <p class="mr-auto text-meta font-semibold text-fail-ink" role="alert">
-                {{ invalidKey()! | transloco }}
-              </p>
-            }
             <app-button variant="secondary" (click)="cancelled.emit()">
               {{ 'audits.common.cancel' | transloco }}
             </app-button>
             <app-button type="submit" [loading]="busy()" [disabled]="busy()">
               {{ saveKey() | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       } @else {
         <app-loading-state [rows]="6" />

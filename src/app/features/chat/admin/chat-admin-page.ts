@@ -16,6 +16,8 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { saveBlob } from '../../org-settings/download';
 import { Button } from '../../../shared/ui/button/button';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Switch } from '../../../shared/ui/switch/switch';
@@ -31,15 +33,28 @@ type RetentionChoice = 'always' | (typeof PRESETS)[number] | 'custom';
  */
 @Component({
   selector: 'app-chat-admin-page',
-  imports: [TranslocoPipe, Button, ConfirmDialog, LoadingState, PageHeader, Switch, PeoplePicker],
+  imports: [
+    TranslocoPipe,
+    Button,
+    ConfirmDialog,
+    DateInput,
+    FormField,
+    LoadingState,
+    PageHeader,
+    Switch,
+    PeoplePicker,
+  ],
   viewProviders: [provideChatScope()],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="chat.admin.title"
         descriptionKey="chat.admin.intro"
-        backLink="/settings"
+        [breadcrumbs]="[
+          { labelKey: 'settings.hub.title', link: '/settings' },
+          { labelKey: 'chat.admin.title' },
+        ]"
       />
 
       <section
@@ -81,18 +96,20 @@ type RetentionChoice = 'always' | (typeof PRESETS)[number] | 'custom';
             }
           </fieldset>
           @if (retention() === 'custom') {
-            <label class="mt-3 block text-meta font-semibold text-fg" for="chat-retention-days">{{
-              'chat.admin.retention.customLabel' | transloco
-            }}</label>
-            <input
-              id="chat-retention-days"
-              type="number"
-              min="30"
-              max="3650"
-              class="mt-1 h-10 w-40 rounded-tile border border-border bg-surface px-3 text-ui text-fg"
-              [value]="customDays()"
-              (input)="customDays.set(numberOf($event))"
-            />
+            <app-form-field
+              class="mt-4 max-w-[240px]"
+              inputId="chat-retention-days"
+              [label]="'chat.admin.retention.customLabel' | transloco"
+            >
+              <input
+                id="chat-retention-days"
+                type="number"
+                min="30"
+                max="3650"
+                [value]="customDays()"
+                (input)="customDays.set(numberOf($event))"
+              />
+            </app-form-field>
           }
           @if (retentionInvalid()) {
             <p class="mt-2 text-meta text-fail-ink" role="alert">
@@ -223,27 +240,29 @@ type RetentionChoice = 'always' | (typeof PRESETS)[number] | 'custom';
           {{ 'chat.admin.orgExport.title' | transloco }}
         </h2>
         <p class="mt-1 text-meta text-fg-muted">{{ 'chat.admin.orgExport.hint' | transloco }}</p>
-        <div class="mt-3 flex flex-wrap items-end gap-3">
-          <label class="text-meta font-semibold text-fg">
-            {{ 'chat.admin.orgExport.after' | transloco }}
-            <input
-              type="date"
-              class="mt-1 block h-10 rounded-tile border border-border bg-surface px-3 text-ui"
+        <div class="mt-4 grid grid-cols-1 items-end gap-x-4 gap-y-3 sm:grid-cols-[1fr_1fr_auto]">
+          <app-form-field
+            inputId="chat-export-after"
+            [label]="'chat.admin.orgExport.after' | transloco"
+          >
+            <app-date-input
+              inputId="chat-export-after"
               [value]="after()"
-              (input)="after.set(textOf($event))"
+              (valueChange)="after.set($event ?? '')"
             />
-          </label>
-          <label class="text-meta font-semibold text-fg">
-            {{ 'chat.admin.orgExport.before' | transloco }}
-            <input
-              type="date"
-              class="mt-1 block h-10 rounded-tile border border-border bg-surface px-3 text-ui"
+          </app-form-field>
+          <app-form-field
+            inputId="chat-export-before"
+            [label]="'chat.admin.orgExport.before' | transloco"
+          >
+            <app-date-input
+              inputId="chat-export-before"
               [value]="before()"
-              (input)="before.set(textOf($event))"
+              (valueChange)="before.set($event ?? '')"
             />
-          </label>
+          </app-form-field>
           <app-button
-            size="sm"
+            class="sm:mb-px"
             variant="secondary"
             [disabled]="!rangeValid()"
             [loading]="exporting()"

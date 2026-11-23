@@ -34,95 +34,97 @@ interface TypicalChip {
   imports: [FormsModule, TranslocoPipe, AskAbout, ClausePicker, Icon, DeviationFormRow],
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'contents' },
   template: `
-    <div class="flex flex-col gap-4">
-      <app-deviation-form-row
-        labelKey="deviations.form.requirements"
+    <app-deviation-form-row
+      span="full"
+      labelKey="deviations.form.requirements"
+      [inputId]="idPrefix() + '-requirements'"
+      [page]="page()"
+      help="requirements"
+      hintKey="deviations.form.requirementsHint"
+      [plain]="true"
+    >
+      <app-ask-about
+        ask
+        field="requirements"
+        [fieldLabel]="'deviations.form.requirements' | transloco"
+        [requirements]="refs()"
+      />
+      <app-clause-picker
         [inputId]="idPrefix() + '-requirements'"
-        [page]="page()"
-        help="requirements"
-        hintKey="deviations.form.requirementsHint"
-        [plain]="true"
-      >
-        <app-ask-about
-          ask
-          field="requirements"
-          [fieldLabel]="'deviations.form.requirements' | transloco"
-          [requirements]="refs()"
-        />
-        <app-clause-picker
-          [inputId]="idPrefix() + '-requirements'"
-          [frameworks]="frameworks"
-          [ngModel]="refs()"
-          (ngModelChange)="refs.set($event ?? [])"
-          [ariaLabel]="'deviations.form.requirements' | transloco"
-          placeholderKey="deviations.form.requirementsPlaceholder"
-        />
-      </app-deviation-form-row>
+        [frameworks]="frameworks"
+        [ngModel]="refs()"
+        (ngModelChange)="refs.set($event ?? [])"
+        [ariaLabel]="'deviations.form.requirements' | transloco"
+        placeholderKey="deviations.form.requirementsPlaceholder"
+      />
+    </app-deviation-form-row>
 
-      @if (typicalChips().length) {
-        <div class="-mt-2 flex flex-wrap items-center gap-1.5" data-testid="typical-clauses">
-          <span class="text-meta text-fg-muted">{{ 'deviations.form.typical' | transloco }}</span>
-          @for (chip of typicalChips(); track chip.ref) {
-            <button
-              type="button"
-              class="inline-flex min-h-7 items-center gap-1 rounded-full border border-dashed border-border-strong bg-surface px-2.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent"
-              [attr.aria-label]="
-                'deviations.form.addTypical'
-                  | transloco
-                    : {
-                        short: chip.shortKey ? (chip.shortKey | transloco) : chip.short,
-                        number: chip.number,
-                      }
-              "
-              (click)="addTypical(chip.ref)"
+    @if (typicalChips().length) {
+      <div
+        class="-mt-3 flex flex-wrap items-center gap-1.5 sm:col-span-2"
+        data-testid="typical-clauses"
+      >
+        <span class="text-meta text-fg-muted">{{ 'deviations.form.typical' | transloco }}</span>
+        @for (chip of typicalChips(); track chip.ref) {
+          <button
+            type="button"
+            class="inline-flex min-h-7 items-center gap-1 rounded-full border border-dashed border-border-strong bg-surface px-2.5 text-meta font-semibold text-fg-muted hover:border-accent hover:text-accent"
+            [attr.aria-label]="
+              'deviations.form.addTypical'
+                | transloco
+                  : {
+                      short: chip.shortKey ? (chip.shortKey | transloco) : chip.short,
+                      number: chip.number,
+                    }
+            "
+            (click)="addTypical(chip.ref)"
+          >
+            <app-icon name="plus" [size]="12" />
+            {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} · {{ chip.number }}
+          </button>
+        }
+      </div>
+    }
+
+    <app-deviation-form-row
+      span="full"
+      labelKey="deviations.create.fields.tags"
+      [inputId]="idPrefix() + '-tag'"
+      [page]="page()"
+      hintKey="deviations.form.tagsHint"
+    >
+      @if (tags().length) {
+        <div class="mb-1.5 flex flex-wrap gap-1.5">
+          @for (t of tags(); track t) {
+            <span
+              class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta font-medium text-fg"
             >
-              <app-icon name="plus" [size]="12" />
-              {{ chip.shortKey ? (chip.shortKey | transloco) : chip.short }} · {{ chip.number }}
-            </button>
+              {{ t }}
+              <button
+                type="button"
+                [attr.aria-label]="'deviations.create.removeTagNamed' | transloco: { tag: t }"
+                (click)="removeTag(t)"
+                class="flex rounded-full p-0.5 text-fg-subtle hover:bg-surface hover:text-fg"
+              >
+                <app-icon name="x" [size]="13" />
+              </button>
+            </span>
           }
         </div>
       }
-
-      <app-deviation-form-row
-        labelKey="deviations.create.fields.tags"
-        [inputId]="idPrefix() + '-tag'"
-        [page]="page()"
-        hintKey="deviations.form.tagsHint"
-        [plain]="true"
-      >
-        @if (tags().length) {
-          <div class="mb-1.5 flex flex-wrap gap-1.5">
-            @for (t of tags(); track t) {
-              <span
-                class="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2.5 text-meta font-medium text-fg"
-              >
-                {{ t }}
-                <button
-                  type="button"
-                  [attr.aria-label]="'deviations.create.removeTagNamed' | transloco: { tag: t }"
-                  (click)="removeTag(t)"
-                  class="flex rounded-full p-0.5 text-fg-subtle hover:bg-surface hover:text-fg"
-                >
-                  <app-icon name="x" [size]="13" />
-                </button>
-              </span>
-            }
-          </div>
-        }
-        <input
-          [id]="idPrefix() + '-tag'"
-          type="text"
-          [value]="tagDraft()"
-          (input)="tagDraft.set($any($event.target).value)"
-          (keydown.enter)="addTag($event)"
-          (blur)="commitTagDraft()"
-          [placeholder]="'deviations.create.tagPlaceholder' | transloco"
-          autocomplete="off"
-          class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-        />
-      </app-deviation-form-row>
-    </div>
+      <input
+        [id]="idPrefix() + '-tag'"
+        type="text"
+        [value]="tagDraft()"
+        (input)="tagDraft.set($any($event.target).value)"
+        (keydown.enter)="addTag($event)"
+        (blur)="commitTagDraft()"
+        [placeholder]="'deviations.create.tagPlaceholder' | transloco"
+        autocomplete="off"
+      />
+    </app-deviation-form-row>
   `,
 })
 export class DeviationClassificationFields {

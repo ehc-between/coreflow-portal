@@ -80,7 +80,10 @@
       "obligations": "Laws and regulations that apply",
       "control": "Control and ownership",
       "preparedness": "Emergency preparedness",
-      "evaluateHow": "How the significance was scored"
+      "evaluateHow": "How the significance was scored",
+      "identifyHint": "What you do, how it can affect the environment, and when it happens.",
+      "evaluateHint": "Score the aspect to see whether it is significant.",
+      "controlHint": "How you keep the impact under control, and who follows it up."
     },
     "notices": {
       "controls": "This aspect is significant, but nothing controls it yet. Link a procedure, process or objective, or describe the controls.",
@@ -183,7 +186,10 @@
       "response": "Response",
       "drillRhythm": "Drill rhythm",
       "drillsAndReview": "Drills and review",
-      "ownership": "Ownership and review"
+      "ownership": "Ownership and review",
+      "scenarioHint": "The emergency the plan prepares for, and where it can happen.",
+      "responseHint": "What to do when it happens, and what you need to do it.",
+      "ownershipHint": "Who owns the plan, and when it is reviewed next."
     },
     "notices": {
       "drill": "The plan has not been tested in the last year. Hold a drill or a tabletop exercise.",
@@ -274,7 +280,9 @@
     "sections": {
       "what": "What is measured",
       "emissions": "Greenhouse gas emissions",
-      "ownership": "Ownership and reminders"
+      "ownership": "Ownership and reminders",
+      "whatHint": "What you measure, in which unit, and how.",
+      "ownershipHint": "Who owns the indicator, and when to be reminded to record values."
     },
     "unitHint": "For example kWh, m3, kg, l or tonnes.",
     "targetTitle": "Target and progress",

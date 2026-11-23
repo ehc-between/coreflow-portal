@@ -127,6 +127,7 @@
     "reviewDueLabel": "Review the effect by {{ date }}",
     "intro": "Contain the problem now, remove the cause, then check that it worked.",
     "optional": "optional",
+    "optionalHint": "Optional for containment actions.",
     "kindHelp": {
       "containment": "Limits the harm right now (ISO 10.2 a). Checking the effect is optional.",
       "corrective": "Removes the cause so it does not happen again (ISO 10.2 b–c).",
@@ -195,7 +196,9 @@
       "qrLabel": "QR code for the reporting form",
       "posterHint": "Put the poster on a notice board or in the staff room, so everyone can find the form.",
       "poster": "Download poster",
-      "preview": "Open the form"
+      "preview": "Open the form",
+      "formTitle": "Reporting channel",
+      "formHint": "Whether the public form is open, who it is for, and what reporters see."
     },
     "inbox": {
       "link": "Received reports",
@@ -624,7 +627,15 @@
       "advanced": "Advanced",
       "keyHint": "Made from the name. Change it only if an integration needs a fixed key.",
       "defaultClauses": "Typical requirements",
-      "defaultClausesHint": "Offered as one-click links on deviations of this type. Leave empty to use the defaults of the standards."
+      "defaultClausesHint": "Offered as one-click links on deviations of this type. Leave empty to use the defaults of the standards.",
+      "sections": {
+        "basics": "Basics",
+        "basicsHint": "The name people pick when they report, and the code prefix of its cases.",
+        "requirements": "Requirements",
+        "requirementsHint": "The standards this type of case belongs to, and the clauses it usually affects.",
+        "workflow": "Workflow",
+        "workflowHint": "An optional workflow with its own fields and steps, and the technical key."
+      }
     }
   },
   "statusPair": {

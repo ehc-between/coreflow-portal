@@ -20,6 +20,7 @@ import { startOfDay, todayDay } from '../../../shared/tasks/task-display';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { KpiTile } from '../../../shared/ui/kpi-tile/kpi-tile';
@@ -94,6 +95,7 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
     Button,
     Card,
     ConfirmDialog,
+    DateInput,
     ErrorState,
     Icon,
     KpiTile,
@@ -207,7 +209,7 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
                   <input
                     id="lit-search"
                     type="search"
-                    class="h-9 w-full max-w-[260px] rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                    class="h-10 w-full max-w-[260px] rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                     [placeholder]="'aiGovernance.literacy.searchPeople' | transloco"
                     [value]="peopleQuery()"
                     (input)="peopleQuery.set($any($event.target).value)"
@@ -437,28 +439,28 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
             }
           </select>
         </app-ai-field>
-        <app-ai-field
-          inputId="lit-completed"
-          labelKey="aiGovernance.literacy.completedAt"
-          [required]="true"
-        >
-          <input
-            id="lit-completed"
-            type="date"
-            required
-            [value]="draft().completed"
-            (input)="patch({ completed: $any($event.target).value })"
-          />
-        </app-ai-field>
-        <app-ai-field inputId="lit-valid" labelKey="aiGovernance.literacy.validUntilLabel">
-          <input
-            id="lit-valid"
-            type="date"
-            [value]="draft().valid_until"
-            (input)="patch({ valid_until: $any($event.target).value })"
-          />
-          <span hint>{{ 'aiGovernance.literacy.validUntilHint' | transloco }}</span>
-        </app-ai-field>
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
+          <app-ai-field
+            inputId="lit-completed"
+            labelKey="aiGovernance.literacy.completedAt"
+            [required]="true"
+          >
+            <app-date-input
+              inputId="lit-completed"
+              [required]="true"
+              [value]="draft().completed"
+              (valueChange)="patch({ completed: $event ?? '' })"
+            />
+          </app-ai-field>
+          <app-ai-field inputId="lit-valid" labelKey="aiGovernance.literacy.validUntilLabel">
+            <app-date-input
+              inputId="lit-valid"
+              [value]="draft().valid_until"
+              (valueChange)="patch({ valid_until: $event ?? '' })"
+            />
+            <span hint>{{ 'aiGovernance.literacy.validUntilHint' | transloco }}</span>
+          </app-ai-field>
+        </div>
         <app-ai-field inputId="lit-notes" labelKey="aiGovernance.literacy.notes">
           <textarea
             id="lit-notes"
@@ -473,7 +475,7 @@ export function filterPeople(people: readonly LiteracyUser[], q: string): Litera
             {{ formError()! | transloco }}
           </p>
         }
-        <div class="flex justify-end gap-2">
+        <div class="flex justify-end gap-2 border-t border-border pt-4">
           <app-button variant="secondary" (click)="formOpen.set(false)">{{
             'aiGovernance.common.cancel' | transloco
           }}</app-button>

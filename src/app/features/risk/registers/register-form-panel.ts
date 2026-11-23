@@ -63,8 +63,8 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
       [closeLabel]="'risk.common.close' | transloco"
       (closed)="closed.emit()"
     >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()" novalidate>
-        <app-risk-field inputId="register-name" labelKey="risk.registers.name">
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+        <app-risk-field inputId="register-name" labelKey="risk.registers.name" [required]="true">
           <input
             id="register-name"
             required
@@ -133,7 +133,9 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
             (input)="set('review_interval_months', $any($event.target).value)"
           />
         </app-risk-field>
-        <label class="inline-flex items-center gap-2 text-ui text-fg">
+        <label
+          class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+        >
           <input
             type="checkbox"
             [checked]="form().is_default"
@@ -142,7 +144,9 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
           {{ 'risk.registers.isDefault' | transloco }}
         </label>
         @if (register()) {
-          <label class="inline-flex items-center gap-2 text-ui text-fg">
+          <label
+            class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+          >
             <input
               type="checkbox"
               [checked]="form().status === 'archived'"
@@ -154,7 +158,10 @@ function toForm(r: Register | null, matrices: readonly Matrix[]): RegisterForm {
         @if (errorKey(); as key) {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         }
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-2 border-t border-border pt-4">
+          <app-button variant="secondary" (click)="closed.emit()">{{
+            'risk.common.cancel' | transloco
+          }}</app-button>
           <app-button
             type="submit"
             [loading]="saving()"

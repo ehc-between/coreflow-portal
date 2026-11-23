@@ -25,7 +25,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Pager } from '../../../shared/ui/pager/pager';
-import { statusLabelKey } from '../document-status';
+import { documentTypeName, statusLabelKey } from '../document-status';
 import { toneFor } from '../../../shared/ui/tones';
 import { DocumentControlApi } from '../data/document-control-api';
 import {
@@ -348,7 +348,7 @@ export function registerQuery(
                           </div>
                         </td>
                         <td class="px-2 py-2.5 text-fg-muted">
-                          {{ r.type_name || r.type || '—' }}
+                          {{ r.type ? typeName(r) : '—' }}
                         </td>
                         <td class="px-2 py-2.5 font-mono text-meta text-fg-muted">
                           {{ r.revision || '—' }}
@@ -415,6 +415,14 @@ export class DocumentRegisterPage {
   private readonly router = inject(Router);
   private readonly toasts = inject(NotificationService);
   protected readonly perms = inject(DocumentControlPermissions);
+
+  /** Type label: the type's name, else the key made readable ("context_analysis" → "Context analysis"). */
+  protected typeName(r: {
+    readonly type: string | null;
+    readonly type_name: string | null;
+  }): string {
+    return documentTypeName({ type: r.type ?? '', type_name: r.type_name });
+  }
 
   protected readonly statusFilters = REGISTER_STATUS_FILTERS;
   protected readonly sorts = REGISTER_SORTS;

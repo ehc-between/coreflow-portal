@@ -26,7 +26,10 @@ export const AI_GOV_ROOT: Breadcrumb = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div
+      class="mx-auto px-4 pt-6 pb-12 sm:px-8 sm:pt-7"
+      [class]="narrow() ? 'max-w-[808px]' : 'max-w-[1180px]'"
+    >
       <app-page-header
         [titleKey]="titleKey()"
         [titleParams]="titleParams()"
@@ -71,6 +74,8 @@ export class AiGovPage {
   /** Show the module sub-navigation (off on forms and sub-pages of a record). */
   readonly nav = input(true);
   readonly why = input(true);
+  /** Form pages: the 808 px form column of the form anatomy (docs/ux-guide.md §2.4). */
+  readonly narrow = input(false);
   /** A configuration page (U10): Settings crumbs and the configuration nav, no module tabs. */
   readonly config = input(false);
   readonly settingsLink = input<string | null>('/settings/modules/ai-governance');

@@ -66,8 +66,8 @@ let nextId = 0;
           [attr.aria-expanded]="results().length > 0"
           [attr.aria-activedescendant]="active() >= 0 ? listId + '-' + active() : null"
           [attr.aria-describedby]="describedBy() || null"
-          class="h-full min-w-0 flex-1 bg-transparent text-ui text-fg outline-none"
           data-bare
+          class="cf-bare h-full min-w-0 flex-1 bg-transparent text-ui text-fg outline-none"
           [placeholder]="placeholderKey() | transloco"
           [value]="query()"
           (input)="query.set($any($event.target).value)"

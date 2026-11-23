@@ -12,9 +12,9 @@ import { Subject, debounceTime, switchMap } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
-import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
@@ -49,9 +49,9 @@ type Mode = 'existing' | 'new';
   imports: [
     RouterLink,
     TranslocoPipe,
-    Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     HelpStrip,
     Icon,
     PageHeader,
@@ -60,17 +60,25 @@ type Mode = 'existing' | 'new';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="recruitment.applicationNew.title"
         [breadcrumbs]="breadcrumbs"
         backLink="/recruitment/applications"
         backLabelKey="recruitment.common.back"
       />
-      <app-help-strip scope="recruitment" page="applicationNew" lesson="candidate-privacy" />
+      <app-help-strip
+        class="mb-5 block"
+        scope="recruitment"
+        page="applicationNew"
+        lesson="candidate-privacy"
+      />
       <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); save()">
-        <p class="text-meta text-fg-muted">{{ 'recruitment.form.requiredNote' | transloco }}</p>
-        <app-card>
+        <app-form-section
+          [title]="'recruitment.applicationNew.requisitionSection' | transloco"
+          [description]="'recruitment.applicationNew.requisitionHint' | transloco"
+          [columns]="1"
+        >
           <app-recruitment-field
             labelKey="recruitment.fields.requisition"
             inputId="app-requisition"
@@ -93,22 +101,29 @@ type Mode = 'existing' | 'new';
                 </option>
               }
             </select>
+            @if (requisitions().length === 0 && loaded()) {
+              <p class="text-meta leading-snug text-warn-ink">
+                {{ 'recruitment.applicationNew.noOpenRequisitions' | transloco }}
+              </p>
+            }
           </app-recruitment-field>
-          @if (requisitions().length === 0 && loaded()) {
-            <p class="mt-2 text-meta text-warn-ink">
-              {{ 'recruitment.applicationNew.noOpenRequisitions' | transloco }}
-            </p>
-          }
-        </app-card>
+        </app-form-section>
 
-        <app-card>
-          <fieldset>
-            <legend class="mb-3 text-card font-bold text-fg">
+        <app-form-section
+          [title]="'recruitment.applicationNew.candidate' | transloco"
+          [description]="'recruitment.applicationNew.candidateHint' | transloco"
+        >
+          <fieldset class="min-w-0 sm:col-span-2">
+            <legend class="sr-only">
               {{ 'recruitment.applicationNew.candidate' | transloco }}
-              <span class="text-fail" aria-hidden="true">*</span>
             </legend>
-            <div class="mb-4 flex flex-wrap gap-4 text-body">
-              <label class="inline-flex min-h-6 items-center gap-2">
+            <div class="grid grid-cols-2 gap-2">
+              <label
+                class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border px-3 text-ui"
+                [class.border-accent]="mode() === 'existing'"
+                [class.bg-accent-soft]="mode() === 'existing'"
+                [class.border-border]="mode() !== 'existing'"
+              >
                 <input
                   type="radio"
                   name="mode"
@@ -118,7 +133,12 @@ type Mode = 'existing' | 'new';
                 />
                 {{ 'recruitment.applicationNew.existing' | transloco }}
               </label>
-              <label class="inline-flex min-h-6 items-center gap-2">
+              <label
+                class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border px-3 text-ui"
+                [class.border-accent]="mode() === 'new'"
+                [class.bg-accent-soft]="mode() === 'new'"
+                [class.border-border]="mode() !== 'new'"
+              >
                 <input
                   type="radio"
                   name="mode"
@@ -130,22 +150,24 @@ type Mode = 'existing' | 'new';
                 {{ 'recruitment.applicationNew.newCandidate' | transloco }}
               </label>
             </div>
-            @if (mode() === 'existing') {
-              <app-recruitment-field
-                labelKey="recruitment.applicationNew.findCandidate"
-                inputId="app-cand-search"
-                [error]="shown() && !candidateId() ? 'recruitment.form.errors.candidate' : null"
-              >
-                <input
-                  id="app-cand-search"
-                  type="search"
-                  autocomplete="off"
-                  [value]="candidateQuery()"
-                  (input)="searchCandidates($any($event.target).value)"
-                />
-              </app-recruitment-field>
+          </fieldset>
+          @if (mode() === 'existing') {
+            <app-recruitment-field
+              span="full"
+              labelKey="recruitment.applicationNew.findCandidate"
+              inputId="app-cand-search"
+              [required]="true"
+              [error]="shown() && !candidateId() ? 'recruitment.form.errors.candidate' : null"
+            >
+              <input
+                id="app-cand-search"
+                type="search"
+                autocomplete="off"
+                [value]="candidateQuery()"
+                (input)="searchCandidates($any($event.target).value)"
+              />
               <ul
-                class="mt-2 flex max-h-[260px] flex-col overflow-y-auto"
+                class="flex max-h-[260px] flex-col overflow-y-auto rounded-tile border border-border"
                 role="listbox"
                 [attr.aria-label]="'recruitment.applicationNew.findCandidate' | transloco"
               >
@@ -153,7 +175,7 @@ type Mode = 'existing' | 'new';
                   <li role="option" [attr.aria-selected]="c.id === candidateId()">
                     <button
                       type="button"
-                      class="flex w-full items-center gap-2 rounded-tile px-2.5 py-2 text-left text-ui hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                      class="flex w-full items-center gap-2 px-3 py-2 text-left text-ui hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       [class.bg-accent-soft]="c.id === candidateId()"
                       (click)="candidateId.set(c.id)"
                     >
@@ -165,26 +187,30 @@ type Mode = 'existing' | 'new';
                     </button>
                   </li>
                 } @empty {
-                  <li class="px-2.5 py-2 text-ui text-fg-muted">
+                  <li class="px-3 py-2 text-ui text-fg-muted">
                     {{ 'recruitment.common.noMatches' | transloco }}
                   </li>
                 }
               </ul>
-            } @else {
-              <app-candidate-fields
-                [draft]="newCandidate()"
-                (draftChange)="newCandidate.set($event)"
-                [nameError]="
-                  shown() && !newCandidate().full_name.trim()
-                    ? 'recruitment.form.errors.fullName'
-                    : null
-                "
-              />
-            }
-          </fieldset>
-        </app-card>
+            </app-recruitment-field>
+          } @else {
+            <app-candidate-fields
+              [draft]="newCandidate()"
+              (draftChange)="newCandidate.set($event)"
+              [nameError]="
+                shown() && !newCandidate().full_name.trim()
+                  ? 'recruitment.form.errors.fullName'
+                  : null
+              "
+            />
+          }
+        </app-form-section>
 
-        <app-card>
+        <app-form-section
+          [title]="'recruitment.applicationNew.applicationSection' | transloco"
+          [description]="'recruitment.applicationNew.applicationHint' | transloco"
+          [columns]="1"
+        >
           <app-recruitment-field
             labelKey="recruitment.fields.coverNote"
             inputId="app-cover"
@@ -199,21 +225,16 @@ type Mode = 'existing' | 'new';
               (input)="coverNote.set($any($event.target).value)"
             ></textarea>
           </app-recruitment-field>
-        </app-card>
+        </app-form-section>
 
-        @if (saveError(); as key) {
-          <app-alert>{{ key | transloco }}</app-alert>
-        }
-        <div
-          class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-        >
+        <app-form-actions [message]="saveError() ? (saveError()! | transloco) : ''">
           <a routerLink="/recruitment/applications">
             <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
           </a>
           <app-button type="submit" [loading]="saving()" data-testid="app-new-save">
             {{ 'recruitment.applicationNew.submit' | transloco }}
           </app-button>
-        </div>
+        </app-form-actions>
       </form>
     </div>
   `,

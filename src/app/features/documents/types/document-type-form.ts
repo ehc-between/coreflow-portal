@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -19,9 +19,11 @@ import { TourStepDirective } from '../../../shared/guidance/tour-step.directive'
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
@@ -115,16 +117,17 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
   selector: 'app-document-type-form',
   imports: [
     NgTemplateOutlet,
-    RouterLink,
     TranslocoPipe,
     FieldHelp,
     TourStepDirective,
     RecordDetailLayout,
     Alert,
     Button,
-    Card,
     ConfirmDialog,
+    FormActions,
     FormField,
+    FormSection,
+    PageHeader,
     Icon,
     DocumentsPageGuide,
   ],
@@ -136,150 +139,158 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
         @if (errorKey(); as key) {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         }
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
           <fieldset class="contents" [disabled]="!perms.canManage()">
-            <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-form-field
-                  inputId="type-name"
-                  [label]="'documents.control.types.fields.name' | transloco"
-                >
-                  <input
-                    id="type-name"
-                    type="text"
-                    required
-                    maxlength="120"
-                    [value]="form().name"
-                    (input)="set('name', $any($event.target).value)"
-                    data-testid="type-name"
-                  />
-                </app-form-field>
-                <details class="sm:col-span-2" [open]="keyOpen()" data-testid="type-advanced">
-                  <summary
-                    class="cursor-pointer text-ui font-semibold text-fg-muted hover:text-fg"
-                    (click)="keyOpen.set(!keyOpen()); $event.preventDefault()"
-                  >
-                    {{ 'documents.control.types.advanced' | transloco }}
-                  </summary>
-                  <div class="mt-3 max-w-[360px]">
-                    <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                      <label for="type-key" class="text-ui font-semibold text-fg-muted">{{
-                        'documents.control.types.fields.key' | transloco
-                      }}</label>
-                      <app-field-help scope="documents" page="typeForm" field="key" />
-                    </div>
-                    <app-form-field inputId="type-key">
-                      <input
-                        id="type-key"
-                        type="text"
-                        maxlength="32"
-                        [readOnly]="!!id()"
-                        [value]="form().key"
-                        [placeholder]="'documents.control.types.keyAuto' | transloco"
-                        (input)="set('key', $any($event.target).value)"
-                        data-testid="type-key"
-                      />
-                    </app-form-field>
-                    @if (!id() && form().key && !keyValid()) {
-                      <p class="mt-1 text-meta text-fail-ink" role="alert">
-                        {{ 'documents.control.errors.invalid_type_key' | transloco }}
-                      </p>
-                    }
-                  </div>
-                </details>
-                <app-form-field
-                  class="sm:col-span-2"
-                  inputId="type-description"
-                  [label]="'documents.control.fields.description' | transloco"
-                >
-                  <textarea
-                    id="type-description"
-                    rows="2"
-                    maxlength="4000"
-                    [value]="form().description"
-                    (input)="set('description', $any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-              </div>
-            </app-card>
-
-            <app-card>
-              <h2 class="mb-3 font-display text-card font-bold text-fg">
-                {{ 'documents.control.types.numbering' | transloco }}
-              </h2>
-              <div
-                class="grid grid-cols-1 gap-4 sm:grid-cols-3"
-                [appTourStep]="'documents-type-numbering'"
+            <app-form-section
+              [title]="'documents.control.types.sections.basics' | transloco"
+              [description]="'documents.control.types.sections.basicsHint' | transloco"
+            >
+              <app-form-field
+                span="full"
+                inputId="type-name"
+                [required]="true"
+                [label]="'documents.control.types.fields.name' | transloco"
               >
-                <app-form-field
-                  inputId="type-prefix"
-                  [label]="'documents.control.types.fields.prefix' | transloco"
+                <input
+                  id="type-name"
+                  type="text"
+                  required
+                  maxlength="120"
+                  [value]="form().name"
+                  (input)="set('name', $any($event.target).value)"
+                  data-testid="type-name"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
+                inputId="type-description"
+                [label]="'documents.control.fields.description' | transloco"
+              >
+                <textarea
+                  id="type-description"
+                  rows="2"
+                  maxlength="4000"
+                  [value]="form().description"
+                  (input)="set('description', $any($event.target).value)"
+                ></textarea>
+              </app-form-field>
+              <details class="sm:col-span-2" [open]="keyOpen()" data-testid="type-advanced">
+                <summary
+                  class="cursor-pointer text-ui font-semibold text-fg-muted hover:text-fg"
+                  (click)="keyOpen.set(!keyOpen()); $event.preventDefault()"
                 >
-                  <input
-                    id="type-prefix"
-                    type="text"
-                    maxlength="16"
-                    [value]="form().prefix"
-                    (input)="set('prefix', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <div>
-                  <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                    <label for="type-format" class="text-ui font-semibold text-fg-muted">{{
-                      'documents.control.types.format' | transloco
-                    }}</label>
-                    <app-field-help scope="documents" page="typeForm" field="pattern" />
-                  </div>
-                  <app-form-field inputId="type-format">
-                    <select
-                      id="type-format"
-                      (change)="choosePreset($any($event.target).value)"
-                      data-testid="type-format"
-                    >
-                      @for (p of presets; track p) {
-                        <option [value]="p" [selected]="activePreset() === p">
-                          {{ presetExample(p) }}
-                        </option>
-                      }
-                      <option value="custom" [selected]="activePreset() === 'custom'">
-                        {{ 'documents.control.types.formatCustom' | transloco }}
-                      </option>
-                    </select>
-                  </app-form-field>
-                  @if (activePreset() === 'custom') {
-                    <app-form-field
-                      class="mt-2 block"
-                      inputId="type-pattern"
-                      [label]="'documents.control.types.fields.pattern' | transloco"
-                    >
-                      <input
-                        id="type-pattern"
-                        type="text"
-                        maxlength="64"
-                        [placeholder]="defaultPattern"
-                        [value]="form().pattern"
-                        (input)="set('pattern', $any($event.target).value)"
-                        data-testid="type-pattern"
-                      />
-                    </app-form-field>
-                  }
-                </div>
-                @if (id()) {
+                  {{ 'documents.control.types.advanced' | transloco }}
+                </summary>
+                <div class="mt-3 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
                   <app-form-field
-                    inputId="type-next"
-                    [label]="'documents.control.types.fields.nextNumber' | transloco"
+                    inputId="type-key"
+                    [label]="'documents.control.types.fields.key' | transloco"
+                    [error]="
+                      !id() && form().key && !keyValid()
+                        ? ('documents.control.errors.invalid_type_key' | transloco)
+                        : ''
+                    "
                   >
+                    <app-field-help
+                      label-suffix
+                      scope="documents"
+                      page="typeForm"
+                      field="key"
+                      [label]="'documents.control.types.fields.key' | transloco"
+                    />
                     <input
-                      id="type-next"
-                      type="number"
-                      min="1"
-                      [value]="form().nextNumber"
-                      (input)="set('nextNumber', $any($event.target).value)"
+                      id="type-key"
+                      type="text"
+                      maxlength="32"
+                      [readOnly]="!!id()"
+                      [value]="form().key"
+                      [placeholder]="'documents.control.types.keyAuto' | transloco"
+                      (input)="set('key', $any($event.target).value)"
+                      data-testid="type-key"
                     />
                   </app-form-field>
-                }
-              </div>
-              <p class="mt-3 text-ui" aria-live="polite" data-testid="type-preview">
+                </div>
+              </details>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'documents.control.types.numbering' | transloco"
+              [description]="'documents.control.types.sections.numberingHint' | transloco"
+            >
+              <app-form-field
+                [appTourStep]="'documents-type-numbering'"
+                inputId="type-prefix"
+                [label]="'documents.control.types.fields.prefix' | transloco"
+              >
+                <input
+                  id="type-prefix"
+                  type="text"
+                  maxlength="16"
+                  [value]="form().prefix"
+                  (input)="set('prefix', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                inputId="type-format"
+                [label]="'documents.control.types.format' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="documents"
+                  page="typeForm"
+                  field="pattern"
+                  [label]="'documents.control.types.format' | transloco"
+                />
+                <select
+                  id="type-format"
+                  (change)="choosePreset($any($event.target).value)"
+                  data-testid="type-format"
+                >
+                  @for (p of presets; track p) {
+                    <option [value]="p" [selected]="activePreset() === p">
+                      {{ presetExample(p) }}
+                    </option>
+                  }
+                  <option value="custom" [selected]="activePreset() === 'custom'">
+                    {{ 'documents.control.types.formatCustom' | transloco }}
+                  </option>
+                </select>
+              </app-form-field>
+              @if (activePreset() === 'custom') {
+                <app-form-field
+                  inputId="type-pattern"
+                  [label]="'documents.control.types.fields.pattern' | transloco"
+                >
+                  <input
+                    id="type-pattern"
+                    type="text"
+                    maxlength="64"
+                    [placeholder]="defaultPattern"
+                    [value]="form().pattern"
+                    (input)="set('pattern', $any($event.target).value)"
+                    data-testid="type-pattern"
+                  />
+                </app-form-field>
+              }
+              @if (id()) {
+                <app-form-field
+                  inputId="type-next"
+                  [label]="'documents.control.types.fields.nextNumber' | transloco"
+                >
+                  <input
+                    id="type-next"
+                    type="number"
+                    min="1"
+                    [value]="form().nextNumber"
+                    (input)="set('nextNumber', $any($event.target).value)"
+                  />
+                </app-form-field>
+              }
+              <p
+                class="flex min-h-10 items-center rounded-tile bg-surface-2 px-3 text-ui sm:col-span-2"
+                aria-live="polite"
+                data-testid="type-preview"
+              >
                 @if (!numberingOn()) {
                   <span class="text-fg-muted">{{
                     'documents.control.types.numberingOff' | transloco
@@ -295,48 +306,54 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                   }}</span>
                 }
               </p>
-            </app-card>
+            </app-form-section>
 
-            <app-card>
-              <h2 class="mb-3 font-display text-card font-bold text-fg">
-                {{ 'documents.control.types.defaults' | transloco }}
-              </h2>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <app-form-field
-                    inputId="type-interval"
-                    [label]="'documents.control.fields.reviewInterval' | transloco"
-                  >
-                    <input
-                      id="type-interval"
-                      type="number"
-                      min="1"
-                      max="120"
-                      [value]="form().interval"
-                      (input)="set('interval', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                  <app-field-help scope="documents" page="typeForm" field="reviewInterval" />
-                </div>
-                <app-form-field
-                  inputId="type-retention"
-                  [label]="'documents.control.fields.retentionRule' | transloco"
+            <app-form-section
+              [title]="'documents.control.types.defaults' | transloco"
+              [description]="'documents.control.types.sections.defaultsHint' | transloco"
+            >
+              <app-form-field
+                inputId="type-interval"
+                [label]="'documents.control.fields.reviewInterval' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="documents"
+                  page="typeForm"
+                  field="reviewInterval"
+                  [label]="'documents.control.fields.reviewInterval' | transloco"
+                />
+                <input
+                  id="type-interval"
+                  type="number"
+                  min="1"
+                  max="120"
+                  [value]="form().interval"
+                  (input)="set('interval', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                inputId="type-retention"
+                [label]="'documents.control.fields.retentionRule' | transloco"
+              >
+                <select
+                  id="type-retention"
+                  (change)="set('retentionId', $any($event.target).value)"
                 >
-                  <select
-                    id="type-retention"
-                    (change)="set('retentionId', $any($event.target).value)"
-                  >
-                    <option value="" [selected]="!form().retentionId">
-                      {{ 'documents.control.common.none' | transloco }}
+                  <option value="" [selected]="!form().retentionId">
+                    {{ 'documents.control.common.none' | transloco }}
+                  </option>
+                  @for (r of rules(); track r.id) {
+                    <option [value]="r.id" [selected]="r.id === form().retentionId">
+                      {{ r.name }}
                     </option>
-                    @for (r of rules(); track r.id) {
-                      <option [value]="r.id" [selected]="r.id === form().retentionId">
-                        {{ r.name }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <label class="inline-flex items-start gap-2 text-ui text-fg sm:col-span-2">
+                  }
+                </select>
+              </app-form-field>
+              <div class="flex flex-col gap-2 sm:col-span-2">
+                <label
+                  class="flex min-h-10 items-start gap-2.5 rounded-tile border border-border px-3 py-2.5 text-ui text-fg"
+                >
                   <input
                     type="checkbox"
                     class="mt-0.5"
@@ -344,13 +361,17 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                     (change)="set('ack', $any($event.target).checked)"
                   />
                   <span>
-                    {{ 'documents.control.types.fields.ack' | transloco }}
+                    <span class="font-medium">{{
+                      'documents.control.types.fields.ack' | transloco
+                    }}</span>
                     <span class="block text-meta text-fg-subtle">{{
                       'documents.control.types.ackHint' | transloco
                     }}</span>
                   </span>
                 </label>
-                <label class="inline-flex items-start gap-2 text-ui text-fg sm:col-span-2">
+                <label
+                  class="flex min-h-10 items-start gap-2.5 rounded-tile border border-border px-3 py-2.5 text-ui text-fg"
+                >
                   <input
                     type="checkbox"
                     class="mt-0.5"
@@ -359,13 +380,17 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                     data-testid="type-handbook"
                   />
                   <span>
-                    {{ 'documents.control.types.fields.handbook' | transloco }}
+                    <span class="font-medium">{{
+                      'documents.control.types.fields.handbook' | transloco
+                    }}</span>
                     <span class="block text-meta text-fg-subtle">{{
                       'documents.control.types.handbookHint' | transloco
                     }}</span>
                   </span>
                 </label>
-                <label class="inline-flex items-center gap-2 text-ui text-fg sm:col-span-2">
+                <label
+                  class="flex min-h-10 items-center gap-2.5 rounded-tile border border-border px-3 text-ui font-medium text-fg"
+                >
                   <input
                     type="checkbox"
                     [checked]="form().active"
@@ -373,27 +398,32 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
                   />
                   {{ 'documents.control.common.active' | transloco }}
                 </label>
-                @if (id()) {
-                  <app-form-field
-                    class="sm:col-span-2"
-                    inputId="type-reason"
-                    [label]="'documents.control.fields.changeReason' | transloco"
-                  >
-                    <input
-                      id="type-reason"
-                      type="text"
-                      maxlength="2000"
-                      [value]="changeReason()"
-                      (input)="changeReason.set($any($event.target).value)"
-                    />
-                  </app-form-field>
-                }
               </div>
-            </app-card>
+            </app-form-section>
+
+            @if (id()) {
+              <app-form-section [columns]="1">
+                <app-form-field
+                  inputId="type-reason"
+                  [label]="'documents.control.fields.changeReason' | transloco"
+                >
+                  <input
+                    id="type-reason"
+                    type="text"
+                    maxlength="2000"
+                    [value]="changeReason()"
+                    (input)="changeReason.set($any($event.target).value)"
+                  />
+                </app-form-field>
+              </app-form-section>
+            }
           </fieldset>
 
           @if (perms.canManage()) {
-            <div class="flex flex-wrap items-center gap-2">
+            <app-form-actions>
+              <app-button type="button" variant="secondary" (click)="cancel()">
+                {{ 'documents.control.common.cancel' | transloco }}
+              </app-button>
               <app-button
                 type="submit"
                 [disabled]="!canSave()"
@@ -402,12 +432,7 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
               >
                 {{ 'documents.control.common.save' | transloco }}
               </app-button>
-              <a routerLink="/settings/modules/documents/types">
-                <app-button type="button" variant="ghost">
-                  {{ 'documents.control.common.cancel' | transloco }}
-                </app-button>
-              </a>
-            </div>
+            </app-form-actions>
           }
         </form>
       </div>
@@ -464,17 +489,19 @@ export function typeBody(v: TypeFormValue): DocumentTypeCreate {
         </p>
       }
     } @else {
-      <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-        <a
-          routerLink="/settings/modules/documents/types"
-          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
-        >
-          <app-icon name="back" [size]="16" />
-          {{ 'documents.control.types.back' | transloco }}
-        </a>
-        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
-          {{ 'documents.control.types.new' | transloco }}
-        </h1>
+      <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+        <app-page-header
+          titleKey="documents.control.types.new"
+          [breadcrumbs]="[
+            {
+              labelKey: 'documents.control.types.title',
+              link: '/settings/modules/documents/types',
+            },
+            { labelKey: 'documents.control.types.new' },
+          ]"
+          backLink="/settings/modules/documents/types"
+          backLabelKey="documents.control.types.back"
+        />
         <ng-container [ngTemplateOutlet]="formTpl" />
       </div>
     }
@@ -582,6 +609,10 @@ export class DocumentTypeFormPage {
 
   protected set<K extends keyof TypeFormValue>(key: K, value: TypeFormValue[K]): void {
     this.form.update((f) => ({ ...f, [key]: value }));
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/settings/modules/documents/types']);
   }
 
   protected save(): void {

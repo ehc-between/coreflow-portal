@@ -24,6 +24,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { FieldItem, FieldList } from '../../../shared/ui/field-list/field-list';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
@@ -162,6 +163,7 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
     FieldHelp,
     FieldItem,
     FieldList,
+    DateInput,
     FormField,
     Icon,
     StatusBadge,
@@ -239,21 +241,18 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
                 | transloco
             }}
           </h3>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
             <app-form-field
               [label]="'assets.fields.performedOn' | transloco"
               inputId="cal-date"
               [required]="true"
             >
-              <input
-                id="cal-date"
-                type="date"
-                required
-                aria-required="true"
-                [attr.lang]="lang()"
-                [attr.aria-invalid]="showErrors() && !d().performed_on"
+              <app-date-input
+                inputId="cal-date"
+                [required]="true"
+                [invalid]="showErrors() && !d().performed_on"
                 [value]="d().performed_on"
-                (input)="set('performed_on', $any($event.target).value)"
+                (valueChange)="set('performed_on', $event ?? '')"
               />
             </app-form-field>
             <app-form-field
@@ -312,25 +311,20 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
                 (input)="set('certificate_number', $any($event.target).value)"
               />
             </app-form-field>
-            <div>
-              <app-form-field [label]="'assets.fields.nextDueOn' | transloco" inputId="cal-next">
-                <input
-                  id="cal-next"
-                  type="date"
-                  aria-describedby="cal-next-hint"
-                  [attr.lang]="lang()"
-                  [value]="d().next_due_on"
-                  (input)="set('next_due_on', $any($event.target).value)"
-                />
-              </app-form-field>
-              <p id="cal-next-hint" class="mt-1 text-meta text-fg-subtle">
+            <app-form-field [label]="'assets.fields.nextDueOn' | transloco" inputId="cal-next">
+              <app-date-input
+                inputId="cal-next"
+                [value]="d().next_due_on"
+                (valueChange)="set('next_due_on', $event ?? '')"
+              />
+              <p hint class="text-meta leading-snug text-fg-subtle">
                 @if (defaultNextDue(); as date) {
                   {{ 'assets.calibration.nextDueDefault' | transloco: { date: (date | localDay) } }}
                 } @else {
                   {{ 'assets.calibration.nextDueNoInterval' | transloco }}
                 }
               </p>
-            </div>
+            </app-form-field>
           </div>
 
           <details class="mt-4 rounded-tile border border-border px-3 py-2" [open]="traceOpen()">
@@ -340,7 +334,7 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
                 'assets.calibration.traceHint' | transloco
               }}</span>
             </summary>
-            <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="mt-3 grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
               @for (f of traceFields; track f) {
                 <app-form-field [label]="traceLabel(f) | transloco" [inputId]="'cal-' + f">
                   <input
@@ -372,14 +366,13 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
                   id="cal-impact"
                   rows="3"
                   maxlength="10000"
-                  aria-describedby="cal-impact-hint"
                   [value]="d().impact_assessment"
                   (input)="set('impact_assessment', $any($event.target).value)"
                 ></textarea>
+                <p hint class="text-meta leading-snug text-fg-subtle">
+                  {{ 'assets.calibration.impactHint' | transloco }}
+                </p>
               </app-form-field>
-              <p id="cal-impact-hint" class="mt-1 text-meta text-fg-subtle">
-                {{ 'assets.calibration.impactHint' | transloco }}
-              </p>
             </div>
           }
           <div class="mt-4">
@@ -396,8 +389,8 @@ const TRACE_LABELS: Readonly<Record<TraceField, string>> = {
           @if (error(); as key) {
             <p class="mt-2 text-meta text-fail-ink" role="alert">{{ key | transloco }}</p>
           }
-          <div class="mt-4 flex justify-end gap-2">
-            <app-button variant="ghost" size="sm" (click)="closeForm()">
+          <div class="mt-4 flex justify-end gap-2 border-t border-border pt-4">
+            <app-button variant="secondary" size="sm" (click)="closeForm()">
               {{ 'common.cancel' | transloco }}
             </app-button>
             <app-button type="submit" size="sm" [loading]="busy()">

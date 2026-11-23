@@ -39,6 +39,7 @@ import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Pager } from '../../../shared/ui/pager/pager';
 import { provideTasksPageContext } from '../tasks-page-context';
 import { FulfilsRequirements } from '../../../shared/requirement-locations/fulfils-requirements';
@@ -88,43 +89,37 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
     TaskLesson,
     TaskTeachingEmpty,
     TaskWhyItMatters,
+    PageHeader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1120px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        routerLink="/my-work"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="tasks.list.title"
+        descriptionKey="tasks.list.subtitle"
+        [breadcrumbs]="[
+          { labelKey: 'nav.myWork', link: '/my-work' },
+          { labelKey: 'tasks.list.title' },
+        ]"
       >
-        <app-icon name="back" [size]="14" />
-        {{ 'tasks.common.backToMyWork' | transloco }}
-      </a>
-      <header class="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-            {{ 'tasks.list.title' | transloco }}
-          </h1>
-          <p class="mt-1.5 text-[14px] text-fg-muted">{{ 'tasks.list.subtitle' | transloco }}</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <app-button variant="ghost" size="sm" (click)="prioritise()">
-            <app-icon name="spark" [size]="14" />
-            {{ 'tasks.ai.prioritise' | transloco }}
+        <app-button secondary variant="secondary" size="sm" (click)="prioritise()">
+          <app-icon name="spark" [size]="14" />
+          {{ 'tasks.ai.prioritise' | transloco }}
+        </app-button>
+        <a
+          secondary
+          routerLink="/tasks/recurring"
+          class="inline-flex h-9 items-center rounded-tile border border-border bg-surface px-3 text-ui font-semibold text-fg hover:bg-surface-2"
+        >
+          {{ 'tasks.myWork.recurring' | transloco }}
+        </a>
+        @if (canWrite()) {
+          <app-button primary size="sm" (click)="newTask()">
+            <app-icon name="plus" [size]="14" />
+            {{ 'tasks.myWork.newTask' | transloco }}
           </app-button>
-          <a
-            routerLink="/tasks/recurring"
-            class="rounded-tile px-3 py-1.5 text-[13px] font-semibold text-accent hover:bg-accent-soft"
-          >
-            {{ 'tasks.myWork.recurring' | transloco }}
-          </a>
-          @if (canWrite()) {
-            <app-button size="sm" (click)="newTask()">
-              <app-icon name="plus" [size]="14" />
-              {{ 'tasks.myWork.newTask' | transloco }}
-            </app-button>
-          }
-        </div>
-      </header>
+        }
+      </app-page-header>
 
       <app-fulfils-requirements locationKey="tasks.register" />
 
@@ -223,8 +218,7 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
               <ul class="divide-y divide-border">
                 @for (task of tasks(); track task.id) {
                   <li
-                    class="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3"
-                    [class.bg-fail-soft]="task.overdue"
+                    class="flex flex-col gap-1.5 px-4 py-3 hover:bg-surface-2 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div class="min-w-0 flex-1">
                       <a
@@ -290,15 +284,17 @@ export function statusesFor(filter: StatusFilter): readonly TaskStatus[] {
                   </li>
                 }
               </ul>
-              <div class="border-t border-border px-4 py-2.5">
-                <app-pager
-                  [offset]="offset()"
-                  [pageSize]="pageSize"
-                  [count]="tasks().length"
-                  [total]="total()"
-                  (pageChange)="offset.set($event)"
-                />
-              </div>
+              @if (total() > pageSize || offset() > 0) {
+                <div class="border-t border-border px-4 py-2.5">
+                  <app-pager
+                    [offset]="offset()"
+                    [pageSize]="pageSize"
+                    [count]="tasks().length"
+                    [total]="total()"
+                    (pageChange)="offset.set($event)"
+                  />
+                </div>
+              }
             }
           }
         }

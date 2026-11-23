@@ -25,6 +25,7 @@ import {
   validateMeasurementForm,
 } from './data/form-models';
 import { EnvField } from './environment-shared';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 /**
  * Record (or correct) one measurement of an indicator: the period it covers (one
@@ -34,7 +35,7 @@ import { EnvField } from './environment-shared';
  */
 @Component({
   selector: 'app-env-measurement-dialog',
-  imports: [TranslocoPipe, Attachments, Button, SlideOver, EnvField],
+  imports: [DateInput, TranslocoPipe, Attachments, Button, SlideOver, EnvField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -62,12 +63,11 @@ import { EnvField } from './environment-shared';
             [required]="true"
             [errorKey]="shown()['period_start']"
           >
-            <input
-              id="cf-env-ms-start"
-              type="date"
+            <app-date-input
+              inputId="cf-env-ms-start"
               [value]="form().period_start"
-              (change)="set('period_start', $any($event.target).value)"
-              [attr.aria-invalid]="!!shown()['period_start']"
+              (valueChange)="set('period_start', $event ?? '')"
+              [invalid]="!!shown()['period_start']"
               data-testid="measurement-start"
             />
           </app-env-field>
@@ -76,12 +76,11 @@ import { EnvField } from './environment-shared';
             inputId="cf-env-ms-end"
             [errorKey]="shown()['period_end']"
           >
-            <input
-              id="cf-env-ms-end"
-              type="date"
+            <app-date-input
+              inputId="cf-env-ms-end"
               [value]="form().period_end"
-              (change)="set('period_end', $any($event.target).value)"
-              [attr.aria-invalid]="!!shown()['period_end']"
+              (valueChange)="set('period_end', $event ?? '')"
+              [invalid]="!!shown()['period_end']"
               data-testid="measurement-end"
             />
           </app-env-field>

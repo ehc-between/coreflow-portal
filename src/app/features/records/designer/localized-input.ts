@@ -26,7 +26,9 @@ function keepFilled(pair: Record<LabelLang, string>): Record<string, string> {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="min-w-0">
-      <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+      <legend
+        class="mb-1.5 flex min-h-6 items-center gap-1 text-ui leading-6 font-semibold text-fg-muted"
+      >
         {{ label() }}
         @if (required()) {
           <span class="text-fail" aria-hidden="true">*</span>

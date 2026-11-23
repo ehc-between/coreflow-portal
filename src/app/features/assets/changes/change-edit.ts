@@ -74,7 +74,7 @@ export function createChangeBody(value: ChangeFormValue): CreateChangeRequest {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @if (state() === 'loading') {
         <app-loading-state [rows]="6" />
       } @else if (state() === 'error') {

@@ -51,6 +51,7 @@ import {
   SubjectType,
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const PAGE_SIZE = 25;
 
@@ -131,6 +132,7 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
 @Component({
   selector: 'app-schedules-list',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -340,12 +342,11 @@ export function toScheduleFields(f: ScheduleForm): ScheduleFields {
           <app-recurrence-picker [rrule]="form().rrule" (rruleChange)="set('rrule', $event)" />
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <app-form-field [label]="'inspections.schedules.start' | transloco" inputId="sf-start">
-              <input
-                id="sf-start"
-                type="date"
-                required
+              <app-date-input
+                inputId="sf-start"
+                [required]="true"
                 [value]="form().startDate"
-                (input)="set('startDate', $any($event.target).value)"
+                (valueChange)="set('startDate', $event ?? '')"
               />
             </app-form-field>
             <div>

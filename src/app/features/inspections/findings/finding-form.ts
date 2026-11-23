@@ -28,6 +28,7 @@ import {
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 import { parseAssignee } from './finding-panel';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 export interface FindingDraft {
   readonly title: string;
@@ -82,10 +83,18 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
  */
 @Component({
   selector: 'app-finding-form',
-  imports: [TranslocoPipe, AssigneeSelect, Button, FormField, InspectionField, RefSelect],
+  imports: [
+    DateInput,
+    TranslocoPipe,
+    AssigneeSelect,
+    Button,
+    FormField,
+    InspectionField,
+    RefSelect,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()">
+    <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()">
       <app-form-field [label]="'inspections.fields.title' | transloco" inputId="ff-title">
         <input
           id="ff-title"
@@ -105,7 +114,7 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
           (input)="set('description', $any($event.target).value)"
         ></textarea>
       </app-form-field>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
         <app-inspection-field
           labelKey="inspections.fields.severity"
           inputId="ff-sev"
@@ -139,20 +148,19 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
           />
         </app-form-field>
         <app-form-field [label]="'inspections.fields.dueAt' | transloco" inputId="ff-due">
-          <input
-            id="ff-due"
-            type="date"
+          <app-date-input
+            inputId="ff-due"
             [value]="draft().dueDate"
-            (input)="set('dueDate', $any($event.target).value)"
+            (valueChange)="set('dueDate', $event ?? '')"
           />
         </app-form-field>
       </div>
 
-      <fieldset class="rounded-card border border-border p-3">
-        <legend class="px-1 text-ui font-semibold text-fg-muted">
+      <fieldset class="rounded-tile border border-border bg-surface-2/40 px-4 pt-1 pb-4">
+        <legend class="flex min-h-6 items-center px-1 text-ui font-semibold text-fg-muted">
           {{ 'inspections.findings.firstAction' | transloco }}
         </legend>
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-5">
           <app-form-field
             [label]="'inspections.findings.actionTitle' | transloco"
             inputId="ff-action"
@@ -165,7 +173,7 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
             />
           </app-form-field>
           @if (draft().actionTitle.trim()) {
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
               <app-form-field
                 [label]="'inspections.findings.actionAssignee' | transloco"
                 inputId="ff-assignee"
@@ -180,11 +188,10 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
                 [label]="'inspections.fields.dueAt' | transloco"
                 inputId="ff-action-due"
               >
-                <input
-                  id="ff-action-due"
-                  type="date"
+                <app-date-input
+                  inputId="ff-action-due"
                   [value]="draft().actionDue"
-                  (input)="set('actionDue', $any($event.target).value)"
+                  (valueChange)="set('actionDue', $event ?? '')"
                 />
               </app-form-field>
             </div>
@@ -193,7 +200,9 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
       </fieldset>
 
       @if (canRaiseDeviation()) {
-        <label class="inline-flex min-h-8 items-start gap-2 text-body text-fg">
+        <label
+          class="flex cursor-pointer items-start gap-3 rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+        >
           <input
             type="checkbox"
             class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
@@ -210,7 +219,7 @@ export function toFindingRequest(d: FindingDraft): CreateFindingRequest {
         </label>
       }
 
-      <div class="flex justify-end gap-2">
+      <div class="flex justify-end gap-2 border-t border-border pt-4">
         <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'inspections.actions.cancel' | transloco }}
         </app-button>

@@ -14,6 +14,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { LocalDayPipe, LocalNumberPipe } from '../../../shared/locale/locale-pipes';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { Button } from '../../../shared/ui/button/button';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -101,6 +102,7 @@ export function toReviewRequest(
 @Component({
   selector: 'app-process-review-form',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     AskAbout,
@@ -348,12 +350,10 @@ export function toReviewRequest(
               [label]="'processes.review.nextDate' | transloco"
               inputId="cf-review-next"
             >
-              <input
-                id="cf-review-next"
-                type="date"
-                [attr.lang]="lang()"
+              <app-date-input
+                inputId="cf-review-next"
                 [value]="next()"
-                (input)="next.set($any($event.target).value)"
+                (valueChange)="next.set($event ?? '')"
               />
             </app-form-field>
             <p class="mt-1 text-meta text-fg-muted">

@@ -25,6 +25,7 @@ import { AuditFormPage } from '../shared/form-page';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
 import { AuditUserSelect } from '../shared/user-select';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 
 export interface ProgrammeFormValue {
   title: string;
@@ -82,6 +83,7 @@ export function suggestedRiskBasis(
 @Component({
   selector: 'app-audit-programme-form',
   imports: [
+    FormSection,
     TranslocoPipe,
     AiAssistButton,
     AskAbout,
@@ -104,8 +106,12 @@ export function suggestedRiskBasis(
       (save)="save()"
       (cancelled)="back()"
     >
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_140px]">
+      <app-form-section
+        [title]="'audits.programmeForm.sections.basics' | transloco"
+        [description]="'audits.programmeForm.sections.basicsHint' | transloco"
+      >
         <app-audit-field
+          span="full"
           inputId="prog-title"
           labelKey="audits.fields.title"
           [required]="true"
@@ -133,81 +139,95 @@ export function suggestedRiskBasis(
             (input)="patch({ year: $any($event.target).value })"
           />
         </app-audit-field>
-      </div>
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.frameworks' | transloco"
-        [choices]="frameworkChoices()"
-        [selected]="f().frameworks"
-        (selectedChange)="patch({ frameworks: $event })"
-      />
-      <app-audit-field
-        inputId="prog-objectives"
-        labelKey="audits.fields.objectives"
-        helpPage="programmeForm"
-        helpField="objectives"
-      >
-        <textarea
-          id="prog-objectives"
-          rows="3"
-          [value]="f().objectives"
-          (input)="patch({ objectives: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-      <app-audit-field
-        inputId="prog-risk"
-        labelKey="audits.fields.riskBasis"
-        helpPage="programmeForm"
-        helpField="riskBasis"
-      >
-        <app-ask-about
-          ask
-          field="risk_basis"
-          [fieldLabel]="'audits.fields.riskBasis' | transloco"
-          [prompt]="'audits.programmeForm.askRiskBasis' | transloco"
-        />
-        <app-ai-assist-button
-          ask
-          assist="audits.suggest_programme"
-          labelKey="audits.ai.suggestProgramme"
-          variant="ghost"
-          [entityType]="id() ? 'audit_programme' : null"
-          [entityId]="id() ?? null"
-          [input]="{ programme_id: id() ?? null, year: yearNumber(), frameworks: f().frameworks }"
-          (result)="applySuggestion($event)"
-        />
-        <textarea
-          id="prog-risk"
-          rows="5"
-          [value]="f().riskBasis"
-          (input)="patch({ riskBasis: $any($event.target).value })"
-        ></textarea>
-        <span hint>{{ 'audits.programmeForm.riskHint' | transloco }}</span>
-      </app-audit-field>
-      <app-audit-field inputId="prog-description" labelKey="audits.fields.description">
-        <textarea
-          id="prog-description"
-          rows="3"
-          [value]="f().description"
-          (input)="patch({ description: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-      <app-audit-field inputId="prog-owner" labelKey="audits.fields.owner">
-        <app-audit-user-select
-          inputId="prog-owner"
-          [value]="f().ownerId"
-          [currentName]="existing.value()?.owner?.name ?? null"
-          (valueChange)="patch({ ownerId: $event })"
-        />
-      </app-audit-field>
-      @if (id()) {
-        <app-audit-field inputId="prog-reason" labelKey="audits.fields.changeReason">
-          <input
-            id="prog-reason"
-            maxlength="2000"
-            [value]="f().changeReason"
-            (input)="patch({ changeReason: $any($event.target).value })"
+        <app-audit-field inputId="prog-owner" labelKey="audits.fields.owner">
+          <app-audit-user-select
+            inputId="prog-owner"
+            [value]="f().ownerId"
+            [currentName]="existing.value()?.owner?.name ?? null"
+            (valueChange)="patch({ ownerId: $event })"
           />
         </app-audit-field>
+        <app-audit-field
+          span="full"
+          inputId="prog-description"
+          labelKey="audits.fields.description"
+        >
+          <textarea
+            id="prog-description"
+            rows="3"
+            [value]="f().description"
+            (input)="patch({ description: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'audits.programmeForm.sections.basis' | transloco"
+        [description]="'audits.programmeForm.sections.basisHint' | transloco"
+      >
+        <app-audit-choice-checkboxes
+          [legend]="'audits.fields.frameworks' | transloco"
+          [choices]="frameworkChoices()"
+          [selected]="f().frameworks"
+          (selectedChange)="patch({ frameworks: $event })"
+        />
+        <app-audit-field
+          span="full"
+          inputId="prog-objectives"
+          labelKey="audits.fields.objectives"
+          helpPage="programmeForm"
+          helpField="objectives"
+        >
+          <textarea
+            id="prog-objectives"
+            rows="3"
+            [value]="f().objectives"
+            (input)="patch({ objectives: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+        <app-audit-field
+          span="full"
+          inputId="prog-risk"
+          labelKey="audits.fields.riskBasis"
+          helpPage="programmeForm"
+          helpField="riskBasis"
+        >
+          <app-ask-about
+            ask
+            field="risk_basis"
+            [fieldLabel]="'audits.fields.riskBasis' | transloco"
+            [prompt]="'audits.programmeForm.askRiskBasis' | transloco"
+          />
+          <app-ai-assist-button
+            ask
+            assist="audits.suggest_programme"
+            labelKey="audits.ai.suggestProgramme"
+            variant="ghost"
+            [entityType]="id() ? 'audit_programme' : null"
+            [entityId]="id() ?? null"
+            [input]="{ programme_id: id() ?? null, year: yearNumber(), frameworks: f().frameworks }"
+            (result)="applySuggestion($event)"
+          />
+          <textarea
+            id="prog-risk"
+            rows="5"
+            [value]="f().riskBasis"
+            (input)="patch({ riskBasis: $any($event.target).value })"
+          ></textarea>
+          <span hint>{{ 'audits.programmeForm.riskHint' | transloco }}</span>
+        </app-audit-field>
+      </app-form-section>
+      @if (id()) {
+        <app-form-section [columns]="1">
+          <app-audit-field inputId="prog-reason" labelKey="audits.fields.changeReason">
+            <input
+              id="prog-reason"
+              maxlength="2000"
+              [value]="f().changeReason"
+              (input)="patch({ changeReason: $any($event.target).value })"
+            />
+          </app-audit-field>
+        </app-form-section>
       }
     </app-audit-form-page>
   `,

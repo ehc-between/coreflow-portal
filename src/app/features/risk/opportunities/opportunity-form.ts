@@ -21,7 +21,9 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -154,7 +156,9 @@ const SCALE = [1, 2, 3, 4, 5] as const;
     FlowBanner,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     ErrorState,
     HelpStrip,
     LoadingState,
@@ -166,13 +170,15 @@ const SCALE = [1, 2, 3, 4, 5] as const;
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div
+      class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7 [&>app-help-strip]:mb-0 [&>app-page-header>header]:mb-0"
+    >
       <app-page-header
         [titleKey]="id() ? 'risk.opportunities.editTitle' : 'risk.opportunities.newTitle'"
         [breadcrumbs]="breadcrumbs()"
       />
       <app-help-strip scope="risk" page="opportunityForm" lesson="opportunities" />
-      <app-flow-banner [flow]="flow()" />
+      <app-flow-banner class="empty:hidden" [flow]="flow()" />
 
       @if (state() === 'loading') {
         <app-loading-state [rows]="5" />
@@ -180,210 +186,213 @@ const SCALE = [1, 2, 3, 4, 5] as const;
         <app-error-state (retry)="reload()" />
       } @else {
         <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
-          <app-card>
-            <div class="grid grid-cols-1 gap-4">
+          <app-form-section
+            [title]="'risk.opportunities.sections.basics' | transloco"
+            [description]="'risk.opportunities.sections.basicsHint' | transloco"
+          >
+            <app-risk-field
+              span="full"
+              inputId="opp-title"
+              labelKey="risk.fields.title"
+              [required]="true"
+              helpPage="opportunityForm"
+              helpField="title"
+              [error]="titleError()"
+            >
+              <input
+                id="opp-title"
+                required
+                maxlength="255"
+                [value]="form().title"
+                (input)="set('title', $any($event.target).value)"
+              />
+            </app-risk-field>
+            <app-risk-field inputId="opp-owner" labelKey="risk.fields.owner" [required]="true">
+              <app-person-select
+                inputId="opp-owner"
+                [value]="form().owner_user_id"
+                [currentName]="original()?.owner?.name ?? null"
+                (valueChange)="set('owner_user_id', $event)"
+              />
+            </app-risk-field>
+            <app-risk-field inputId="opp-department" labelKey="risk.fields.department">
+              <app-person-select
+                kind="department"
+                inputId="opp-department"
+                [value]="form().department_id"
+                [currentName]="original()?.department?.name ?? null"
+                (valueChange)="set('department_id', $event)"
+              />
+            </app-risk-field>
+            <app-risk-field
+              span="full"
+              inputId="opp-description"
+              labelKey="risk.fields.description"
+            >
+              <textarea
+                id="opp-description"
+                rows="3"
+                [value]="form().description"
+                (input)="set('description', $any($event.target).value)"
+              ></textarea>
+            </app-risk-field>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'risk.opportunities.sections.source' | transloco"
+            [description]="'risk.opportunities.sections.sourceHint' | transloco"
+          >
+            <app-risk-field
+              inputId="opp-source-type"
+              labelKey="risk.opportunities.concerns"
+              helpPage="opportunityForm"
+              helpField="concerns"
+            >
+              <select id="opp-source-type" (change)="setSourceType($any($event.target).value)">
+                <option value="" [selected]="!form().source_type">
+                  {{ 'risk.common.notSet' | transloco }}
+                </option>
+                @for (s of sourceTypes; track s) {
+                  <option [value]="s" [selected]="s === form().source_type">
+                    {{ 'risk.sourceTypes.' + s | transloco }}
+                  </option>
+                }
+              </select>
+            </app-risk-field>
+            @if (registers().length) {
+              <app-risk-field inputId="opp-register" labelKey="risk.fields.register">
+                <select id="opp-register" (change)="set('register_id', $any($event.target).value)">
+                  <option value="" [selected]="!form().register_id">
+                    {{ 'risk.common.notSet' | transloco }}
+                  </option>
+                  @for (r of registers(); track r.id) {
+                    <option [value]="r.id" [selected]="r.id === form().register_id">
+                      {{ r.name }}
+                    </option>
+                  }
+                </select>
+              </app-risk-field>
+            }
+            @if (subjectTypes().length) {
               <app-risk-field
-                inputId="opp-title"
-                labelKey="risk.fields.title"
-                [required]="true"
-                helpPage="opportunityForm"
-                helpField="title"
-                [error]="titleError()"
+                span="full"
+                inputId="opp-subject"
+                labelKey="risk.fields.sourceEntity"
+                [plain]="true"
               >
-                <input
-                  id="opp-title"
-                  required
-                  maxlength="255"
-                  [value]="form().title"
-                  [attr.aria-invalid]="titleError() ? true : null"
-                  (input)="set('title', $any($event.target).value)"
+                <app-risk-subject-picker
+                  inputId="opp-subject"
+                  [types]="subjectTypes()"
+                  [value]="form().subject"
+                  (picked)="set('subject', $event)"
+                  (cleared)="set('subject', null)"
                 />
               </app-risk-field>
-              <app-risk-field inputId="opp-description" labelKey="risk.fields.description">
-                <textarea
-                  id="opp-description"
-                  rows="3"
-                  [value]="form().description"
-                  (input)="set('description', $any($event.target).value)"
-                ></textarea>
+            }
+            @if (!form().subject) {
+              <app-risk-field
+                span="full"
+                inputId="opp-source-ref"
+                [labelKey]="
+                  subjectTypes().length ? 'risk.fields.sourceRefOther' : 'risk.fields.sourceRef'
+                "
+              >
+                <input
+                  id="opp-source-ref"
+                  maxlength="255"
+                  [value]="form().source_ref"
+                  (input)="set('source_ref', $any($event.target).value)"
+                />
               </app-risk-field>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <app-risk-field
-                  inputId="opp-source-type"
-                  labelKey="risk.opportunities.concerns"
-                  helpPage="opportunityForm"
-                  helpField="concerns"
-                >
-                  <select id="opp-source-type" (change)="setSourceType($any($event.target).value)">
-                    <option value="" [selected]="!form().source_type">
-                      {{ 'risk.common.notSet' | transloco }}
-                    </option>
-                    @for (s of sourceTypes; track s) {
-                      <option [value]="s" [selected]="s === form().source_type">
-                        {{ 'risk.sourceTypes.' + s | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-risk-field>
-                @if (registers().length) {
-                  <app-risk-field inputId="opp-register" labelKey="risk.fields.register">
-                    <select
-                      id="opp-register"
-                      (change)="set('register_id', $any($event.target).value)"
-                    >
-                      <option value="" [selected]="!form().register_id">
-                        {{ 'risk.common.notSet' | transloco }}
-                      </option>
-                      @for (r of registers(); track r.id) {
-                        <option [value]="r.id" [selected]="r.id === form().register_id">
-                          {{ r.name }}
-                        </option>
-                      }
-                    </select>
-                  </app-risk-field>
-                }
-              </div>
-              @if (subjectTypes().length) {
-                <app-risk-field
-                  inputId="opp-subject"
-                  labelKey="risk.fields.sourceEntity"
-                  [plain]="true"
-                >
-                  <app-risk-subject-picker
-                    inputId="opp-subject"
-                    [types]="subjectTypes()"
-                    [value]="form().subject"
-                    (picked)="set('subject', $event)"
-                    (cleared)="set('subject', null)"
-                  />
-                </app-risk-field>
-              }
-              @if (!form().subject) {
-                <app-risk-field
-                  inputId="opp-source-ref"
-                  [labelKey]="
-                    subjectTypes().length ? 'risk.fields.sourceRefOther' : 'risk.fields.sourceRef'
-                  "
-                >
-                  <input
-                    id="opp-source-ref"
-                    maxlength="255"
-                    [value]="form().source_ref"
-                    (input)="set('source_ref', $any($event.target).value)"
-                  />
-                </app-risk-field>
-              }
-            </div>
-          </app-card>
+            }
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-1 flex items-center gap-1.5 font-display text-section font-bold text-fg">
-              {{ 'risk.opportunities.evaluation' | transloco }}
-              <app-ask-about [prompt]="'risk.ask.opportunity' | transloco" field="score" />
-            </h2>
-            <p class="mb-4 text-ui text-fg-muted">
-              {{ 'risk.opportunities.evaluationHint' | transloco }}
-            </p>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              @for (axis of axes; track axis) {
-                <fieldset>
-                  <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
-                    {{ 'risk.fields.' + axis | transloco }}
-                  </legend>
-                  <div class="flex flex-col gap-1">
-                    @for (n of scale; track n) {
-                      <label
-                        class="flex min-h-8 cursor-pointer items-start gap-2 rounded-tile px-2 py-1 text-ui hover:bg-surface-2"
-                      >
-                        <input
-                          type="radio"
-                          class="mt-0.5"
-                          [name]="'opp-' + axis"
-                          [value]="n"
-                          [checked]="'' + n === form()[axis]"
-                          (change)="set(axis, '' + n)"
-                        />
-                        <span>
-                          <span class="font-semibold text-fg"
-                            >{{ n }} · {{ 'risk.opportunities.scale.' + n | transloco }}</span
-                          >
-                          <span class="block text-meta text-fg-muted">{{
-                            'risk.opportunities.levels.' + axis + '.' + n | transloco
-                          }}</span>
-                        </span>
-                      </label>
-                    }
-                  </div>
-                </fieldset>
-              }
-            </div>
-            <div class="mt-4 flex items-center gap-2" aria-live="polite">
+          <app-form-section
+            [title]="'risk.opportunities.evaluation' | transloco"
+            [description]="'risk.opportunities.evaluationHint' | transloco"
+          >
+            <app-ask-about
+              title-suffix
+              [prompt]="'risk.ask.opportunity' | transloco"
+              field="score"
+            />
+            @for (axis of axes; track axis) {
+              <fieldset class="min-w-0">
+                <legend
+                  class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted"
+                >
+                  {{ 'risk.fields.' + axis | transloco }}
+                </legend>
+                <div class="flex flex-col gap-1">
+                  @for (n of scale; track n) {
+                    <label
+                      class="flex min-h-10 cursor-pointer items-start gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui hover:bg-surface-2"
+                    >
+                      <input
+                        type="radio"
+                        class="mt-0.5"
+                        [name]="'opp-' + axis"
+                        [value]="n"
+                        [checked]="'' + n === form()[axis]"
+                        (change)="set(axis, '' + n)"
+                      />
+                      <span>
+                        <span class="font-semibold text-fg"
+                          >{{ n }} · {{ 'risk.opportunities.scale.' + n | transloco }}</span
+                        >
+                        <span class="block text-meta text-fg-muted">{{
+                          'risk.opportunities.levels.' + axis + '.' + n | transloco
+                        }}</span>
+                      </span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
+            }
+            <div
+              class="flex items-center gap-2 rounded-tile bg-surface-2 px-3 py-2 sm:col-span-2"
+              aria-live="polite"
+            >
               <span class="text-ui font-semibold text-fg-muted">{{
                 'risk.fields.score' | transloco
               }}</span>
               <app-opportunity-score [score]="score()" />
             </div>
-            <div class="mt-4">
-              <app-risk-field
-                inputId="opp-plan"
-                labelKey="risk.fields.actionPlan"
-                helpPage="opportunityForm"
-                helpField="actionPlan"
-              >
-                <textarea
-                  id="opp-plan"
-                  rows="3"
-                  [value]="form().action_plan"
-                  (input)="set('action_plan', $any($event.target).value)"
-                ></textarea>
-                <span hint>{{ 'risk.opportunities.actionPlanHint' | transloco }}</span>
-              </app-risk-field>
-            </div>
-          </app-card>
-
-          <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <app-risk-field inputId="opp-owner" labelKey="risk.fields.owner" [required]="true">
-                <app-person-select
-                  inputId="opp-owner"
-                  [value]="form().owner_user_id"
-                  [currentName]="original()?.owner?.name ?? null"
-                  (valueChange)="set('owner_user_id', $event)"
-                />
-              </app-risk-field>
-              <app-risk-field inputId="opp-department" labelKey="risk.fields.department">
-                <app-person-select
-                  kind="department"
-                  inputId="opp-department"
-                  [value]="form().department_id"
-                  [currentName]="original()?.department?.name ?? null"
-                  (valueChange)="set('department_id', $event)"
-                />
-              </app-risk-field>
-              <app-risk-field inputId="opp-due" labelKey="risk.fields.dueAt">
-                <input
-                  id="opp-due"
-                  type="date"
-                  [value]="form().due_at"
-                  (input)="set('due_at', $any($event.target).value)"
-                />
-              </app-risk-field>
-            </div>
-          </app-card>
+            <app-risk-field
+              span="full"
+              inputId="opp-plan"
+              labelKey="risk.fields.actionPlan"
+              helpPage="opportunityForm"
+              helpField="actionPlan"
+            >
+              <textarea
+                id="opp-plan"
+                rows="3"
+                [value]="form().action_plan"
+                (input)="set('action_plan', $any($event.target).value)"
+              ></textarea>
+              <span hint>{{ 'risk.opportunities.actionPlanHint' | transloco }}</span>
+            </app-risk-field>
+            <app-risk-field inputId="opp-due" labelKey="risk.fields.dueAt">
+              <app-date-input
+                inputId="opp-due"
+                [value]="form().due_at"
+                (valueChange)="set('due_at', $event ?? '')"
+              />
+            </app-risk-field>
+          </app-form-section>
 
           @if (errorKey(); as key) {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
-          >
-            <app-button variant="ghost" (click)="cancel()">{{
+          <app-form-actions [message]="titleError() ? ('risk.form.fixFields' | transloco) : ''">
+            <app-button variant="secondary" (click)="cancel()">{{
               'risk.common.cancel' | transloco
             }}</app-button>
             <app-button type="submit" [loading]="saving()" [disabled]="saving()">
               {{ (id() ? 'risk.common.save' : 'risk.opportunities.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

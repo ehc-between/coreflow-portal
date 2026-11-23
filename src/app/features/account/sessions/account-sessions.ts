@@ -70,7 +70,7 @@ export function describeUserAgent(userAgent: string | null): string | null {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto w-full max-w-2xl px-4 pt-6 pb-12 sm:px-6 sm:pt-8">
+    <div class="mx-auto w-full max-w-[808px] px-4 pt-5 pb-12 sm:px-8">
       <app-page-header titleKey="auth.sessions.title" descriptionKey="auth.sessions.subtitle" />
 
       @if (loading()) {

@@ -8,7 +8,7 @@ import { TasksApi } from '../../core/tasks/tasks-api';
 import { TaskForm, TaskFormValue } from './task-form';
 import { makeTask, taskTestingProviders } from './tasks.testing';
 
-function setup(value: TaskFormValue | null = null) {
+function setup(value: TaskFormValue | null = null, layout: 'panel' | 'page' = 'panel') {
   const created$ = new Subject<TaskDetail>();
   const api = {
     create: vi.fn(() => created$),
@@ -25,6 +25,7 @@ function setup(value: TaskFormValue | null = null) {
   });
   const fixture = TestBed.createComponent(TaskForm);
   fixture.componentRef.setInput('value', value);
+  fixture.componentRef.setInput('layout', layout);
   const saved = vi.fn();
   fixture.componentInstance.saved.subscribe(saved);
   fixture.detectChanges();
@@ -140,5 +141,26 @@ describe('TaskForm', () => {
     submit();
     fixture.detectChanges();
     expect(el.textContent).toContain('tasks.errors.invalid_assignee');
+  });
+
+  it('uses the form anatomy: sections, fields with errors, sticky actions on a page', () => {
+    const { el, submit } = setup(null, 'page');
+    const sections = el.querySelectorAll('[data-testid="form-section"]');
+    expect(sections.length).toBe(3);
+    expect(el.querySelector('[data-testid="form-actions"]')).not.toBeNull();
+    submit();
+    const error = el.querySelector('[data-testid="form-field-error"]');
+    expect(error?.textContent).toContain('tasks.errors.title_required');
+    const title = el.querySelector<HTMLInputElement>('input[type="text"]')!;
+    expect(title.getAttribute('aria-describedby')).toContain(error!.id);
+    expect(el.querySelector('[data-testid="form-actions-message"]')?.textContent).toContain(
+      'tasks.form.fixFields',
+    );
+  });
+
+  it('keeps a plain button row inside a panel', () => {
+    const { el } = setup();
+    expect(el.querySelector('[data-testid="form-actions"]')).toBeNull();
+    expect(el.querySelectorAll('app-button').length).toBeGreaterThan(1);
   });
 });

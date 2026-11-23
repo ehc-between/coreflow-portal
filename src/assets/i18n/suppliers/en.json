@@ -146,7 +146,10 @@
       "identity": "Supplier",
       "responsibility": "Responsibility and contact",
       "profile": "Risk profile",
-      "schedule": "Re-evaluation"
+      "schedule": "Re-evaluation",
+      "identityHint": "Who the supplier is and how critical they are to you.",
+      "responsibilityHint": "Who follows up the supplier internally, and who to contact there.",
+      "scheduleHint": "How often the supplier is evaluated again."
     },
     "nameRequired": "Give the supplier a name.",
     "countryHint": "The country where the supplier is registered.",
@@ -169,7 +172,9 @@
       "high": "High: a failure hits your products, services or information hard. Re-evaluated every {{ months }} months by default.",
       "critical": "Critical: you cannot deliver without it, or it holds your most sensitive data. Re-evaluated every {{ months }} months by default."
     },
-    "profileNeeds": "Besides the approval, this supplier needs: {{ kinds }}."
+    "profileNeeds": "Besides the approval, this supplier needs: {{ kinds }}.",
+    "intervalInvalid": "Enter a number of months from 1 to 60.",
+    "fixErrors": "The supplier was not saved. Fix the highlighted fields."
   },
   "detail": {
     "notFound": "This supplier does not exist or you do not have access to it.",
@@ -470,7 +475,12 @@
     "focusPlaceholder": "For example data outside the EU",
     "saved": "Questionnaire saved.",
     "deleteTitle": "Delete questionnaire?",
-    "deleteMessage": "\"{{ name }}\" will be removed. Evaluations already started keep their questions."
+    "deleteMessage": "\"{{ name }}\" will be removed. Evaluations already started keep their questions.",
+    "sections": {
+      "basics": "Questionnaire",
+      "basicsHint": "What the questionnaire is called, what kind of evaluation it is for and the score to pass.",
+      "questionsHint": "The questions the supplier or the evaluator answers, in order."
+    }
   },
   "performance": {
     "title": "Performance log",

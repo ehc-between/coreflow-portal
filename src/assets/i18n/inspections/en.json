@@ -353,6 +353,10 @@
       "medium": "Medium and above",
       "high": "High and critical",
       "critical": "Only critical"
+    },
+    "sections": {
+      "basics": "The template",
+      "basicsHint": "Name, category, pass mark and the standards it documents."
     }
   },
   "form": {
@@ -367,7 +371,14 @@
     "optional": "(optional)",
     "titleHint": "Leave empty to use the checklist and place, e.g. \"Safety walk – Warehouse\".",
     "rolesHint": "The inspector carries out the inspection. The owner follows up the result and the findings.",
-    "askPlan": "What should I think about when planning this inspection?"
+    "askPlan": "What should I think about when planning this inspection?",
+    "sections": {
+      "basics": "The inspection",
+      "basicsHint": "Which template to use, what is inspected and what to look out for.",
+      "when": "Time and place",
+      "whenHint": "Where it happens, when it is due and the department it concerns.",
+      "people": "People"
+    }
   },
   "detail": {
     "back": "Back to the inspection",

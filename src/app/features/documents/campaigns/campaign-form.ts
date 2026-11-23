@@ -9,7 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { DocumentSummary } from '../../../core/documents/document.models';
@@ -20,9 +20,11 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../../shared/ui/form-field/form-field';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
 import { AudienceEntry, CampaignCreate } from '../data/document-control.models';
@@ -60,146 +62,178 @@ export function campaignBody(form: {
 @Component({
   selector: 'app-campaign-form',
   imports: [
-    RouterLink,
     TranslocoPipe,
     AskAbout,
     FieldHelp,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
+    PageHeader,
     FormField,
-    Icon,
     DocumentsPageGuide,
     AudienceEditor,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <a
-        routerLink="/documents/campaigns"
-        class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="16" />
-        {{ 'documents.control.campaigns.back' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
-        {{ 'documents.control.campaigns.new' | transloco }}
-      </h1>
-      <app-documents-page-guide class="mb-4" page="campaignForm" />
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="documents.control.campaigns.new"
+        [breadcrumbs]="[
+          { labelKey: 'documents.control.nav.documents', link: '/documents' },
+          { labelKey: 'documents.control.nav.campaigns', link: '/documents/campaigns' },
+          { labelKey: 'documents.control.campaigns.new' },
+        ]"
+        backLink="/documents/campaigns"
+        backLabelKey="documents.control.campaigns.back"
+      />
+      <app-documents-page-guide page="campaignForm" />
 
       @if (errorKey(); as key) {
         <app-alert class="mb-4 block" tone="error">{{ key | transloco }}</app-alert>
       }
 
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save(false)">
-        <app-card>
-          <div class="flex flex-col gap-4">
-            <app-form-field
-              inputId="camp-document"
-              [label]="'documents.control.campaigns.fields.document' | transloco"
-            >
-              <select
-                id="camp-document"
-                required
-                (change)="documentId.set($any($event.target).value)"
-                data-testid="campaign-document"
-              >
-                <option value="" [selected]="!documentId()">
-                  {{ 'documents.control.campaigns.chooseDocument' | transloco }}
-                </option>
-                @for (d of documents(); track d.id) {
-                  <option [value]="d.id" [selected]="d.id === documentId()">
-                    {{ d.doc_code }} · {{ d.title }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <app-field-help scope="documents" page="campaignForm" field="document" />
-            @if (documentsLoaded() && documents().length === 0) {
-              <p class="text-meta text-fg-muted">
-                {{ 'documents.control.campaigns.noApproved' | transloco }}
-              </p>
-            }
-
-            <app-form-field
-              inputId="camp-title"
-              [label]="'documents.control.campaigns.fields.titleOptional' | transloco"
-            >
-              <input
-                id="camp-title"
-                type="text"
-                maxlength="255"
-                [value]="title()"
-                (input)="title.set($any($event.target).value)"
-              />
-            </app-form-field>
-
-            <div>
-              <div class="flex items-center gap-1.5">
-                <app-form-field
-                  class="flex-1"
-                  inputId="camp-message"
-                  [label]="'documents.control.campaigns.fields.message' | transloco"
-                >
-                  <textarea
-                    id="camp-message"
-                    rows="3"
-                    maxlength="4000"
-                    [value]="message()"
-                    (input)="message.set($any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-                <app-ask-about
-                  class="mt-5"
-                  [prompt]="'documents.control.campaigns.askMessage' | transloco"
-                  field="message"
-                />
-              </div>
-            </div>
-
-            <label class="inline-flex items-start gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="mt-0.5"
-                [checked]="requireAck()"
-                (change)="requireAck.set($any($event.target).checked)"
-              />
-              <span>
-                {{ 'documents.control.campaigns.fields.requireAck' | transloco }}
-                <span class="block text-meta text-fg-subtle">
-                  {{ 'documents.control.campaigns.requireAckHint' | transloco }}
-                </span>
-              </span>
-            </label>
-
-            <app-form-field
-              inputId="camp-due"
-              [label]="'documents.control.campaigns.fields.due' | transloco"
-            >
-              <input
-                id="camp-due"
-                type="date"
-                [value]="due()"
-                (input)="due.set($any($event.target).value)"
-              />
-            </app-form-field>
-            <app-field-help scope="documents" page="campaignForm" field="due" />
-          </div>
-        </app-card>
-
-        <app-card>
-          <app-audience-editor [value]="audience()" (valueChange)="audience.set($event)" />
-          <app-field-help scope="documents" page="campaignForm" field="audience" />
-        </app-card>
-
-        <div class="flex flex-wrap items-center gap-2">
-          <app-button
-            [disabled]="!canLaunch()"
-            [loading]="busy() === 'launch'"
-            (click)="save(true)"
-            data-testid="campaign-launch"
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save(false)" novalidate>
+        <app-form-section
+          [title]="'documents.control.campaigns.sections.what' | transloco"
+          [description]="'documents.control.campaigns.sections.whatHint' | transloco"
+        >
+          <app-form-field
+            span="full"
+            inputId="camp-document"
+            [required]="true"
+            [label]="'documents.control.campaigns.fields.document' | transloco"
+            [hint]="
+              documentsLoaded() && documents().length === 0
+                ? ('documents.control.campaigns.noApproved' | transloco)
+                : ''
+            "
           >
-            {{ 'documents.control.campaigns.saveAndLaunch' | transloco }}
+            <app-field-help
+              label-suffix
+              scope="documents"
+              page="campaignForm"
+              field="document"
+              [label]="'documents.control.campaigns.fields.document' | transloco"
+            />
+            <select
+              id="camp-document"
+              required
+              (change)="documentId.set($any($event.target).value)"
+              data-testid="campaign-document"
+            >
+              <option value="" [selected]="!documentId()">
+                {{ 'documents.control.campaigns.chooseDocument' | transloco }}
+              </option>
+              @for (d of documents(); track d.id) {
+                <option [value]="d.id" [selected]="d.id === documentId()">
+                  {{ d.doc_code }} · {{ d.title }}
+                </option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            span="full"
+            inputId="camp-title"
+            [label]="'documents.control.campaigns.fields.titleOptional' | transloco"
+          >
+            <input
+              id="camp-title"
+              type="text"
+              maxlength="255"
+              [value]="title()"
+              (input)="title.set($any($event.target).value)"
+            />
+          </app-form-field>
+          <app-form-field
+            span="full"
+            inputId="camp-message"
+            [label]="'documents.control.campaigns.fields.message' | transloco"
+          >
+            <app-ask-about
+              label-suffix
+              [prompt]="'documents.control.campaigns.askMessage' | transloco"
+              field="message"
+              [fieldLabel]="'documents.control.campaigns.fields.message' | transloco"
+            />
+            <textarea
+              id="camp-message"
+              rows="3"
+              maxlength="4000"
+              [value]="message()"
+              (input)="message.set($any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        </app-form-section>
+
+        <app-form-section
+          [title]="'documents.control.campaigns.sections.how' | transloco"
+          [description]="'documents.control.campaigns.sections.howHint' | transloco"
+        >
+          <label
+            class="flex min-h-10 items-start gap-2.5 rounded-tile border border-border px-3 py-2.5 text-ui text-fg sm:col-span-2"
+          >
+            <input
+              type="checkbox"
+              class="mt-0.5"
+              [checked]="requireAck()"
+              (change)="requireAck.set($any($event.target).checked)"
+            />
+            <span>
+              <span class="font-medium">{{
+                'documents.control.campaigns.fields.requireAck' | transloco
+              }}</span>
+              <span class="block text-meta text-fg-subtle">
+                {{ 'documents.control.campaigns.requireAckHint' | transloco }}
+              </span>
+            </span>
+          </label>
+          <app-form-field
+            inputId="camp-due"
+            [label]="'documents.control.campaigns.fields.due' | transloco"
+          >
+            <app-field-help
+              label-suffix
+              scope="documents"
+              page="campaignForm"
+              field="due"
+              [label]="'documents.control.campaigns.fields.due' | transloco"
+            />
+            <app-date-input
+              inputId="camp-due"
+              [value]="due()"
+              (valueChange)="due.set($event ?? '')"
+            />
+          </app-form-field>
+        </app-form-section>
+
+        <app-form-section
+          [title]="'documents.control.campaigns.audience.label' | transloco"
+          [description]="'documents.control.campaigns.sections.audienceHint' | transloco"
+          [columns]="1"
+        >
+          <app-field-help title-suffix scope="documents" page="campaignForm" field="audience" />
+          <app-audience-editor
+            [showLegend]="false"
+            [value]="audience()"
+            (valueChange)="audience.set($event)"
+          />
+        </app-form-section>
+
+        <app-form-actions>
+          @if (!canLaunch() && !busy()) {
+            <span start class="text-meta text-fg-muted" data-testid="campaign-launch-hint">
+              {{
+                (documentId()
+                  ? 'documents.control.campaigns.needAudience'
+                  : 'documents.control.campaigns.needDocument'
+                ) | transloco
+              }}
+            </span>
+          }
+          <app-button type="button" variant="ghost" (click)="cancel()">
+            {{ 'documents.control.common.cancel' | transloco }}
           </app-button>
           <app-button
             type="submit"
@@ -210,22 +244,15 @@ export function campaignBody(form: {
           >
             {{ 'documents.control.campaigns.saveDraft' | transloco }}
           </app-button>
-          @if (!canLaunch() && !busy()) {
-            <span class="text-meta text-fg-muted" data-testid="campaign-launch-hint">
-              {{
-                (documentId()
-                  ? 'documents.control.campaigns.needAudience'
-                  : 'documents.control.campaigns.needDocument'
-                ) | transloco
-              }}
-            </span>
-          }
-          <a routerLink="/documents/campaigns">
-            <app-button type="button" variant="ghost">
-              {{ 'documents.control.common.cancel' | transloco }}
-            </app-button>
-          </a>
-        </div>
+          <app-button
+            [disabled]="!canLaunch()"
+            [loading]="busy() === 'launch'"
+            (click)="save(true)"
+            data-testid="campaign-launch"
+          >
+            {{ 'documents.control.campaigns.saveAndLaunch' | transloco }}
+          </app-button>
+        </app-form-actions>
       </form>
     </div>
   `,
@@ -278,6 +305,10 @@ export class CampaignFormPage {
         }),
       );
     });
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/documents/campaigns']);
   }
 
   protected save(launch: boolean): void {

@@ -34,6 +34,9 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { hasAnyPermission } from '../../../core/auth/permission';
 import { RecordType } from '../../../core/records/record.models';
 import { RecordsApi } from '../../../core/records/records-api';
@@ -81,6 +84,9 @@ import { moduleConfigCrumbs } from '../../../core/modules/module-config';
 @Component({
   selector: 'app-deviation-type-editor',
   imports: [
+    FormActions,
+    FormField,
+    FormSection,
     FieldHelp,
     ClausePicker,
     HelpStrip,
@@ -110,7 +116,7 @@ import { moduleConfigCrumbs } from '../../../core/modules/module-config';
         @if (loading()) {
           <app-loading-state [rows]="4" />
         } @else {
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-5">
             <app-card>
               <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-2">
@@ -151,193 +157,191 @@ import { moduleConfigCrumbs } from '../../../core/modules/module-config';
               </div>
             </app-card>
 
-            <form class="flex flex-col gap-4" (ngSubmit)="submit()">
-              <app-card>
-                <div class="flex flex-col gap-4">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="flex flex-col gap-1.5">
-                      <label for="type-name" class="text-ui font-semibold text-fg-muted">
-                        {{ 'deviations.types.editor.name' | transloco }}
-                        <span class="text-fail-ink" aria-hidden="true">*</span>
-                      </label>
-                      <input
-                        id="type-name"
-                        type="text"
-                        [ngModel]="name()"
-                        (ngModelChange)="onNameChange($event)"
-                        name="name"
-                        autocomplete="off"
-                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                      />
-                      @if (showErrors() && validation().nameError) {
-                        <p class="text-meta font-medium text-fail-ink" role="alert">
-                          {{ validation().nameError! | transloco }}
-                        </p>
-                      }
-                    </div>
-                  </div>
+            <form class="flex flex-col gap-5" (ngSubmit)="submit()">
+              <app-form-section
+                [title]="'deviations.types.editor.sections.basics' | transloco"
+                [description]="'deviations.types.editor.sections.basicsHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'deviations.types.editor.name' | transloco"
+                  inputId="type-name"
+                  [required]="true"
+                  [error]="
+                    showErrors() && validation().nameError
+                      ? (validation().nameError! | transloco)
+                      : ''
+                  "
+                >
+                  <input
+                    id="type-name"
+                    type="text"
+                    [ngModel]="name()"
+                    (ngModelChange)="onNameChange($event)"
+                    name="name"
+                    autocomplete="off"
+                  />
+                </app-form-field>
+                <app-form-field
+                  [label]="'deviations.types.editor.codePrefix' | transloco"
+                  inputId="type-prefix"
+                  [required]="true"
+                  [error]="
+                    showErrors() && validation().prefixError
+                      ? (validation().prefixError! | transloco)
+                      : ''
+                  "
+                >
+                  <input
+                    id="type-prefix"
+                    type="text"
+                    class="font-mono"
+                    [ngModel]="codePrefix()"
+                    (ngModelChange)="codePrefix.set($event)"
+                    name="codePrefix"
+                    autocomplete="off"
+                    [placeholder]="'deviations.types.editor.codePrefixPlaceholder' | transloco"
+                  />
+                </app-form-field>
+                <app-form-field
+                  span="full"
+                  [label]="'deviations.types.editor.description' | transloco"
+                  inputId="type-desc"
+                >
+                  <textarea
+                    id="type-desc"
+                    [ngModel]="description()"
+                    (ngModelChange)="description.set($event)"
+                    name="description"
+                    rows="2"
+                  ></textarea>
+                </app-form-field>
+                <label
+                  class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+                >
+                  <input
+                    type="checkbox"
+                    [ngModel]="isActive()"
+                    (ngModelChange)="isActive.set($event)"
+                    name="isActive"
+                    class="h-4 w-4 accent-[var(--accent)]"
+                  />
+                  {{ 'deviations.types.editor.isActive' | transloco }}
+                </label>
+              </app-form-section>
 
-                  <div class="flex flex-col gap-1.5">
-                    <label for="type-desc" class="text-ui font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.description' | transloco }}
-                    </label>
-                    <textarea
-                      id="type-desc"
-                      [ngModel]="description()"
-                      (ngModelChange)="description.set($event)"
-                      name="description"
-                      rows="2"
-                      class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                    ></textarea>
-                  </div>
-
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="flex flex-col gap-1.5">
-                      <label for="type-prefix" class="text-ui font-semibold text-fg-muted">
-                        {{ 'deviations.types.editor.codePrefix' | transloco }}
-                        <span class="text-fail-ink" aria-hidden="true">*</span>
-                      </label>
-                      <input
-                        id="type-prefix"
-                        type="text"
-                        [ngModel]="codePrefix()"
-                        (ngModelChange)="codePrefix.set($event)"
-                        name="codePrefix"
-                        autocomplete="off"
-                        [placeholder]="'deviations.types.editor.codePrefixPlaceholder' | transloco"
-                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 font-mono text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
-                      />
-                      @if (showErrors() && validation().prefixError) {
-                        <p class="text-meta font-medium text-fail-ink">
-                          {{ validation().prefixError! | transloco }}
-                        </p>
-                      }
-                    </div>
-                    <label
-                      class="flex cursor-pointer items-center gap-2 self-end pb-2.5 text-ui text-fg"
-                    >
-                      <input
-                        type="checkbox"
-                        [ngModel]="isActive()"
-                        (ngModelChange)="isActive.set($event)"
-                        name="isActive"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                      />
-                      {{ 'deviations.types.editor.isActive' | transloco }}
-                    </label>
-                  </div>
-
-                  <div class="flex flex-col gap-2">
-                    <span class="text-ui font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.standards' | transloco }}
-                    </span>
-                    <div class="flex flex-wrap gap-x-4 gap-y-2">
-                      @for (option of standardOptions; track option) {
-                        <label class="flex cursor-pointer items-center gap-2 text-ui text-fg">
-                          <input
-                            type="checkbox"
-                            [checked]="standards().includes(option)"
-                            (change)="toggleStandard(option)"
-                            class="h-4 w-4 accent-[var(--accent)]"
-                          />
-                          {{ standardLabelKey(option) | transloco }}
-                        </label>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="flex flex-col gap-1.5">
-                    <label for="type-clauses" class="text-ui font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.defaultClauses' | transloco }}
-                    </label>
-                    <p class="text-meta text-fg-muted">
-                      {{ 'deviations.types.editor.defaultClausesHint' | transloco }}
-                    </p>
-                    <app-clause-picker
-                      inputId="type-clauses"
-                      name="defaultClauses"
-                      [frameworks]="clauseFrameworks"
-                      [ngModel]="defaultClauses()"
-                      (ngModelChange)="setDefaultClauses($event)"
-                      [ariaLabel]="'deviations.types.editor.defaultClauses' | transloco"
-                    />
-                  </div>
-
-                  <details
-                    class="rounded-tile border border-border px-3 py-2"
-                    [open]="!!keyError()"
+              <app-form-section
+                [title]="'deviations.types.editor.sections.requirements' | transloco"
+                [description]="'deviations.types.editor.sections.requirementsHint' | transloco"
+              >
+                <fieldset class="sm:col-span-2">
+                  <legend
+                    class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted"
                   >
-                    <summary class="cursor-pointer text-ui font-semibold text-fg-muted">
-                      {{ 'deviations.types.editor.advanced' | transloco }}
-                    </summary>
-                    <div class="mt-3 flex flex-col gap-1.5 sm:max-w-[50%]">
-                      <label for="type-key" class="text-ui font-semibold text-fg-muted">
-                        {{ 'deviations.types.editor.key' | transloco }}
+                    {{ 'deviations.types.editor.standards' | transloco }}
+                  </legend>
+                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    @for (option of standardOptions; track option) {
+                      <label
+                        class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                      >
+                        <input
+                          type="checkbox"
+                          [checked]="standards().includes(option)"
+                          (change)="toggleStandard(option)"
+                          class="h-4 w-4 accent-[var(--accent)]"
+                        />
+                        {{ standardLabelKey(option) | transloco }}
                       </label>
-                      <p class="text-meta text-fg-muted">
-                        {{ 'deviations.types.editor.keyHint' | transloco }}
-                      </p>
-                      <input
-                        id="type-key"
-                        type="text"
-                        [ngModel]="key()"
-                        (ngModelChange)="onKeyChange($event)"
-                        name="key"
-                        autocomplete="off"
-                        spellcheck="false"
-                        [disabled]="isEdit()"
-                        class="h-10 w-full rounded-tile border border-border bg-bg px-3 font-mono text-ui text-fg outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)] disabled:opacity-60"
-                      />
-                      @if (keyError()) {
-                        <p class="text-meta font-medium text-fail-ink" role="alert">
-                          {{ keyError()! | transloco }}
-                        </p>
-                      }
-                    </div>
-                  </details>
-
-                  <div class="flex flex-col gap-1.5 border-t border-border pt-4">
-                    <span class="flex items-center gap-1.5">
-                      <label for="type-record-type" class="text-ui font-semibold text-fg-muted">
-                        {{ 'deviations.wf.binding.label' | transloco }}
-                      </label>
-                      <app-field-help scope="deviations" page="types" field="record_type" />
-                    </span>
-                    <select
-                      id="type-record-type"
-                      name="recordType"
-                      [ngModel]="recordTypeId()"
-                      (ngModelChange)="recordTypeId.set($event)"
-                      class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent sm:max-w-[60%]"
-                    >
-                      <option value="">{{ 'deviations.wf.binding.none' | transloco }}</option>
-                      @for (rt of recordTypes(); track rt.id) {
-                        <option [value]="rt.id">{{ rt.name }}</option>
-                      }
-                      @if (recordTypeId() && !knownRecordType()) {
-                        <option [value]="recordTypeId()">
-                          {{ 'deviations.wf.binding.current' | transloco }}
-                        </option>
-                      }
-                    </select>
-                    @if (recordTypeId()) {
-                      <p class="text-meta text-fg-muted" data-testid="binding-note">
-                        {{ 'deviations.wf.binding.boundNote' | transloco }}
-                      </p>
-                    } @else {
-                      <p class="text-meta text-fg-subtle">
-                        {{ 'deviations.wf.binding.hint' | transloco }}
-                      </p>
                     }
                   </div>
-                </div>
-              </app-card>
+                </fieldset>
+                <app-form-field
+                  span="full"
+                  [label]="'deviations.types.editor.defaultClauses' | transloco"
+                  inputId="type-clauses"
+                  [hint]="'deviations.types.editor.defaultClausesHint' | transloco"
+                >
+                  <app-clause-picker
+                    inputId="type-clauses"
+                    name="defaultClauses"
+                    [frameworks]="clauseFrameworks"
+                    [ngModel]="defaultClauses()"
+                    (ngModelChange)="setDefaultClauses($event)"
+                    [ariaLabel]="'deviations.types.editor.defaultClauses' | transloco"
+                  />
+                </app-form-field>
+              </app-form-section>
+
+              <app-form-section
+                [title]="'deviations.types.editor.sections.workflow' | transloco"
+                [description]="'deviations.types.editor.sections.workflowHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'deviations.wf.binding.label' | transloco"
+                  inputId="type-record-type"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="deviations"
+                    page="types"
+                    field="record_type"
+                    [label]="'deviations.wf.binding.label' | transloco"
+                  />
+                  <select
+                    id="type-record-type"
+                    name="recordType"
+                    [ngModel]="recordTypeId()"
+                    (ngModelChange)="recordTypeId.set($event)"
+                  >
+                    <option value="">{{ 'deviations.wf.binding.none' | transloco }}</option>
+                    @for (rt of recordTypes(); track rt.id) {
+                      <option [value]="rt.id">{{ rt.name }}</option>
+                    }
+                    @if (recordTypeId() && !knownRecordType()) {
+                      <option [value]="recordTypeId()">
+                        {{ 'deviations.wf.binding.current' | transloco }}
+                      </option>
+                    }
+                  </select>
+                  @if (recordTypeId()) {
+                    <p
+                      hint
+                      class="text-meta leading-snug text-fg-subtle"
+                      data-testid="binding-note"
+                    >
+                      {{ 'deviations.wf.binding.boundNote' | transloco }}
+                    </p>
+                  } @else {
+                    <p hint class="text-meta leading-snug text-fg-subtle">
+                      {{ 'deviations.wf.binding.hint' | transloco }}
+                    </p>
+                  }
+                </app-form-field>
+                <app-form-field
+                  [label]="'deviations.types.editor.key' | transloco"
+                  inputId="type-key"
+                  [hint]="'deviations.types.editor.keyHint' | transloco"
+                  [error]="keyError() ? (keyError()! | transloco) : ''"
+                >
+                  <input
+                    id="type-key"
+                    type="text"
+                    class="font-mono"
+                    [ngModel]="key()"
+                    (ngModelChange)="onKeyChange($event)"
+                    name="key"
+                    autocomplete="off"
+                    spellcheck="false"
+                    [disabled]="isEdit()"
+                  />
+                </app-form-field>
+              </app-form-section>
 
               <app-card>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <span class="text-ui font-semibold text-fg-muted">
+                  <h2 class="font-display text-card font-bold text-fg">
                     {{ 'deviations.types.editor.schemaSection' | transloco }}
-                  </span>
+                  </h2>
                   <button
                     type="button"
                     (click)="togglePreview()"
@@ -652,16 +656,16 @@ import { moduleConfigCrumbs } from '../../../core/modules/module-config';
                 </button>
               </app-card>
 
-              <div class="flex items-center gap-2">
-                <app-button type="submit" [loading]="saving()">
-                  {{ 'deviations.types.editor.save' | transloco }}
-                </app-button>
-                <a routerLink="/settings/modules/deviations/types">
-                  <app-button type="button" variant="ghost">
+              <app-form-actions>
+                <a routerLink="/settings/modules/deviations/types" tabindex="-1">
+                  <app-button type="button" variant="secondary">
                     {{ 'deviations.types.editor.cancel' | transloco }}
                   </app-button>
                 </a>
-              </div>
+                <app-button type="submit" [loading]="saving()">
+                  {{ 'deviations.types.editor.save' | transloco }}
+                </app-button>
+              </app-form-actions>
             </form>
           </div>
         }

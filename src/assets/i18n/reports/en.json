@@ -402,7 +402,15 @@
     "create": "Save the report",
     "saveChanges": "Save the changes",
     "created": "The report is saved.",
-    "saved": "The changes are saved."
+    "saved": "The changes are saved.",
+    "fixErrors": "Fix the fields that are marked.",
+    "sections": {
+      "basics": "The report",
+      "basicsHint": "What the report is called and which register it reads from.",
+      "contentHint": "Choose which rows and columns the report includes.",
+      "output": "File",
+      "outputHint": "The format and language of the file you download."
+    }
   },
   "detail": {
     "run": "Run the report ({{ format }})",

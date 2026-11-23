@@ -18,6 +18,7 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Button } from '../../shared/ui/button/button';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -68,6 +69,7 @@ export function preparesTask(change: Pick<Change, 'impact' | 'effective_on'>): b
 @Component({
   selector: 'app-obligation-changes',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -105,7 +107,7 @@ export function preparesTask(change: Pick<Change, 'impact' | 'effective_on'>): b
 
       @if (adding()) {
         <form
-          class="my-3 grid grid-cols-1 gap-3 rounded-tile border border-border p-3 sm:grid-cols-2"
+          class="my-3 grid grid-cols-1 items-start gap-x-4 gap-y-5 rounded-tile border border-border p-4 sm:grid-cols-2"
           (submit)="$event.preventDefault(); add()"
           data-testid="change-form"
         >
@@ -162,22 +164,20 @@ export function preparesTask(change: Pick<Change, 'impact' | 'effective_on'>): b
             />
           </app-form-field>
           <app-form-field [label]="'obligations.changes.notedOn' | transloco" inputId="cf-ch-noted">
-            <input
-              id="cf-ch-noted"
-              type="date"
+            <app-date-input
+              inputId="cf-ch-noted"
               [value]="notedOn()"
-              (change)="notedOn.set($any($event.target).value)"
+              (valueChange)="notedOn.set($event ?? '')"
             />
           </app-form-field>
           <app-form-field
             [label]="'obligations.changes.effectiveOn' | transloco"
             inputId="cf-ch-effective"
           >
-            <input
-              id="cf-ch-effective"
-              type="date"
+            <app-date-input
+              inputId="cf-ch-effective"
               [value]="effectiveOn()"
-              (change)="effectiveOn.set($any($event.target).value)"
+              (valueChange)="effectiveOn.set($event ?? '')"
             />
           </app-form-field>
           @if (preparesTask({ impact: impact(), effective_on: effectiveOn() || null })) {

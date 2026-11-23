@@ -16,6 +16,7 @@ import { ContinuityApi } from '../data/continuity-api';
 import { todayIso } from '../data/continuity-display';
 import { continuityErrorKey } from '../data/continuity-errors';
 import { PlanDetail } from '../data/continuity.models';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /**
  * The recurring exercise schedule of a plan: shows whether one is active and when the
@@ -25,6 +26,7 @@ import { PlanDetail } from '../data/continuity.models';
 @Component({
   selector: 'app-plan-exercise-schedule',
   imports: [
+    DateInput,
     TranslocoPipe,
     LocalDayPipe,
     Alert,
@@ -86,13 +88,12 @@ import { PlanDetail } from '../data/continuity.models';
               [label]="'continuity.schedule.firstDue' | transloco"
               inputId="plan-sched-start"
             >
-              <input
-                id="plan-sched-start"
-                type="date"
-                required
+              <app-date-input
+                inputId="plan-sched-start"
+                [required]="true"
                 [min]="today"
                 [value]="start()"
-                (input)="start.set($any($event.target).value)"
+                (valueChange)="start.set($event ?? '')"
               />
             </app-form-field>
             <app-form-field
@@ -108,21 +109,18 @@ import { PlanDetail } from '../data/continuity.models';
                 (input)="leadDays.set($any($event.target).value)"
               />
             </app-form-field>
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'continuity.schedule.assignee' | transloco"
+            <app-form-field
+              span="full"
+              [label]="'continuity.schedule.assignee' | transloco"
+              inputId="plan-sched-assignee"
+              [hint]="'continuity.schedule.assigneeHint' | transloco"
+            >
+              <app-assignee-select
                 inputId="plan-sched-assignee"
-              >
-                <app-assignee-select
-                  inputId="plan-sched-assignee"
-                  [value]="assignee()"
-                  (valueChange)="assignee.set($event)"
-                />
-              </app-form-field>
-              <p class="mt-1 text-meta text-fg-subtle">
-                {{ 'continuity.schedule.assigneeHint' | transloco }}
-              </p>
-            </div>
+                [value]="assignee()"
+                (valueChange)="assignee.set($event)"
+              />
+            </app-form-field>
           </div>
           @if (error(); as key) {
             <app-alert>{{ key | transloco }}</app-alert>

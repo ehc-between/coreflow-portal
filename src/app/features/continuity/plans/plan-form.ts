@@ -18,7 +18,6 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ContinuityApi } from '../data/continuity-api';
@@ -38,6 +37,8 @@ import {
 } from '../data/continuity.models';
 import { ContinuityDuration, ContinuityDurationInput } from '../shared/duration';
 import { ContinuityDepartmentSelect, ContinuityUserSelect } from '../shared/user-select';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 export interface StepDraft {
   phase: StepPhase;
@@ -197,12 +198,13 @@ export interface PlanFormValue {
 @Component({
   selector: 'app-plan-form',
   imports: [
+    FormActions,
+    FormSection,
     TranslocoPipe,
     AiAssistButton,
     Alert,
     AskAbout,
     Button,
-    Card,
     ContinuityDepartmentSelect,
     ContinuityDuration,
     ContinuityDurationInput,
@@ -214,110 +216,114 @@ export interface PlanFormValue {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'continuity.form.sections.plan' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field [label]="'continuity.fields.title' | transloco" inputId="plan-title">
-              <input
-                id="plan-title"
-                type="text"
-                maxlength="255"
-                required
-                [attr.aria-invalid]="showErrors() && !d().title.trim()"
-                [value]="d().title"
-                (input)="set('title', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !d().title.trim()) {
-              <p class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'continuity.form.errors.titleRequired' | transloco }}
-              </p>
+      <app-form-section
+        [title]="'continuity.form.sections.plan' | transloco"
+        [description]="'continuity.form.sections.planHint' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'continuity.fields.title' | transloco"
+          inputId="plan-title"
+          [required]="true"
+          [error]="
+            showErrors() && !d().title.trim()
+              ? ('continuity.form.errors.titleRequired' | transloco)
+              : ''
+          "
+        >
+          <input
+            id="plan-title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="d().title"
+            (input)="set('title', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.planType' | transloco" inputId="plan-type">
+          <app-field-help
+            label-suffix
+            scope="continuity"
+            page="planForm"
+            field="plan_type"
+            [label]="'continuity.fields.planType' | transloco"
+          />
+          <select id="plan-type" (change)="set('plan_type', $any($event.target).value)">
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="d().plan_type === t">
+                {{ 'continuity.planType.' + t | transloco }}
+              </option>
             }
-          </div>
-          <app-form-field [label]="'continuity.fields.planType' | transloco" inputId="plan-type">
-            <select id="plan-type" (change)="set('plan_type', $any($event.target).value)">
-              @for (t of types; track t) {
-                <option [value]="t" [selected]="d().plan_type === t">
-                  {{ 'continuity.planType.' + t | transloco }}
-                </option>
-              }
-            </select>
-            <app-field-help scope="continuity" page="planForm" field="plan_type" />
-          </app-form-field>
-          <app-form-field [label]="'continuity.fields.location' | transloco" inputId="plan-loc">
-            <input
-              id="plan-loc"
-              type="text"
-              maxlength="255"
-              [value]="d().location"
-              (input)="set('location', $any($event.target).value)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="plan-owner">
-            <app-continuity-user-select
-              inputId="plan-owner"
-              [value]="d().owner_user_id"
-              [currentName]="value()?.owner?.name ?? null"
-              (valueChange)="set('owner_user_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'continuity.fields.department' | transloco" inputId="plan-dept">
-            <app-continuity-department-select
-              inputId="plan-dept"
-              [value]="d().department_id"
-              (valueChange)="set('department_id', $event)"
-            />
-          </app-form-field>
-          <div>
-            <app-form-field
-              [label]="'continuity.fields.reviewInterval' | transloco"
-              inputId="plan-interval"
-            >
-              <input
-                id="plan-interval"
-                type="number"
-                min="1"
-                max="120"
-                [value]="d().review_interval_months"
-                (input)="set('review_interval_months', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && problems().includes('interval')) {
-              <p class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'continuity.form.errors.interval' | transloco }}
-              </p>
-            }
-          </div>
-        </div>
-      </app-card>
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.location' | transloco" inputId="plan-loc">
+          <input
+            id="plan-loc"
+            type="text"
+            maxlength="255"
+            [value]="d().location"
+            (input)="set('location', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.owner' | transloco" inputId="plan-owner">
+          <app-continuity-user-select
+            inputId="plan-owner"
+            [value]="d().owner_user_id"
+            [currentName]="value()?.owner?.name ?? null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'continuity.fields.department' | transloco" inputId="plan-dept">
+          <app-continuity-department-select
+            inputId="plan-dept"
+            [value]="d().department_id"
+            (valueChange)="set('department_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'continuity.fields.reviewInterval' | transloco"
+          inputId="plan-interval"
+          [error]="
+            showErrors() && problems().includes('interval')
+              ? ('continuity.form.errors.interval' | transloco)
+              : ''
+          "
+        >
+          <input
+            id="plan-interval"
+            type="number"
+            min="1"
+            max="120"
+            [value]="d().review_interval_months"
+            (input)="set('review_interval_months', $any($event.target).value)"
+          />
+        </app-form-field>
+      </app-form-section>
 
-      <app-card>
-        <div class="mb-1 flex items-center gap-1">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'continuity.form.sections.coverage' | transloco }}
-          </h2>
-          <app-field-help scope="continuity" page="planForm" field="bia_ids" />
-        </div>
-        <p class="mb-3 text-meta text-fg-subtle">
-          {{ 'continuity.form.coverageHint' | transloco }}
-        </p>
+      <app-form-section
+        [title]="'continuity.form.sections.coverage' | transloco"
+        [description]="'continuity.form.coverageHint' | transloco"
+        [columns]="1"
+      >
+        <app-field-help title-suffix scope="continuity" page="planForm" field="bia_ids" />
         @if (bias().length === 0) {
-          <p class="text-ui text-fg-muted">{{ 'continuity.form.noBias' | transloco }}</p>
+          <p
+            class="rounded-tile border border-dashed border-border px-3 py-2.5 text-ui text-fg-muted"
+          >
+            {{ 'continuity.form.noBias' | transloco }}
+          </p>
         } @else {
           <fieldset>
             <legend class="sr-only">{{ 'continuity.form.sections.coverage' | transloco }}</legend>
-            <ul class="grid max-h-[300px] grid-cols-1 gap-1.5 overflow-y-auto sm:grid-cols-2">
+            <ul class="grid max-h-[300px] grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
               @for (b of bias(); track b.id) {
                 <li>
                   <label
-                    class="flex cursor-pointer items-start gap-2 rounded-tile border border-border px-3 py-2 text-ui hover:bg-surface-2"
+                    class="flex min-h-10 cursor-pointer items-start gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui hover:bg-surface-2"
                   >
                     <input
                       type="checkbox"
-                      class="mt-0.5 h-4 w-4"
+                      class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
                       [checked]="d().bia_ids.includes(b.id)"
                       (change)="toggleBia(b.id, $any($event.target).checked)"
                     />
@@ -338,13 +344,24 @@ export interface PlanFormValue {
             </ul>
           </fieldset>
         }
-      </app-card>
+      </app-form-section>
 
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'continuity.form.sections.content' | transloco }}
-          </h2>
+      <app-form-section
+        [title]="'continuity.form.sections.content' | transloco"
+        [description]="'continuity.form.sections.contentHint' | transloco"
+        [columns]="1"
+      >
+        <div
+          class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-accent-border bg-accent-soft px-3 py-2"
+        >
+          <p class="min-w-0 flex-1 text-ui text-fg-muted">
+            {{
+              (!value() && d().bia_ids.length === 0
+                ? 'continuity.ai.draftNeedsBia'
+                : 'continuity.form.sections.contentAssist'
+              ) | transloco
+            }}
+          </p>
           <app-ai-assist-button
             assist="continuity.draft_plan"
             labelKey="continuity.ai.draftPlan"
@@ -359,69 +376,183 @@ export interface PlanFormValue {
             (result)="applyDraft($event)"
           />
         </div>
-        @if (!value() && d().bia_ids.length === 0) {
-          <p class="mb-3 text-meta text-fg-subtle">
-            {{ 'continuity.ai.draftNeedsBia' | transloco }}
+        @if (assumptions().length) {
+          <app-alert tone="info">
+            <span class="font-semibold">{{ 'continuity.ai.assumptions' | transloco }}</span>
+            <ul class="mt-1 list-disc pl-5">
+              @for (a of assumptions(); track $index) {
+                <li>{{ a }}</li>
+              }
+            </ul>
+            @if (contactRoles().length) {
+              <p class="mt-2">
+                {{ 'continuity.ai.contactRoles' | transloco: { roles: contactRoles().join(', ') } }}
+              </p>
+            }
+          </app-alert>
+        }
+        @for (f of textFields; track f) {
+          <app-form-field [label]="'continuity.planText.' + f | transloco" [inputId]="'plan-' + f">
+            <app-field-help
+              label-suffix
+              scope="continuity"
+              page="planForm"
+              [field]="f"
+              [label]="'continuity.planText.' + f | transloco"
+            />
+            @if (f === 'activation_criteria' || f === 'recovery_strategy') {
+              <app-ask-about
+                label-suffix
+                [prompt]="
+                  'continuity.ai.prompts.' +
+                    (f === 'activation_criteria' ? 'activation' : 'recoveryStrategy') | transloco
+                "
+                [field]="f"
+              />
+            }
+            <textarea
+              [id]="'plan-' + f"
+              rows="4"
+              maxlength="20000"
+              [value]="d().texts[f]"
+              (input)="setText(f, $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'continuity.form.sections.steps' | transloco"
+        [description]="'continuity.form.sections.stepsHint' | transloco"
+        [columns]="1"
+      >
+        <app-field-help title-suffix scope="continuity" page="planForm" field="steps" />
+        @if (d().steps.length === 0) {
+          <p
+            class="rounded-tile border border-dashed border-border px-3 py-2.5 text-ui text-fg-muted"
+          >
+            {{ 'continuity.form.noSteps' | transloco }}
+          </p>
+        } @else {
+          <ol class="flex flex-col gap-3">
+            @for (
+              s of d().steps;
+              track $index;
+              let i = $index;
+              let first = $first;
+              let last = $last
+            ) {
+              <li class="rounded-tile border border-border bg-bg p-3 sm:p-4">
+                <fieldset class="flex flex-col gap-3">
+                  <legend class="sr-only">
+                    {{ 'continuity.form.stepN' | transloco: { n: i + 1 } }}
+                  </legend>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span
+                      class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-surface-2 px-1.5 text-micro font-semibold text-fg-muted"
+                      aria-hidden="true"
+                      >{{ i + 1 }}</span
+                    >
+                    <span class="ml-auto flex flex-wrap gap-1">
+                      <app-button
+                        size="sm"
+                        variant="ghost"
+                        [disabled]="first"
+                        (click)="moveStep(i, -1)"
+                      >
+                        {{ 'continuity.form.moveUp' | transloco }}
+                      </app-button>
+                      <app-button
+                        size="sm"
+                        variant="ghost"
+                        [disabled]="last"
+                        (click)="moveStep(i, 1)"
+                      >
+                        {{ 'continuity.form.moveDown' | transloco }}
+                      </app-button>
+                      <app-button size="sm" variant="ghost" (click)="removeStep(i)">
+                        <app-icon name="trash" [size]="14" />
+                        <span class="sr-only">{{ 'continuity.form.removeStep' | transloco }}</span>
+                      </app-button>
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
+                    <app-form-field
+                      span="full"
+                      [label]="'continuity.fields.stepTitle' | transloco"
+                      [inputId]="'plan-step-title-' + i"
+                    >
+                      <input
+                        [id]="'plan-step-title-' + i"
+                        type="text"
+                        maxlength="255"
+                        [attr.aria-invalid]="showErrors() && !s.title.trim()"
+                        [value]="s.title"
+                        (input)="setStep(i, 'title', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                    <app-form-field
+                      [label]="'continuity.fields.phase' | transloco"
+                      [inputId]="'plan-step-phase-' + i"
+                    >
+                      <select
+                        [id]="'plan-step-phase-' + i"
+                        (change)="setStep(i, 'phase', $any($event.target).value)"
+                      >
+                        @for (p of phases; track p) {
+                          <option [value]="p" [selected]="s.phase === p">
+                            {{ 'continuity.phase.' + p | transloco }}
+                          </option>
+                        }
+                      </select>
+                    </app-form-field>
+                    <app-form-field
+                      [label]="'continuity.fields.targetTime' | transloco"
+                      [inputId]="'plan-step-target-' + i"
+                    >
+                      <app-continuity-duration-input
+                        [inputId]="'plan-step-target-' + i"
+                        [value]="s.target_minutes"
+                        (valueChange)="setStep(i, 'target_minutes', $event)"
+                      />
+                    </app-form-field>
+                    <app-form-field
+                      [label]="'continuity.fields.ownerRole' | transloco"
+                      [inputId]="'plan-step-role-' + i"
+                    >
+                      <input
+                        [id]="'plan-step-role-' + i"
+                        type="text"
+                        maxlength="255"
+                        [value]="s.owner_role"
+                        (input)="setStep(i, 'owner_role', $any($event.target).value)"
+                      />
+                    </app-form-field>
+                    <app-form-field
+                      span="full"
+                      [label]="'continuity.fields.stepDescription' | transloco"
+                      [inputId]="'plan-step-desc-' + i"
+                    >
+                      <textarea
+                        [id]="'plan-step-desc-' + i"
+                        rows="2"
+                        maxlength="5000"
+                        [value]="s.description"
+                        (input)="setStep(i, 'description', $any($event.target).value)"
+                      ></textarea>
+                    </app-form-field>
+                  </div>
+                </fieldset>
+              </li>
+            }
+          </ol>
+        }
+        @if (showErrors() && problems().includes('stepTitle')) {
+          <p class="text-meta font-medium text-fail-ink" role="alert">
+            {{ 'continuity.form.errors.stepTitle' | transloco }}
           </p>
         }
-        @if (assumptions().length) {
-          <div class="mb-3">
-            <app-alert tone="info">
-              <span class="font-semibold">{{ 'continuity.ai.assumptions' | transloco }}</span>
-              <ul class="mt-1 list-disc pl-5">
-                @for (a of assumptions(); track $index) {
-                  <li>{{ a }}</li>
-                }
-              </ul>
-              @if (contactRoles().length) {
-                <p class="mt-2">
-                  {{
-                    'continuity.ai.contactRoles' | transloco: { roles: contactRoles().join(', ') }
-                  }}
-                </p>
-              }
-            </app-alert>
-          </div>
-        }
-        <div class="flex flex-col gap-4">
-          @for (f of textFields; track f) {
-            <app-form-field
-              [label]="'continuity.planText.' + f | transloco"
-              [inputId]="'plan-' + f"
-            >
-              <textarea
-                [id]="'plan-' + f"
-                rows="4"
-                maxlength="20000"
-                [value]="d().texts[f]"
-                (input)="setText(f, $any($event.target).value)"
-              ></textarea>
-              <span class="flex flex-wrap items-center gap-2">
-                <app-field-help scope="continuity" page="planForm" [field]="f" />
-                @if (f === 'activation_criteria' || f === 'recovery_strategy') {
-                  <app-ask-about
-                    [prompt]="
-                      'continuity.ai.prompts.' +
-                        (f === 'activation_criteria' ? 'activation' : 'recoveryStrategy')
-                        | transloco
-                    "
-                    [field]="f"
-                  />
-                }
-              </span>
-            </app-form-field>
-          }
-        </div>
-      </app-card>
-
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-1">
-            <h2 class="font-display text-card font-bold text-fg">
-              {{ 'continuity.form.sections.steps' | transloco }}
-            </h2>
-            <app-field-help scope="continuity" page="planForm" field="steps" />
-          </div>
+        <div>
           <app-button
             size="sm"
             variant="secondary"
@@ -432,145 +563,34 @@ export interface PlanFormValue {
             {{ 'continuity.form.addStep' | transloco }}
           </app-button>
         </div>
-        @if (d().steps.length === 0) {
-          <p class="text-ui text-fg-muted">{{ 'continuity.form.noSteps' | transloco }}</p>
-        }
-        <ol class="flex flex-col gap-3">
-          @for (
-            s of d().steps;
-            track $index;
-            let i = $index;
-            let first = $first;
-            let last = $last
-          ) {
-            <li class="rounded-tile border border-border p-3">
-              <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <legend class="mb-1 text-meta font-semibold text-fg-muted">
-                  {{ 'continuity.form.stepN' | transloco: { n: i + 1 } }}
-                </legend>
-                <app-form-field
-                  [label]="'continuity.fields.phase' | transloco"
-                  [inputId]="'plan-step-phase-' + i"
-                >
-                  <select
-                    [id]="'plan-step-phase-' + i"
-                    (change)="setStep(i, 'phase', $any($event.target).value)"
-                  >
-                    @for (p of phases; track p) {
-                      <option [value]="p" [selected]="s.phase === p">
-                        {{ 'continuity.phase.' + p | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-form-field
-                  [label]="'continuity.fields.stepTitle' | transloco"
-                  [inputId]="'plan-step-title-' + i"
-                >
-                  <input
-                    [id]="'plan-step-title-' + i"
-                    type="text"
-                    maxlength="255"
-                    [attr.aria-invalid]="showErrors() && !s.title.trim()"
-                    [value]="s.title"
-                    (input)="setStep(i, 'title', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'continuity.fields.ownerRole' | transloco"
-                  [inputId]="'plan-step-role-' + i"
-                >
-                  <input
-                    [id]="'plan-step-role-' + i"
-                    type="text"
-                    maxlength="255"
-                    [value]="s.owner_role"
-                    (input)="setStep(i, 'owner_role', $any($event.target).value)"
-                  />
-                </app-form-field>
-                <app-form-field
-                  [label]="'continuity.fields.targetTime' | transloco"
-                  [inputId]="'plan-step-target-' + i"
-                >
-                  <app-continuity-duration-input
-                    [inputId]="'plan-step-target-' + i"
-                    [value]="s.target_minutes"
-                    (valueChange)="setStep(i, 'target_minutes', $event)"
-                  />
-                </app-form-field>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'continuity.fields.stepDescription' | transloco"
-                    [inputId]="'plan-step-desc-' + i"
-                  >
-                    <textarea
-                      [id]="'plan-step-desc-' + i"
-                      rows="2"
-                      maxlength="5000"
-                      [value]="s.description"
-                      (input)="setStep(i, 'description', $any($event.target).value)"
-                    ></textarea>
-                  </app-form-field>
-                </div>
-                <div class="flex flex-wrap gap-1.5 sm:col-span-2">
-                  <app-button
-                    size="sm"
-                    variant="ghost"
-                    [disabled]="first"
-                    (click)="moveStep(i, -1)"
-                  >
-                    {{ 'continuity.form.moveUp' | transloco }}
-                  </app-button>
-                  <app-button size="sm" variant="ghost" [disabled]="last" (click)="moveStep(i, 1)">
-                    {{ 'continuity.form.moveDown' | transloco }}
-                  </app-button>
-                  <app-button size="sm" variant="ghost" (click)="removeStep(i)">
-                    <app-icon name="trash" [size]="14" />
-                    {{ 'continuity.form.removeStep' | transloco }}
-                  </app-button>
-                </div>
-              </fieldset>
-            </li>
-          }
-        </ol>
-        @if (showErrors() && problems().includes('stepTitle')) {
-          <p class="mt-2 text-meta text-fail-ink" role="alert">
-            {{ 'continuity.form.errors.stepTitle' | transloco }}
-          </p>
-        }
-      </app-card>
+      </app-form-section>
 
       @if (value()) {
-        <app-card>
+        <app-form-section [columns]="1">
           <app-form-field
             [label]="'continuity.form.changeReason' | transloco"
             inputId="plan-reason"
+            [hint]="'continuity.form.changeReasonHint' | transloco"
           >
             <textarea
               id="plan-reason"
               rows="2"
               maxlength="2000"
-              aria-describedby="plan-reason-hint"
               [value]="reason()"
               (input)="reason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="plan-reason-hint" class="mt-1 text-meta text-fg-subtle">
-            {{ 'continuity.form.changeReasonHint' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0"
-      >
-        <app-button variant="ghost" (click)="cancelled.emit()">
+      <app-form-actions>
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()">
           {{ (value() ? 'continuity.form.save' : 'continuity.plans.create') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })

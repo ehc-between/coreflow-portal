@@ -244,7 +244,13 @@
     "slaLine": "Avtalen (SLA) lover gjenoppretting innen",
     "supplierContacts": "Hvem du ringer hos leverandøren",
     "dependentPlans": "Planer som tas i bruk når den er nede",
-    "closeGapTask": "Lag en oppgave for å lukke mangelen"
+    "closeGapTask": "Lag en oppgave for å lukke mangelen",
+    "sections": {
+      "system": "Systemet",
+      "systemHint": "Hvilket system eller hvilken tjeneste dette er, hvem som leverer det, og hvem som eier det.",
+      "capabilityHint": "Hvor raskt systemet kan gjenopprettes, og hvordan dere gjenoppretter og tar sikkerhetskopi.",
+      "testingHint": "Hvor ofte gjenopprettingen testes, og hvordan siste test gikk."
+    }
   },
   "contacts": {
     "title": "Krisekontakter",
@@ -467,7 +473,19 @@
       "coverage": "Aktiviteter som dekkes",
       "content": "Innholdet i planen",
       "steps": "Steg",
-      "exercise": "Øvelse"
+      "exercise": "Øvelse",
+      "activityHint": "Aktiviteten analysen gjelder, og hvem som eier den.",
+      "targetsHint": "Hvor raskt aktiviteten må være i gang igjen, og hvor mye data dere kan miste.",
+      "dependenciesHint": "Folk, systemer, leverandører og lokaler aktiviteten trenger.",
+      "planHint": "Hva planen gjelder, hvor den gjelder, og hvem som eier den.",
+      "contentHint": "Hva planen sier: omfang, roller, hvordan dere gjenoppretter og kommuniserer.",
+      "contentAssist": "Assistenten kan lage utkast til delene og stegene ut fra de valgte konsekvensanalysene.",
+      "stepsHint": "Hva dere gjør, i rekkefølge, fra første respons til normal drift.",
+      "exerciseHint": "Hva dere tester, når, og hvem som er ansvarlig.",
+      "scenario": "Scenario og deltakere",
+      "scenarioHint": "Hva som skjer i øvelsen, hva den skal vise, og hvem som deltar.",
+      "scenarioAssist": "Assistenten kan lage utkast til scenario og mål ut fra den valgte planen.",
+      "resultsHint": "Hvordan øvelsen gikk, og hva dere lærte."
     },
     "errors": {
       "titleRequired": "Oppgi en tittel.",

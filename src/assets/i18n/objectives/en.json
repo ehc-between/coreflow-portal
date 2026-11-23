@@ -214,7 +214,8 @@
     "evaluatedBy": "Evaluates the results",
     "reviewForum": "Reviewed where and how often",
     "startDate": "First period starts",
-    "reminders": "Give the owner a recurring task to record the value"
+    "reminders": "Give the owner a recurring task to record the value",
+    "remindersLabel": "Reminders"
   },
   "form": {
     "newTitle": "New objective",
@@ -222,9 +223,9 @@
     "create": "Create objective",
     "save": "Save changes",
     "required": "(required)",
-    "group1": "1. What do you want to achieve?",
-    "group2": "2. Who and when",
-    "group3": "3. Plan and follow-up",
+    "group1": "The objective",
+    "group2": "Owner and schedule",
+    "group3": "Plan and follow-up",
     "primarySystem": "primary",
     "noOwner": "No owner",
     "noDepartment": "No department",
@@ -237,15 +238,19 @@
     "createSuggestedKpis": "Also create the {{ count }} suggested KPIs when I save",
     "progressRange": "Enter a whole number from 0 to 100.",
     "computedProgressOne": "Calculated from the KPI: {{ value }} % (based on 1 KPI).",
-    "createSuggestedKpisOne": "Also create the suggested KPI when I save"
+    "createSuggestedKpisOne": "Also create the suggested KPI when I save",
+    "group1Hint": "What the organisation wants to achieve, how it is measured and where it comes from.",
+    "group2Hint": "Who is responsible, and when the work starts and must be done.",
+    "group3Hint": "What will be done, what it takes, and how the result is evaluated and shared.",
+    "approvalLabel": "Approval"
   },
   "kpiForm": {
     "newTitle": "New KPI",
     "editTitle": "Edit KPI",
     "create": "Create KPI",
-    "group1": "1. What is measured",
-    "group2": "2. Target value and limits",
-    "group3": "3. Measuring and follow-up",
+    "group1": "What is measured",
+    "group2": "Target value and limits",
+    "group3": "Measuring and follow-up",
     "noObjective": "Not tied to an objective",
     "inheritSystem": "Same as the objective",
     "remindersHint": "The task follows the frequency and is assigned to the person who records the values.",
@@ -255,7 +260,10 @@
       "lower": "{{ target }} or less is on track; between {{ target }} and {{ warning }} is at risk; above {{ warning }} is off track.",
       "higherNoWarning": "{{ target }} or more is on track; anything lower is off track.",
       "lowerNoWarning": "{{ target }} or less is on track; anything higher is off track."
-    }
+    },
+    "group1Hint": "The indicator, the objective it belongs to and the unit it is measured in.",
+    "group2Hint": "Where you start, where you want to be, and when it is at risk.",
+    "group3Hint": "Who records the values, how often, and where the KPI is reviewed."
   },
   "progress": {
     "percent": "{{ value }} % done",

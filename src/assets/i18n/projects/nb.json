@@ -160,7 +160,11 @@
       "plan": "Plan",
       "people": "Personer",
       "security": "Informasjonssikkerhet",
-      "change": "Endringsplanlegging"
+      "change": "Endringsplanlegging",
+      "purposeHint": "Hva prosjektet er, hvorfor det finnes og hva det omfatter.",
+      "planHint": "Når det starter, når det må være ferdig og hvor viktig det er.",
+      "peopleHint": "Hvem som eier prosjektet og hvem som jobber i det.",
+      "securityHint": "Om prosjektet berører informasjonssikkerhet, og hvilke krav det må oppfylle."
     },
     "ownerMe": "Meg",
     "currentOwner": "Nåværende eier",

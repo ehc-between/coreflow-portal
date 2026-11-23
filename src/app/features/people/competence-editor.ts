@@ -17,7 +17,6 @@ import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -36,6 +35,8 @@ import {
   RECORD_STATUSES,
   RecordStatus,
 } from './data/people.models';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 
 export interface CompetenceFormValue {
   readonly name: string;
@@ -75,16 +76,17 @@ export function validityOk(value: string): boolean {
   imports: [
     TranslocoPipe,
     Button,
-    Card,
     EmptyState,
     HelpStrip,
     LoadingState,
     PageHeader,
     PeopleField,
+    FormActions,
+    FormSection,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [title]="
           id()
@@ -111,122 +113,119 @@ export function validityOk(value: string): boolean {
         }
         @default {
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-            <p class="text-meta text-fg-muted">{{ 'people.form.requiredNote' | transloco }}</p>
-            <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.name"
-                    inputId="cf-c-name"
-                    page="competenceForm"
-                    [required]="true"
-                  >
-                    <input
-                      id="cf-c-name"
-                      type="text"
-                      maxlength="200"
-                      required
-                      [value]="form().name"
-                      (input)="set('name', $any($event.target).value)"
-                      [attr.aria-invalid]="attempted() && !form().name.trim()"
-                      data-testid="competence-name"
-                    />
-                  </app-people-field>
-                  @if (attempted() && !form().name.trim()) {
-                    <p class="mt-1 text-meta text-fail" role="alert">
-                      {{ 'people.competenceForm.nameRequired' | transloco }}
-                    </p>
-                  }
-                </div>
-                <div>
-                  <app-people-field
-                    labelKey="people.fields.category"
-                    inputId="cf-c-cat"
-                    page="competenceForm"
-                    help="category"
-                  >
-                    <select id="cf-c-cat" (change)="set('category', $any($event.target).value)">
-                      @for (c of categories; track c) {
-                        <option [value]="c" [selected]="form().category === c">
-                          {{ 'people.categories.' + c | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                </div>
-                <div>
-                  <app-people-field
-                    labelKey="people.fields.validityMonths"
-                    inputId="cf-c-valid"
-                    page="competenceForm"
-                    help="validity_months"
-                  >
-                    <input
-                      id="cf-c-valid"
-                      type="number"
-                      min="1"
-                      max="240"
-                      inputmode="numeric"
-                      [value]="form().validity_months"
-                      (input)="set('validity_months', $any($event.target).value)"
-                      [attr.aria-invalid]="!validity()"
-                    />
-                  </app-people-field>
-                  @if (!validity()) {
-                    <p class="mt-1 text-meta text-fail">
-                      {{ 'people.competenceForm.validityRange' | transloco }}
-                    </p>
-                  }
-                </div>
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.description"
-                    inputId="cf-c-desc"
-                    page="competenceForm"
-                  >
-                    <textarea
-                      id="cf-c-desc"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().description"
-                      (input)="set('description', $any($event.target).value)"
-                    ></textarea>
-                  </app-people-field>
-                </div>
-                @if (id()) {
-                  <app-people-field
-                    labelKey="people.fields.status"
-                    inputId="cf-c-status"
-                    page="competenceForm"
-                  >
-                    <select id="cf-c-status" (change)="set('status', $any($event.target).value)">
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ 'people.recordStatus.' + s | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                  <app-people-field
-                    labelKey="people.form.changeReason"
-                    inputId="cf-c-reason"
-                    page="competenceForm"
-                  >
-                    <input
-                      id="cf-c-reason"
-                      type="text"
-                      maxlength="1000"
-                      [value]="changeReason()"
-                      (input)="changeReason.set($any($event.target).value)"
-                    />
-                  </app-people-field>
-                }
-              </div>
-            </app-card>
-            <div
-              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            <app-form-section
+              [title]="'people.competenceForm.sections.basics' | transloco"
+              [description]="'people.competenceForm.sections.basicsHint' | transloco"
             >
-              <app-button variant="ghost" (click)="cancel()">
+              <app-people-field
+                span="full"
+                labelKey="people.fields.name"
+                inputId="cf-c-name"
+                page="competenceForm"
+                [required]="true"
+                [error]="
+                  attempted() && !form().name.trim() ? 'people.competenceForm.nameRequired' : null
+                "
+              >
+                <input
+                  id="cf-c-name"
+                  type="text"
+                  maxlength="200"
+                  required
+                  [value]="form().name"
+                  (input)="set('name', $any($event.target).value)"
+                  data-testid="competence-name"
+                />
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.category"
+                inputId="cf-c-cat"
+                page="competenceForm"
+                help="category"
+              >
+                <select id="cf-c-cat" (change)="set('category', $any($event.target).value)">
+                  @for (c of categories; track c) {
+                    <option [value]="c" [selected]="form().category === c">
+                      {{ 'people.categories.' + c | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.validityMonths"
+                inputId="cf-c-valid"
+                page="competenceForm"
+                help="validity_months"
+                [error]="validity() ? null : 'people.competenceForm.validityRange'"
+              >
+                <input
+                  id="cf-c-valid"
+                  type="number"
+                  min="1"
+                  max="240"
+                  inputmode="numeric"
+                  [value]="form().validity_months"
+                  (input)="set('validity_months', $any($event.target).value)"
+                />
+              </app-people-field>
+              @if (id()) {
+                <app-people-field
+                  labelKey="people.fields.status"
+                  inputId="cf-c-status"
+                  page="competenceForm"
+                >
+                  <select id="cf-c-status" (change)="set('status', $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="form().status === s">
+                        {{ 'people.recordStatus.' + s | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-people-field>
+              }
+              <app-people-field
+                span="full"
+                labelKey="people.fields.description"
+                inputId="cf-c-desc"
+                page="competenceForm"
+              >
+                <textarea
+                  id="cf-c-desc"
+                  rows="3"
+                  maxlength="20000"
+                  [value]="form().description"
+                  (input)="set('description', $any($event.target).value)"
+                ></textarea>
+              </app-people-field>
+            </app-form-section>
+
+            @if (id()) {
+              <app-form-section [columns]="1">
+                <app-people-field
+                  labelKey="people.form.changeReason"
+                  inputId="cf-c-reason"
+                  page="competenceForm"
+                >
+                  <input
+                    id="cf-c-reason"
+                    type="text"
+                    maxlength="1000"
+                    [placeholder]="'people.form.changeReasonPlaceholder' | transloco"
+                    [value]="changeReason()"
+                    (input)="changeReason.set($any($event.target).value)"
+                  />
+                </app-people-field>
+              </app-form-section>
+            }
+
+            <app-form-actions
+              [message]="
+                attempted() && (!form().name.trim() || !validity())
+                  ? ('people.form.fixErrors' | transloco)
+                  : ''
+              "
+            >
+              <app-button variant="secondary" (click)="cancel()">
                 {{ 'common.cancel' | transloco }}
               </app-button>
               <app-button
@@ -237,7 +236,7 @@ export function validityOk(value: string): boolean {
               >
                 {{ (id() ? 'common.save' : 'people.competenceForm.create') | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
         }
       }

@@ -10,7 +10,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../../../core/notifications/notification.service';
@@ -21,8 +21,8 @@ import { TaskGuideIntro } from '../../../shared/tasks/guidance/task-guide-intro'
 import { isClosedStatus } from '../../../shared/tasks/task-display';
 import { TaskForm, TaskFormResult, TaskFormValue } from '../../../shared/tasks/task-form';
 import { Alert } from '../../../shared/ui/alert/alert';
-import { Card } from '../../../shared/ui/card/card';
-import { Icon } from '../../../shared/ui/icon/icon';
+import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { goBack } from '../go-back';
 import { provideTasksPageContext } from '../tasks-page-context';
 
@@ -33,23 +33,24 @@ import { provideTasksPageContext } from '../tasks-page-context';
  */
 @Component({
   selector: 'app-task-edit',
-  imports: [RouterLink, TranslocoPipe, Alert, Card, Icon, TaskForm, TaskGuideIntro],
+  imports: [TranslocoPipe, Alert, LoadingState, PageHeader, TaskForm, TaskGuideIntro],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-7 pb-12 sm:px-8">
-      <a
-        [routerLink]="['/tasks', id()]"
-        class="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-fg-muted hover:text-fg"
-      >
-        <app-icon name="back" [size]="14" />
-        {{ 'tasks.common.backToTask' | transloco }}
-      </a>
-      <h1 class="mb-4 font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
-        {{ 'tasks.edit.title' | transloco }}
-      </h1>
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <app-page-header
+        titleKey="tasks.edit.title"
+        [breadcrumbs]="[
+          { labelKey: 'nav.myWork', link: '/my-work' },
+          { labelKey: 'tasks.list.title', link: '/tasks' },
+          { label: task()?.title ?? '', link: ['/tasks', id()] },
+          { labelKey: 'tasks.edit.title' },
+        ]"
+        [backLink]="['/tasks', id()]"
+        backLabelKey="tasks.common.backToTask"
+      />
       @switch (state()) {
         @case ('loading') {
-          <p class="text-[14px] text-fg-muted">{{ 'tasks.common.loading' | transloco }}</p>
+          <app-loading-state [rows]="5" />
         }
         @case ('error') {
           <app-alert tone="error">{{ 'tasks.detail.notFound' | transloco }}</app-alert>
@@ -61,14 +62,13 @@ import { provideTasksPageContext } from '../tasks-page-context';
             } @else if (closed()) {
               <app-alert tone="info">{{ 'tasks.errors.task_closed' | transloco }}</app-alert>
             } @else {
-              <div class="mb-4"><app-task-guide-intro page="form" /></div>
-              <app-card>
-                <app-task-form
-                  [value]="formValue()"
-                  (saved)="onSaved($event)"
-                  (cancelled)="back()"
-                />
-              </app-card>
+              <div class="mb-5"><app-task-guide-intro page="form" /></div>
+              <app-task-form
+                layout="page"
+                [value]="formValue()"
+                (saved)="onSaved($event)"
+                (cancelled)="back()"
+              />
             }
           }
         }

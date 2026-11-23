@@ -10,6 +10,8 @@ import { RecurrencePicker } from '../../../shared/tasks/recurrence-picker';
 import { startOfDay, todayDay } from '../../../shared/tasks/task-display';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { ReviewScheduleResult } from '../data/ai-governance.models';
@@ -30,6 +32,8 @@ import { AiUserSelect } from '../ui/user-select';
     RecurrencePicker,
     Button,
     Card,
+    DateInput,
+    FormField,
     AiUserSelect,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,28 +63,30 @@ import { AiUserSelect } from '../ui/user-select';
         @if (open()) {
           <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()">
             <app-recurrence-picker [(rrule)]="rrule" idPrefix="ai-review-rrule" />
-            <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-              {{ 'aiGovernance.review.startAt' | transloco }}
-              <input
-                type="date"
-                required
-                class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
-                [value]="start()"
-                (input)="start.set($any($event.target).value)"
-              />
-            </label>
-            <label
-              class="flex flex-col gap-1 text-meta font-semibold text-fg-muted"
-              for="ai-review-assignee"
-            >
-              {{ 'aiGovernance.review.assignee' | transloco }}
-            </label>
-            <app-ai-user-select
-              class="-mt-2"
-              selectId="ai-review-assignee"
-              noneKey="aiGovernance.review.defaultAssignee"
-              [(value)]="assignee"
-            />
+            <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
+              <app-form-field
+                [label]="'aiGovernance.review.startAt' | transloco"
+                inputId="ai-review-start"
+                [required]="true"
+              >
+                <app-date-input
+                  inputId="ai-review-start"
+                  [required]="true"
+                  [value]="start()"
+                  (valueChange)="start.set($event ?? '')"
+                />
+              </app-form-field>
+              <app-form-field
+                [label]="'aiGovernance.review.assignee' | transloco"
+                inputId="ai-review-assignee"
+              >
+                <app-ai-user-select
+                  selectId="ai-review-assignee"
+                  noneKey="aiGovernance.review.defaultAssignee"
+                  [(value)]="assignee"
+                />
+              </app-form-field>
+            </div>
             <div class="flex justify-end gap-2">
               <app-button size="sm" variant="ghost" (click)="open.set(false)">{{
                 'aiGovernance.common.cancel' | transloco

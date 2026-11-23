@@ -101,7 +101,8 @@
       "register": "Grunnleggende om prosessen",
       "turtle": "Prosessark (inn, ut, hvem, med hva og hvordan vi måler)",
       "review": "Gjennomgang",
-      "basics": "Grunnleggende om prosessen"
+      "basics": "Grunnleggende om prosessen",
+      "basicsHint": "Hva prosessen heter, hvem som eier den og hva den er til for."
     },
     "errors": {
       "titleRequired": "Gi prosessen en tittel.",

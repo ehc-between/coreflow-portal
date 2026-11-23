@@ -17,8 +17,9 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -53,9 +54,10 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
     FieldHelp,
     Alert,
     Button,
-    Card,
     ErrorState,
+    FormActions,
     FormField,
+    FormSection,
     HelpStrip,
     LoadingState,
     ModuleConfigNav,
@@ -63,7 +65,7 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="privacy.settings.title"
         descriptionKey="privacy.settings.subtitle"
@@ -82,55 +84,54 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
         @default {
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
             @for (group of groups; track group.key) {
-              <app-card>
-                <h2 class="mb-4 font-display text-section font-bold text-fg">
-                  {{ 'privacy.settings.sections.' + group.key | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  @for (f of group.fields; track f) {
-                    <div [class.sm:col-span-2]="multiline(f)">
-                      <app-form-field [inputId]="'cf-ps-' + f">
-                        <div class="flex flex-wrap items-center gap-x-1.5">
-                          <label [for]="'cf-ps-' + f" class="text-ui font-semibold text-fg-muted">
-                            {{ 'privacy.settings.fields.' + f | transloco }}
-                          </label>
-                          <app-field-help scope="privacy" page="settings" [field]="f" />
-                        </div>
-                        @if (multiline(f)) {
-                          <textarea
-                            [id]="'cf-ps-' + f"
-                            rows="3"
-                            maxlength="10000"
-                            [readOnly]="!canManage()"
-                            [value]="value(f)"
-                            (input)="set(f, $any($event.target).value)"
-                            [attr.data-testid]="'settings-' + f"
-                          ></textarea>
-                        } @else {
-                          <input
-                            [id]="'cf-ps-' + f"
-                            [type]="
-                              f === 'dpo_email' ? 'email' : f === 'dpo_phone' ? 'tel' : 'text'
-                            "
-                            [attr.maxlength]="f === 'dpo_phone' ? 64 : 255"
-                            [readOnly]="!canManage()"
-                            [value]="value(f)"
-                            (input)="set(f, $any($event.target).value)"
-                            [attr.data-testid]="'settings-' + f"
-                          />
-                        }
-                      </app-form-field>
-                    </div>
-                  }
-                </div>
-              </app-card>
+              <app-form-section
+                [title]="'privacy.settings.sections.' + group.key | transloco"
+                [description]="'privacy.settings.sectionHints.' + group.key | transloco"
+              >
+                @for (f of group.fields; track f) {
+                  <app-form-field
+                    [span]="multiline(f) || f === 'controller_name' ? 'full' : 'half'"
+                    [label]="'privacy.settings.fields.' + f | transloco"
+                    [inputId]="'cf-ps-' + f"
+                  >
+                    <app-field-help
+                      label-suffix
+                      scope="privacy"
+                      page="settings"
+                      [field]="f"
+                      [label]="'privacy.settings.fields.' + f | transloco"
+                    />
+                    @if (multiline(f)) {
+                      <textarea
+                        [id]="'cf-ps-' + f"
+                        rows="3"
+                        maxlength="10000"
+                        [readOnly]="!canManage()"
+                        [value]="value(f)"
+                        (input)="set(f, $any($event.target).value)"
+                        [attr.data-testid]="'settings-' + f"
+                      ></textarea>
+                    } @else {
+                      <input
+                        [id]="'cf-ps-' + f"
+                        [type]="f === 'dpo_email' ? 'email' : f === 'dpo_phone' ? 'tel' : 'text'"
+                        [attr.maxlength]="f === 'dpo_phone' ? 64 : 255"
+                        [readOnly]="!canManage()"
+                        [value]="value(f)"
+                        (input)="set(f, $any($event.target).value)"
+                        [attr.data-testid]="'settings-' + f"
+                      />
+                    }
+                  </app-form-field>
+                }
+              </app-form-section>
             }
 
             @if (error(); as e) {
               <app-alert tone="error" data-testid="settings-error">{{ e | transloco }}</app-alert>
             }
             @if (canManage()) {
-              <div class="flex justify-end">
+              <app-form-actions>
                 <app-button
                   type="submit"
                   [loading]="busy()"
@@ -139,7 +140,7 @@ const MULTILINE = new Set<SettingsField>(['controller_contact', 'representative'
                 >
                   {{ 'privacy.settings.save' | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             } @else {
               <p class="text-meta text-fg-subtle">{{ 'privacy.settings.readOnly' | transloco }}</p>
             }

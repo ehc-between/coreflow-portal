@@ -173,7 +173,7 @@ export function dueRows(items: readonly Asset[], q: string): readonly Asset[] {
               />
             } @else {
               <div role="list" data-testid="due-rows">
-                <app-record-row-header dateKind="next" />
+                <app-record-row-header dateKind="next" [coverage]="false" />
                 @for (row of rows(); track row.id) {
                   <app-record-row
                     [code]="row.code"

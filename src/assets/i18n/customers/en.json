@@ -150,7 +150,10 @@
     "sections": {
       "company": "Company",
       "relationship": "Customer relationship",
-      "contact": "Contact details"
+      "contact": "Contact details",
+      "companyHint": "The company. Type the organisation number to fill in the rest from the register.",
+      "relationshipHint": "Where the customer stands with you and who follows them up.",
+      "contactHint": "How to reach the customer, and what you know about them."
     }
   },
   "list": {

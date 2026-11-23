@@ -37,6 +37,7 @@ import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { EntityTasks } from '../../../shared/tasks/entity-tasks';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { OutputsPanel } from '../../../shared/outputs';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
@@ -235,6 +236,7 @@ export function assessmentMissing(
     EntityTasks,
     Alert,
     Button,
+    DateInput,
     OutputsPanel,
     ConfirmDialog,
     ErrorState,
@@ -569,12 +571,11 @@ export function assessmentMissing(
                 <label class="sr-only" for="aia-next-review">{{
                   'aiGovernance.fields.nextReview' | transloco
                 }}</label>
-                <input
-                  id="aia-next-review"
-                  type="date"
-                  class="h-8 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                <app-date-input
+                  class="w-40"
+                  inputId="aia-next-review"
                   [value]="reviewDay()"
-                  (input)="reviewDay.set($any($event.target).value)"
+                  (valueChange)="reviewDay.set($event ?? '')"
                 />
                 <app-button size="sm" type="submit" [loading]="savingReview()">{{
                   'aiGovernance.common.save' | transloco

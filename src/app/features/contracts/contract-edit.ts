@@ -39,7 +39,7 @@ import {
   imports: [TranslocoPipe, Alert, ErrorState, HelpStrip, LoadingState, PageHeader, ContractForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="contracts.form.editTitle"
         [titleParams]="{ code: contract()?.code ?? '' }"
@@ -56,7 +56,7 @@ import {
         }
         @default {
           @if (contract(); as c) {
-            <app-help-strip class="mb-5 block" scope="contracts" page="form" />
+            <app-help-strip scope="contracts" page="form" />
             @if (!c.can_edit) {
               <app-alert tone="info">{{ 'contracts.form.readOnly' | transloco }}</app-alert>
             } @else if (seed(); as value) {

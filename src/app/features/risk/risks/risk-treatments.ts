@@ -23,6 +23,7 @@ import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { ClausePicker } from '../../../shared/requirement-links/clause-picker';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
@@ -113,6 +114,7 @@ function today(): string {
 @Component({
   selector: 'app-risk-treatments',
   imports: [
+    DateInput,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -431,7 +433,7 @@ function today(): string {
       }
       @if (!editing() || formOpen()) {
         <form
-          class="flex flex-col gap-4"
+          class="flex flex-col gap-5"
           [class.mt-5]="!!editing()"
           [class.border-t]="!!editing()"
           [class.border-border]="!!editing()"
@@ -479,12 +481,11 @@ function today(): string {
             />
           </app-risk-field>
           <app-risk-field inputId="treatment-due" labelKey="risk.fields.dueAt">
-            <input
-              id="treatment-due"
-              type="date"
+            <app-date-input
+              inputId="treatment-due"
               [disabled]="!canEdit()"
               [value]="form().due_at"
-              (input)="set('due_at', $any($event.target).value)"
+              (valueChange)="set('due_at', $event ?? '')"
             />
           </app-risk-field>
           <app-risk-field
@@ -509,7 +510,7 @@ function today(): string {
             <app-alert tone="error">{{ key | transloco }}</app-alert>
           }
           @if (canEdit()) {
-            <div class="flex flex-wrap justify-between gap-2">
+            <div class="flex flex-wrap justify-between gap-2 border-t border-border pt-4">
               @if (editing()) {
                 <app-button variant="ghost" size="sm" (click)="confirmDelete.set(true)">
                   <app-icon name="trash" [size]="14" />
@@ -551,7 +552,7 @@ function today(): string {
     >
       <div class="mt-3 flex flex-col gap-3">
         <fieldset>
-          <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+          <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
             {{ 'risk.effectiveness.result' | transloco }}
           </legend>
           <div class="flex flex-col gap-1.5">
@@ -585,12 +586,11 @@ function today(): string {
           <span hint>{{ 'risk.effectiveness.noteHint' | transloco }}</span>
         </app-risk-field>
         <app-risk-field inputId="effect-date" labelKey="risk.effectiveness.checkedAt">
-          <input
-            id="effect-date"
-            type="date"
+          <app-date-input
+            inputId="effect-date"
             [max]="maxDate"
             [value]="effectDate()"
-            (input)="effectDate.set($any($event.target).value)"
+            (valueChange)="effectDate.set($event ?? '')"
           />
         </app-risk-field>
         @if (effectError(); as key) {

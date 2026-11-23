@@ -14,7 +14,9 @@ import { FieldHelp } from '../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../shared/tasks/assignee-options';
 import { CustomerPicker, CustomerRef, CustomersAvailability } from '../../shared/customers';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import {
@@ -65,7 +67,9 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
     AskAbout,
     FieldHelp,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     FormField,
     Icon,
     ProjectRecordPicker,
@@ -74,198 +78,201 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-4 font-display text-card font-bold text-fg">
-          {{ 'projects.form.sections.purpose' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div class="md:col-span-2">
-            <app-form-field [label]="'projects.fields.title' | transloco" inputId="cf-p-title">
-              <input
-                id="cf-p-title"
-                name="title"
-                type="text"
-                maxlength="255"
-                required
-                [value]="form().title"
-                (input)="set('title', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['title']"
-                [attr.aria-describedby]="shownErrors()['title'] ? 'cf-p-title-err' : null"
-                data-testid="project-title"
-              />
-            </app-form-field>
-            @if (shownErrors()['title']; as key) {
-              <p id="cf-p-title-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ key | transloco }}
-              </p>
+      <app-form-section
+        [title]="'projects.form.sections.purpose' | transloco"
+        [description]="'projects.form.sections.purposeHint' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'projects.fields.title' | transloco"
+          inputId="cf-p-title"
+          [required]="true"
+          [error]="shownErrors()['title'] ?? '' | transloco"
+        >
+          <input
+            id="cf-p-title"
+            name="title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="form().title"
+            (input)="set('title', $any($event.target).value)"
+            data-testid="project-title"
+          />
+        </app-form-field>
+        <app-form-field [label]="'projects.fields.kind' | transloco" inputId="cf-p-kind">
+          <app-field-help
+            label-suffix
+            scope="projects"
+            page="form"
+            field="kind"
+            [label]="'projects.fields.kind' | transloco"
+          />
+          <select
+            id="cf-p-kind"
+            (change)="setKind($any($event.target).value)"
+            data-testid="project-kind"
+          >
+            @for (k of kinds; track k) {
+              <option [value]="k" [selected]="form().kind === k">
+                {{ 'projects.kinds.' + k | transloco }}
+              </option>
             }
-          </div>
-          <div>
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-p-kind" class="text-ui font-semibold text-fg-muted">{{
-                'projects.fields.kind' | transloco
-              }}</label>
-              <app-field-help scope="projects" page="form" field="kind" />
-            </div>
-            <app-form-field inputId="cf-p-kind">
-              <select
-                id="cf-p-kind"
-                (change)="setKind($any($event.target).value)"
-                data-testid="project-kind"
-              >
-                @for (k of kinds; track k) {
-                  <option [value]="k" [selected]="form().kind === k">
-                    {{ 'projects.kinds.' + k | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div>
-            <app-form-field [label]="'projects.fields.status' | transloco" inputId="cf-p-status">
-              <select id="cf-p-status" (change)="setStatus($any($event.target).value)">
-                @for (s of statuses; track s) {
-                  <option [value]="s" [selected]="form().status === s">
-                    {{ 'projects.status.' + s | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div class="md:col-span-2">
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-p-objective" class="text-ui font-semibold text-fg-muted">{{
-                'projects.fields.objective' | transloco
-              }}</label>
-              <app-field-help scope="projects" page="form" field="objective" />
-              <app-ask-about
-                [prompt]="'projects.ask.objective' | transloco"
-                field="objective"
-                [fieldLabel]="'projects.fields.objective' | transloco"
-                labelKey="projects.ask.objectiveLabel"
-              />
-            </div>
-            <app-form-field inputId="cf-p-objective">
-              <textarea
-                id="cf-p-objective"
-                name="objective"
-                rows="3"
-                maxlength="20000"
-                [value]="form().objective"
-                (input)="set('objective', $any($event.target).value)"
-                data-testid="project-objective"
-              ></textarea>
-            </app-form-field>
-          </div>
-          <div class="md:col-span-2">
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-p-scope" class="text-ui font-semibold text-fg-muted">{{
-                'projects.fields.scope' | transloco
-              }}</label>
-              <app-field-help scope="projects" page="form" field="scope" />
-            </div>
-            <app-form-field inputId="cf-p-scope">
-              <textarea
-                id="cf-p-scope"
-                name="scope"
-                rows="3"
-                maxlength="20000"
-                [value]="form().scope"
-                (input)="set('scope', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
-          <div class="md:col-span-2">
-            <app-form-field
-              [label]="'projects.fields.description' | transloco"
-              inputId="cf-p-description"
-            >
-              <textarea
-                id="cf-p-description"
-                name="description"
-                rows="3"
-                maxlength="20000"
-                [value]="form().description"
-                (input)="set('description', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-          </div>
-        </div>
-      </app-card>
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'projects.fields.status' | transloco" inputId="cf-p-status">
+          <select id="cf-p-status" (change)="setStatus($any($event.target).value)">
+            @for (s of statuses; track s) {
+              <option [value]="s" [selected]="form().status === s">
+                {{ 'projects.status.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'projects.fields.objective' | transloco"
+          inputId="cf-p-objective"
+        >
+          <app-field-help
+            label-suffix
+            scope="projects"
+            page="form"
+            field="objective"
+            [label]="'projects.fields.objective' | transloco"
+          />
+          <app-ask-about
+            label-suffix
+            [prompt]="'projects.ask.objective' | transloco"
+            field="objective"
+            [fieldLabel]="'projects.fields.objective' | transloco"
+            labelKey="projects.ask.objectiveLabel"
+          />
+          <textarea
+            id="cf-p-objective"
+            name="objective"
+            rows="3"
+            maxlength="20000"
+            [value]="form().objective"
+            (input)="set('objective', $any($event.target).value)"
+            data-testid="project-objective"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'projects.fields.scope' | transloco"
+          inputId="cf-p-scope"
+        >
+          <app-field-help
+            label-suffix
+            scope="projects"
+            page="form"
+            field="scope"
+            [label]="'projects.fields.scope' | transloco"
+          />
+          <textarea
+            id="cf-p-scope"
+            name="scope"
+            rows="3"
+            maxlength="20000"
+            [value]="form().scope"
+            (input)="set('scope', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'projects.fields.description' | transloco"
+          inputId="cf-p-description"
+        >
+          <textarea
+            id="cf-p-description"
+            name="description"
+            rows="3"
+            maxlength="20000"
+            [value]="form().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+      </app-form-section>
 
-      <app-card>
-        <div class="flex flex-wrap items-start justify-between gap-2">
-          <div class="min-w-0 flex-1">
-            <h2 class="font-display text-card font-bold text-fg">
-              {{ 'projects.form.sections.change' | transloco }}
-            </h2>
-            <p class="mt-1 text-meta text-fg-muted">
-              {{ 'projects.form.changeIntro' | transloco }}
-            </p>
-          </div>
-          @if (!changeOpen()) {
-            <app-button
-              variant="secondary"
-              size="sm"
-              (click)="changeShown.set(true)"
-              data-testid="show-change-planning"
-            >
-              <app-icon name="plus" [size]="14" />
-              {{ 'projects.form.showChange' | transloco }}
-            </app-button>
-          }
-        </div>
+      <app-form-section
+        [title]="'projects.form.sections.change' | transloco"
+        [description]="'projects.form.changeIntro' | transloco"
+        [columns]="1"
+      >
+        @if (!changeOpen()) {
+          <app-button
+            class="justify-self-start"
+            variant="secondary"
+            size="sm"
+            (click)="changeShown.set(true)"
+            data-testid="show-change-planning"
+          >
+            <app-icon name="plus" [size]="14" />
+            {{ 'projects.form.showChange' | transloco }}
+          </app-button>
+        }
         @if (changeOpen()) {
-          <div class="mt-4 grid grid-cols-1 gap-4" data-testid="change-planning">
-            <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-p-consequences" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.fields.changeConsequences' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="form" field="change_consequences" />
-                <app-ask-about
-                  [prompt]="'projects.ask.consequences' | transloco"
-                  field="change_consequences"
-                  [fieldLabel]="'projects.fields.changeConsequences' | transloco"
-                />
-              </div>
-              <app-form-field inputId="cf-p-consequences">
-                <textarea
-                  id="cf-p-consequences"
-                  name="change_consequences"
-                  rows="3"
-                  maxlength="20000"
-                  [value]="form().change_consequences"
-                  (input)="set('change_consequences', $any($event.target).value)"
-                  data-testid="project-consequences"
-                ></textarea>
-              </app-form-field>
-            </div>
-            <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-p-resources" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.fields.changeResources' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="form" field="change_resources" />
-              </div>
-              <app-form-field inputId="cf-p-resources">
-                <textarea
-                  id="cf-p-resources"
-                  name="change_resources"
-                  rows="2"
-                  maxlength="20000"
-                  [value]="form().change_resources"
-                  (input)="set('change_resources', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5" data-testid="change-planning">
+            <app-form-field
+              [label]="'projects.fields.changeConsequences' | transloco"
+              inputId="cf-p-consequences"
+            >
+              <app-field-help
+                label-suffix
+                scope="projects"
+                page="form"
+                field="change_consequences"
+                [label]="'projects.fields.changeConsequences' | transloco"
+              />
+              <app-ask-about
+                label-suffix
+                [prompt]="'projects.ask.consequences' | transloco"
+                field="change_consequences"
+                [fieldLabel]="'projects.fields.changeConsequences' | transloco"
+              />
+              <textarea
+                id="cf-p-consequences"
+                name="change_consequences"
+                rows="3"
+                maxlength="20000"
+                [value]="form().change_consequences"
+                (input)="set('change_consequences', $any($event.target).value)"
+                data-testid="project-consequences"
+              ></textarea>
+            </app-form-field>
+            <app-form-field
+              [label]="'projects.fields.changeResources' | transloco"
+              inputId="cf-p-resources"
+            >
+              <app-field-help
+                label-suffix
+                scope="projects"
+                page="form"
+                field="change_resources"
+                [label]="'projects.fields.changeResources' | transloco"
+              />
+              <textarea
+                id="cf-p-resources"
+                name="change_resources"
+                rows="2"
+                maxlength="20000"
+                [value]="form().change_resources"
+                (input)="set('change_resources', $any($event.target).value)"
+              ></textarea>
+            </app-form-field>
             @if (mode() === 'create') {
-              <div>
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <span class="text-ui font-semibold text-fg-muted">{{
+              <div class="flex flex-col gap-1.5">
+                <div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+                  <span class="text-ui leading-6 font-semibold text-fg-muted">{{
                     'projects.form.affected' | transloco
                   }}</span>
-                  <app-field-help scope="projects" page="form" field="affected" />
+                  <app-field-help
+                    scope="projects"
+                    page="form"
+                    field="affected"
+                    [label]="'projects.form.affected' | transloco"
+                  />
                 </div>
                 <app-project-record-picker
                   [types]="affectedTypes"
@@ -277,12 +284,17 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
                   (removed)="removeRelated('affected', $event)"
                 />
               </div>
-              <div>
-                <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  <span class="text-ui font-semibold text-fg-muted">{{
+              <div class="flex flex-col gap-1.5">
+                <div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+                  <span class="text-ui leading-6 font-semibold text-fg-muted">{{
                     'projects.form.objectives' | transloco
                   }}</span>
-                  <app-field-help scope="projects" page="form" field="objectives" />
+                  <app-field-help
+                    scope="projects"
+                    page="form"
+                    field="objectives"
+                    [label]="'projects.form.objectives' | transloco"
+                  />
                 </div>
                 <app-project-record-picker
                   [types]="objectiveTypes"
@@ -301,201 +313,183 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
             }
           </div>
         }
-      </app-card>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-4 font-display text-card font-bold text-fg">
-          {{ 'projects.form.sections.plan' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <app-form-field [label]="'projects.fields.startDate' | transloco" inputId="cf-p-start">
-              <input
-                id="cf-p-start"
-                type="date"
-                [value]="form().start_date"
-                (change)="set('start_date', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['start_date']"
-                data-testid="project-start"
-              />
-            </app-form-field>
-            @if (shownErrors()['start_date']; as key) {
-              <p class="mt-1 text-meta text-fail-ink">{{ key | transloco }}</p>
+      <app-form-section
+        [title]="'projects.form.sections.plan' | transloco"
+        [description]="'projects.form.sections.planHint' | transloco"
+      >
+        <app-form-field
+          [label]="'projects.fields.startDate' | transloco"
+          inputId="cf-p-start"
+          [error]="shownErrors()['start_date'] ?? '' | transloco"
+        >
+          <app-date-input
+            inputId="cf-p-start"
+            [value]="form().start_date"
+            (valueChange)="set('start_date', $event ?? '')"
+            data-testid="project-start"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'projects.fields.dueDate' | transloco"
+          inputId="cf-p-due"
+          [error]="shownErrors()['due_date'] ?? '' | transloco"
+        >
+          <app-date-input
+            inputId="cf-p-due"
+            [value]="form().due_date"
+            (valueChange)="set('due_date', $event ?? '')"
+            data-testid="project-due"
+          />
+        </app-form-field>
+        <app-form-field [label]="'projects.fields.priority' | transloco" inputId="cf-p-priority">
+          <select id="cf-p-priority" (change)="setPriority($any($event.target).value)">
+            @for (p of priorities; track p) {
+              <option [value]="p" [selected]="form().priority === p">
+                {{ 'projects.priorities.' + p | transloco }}
+              </option>
             }
-          </div>
-          <div>
-            <app-form-field [label]="'projects.fields.dueDate' | transloco" inputId="cf-p-due">
-              <input
-                id="cf-p-due"
-                type="date"
-                [value]="form().due_date"
-                (change)="set('due_date', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['due_date']"
-                [attr.aria-describedby]="shownErrors()['due_date'] ? 'cf-p-due-err' : null"
-                data-testid="project-due"
-              />
-            </app-form-field>
-            @if (shownErrors()['due_date']; as key) {
-              <p id="cf-p-due-err" class="mt-1 text-meta text-fail-ink" data-testid="due-error">
-                {{ key | transloco }}
-              </p>
-            }
-          </div>
-          <div>
-            <app-form-field
-              [label]="'projects.fields.priority' | transloco"
-              inputId="cf-p-priority"
+          </select>
+        </app-form-field>
+        @if (mode() === 'edit') {
+          <app-form-field [label]="'projects.fields.health' | transloco" inputId="cf-p-health">
+            <app-field-help
+              label-suffix
+              scope="projects"
+              page="form"
+              field="health"
+              [label]="'projects.fields.health' | transloco"
+            />
+            <select
+              id="cf-p-health"
+              (change)="setHealth($any($event.target).value)"
+              data-testid="project-health"
             >
-              <select id="cf-p-priority" (change)="setPriority($any($event.target).value)">
-                @for (p of priorities; track p) {
-                  <option [value]="p" [selected]="form().priority === p">
-                    {{ 'projects.priorities.' + p | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          @if (mode() === 'edit') {
-            <div>
-              <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-                <label for="cf-p-health" class="text-ui font-semibold text-fg-muted">{{
-                  'projects.fields.health' | transloco
-                }}</label>
-                <app-field-help scope="projects" page="form" field="health" />
-              </div>
-              <app-form-field inputId="cf-p-health">
-                <select
-                  id="cf-p-health"
-                  (change)="setHealth($any($event.target).value)"
-                  data-testid="project-health"
-                >
-                  <option value="" [selected]="!form().health">
-                    {{ 'projects.form.noHealth' | transloco }}
-                  </option>
-                  @for (h of healths; track h) {
-                    <option [value]="h" [selected]="form().health === h">
-                      {{ 'projects.healths.' + h | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-form-field>
-            </div>
-          }
-        </div>
-      </app-card>
-
-      <app-card>
-        <h2 class="mb-4 font-display text-card font-bold text-fg">
-          {{ 'projects.form.sections.people' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-p-owner" class="text-ui font-semibold text-fg-muted">{{
-                'projects.fields.owner' | transloco
-              }}</label>
-              <app-field-help scope="projects" page="form" field="owner" />
-            </div>
-            <app-form-field inputId="cf-p-owner">
-              <select
-                id="cf-p-owner"
-                (change)="set('owner_user_id', $any($event.target).value)"
-                data-testid="project-owner"
-              >
-                @if (mode() === 'create') {
-                  <option value="" [selected]="!form().owner_user_id">
-                    {{ 'projects.form.ownerMe' | transloco }}
-                  </option>
-                }
-                @if (ownerOrphan()) {
-                  <option [value]="form().owner_user_id" selected>
-                    {{ ownerName() || ('projects.form.currentOwner' | transloco) }}
-                  </option>
-                }
-                @for (u of users(); track u.id) {
-                  <option [value]="u.id" [selected]="form().owner_user_id === u.id">
-                    {{ u.label }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div>
-            <app-form-field [label]="'projects.fields.department' | transloco" inputId="cf-p-dept">
-              <select id="cf-p-dept" (change)="set('department_id', $any($event.target).value)">
-                <option value="" [selected]="!form().department_id">
-                  {{ 'projects.form.noDepartment' | transloco }}
+              <option value="" [selected]="!form().health">
+                {{ 'projects.form.noHealth' | transloco }}
+              </option>
+              @for (h of healths; track h) {
+                <option [value]="h" [selected]="form().health === h">
+                  {{ 'projects.healths.' + h | transloco }}
                 </option>
-                @for (d of departments(); track d.id) {
-                  <option [value]="d.id" [selected]="form().department_id === d.id">
-                    {{ d.label }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          @if (customers.enabled()) {
-            <div>
-              <app-form-field
-                [label]="'projects.fields.customer' | transloco"
-                inputId="cf-p-customer"
-              >
-                <app-customer-picker
-                  inputId="cf-p-customer"
-                  [value]="form().customer_id || null"
-                  [current]="form().customer"
-                  (valueChange)="set('customer_id', $event ?? '')"
-                  (refChange)="set('customer', $event)"
-                  data-testid="project-customer"
-                />
-              </app-form-field>
-            </div>
-          }
-        </div>
+              }
+            </select>
+          </app-form-field>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'projects.form.sections.people' | transloco"
+        [description]="'projects.form.sections.peopleHint' | transloco"
+      >
+        <app-form-field [label]="'projects.fields.owner' | transloco" inputId="cf-p-owner">
+          <app-field-help
+            label-suffix
+            scope="projects"
+            page="form"
+            field="owner"
+            [label]="'projects.fields.owner' | transloco"
+          />
+          <select
+            id="cf-p-owner"
+            (change)="set('owner_user_id', $any($event.target).value)"
+            data-testid="project-owner"
+          >
+            @if (mode() === 'create') {
+              <option value="" [selected]="!form().owner_user_id">
+                {{ 'projects.form.ownerMe' | transloco }}
+              </option>
+            }
+            @if (ownerOrphan()) {
+              <option [value]="form().owner_user_id" selected>
+                {{ ownerName() || ('projects.form.currentOwner' | transloco) }}
+              </option>
+            }
+            @for (u of users(); track u.id) {
+              <option [value]="u.id" [selected]="form().owner_user_id === u.id">
+                {{ u.label }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'projects.fields.department' | transloco" inputId="cf-p-dept">
+          <select id="cf-p-dept" (change)="set('department_id', $any($event.target).value)">
+            <option value="" [selected]="!form().department_id">
+              {{ 'projects.form.noDepartment' | transloco }}
+            </option>
+            @for (d of departments(); track d.id) {
+              <option [value]="d.id" [selected]="form().department_id === d.id">
+                {{ d.label }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        @if (customers.enabled()) {
+          <app-form-field [label]="'projects.fields.customer' | transloco" inputId="cf-p-customer">
+            <app-customer-picker
+              inputId="cf-p-customer"
+              [value]="form().customer_id || null"
+              [current]="form().customer"
+              (valueChange)="set('customer_id', $event ?? '')"
+              (refChange)="set('customer', $event)"
+              data-testid="project-customer"
+            />
+          </app-form-field>
+        }
 
         @if (mode() === 'create') {
-          <div class="mt-5 mb-2 flex flex-wrap items-center gap-1.5">
-            <h3 class="text-body font-semibold text-fg">{{ 'projects.form.team' | transloco }}</h3>
-            <app-field-help scope="projects" page="detail" field="team" />
-          </div>
-          <p class="mb-3 text-meta text-fg-muted">{{ 'projects.form.teamHint' | transloco }}</p>
-          @if (form().members.length) {
-            <ul class="mb-3 flex flex-col gap-2" data-testid="form-members">
-              @for (m of form().members; track m.user_id) {
-                <li
-                  class="flex flex-wrap items-center gap-2 rounded-tile border border-border px-3 py-2 text-ui"
-                >
-                  <span class="min-w-0 flex-1 truncate text-fg">{{ userName(m.user_id) }}</span>
-                  <label class="sr-only" [for]="'cf-p-role-' + m.user_id">
-                    {{ 'projects.team.roleFor' | transloco: { name: userName(m.user_id) } }}
-                  </label>
-                  <select
-                    [id]="'cf-p-role-' + m.user_id"
-                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui"
-                    (change)="setMemberRole(m.user_id, $any($event.target).value)"
+          <fieldset class="flex min-w-0 flex-col gap-2 sm:col-span-2">
+            <legend
+              class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+            >
+              {{ 'projects.form.team' | transloco }}
+              <app-field-help
+                scope="projects"
+                page="detail"
+                field="team"
+                [label]="'projects.form.team' | transloco"
+              />
+            </legend>
+            <p class="text-meta leading-snug text-fg-subtle">
+              {{ 'projects.form.teamHint' | transloco }}
+            </p>
+            @if (form().members.length) {
+              <ul class="flex flex-col gap-2" data-testid="form-members">
+                @for (m of form().members; track m.user_id) {
+                  <li
+                    class="flex flex-wrap items-center gap-2 rounded-tile border border-border px-3 py-1.5 text-ui"
                   >
-                    @for (r of roles; track r) {
-                      <option [value]="r" [selected]="m.role === r">
-                        {{ 'projects.roles.' + r | transloco }}
-                      </option>
-                    }
-                  </select>
-                  <button
-                    type="button"
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fg"
-                    [attr.aria-label]="
-                      'projects.team.removeNamed' | transloco: { name: userName(m.user_id) }
-                    "
-                    (click)="removeMember(m.user_id)"
-                  >
-                    <app-icon name="x" [size]="14" />
-                  </button>
-                </li>
-              }
-            </ul>
-          }
-          <div class="flex flex-wrap items-end gap-2">
-            <div class="min-w-[200px] flex-1">
+                    <span class="min-w-0 flex-1 truncate text-fg">{{ userName(m.user_id) }}</span>
+                    <label class="sr-only" [for]="'cf-p-role-' + m.user_id">
+                      {{ 'projects.team.roleFor' | transloco: { name: userName(m.user_id) } }}
+                    </label>
+                    <select
+                      [id]="'cf-p-role-' + m.user_id"
+                      class="h-9 rounded-tile border border-border bg-bg px-2 text-ui"
+                      (change)="setMemberRole(m.user_id, $any($event.target).value)"
+                    >
+                      @for (r of roles; track r) {
+                        <option [value]="r" [selected]="m.role === r">
+                          {{ 'projects.roles.' + r | transloco }}
+                        </option>
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fg"
+                      [attr.aria-label]="
+                        'projects.team.removeNamed' | transloco: { name: userName(m.user_id) }
+                      "
+                      (click)="removeMember(m.user_id)"
+                    >
+                      <app-icon name="x" [size]="14" />
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+            <div class="grid grid-cols-1 items-end gap-x-4 gap-y-2 sm:grid-cols-2">
               <app-form-field
                 [label]="'projects.team.addPerson' | transloco"
                 inputId="cf-p-add-member"
@@ -513,26 +507,31 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
                   }
                 </select>
               </app-form-field>
+              <div class="flex h-10 items-center">
+                <app-button
+                  variant="secondary"
+                  [disabled]="!pick()"
+                  (click)="addMember()"
+                  data-testid="add-member"
+                >
+                  <app-icon name="userplus" [size]="14" />
+                  {{ 'projects.team.add' | transloco }}
+                </app-button>
+              </div>
             </div>
-            <app-button
-              variant="secondary"
-              [disabled]="!pick()"
-              (click)="addMember()"
-              data-testid="add-member"
-            >
-              <app-icon name="userplus" [size]="14" />
-              {{ 'projects.team.add' | transloco }}
-            </app-button>
-          </div>
+          </fieldset>
         }
-      </app-card>
+      </app-form-section>
 
-      <app-card>
-        <h2 class="mb-2 font-display text-card font-bold text-fg">
-          {{ 'projects.form.sections.security' | transloco }}
-        </h2>
-        <div class="flex flex-wrap items-center gap-1.5">
-          <label class="flex min-h-8 items-center gap-2 text-body text-fg">
+      <app-form-section
+        [title]="'projects.form.sections.security' | transloco"
+        [description]="'projects.form.sections.securityHint' | transloco"
+        [columns]="1"
+      >
+        <div
+          class="flex h-10 items-center gap-1.5 rounded-tile border border-border bg-bg pr-2 pl-3"
+        >
+          <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-ui text-fg">
             <input
               type="checkbox"
               class="h-4 w-4 accent-[var(--accent)]"
@@ -542,42 +541,52 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
             />
             {{ 'projects.fields.securityRelevant' | transloco }}
           </label>
-          <app-field-help scope="projects" page="form" field="security_relevant" />
+          <app-field-help
+            scope="projects"
+            page="form"
+            field="security_relevant"
+            [label]="'projects.fields.securityRelevant' | transloco"
+          />
         </div>
         @if (form().security_relevant) {
-          <div class="mt-3">
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-p-secreq" class="text-ui font-semibold text-fg-muted">{{
-                'projects.fields.securityRequirements' | transloco
-              }}</label>
-              <app-field-help scope="projects" page="form" field="security_requirements" />
-              <app-ask-about
-                [prompt]="'projects.ask.securityRequirements' | transloco"
-                field="security_requirements"
-                [fieldLabel]="'projects.fields.securityRequirements' | transloco"
-                [requirements]="securityRefs"
-              />
-            </div>
-            <app-form-field inputId="cf-p-secreq">
-              <textarea
-                id="cf-p-secreq"
-                name="security_requirements"
-                rows="3"
-                maxlength="20000"
-                [value]="form().security_requirements"
-                (input)="set('security_requirements', $any($event.target).value)"
-              ></textarea>
-            </app-form-field>
-            <p class="mt-1 text-meta text-fg-subtle">
-              {{ 'projects.form.securityChecklistHint' | transloco }}
-            </p>
-          </div>
+          <app-form-field
+            [label]="'projects.fields.securityRequirements' | transloco"
+            inputId="cf-p-secreq"
+            [hint]="'projects.form.securityChecklistHint' | transloco"
+          >
+            <app-field-help
+              label-suffix
+              scope="projects"
+              page="form"
+              field="security_requirements"
+              [label]="'projects.fields.securityRequirements' | transloco"
+            />
+            <app-ask-about
+              label-suffix
+              [prompt]="'projects.ask.securityRequirements' | transloco"
+              field="security_requirements"
+              [fieldLabel]="'projects.fields.securityRequirements' | transloco"
+              [requirements]="securityRefs"
+            />
+            <textarea
+              id="cf-p-secreq"
+              name="security_requirements"
+              rows="3"
+              maxlength="20000"
+              [value]="form().security_requirements"
+              (input)="set('security_requirements', $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
         }
-      </app-card>
+      </app-form-section>
 
       @if (mode() === 'edit') {
-        <app-card>
-          <app-form-field [label]="'projects.form.changeReason' | transloco" inputId="cf-p-reason">
+        <app-form-section [columns]="1">
+          <app-form-field
+            [label]="'projects.form.changeReason' | transloco"
+            inputId="cf-p-reason"
+            [hint]="'projects.form.changeReasonHint' | transloco"
+          >
             <input
               id="cf-p-reason"
               type="text"
@@ -586,19 +595,11 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
               (input)="changeReason.set($any($event.target).value)"
             />
           </app-form-field>
-          <p class="mt-1 text-meta text-fg-subtle">
-            {{ 'projects.form.changeReasonHint' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      @if (attempted() && hasErrors()) {
-        <p class="text-ui text-fail-ink" role="alert" data-testid="form-error-summary">
-          {{ 'projects.form.errors.summary' | transloco }}
-        </p>
-      }
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+      <app-form-actions
+        [message]="attempted() && hasErrors() ? ('projects.form.errors.summary' | transloco) : ''"
       >
         <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
@@ -606,7 +607,7 @@ export function byLabel<T extends { readonly label: string }>(items: readonly T[
         <app-button type="submit" [loading]="busy()" [disabled]="busy()" data-testid="project-save">
           {{ (mode() === 'create' ? 'projects.form.create' : 'common.save') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })

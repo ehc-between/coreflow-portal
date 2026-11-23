@@ -90,7 +90,7 @@ const COUNT_OF: Record<ContactTab, keyof ContactCounts> = {
   viewProviders: [provideSharedScope('contacts')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1240px] px-4 py-7 sm:px-6" data-testid="contacts-page">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7" data-testid="contacts-page">
       <app-page-header titleKey="contacts.title" descriptionKey="contacts.intro">
         @if (duplicates() > 0) {
           <a

@@ -3,7 +3,6 @@ import {
   Component,
   computed,
   effect,
-  inject,
   input,
   output,
   signal,
@@ -14,7 +13,9 @@ import { AiAssistButton } from '../../../shared/ask/ai-assist-button';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { blankToNull, dayOrNull, dayToTimestamp, toDay } from '../data/asset-display';
 import {
@@ -33,7 +34,6 @@ import {
   RiskLevel,
 } from '../data/asset.models';
 import { SearchHit } from '../../../core/kit/kit.models';
-import { LanguageService } from '../../../core/i18n/language.service';
 import { AssetRelatedPicker } from '../shared/related-picker';
 import { AssetMultiSelect } from '../shared/asset-select';
 import { AssetDepartmentSelect, AssetUserSelect } from '../shared/people-select';
@@ -170,7 +170,9 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
     AssetRelatedPicker,
     AssetUserSelect,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormSection,
     FieldHelp,
     FormField,
   ],
@@ -182,200 +184,171 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
           {{ 'assets.changeForm.lockedNote' | transloco }}
         </p>
       }
-      <app-card>
-        <h2 class="mb-3 font-display text-card font-bold text-fg">
-          {{ 'assets.changeForm.sections.request' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'assets.fields.title' | transloco"
-              inputId="chg-title"
-              [required]="true"
-            >
-              <input
-                id="chg-title"
-                type="text"
-                maxlength="255"
-                required
-                aria-required="true"
-                [disabled]="locked('title')"
-                [attr.aria-invalid]="showErrors() && !d().title.trim()"
-                aria-describedby="chg-title-err"
-                [value]="d().title"
-                (input)="set('title', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !d().title.trim()) {
-              <p id="chg-title-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'assets.changeForm.titleRequired' | transloco }}
-              </p>
+      <app-form-section
+        [title]="'assets.changeForm.sections.request' | transloco"
+        [description]="'assets.changeForm.sectionHints.request' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'assets.fields.title' | transloco"
+          inputId="chg-title"
+          [required]="true"
+          [error]="
+            showErrors() && !d().title.trim() ? ('assets.changeForm.titleRequired' | transloco) : ''
+          "
+        >
+          <input
+            id="chg-title"
+            type="text"
+            maxlength="255"
+            required
+            aria-required="true"
+            [disabled]="locked('title')"
+            [value]="d().title"
+            (input)="set('title', $any($event.target).value)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'assets.fields.changeType' | transloco"
+          inputId="chg-type"
+          [required]="true"
+          [hint]="'assets.changeTypeHint.' + d().change_type | transloco"
+        >
+          <app-field-help label-suffix scope="assets" page="changeForm" field="change_type" />
+          <select
+            id="chg-type"
+            [disabled]="locked('change_type')"
+            (change)="set('change_type', $any($event.target).value)"
+          >
+            @for (t of types; track t) {
+              <option [value]="t" [selected]="d().change_type === t">
+                {{ 'assets.changeType.' + t | transloco }}
+              </option>
             }
-          </div>
-          <div>
-            <app-form-field
-              [label]="'assets.fields.changeType' | transloco"
-              inputId="chg-type"
-              [required]="true"
-            >
-              <app-field-help label-suffix scope="assets" page="changeForm" field="change_type" />
-              <select
-                id="chg-type"
-                aria-describedby="chg-type-hint"
-                [disabled]="locked('change_type')"
-                (change)="set('change_type', $any($event.target).value)"
-              >
-                @for (t of types; track t) {
-                  <option [value]="t" [selected]="d().change_type === t">
-                    {{ 'assets.changeType.' + t | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <p id="chg-type-hint" class="mt-1 text-meta text-fg-subtle">
-              {{ 'assets.changeTypeHint.' + d().change_type | transloco }}
+          </select>
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.changeCategory' | transloco" inputId="chg-cat">
+          <select
+            id="chg-cat"
+            [disabled]="locked('category')"
+            (change)="set('category', $any($event.target).value)"
+          >
+            @for (c of categories; track c) {
+              <option [value]="c" [selected]="d().category === c">
+                {{ 'assets.changeCategory.' + c | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        @for (key of requestTexts; track key.field) {
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.' + key.label | transloco"
+            [inputId]="'chg-' + key.field"
+          >
+            <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
+            <textarea
+              [id]="'chg-' + key.field"
+              rows="3"
+              maxlength="10000"
+              [disabled]="locked(key.field)"
+              [placeholder]="'assets.changeForm.placeholders.' + key.label | transloco"
+              [value]="d()[key.field]"
+              (input)="set(key.field, $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        }
+        <app-form-field [label]="'assets.fields.owner' | transloco" inputId="chg-owner">
+          <app-asset-user-select
+            inputId="chg-owner"
+            [value]="d().owner_user_id"
+            [currentName]="value()?.owner?.name ?? null"
+            (valueChange)="set('owner_user_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.department' | transloco" inputId="chg-dept">
+          <app-asset-department-select
+            inputId="chg-dept"
+            [value]="d().department_id"
+            (valueChange)="set('department_id', $event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'assets.fields.plannedStart' | transloco" inputId="chg-start">
+          <app-date-input
+            inputId="chg-start"
+            [value]="d().planned_start"
+            (valueChange)="set('planned_start', $event ?? '')"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'assets.fields.plannedEnd' | transloco"
+          inputId="chg-end"
+          [error]="showErrors() && !datesValid() ? ('assets.errors.invalid_dates' | transloco) : ''"
+        >
+          <app-date-input
+            inputId="chg-end"
+            [invalid]="showErrors() && !datesValid()"
+            [value]="d().planned_end"
+            (valueChange)="set('planned_end', $event ?? '')"
+          />
+        </app-form-field>
+        @if (!editing()) {
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.affectedAssets' | transloco"
+            inputId="chg-assets"
+          >
+            <app-field-help label-suffix scope="assets" page="changeForm" field="affected_assets" />
+            <app-asset-multi-select
+              inputId="chg-assets"
+              [value]="assetIds()"
+              (valueChange)="assetIds.set($event)"
+            />
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.affectedRecords' | transloco"
+            inputId="chg-related"
+          >
+            <app-field-help
+              label-suffix
+              scope="assets"
+              page="changeForm"
+              field="affected_records"
+            />
+            <app-asset-related-picker
+              inputId="chg-related"
+              describedBy="chg-related-hint"
+              [types]="relatedTypes"
+              [value]="related()"
+              (valueChange)="related.set($event)"
+            />
+            <p hint id="chg-related-hint" class="text-meta leading-snug text-fg-subtle">
+              {{ 'assets.changeForm.relatedHint' | transloco }}
             </p>
-          </div>
-          <app-form-field [label]="'assets.fields.changeCategory' | transloco" inputId="chg-cat">
-            <select
-              id="chg-cat"
-              [disabled]="locked('category')"
-              (change)="set('category', $any($event.target).value)"
-            >
-              @for (c of categories; track c) {
-                <option [value]="c" [selected]="d().category === c">
-                  {{ 'assets.changeCategory.' + c | transloco }}
-                </option>
-              }
-            </select>
           </app-form-field>
-          @for (key of requestTexts; track key.field) {
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.' + key.label | transloco"
-                [inputId]="'chg-' + key.field"
-              >
-                <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
-                <textarea
-                  [id]="'chg-' + key.field"
-                  rows="3"
-                  maxlength="10000"
-                  [disabled]="locked(key.field)"
-                  [placeholder]="'assets.changeForm.placeholders.' + key.label | transloco"
-                  [value]="d()[key.field]"
-                  (input)="set(key.field, $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-          }
-          <app-form-field [label]="'assets.fields.owner' | transloco" inputId="chg-owner">
-            <app-asset-user-select
-              inputId="chg-owner"
-              [value]="d().owner_user_id"
-              [currentName]="value()?.owner?.name ?? null"
-              (valueChange)="set('owner_user_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'assets.fields.department' | transloco" inputId="chg-dept">
-            <app-asset-department-select
-              inputId="chg-dept"
-              [value]="d().department_id"
-              (valueChange)="set('department_id', $event)"
-            />
-          </app-form-field>
-          <app-form-field [label]="'assets.fields.plannedStart' | transloco" inputId="chg-start">
-            <input
-              id="chg-start"
-              type="date"
-              [attr.lang]="lang()"
-              [value]="d().planned_start"
-              (input)="set('planned_start', $any($event.target).value)"
-            />
-          </app-form-field>
-          <div>
-            <app-form-field [label]="'assets.fields.plannedEnd' | transloco" inputId="chg-end">
-              <input
-                id="chg-end"
-                type="date"
-                [attr.lang]="lang()"
-                aria-describedby="chg-end-err"
-                [attr.aria-invalid]="showErrors() && !datesValid()"
-                [value]="d().planned_end"
-                (input)="set('planned_end', $any($event.target).value)"
-              />
-            </app-form-field>
-            @if (showErrors() && !datesValid()) {
-              <p id="chg-end-err" class="mt-1 text-meta text-fail-ink" role="alert">
-                {{ 'assets.errors.invalid_dates' | transloco }}
-              </p>
-            }
-          </div>
-          @if (!editing()) {
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.affectedAssets' | transloco"
-                inputId="chg-assets"
-              >
-                <app-field-help
-                  label-suffix
-                  scope="assets"
-                  page="changeForm"
-                  field="affected_assets"
-                />
-                <app-asset-multi-select
-                  inputId="chg-assets"
-                  [value]="assetIds()"
-                  (valueChange)="assetIds.set($event)"
-                />
-              </app-form-field>
-            </div>
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.affectedRecords' | transloco"
-                inputId="chg-related"
-              >
-                <app-field-help
-                  label-suffix
-                  scope="assets"
-                  page="changeForm"
-                  field="affected_records"
-                />
-                <app-asset-related-picker
-                  inputId="chg-related"
-                  describedBy="chg-related-hint"
-                  [types]="relatedTypes"
-                  [value]="related()"
-                  (valueChange)="related.set($event)"
-                />
-              </app-form-field>
-              <p id="chg-related-hint" class="mt-1 text-meta text-fg-subtle">
-                {{ 'assets.changeForm.relatedHint' | transloco }}
-              </p>
-            </div>
-          }
-        </div>
-      </app-card>
+        }
+      </app-form-section>
 
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="font-display text-card font-bold text-fg">
-            {{ 'assets.changeForm.sections.assessment' | transloco }}
-          </h2>
-          @if (!locked('impact_assessment')) {
-            <app-ai-assist-button
-              assist="assets.assess_change"
-              labelKey="assets.ai.assessChange"
-              [input]="assistInput()"
-              [entityType]="value() ? 'change_request' : null"
-              [entityId]="value()?.id ?? null"
-              [disabled]="!d().title.trim()"
-              (result)="onAssessment($event)"
-            />
-          }
-        </div>
+      <app-form-section
+        [title]="'assets.changeForm.sections.assessment' | transloco"
+        [description]="'assets.changeForm.sectionHints.assessment' | transloco"
+      >
+        @if (!locked('impact_assessment')) {
+          <app-ai-assist-button
+            section-actions
+            assist="assets.assess_change"
+            labelKey="assets.ai.assessChange"
+            [input]="assistInput()"
+            [entityType]="value() ? 'change_request' : null"
+            [entityId]="value()?.id ?? null"
+            [disabled]="!d().title.trim()"
+            (result)="onAssessment($event)"
+          />
+        }
         @if (assessment(); as s) {
           <div
-            class="mb-4 rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-ui text-fg"
+            class="rounded-tile border border-accent/30 bg-accent-soft px-3 py-2.5 text-ui text-fg sm:col-span-2"
             role="status"
           >
             <p class="font-semibold">{{ 'assets.changeForm.assessmentApplied' | transloco }}</p>
@@ -407,153 +380,133 @@ const LATE_STATES = ['implementing', 'review', 'closed'];
             }
           </div>
         }
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <app-form-field [label]="'assets.fields.riskLevel' | transloco" inputId="chg-risk">
-              <app-field-help label-suffix scope="assets" page="changeForm" field="risk_level" />
+        @for (key of assessmentTexts; track key.field) {
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.' + key.label | transloco"
+            [inputId]="'chg-' + key.field"
+          >
+            <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
+            @if (key.field === 'impact_assessment') {
               <app-ask-about
                 label-suffix
-                [prompt]="'assets.ai.prompts.riskLevel' | transloco"
-                field="risk_level"
-                [fieldLabel]="'assets.fields.riskLevel' | transloco"
-                labelKey="assets.ai.askRiskLevel"
+                [prompt]="'assets.ai.prompts.reviewAssessment' | transloco"
+                field="impact_assessment"
+                [fieldLabel]="'assets.fields.impactAssessment' | transloco"
+                labelKey="assets.ai.askAssessment"
               />
-              <select
-                id="chg-risk"
-                [disabled]="locked('risk_level')"
-                (change)="set('risk_level', $any($event.target).value)"
-              >
-                <option value="" [selected]="!d().risk_level">
-                  {{ 'assets.common.notSet' | transloco }}
-                </option>
-                @for (r of risks; track r) {
-                  <option [value]="r" [selected]="d().risk_level === r">
-                    {{ 'assets.criticality.' + r | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-          </div>
-          <div class="hidden sm:block"></div>
-          @for (key of assessmentTexts; track key.field) {
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.' + key.label | transloco"
-                [inputId]="'chg-' + key.field"
-              >
-                <app-field-help label-suffix scope="assets" page="changeForm" [field]="key.field" />
-                @if (key.field === 'impact_assessment') {
-                  <app-ask-about
-                    label-suffix
-                    [prompt]="'assets.ai.prompts.reviewAssessment' | transloco"
-                    field="impact_assessment"
-                    [fieldLabel]="'assets.fields.impactAssessment' | transloco"
-                    labelKey="assets.ai.askAssessment"
-                  />
-                }
-                <textarea
-                  [id]="'chg-' + key.field"
-                  rows="3"
-                  maxlength="10000"
-                  [disabled]="locked(key.field)"
-                  [placeholder]="'assets.changeForm.placeholders.' + key.label | transloco"
-                  [value]="d()[key.field]"
-                  (input)="set(key.field, $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-          }
-        </div>
-      </app-card>
+            }
+            <textarea
+              [id]="'chg-' + key.field"
+              rows="3"
+              maxlength="10000"
+              [disabled]="locked(key.field)"
+              [placeholder]="'assets.changeForm.placeholders.' + key.label | transloco"
+              [value]="d()[key.field]"
+              (input)="set(key.field, $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        }
+        <app-form-field [label]="'assets.fields.riskLevel' | transloco" inputId="chg-risk">
+          <app-field-help label-suffix scope="assets" page="changeForm" field="risk_level" />
+          <app-ask-about
+            label-suffix
+            [prompt]="'assets.ai.prompts.riskLevel' | transloco"
+            field="risk_level"
+            [fieldLabel]="'assets.fields.riskLevel' | transloco"
+            labelKey="assets.ai.askRiskLevel"
+          />
+          <select
+            id="chg-risk"
+            [disabled]="locked('risk_level')"
+            (change)="set('risk_level', $any($event.target).value)"
+          >
+            <option value="" [selected]="!d().risk_level">
+              {{ 'assets.common.notSet' | transloco }}
+            </option>
+            @for (r of risks; track r) {
+              <option [value]="r" [selected]="d().risk_level === r">
+                {{ 'assets.criticality.' + r | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+      </app-form-section>
 
       @if (showLate()) {
-        <app-card>
-          <h2 class="mb-3 font-display text-card font-bold text-fg">
-            {{ 'assets.changeForm.sections.implementation' | transloco }}
-          </h2>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <app-form-field [label]="'assets.fields.implementedAt' | transloco" inputId="chg-impl">
-              <input
-                id="chg-impl"
-                type="date"
-                [attr.lang]="lang()"
-                [value]="d().implemented_at"
-                (input)="set('implemented_at', $any($event.target).value)"
-              />
-            </app-form-field>
-            <div>
-              <app-form-field
-                [label]="'assets.fields.reviewOutcome' | transloco"
-                inputId="chg-outcome"
-              >
-                <app-field-help
-                  label-suffix
-                  scope="assets"
-                  page="changeForm"
-                  field="review_outcome"
-                />
-                <select
-                  id="chg-outcome"
-                  (change)="set('review_outcome', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!d().review_outcome">
-                    {{ 'assets.common.notSet' | transloco }}
-                  </option>
-                  @for (o of outcomes; track o) {
-                    <option [value]="o" [selected]="d().review_outcome === o">
-                      {{ 'assets.reviewOutcome.' + o | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-form-field>
-            </div>
-            <div class="sm:col-span-2">
-              <app-form-field
-                [label]="'assets.fields.reviewNotes' | transloco"
-                inputId="chg-review-notes"
-              >
-                <textarea
-                  id="chg-review-notes"
-                  rows="3"
-                  maxlength="10000"
-                  [placeholder]="'assets.changeForm.placeholders.reviewNotes' | transloco"
-                  [value]="d().review_notes"
-                  (input)="set('review_notes', $any($event.target).value)"
-                ></textarea>
-              </app-form-field>
-            </div>
-          </div>
-        </app-card>
+        <app-form-section
+          [title]="'assets.changeForm.sections.implementation' | transloco"
+          [description]="'assets.changeForm.sectionHints.implementation' | transloco"
+        >
+          <app-form-field [label]="'assets.fields.implementedAt' | transloco" inputId="chg-impl">
+            <app-date-input
+              inputId="chg-impl"
+              [value]="d().implemented_at"
+              (valueChange)="set('implemented_at', $event ?? '')"
+            />
+          </app-form-field>
+          <app-form-field [label]="'assets.fields.reviewOutcome' | transloco" inputId="chg-outcome">
+            <app-field-help label-suffix scope="assets" page="changeForm" field="review_outcome" />
+            <select id="chg-outcome" (change)="set('review_outcome', $any($event.target).value)">
+              <option value="" [selected]="!d().review_outcome">
+                {{ 'assets.common.notSet' | transloco }}
+              </option>
+              @for (o of outcomes; track o) {
+                <option [value]="o" [selected]="d().review_outcome === o">
+                  {{ 'assets.reviewOutcome.' + o | transloco }}
+                </option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'assets.fields.reviewNotes' | transloco"
+            inputId="chg-review-notes"
+          >
+            <textarea
+              id="chg-review-notes"
+              rows="3"
+              maxlength="10000"
+              [placeholder]="'assets.changeForm.placeholders.reviewNotes' | transloco"
+              [value]="d().review_notes"
+              (input)="set('review_notes', $any($event.target).value)"
+            ></textarea>
+          </app-form-field>
+        </app-form-section>
       }
 
       @if (editing()) {
-        <app-card>
-          <app-form-field [label]="'assets.form.changeReason' | transloco" inputId="chg-reason">
+        <app-form-section [columns]="1">
+          <app-form-field
+            [label]="'assets.form.changeReason' | transloco"
+            inputId="chg-reason"
+            [hint]="'assets.form.changeReasonHint' | transloco"
+          >
             <textarea
               id="chg-reason"
               rows="2"
               maxlength="1000"
-              aria-describedby="chg-reason-hint"
               [value]="changeReason()"
               (input)="changeReason.set($any($event.target).value)"
             ></textarea>
           </app-form-field>
-          <p id="chg-reason-hint" class="mt-1 text-meta text-fg-subtle">
-            {{ 'assets.form.changeReasonHint' | transloco }}
-          </p>
-        </app-card>
+        </app-form-section>
       }
 
-      <div
-        class="sticky bottom-0 z-20 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+      <app-form-actions
+        [message]="
+          showErrors() && (!d().title.trim() || !datesValid())
+            ? ('assets.form.fixFields' | transloco)
+            : ''
+        "
       >
-        <app-button variant="ghost" (click)="cancelled.emit()">{{
+        <app-button variant="secondary" (click)="cancelled.emit()">{{
           'common.cancel' | transloco
         }}</app-button>
         <app-button type="submit" [loading]="busy()">
           {{ (editing() ? 'assets.changeForm.save' : 'assets.changeForm.create') | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
@@ -568,12 +521,9 @@ export class ChangeForm {
   readonly submitted = output<ChangeFormValue>();
   readonly cancelled = output<void>();
 
-  private readonly language = inject(LanguageService);
-
   protected readonly types = CHANGE_TYPES;
   protected readonly relatedTypes = CHANGE_RELATED_TYPES;
   protected readonly related = signal<readonly SearchHit[]>([]);
-  protected readonly lang = computed(() => this.language.active());
   protected readonly categories = CHANGE_CATEGORIES;
   protected readonly risks = RISK_LEVELS;
   protected readonly outcomes = REVIEW_OUTCOMES;

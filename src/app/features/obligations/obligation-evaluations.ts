@@ -27,6 +27,7 @@ import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { AssigneeSelect } from '../../shared/tasks/assignee-select';
 import { decodeAssignee, dueAtFromDay, taskPriorityKey } from '../../shared/tasks/task-display';
 import { Button } from '../../shared/ui/button/button';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -144,6 +145,7 @@ export function evaluationProblems(input: {
 @Component({
   selector: 'app-obligation-evaluations',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -197,17 +199,16 @@ export function evaluationProblems(input: {
           <h3 class="text-card font-semibold text-fg">
             {{ 'obligations.evaluations.formTitle' | transloco }}
           </h3>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
             <app-form-field
               [label]="'obligations.evaluations.evaluatedOn' | transloco"
               inputId="cf-ev-date"
             >
-              <input
-                id="cf-ev-date"
-                type="date"
+              <app-date-input
+                inputId="cf-ev-date"
                 [max]="today"
                 [value]="evaluatedOn()"
-                (change)="evaluatedOn.set($any($event.target).value)"
+                (valueChange)="evaluatedOn.set($event ?? '')"
               />
             </app-form-field>
           </div>
@@ -233,7 +234,7 @@ export function evaluationProblems(input: {
                       }}</label>
                       <select
                         [id]="'cf-ev-duty-' + d.id"
-                        class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg sm:w-56"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:w-56"
                         (change)="setDutyResult(d.id, $any($event.target).value)"
                         [attr.data-testid]="'evaluation-duty-' + d.code"
                       >
@@ -255,7 +256,7 @@ export function evaluationProblems(input: {
                         [id]="'cf-ev-duty-note-' + d.id"
                         type="text"
                         maxlength="2000"
-                        class="h-9 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
                         [placeholder]="'obligations.evaluations.dutyNotePlaceholder' | transloco"
                         [value]="dutyNotes()[d.id] ?? ''"
                         (input)="setDutyNote(d.id, $any($event.target).value)"
@@ -267,7 +268,7 @@ export function evaluationProblems(input: {
             </fieldset>
           }
 
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
             <app-form-field
               [label]="'obligations.evaluations.result' | transloco"
               inputId="cf-ev-result"
@@ -489,7 +490,7 @@ export function evaluationProblems(input: {
 
               @switch (resolution()) {
                 @case ('task') {
-                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                       <app-form-field
                         [label]="'obligations.actions.titleLabel' | transloco"
@@ -521,11 +522,10 @@ export function evaluationProblems(input: {
                       [label]="'obligations.actions.dueDate' | transloco"
                       inputId="cf-ev-fu-due"
                     >
-                      <input
-                        id="cf-ev-fu-due"
-                        type="date"
+                      <app-date-input
+                        inputId="cf-ev-fu-due"
                         [value]="fuDue()"
-                        (change)="fuDue.set($any($event.target).value)"
+                        (valueChange)="fuDue.set($event ?? '')"
                       />
                     </app-form-field>
                     <app-form-field

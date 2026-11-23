@@ -109,6 +109,7 @@ const MORE_FILTERS: readonly (keyof AssetFilters)[] = [
   'holder',
   'review',
   'supplier',
+  'customer',
 ];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -272,11 +273,6 @@ interface Summary {
       </ng-container>
 
       <ng-container filters>
-        <app-customer-filter
-          [value]="filters().customer || null"
-          (valueChange)="setFilter('customer', $event ?? '')"
-          data-testid="asset-customer-filter"
-        />
         <label class="sr-only" for="ast-f-type">{{ 'assets.fields.assetType' | transloco }}</label>
         <select
           id="ast-f-type"
@@ -317,6 +313,14 @@ interface Summary {
       </ng-container>
 
       <div more-filters class="flex flex-col gap-3">
+        <div [class]="moreLabelClass">
+          {{ 'assets.fields.customer' | transloco }}
+          <app-customer-filter
+            [value]="filters().customer || null"
+            (valueChange)="setFilter('customer', $event ?? '')"
+            data-testid="asset-customer-filter"
+          />
+        </div>
         <label [class]="moreLabelClass">
           {{ 'assets.fields.lifecycle' | transloco }}
           <select

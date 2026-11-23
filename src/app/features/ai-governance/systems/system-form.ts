@@ -23,7 +23,10 @@ import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { dayOf, dueAtFromDay } from '../../../shared/tasks/task-display';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -194,7 +197,10 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
     Term,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormField,
+    FormSection,
     ErrorState,
     Icon,
     LoadingState,
@@ -211,13 +217,14 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
       page="systemForm"
       [nav]="false"
       [why]="false"
+      [narrow]="true"
       [backLink]="id() ? ['/ai-governance/systems', id()] : '/ai-governance/systems'"
     >
       @if (loadError()) {
         <app-error-state (retry)="load()" />
       } @else if (ready()) {
         <form
-          class="flex max-w-[760px] flex-col gap-5"
+          class="mt-5 flex flex-col gap-5"
           (submit)="$event.preventDefault(); submit()"
           novalidate
         >
@@ -231,324 +238,318 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
             [titleOnly]="!!form().name.trim() && !form().intended_purpose.trim()"
             (applied)="applySuggestion($event)"
           />
-          <app-card>
-            <h2 class="mb-4 font-display text-section font-bold text-fg">
-              {{ 'aiGovernance.systemForm.sections.what' | transloco }}
-            </h2>
-            <div class="flex flex-col gap-4">
-              <app-ai-field
-                inputId="ais-name"
-                labelKey="aiGovernance.fields.name"
-                [required]="true"
-                helpField="name"
-                [error]="
-                  submitted() && !form().name.trim() ? 'aiGovernance.errors.name_required' : null
-                "
-              >
-                <input
-                  id="ais-name"
-                  type="text"
-                  maxlength="200"
-                  required
-                  [value]="form().name"
-                  (input)="patch({ name: $any($event.target).value })"
-                  [attr.aria-invalid]="submitted() && !form().name.trim()"
-                />
-              </app-ai-field>
-              <app-ai-field
-                inputId="ais-purpose"
-                labelKey="aiGovernance.fields.intendedPurpose"
-                helpField="intended_purpose"
-              >
-                <app-ask-about
-                  ask
-                  [prompt]="'aiGovernance.systemForm.askPurpose' | transloco"
-                  field="intended_purpose"
-                  labelKey="aiGovernance.wizard.askAbout"
-                />
-                <textarea
-                  id="ais-purpose"
-                  rows="3"
-                  maxlength="10000"
-                  [value]="form().intended_purpose"
-                  (input)="patch({ intended_purpose: $any($event.target).value })"
-                ></textarea>
-              </app-ai-field>
-              <app-ai-field
-                inputId="ais-desc"
-                labelKey="aiGovernance.fields.description"
-                helpField="description"
-              >
-                <textarea
-                  id="ais-desc"
-                  rows="3"
-                  maxlength="10000"
-                  [value]="form().description"
-                  (input)="patch({ description: $any($event.target).value })"
-                ></textarea>
-              </app-ai-field>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <app-ai-field
-                  inputId="ais-role"
-                  labelKey="aiGovernance.fields.role"
-                  helpField="ai_act_role"
-                >
-                  <app-ask-about
-                    ask
-                    [prompt]="'aiGovernance.systemForm.askRole' | transloco"
-                    field="ai_act_role"
-                    labelKey="aiGovernance.wizard.askAbout"
-                  />
-                  <select
-                    id="ais-role"
-                    (change)="patch({ ai_act_role: $any($event.target).value })"
-                  >
-                    @for (r of roles; track r) {
-                      <option [value]="r" [selected]="form().ai_act_role === r">
-                        {{ roleKey(r) | transloco }}
-                      </option>
-                    }
-                  </select>
-                  <span hint>{{ 'aiGovernance.roleHelp.' + form().ai_act_role | transloco }}</span>
-                </app-ai-field>
-                <app-ai-field inputId="ais-status" labelKey="aiGovernance.fields.status">
-                  <select id="ais-status" (change)="patch({ status: $any($event.target).value })">
-                    @for (s of statuses; track s) {
-                      <option [value]="s" [selected]="form().status === s">
-                        {{ statusKey(s) | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-ai-field>
-              </div>
-            </div>
-          </app-card>
+          <app-form-section
+            [title]="'aiGovernance.systemForm.sections.what' | transloco"
+            [description]="'aiGovernance.systemForm.sectionHints.what' | transloco"
+          >
+            <app-ai-field
+              span="full"
+              inputId="ais-name"
+              labelKey="aiGovernance.fields.name"
+              [required]="true"
+              helpField="name"
+              [error]="
+                submitted() && !form().name.trim() ? 'aiGovernance.errors.name_required' : null
+              "
+            >
+              <input
+                id="ais-name"
+                type="text"
+                maxlength="200"
+                required
+                [value]="form().name"
+                (input)="patch({ name: $any($event.target).value })"
+              />
+            </app-ai-field>
+            <app-ai-field
+              span="full"
+              inputId="ais-purpose"
+              labelKey="aiGovernance.fields.intendedPurpose"
+              helpField="intended_purpose"
+            >
+              <app-ask-about
+                ask
+                [prompt]="'aiGovernance.systemForm.askPurpose' | transloco"
+                field="intended_purpose"
+                labelKey="aiGovernance.wizard.askAbout"
+              />
+              <textarea
+                id="ais-purpose"
+                rows="3"
+                maxlength="10000"
+                [value]="form().intended_purpose"
+                (input)="patch({ intended_purpose: $any($event.target).value })"
+              ></textarea>
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-role"
+              labelKey="aiGovernance.fields.role"
+              helpField="ai_act_role"
+            >
+              <app-ask-about
+                ask
+                [prompt]="'aiGovernance.systemForm.askRole' | transloco"
+                field="ai_act_role"
+                labelKey="aiGovernance.wizard.askAbout"
+              />
+              <select id="ais-role" (change)="patch({ ai_act_role: $any($event.target).value })">
+                @for (r of roles; track r) {
+                  <option [value]="r" [selected]="form().ai_act_role === r">
+                    {{ roleKey(r) | transloco }}
+                  </option>
+                }
+              </select>
+              <span hint>{{ 'aiGovernance.roleHelp.' + form().ai_act_role | transloco }}</span>
+            </app-ai-field>
+            <app-ai-field inputId="ais-status" labelKey="aiGovernance.fields.status">
+              <select id="ais-status" (change)="patch({ status: $any($event.target).value })">
+                @for (s of statuses; track s) {
+                  <option [value]="s" [selected]="form().status === s">
+                    {{ statusKey(s) | transloco }}
+                  </option>
+                }
+              </select>
+            </app-ai-field>
+            <app-ai-field
+              span="full"
+              inputId="ais-desc"
+              labelKey="aiGovernance.fields.description"
+              helpField="description"
+            >
+              <textarea
+                id="ais-desc"
+                rows="3"
+                maxlength="10000"
+                [value]="form().description"
+                (input)="patch({ description: $any($event.target).value })"
+              ></textarea>
+            </app-ai-field>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-4 font-display text-section font-bold text-fg">
-              {{ 'aiGovernance.systemForm.sections.source' | transloco }}
-            </h2>
-            <div class="flex flex-col gap-4">
-              <app-ai-field
+          <app-form-section
+            [title]="'aiGovernance.systemForm.sections.source' | transloco"
+            [description]="'aiGovernance.systemForm.sectionHints.source' | transloco"
+          >
+            <app-ai-field
+              inputId="ais-supplier"
+              labelKey="aiGovernance.fields.supplier"
+              helpField="supplier"
+              [plain]="true"
+            >
+              <app-ai-record-picker
                 inputId="ais-supplier"
-                labelKey="aiGovernance.fields.supplier"
-                helpField="supplier"
+                [types]="['supplier']"
+                [value]="form().supplier"
+                placeholderKey="aiGovernance.systemForm.supplierPlaceholder"
+                (picked)="patch({ supplier: $event })"
+                (cleared)="patch({ supplier: null })"
+                data-testid="system-supplier"
+              />
+              <span hint>{{ 'aiGovernance.systemForm.supplierHint' | transloco }}</span>
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-provider"
+              labelKey="aiGovernance.fields.provider"
+              helpField="provider_name"
+            >
+              <input
+                id="ais-provider"
+                type="text"
+                maxlength="200"
+                [value]="form().provider_name"
+                (input)="patch({ provider_name: $any($event.target).value })"
+              />
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-models"
+              labelKey="aiGovernance.fields.models"
+              helpField="models"
+            >
+              <input
+                id="ais-models"
+                type="text"
+                [placeholder]="'aiGovernance.systemForm.tagsPlaceholder' | transloco"
+                [value]="form().models"
+                (input)="patch({ models: $any($event.target).value })"
+              />
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-data"
+              labelKey="aiGovernance.fields.dataCategories"
+              helpField="data_categories"
+            >
+              <input
+                id="ais-data"
+                type="text"
+                [placeholder]="'aiGovernance.systemForm.tagsPlaceholder' | transloco"
+                [value]="form().data_categories"
+                (input)="patch({ data_categories: $any($event.target).value })"
+              />
+            </app-ai-field>
+            <label
+              class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+            >
+              <input
+                type="checkbox"
+                [checked]="form().uses_personal_data"
+                (change)="patch({ uses_personal_data: $any($event.target).checked })"
+                data-testid="system-personal-data"
+              />
+              {{ 'aiGovernance.fields.usesPersonalData' | transloco }}
+            </label>
+            @if (form().uses_personal_data) {
+              <app-ai-field
+                span="full"
+                inputId="ais-ropa"
+                labelKey="aiGovernance.fields.processingActivity"
+                helpField="processing_activity"
                 [plain]="true"
               >
                 <app-ai-record-picker
-                  inputId="ais-supplier"
-                  [types]="['supplier']"
-                  [value]="form().supplier"
-                  placeholderKey="aiGovernance.systemForm.supplierPlaceholder"
-                  (picked)="patch({ supplier: $event })"
-                  (cleared)="patch({ supplier: null })"
-                  data-testid="system-supplier"
-                />
-                <span hint>{{ 'aiGovernance.systemForm.supplierHint' | transloco }}</span>
-              </app-ai-field>
-              <app-ai-field
-                inputId="ais-provider"
-                labelKey="aiGovernance.fields.provider"
-                helpField="provider_name"
-              >
-                <input
-                  id="ais-provider"
-                  type="text"
-                  maxlength="200"
-                  [value]="form().provider_name"
-                  (input)="patch({ provider_name: $any($event.target).value })"
-                />
-              </app-ai-field>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <app-ai-field
-                  inputId="ais-models"
-                  labelKey="aiGovernance.fields.models"
-                  helpField="models"
-                >
-                  <input
-                    id="ais-models"
-                    type="text"
-                    [placeholder]="'aiGovernance.systemForm.tagsPlaceholder' | transloco"
-                    [value]="form().models"
-                    (input)="patch({ models: $any($event.target).value })"
-                  />
-                </app-ai-field>
-                <app-ai-field
-                  inputId="ais-data"
-                  labelKey="aiGovernance.fields.dataCategories"
-                  helpField="data_categories"
-                >
-                  <input
-                    id="ais-data"
-                    type="text"
-                    [placeholder]="'aiGovernance.systemForm.tagsPlaceholder' | transloco"
-                    [value]="form().data_categories"
-                    (input)="patch({ data_categories: $any($event.target).value })"
-                  />
-                </app-ai-field>
-              </div>
-              <label class="inline-flex min-h-8 items-center gap-2 text-body text-fg">
-                <input
-                  type="checkbox"
-                  [checked]="form().uses_personal_data"
-                  (change)="patch({ uses_personal_data: $any($event.target).checked })"
-                  data-testid="system-personal-data"
-                />
-                {{ 'aiGovernance.fields.usesPersonalData' | transloco }}
-              </label>
-              @if (form().uses_personal_data) {
-                <app-ai-field
                   inputId="ais-ropa"
-                  labelKey="aiGovernance.fields.processingActivity"
-                  helpField="processing_activity"
-                  [plain]="true"
-                >
-                  <app-ai-record-picker
-                    inputId="ais-ropa"
-                    [types]="['ropa_entry']"
-                    [value]="form().processing_activity"
-                    placeholderKey="aiGovernance.systemForm.ropaPlaceholder"
-                    (picked)="patch({ processing_activity: $event })"
-                    (cleared)="patch({ processing_activity: null })"
-                    data-testid="system-ropa"
-                  />
-                  <span hint>{{ 'aiGovernance.systemForm.ropaHint' | transloco }}</span>
-                </app-ai-field>
-              }
-            </div>
-          </app-card>
-
-          <app-card>
-            <h2 class="mb-4 font-display text-section font-bold text-fg">
-              {{ 'aiGovernance.systemForm.sections.people' | transloco }}
-            </h2>
-            <div class="flex flex-col gap-4">
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <app-ai-field
-                  inputId="ais-owner"
-                  labelKey="aiGovernance.fields.owner"
-                  helpField="owner"
-                  [plain]="true"
-                >
-                  <app-ai-user-select
-                    selectId="ais-owner"
-                    [value]="form().owner_user_id"
-                    [currentName]="ownerName()"
-                    (valueChange)="patch({ owner_user_id: $event })"
-                  />
-                </app-ai-field>
-                <app-ai-field
-                  inputId="ais-dept"
-                  labelKey="aiGovernance.fields.department"
-                  helpField="department"
-                >
-                  <select
-                    id="ais-dept"
-                    (change)="patch({ department_id: $any($event.target).value })"
-                  >
-                    <option value="" [selected]="!form().department_id">
-                      {{ 'aiGovernance.common.notSet' | transloco }}
-                    </option>
-                    @for (d of departments(); track d.id) {
-                      <option [value]="d.id" [selected]="form().department_id === d.id">
-                        {{ d.name }}
-                      </option>
-                    }
-                  </select>
-                </app-ai-field>
-              </div>
-              <app-ai-field
-                inputId="ais-overseer"
-                labelKey="aiGovernance.fields.overseers"
-                helpField="overseers"
-                [plain]="true"
-              >
-                <app-ask-about
-                  ask
-                  [prompt]="'aiGovernance.systemForm.askOversight' | transloco"
-                  field="overseers"
-                  labelKey="aiGovernance.wizard.askAbout"
+                  [types]="['ropa_entry']"
+                  [value]="form().processing_activity"
+                  placeholderKey="aiGovernance.systemForm.ropaPlaceholder"
+                  (picked)="patch({ processing_activity: $event })"
+                  (cleared)="patch({ processing_activity: null })"
+                  data-testid="system-ropa"
                 />
-                @if (overseerList().length) {
-                  <ul class="mb-2 flex flex-wrap gap-1.5" data-testid="system-overseers">
-                    @for (o of overseerList(); track o.id) {
-                      <li
-                        class="inline-flex min-h-7 items-center gap-1 rounded-full border border-border bg-surface py-0.5 pr-1 pl-2.5 text-ui text-fg"
+                <span hint>{{ 'aiGovernance.systemForm.ropaHint' | transloco }}</span>
+              </app-ai-field>
+            }
+          </app-form-section>
+
+          <app-form-section
+            [title]="'aiGovernance.systemForm.sections.people' | transloco"
+            [description]="'aiGovernance.systemForm.sectionHints.people' | transloco"
+          >
+            <app-ai-field
+              inputId="ais-owner"
+              labelKey="aiGovernance.fields.owner"
+              helpField="owner"
+              [plain]="true"
+            >
+              <app-ai-user-select
+                selectId="ais-owner"
+                [value]="form().owner_user_id"
+                [currentName]="ownerName()"
+                (valueChange)="patch({ owner_user_id: $event })"
+              />
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-dept"
+              labelKey="aiGovernance.fields.department"
+              helpField="department"
+            >
+              <select id="ais-dept" (change)="patch({ department_id: $any($event.target).value })">
+                <option value="" [selected]="!form().department_id">
+                  {{ 'aiGovernance.common.notSet' | transloco }}
+                </option>
+                @for (d of departments(); track d.id) {
+                  <option [value]="d.id" [selected]="form().department_id === d.id">
+                    {{ d.name }}
+                  </option>
+                }
+              </select>
+            </app-ai-field>
+            <app-ai-field
+              span="full"
+              inputId="ais-overseer"
+              labelKey="aiGovernance.fields.overseers"
+              helpField="overseers"
+              [plain]="true"
+            >
+              <app-ask-about
+                ask
+                [prompt]="'aiGovernance.systemForm.askOversight' | transloco"
+                field="overseers"
+                labelKey="aiGovernance.wizard.askAbout"
+              />
+              @if (overseerList().length) {
+                <ul class="flex flex-wrap gap-1.5" data-testid="system-overseers">
+                  @for (o of overseerList(); track o.id) {
+                    <li
+                      class="inline-flex min-h-7 items-center gap-1 rounded-full border border-border bg-surface py-0.5 pr-1 pl-2.5 text-ui text-fg"
+                    >
+                      {{ o.name }}
+                      <button
+                        type="button"
+                        class="inline-flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                        [attr.aria-label]="
+                          'aiGovernance.systemForm.removeOverseer' | transloco: { name: o.name }
+                        "
+                        (click)="removeOverseer(o.id)"
                       >
-                        {{ o.name }}
-                        <button
-                          type="button"
-                          class="inline-flex h-6 w-6 items-center justify-center rounded-full text-fg-subtle hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                          [attr.aria-label]="
-                            'aiGovernance.systemForm.removeOverseer' | transloco: { name: o.name }
-                          "
-                          (click)="removeOverseer(o.id)"
-                        >
-                          <app-icon name="x" [size]="12" />
-                        </button>
-                      </li>
-                    }
-                  </ul>
-                }
-                @if (form().overseer_user_ids.length < maxOverseers) {
-                  @for (k of [pickKey()]; track k) {
-                    <app-ai-user-select
-                      selectId="ais-overseer"
-                      noneKey="aiGovernance.systemForm.addOverseer"
-                      [value]="''"
-                      (valueChange)="addOverseer($event)"
-                    />
+                        <app-icon name="x" [size]="12" />
+                      </button>
+                    </li>
                   }
+                </ul>
+              }
+              @if (form().overseer_user_ids.length < maxOverseers) {
+                @for (k of [pickKey()]; track k) {
+                  <app-ai-user-select
+                    selectId="ais-overseer"
+                    noneKey="aiGovernance.systemForm.addOverseer"
+                    [value]="''"
+                    (valueChange)="addOverseer($event)"
+                  />
                 }
-                <span hint>
-                  <app-term scope="ai-governance" key="human-oversight">{{
-                    'aiGovernance.systemForm.oversightTerm' | transloco
-                  }}</app-term>
-                  {{ 'aiGovernance.systemForm.oversightHint' | transloco }}
-                </span>
-              </app-ai-field>
-              <app-ai-field
+              }
+              <span hint>
+                <app-term scope="ai-governance" key="human-oversight">{{
+                  'aiGovernance.systemForm.oversightTerm' | transloco
+                }}</app-term>
+                {{ 'aiGovernance.systemForm.oversightHint' | transloco }}
+              </span>
+            </app-ai-field>
+            <app-ai-field
+              inputId="ais-review"
+              labelKey="aiGovernance.fields.nextReview"
+              helpField="next_review"
+            >
+              <app-date-input
                 inputId="ais-review"
-                labelKey="aiGovernance.fields.nextReview"
-                helpField="next_review"
-              >
-                <input
-                  id="ais-review"
-                  type="date"
-                  [value]="form().next_review"
-                  (input)="patch({ next_review: $any($event.target).value })"
-                />
-              </app-ai-field>
-            </div>
-          </app-card>
+                [value]="form().next_review"
+                (valueChange)="patch({ next_review: $event ?? '' })"
+              />
+            </app-ai-field>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-1 font-display text-section font-bold text-fg">
-              {{ 'aiGovernance.systemForm.sections.metrics' | transloco }}
-            </h2>
-            <p class="mb-4 text-ui text-fg-muted">
-              {{ 'aiGovernance.systemForm.metricsHint' | transloco }}
-            </p>
+          <app-form-section
+            [title]="'aiGovernance.systemForm.sections.metrics' | transloco"
+            [description]="'aiGovernance.systemForm.metricsHint' | transloco"
+            [columns]="1"
+          >
             @if (form().metrics.length) {
-              <ul class="mb-3 flex flex-col gap-3" data-testid="system-metrics">
+              <ol class="flex flex-col gap-3" data-testid="system-metrics">
                 @for (m of form().metrics; track $index; let i = $index) {
-                  <li class="rounded-tile border border-border bg-surface-2 p-3">
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-                      <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                        {{ 'aiGovernance.monitoring.metric' | transloco }}
+                  <li class="flex gap-3 rounded-tile border border-border bg-surface p-3 sm:p-4">
+                    <span
+                      class="mt-7 inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-surface-2 text-micro font-semibold text-fg-muted"
+                      aria-hidden="true"
+                      >{{ i + 1 }}</span
+                    >
+                    <div class="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                      <app-form-field
+                        [label]="'aiGovernance.monitoring.metric' | transloco"
+                        [inputId]="'ais-m-metric-' + i"
+                      >
                         <input
+                          [id]="'ais-m-metric-' + i"
                           type="text"
                           maxlength="120"
-                          class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
                           [placeholder]="'aiGovernance.monitoring.metricPlaceholder' | transloco"
                           [value]="m.metric"
                           (input)="patchMetric(i, { metric: $any($event.target).value })"
                         />
-                      </label>
-                      <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                        {{ 'aiGovernance.monitoring.kind' | transloco }}
+                      </app-form-field>
+                      <app-form-field
+                        [label]="'aiGovernance.monitoring.kind' | transloco"
+                        [inputId]="'ais-m-kind-' + i"
+                      >
                         <select
-                          class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
+                          [id]="'ais-m-kind-' + i"
                           (change)="patchMetric(i, { kind: $any($event.target).value })"
                         >
                           @for (k of kinds; track k) {
@@ -557,76 +558,83 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
                             </option>
                           }
                         </select>
-                      </label>
-                    </div>
-                    <div
-                      class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end"
-                    >
-                      <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                        {{ 'aiGovernance.monitoring.threshold' | transloco }}
+                      </app-form-field>
+                      <app-form-field
+                        [label]="'aiGovernance.monitoring.threshold' | transloco"
+                        [inputId]="'ais-m-threshold-' + i"
+                      >
                         <input
+                          [id]="'ais-m-threshold-' + i"
                           type="text"
                           inputmode="decimal"
-                          class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
                           [value]="m.threshold"
                           (input)="patchMetric(i, { threshold: $any($event.target).value })"
                         />
-                      </label>
-                      <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                        {{ 'aiGovernance.systemForm.direction' | transloco }}
-                        <select
-                          class="h-9 rounded-tile border border-border bg-bg px-2 text-ui font-normal text-fg"
-                          (change)="patchMetric(i, { direction: $any($event.target).value })"
+                      </app-form-field>
+                      <div class="grid grid-cols-2 gap-x-4">
+                        <app-form-field
+                          [label]="'aiGovernance.systemForm.direction' | transloco"
+                          [inputId]="'ais-m-dir-' + i"
                         >
-                          <option value="min" [selected]="m.direction === 'min'">
-                            {{ 'aiGovernance.systemForm.directionMin' | transloco }}
-                          </option>
-                          <option value="max" [selected]="m.direction === 'max'">
-                            {{ 'aiGovernance.systemForm.directionMax' | transloco }}
-                          </option>
-                        </select>
-                      </label>
-                      <label class="flex flex-col gap-1 text-meta font-semibold text-fg-muted">
-                        {{ 'aiGovernance.systemForm.unit' | transloco }}
-                        <input
-                          type="text"
-                          maxlength="20"
-                          class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
-                          [value]="m.unit"
-                          (input)="patchMetric(i, { unit: $any($event.target).value })"
-                        />
-                      </label>
-                      <app-button
-                        size="sm"
-                        variant="ghost"
-                        [attr.aria-label]="
-                          'aiGovernance.systemForm.removeMetric'
-                            | transloco: { metric: m.metric || i + 1 }
-                        "
-                        (click)="removeMetric(i)"
-                      >
-                        <app-icon name="trash" [size]="14" />
-                      </app-button>
+                          <select
+                            [id]="'ais-m-dir-' + i"
+                            (change)="patchMetric(i, { direction: $any($event.target).value })"
+                          >
+                            <option value="min" [selected]="m.direction === 'min'">
+                              {{ 'aiGovernance.systemForm.directionMin' | transloco }}
+                            </option>
+                            <option value="max" [selected]="m.direction === 'max'">
+                              {{ 'aiGovernance.systemForm.directionMax' | transloco }}
+                            </option>
+                          </select>
+                        </app-form-field>
+                        <app-form-field
+                          [label]="'aiGovernance.systemForm.unit' | transloco"
+                          [inputId]="'ais-m-unit-' + i"
+                        >
+                          <input
+                            [id]="'ais-m-unit-' + i"
+                            type="text"
+                            maxlength="20"
+                            [value]="m.unit"
+                            (input)="patchMetric(i, { unit: $any($event.target).value })"
+                          />
+                        </app-form-field>
+                      </div>
                     </div>
+                    <app-button
+                      class="mt-6 flex-none"
+                      size="sm"
+                      variant="ghost"
+                      [attr.aria-label]="
+                        'aiGovernance.systemForm.removeMetric'
+                          | transloco: { metric: m.metric || i + 1 }
+                      "
+                      (click)="removeMetric(i)"
+                    >
+                      <app-icon name="trash" [size]="14" />
+                    </app-button>
                   </li>
                 }
-              </ul>
+              </ol>
             }
             @if (form().metrics.length < maxMetrics) {
-              <app-button
-                size="sm"
-                variant="secondary"
-                (click)="addMetric()"
-                data-testid="metric-add"
-              >
-                <app-icon name="plus" [size]="14" />
-                {{ 'aiGovernance.systemForm.addMetric' | transloco }}
-              </app-button>
+              <div>
+                <app-button
+                  size="sm"
+                  variant="secondary"
+                  (click)="addMetric()"
+                  data-testid="metric-add"
+                >
+                  <app-icon name="plus" [size]="14" />
+                  {{ 'aiGovernance.systemForm.addMetric' | transloco }}
+                </app-button>
+              </div>
             }
-          </app-card>
+          </app-form-section>
 
           @if (id()) {
-            <app-card>
+            <app-form-section [columns]="1">
               <app-ai-field inputId="ais-reason" labelKey="aiGovernance.fields.changeReason">
                 <input
                   id="ais-reason"
@@ -637,13 +645,17 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
                 />
                 <span hint>{{ 'aiGovernance.systemForm.changeReasonHint' | transloco }}</span>
               </app-ai-field>
-            </app-card>
+            </app-form-section>
           }
           @if (error()) {
             <app-alert tone="error">{{ error()! | transloco }}</app-alert>
           }
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+          <app-form-actions
+            [message]="
+              submitted() && !form().name.trim()
+                ? ('aiGovernance.systemForm.fixFields' | transloco)
+                : ''
+            "
           >
             <app-button variant="secondary" (click)="cancel()">{{
               'aiGovernance.common.cancel' | transloco
@@ -653,7 +665,7 @@ export function formToRequest(v: SystemFormValue): AiSystemWrite {
                 (id() ? 'aiGovernance.common.save' : 'aiGovernance.systemForm.create') | transloco
               }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       } @else {
         <app-loading-state [rows]="6" />

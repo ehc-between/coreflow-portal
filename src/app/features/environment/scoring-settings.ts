@@ -39,6 +39,7 @@ import { parseDecimal } from './data/form-models';
 import { ENV_CRUMBS, ENV_MODULE, EnvField, injectEnvPermissions } from './environment-shared';
 import { ModuleConfigNav } from '../../shared/ui/module-config-nav/module-config-nav';
 import { moduleConfigCrumbs } from '../../core/modules/module-config';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
 
 export const MAX_CRITERIA = 10;
 /** Most score levels described per criterion (the backend keeps any scale). */
@@ -215,6 +216,7 @@ export function draftMaxScore(d: ScoringDraft): number | null {
 @Component({
   selector: 'app-env-scoring-settings',
   imports: [
+    FormActions,
     TranslocoPipe,
     LocalDatePipe,
     LocalNumberPipe,
@@ -562,14 +564,13 @@ export function draftMaxScore(d: ScoringDraft): number | null {
                   </div>
                 </app-card>
 
-                <div
-                  class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
+                <app-form-actions
+                  [message]="
+                    hasErrors()
+                      ? ('environment.form.fixErrors' | transloco: { count: errorCount() })
+                      : ''
+                  "
                 >
-                  @if (hasErrors()) {
-                    <p class="mr-auto text-meta font-semibold text-fail" role="alert">
-                      {{ 'environment.form.fixErrors' | transloco: { count: errorCount() } }}
-                    </p>
-                  }
                   <app-button variant="secondary" (click)="reset()">
                     {{ 'environment.scoring.reset' | transloco }}
                   </app-button>
@@ -581,7 +582,7 @@ export function draftMaxScore(d: ScoringDraft): number | null {
                   >
                     {{ 'common.save' | transloco }}
                   </app-button>
-                </div>
+                </app-form-actions>
               </form>
 
               <aside class="flex w-full flex-col gap-4 lg:w-[300px] lg:flex-none">

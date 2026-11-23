@@ -20,7 +20,6 @@ import { AskAbout } from '../../../shared/ask/ask-about';
 import { Term } from '../../../shared/guidance/term';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -45,6 +44,8 @@ import {
   HseDirectorySelect,
   HseField,
 } from '../shared/hse-shared';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 /**
  * `/hse/consultations/new` and `/hse/consultations/:id/edit`: a worker
@@ -62,7 +63,6 @@ import {
     TranslocoPipe,
     AskAbout,
     Button,
-    Card,
     ErrorState,
     FlowBanner,
     HelpStrip,
@@ -72,10 +72,12 @@ import {
     HseDirectorySelect,
     HseField,
     HsePeoplePicker,
+    FormSection,
+    FormActions,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-28 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'hse.consultation.edit.title' : 'hse.consultation.edit.newTitle'"
         [breadcrumbs]="breadcrumbs()"
@@ -104,213 +106,207 @@ import {
               {{ 'hse.common.willLink' | transloco }}
             </p>
           }
-          <app-card>
-            <h2 class="mb-4 font-display text-card font-bold text-fg">
-              {{ 'hse.consultation.edit.meetingSection' | transloco }}
-            </h2>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.consultation.fields.title"
-                inputId="wc-title"
-                page="consultation-edit"
-                [required]="true"
-                [errorKey]="submitted() && !title().trim() ? 'hse.errors.title_required' : null"
-              >
-                <input
-                  id="wc-title"
-                  type="text"
-                  required
-                  maxlength="255"
-                  autocomplete="off"
-                  [value]="title()"
-                  (input)="title.set($any($event.target).value)"
-                  [attr.aria-invalid]="submitted() && !title().trim()"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.consultation.fields.kind"
-                inputId="wc-kind"
-                page="consultation-edit"
-                help="kind"
-              >
-                <select id="wc-kind" (change)="kind.set($any($event.target).value)">
-                  @for (k of kinds; track k) {
-                    <option [value]="k" [selected]="k === kind()">
-                      {{ 'hse.consultation.kind.' + k | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-hse-field>
-              <app-hse-field labelKey="hse.consultation.fields.scheduled_at" inputId="wc-scheduled">
-                <input
-                  id="wc-scheduled"
-                  type="datetime-local"
-                  [value]="scheduledAt()"
-                  (input)="scheduledAt.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.consultation.fields.location" inputId="wc-location">
-                <input
-                  id="wc-location"
-                  type="text"
-                  maxlength="200"
-                  [value]="location()"
-                  (input)="location.set($any($event.target).value)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.consultation.fields.owner" inputId="wc-owner">
-                <app-hse-directory-select
-                  inputId="wc-owner"
-                  kind="user"
-                  noneKey="hse.common.me"
-                  [value]="ownerId()"
-                  [currentName]="ownerName()"
-                  (valueChange)="ownerId.set($event)"
-                />
-              </app-hse-field>
-              <app-hse-field labelKey="hse.common.department" inputId="wc-department">
-                <app-hse-directory-select
-                  inputId="wc-department"
-                  kind="department"
-                  [value]="departmentId()"
-                  (valueChange)="departmentId.set($event)"
-                />
-              </app-hse-field>
-              <app-hse-field
-                class="sm:col-span-2"
-                labelKey="hse.consultation.fields.topics"
-                inputId="wc-topics"
-                page="consultation-edit"
-                help="topics"
-              >
-                <app-ask-about
-                  label-extra
-                  [prompt]="'hse.consultation.ai.topicsPrompt' | transloco"
-                  [fieldLabel]="'hse.consultation.fields.topics' | transloco"
-                  labelKey="hse.consultation.ai.askTopics"
-                />
-                <textarea
-                  id="wc-topics"
-                  rows="4"
-                  [value]="topics()"
-                  (input)="topics.set($any($event.target).value)"
-                ></textarea>
-              </app-hse-field>
-            </div>
-          </app-card>
+          <app-form-section
+            [title]="'hse.consultation.edit.meetingSection' | transloco"
+            [description]="'hse.consultation.edit.meetingSectionHint' | transloco"
+          >
+            <app-hse-field
+              span="full"
+              labelKey="hse.consultation.fields.title"
+              inputId="wc-title"
+              page="consultation-edit"
+              [required]="true"
+              [errorKey]="submitted() && !title().trim() ? 'hse.errors.title_required' : null"
+            >
+              <input
+                id="wc-title"
+                type="text"
+                required
+                maxlength="255"
+                autocomplete="off"
+                [value]="title()"
+                (input)="title.set($any($event.target).value)"
+                [attr.aria-invalid]="submitted() && !title().trim()"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.consultation.fields.kind"
+              inputId="wc-kind"
+              page="consultation-edit"
+              help="kind"
+            >
+              <select id="wc-kind" (change)="kind.set($any($event.target).value)">
+                @for (k of kinds; track k) {
+                  <option [value]="k" [selected]="k === kind()">
+                    {{ 'hse.consultation.kind.' + k | transloco }}
+                  </option>
+                }
+              </select>
+            </app-hse-field>
+            <app-hse-field labelKey="hse.consultation.fields.scheduled_at" inputId="wc-scheduled">
+              <input
+                id="wc-scheduled"
+                type="datetime-local"
+                [value]="scheduledAt()"
+                (input)="scheduledAt.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.consultation.fields.location" inputId="wc-location">
+              <input
+                id="wc-location"
+                type="text"
+                maxlength="200"
+                [value]="location()"
+                (input)="location.set($any($event.target).value)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.consultation.fields.owner" inputId="wc-owner">
+              <app-hse-directory-select
+                inputId="wc-owner"
+                kind="user"
+                noneKey="hse.common.me"
+                [value]="ownerId()"
+                [currentName]="ownerName()"
+                (valueChange)="ownerId.set($event)"
+              />
+            </app-hse-field>
+            <app-hse-field labelKey="hse.common.department" inputId="wc-department">
+              <app-hse-directory-select
+                inputId="wc-department"
+                kind="department"
+                [value]="departmentId()"
+                (valueChange)="departmentId.set($event)"
+              />
+            </app-hse-field>
+            <app-hse-field
+              span="full"
+              labelKey="hse.consultation.fields.topics"
+              inputId="wc-topics"
+              page="consultation-edit"
+              help="topics"
+            >
+              <app-ask-about
+                label-extra
+                [prompt]="'hse.consultation.ai.topicsPrompt' | transloco"
+                [fieldLabel]="'hse.consultation.fields.topics' | transloco"
+                labelKey="hse.consultation.ai.askTopics"
+              />
+              <textarea
+                id="wc-topics"
+                rows="4"
+                [value]="topics()"
+                (input)="topics.set($any($event.target).value)"
+              ></textarea>
+            </app-hse-field>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="mb-4 font-display text-card font-bold text-fg">
-              {{ 'hse.consultation.edit.peopleSection' | transloco }}
-            </h2>
-            <div class="flex flex-col gap-4">
-              <app-hse-field
-                labelKey="hse.consultation.fields.participants"
+          <app-form-section
+            [columns]="1"
+            [title]="'hse.consultation.edit.peopleSection' | transloco"
+            [description]="'hse.consultation.edit.peopleSectionHint' | transloco"
+          >
+            <app-hse-field
+              labelKey="hse.consultation.fields.participants"
+              inputId="wc-participants"
+              page="consultation-edit"
+              help="participants"
+              hintKey="hse.people.hint"
+            >
+              <app-hse-people-picker
                 inputId="wc-participants"
-                page="consultation-edit"
-                help="participants"
-                hintKey="hse.people.hint"
-              >
-                <app-hse-people-picker
-                  inputId="wc-participants"
-                  labelKey="hse.consultation.fields.participants"
-                  describedBy="wc-participants-hint"
-                  [value]="participants()"
-                  [known]="knownParticipants()"
-                  (valueChange)="participants.set($event)"
-                  testId="wc-participants-picker"
-                />
-              </app-hse-field>
-              <app-hse-field
-                labelKey="hse.consultation.fields.worker_representatives"
+                labelKey="hse.consultation.fields.participants"
+                describedBy="wc-participants-hint"
+                [value]="participants()"
+                [known]="knownParticipants()"
+                (valueChange)="participants.set($event)"
+                testId="wc-participants-picker"
+              />
+            </app-hse-field>
+            <app-hse-field
+              labelKey="hse.consultation.fields.worker_representatives"
+              inputId="wc-reps"
+              page="consultation-edit"
+              help="worker_representatives"
+              hintKey="hse.consultation.edit.repsHint"
+            >
+              <app-hse-people-picker
                 inputId="wc-reps"
-                page="consultation-edit"
-                help="worker_representatives"
-                hintKey="hse.consultation.edit.repsHint"
-              >
-                <app-hse-people-picker
-                  inputId="wc-reps"
-                  labelKey="hse.consultation.fields.worker_representatives"
-                  describedBy="wc-reps-hint"
-                  [value]="representatives()"
-                  [known]="knownReps()"
-                  (valueChange)="representatives.set($event)"
-                  testId="wc-reps-picker"
-                />
-              </app-hse-field>
-              <label class="flex min-h-8 items-start gap-2 text-body text-fg">
-                <input
-                  type="checkbox"
-                  class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
-                  [checked]="repPresentShown()"
-                  [disabled]="hasReps()"
-                  (change)="repPresent.set($any($event.target).checked)"
-                  data-testid="wc-rep-present"
-                />
-                <span>
-                  <app-term key="worker-representative" scope="hse">{{
-                    'hse.consultation.fields.worker_representative_present' | transloco
-                  }}</app-term>
-                  @if (hasReps()) {
-                    <span class="block text-meta text-fg-muted">{{
-                      'hse.consultation.edit.repAuto' | transloco
-                    }}</span>
-                  }
-                </span>
-              </label>
-            </div>
-          </app-card>
+                labelKey="hse.consultation.fields.worker_representatives"
+                describedBy="wc-reps-hint"
+                [value]="representatives()"
+                [known]="knownReps()"
+                (valueChange)="representatives.set($event)"
+                testId="wc-reps-picker"
+              />
+            </app-hse-field>
+            <label class="flex min-h-8 items-start gap-2 text-body text-fg">
+              <input
+                type="checkbox"
+                class="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+                [checked]="repPresentShown()"
+                [disabled]="hasReps()"
+                (change)="repPresent.set($any($event.target).checked)"
+                data-testid="wc-rep-present"
+              />
+              <span>
+                <app-term key="worker-representative" scope="hse">{{
+                  'hse.consultation.fields.worker_representative_present' | transloco
+                }}</app-term>
+                @if (hasReps()) {
+                  <span class="block text-meta text-fg-muted">{{
+                    'hse.consultation.edit.repAuto' | transloco
+                  }}</span>
+                }
+              </span>
+            </label>
+          </app-form-section>
 
           @if (status() === 'held') {
-            <app-card>
-              <h2 class="mb-4 font-display text-card font-bold text-fg">
-                {{ 'hse.consultation.edit.outcomeSection' | transloco }}
-              </h2>
-              <div class="flex flex-col gap-4">
-                <app-hse-field labelKey="hse.consultation.fields.held_at" inputId="wc-held">
-                  <input
-                    id="wc-held"
-                    type="datetime-local"
-                    [value]="heldAt()"
-                    (input)="heldAt.set($any($event.target).value)"
-                  />
-                </app-hse-field>
-                <app-hse-field labelKey="hse.consultation.fields.summary" inputId="wc-summary">
-                  <textarea
-                    id="wc-summary"
-                    rows="4"
-                    [value]="summary()"
-                    (input)="summary.set($any($event.target).value)"
-                  ></textarea>
-                </app-hse-field>
-                <app-hse-field
-                  labelKey="hse.consultation.fields.decisions"
-                  inputId="wc-decisions"
-                  hintKey="hse.consultation.edit.decisionsHint"
-                >
-                  <textarea
-                    id="wc-decisions"
-                    rows="4"
-                    aria-describedby="wc-decisions-hint"
-                    [value]="decisions()"
-                    (input)="decisions.set($any($event.target).value)"
-                  ></textarea>
-                </app-hse-field>
-              </div>
-            </app-card>
+            <app-form-section
+              [columns]="1"
+              [title]="'hse.consultation.edit.outcomeSection' | transloco"
+              [description]="'hse.consultation.edit.outcomeSectionHint' | transloco"
+            >
+              <app-hse-field labelKey="hse.consultation.fields.held_at" inputId="wc-held">
+                <input
+                  id="wc-held"
+                  type="datetime-local"
+                  [value]="heldAt()"
+                  (input)="heldAt.set($any($event.target).value)"
+                />
+              </app-hse-field>
+              <app-hse-field labelKey="hse.consultation.fields.summary" inputId="wc-summary">
+                <textarea
+                  id="wc-summary"
+                  rows="4"
+                  [value]="summary()"
+                  (input)="summary.set($any($event.target).value)"
+                ></textarea>
+              </app-hse-field>
+              <app-hse-field
+                labelKey="hse.consultation.fields.decisions"
+                inputId="wc-decisions"
+                hintKey="hse.consultation.edit.decisionsHint"
+              >
+                <textarea
+                  id="wc-decisions"
+                  rows="4"
+                  aria-describedby="wc-decisions-hint"
+                  [value]="decisions()"
+                  (input)="decisions.set($any($event.target).value)"
+                ></textarea>
+              </app-hse-field>
+            </app-form-section>
           }
 
-          <div
-            class="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-4 py-3 sm:static sm:border-0 sm:bg-transparent sm:p-0"
-          >
+          <app-form-actions>
             <a [routerLink]="backLink()" tabindex="-1" (click)="cancelFlow()">
               <app-button variant="secondary">{{ 'hse.common.cancel' | transloco }}</app-button>
             </a>
             <app-button type="submit" [loading]="saving()" [disabled]="saving()">
               {{ (id() ? 'hse.common.save' : 'hse.consultation.edit.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

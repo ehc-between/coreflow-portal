@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable, map } from 'rxjs';
 import { LocalizedTitleResolver } from '../../core/i18n/localized-title';
@@ -28,7 +29,9 @@ import { TasksApi } from '../../core/tasks/tasks-api';
 import { Alert } from '../ui/alert/alert';
 import { Button } from '../ui/button/button';
 import { DateInput } from '../ui/date-input/date-input';
+import { FormActions } from '../ui/form-actions/form-actions';
 import { FormField } from '../ui/form-field/form-field';
+import { FormSection } from '../ui/form-section/form-section';
 import { Icon } from '../ui/icon/icon';
 import { AssigneeSelect } from './assignee-select';
 import { TaskFieldHelp } from './guidance/task-field-help';
@@ -81,6 +84,10 @@ let nextId = 0;
  * or edit an existing series. Saves through `TasksApi` and emits the result; error
  * codes are shown inline in the active language.
  *
+ * Built with the form anatomy (docs/ux-guide.md §2.4): `app-form-section` cards
+ * ("Oppgave", "Tidsplan", "Sjekkliste"), `app-form-field`s with the `?` help in the
+ * label row, and the sticky `app-form-actions` bar on a page (`layout="page"`).
+ *
  *   <app-task-form [value]="{ entityType: 'deviation', entityId: id }"
  *     (saved)="onSaved($event)" (cancelled)="close()" />
  */
@@ -90,7 +97,10 @@ let nextId = 0;
     TranslocoPipe,
     Alert,
     Button,
+    NgTemplateOutlet,
     FormField,
+    FormSection,
+    FormActions,
     DateInput,
     Icon,
     AssigneeSelect,
@@ -101,57 +111,67 @@ let nextId = 0;
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <form class="flex flex-col gap-4" novalidate (submit)="$event.preventDefault(); save()">
+    <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); save()">
       @if (errorKey(); as key) {
         <app-alert tone="error">{{ key | transloco }}</app-alert>
       }
 
       @if (linkedLabel(); as label) {
-        <p class="flex items-center gap-1.5 text-[13px] text-fg-muted">
+        <p class="flex items-center gap-1.5 text-ui text-fg-muted" data-testid="task-form-linked">
           <app-icon name="link" [size]="14" />
           {{ 'tasks.form.linkedTo' | transloco: { record: label } }}
         </p>
       }
 
-      <div>
-        <app-form-field [label]="'tasks.form.title' | transloco" [inputId]="id('title')">
+      <app-form-section
+        [title]="'tasks.form.sections.task.title' | transloco"
+        [description]="'tasks.form.sections.task.description' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'tasks.form.title' | transloco"
+          [inputId]="id('title')"
+          [required]="true"
+          [error]="titleMissing() ? ('tasks.errors.title_required' | transloco) : ''"
+        >
+          <app-task-field-help label-suffix page="form" field="title" />
           <input
             [id]="id('title')"
             type="text"
             maxlength="255"
             required
             autocomplete="off"
-            [attr.aria-invalid]="titleMissing() || null"
             [value]="title()"
             (input)="title.set($any($event.target).value)"
           />
         </app-form-field>
-        <app-task-field-help page="form" field="title" />
-        @if (titleMissing()) {
-          <p class="mt-1 text-[12.5px] text-fail">
-            {{ 'tasks.errors.title_required' | transloco }}
-          </p>
-        }
-      </div>
 
-      @if (canPickCustomer()) {
-        <div>
-          <app-form-field [label]="'tasks.form.customer' | transloco" [inputId]="id('customer')">
-            <app-customer-picker
-              [inputId]="id('customer')"
-              [value]="customerId()"
-              (valueChange)="customerId.set($event)"
-              data-testid="task-customer"
-            />
-          </app-form-field>
-        </div>
-      }
+        <app-form-field [label]="'tasks.form.assignee' | transloco" [inputId]="id('assignee')">
+          <app-task-field-help label-suffix page="form" field="assignee" />
+          <app-assignee-select
+            [inputId]="id('assignee')"
+            [value]="assignee()"
+            [currentName]="currentAssigneeName()"
+            (valueChange)="assignee.set($event)"
+          />
+        </app-form-field>
+        <app-form-field [label]="'tasks.form.priority' | transloco" [inputId]="id('priority')">
+          <app-task-field-help label-suffix page="form" field="priority" />
+          <select [id]="id('priority')" (change)="priority.set($any($event.target).value)">
+            @for (p of priorities; track p) {
+              <option [value]="p" [selected]="p === priority()">
+                {{ 'tasks.priority.' + p | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
 
-      <div>
         <app-form-field
+          span="full"
           [label]="'tasks.form.description' | transloco"
           [inputId]="id('description')"
         >
+          <app-task-field-help label-suffix page="form" field="description" />
           <textarea
             [id]="id('description')"
             rows="4"
@@ -160,71 +180,50 @@ let nextId = 0;
             (input)="description.set($any($event.target).value)"
           ></textarea>
         </app-form-field>
-        <app-task-field-help page="form" field="description" />
-      </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <app-form-field [label]="'tasks.form.assignee' | transloco" [inputId]="id('assignee')">
-            <app-assignee-select
-              [inputId]="id('assignee')"
-              [value]="assignee()"
-              [currentName]="currentAssigneeName()"
-              (valueChange)="assignee.set($event)"
+        @if (canPickCustomer()) {
+          <app-form-field [label]="'tasks.form.customer' | transloco" [inputId]="id('customer')">
+            <app-customer-picker
+              [inputId]="id('customer')"
+              [value]="customerId()"
+              (valueChange)="customerId.set($event)"
+              data-testid="task-customer"
             />
           </app-form-field>
-          <app-task-field-help page="form" field="assignee" />
-        </div>
-        <div>
-          <app-form-field [label]="'tasks.form.priority' | transloco" [inputId]="id('priority')">
-            <select [id]="id('priority')" (change)="priority.set($any($event.target).value)">
-              @for (p of priorities; track p) {
-                <option [value]="p" [selected]="p === priority()">
-                  {{ 'tasks.priority.' + p | transloco }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          <app-task-field-help page="form" field="priority" />
-        </div>
-      </div>
+        }
+      </app-form-section>
 
-      @if (!isSeries()) {
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <app-form-field
-              [label]="(repeat() ? 'tasks.form.firstDue' : 'tasks.form.due') | transloco"
+      <app-form-section
+        [title]="'tasks.form.sections.schedule.title' | transloco"
+        [description]="'tasks.form.sections.schedule.description' | transloco"
+      >
+        @if (!isSeries()) {
+          <app-form-field
+            [label]="(repeat() ? 'tasks.form.firstDue' : 'tasks.form.due') | transloco"
+            [inputId]="id('due')"
+            [required]="repeat()"
+            [error]="dueMissing() ? ('tasks.form.firstDueRequired' | transloco) : ''"
+          >
+            <app-task-field-help label-suffix page="form" field="due" />
+            <app-date-input
               [inputId]="id('due')"
-            >
+              [invalid]="dueMissing()"
+              [required]="repeat()"
+              [value]="dueDay()"
+              (valueChange)="dueDay.set($event ?? '')"
+            />
+          </app-form-field>
+          @if (!repeat()) {
+            <app-form-field [label]="'tasks.form.start' | transloco" [inputId]="id('start')">
+              <app-task-field-help label-suffix page="form" field="start" />
               <app-date-input
-                [inputId]="id('due')"
-                [invalid]="dueMissing()"
-                [value]="dueDay()"
-                (valueChange)="dueDay.set($event ?? '')"
+                [inputId]="id('start')"
+                [value]="startDay()"
+                (valueChange)="startDay.set($event ?? '')"
               />
             </app-form-field>
-            <app-task-field-help page="form" field="due" />
-            @if (dueMissing()) {
-              <p class="mt-1 text-[12.5px] text-fail">
-                {{ 'tasks.form.firstDueRequired' | transloco }}
-              </p>
-            }
-          </div>
-          @if (!repeat()) {
-            <div>
-              <app-form-field [label]="'tasks.form.start' | transloco" [inputId]="id('start')">
-                <app-date-input
-                  [inputId]="id('start')"
-                  [value]="startDay()"
-                  (valueChange)="startDay.set($event ?? '')"
-                />
-              </app-form-field>
-              <app-task-field-help page="form" field="start" />
-            </div>
           }
-        </div>
-      } @else {
-        <div>
+        } @else {
           <app-form-field [label]="'tasks.form.seriesStart' | transloco" [inputId]="id('due')">
             <app-date-input
               [inputId]="id('due')"
@@ -232,59 +231,36 @@ let nextId = 0;
               (valueChange)="dueDay.set($event ?? '')"
             />
           </app-form-field>
-        </div>
-      }
+        }
 
-      @if (showChecklist()) {
-        <fieldset class="flex flex-col gap-2">
-          <legend class="mb-1 text-[13px] font-semibold text-fg-muted">
-            {{ 'tasks.form.checklist' | transloco }}
-          </legend>
-          @for (item of checklist(); track $index; let i = $index) {
-            <div class="flex items-center gap-2">
+        @if (canRepeat()) {
+          <div
+            class="flex min-h-10 items-center gap-2 rounded-tile border border-border px-3 sm:col-span-2"
+          >
+            <label
+              class="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-ui font-semibold text-fg"
+            >
               <input
-                type="text"
-                maxlength="500"
-                class="h-9 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-[13.5px]"
-                [attr.aria-label]="'tasks.form.checklistItem' | transloco: { n: i + 1 }"
-                [value]="item"
-                (input)="setChecklistItem(i, $any($event.target).value)"
+                type="checkbox"
+                data-testid="task-form-repeat"
+                [checked]="repeat()"
+                (change)="repeat.set($any($event.target).checked)"
               />
-              <button
-                type="button"
-                class="rounded-[8px] p-1.5 text-fg-subtle hover:bg-surface-2 hover:text-fail"
-                [attr.aria-label]="'tasks.form.removeChecklistItem' | transloco: { n: i + 1 }"
-                (click)="removeChecklistItem(i)"
-              >
-                <app-icon name="x" [size]="14" />
-              </button>
-            </div>
-          }
-          <div>
-            <app-button variant="ghost" size="sm" (click)="addChecklistItem()">
-              <app-icon name="plus" [size]="14" />
-              {{ 'tasks.form.addChecklistItem' | transloco }}
-            </app-button>
+              {{ 'tasks.form.repeat' | transloco }}
+            </label>
+            <app-task-field-help page="form" field="repeat" />
           </div>
-        </fieldset>
-      }
+        }
 
-      @if (canRepeat()) {
-        <label class="flex items-center gap-2 text-[13.5px] font-semibold text-fg">
-          <input
-            type="checkbox"
-            [checked]="repeat()"
-            (change)="repeat.set($any($event.target).checked)"
+        @if (repeat() || isSeries()) {
+          <app-recurrence-picker
+            class="block sm:col-span-2"
+            [plain]="true"
+            [idPrefix]="id('rrule')"
+            [(rrule)]="rrule"
           />
-          {{ 'tasks.form.repeat' | transloco }}
-        </label>
-        <app-task-field-help page="form" field="repeat" />
-      }
-
-      @if (repeat() || isSeries()) {
-        <app-recurrence-picker [idPrefix]="id('rrule')" [(rrule)]="rrule" />
-        <div class="max-w-[220px]">
           <app-form-field [label]="'tasks.form.leadDays' | transloco" [inputId]="id('lead')">
+            <app-task-field-help label-suffix page="form" field="leadDays" />
             <input
               [id]="id('lead')"
               type="number"
@@ -294,19 +270,81 @@ let nextId = 0;
               (change)="setLeadDays($any($event.target).value)"
             />
           </app-form-field>
-          <app-task-field-help page="form" field="leadDays" />
-        </div>
+        }
+      </app-form-section>
+
+      @if (showChecklist()) {
+        <app-form-section
+          [title]="'tasks.form.checklist' | transloco"
+          [description]="'tasks.form.sections.checklist.description' | transloco"
+          [columns]="1"
+        >
+          <fieldset class="flex min-w-0 flex-col gap-2">
+            <legend class="sr-only">{{ 'tasks.form.checklist' | transloco }}</legend>
+            @if (checklist().length > 0) {
+              <ol class="flex flex-col gap-2">
+                @for (item of checklist(); track $index; let i = $index) {
+                  <li class="flex items-center gap-2">
+                    <span
+                      class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-surface-2 text-micro font-semibold text-fg-muted"
+                      aria-hidden="true"
+                      >{{ i + 1 }}</span
+                    >
+                    <input
+                      type="text"
+                      maxlength="500"
+                      class="h-10 min-w-0 flex-1 rounded-tile border border-border bg-bg px-3 text-ui text-fg focus:border-accent focus:outline-none"
+                      [attr.aria-label]="'tasks.form.checklistItem' | transloco: { n: i + 1 }"
+                      [value]="item"
+                      (input)="setChecklistItem(i, $any($event.target).value)"
+                    />
+                    <button
+                      type="button"
+                      class="flex h-10 w-10 flex-none items-center justify-center rounded-tile text-fg-subtle hover:bg-surface-2 hover:text-fail"
+                      [attr.aria-label]="'tasks.form.removeChecklistItem' | transloco: { n: i + 1 }"
+                      (click)="removeChecklistItem(i)"
+                    >
+                      <app-icon name="x" [size]="15" />
+                    </button>
+                  </li>
+                }
+              </ol>
+            }
+            <div>
+              <app-button variant="secondary" size="sm" (click)="addChecklistItem()">
+                <app-icon name="plus" [size]="14" />
+                {{ 'tasks.form.addChecklistItem' | transloco }}
+              </app-button>
+            </div>
+          </fieldset>
+        </app-form-section>
       }
 
-      <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
-        <app-button variant="secondary" [disabled]="saving()" (click)="cancelled.emit()">
-          {{ 'tasks.common.cancel' | transloco }}
-        </app-button>
-        <app-button type="submit" [loading]="saving()" [disabled]="saving()">
-          {{ submitKey() | transloco }}
-        </app-button>
-      </div>
+      @if (layout() === 'page') {
+        <app-form-actions
+          [message]="
+            submitted() && (titleMissing() || dueMissing())
+              ? ('tasks.form.fixFields' | transloco)
+              : ''
+          "
+        >
+          <ng-container *ngTemplateOutlet="actions" />
+        </app-form-actions>
+      } @else {
+        <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+          <ng-container *ngTemplateOutlet="actions" />
+        </div>
+      }
     </form>
+
+    <ng-template #actions>
+      <app-button variant="secondary" [disabled]="saving()" (click)="cancelled.emit()">
+        {{ 'tasks.common.cancel' | transloco }}
+      </app-button>
+      <app-button type="submit" [loading]="saving()" [disabled]="saving()">
+        {{ submitKey() | transloco }}
+      </app-button>
+    </ng-template>
   `,
 })
 export class TaskForm {
@@ -316,6 +354,13 @@ export class TaskForm {
   private readonly customers = inject(CustomersAvailability);
 
   readonly value = input<TaskFormValue | null>(null);
+  /**
+   * `page`: a create / edit page (docs/ux-guide.md §2.4) with the sticky
+   * `app-form-actions` bar; don't wrap the form in a card, its sections are cards.
+   * `panel` (default): inside a slide-over, with a plain button row (a sticky page bar
+   * does not fit a panel's scroll area).
+   */
+  readonly layout = input<'panel' | 'page'>('panel');
   readonly saved = output<TaskFormResult>();
   readonly cancelled = output<void>();
 
@@ -339,7 +384,7 @@ export class TaskForm {
 
   protected readonly saving = signal(false);
   protected readonly errorKey = signal<string | null>(null);
-  private readonly submitted = signal(false);
+  protected readonly submitted = signal(false);
 
   protected readonly isEdit = computed(() => !!this.value()?.task);
   protected readonly isSeries = computed(() => !!this.value()?.recurrence);

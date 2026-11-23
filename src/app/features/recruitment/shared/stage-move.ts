@@ -15,6 +15,7 @@ import { NotificationService } from '../../../core/notifications/notification.se
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { RecruitmentApi } from '../data/recruitment-api';
 import { moveTargets } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
@@ -37,7 +38,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-stage-move',
-  imports: [TranslocoPipe, ConfirmDialog, PromptDialog],
+  imports: [TranslocoPipe, ConfirmDialog, PromptDialog, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-block' },
   template: `
@@ -70,36 +71,35 @@ let nextId = 0;
       (confirmed)="reject()"
       (cancelled)="cancelReject()"
     >
-      <div class="mt-3 flex flex-col gap-2">
-        <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-reason'">
-          {{ 'recruitment.fields.rejectionReason' | transloco }}
-          <span class="text-fail" aria-hidden="true">*</span>
-        </label>
-        <select
-          [id]="uid + '-reason'"
-          class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-          (change)="reason.set($any($event.target).value)"
+      <div class="mt-3 flex flex-col gap-4">
+        <app-form-field
+          [label]="'recruitment.fields.rejectionReason' | transloco"
+          [inputId]="uid + '-reason'"
+          [required]="true"
         >
-          <option value="" [selected]="!reason()">
-            {{ 'recruitment.move.chooseReason' | transloco }}
-          </option>
-          @for (r of reasons; track r) {
-            <option [value]="r" [selected]="r === reason()">
-              {{ 'recruitment.rejectionReason.' + r | transloco }}
+          <select [id]="uid + '-reason'" (change)="reason.set($any($event.target).value)">
+            <option value="" [selected]="!reason()">
+              {{ 'recruitment.move.chooseReason' | transloco }}
             </option>
-          }
-        </select>
-        <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-note'">{{
-          'recruitment.fields.rejectionNote' | transloco
-        }}</label>
-        <textarea
-          [id]="uid + '-note'"
-          rows="3"
-          maxlength="2000"
-          class="rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
-          [value]="note()"
-          (input)="note.set($any($event.target).value)"
-        ></textarea>
+            @for (r of reasons; track r) {
+              <option [value]="r" [selected]="r === reason()">
+                {{ 'recruitment.rejectionReason.' + r | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'recruitment.fields.rejectionNote' | transloco"
+          [inputId]="uid + '-note'"
+        >
+          <textarea
+            [id]="uid + '-note'"
+            rows="3"
+            maxlength="2000"
+            [value]="note()"
+            (input)="note.set($any($event.target).value)"
+          ></textarea>
+        </app-form-field>
       </div>
     </app-confirm-dialog>
     <app-prompt-dialog

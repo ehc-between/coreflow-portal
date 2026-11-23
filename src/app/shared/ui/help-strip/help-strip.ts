@@ -52,7 +52,7 @@ import { SlideOver } from '../slide-over/slide-over';
   selector: 'app-help-strip',
   imports: [TranslocoPipe, Icon, SlideOver, LessonView, WhyItMatters, GuidanceText],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[class]': "inRecordPage ? 'contents' : 'mb-4 block empty:hidden'" },
+  host: { '[class]': "inRecordPage ? 'contents' : 'mb-5 block empty:hidden'" },
   template: `
     @if (visible()) {
       @if (!inRecordPage) {

@@ -327,7 +327,9 @@ describe('EmployeeDetail', () => {
       return buttons[buttons.length - 1];
     };
     expect(confirm().disabled).toBe(true);
-    const end = dialog.querySelector<HTMLInputElement>('[data-testid="start-end-date"]')!;
+    const end = dialog.querySelector<HTMLInputElement>(
+      '[data-testid="start-end-date"] input[type="date"]',
+    )!;
     end.value = '2026-03-31';
     end.dispatchEvent(new Event('change'));
     await render(fixture);
@@ -345,7 +347,9 @@ describe('EmployeeDetail', () => {
     );
     el.querySelector<HTMLElement>('[data-testid="start-offboarding"]')!.click();
     await render(fixture);
-    const end = document.querySelector<HTMLInputElement>('[data-testid="start-end-date"]')!;
+    const end = document.querySelector<HTMLInputElement>(
+      '[data-testid="start-end-date"] input[type="date"]',
+    )!;
     expect(end.value).toBe('2026-04-30');
   });
 

@@ -198,7 +198,9 @@
     "description": "Planlegg gjennomgangen: hva den dekker, perioden og møtet der toppledelsen går gjennom den.",
     "frameworksAdopted": "Bare standardene organisasjonen følger, vises.",
     "meetingIntro": "Gjennomgangen holdes i et møte med toppledelsen. Du kan endre alt dette senere.",
-    "topManagementHint": "Merk hvem som er toppledelse på møtet. De som var merket ved forrige gjennomgang, merkes igjen."
+    "topManagementHint": "Merk hvem som er toppledelse på møtet. De som var merket ved forrige gjennomgang, merkes igjen.",
+    "basicsHeading": "Gjennomgangen",
+    "basicsHint": "Hva gjennomgangen dekker, perioden den ser tilbake på og hvem som eier den."
   },
   "standardAgenda": {
     "previousActions": "Status for tiltak fra tidligere gjennomganger",
@@ -216,7 +218,13 @@
     "agenda": "Agenda",
     "agendaPlaceholder": "Ett agendapunkt per linje",
     "description": "Et møte der beslutninger tas. Legg til hva det gjelder, så blir beslutningene koblet til riktige poster.",
-    "relatedOnPage": "Legg til eller fjern koblede poster i fanen Relatert på møtesiden."
+    "relatedOnPage": "Legg til eller fjern koblede poster i fanen Relatert på møtesiden.",
+    "sections": {
+      "basics": "Møtet",
+      "basicsHint": "Hva møtet handler om, når og hvor det holdes.",
+      "people": "Personer og agenda",
+      "peopleHint": "Hvem som leder møtet, hvem som skriver referat og hvem som er invitert."
+    }
   },
   "detail": {
     "edit": "Rediger",
@@ -985,7 +993,9 @@
     "reminderHint": "Fra {{ days }} dager før fristen vises gjennomgangen på oversikten og i Mitt arbeid.",
     "save": "Lagre innstillingene",
     "invalidInterval": "Velg et intervall på 1 til 36 måneder.",
-    "invalidReminder": "Skriv inn 0 til 180 dager."
+    "invalidReminder": "Skriv inn 0 til 180 dager.",
+    "sectionTitle": "Gjennomgangsrytme",
+    "sectionHint": "Hvor ofte toppledelsen går gjennom styringssystemet, og når CoreFlow minner eieren på det."
   },
   "nextActions": {
     "overdue": {

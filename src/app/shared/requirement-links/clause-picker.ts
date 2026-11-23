@@ -85,7 +85,10 @@ interface Option {
   },
   template: `
     @if (hiddenEmpty()) {
-      <p class="text-meta text-fg-muted" data-testid="clause-picker-hidden">
+      <p
+        class="flex min-h-10 items-center text-meta leading-snug text-fg-subtle"
+        data-testid="clause-picker-hidden"
+      >
         {{ 'ui.showRequirements.pickerHidden' | transloco }}
       </p>
     } @else {

@@ -150,7 +150,10 @@
     "sections": {
       "company": "Virksomhet",
       "relationship": "Kundeforhold",
-      "contact": "Kontaktopplysninger"
+      "contact": "Kontaktopplysninger",
+      "companyHint": "Virksomheten. Skriv org.nr., så hentes resten fra registeret.",
+      "relationshipHint": "Hvor kunden står hos dere, og hvem som følger den opp.",
+      "contactHint": "Hvordan dere når kunden, og hva dere vet om den."
     }
   },
   "list": {

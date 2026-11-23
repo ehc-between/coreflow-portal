@@ -203,7 +203,9 @@ describe('DocumentWorkflowActions', () => {
     readers.value = 'all';
     readers.dispatchEvent(new Event('change'));
     await fixture.whenStable();
-    const readBy = dialog(root).querySelector<HTMLInputElement>('[data-testid="approve-read-by"]')!;
+    const readBy = dialog(root).querySelector<HTMLInputElement>(
+      '[data-testid="approve-read-by"] input[type="date"]',
+    )!;
     readBy.value = '2026-12-31';
     readBy.dispatchEvent(new Event('change'));
     const review = dialog(root).querySelector<HTMLSelectElement>('[data-testid="approve-review"]')!;

@@ -22,9 +22,11 @@ import { FieldHelp } from '../../../shared/guidance/field-help';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
-import { ModuleNav } from '../../../shared/ui/module-nav/module-nav';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { TrainingApi } from '../data/training-api';
 import {
@@ -51,103 +53,104 @@ import { PeoplePicker } from '../shared/people-picker';
     Alert,
     AskAbout,
     Button,
-    Card,
+    DateInput,
+    FormActions,
+    FormField,
+    FormSection,
     FieldHelp,
     FlowBanner,
     HelpStrip,
-    ModuleNav,
     PageHeader,
     PeoplePicker,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="training.assignNew.title"
         descriptionKey="training.assignNew.subtitle"
+        backLink="/training/assignments"
         [breadcrumbs]="[
           { labelKey: 'modules.names.training', link: '/training' },
           { labelKey: 'training.assignments.title', link: '/training/assignments' },
           { labelKey: 'training.assignNew.title' },
         ]"
       />
-      <app-module-nav [items]="access.navItems()" labelKey="training.nav.label" />
-      <app-help-strip scope="training" page="assignNew" />
+      <app-help-strip class="mb-5 block" scope="training" page="assignNew" />
 
-      <form class="max-w-[760px]" (submit)="$event.preventDefault(); submit()" novalidate>
-        <app-flow-banner [flow]="flow()" />
-        <app-card>
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-1.5">
-              <label
-                for="new-assign-course"
-                class="flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-              >
-                {{ 'training.assign.course' | transloco }}
-                <app-field-help scope="training" page="assignNew" field="course" />
-              </label>
-              <select
-                id="new-assign-course"
-                name="course"
-                class="h-10 w-full min-w-0 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                [ngModel]="courseId()"
-                (ngModelChange)="courseId.set($event)"
-                required
-              >
-                <option value="">{{ 'training.assign.pickCourse' | transloco }}</option>
-                @for (c of courses(); track c.id) {
-                  <option [value]="c.id">{{ c.code }} · {{ c.title }}</option>
-                }
-              </select>
-              @if (loaded() && courses().length === 0) {
-                <p class="text-meta text-fg-muted">
-                  {{ 'training.assignNew.noCourses' | transloco }}
-                </p>
-              }
-            </div>
-
-            <app-training-people-picker
-              [legend]="'training.assign.people' | transloco"
-              [selected]="selected()"
-              (selectedChange)="selected.set($event)"
-            />
-
-            <div class="flex flex-col gap-1.5">
-              <label
-                for="new-assign-due"
-                class="flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-              >
-                {{ 'training.assign.dueDate' | transloco }}
-                <app-field-help scope="training" page="assign" field="dueDate" />
-                <app-ask-about field="due_at" [prompt]="'training.ask.dueDate' | transloco" />
-              </label>
-              <input
-                id="new-assign-due"
-                name="due"
-                type="date"
-                class="h-10 max-w-[220px] rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                [ngModel]="dueDate()"
-                (ngModelChange)="dueDate.set($event)"
-              />
-            </div>
-
-            @if (error(); as key) {
-              <app-alert>{{ key | transloco }}</app-alert>
-            }
-            @if (result(); as r) {
-              <app-alert tone="success">
-                {{
-                  'training.assign.done'
-                    | transloco: { created: r.created, skipped: r.skipped.length }
-                }}
-              </app-alert>
-            }
-          </div>
-        </app-card>
-
-        <div
-          class="sticky bottom-0 mt-4 flex justify-end gap-2 border-t border-border bg-bg py-3 sm:static sm:border-0"
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
+        @if (flow()) {
+          <app-flow-banner [flow]="flow()" />
+        }
+        <app-form-section
+          [title]="'training.assignNew.courseSection' | transloco"
+          [description]="'training.assignNew.courseHint' | transloco"
         >
+          <app-form-field
+            span="full"
+            [label]="'training.assign.course' | transloco"
+            inputId="new-assign-course"
+            [required]="true"
+            [hint]="
+              loaded() && courses().length === 0 ? ('training.assignNew.noCourses' | transloco) : ''
+            "
+          >
+            <app-field-help
+              label-suffix
+              scope="training"
+              page="assignNew"
+              field="course"
+              [label]="'training.assign.course' | transloco"
+            />
+            <select
+              id="new-assign-course"
+              name="course"
+              [ngModel]="courseId()"
+              (ngModelChange)="courseId.set($event)"
+              required
+            >
+              <option value="">{{ 'training.assign.pickCourse' | transloco }}</option>
+              @for (c of courses(); track c.id) {
+                <option [value]="c.id">{{ c.code }} · {{ c.title }}</option>
+              }
+            </select>
+          </app-form-field>
+          <app-training-people-picker
+            class="block sm:col-span-2"
+            [legend]="'training.assign.people' | transloco"
+            [selected]="selected()"
+            (selectedChange)="selected.set($event)"
+          />
+          <app-form-field [label]="'training.assign.dueDate' | transloco" inputId="new-assign-due">
+            <app-field-help
+              label-suffix
+              scope="training"
+              page="assign"
+              field="dueDate"
+              [label]="'training.assign.dueDate' | transloco"
+            />
+            <app-ask-about
+              label-suffix
+              field="due_at"
+              [prompt]="'training.ask.dueDate' | transloco"
+            />
+            <app-date-input
+              inputId="new-assign-due"
+              [value]="dueDate()"
+              (changed)="dueDate.set($event)"
+            />
+          </app-form-field>
+        </app-form-section>
+
+        @if (result(); as r) {
+          <app-alert tone="success">
+            {{
+              'training.assign.done' | transloco: { created: r.created, skipped: r.skipped.length }
+            }}
+          </app-alert>
+        }
+
+        <app-form-actions [message]="error() ? (error()! | transloco) : ''">
           <app-button variant="secondary" (click)="router.navigate(['/training/assignments'])">
             {{ 'training.common.cancel' | transloco }}
           </app-button>
@@ -162,7 +165,7 @@ import { PeoplePicker } from '../shared/people-picker';
                 | transloco: { count: selected().size }
             }}
           </app-button>
-        </div>
+        </app-form-actions>
       </form>
     </div>
   `,

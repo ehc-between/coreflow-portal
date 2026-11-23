@@ -89,22 +89,24 @@ export function injectEnvPermissions(): EnvPermissions {
 }
 
 /**
- * One form field: the label with its "?" help right after it (never on a line of
- * its own), an optional required star, the control (projected), an optional
- * always-visible hint and the error line. Controls get the shared input styling.
+ * One form field on the form anatomy (docs/ux-guide.md §2.4): a 24 px label row
+ * (label, "*", "?" help, optional `[label-extra]` ask button), the control (40 px,
+ * shared input styling), then one muted hint line and the error under it.
+ * `span="full"` (or `class="sm:col-span-2"`) takes both columns of an
+ * `app-form-section` grid.
  */
 @Component({
   selector: 'app-env-field',
   imports: [TranslocoPipe, FieldHelp],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block min-w-0', '[class.sm:col-span-2]': "span() === 'full'" },
   styles: [
     `
       :host ::ng-deep input:not([type='checkbox']):not([type='radio']):not([data-bare]),
       :host ::ng-deep select:not([data-bare]),
       :host ::ng-deep textarea {
         width: 100%;
-        min-height: 40px;
+        height: 40px;
         border-radius: 10px;
         border: 1px solid var(--border);
         background: var(--bg);
@@ -115,7 +117,11 @@ export function injectEnvPermissions(): EnvPermissions {
         outline: none;
       }
       :host ::ng-deep textarea {
+        height: auto;
+        min-height: 80px;
         padding: 10px 12px;
+        line-height: 1.5;
+        resize: vertical;
       }
       :host ::ng-deep input:not([data-bare]):focus,
       :host ::ng-deep select:not([data-bare]):focus,
@@ -129,40 +135,54 @@ export function injectEnvPermissions(): EnvPermissions {
     `,
   ],
   template: `
-    <div class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5">
-      @if (legend()) {
-        <span class="text-ui font-semibold text-fg-muted" [id]="inputId() + '-label'">
-          {{ labelKey() | transloco: labelParams() }}
-          @if (required()) {
-            <span class="text-fail" aria-hidden="true">*</span>
-            <span class="sr-only">{{ 'environment.form.required' | transloco }}</span>
-          }
-        </span>
-      } @else {
-        <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
-          {{ labelKey() | transloco: labelParams() }}
-          @if (required()) {
-            <span class="text-fail" aria-hidden="true">*</span>
-            <span class="sr-only">{{ 'environment.form.required' | transloco }}</span>
-          }
-        </label>
+    <div class="flex flex-col gap-1.5">
+      <div class="flex min-h-6 flex-wrap items-center gap-x-1.5 gap-y-1">
+        @if (legend()) {
+          <span class="text-ui leading-6 font-semibold text-fg-muted" [id]="inputId() + '-label'">
+            {{ labelKey() | transloco: labelParams() }}
+            @if (required()) {
+              <span class="text-fail-ink" aria-hidden="true">*</span>
+              <span class="sr-only">{{ 'environment.form.required' | transloco }}</span>
+            }
+          </span>
+        } @else {
+          <label
+            [attr.for]="inputId() || null"
+            class="text-ui leading-6 font-semibold text-fg-muted"
+          >
+            {{ labelKey() | transloco: labelParams() }}
+            @if (required()) {
+              <span class="text-fail-ink" aria-hidden="true">*</span>
+              <span class="sr-only">{{ 'environment.form.required' | transloco }}</span>
+            }
+          </label>
+        }
+        @if (help()) {
+          <app-field-help
+            scope="environment"
+            [page]="page()"
+            [field]="help()!"
+            [label]="labelKey() | transloco: labelParams()"
+          />
+        }
+        <ng-content select="[label-extra]" />
+      </div>
+      <ng-content />
+      @if (hintKey()) {
+        <p class="text-meta leading-snug text-fg-subtle" [id]="inputId() + '-hint'">
+          {{ hintKey()! | transloco: hintParams() }}
+        </p>
       }
-      @if (help()) {
-        <app-field-help scope="environment" [page]="page()" [field]="help()!" />
+      @if (errorKey()) {
+        <p
+          class="text-meta leading-snug font-medium text-fail-ink"
+          role="alert"
+          [id]="inputId() + '-error'"
+        >
+          {{ errorKey()! | transloco }}
+        </p>
       }
-      <span class="ml-auto empty:hidden"><ng-content select="[label-extra]" /></span>
     </div>
-    <ng-content />
-    @if (hintKey()) {
-      <p class="mt-1 text-meta text-fg-muted" [id]="inputId() + '-hint'">
-        {{ hintKey()! | transloco: hintParams() }}
-      </p>
-    }
-    @if (errorKey()) {
-      <p class="mt-1 text-meta font-semibold text-fail" role="alert" [id]="inputId() + '-error'">
-        {{ errorKey()! | transloco }}
-      </p>
-    }
   `,
 })
 export class EnvField {
@@ -178,6 +198,8 @@ export class EnvField {
   readonly required = input(false);
   /** The control is a group (radios, checkboxes, a picker): render the label as text. */
   readonly legend = input(false);
+  /** `full` spans both columns of an `app-form-section` grid. */
+  readonly span = input<'half' | 'full'>('half');
 }
 
 /**

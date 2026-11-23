@@ -14,7 +14,7 @@ import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { GeneratedOutput, Output } from '../../core/outputs/outputs.models';
 import { internalLink } from '../../core/search/internal-link';
 import { LocalDatePipe } from '../locale/locale-pipes';
-import { PRIMARY_LINK, TEXT_LINK } from '../requirement-locations/location-links';
+import { SECONDARY_LINK, TEXT_LINK } from '../requirement-locations/location-links';
 import { Badge } from '../ui/badge/badge';
 import { Button } from '../ui/button/button';
 import { Icon } from '../ui/icon/icon';
@@ -109,13 +109,18 @@ const MAX_CLAUSES = 3;
             <a
               [routerLink]="l.path"
               [queryParams]="l.queryParams"
-              [class]="primaryLink"
+              [class]="actionLink"
               data-testid="output-open-flow"
             >
               {{ 'outputs.actions.openFlow' | transloco }}
             </a>
           } @else {
-            <app-button size="sm" (click)="openDialog()" data-testid="output-make">
+            <app-button
+              variant="secondary"
+              size="sm"
+              (click)="openDialog()"
+              data-testid="output-make"
+            >
               <app-icon name="documents" [size]="14" />
               {{ 'outputs.actions.make' | transloco }}
             </app-button>
@@ -153,7 +158,8 @@ export class OutputCard {
   readonly generated = output<GeneratedOutput>();
 
   protected readonly dialogOpen = signal(false);
-  protected readonly primaryLink = PRIMARY_LINK;
+  /** Card actions are secondary: a list of cards must not show a row of primary buttons. */
+  protected readonly actionLink = SECONDARY_LINK;
   protected readonly textLink = TEXT_LINK;
 
   protected readonly title = computed(() => localized(this.output().title, this.language.active()));

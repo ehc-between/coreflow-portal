@@ -11,6 +11,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import {
   ChangeStepField,
@@ -64,7 +65,7 @@ export function stepPatch(values: Readonly<Record<string, string>>): UpdateChang
  */
 @Component({
   selector: 'app-change-step',
-  imports: [TranslocoPipe, Button, FieldHelp, FormField],
+  imports: [TranslocoPipe, Button, DateInput, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (missing().length) {
@@ -83,11 +84,11 @@ export function stepPatch(values: Readonly<Record<string, string>>): UpdateChang
           <form class="flex flex-col gap-3" (submit)="$event.preventDefault(); save()" novalidate>
             @for (field of missing(); track field) {
               <div>
-                <app-field-help scope="assets" page="changeForm" [field]="field" />
                 <app-form-field
                   [label]="'assets.fields.' + labels[field] | transloco"
                   [inputId]="'step-' + field"
                 >
+                  <app-field-help label-suffix scope="assets" page="changeForm" [field]="field" />
                   @switch (field) {
                     @case ('risk_level') {
                       <select
@@ -120,11 +121,11 @@ export function stepPatch(values: Readonly<Record<string, string>>): UpdateChang
                       </select>
                     }
                     @case ('implemented_at') {
-                      <input
-                        [id]="'step-' + field"
-                        type="date"
+                      <app-date-input
+                        class="block max-w-[240px]"
+                        [inputId]="'step-' + field"
                         [value]="values()[field] ?? ''"
-                        (input)="set(field, $any($event.target).value)"
+                        (valueChange)="set(field, $event ?? '')"
                       />
                     }
                     @default {

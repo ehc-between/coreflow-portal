@@ -63,6 +63,8 @@ import {
 } from '../data/inspection.models';
 import { InspectionsApi } from '../data/inspections-api';
 import { QuestionEditor } from './question-editor';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 
 export interface TemplateForm {
   readonly title: string;
@@ -146,6 +148,8 @@ export function toTemplateFields(
 @Component({
   selector: 'app-template-builder',
   imports: [
+    FormActions,
+    FormSection,
     FormsModule,
     RouterLink,
     TranslocoPipe,
@@ -170,7 +174,7 @@ export function toTemplateFields(
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'inspections.builder.editTitle' : 'inspections.builder.newTitle'"
         [breadcrumbs]="breadcrumbs()"
@@ -222,180 +226,177 @@ export function toTemplateFields(
           (submit)="$event.preventDefault(); save(false)"
           novalidate
         >
-          <app-card>
-            <div class="flex flex-col gap-5">
-              <app-inspection-field
-                labelKey="inspections.fields.title"
-                inputId="tb-title"
-                page="builder"
-                help="title"
+          <app-form-section
+            [title]="'inspections.builder.sections.basics' | transloco"
+            [description]="'inspections.builder.sections.basicsHint' | transloco"
+          >
+            <app-inspection-field
+              span="full"
+              labelKey="inspections.fields.title"
+              inputId="tb-title"
+              [required]="true"
+              page="builder"
+              help="title"
+              [errorKey]="
+                attempted() && !form().title.trim()
+                  ? 'inspections.builder.problems.titleRequired'
+                  : null
+              "
+            >
+              <input
+                id="tb-title"
+                required
+                maxlength="255"
+                [value]="form().title"
+                (input)="set('title', $any($event.target).value)"
+                [attr.aria-invalid]="attempted() && !form().title.trim()"
+                data-testid="template-title-input"
+              />
+            </app-inspection-field>
+            <app-inspection-field
+              span="full"
+              labelKey="inspections.fields.description"
+              inputId="tb-description"
+              [optional]="true"
+            >
+              <textarea
+                id="tb-description"
+                rows="3"
+                maxlength="20000"
+                [value]="form().description"
+                (input)="set('description', $any($event.target).value)"
+              ></textarea>
+            </app-inspection-field>
+            <app-inspection-field labelKey="inspections.fields.category" inputId="tb-category">
+              <select id="tb-category" (change)="set('category', $any($event.target).value)">
+                <option value="" [selected]="!form().category">
+                  {{ 'inspections.builder.noCategory' | transloco }}
+                </option>
+                @if (customCategory(); as custom) {
+                  <option [value]="custom" selected>{{ custom }}</option>
+                }
+                @for (c of categories; track c) {
+                  <option [value]="c" [selected]="c === form().category">
+                    {{ 'inspections.category.' + c | transloco }}
+                  </option>
+                }
+              </select>
+            </app-inspection-field>
+            <app-inspection-field
+              labelKey="inspections.fields.passThreshold"
+              inputId="tb-threshold"
+              page="builder"
+              help="passThreshold"
+              [optional]="true"
+              hintKey="inspections.builder.passThresholdHint"
+            >
+              <input
+                id="tb-threshold"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                inputmode="decimal"
+                [value]="form().passThreshold"
+                [attr.aria-invalid]="thresholdInvalid()"
+                (input)="set('passThreshold', $any($event.target).value)"
+                appTourStep="inspections-builder-threshold"
+              />
+            </app-inspection-field>
+            <fieldset class="min-w-0 sm:col-span-2" aria-describedby="tb-frameworks-hint">
+              <legend
+                class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
               >
-                <input
-                  id="tb-title"
-                  required
-                  maxlength="255"
-                  [value]="form().title"
-                  (input)="set('title', $any($event.target).value)"
-                  [attr.aria-invalid]="attempted() && !form().title.trim()"
-                  data-testid="template-title-input"
-                />
-              </app-inspection-field>
-              @if (attempted() && !form().title.trim()) {
-                <p class="-mt-4 text-meta text-fail" role="alert">
-                  {{ 'inspections.builder.problems.titleRequired' | transloco }}
-                </p>
-              }
-              <app-inspection-field
-                labelKey="inspections.fields.description"
-                inputId="tb-description"
-                [optional]="true"
-              >
-                <textarea
-                  id="tb-description"
-                  rows="3"
-                  maxlength="20000"
-                  [value]="form().description"
-                  (input)="set('description', $any($event.target).value)"
-                ></textarea>
-              </app-inspection-field>
-              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <app-inspection-field labelKey="inspections.fields.category" inputId="tb-category">
-                  <select id="tb-category" (change)="set('category', $any($event.target).value)">
-                    <option value="" [selected]="!form().category">
-                      {{ 'inspections.builder.noCategory' | transloco }}
-                    </option>
-                    @if (customCategory(); as custom) {
-                      <option [value]="custom" selected>{{ custom }}</option>
+                {{ 'inspections.fields.frameworks' | transloco }}
+                <app-field-help scope="inspections" page="builder" field="frameworks" />
+              </legend>
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+                @for (fw of frameworkOptions(); track fw.key) {
+                  <label
+                    class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 py-1.5 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 accent-[var(--accent)]"
+                      [checked]="form().frameworks.includes(fw.key)"
+                      (change)="toggleFramework(fw.key, $any($event.target).checked)"
+                      [attr.data-testid]="'framework-' + fw.key"
+                    />
+                    {{ 'inspections.frameworks.' + fw.key | transloco }}
+                    @if (!fw.enabled) {
+                      <span class="text-meta text-fg-subtle">{{
+                        'inspections.builder.notEnabled' | transloco
+                      }}</span>
                     }
-                    @for (c of categories; track c) {
-                      <option [value]="c" [selected]="c === form().category">
-                        {{ 'inspections.category.' + c | transloco }}
+                  </label>
+                }
+              </div>
+              <p id="tb-frameworks-hint" class="mt-1.5 text-meta leading-snug text-fg-subtle">
+                {{ 'inspections.builder.frameworksHint' | transloco }}
+              </p>
+            </fieldset>
+          </app-form-section>
+
+          <app-form-section
+            [title]="'inspections.builder.followUp' | transloco"
+            [description]="'inspections.builder.findingVsDeviation' | transloco"
+          >
+            <label
+              class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft sm:col-span-2"
+            >
+              <input
+                type="checkbox"
+                class="h-4 w-4 accent-[var(--accent)]"
+                [checked]="form().autoDeviation"
+                (change)="set('autoDeviation', $any($event.target).checked)"
+                data-testid="auto-deviation"
+              />
+              {{ 'inspections.fields.autoDeviation' | transloco }}
+              <app-field-help scope="inspections" page="builder" field="autoDeviation" />
+            </label>
+            @if (form().autoDeviation) {
+              <app-form-field
+                [label]="'inspections.fields.deviationMinSeverity' | transloco"
+                inputId="tb-minsev"
+              >
+                <select
+                  id="tb-minsev"
+                  (change)="set('deviationMinSeverity', $any($event.target).value)"
+                  data-testid="deviation-min-severity"
+                >
+                  @for (s of severities; track s) {
+                    <option [value]="s" [selected]="s === form().deviationMinSeverity">
+                      {{ 'inspections.builder.severityAndUp.' + s | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+              @if (deviationTypes().length > 0) {
+                <app-form-field
+                  [label]="'inspections.fields.deviationType' | transloco"
+                  inputId="tb-devtype"
+                >
+                  <select
+                    id="tb-devtype"
+                    (change)="set('deviationTypeId', $any($event.target).value)"
+                  >
+                    <option value="" [selected]="!form().deviationTypeId">
+                      {{ 'inspections.templates.defaultType' | transloco }}
+                    </option>
+                    @for (t of deviationTypes(); track t.id) {
+                      <option [value]="t.id" [selected]="t.id === form().deviationTypeId">
+                        {{ t.name }}
                       </option>
                     }
                   </select>
-                </app-inspection-field>
-                <div>
-                  <app-inspection-field
-                    labelKey="inspections.fields.passThreshold"
-                    inputId="tb-threshold"
-                    page="builder"
-                    help="passThreshold"
-                    [optional]="true"
-                  >
-                    <input
-                      id="tb-threshold"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="1"
-                      inputmode="decimal"
-                      [value]="form().passThreshold"
-                      [attr.aria-invalid]="thresholdInvalid()"
-                      (input)="set('passThreshold', $any($event.target).value)"
-                      appTourStep="inspections-builder-threshold"
-                    />
-                  </app-inspection-field>
-                  <p class="mt-1 text-meta text-fg-muted">
-                    {{ 'inspections.builder.passThresholdHint' | transloco }}
-                  </p>
-                </div>
-              </div>
-              <fieldset>
-                <legend
-                  class="mb-1.5 flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-                >
-                  {{ 'inspections.fields.frameworks' | transloco }}
-                  <app-field-help scope="inspections" page="builder" field="frameworks" />
-                </legend>
-                <div class="flex flex-wrap gap-x-4 gap-y-2">
-                  @for (fw of frameworkOptions(); track fw.key) {
-                    <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 accent-[var(--accent)]"
-                        [checked]="form().frameworks.includes(fw.key)"
-                        (change)="toggleFramework(fw.key, $any($event.target).checked)"
-                        [attr.data-testid]="'framework-' + fw.key"
-                      />
-                      {{ 'inspections.frameworks.' + fw.key | transloco }}
-                      @if (!fw.enabled) {
-                        <span class="text-meta text-fg-subtle">{{
-                          'inspections.builder.notEnabled' | transloco
-                        }}</span>
-                      }
-                    </label>
-                  }
-                </div>
-                <p class="mt-1 text-meta text-fg-muted">
-                  {{ 'inspections.builder.frameworksHint' | transloco }}
-                </p>
-              </fieldset>
-
-              <fieldset class="rounded-card border border-border p-3.5">
-                <legend class="px-1 text-ui font-semibold text-fg-muted">
-                  {{ 'inspections.builder.followUp' | transloco }}
-                </legend>
-                <p class="mb-3 text-meta text-fg-muted">
-                  {{ 'inspections.builder.findingVsDeviation' | transloco }}
-                </p>
-                <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 accent-[var(--accent)]"
-                    [checked]="form().autoDeviation"
-                    (change)="set('autoDeviation', $any($event.target).checked)"
-                    data-testid="auto-deviation"
-                  />
-                  {{ 'inspections.fields.autoDeviation' | transloco }}
-                  <app-field-help scope="inspections" page="builder" field="autoDeviation" />
-                </label>
-                @if (form().autoDeviation) {
-                  <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <app-form-field
-                      [label]="'inspections.fields.deviationMinSeverity' | transloco"
-                      inputId="tb-minsev"
-                    >
-                      <select
-                        id="tb-minsev"
-                        (change)="set('deviationMinSeverity', $any($event.target).value)"
-                        data-testid="deviation-min-severity"
-                      >
-                        @for (s of severities; track s) {
-                          <option [value]="s" [selected]="s === form().deviationMinSeverity">
-                            {{ 'inspections.builder.severityAndUp.' + s | transloco }}
-                          </option>
-                        }
-                      </select>
-                    </app-form-field>
-                    @if (deviationTypes().length > 0) {
-                      <app-form-field
-                        [label]="'inspections.fields.deviationType' | transloco"
-                        inputId="tb-devtype"
-                      >
-                        <select
-                          id="tb-devtype"
-                          (change)="set('deviationTypeId', $any($event.target).value)"
-                        >
-                          <option value="" [selected]="!form().deviationTypeId">
-                            {{ 'inspections.templates.defaultType' | transloco }}
-                          </option>
-                          @for (t of deviationTypes(); track t.id) {
-                            <option [value]="t.id" [selected]="t.id === form().deviationTypeId">
-                              {{ t.name }}
-                            </option>
-                          }
-                        </select>
-                      </app-form-field>
-                    }
-                  </div>
-                }
-              </fieldset>
-            </div>
-          </app-card>
+                </app-form-field>
+              }
+            }
+          </app-form-section>
 
           <section [attr.aria-label]="'inspections.builder.questionsHeading' | transloco">
-            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 class="flex items-center gap-1.5 text-section font-bold text-fg">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 class="flex items-center gap-1.5 font-display text-card font-bold text-fg">
                 {{ 'inspections.builder.questionsHeading' | transloco }}
                 <app-field-help scope="inspections" page="builder" field="questionType" />
               </h2>
@@ -454,10 +455,11 @@ export function toTemplateFields(
           </section>
 
           @if (original()?.status === 'active') {
-            <app-card>
+            <app-form-section [columns]="1">
               <app-form-field
                 [label]="'inspections.fields.changeReason' | transloco"
                 inputId="tb-reason"
+                [hint]="'inspections.builder.versionNotice' | transloco"
               >
                 <input
                   id="tb-reason"
@@ -466,10 +468,7 @@ export function toTemplateFields(
                   (input)="set('changeReason', $any($event.target).value)"
                 />
               </app-form-field>
-              <p class="mt-1.5 text-meta text-fg-muted">
-                {{ 'inspections.builder.versionNotice' | transloco }}
-              </p>
-            </app-card>
+            </app-form-section>
           }
 
           @if (attempted() && problemCount() > 0) {
@@ -478,9 +477,7 @@ export function toTemplateFields(
             }}</app-alert>
           }
 
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:-mx-8 sm:px-8"
-          >
+          <app-form-actions>
             <a
               [routerLink]="
                 id()
@@ -510,7 +507,7 @@ export function toTemplateFields(
                 {{ 'inspections.builder.savePublish' | transloco }}
               </app-button>
             }
-          </div>
+          </app-form-actions>
         </form>
       }
       <div class="mt-8"><app-why-it-matters scope="inspections" page="builder" /></div>

@@ -19,7 +19,6 @@ import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { EmptyState } from '../../shared/ui/empty-state/empty-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
@@ -39,6 +38,10 @@ import {
 import { PeopleDocumentPicker, PickedDocument } from './ui/document-picker';
 import { PeopleField } from './ui/people-field';
 import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
+import { Icon } from '../../shared/ui/icon/icon';
 
 export interface PositionFormValue {
   readonly title: string;
@@ -120,17 +123,20 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
     AiAssistButton,
     WhyItMatters,
     Button,
-    Card,
     EmptyState,
     HelpStrip,
     LoadingState,
     PageHeader,
     PeopleDocumentPicker,
     PeopleField,
+    DateInput,
+    FormActions,
+    FormSection,
+    Icon,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [title]="
           id()
@@ -157,258 +163,269 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
         }
         @default {
           <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-            <p class="text-meta text-fg-muted">{{ 'people.form.requiredNote' | transloco }}</p>
-            <app-card>
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.positionTitle"
-                    inputId="cf-p-title"
-                    page="positionForm"
-                    [required]="true"
-                  >
-                    <input
-                      id="cf-p-title"
-                      type="text"
-                      maxlength="200"
-                      required
-                      [value]="form().title"
-                      (input)="set('title', $any($event.target).value)"
-                      [attr.aria-invalid]="attempted() && !form().title.trim()"
-                      [attr.aria-describedby]="
-                        attempted() && !form().title.trim() ? 'cf-p-title-err' : null
-                      "
-                      data-testid="position-title"
-                    />
-                  </app-people-field>
-                  @if (attempted() && !form().title.trim()) {
-                    <p id="cf-p-title-err" class="mt-1 text-meta text-fail" role="alert">
-                      {{ 'people.positionForm.titleRequired' | transloco }}
-                    </p>
+            <app-form-section
+              [title]="'people.positionForm.sections.basics' | transloco"
+              [description]="'people.positionForm.sections.basicsHint' | transloco"
+            >
+              <app-people-field
+                span="full"
+                labelKey="people.fields.positionTitle"
+                inputId="cf-p-title"
+                page="positionForm"
+                [required]="true"
+                [error]="
+                  attempted() && !form().title.trim() ? 'people.positionForm.titleRequired' : null
+                "
+              >
+                <input
+                  id="cf-p-title"
+                  type="text"
+                  maxlength="200"
+                  required
+                  [value]="form().title"
+                  (input)="set('title', $any($event.target).value)"
+                  data-testid="position-title"
+                />
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.code"
+                inputId="cf-p-code"
+                page="positionForm"
+                hintKey="people.positionForm.codeHint"
+              >
+                <input
+                  id="cf-p-code"
+                  type="text"
+                  maxlength="32"
+                  [value]="form().code"
+                  (input)="set('code', $any($event.target).value)"
+                />
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.riskLevel"
+                inputId="cf-p-risk"
+                page="positionForm"
+                help="risk_level"
+                hintKey="people.positionForm.riskHint"
+              >
+                <select id="cf-p-risk" (change)="set('risk_level', $any($event.target).value)">
+                  @for (r of risks; track r) {
+                    <option [value]="r" [selected]="form().risk_level === r">
+                      {{ 'people.riskLevels.' + r | transloco }}
+                    </option>
                   }
-                </div>
+                </select>
+              </app-people-field>
+              <app-people-field
+                span="full"
+                labelKey="people.fields.description"
+                inputId="cf-p-desc"
+                page="positionForm"
+              >
+                <textarea
+                  id="cf-p-desc"
+                  rows="2"
+                  maxlength="20000"
+                  [value]="form().description"
+                  (input)="set('description', $any($event.target).value)"
+                ></textarea>
+              </app-people-field>
+              @if (id()) {
                 <app-people-field
-                  labelKey="people.fields.code"
-                  inputId="cf-p-code"
-                  page="positionForm"
-                  hintKey="people.positionForm.codeHint"
-                >
-                  <input
-                    id="cf-p-code"
-                    type="text"
-                    maxlength="32"
-                    [value]="form().code"
-                    (input)="set('code', $any($event.target).value)"
-                  />
-                </app-people-field>
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.description"
-                    inputId="cf-p-desc"
-                    page="positionForm"
-                  >
-                    <textarea
-                      id="cf-p-desc"
-                      rows="2"
-                      maxlength="20000"
-                      [value]="form().description"
-                      (input)="set('description', $any($event.target).value)"
-                    ></textarea>
-                  </app-people-field>
-                </div>
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.responsibilities"
-                    inputId="cf-p-resp"
-                    page="positionForm"
-                    help="responsibilities"
-                  >
-                    <textarea
-                      id="cf-p-resp"
-                      rows="5"
-                      maxlength="20000"
-                      [value]="form().responsibilities"
-                      (input)="set('responsibilities', $any($event.target).value)"
-                      data-testid="position-responsibilities"
-                    ></textarea>
-                  </app-people-field>
-                  <div class="mt-2 flex flex-wrap items-center gap-2">
-                    <app-ai-assist-button
-                      assist="people.draft_responsibilities"
-                      labelKey="people.ai.draftResponsibilities"
-                      [input]="assistInput()"
-                      [disabled]="!form().title.trim()"
-                      (text)="draftText.set($event)"
-                    />
-                  </div>
-                  @if (draftText()) {
-                    <div
-                      class="mt-3 rounded-tile border border-border bg-surface-2 p-3"
-                      role="status"
-                      data-testid="responsibilities-draft"
-                    >
-                      <p class="mb-2 text-meta font-semibold text-fg-subtle">
-                        {{ 'people.ai.draftPreview' | transloco }}
-                      </p>
-                      <p class="text-ui whitespace-pre-line text-fg">{{ draftText() }}</p>
-                      <div class="mt-2 flex gap-2">
-                        <app-button size="sm" (click)="useDraft()">
-                          {{ 'people.ai.useDraft' | transloco }}
-                        </app-button>
-                        <app-button size="sm" variant="ghost" (click)="draftText.set('')">
-                          {{ 'people.ai.discard' | transloco }}
-                        </app-button>
-                      </div>
-                    </div>
-                  }
-                </div>
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.authorities"
-                    inputId="cf-p-auth"
-                    page="positionForm"
-                    help="authorities"
-                  >
-                    <textarea
-                      id="cf-p-auth"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().authorities"
-                      (input)="set('authorities', $any($event.target).value)"
-                    ></textarea>
-                  </app-people-field>
-                </div>
-                <div class="sm:col-span-2">
-                  <app-people-field
-                    labelKey="people.fields.jobDescription"
-                    inputId="cf-p-jd"
-                    page="positionForm"
-                    help="job_description"
-                    hintKey="people.positionForm.jobDescriptionHint"
-                  >
-                    <app-people-document-picker
-                      inputId="cf-p-jd"
-                      [value]="form().job_description"
-                      (valueChange)="set('job_description', $event)"
-                    />
-                  </app-people-field>
-                </div>
-                <app-people-field
-                  labelKey="people.fields.department"
-                  inputId="cf-p-dept"
+                  labelKey="people.fields.status"
+                  inputId="cf-p-status"
                   page="positionForm"
                 >
-                  <select id="cf-p-dept" (change)="set('department_id', $any($event.target).value)">
-                    <option value="" [selected]="!form().department_id">
-                      {{ 'people.form.noDepartment' | transloco }}
-                    </option>
-                    @if (form().department_id && !knownDepartment()) {
-                      <option [value]="form().department_id" selected>
-                        {{ original()?.department?.name ?? '' }}
-                      </option>
-                    }
-                    @for (d of lookups.departments(); track d.id) {
-                      <option [value]="d.id" [selected]="form().department_id === d.id">
-                        {{ d.label }}
+                  <select id="cf-p-status" (change)="set('status', $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="form().status === s">
+                        {{ 'people.recordStatus.' + s | transloco }}
                       </option>
                     }
                   </select>
                 </app-people-field>
-                <app-people-field
-                  labelKey="people.fields.reportsTo"
-                  inputId="cf-p-reports"
-                  page="positionForm"
+              }
+            </app-form-section>
+
+            <app-form-section
+              [title]="'people.positionForm.sections.duties' | transloco"
+              [description]="'people.positionForm.sections.dutiesHint' | transloco"
+              [columns]="1"
+            >
+              <div
+                class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-accent-border bg-accent-soft/50 px-3 py-2.5"
+              >
+                <span
+                  class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-surface text-accent"
+                  aria-hidden="true"
                 >
-                  <select
-                    id="cf-p-reports"
-                    (change)="set('reports_to_id', $any($event.target).value)"
-                  >
-                    <option value="" [selected]="!form().reports_to_id">
-                      {{ 'people.positionForm.noReportsTo' | transloco }}
-                    </option>
-                    @for (p of reportOptions(); track p.id) {
-                      <option [value]="p.id" [selected]="form().reports_to_id === p.id">
-                        {{ p.title }}
-                      </option>
-                    }
-                  </select>
-                </app-people-field>
-                <div>
-                  <app-people-field
-                    labelKey="people.fields.riskLevel"
-                    inputId="cf-p-risk"
-                    page="positionForm"
-                    help="risk_level"
-                    hintKey="people.positionForm.riskHint"
-                  >
-                    <select id="cf-p-risk" (change)="set('risk_level', $any($event.target).value)">
-                      @for (r of risks; track r) {
-                        <option [value]="r" [selected]="form().risk_level === r">
-                          {{ 'people.riskLevels.' + r | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                </div>
-                <app-people-field
-                  labelKey="people.fields.owner"
-                  inputId="cf-p-owner"
-                  page="positionForm"
-                  help="owner_user_id"
-                  hintKey="people.positionForm.ownerHint"
+                  <app-icon name="spark" [size]="14" />
+                </span>
+                <p
+                  class="min-w-0 flex-1 basis-[min(100%,240px)] text-meta leading-snug text-fg-muted"
                 >
-                  <select
-                    id="cf-p-owner"
-                    (change)="set('owner_user_id', $any($event.target).value)"
-                  >
-                    <option value="" [selected]="!form().owner_user_id">
-                      {{ 'people.positionForm.noOwner' | transloco }}
-                    </option>
-                    @if (form().owner_user_id && !knownOwner()) {
-                      <option [value]="form().owner_user_id" selected>
-                        {{ original()?.owner?.name ?? '' }}
-                      </option>
-                    }
-                    @for (u of lookups.users(); track u.id) {
-                      <option [value]="u.id" [selected]="form().owner_user_id === u.id">
-                        {{ u.label }}
-                      </option>
-                    }
-                  </select>
-                </app-people-field>
-                <app-people-field
-                  labelKey="people.fields.nextReviewOn"
-                  inputId="cf-p-next"
-                  page="positionForm"
-                  [hintKey]="id() ? null : 'people.positionForm.nextReviewDefault'"
-                >
-                  <input
-                    id="cf-p-next"
-                    type="date"
-                    [value]="form().next_review_on"
-                    (change)="set('next_review_on', $any($event.target).value)"
-                  />
-                </app-people-field>
-                @if (id()) {
-                  <app-people-field
-                    labelKey="people.fields.status"
-                    inputId="cf-p-status"
-                    page="positionForm"
-                  >
-                    <select id="cf-p-status" (change)="set('status', $any($event.target).value)">
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ 'people.recordStatus.' + s | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-people-field>
-                }
+                  {{
+                    (form().title.trim()
+                      ? 'people.positionForm.draftIntro'
+                      : 'people.positionForm.draftNeedsTitle'
+                    ) | transloco
+                  }}
+                </p>
+                <app-ai-assist-button
+                  assist="people.draft_responsibilities"
+                  labelKey="people.ai.draftResponsibilities"
+                  [input]="assistInput()"
+                  [disabled]="!form().title.trim()"
+                  (text)="draftText.set($event)"
+                />
               </div>
-            </app-card>
+              @if (draftText()) {
+                <div
+                  class="rounded-tile border border-border bg-surface-2 p-3"
+                  role="status"
+                  data-testid="responsibilities-draft"
+                >
+                  <p class="mb-2 text-meta font-semibold text-fg-subtle">
+                    {{ 'people.ai.draftPreview' | transloco }}
+                  </p>
+                  <p class="text-ui whitespace-pre-line text-fg">{{ draftText() }}</p>
+                  <div class="mt-2 flex gap-2">
+                    <app-button size="sm" (click)="useDraft()">
+                      {{ 'people.ai.useDraft' | transloco }}
+                    </app-button>
+                    <app-button size="sm" variant="ghost" (click)="draftText.set('')">
+                      {{ 'people.ai.discard' | transloco }}
+                    </app-button>
+                  </div>
+                </div>
+              }
+              <app-people-field
+                labelKey="people.fields.responsibilities"
+                inputId="cf-p-resp"
+                page="positionForm"
+                help="responsibilities"
+              >
+                <textarea
+                  id="cf-p-resp"
+                  rows="5"
+                  maxlength="20000"
+                  [value]="form().responsibilities"
+                  (input)="set('responsibilities', $any($event.target).value)"
+                  data-testid="position-responsibilities"
+                ></textarea>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.authorities"
+                inputId="cf-p-auth"
+                page="positionForm"
+                help="authorities"
+              >
+                <textarea
+                  id="cf-p-auth"
+                  rows="3"
+                  maxlength="20000"
+                  [value]="form().authorities"
+                  (input)="set('authorities', $any($event.target).value)"
+                ></textarea>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.jobDescription"
+                inputId="cf-p-jd"
+                page="positionForm"
+                help="job_description"
+                hintKey="people.positionForm.jobDescriptionHint"
+              >
+                <app-people-document-picker
+                  inputId="cf-p-jd"
+                  [value]="form().job_description"
+                  (valueChange)="set('job_description', $event)"
+                />
+              </app-people-field>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'people.positionForm.sections.organisation' | transloco"
+              [description]="'people.positionForm.sections.organisationHint' | transloco"
+            >
+              <app-people-field
+                labelKey="people.fields.department"
+                inputId="cf-p-dept"
+                page="positionForm"
+              >
+                <select id="cf-p-dept" (change)="set('department_id', $any($event.target).value)">
+                  <option value="" [selected]="!form().department_id">
+                    {{ 'people.form.noDepartment' | transloco }}
+                  </option>
+                  @if (form().department_id && !knownDepartment()) {
+                    <option [value]="form().department_id" selected>
+                      {{ original()?.department?.name ?? '' }}
+                    </option>
+                  }
+                  @for (d of lookups.departments(); track d.id) {
+                    <option [value]="d.id" [selected]="form().department_id === d.id">
+                      {{ d.label }}
+                    </option>
+                  }
+                </select>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.reportsTo"
+                inputId="cf-p-reports"
+                page="positionForm"
+              >
+                <select
+                  id="cf-p-reports"
+                  (change)="set('reports_to_id', $any($event.target).value)"
+                >
+                  <option value="" [selected]="!form().reports_to_id">
+                    {{ 'people.positionForm.noReportsTo' | transloco }}
+                  </option>
+                  @for (p of reportOptions(); track p.id) {
+                    <option [value]="p.id" [selected]="form().reports_to_id === p.id">
+                      {{ p.title }}
+                    </option>
+                  }
+                </select>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.owner"
+                inputId="cf-p-owner"
+                page="positionForm"
+                help="owner_user_id"
+                hintKey="people.positionForm.ownerHint"
+              >
+                <select id="cf-p-owner" (change)="set('owner_user_id', $any($event.target).value)">
+                  <option value="" [selected]="!form().owner_user_id">
+                    {{ 'people.positionForm.noOwner' | transloco }}
+                  </option>
+                  @if (form().owner_user_id && !knownOwner()) {
+                    <option [value]="form().owner_user_id" selected>
+                      {{ original()?.owner?.name ?? '' }}
+                    </option>
+                  }
+                  @for (u of lookups.users(); track u.id) {
+                    <option [value]="u.id" [selected]="form().owner_user_id === u.id">
+                      {{ u.label }}
+                    </option>
+                  }
+                </select>
+              </app-people-field>
+              <app-people-field
+                labelKey="people.fields.nextReviewOn"
+                inputId="cf-p-next"
+                page="positionForm"
+                [hintKey]="id() ? null : 'people.positionForm.nextReviewDefault'"
+              >
+                <app-date-input
+                  inputId="cf-p-next"
+                  [value]="form().next_review_on"
+                  (valueChange)="set('next_review_on', $event ?? '')"
+                />
+              </app-people-field>
+            </app-form-section>
 
             @if (id()) {
-              <app-card>
+              <app-form-section [columns]="1">
                 <app-people-field
                   labelKey="people.form.changeReason"
                   inputId="cf-p-reason"
@@ -423,17 +440,20 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
                     (input)="changeReason.set($any($event.target).value)"
                   />
                 </app-people-field>
-              </app-card>
-            } @else {
-              <p class="text-meta text-fg-muted">
-                {{ 'people.positionForm.requirementsLater' | transloco }}
-              </p>
+              </app-form-section>
             }
 
-            <div
-              class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+            <app-form-actions
+              [message]="
+                attempted() && !form().title.trim() ? ('people.form.fixErrors' | transloco) : ''
+              "
             >
-              <app-button variant="ghost" (click)="cancel()">
+              @if (!id()) {
+                <p start class="text-meta leading-snug text-fg-muted">
+                  {{ 'people.positionForm.requirementsLater' | transloco }}
+                </p>
+              }
+              <app-button variant="secondary" (click)="cancel()">
                 {{ 'common.cancel' | transloco }}
               </app-button>
               <app-button
@@ -444,7 +464,7 @@ export function toPositionFields(v: PositionFormValue): PositionFields {
               >
                 {{ (id() ? 'common.save' : 'people.positionForm.create') | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           </form>
         }
       }

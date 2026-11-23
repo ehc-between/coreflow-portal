@@ -15,6 +15,7 @@ import { LocalDatePipe } from '../../../shared/locale/locale-pipes';
 import { StatusBadge } from '../../../shared/ui/status-badge/status-badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { RecruitmentApi } from '../data/recruitment-api';
 import { blankToNull } from '../data/recruitment-display';
 import { recruitmentError } from '../data/recruitment-errors';
@@ -43,7 +44,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-application-scorecards',
-  imports: [TranslocoPipe, FieldHelp, LocalDatePipe, StatusBadge, Button, Card],
+  imports: [TranslocoPipe, FieldHelp, LocalDatePipe, StatusBadge, Button, Card, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -66,24 +67,25 @@ let nextId = 0;
       <app-field-help scope="recruitment" page="application" field="scorecards" />
 
       @if (editing()) {
-        <form class="mt-3 flex flex-col gap-3" (submit)="$event.preventDefault(); save(true)">
+        <form class="mt-3 flex flex-col gap-4" (submit)="$event.preventDefault(); save(true)">
           @if (interviews().length > 0 && !mine()) {
-            <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-iv'">
-              {{ 'recruitment.scorecards.interview' | transloco }}
-            </label>
-            <select
-              [id]="uid + '-iv'"
-              class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
-              (change)="interviewId.set($any($event.target).value || null)"
+            <app-form-field
+              [label]="'recruitment.scorecards.interview' | transloco"
+              [inputId]="uid + '-iv'"
             >
-              <option value="">{{ 'recruitment.scorecards.noInterview' | transloco }}</option>
-              @for (iv of interviews(); track iv.id) {
-                <option [value]="iv.id" [selected]="iv.id === interviewId()">
-                  {{ 'recruitment.interviewKind.' + iv.kind | transloco }} ·
-                  {{ iv.scheduled_at | localDate: 'medium' }}
-                </option>
-              }
-            </select>
+              <select
+                [id]="uid + '-iv'"
+                (change)="interviewId.set($any($event.target).value || null)"
+              >
+                <option value="">{{ 'recruitment.scorecards.noInterview' | transloco }}</option>
+                @for (iv of interviews(); track iv.id) {
+                  <option [value]="iv.id" [selected]="iv.id === interviewId()">
+                    {{ 'recruitment.interviewKind.' + iv.kind | transloco }} ·
+                    {{ iv.scheduled_at | localDate: 'medium' }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
           }
           @for (r of ratings(); track r.criterion_id; let i = $index) {
             <fieldset class="rounded-tile border border-border p-3">
@@ -109,7 +111,7 @@ let nextId = 0;
               }}</label>
               <input
                 [id]="uid + '-note-' + i"
-                class="mt-2 h-9 w-full rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
+                class="mt-2 h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                 maxlength="2000"
                 [placeholder]="'recruitment.scorecards.evidence' | transloco"
                 [value]="r.note"
@@ -117,34 +119,37 @@ let nextId = 0;
               />
             </fieldset>
           }
-          <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-rec'">
-            {{ 'recruitment.fields.recommendation' | transloco }}
-          </label>
-          <select
-            [id]="uid + '-rec'"
-            class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg outline-none focus:border-accent"
-            (change)="recommendation.set($any($event.target).value || null)"
+          <app-form-field
+            [label]="'recruitment.fields.recommendation' | transloco"
+            [inputId]="uid + '-rec'"
+            [required]="true"
           >
-            <option value="" [selected]="!recommendation()">
-              {{ 'recruitment.scorecards.chooseRecommendation' | transloco }}
-            </option>
-            @for (rec of recommendations; track rec) {
-              <option [value]="rec" [selected]="rec === recommendation()">
-                {{ 'recruitment.recommendation.' + rec | transloco }}
+            <select
+              [id]="uid + '-rec'"
+              (change)="recommendation.set($any($event.target).value || null)"
+            >
+              <option value="" [selected]="!recommendation()">
+                {{ 'recruitment.scorecards.chooseRecommendation' | transloco }}
               </option>
-            }
-          </select>
-          <label class="text-ui font-semibold text-fg-muted" [attr.for]="uid + '-summary'">
-            {{ 'recruitment.fields.summary' | transloco }}
-          </label>
-          <textarea
-            [id]="uid + '-summary'"
-            rows="3"
-            maxlength="5000"
-            class="rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent"
-            [value]="summary()"
-            (input)="summary.set($any($event.target).value)"
-          ></textarea>
+              @for (rec of recommendations; track rec) {
+                <option [value]="rec" [selected]="rec === recommendation()">
+                  {{ 'recruitment.recommendation.' + rec | transloco }}
+                </option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            [label]="'recruitment.fields.summary' | transloco"
+            [inputId]="uid + '-summary'"
+          >
+            <textarea
+              [id]="uid + '-summary'"
+              rows="3"
+              maxlength="5000"
+              [value]="summary()"
+              (input)="summary.set($any($event.target).value)"
+            ></textarea>
+          </app-form-field>
           <div class="flex flex-wrap justify-end gap-2">
             <app-button size="sm" variant="ghost" (click)="editing.set(false)">
               {{ 'common.cancel' | transloco }}

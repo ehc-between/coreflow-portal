@@ -200,7 +200,10 @@
       "handling": "Handling",
       "about": "What it is about",
       "impact": "How serious it is",
-      "outcome": "Outcome"
+      "outcome": "Outcome",
+      "whatHint": "What the customer told you, in their own words, and how they got in touch.",
+      "handlingHint": "Who follows it up and when the customer should hear from you.",
+      "outcomeHint": "How it was resolved and whether the customer has been told."
     },
     "scoreOption": {
       "1": "1 – Very dissatisfied",
@@ -400,7 +403,11 @@
     "fixProblems": "Fix the highlighted problems before saving.",
     "sections": {
       "basics": "Survey",
-      "questions": "Questions"
+      "questions": "Questions",
+      "basicsHint": "What the survey is called, why you ask and who owns it.",
+      "settings": "Sending and answers",
+      "settingsHint": "When the survey is open, which language it uses and how answers are handled.",
+      "questionsHint": "The questions respondents see, in order. Preview them before you publish."
     },
     "starter": {
       "rating": "Overall, how satisfied are you with us?",

@@ -380,27 +380,28 @@ interface BandTile {
         }
       </select>
       <app-status-legend filters [text]="'feedback.statusPair' | transloco" />
-      <label filters class="sr-only" for="cf-fb-source">
-        {{ 'feedback.filters.source' | transloco }}
-      </label>
-      <select
-        filters
-        id="cf-fb-source"
-        [class]="select"
-        (change)="setSource($any($event.target).value)"
-        data-testid="filter-source"
-      >
-        <option value="" [selected]="!source()">
-          {{ 'feedback.filters.allSources' | transloco }}
-        </option>
-        @for (s of sources; track s) {
-          <option [value]="s" [selected]="source() === s">
-            {{ 'feedback.sources.' + s | transloco }}
-          </option>
-        }
-      </select>
 
       <div more-filters class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="cf-fb-source" class="text-meta font-semibold text-fg-muted">{{
+            'feedback.filters.source' | transloco
+          }}</label>
+          <select
+            id="cf-fb-source"
+            [class]="select"
+            (change)="setSource($any($event.target).value)"
+            data-testid="filter-source"
+          >
+            <option value="" [selected]="!source()">
+              {{ 'feedback.filters.allSources' | transloco }}
+            </option>
+            @for (s of sources; track s) {
+              <option [value]="s" [selected]="source() === s">
+                {{ 'feedback.sources.' + s | transloco }}
+              </option>
+            }
+          </select>
+        </div>
         <div class="flex flex-col gap-1">
           <label for="cf-fb-kind" class="text-meta font-semibold text-fg-muted">{{
             'feedback.filters.kind' | transloco
@@ -922,6 +923,7 @@ export class FeedbackList {
   protected readonly moreActive = computed(
     () =>
       [
+        this.source(),
         this.kind(),
         this.owner(),
         this.channel(),

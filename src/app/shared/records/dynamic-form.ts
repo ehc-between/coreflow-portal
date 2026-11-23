@@ -39,10 +39,10 @@ import {
   viewProviders: [provideSharedScope('records')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-5">
       <ng-container *ngTemplateOutlet="sectionList; context: { $implicit: mainSections() }" />
       <app-more-fields [count]="advancedCount()" [open]="advancedOpen()">
-        <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-5">
           <ng-container
             *ngTemplateOutlet="sectionList; context: { $implicit: advancedSections() }"
           />
@@ -61,7 +61,10 @@ import {
               {{ sectionLabel(section.label) }}
             </legend>
           }
-          <div class="grid grid-cols-1 gap-4" [class.sm:grid-cols-2]="section.columns === 2">
+          <div
+            class="grid grid-cols-1 items-start gap-x-4 gap-y-5"
+            [class.sm:grid-cols-2]="section.columns === 2"
+          >
             @for (field of section.fields; track field.key) {
               @if (visible(field)) {
                 <div [class.sm:col-span-2]="section.columns === 2 && field.width !== 'half'">

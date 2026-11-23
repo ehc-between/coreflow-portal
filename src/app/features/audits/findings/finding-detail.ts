@@ -69,6 +69,7 @@ import { AuditRecordLink, RecordLinkStatus } from '../shared/record-link';
 import { AuditRecordPicker } from '../shared/record-picker';
 import { showSection } from '../shared/show-section';
 import { AuditUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -212,6 +213,7 @@ export function findingMissing(
 @Component({
   selector: 'app-audit-finding-detail',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -603,12 +605,10 @@ export function findingMissing(
                       />
                     </app-audit-field>
                     <app-audit-field inputId="fa-due" labelKey="audits.findingDetail.actionDue">
-                      <input
-                        id="fa-due"
-                        type="date"
-                        [attr.lang]="lang()"
+                      <app-date-input
+                        inputId="fa-due"
                         [value]="actionDue()"
-                        (input)="actionDue.set($any($event.target).value)"
+                        (valueChange)="actionDue.set($event ?? '')"
                       />
                     </app-audit-field>
                     <div class="flex justify-end gap-2 sm:col-span-2">

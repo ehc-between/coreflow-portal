@@ -16,7 +16,8 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { Breadcrumb, PageHeader } from '../../../shared/ui/page-header/page-header';
@@ -41,7 +42,8 @@ import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
     WhyItMatters,
     Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     HelpStrip,
     LoadingState,
     PageHeader,
@@ -49,7 +51,7 @@ import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="
           editId() ? 'recruitment.candidateForm.editTitle' : 'recruitment.candidateForm.newTitle'
@@ -58,7 +60,12 @@ import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
         [backLink]="backLink()"
         backLabelKey="recruitment.common.back"
       />
-      <app-help-strip scope="recruitment" page="candidateForm" lesson="candidate-privacy" />
+      <app-help-strip
+        class="mb-5 block"
+        scope="recruitment"
+        page="candidateForm"
+        lesson="candidate-privacy"
+      />
       @if (loadError(); as key) {
         <app-alert class="mt-4 block">{{ key | transloco }}</app-alert>
       } @else if (editId() && !original()) {
@@ -70,21 +77,18 @@ import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
           }}</app-alert>
         }
         <form class="flex flex-col gap-5" novalidate (submit)="$event.preventDefault(); save()">
-          <p class="text-meta text-fg-muted">{{ 'recruitment.form.requiredNote' | transloco }}</p>
-          <app-card>
+          <app-form-section
+            [title]="'recruitment.candidateForm.section' | transloco"
+            [description]="'recruitment.candidateForm.sectionHint' | transloco"
+          >
             <app-candidate-fields
               [draft]="draft()"
               (draftChange)="draft.set($event)"
               [withConsent]="!editId()"
               [nameError]="nameError()"
             />
-          </app-card>
-          @if (saveError(); as key) {
-            <app-alert>{{ key | transloco }}</app-alert>
-          }
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-          >
+          </app-form-section>
+          <app-form-actions [message]="saveError() ? (saveError()! | transloco) : ''">
             <a [routerLink]="backLink()">
               <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
             </a>
@@ -99,7 +103,7 @@ import { RECRUITMENT_CRUMB } from '../shared/recruitment-nav';
                   | transloco
               }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
         <app-why-it-matters class="mt-8 block" scope="recruitment" page="candidateForm" />
       }

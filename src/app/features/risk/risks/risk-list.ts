@@ -21,7 +21,6 @@ import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { RecordListPage } from '../../../shared/kit/record-list-page';
 import { SavedView } from '../../../shared/kit/saved-views.service';
 import { CoverageChip } from '../../../shared/requirement-links/coverage-chip';
-import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
@@ -159,7 +158,6 @@ export function moreFiltersCount(filters: RiskFilters): number {
     WhyItMatters,
     RecordListPage,
     CoverageChip,
-    Badge,
     Button,
     Card,
     EmptyState,
@@ -374,18 +372,6 @@ export function moreFiltersCount(filters: RiskFilters): number {
                       [color]="rating?.color"
                       [hintKey]="basisHint(r)"
                     />
-                    @switch (appetite(r)) {
-                      @case ('above') {
-                        <app-badge badges tone="fail">{{
-                          'risk.rating.aboveAppetite' | transloco
-                        }}</app-badge>
-                      }
-                      @case ('accepted') {
-                        <app-badge badges tone="neutral">{{
-                          'risk.rating.acceptedAboveAppetite' | transloco
-                        }}</app-badge>
-                      }
-                    }
                   </app-record-row>
                 }
               </div>
@@ -544,6 +530,12 @@ export class RiskListPage {
   /** Register name, plus the open treatments. */
   protected subtitle(r: Risk): string {
     const parts = [r.register.name];
+    const appetite = appetiteState(r);
+    if (appetite === 'above') {
+      parts.push(this.language.translate('risk.rating.aboveAppetite'));
+    } else if (appetite === 'accepted') {
+      parts.push(this.language.translate('risk.rating.acceptedAboveAppetite'));
+    }
     if (r.treatments.open > 0) {
       parts.push(
         this.language.translate('risk.risks.openTreatments', { count: r.treatments.open }),

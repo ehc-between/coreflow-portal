@@ -84,7 +84,7 @@ export type NotificationTab = (typeof NOTIFICATION_TABS)[number];
   viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="activity.page.title"
         descriptionKey="activity.page.subtitle"

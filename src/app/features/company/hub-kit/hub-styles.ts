@@ -11,7 +11,7 @@ export const BTN_SMALL =
 export const LINK =
   'font-semibold text-accent no-underline hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none';
 
-/** Page container of the area pages (docs/ia-v2.md §4.6). */
-export const PAGE = 'mx-auto max-w-[1240px] px-4 pt-7 pb-12 sm:px-6';
+/** Page container of the area pages (docs/ux-guide.md §2: 1180 px, px-4 sm:px-8). */
+export const PAGE = 'mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7';
 
 export const EYEBROW = 'text-meta font-semibold tracking-[.06em] text-fg-subtle uppercase';

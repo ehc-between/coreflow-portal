@@ -34,7 +34,9 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { Icon } from '../../shared/ui/icon/icon';
 import { DocumentAccessEditor } from '../documents/access/document-access-editor';
 import { DocumentEditor } from '../documents/editor/document-editor';
@@ -63,7 +65,9 @@ import { DocumentEditor } from '../documents/editor/document-editor';
     LoadingState,
     Card,
     Button,
+    FormActions,
     FormField,
+    FormSection,
     Icon,
     DocumentEditor,
     DocumentAccessEditor,
@@ -135,34 +139,33 @@ import { DocumentEditor } from '../documents/editor/document-editor';
           </app-card>
         }
 
-        <form class="mt-4 flex flex-col gap-4" [formGroup]="form">
-          <app-card>
-            <div class="flex flex-col gap-4">
-              <div class="grid gap-4 sm:grid-cols-2">
-                <app-form-field inputId="prop-type" [label]="'documents.fields.type' | transloco">
-                  @if (types().length) {
-                    <select id="prop-type" formControlName="type">
-                      @for (t of typeOptions(); track t.key) {
-                        <option [value]="t.key">{{ t.name }}</option>
-                      }
-                    </select>
-                  } @else {
-                    <input id="prop-type" type="text" formControlName="type" autocomplete="off" />
+        <form class="mt-4 flex flex-col gap-5" [formGroup]="form">
+          <app-form-section>
+            <app-form-field inputId="prop-type" [label]="'documents.fields.type' | transloco">
+              @if (types().length) {
+                <select id="prop-type" formControlName="type">
+                  @for (t of typeOptions(); track t.key) {
+                    <option [value]="t.key">{{ t.name }}</option>
                   }
-                </app-form-field>
-                <app-form-field
-                  inputId="prop-code"
-                  [label]="'documents.fields.codeOptional' | transloco"
-                >
-                  <input id="prop-code" type="text" formControlName="doc_code" autocomplete="off" />
-                </app-form-field>
-              </div>
-
-              <app-form-field inputId="prop-title" [label]="'documents.fields.title' | transloco">
-                <input id="prop-title" type="text" formControlName="title" autocomplete="off" />
-              </app-form-field>
-            </div>
-          </app-card>
+                </select>
+              } @else {
+                <input id="prop-type" type="text" formControlName="type" autocomplete="off" />
+              }
+            </app-form-field>
+            <app-form-field
+              inputId="prop-code"
+              [label]="'documents.fields.codeOptional' | transloco"
+            >
+              <input id="prop-code" type="text" formControlName="doc_code" autocomplete="off" />
+            </app-form-field>
+            <app-form-field
+              span="full"
+              inputId="prop-title"
+              [label]="'documents.fields.title' | transloco"
+            >
+              <input id="prop-title" type="text" formControlName="title" autocomplete="off" />
+            </app-form-field>
+          </app-form-section>
 
           <app-document-editor
             [content]="initialHtml()"
@@ -171,32 +174,25 @@ import { DocumentEditor } from '../documents/editor/document-editor';
           />
 
           @if (editable()) {
-            <app-card [padded]="false">
-              <h2
-                class="px-4 pt-3.5 pb-1 font-display text-card font-bold tracking-[-0.02em] text-fg"
-              >
-                {{ 'documents.access.sectionTitle' | transloco }}
-              </h2>
-              <p class="px-4 pb-3 text-meta text-fg-subtle">
-                {{ 'documents.access.sectionHint' | transloco }}
-              </p>
-              <div class="border-t border-border px-4 py-4">
-                <app-document-access-editor
-                  mode="local"
-                  [owner]="owner()"
-                  [visibility]="visibility()"
-                  [grants]="grants()"
-                  (ownerChange)="owner.set($event)"
-                  (visibilityChange)="visibility.set($event)"
-                  (grantsChange)="grants.set($event)"
-                />
-              </div>
-            </app-card>
-
-            <div
-              class="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg py-3"
+            <app-form-section
+              [title]="'documents.access.sectionTitle' | transloco"
+              [description]="'documents.access.sectionHint' | transloco"
+              [columns]="1"
             >
+              <app-document-access-editor
+                mode="local"
+                [owner]="owner()"
+                [visibility]="visibility()"
+                [grants]="grants()"
+                (ownerChange)="owner.set($event)"
+                (visibilityChange)="visibility.set($event)"
+                (grantsChange)="grants.set($event)"
+              />
+            </app-form-section>
+
+            <app-form-actions>
               <app-button
+                start
                 *appHasPermission="'documents:approve'"
                 type="button"
                 variant="ghost"
@@ -228,7 +224,7 @@ import { DocumentEditor } from '../documents/editor/document-editor';
                 <app-icon name="check" [size]="15" />
                 {{ 'review.approveAndPublish' | transloco }}
               </app-button>
-            </div>
+            </app-form-actions>
           }
         </form>
       } @else if (notFound()) {

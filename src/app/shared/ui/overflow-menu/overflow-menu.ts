@@ -74,7 +74,13 @@ export class MenuItem {
       aria-haspopup="menu"
       [attr.aria-expanded]="open()"
       [attr.aria-controls]="menuId"
-      [attr.aria-label]="iconOnly() ? (labelKey() | transloco) : null"
+      [attr.aria-label]="
+        iconOnly()
+          ? (labelKey() | transloco)
+          : leadIcon()
+            ? label() || (labelKey() | transloco)
+            : null
+      "
       [attr.data-testid]="triggerTestId()"
       [class]="triggerClass()"
       (click)="toggle()"
@@ -87,7 +93,8 @@ export class MenuItem {
         <app-icon [name]="icon()" [size]="15" />
       }
       @if (!iconOnly()) {
-        <span>{{ label() || (labelKey() | transloco) }}</span>
+        <!-- cf-action-label: hidden when a crowded record header goes icon-only. -->
+        <span class="cf-action-label">{{ label() || (labelKey() | transloco) }}</span>
       }
       @if (variant() !== 'primary') {
         <app-icon

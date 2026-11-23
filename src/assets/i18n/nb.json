@@ -2898,6 +2898,10 @@
       "placeholder": "dd.mm.åååå",
       "pick": "Velg dato i kalenderen"
     },
+    "dateTimeInput": {
+      "time": "Klokkeslett",
+      "timePlaceholder": "tt:mm"
+    },
     "due": {
       "by": "innen {{ date }}",
       "overdueSince": "forfalt {{ date }}"

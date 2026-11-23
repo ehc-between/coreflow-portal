@@ -28,6 +28,7 @@ import {
   TrainingRecordRow,
 } from '../data/people.models';
 import { PeopleField } from './people-field';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 interface AssessDraft {
   readonly competence_id: string;
@@ -60,7 +61,7 @@ export interface AssessTarget {
  */
 @Component({
   selector: 'app-people-assess-dialog',
-  imports: [TranslocoPipe, LocalDatePipe, ConfirmDialog, PeopleField],
+  imports: [DateInput, TranslocoPipe, LocalDatePipe, ConfirmDialog, PeopleField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-confirm-dialog
@@ -122,7 +123,7 @@ export interface AssessTarget {
               }
             </select>
           </app-people-field>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
             <app-people-field
               labelKey="people.fields.method"
               inputId="cf-assess-method"
@@ -161,11 +162,10 @@ export interface AssessTarget {
               </select>
             </app-people-field>
             <app-people-field labelKey="people.fields.assessedOn" inputId="cf-assess-date">
-              <input
-                id="cf-assess-date"
-                type="date"
+              <app-date-input
+                inputId="cf-assess-date"
                 [value]="draft().assessed_on"
-                (change)="patch({ assessed_on: $any($event.target).value })"
+                (valueChange)="patch({ assessed_on: $event ?? '' })"
               />
             </app-people-field>
             <app-people-field
@@ -173,12 +173,10 @@ export interface AssessTarget {
               inputId="cf-assess-exp"
               hintKey="people.competences.expiryHint"
             >
-              <input
-                id="cf-assess-exp"
-                type="date"
-                aria-describedby="cf-assess-exp-hint"
+              <app-date-input
+                inputId="cf-assess-exp"
                 [value]="draft().expires_on"
-                (change)="patch({ expires_on: $any($event.target).value })"
+                (valueChange)="patch({ expires_on: $event ?? '' })"
               />
             </app-people-field>
           </div>

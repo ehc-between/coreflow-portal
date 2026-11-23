@@ -1,77 +1,63 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { GuidanceService } from '../../../core/guidance/guidance.service';
 import { AskAbout } from '../../../shared/ask/ask-about';
 import { FieldHelp } from '../../../shared/guidance/field-help';
-import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormField, FormFieldSpan } from '../../../shared/ui/form-field/form-field';
 
 /**
- * One recruitment form field: the label (with a required marker), the `?` help and
- * the "ask" icon on the same row as the label (beginners see the help as text under
- * the control instead), the control (projected into `app-form-field` for the shared
- * styling), a short always-visible hint and the error message.
+ * One recruitment form field, rendered through the shared form anatomy
+ * (`app-form-field`, docs/ux-guide.md §2.4): the label on top with the required
+ * marker, the `?` help toggletip and the "ask" icon in the label row, the control,
+ * one muted hint line and the error under it.
  *
  *   <app-recruitment-field labelKey="recruitment.fields.title" inputId="req-title"
  *       page="requisitionForm" help="title" [required]="true" [error]="errors().title">
  *     <input id="req-title" … />
  *   </app-recruitment-field>
+ *
+ * Inside an `app-form-section` grid, `span="full"` takes both columns.
  */
 @Component({
   selector: 'app-recruitment-field',
   imports: [TranslocoPipe, AskAbout, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: {
+    class: 'block min-w-0',
+    '[class.sm:col-span-2]': "span() === 'full'",
+  },
   template: `
-    <div class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5">
-      <label [attr.for]="inputId()" class="text-ui font-semibold text-fg-muted">
-        {{ labelKey() | transloco }}
-        @if (required()) {
-          <span class="text-fail" aria-hidden="true">*</span>
-          <span class="sr-only">{{ 'recruitment.form.required' | transloco }}</span>
-        }
-      </label>
-      @if (help() && !beginner()) {
+    <app-form-field
+      [label]="labelKey() | transloco"
+      [inputId]="inputId()"
+      [required]="required()"
+      [hint]="!error() && hintKey() ? (hintKey()! | transloco: hintParams()) : ''"
+      [error]="error() ? (error()! | transloco) : ''"
+    >
+      @if (help()) {
         <app-field-help
+          label-suffix
           scope="recruitment"
           [page]="page()"
           [field]="help()!"
+          [label]="labelKey() | transloco"
           [requirements]="requirements()"
         />
       }
       @if (ask()) {
         <app-ask-about
+          label-suffix
           [prompt]="ask()"
           [field]="help() ?? inputId()"
           [fieldLabel]="labelKey() | transloco"
           [requirements]="requirements()"
         />
       }
-      <span class="ml-auto"><ng-content select="[label-extra]" /></span>
-    </div>
-    <app-form-field [inputId]="inputId()"><ng-content /></app-form-field>
-    @if (error()) {
-      <p class="mt-1 text-meta text-fail" [id]="inputId() + '-err'" role="alert">
-        {{ error()! | transloco }}
-      </p>
-    } @else if (hintKey()) {
-      <p class="mt-1 text-meta text-fg-muted" [id]="inputId() + '-hint'">
-        {{ hintKey()! | transloco: hintParams() }}
-      </p>
-    }
-    @if (help() && beginner()) {
-      <app-field-help
-        class="mt-1 block"
-        scope="recruitment"
-        [page]="page()"
-        [field]="help()!"
-        [requirements]="requirements()"
-      />
-    }
+      <span label-suffix class="ml-auto empty:hidden"><ng-content select="[label-extra]" /></span>
+      <ng-content />
+    </app-form-field>
   `,
 })
 export class RecruitmentField {
-  private readonly guidance = inject(GuidanceService);
-
   readonly labelKey = input.required<string>();
   readonly inputId = input.required<string>();
   /** Guidance page of the help (`pages.<page>.fields.<help>`). */
@@ -86,6 +72,6 @@ export class RecruitmentField {
   readonly ask = input<string | null>(null);
   /** Canonical refs the field documents (shown in the help, passed to the assistant). */
   readonly requirements = input<readonly string[] | null>(null);
-
-  protected readonly beginner = this.guidance.isBeginner;
+  /** Grid span inside an `app-form-section` (`full` takes both columns). */
+  readonly span = input<FormFieldSpan>('half');
 }

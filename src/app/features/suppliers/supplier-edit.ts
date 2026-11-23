@@ -46,7 +46,7 @@ export function locationsReviewed(
   imports: [TranslocoPipe, Alert, ErrorState, LoadingState, PageHeader, SupplierForm],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       @switch (state()) {
         @case ('loading') {
           <app-loading-state [rows]="6" />
@@ -75,7 +75,7 @@ export function locationsReviewed(
               <app-alert tone="info">{{ 'suppliers.form.readOnly' | transloco }}</app-alert>
             } @else {
               @if (error(); as key) {
-                <div class="mb-4">
+                <div>
                   <app-alert>{{ key | transloco }}</app-alert>
                 </div>
               }

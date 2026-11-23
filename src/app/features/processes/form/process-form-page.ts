@@ -31,8 +31,11 @@ import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { ErrorState } from '../../../shared/ui/error-state/error-state';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
@@ -99,8 +102,11 @@ type TextField =
     FlowBanner,
     Alert,
     Button,
-    Card,
+    DateInput,
     ErrorState,
+    FormActions,
+    FormField,
+    FormSection,
     HelpStrip,
     Icon,
     LoadingState,
@@ -111,7 +117,7 @@ type TextField =
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="id() ? 'processes.form.editTitle' : 'processes.form.newTitle'"
         [breadcrumbs]="breadcrumbs()"
@@ -137,19 +143,19 @@ type TextField =
             [titleOnly]="canDraft() && !form().purpose.trim() && !form().inputs.length"
             (applied)="applySuggestion($event)"
           />
-          <app-card>
-            <h2 class="text-section font-bold text-fg">
-              {{ 'processes.form.sections.basics' | transloco }}
-            </h2>
-            @if (!id()) {
-              <p class="mt-1 text-meta text-fg-muted">
-                {{ 'processes.form.draftHint' | transloco }}
-              </p>
-            }
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_170px]">
+          <app-form-section
+            [title]="'processes.form.sections.basics' | transloco"
+            [description]="
+              (id() ? 'processes.form.sections.basicsHint' : 'processes.form.draftHint') | transloco
+            "
+          >
+            <div
+              class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:col-span-2 sm:grid-cols-[1fr_170px]"
+            >
               <app-process-field
                 labelKey="processes.fields.title"
                 inputId="pf-title"
+                [required]="true"
                 help="title"
                 hintKey="processes.form.hints.title"
               >
@@ -157,7 +163,6 @@ type TextField =
                   id="pf-title"
                   required
                   maxlength="255"
-                  aria-describedby="pf-title-hint"
                   [attr.aria-invalid]="attempted() && !form().title.trim()"
                   [value]="form().title"
                   (input)="set('title', $any($event.target).value)"
@@ -179,91 +184,78 @@ type TextField =
                 />
               </app-process-field>
             </div>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-process-field
-                labelKey="processes.fields.category"
-                inputId="pf-category"
-                help="category"
-                hintKey="processes.form.hints.category"
-              >
-                <select
-                  id="pf-category"
-                  aria-describedby="pf-category-hint"
-                  (change)="setCategory($any($event.target).value)"
-                >
-                  @for (c of categories; track c) {
-                    <option [value]="c" [selected]="c === form().category">
-                      {{ categoryKey(c) | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-process-field>
-              <app-process-field
-                labelKey="processes.fields.owner"
-                inputId="pf-owner"
-                help="owner"
-                hintKey="processes.form.hints.owner"
-              >
-                <select
-                  id="pf-owner"
-                  aria-describedby="pf-owner-hint"
-                  (change)="set('owner_user_id', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!form().owner_user_id">
-                    {{ 'processes.form.noOwner' | transloco }}
-                  </option>
-                  @if (orphanOwner(); as orphan) {
-                    <option [value]="orphan.id" selected>{{ orphan.name }}</option>
-                  }
-                  @for (u of references.users(); track u.id) {
-                    <option [value]="u.id" [selected]="u.id === form().owner_user_id">
-                      {{ u.name }}
-                    </option>
-                  }
-                </select>
-              </app-process-field>
-              <app-process-field
-                labelKey="processes.fields.department"
-                inputId="pf-department"
-                [optional]="true"
-              >
-                <select
-                  id="pf-department"
-                  (change)="set('department_id', $any($event.target).value)"
-                >
-                  <option value="" [selected]="!form().department_id">
-                    {{ 'processes.form.noDepartment' | transloco }}
-                  </option>
-                  @if (orphanDepartment(); as orphan) {
-                    <option [value]="orphan.id" selected>{{ orphan.name }}</option>
-                  }
-                  @for (d of references.departments(); track d.id) {
-                    <option [value]="d.id" [selected]="d.id === form().department_id">
-                      {{ d.name }}
-                    </option>
-                  }
-                </select>
-              </app-process-field>
-              <app-process-field
-                labelKey="processes.fields.parent"
-                inputId="pf-parent"
-                help="parent"
-                [optional]="true"
-              >
-                <select id="pf-parent" (change)="set('parent_id', $any($event.target).value)">
-                  <option value="" [selected]="!form().parent_id">
-                    {{ 'processes.form.noParent' | transloco }}
-                  </option>
-                  @for (p of parentOptions(); track p.id) {
-                    <option [value]="p.id" [selected]="p.id === form().parent_id">
-                      {{ p.code }} · {{ p.title }}
-                    </option>
-                  }
-                </select>
-              </app-process-field>
-            </div>
             <app-process-field
-              class="mt-4"
+              labelKey="processes.fields.category"
+              inputId="pf-category"
+              help="category"
+              hintKey="processes.form.hints.category"
+            >
+              <select id="pf-category" (change)="setCategory($any($event.target).value)">
+                @for (c of categories; track c) {
+                  <option [value]="c" [selected]="c === form().category">
+                    {{ categoryKey(c) | transloco }}
+                  </option>
+                }
+              </select>
+            </app-process-field>
+            <app-process-field
+              labelKey="processes.fields.owner"
+              inputId="pf-owner"
+              help="owner"
+              hintKey="processes.form.hints.owner"
+            >
+              <select id="pf-owner" (change)="set('owner_user_id', $any($event.target).value)">
+                <option value="" [selected]="!form().owner_user_id">
+                  {{ 'processes.form.noOwner' | transloco }}
+                </option>
+                @if (orphanOwner(); as orphan) {
+                  <option [value]="orphan.id" selected>{{ orphan.name }}</option>
+                }
+                @for (u of references.users(); track u.id) {
+                  <option [value]="u.id" [selected]="u.id === form().owner_user_id">
+                    {{ u.name }}
+                  </option>
+                }
+              </select>
+            </app-process-field>
+            <app-process-field
+              labelKey="processes.fields.department"
+              inputId="pf-department"
+              [optional]="true"
+            >
+              <select id="pf-department" (change)="set('department_id', $any($event.target).value)">
+                <option value="" [selected]="!form().department_id">
+                  {{ 'processes.form.noDepartment' | transloco }}
+                </option>
+                @if (orphanDepartment(); as orphan) {
+                  <option [value]="orphan.id" selected>{{ orphan.name }}</option>
+                }
+                @for (d of references.departments(); track d.id) {
+                  <option [value]="d.id" [selected]="d.id === form().department_id">
+                    {{ d.name }}
+                  </option>
+                }
+              </select>
+            </app-process-field>
+            <app-process-field
+              labelKey="processes.fields.parent"
+              inputId="pf-parent"
+              help="parent"
+              [optional]="true"
+            >
+              <select id="pf-parent" (change)="set('parent_id', $any($event.target).value)">
+                <option value="" [selected]="!form().parent_id">
+                  {{ 'processes.form.noParent' | transloco }}
+                </option>
+                @for (p of parentOptions(); track p.id) {
+                  <option [value]="p.id" [selected]="p.id === form().parent_id">
+                    {{ p.code }} · {{ p.title }}
+                  </option>
+                }
+              </select>
+            </app-process-field>
+            <app-process-field
+              span="full"
               labelKey="processes.fields.purpose"
               inputId="pf-purpose"
               help="purpose"
@@ -278,13 +270,12 @@ type TextField =
                 id="pf-purpose"
                 rows="3"
                 maxlength="10000"
-                aria-describedby="pf-purpose-hint"
                 [value]="form().purpose"
                 (input)="set('purpose', $any($event.target).value)"
               ></textarea>
             </app-process-field>
             <app-process-field
-              class="mt-4"
+              span="full"
               labelKey="processes.fields.scope"
               inputId="pf-scope"
               help="scope"
@@ -299,13 +290,12 @@ type TextField =
                 id="pf-scope"
                 rows="2"
                 maxlength="10000"
-                aria-describedby="pf-scope-hint"
                 [value]="form().scope"
                 (input)="set('scope', $any($event.target).value)"
               ></textarea>
             </app-process-field>
-            <fieldset class="mt-4">
-              <legend class="mb-1.5 flex items-center gap-1.5 text-ui font-semibold text-fg-muted">
+            <fieldset class="sm:col-span-2">
+              <legend class="flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted">
                 {{ 'processes.fields.frameworks' | transloco }}
                 <app-field-help
                   scope="processes"
@@ -314,19 +304,21 @@ type TextField =
                   [label]="'processes.fields.frameworks' | transloco"
                 />
               </legend>
-              <div class="flex flex-wrap gap-1.5" data-testid="field-frameworks">
+              <div
+                class="mt-1.5 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                data-testid="field-frameworks"
+              >
                 @for (key of frameworks; track key) {
                   <label
-                    class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-meta font-semibold focus-within:ring-2 focus-within:ring-accent"
+                    class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border px-3 text-ui font-medium focus-within:ring-2 focus-within:ring-accent"
                     [class]="
                       form().frameworks.includes(key)
                         ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-border text-fg-muted hover:text-fg'
+                        : 'border-border text-fg hover:border-border-strong'
                     "
                   >
                     <input
                       type="checkbox"
-                      class="sr-only"
                       [checked]="form().frameworks.includes(key)"
                       (change)="toggleFramework(key, $any($event.target).checked)"
                     />
@@ -334,62 +326,49 @@ type TextField =
                   </label>
                 }
               </div>
-              <p class="mt-1 text-meta text-fg-muted">
+              <p class="mt-1.5 text-meta leading-snug text-fg-subtle">
                 {{ 'processes.form.hints.frameworks' | transloco }}
               </p>
             </fieldset>
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div class="min-w-0 flex-1">
-                <h2 class="text-section font-bold text-fg">
-                  {{ 'processes.turtle.titleLead' | transloco }}
-                  <span class="font-normal text-fg-muted"
-                    >(<app-term key="turtle" scope="processes">{{
-                      'processes.turtle.titleTerm' | transloco
-                    }}</app-term
-                    >)</span
-                  >
-                </h2>
-                <p class="mt-0.5 text-meta text-fg-muted">
-                  {{ 'processes.form.turtleHint' | transloco }}
-                </p>
-              </div>
-            </div>
-            <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-              @for (field of listFields; track field) {
-                <div>
-                  <div class="mb-1.5 flex min-h-6 items-center gap-1.5">
-                    <p class="text-ui font-semibold text-fg-muted">
-                      {{ 'processes.fields.' + field | transloco }}
-                    </p>
-                    <app-field-help
-                      scope="processes"
-                      page="form"
-                      [field]="field"
-                      [label]="'processes.fields.' + field | transloco"
-                    />
-                  </div>
-                  <app-string-list-editor
-                    [name]="field"
-                    [label]="'processes.fields.' + field | transloco"
-                    [items]="form()[field]"
-                    (itemsChange)="setList(field, $event)"
-                  />
-                  <p class="mt-1 text-meta text-fg-muted">
-                    {{ 'processes.form.hints.' + field | transloco }}
-                  </p>
-                </div>
-              }
-            </div>
+          <app-form-section
+            [title]="'processes.turtle.titleLead' | transloco"
+            [description]="'processes.form.turtleHint' | transloco"
+          >
+            <span title-suffix class="font-normal text-fg-muted"
+              >(<app-term key="turtle" scope="processes">{{
+                'processes.turtle.titleTerm' | transloco
+              }}</app-term
+              >)</span
+            >
+            @for (field of listFields; track field) {
+              <app-form-field
+                [label]="'processes.fields.' + field | transloco"
+                [hint]="'processes.form.hints.' + field | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="processes"
+                  page="form"
+                  [field]="field"
+                  [label]="'processes.fields.' + field | transloco"
+                />
+                <app-string-list-editor
+                  [name]="field"
+                  [label]="'processes.fields.' + field | transloco"
+                  [items]="form()[field]"
+                  (itemsChange)="setList(field, $event)"
+                />
+              </app-form-field>
+            }
             @if (id()) {
-              <p class="mt-4 rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted">
+              <p class="rounded-tile bg-surface-2 px-3 py-2 text-meta text-fg-muted sm:col-span-2">
                 {{ 'processes.form.linkOnPage' | transloco }}
               </p>
             }
 
-            <div class="mt-6">
+            <div class="border-t border-border pt-5 sm:col-span-2">
               <div class="mb-1 flex min-h-6 items-center gap-1.5">
                 <h3 class="text-card font-bold text-fg">
                   {{ 'processes.fields.kpis' | transloco }}
@@ -502,57 +481,49 @@ type TextField =
                 }
               </div>
               @if (form().kpis.length < 50) {
-                <app-button class="mt-2" variant="secondary" size="sm" (click)="addKpi()">
+                <app-button class="mt-3" variant="secondary" size="sm" (click)="addKpi()">
                   <app-icon name="plus" [size]="14" />
                   {{ 'processes.kpi.add' | transloco }}
                 </app-button>
               }
             </div>
-          </app-card>
+          </app-form-section>
 
-          <app-card>
-            <h2 class="text-section font-bold text-fg">
-              {{ 'processes.form.sections.review' | transloco }}
-            </h2>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <app-process-field
-                labelKey="processes.fields.reviewInterval"
-                inputId="pf-interval"
-                help="reviewInterval"
-              >
-                <input
-                  id="pf-interval"
-                  type="number"
-                  min="1"
-                  max="60"
-                  step="1"
-                  aria-describedby="pf-review-hint"
-                  [value]="form().review_interval_months"
-                  (input)="set('review_interval_months', $any($event.target).value)"
-                />
-              </app-process-field>
-              <app-process-field
-                labelKey="processes.fields.nextReview"
+          <app-form-section
+            [title]="'processes.form.sections.review' | transloco"
+            [description]="'processes.form.hints.review' | transloco"
+          >
+            <app-process-field
+              labelKey="processes.fields.reviewInterval"
+              inputId="pf-interval"
+              help="reviewInterval"
+            >
+              <input
+                id="pf-interval"
+                type="number"
+                min="1"
+                max="60"
+                step="1"
+                [value]="form().review_interval_months"
+                (input)="set('review_interval_months', $any($event.target).value)"
+              />
+            </app-process-field>
+            <app-process-field
+              labelKey="processes.fields.nextReview"
+              inputId="pf-next-review"
+              help="nextReview"
+              [optional]="true"
+            >
+              <app-date-input
                 inputId="pf-next-review"
-                help="nextReview"
-                [optional]="true"
-              >
-                <input
-                  id="pf-next-review"
-                  type="date"
-                  [attr.lang]="language.active()"
-                  aria-describedby="pf-review-hint"
-                  [value]="form().next_review_at"
-                  (input)="set('next_review_at', $any($event.target).value)"
-                />
-              </app-process-field>
-            </div>
-            <p id="pf-review-hint" class="mt-1.5 text-meta text-fg-muted">
-              {{ 'processes.form.hints.review' | transloco }}
-            </p>
-            @if (id()) {
+                [value]="form().next_review_at"
+                (valueChange)="set('next_review_at', $event ?? '')"
+              />
+            </app-process-field>
+          </app-form-section>
+          @if (id()) {
+            <app-form-section [columns]="1">
               <app-process-field
-                class="mt-4"
                 labelKey="processes.fields.changeReason"
                 inputId="pf-reason"
                 help="changeReason"
@@ -565,8 +536,8 @@ type TextField =
                   (input)="changeReason.set($any($event.target).value)"
                 />
               </app-process-field>
-            }
-          </app-card>
+            </app-form-section>
+          }
 
           @if (problems().length > 0 && attempted()) {
             <app-alert tone="error">
@@ -579,8 +550,10 @@ type TextField =
             </app-alert>
           }
 
-          <div
-            class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
+          <app-form-actions
+            [message]="
+              attempted() && problems().length ? ('processes.form.errors.intro' | transloco) : ''
+            "
           >
             <a [routerLink]="id() ? ['/processes', id()] : ['/processes']">
               <app-button variant="secondary">{{ 'common.cancel' | transloco }}</app-button>
@@ -593,7 +566,7 @@ type TextField =
             >
               {{ (id() ? 'processes.form.save' : 'processes.form.create') | transloco }}
             </app-button>
-          </div>
+          </app-form-actions>
         </form>
         <app-why-it-matters class="mt-8 block" scope="processes" page="form" />
       }

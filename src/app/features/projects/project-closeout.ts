@@ -144,7 +144,7 @@ export function closeChecklist(
         }
 
         <fieldset>
-          <legend class="mb-2 text-ui font-semibold text-fg-muted">
+          <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
             {{ 'projects.closeout.outcome' | transloco }}
           </legend>
           <div class="flex flex-col gap-2">
@@ -180,15 +180,20 @@ export function closeChecklist(
         @if (outcome() === 'completed') {
           <fieldset data-testid="closeout-objective-met">
             <legend
-              class="mb-2 flex flex-wrap items-center gap-1.5 text-ui font-semibold text-fg-muted"
+              class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5 text-ui font-semibold text-fg-muted"
             >
               {{ 'projects.closeout.objectiveQuestion' | transloco }}
-              <app-field-help scope="projects" page="closeout" field="objective_met" />
+              <app-field-help
+                scope="projects"
+                page="closeout"
+                field="objective_met"
+                [label]="'projects.closeout.objectiveQuestion' | transloco"
+              />
             </legend>
-            <div class="flex flex-wrap gap-2">
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
               @for (m of metValues; track m) {
                 <label
-                  class="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-tile border border-border px-3 text-body"
+                  class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border px-3 text-body"
                   [class.border-accent]="met() === m"
                 >
                   <input
@@ -225,6 +230,7 @@ export function closeChecklist(
             <app-form-field
               [label]="'projects.fields.closeoutApprovedBy' | transloco"
               inputId="cf-close-approver"
+              [hint]="'projects.closeout.approverHint' | transloco"
             >
               <select
                 id="cf-close-approver"
@@ -239,22 +245,25 @@ export function closeChecklist(
                 }
               </select>
             </app-form-field>
-            <p class="mt-1 text-meta text-fg-subtle">
-              {{ 'projects.closeout.approverHint' | transloco }}
-            </p>
           </div>
 
           <div>
-            <div class="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <label for="cf-close-summary" class="text-ui font-semibold text-fg-muted">{{
+            <app-form-field
+              [label]="
                 (outcome() === 'completed'
                   ? 'projects.closeout.summaryRequired'
                   : 'projects.closeout.summary'
                 ) | transloco
-              }}</label>
-              <app-field-help scope="projects" page="closeout" field="summary" />
-            </div>
-            <app-form-field inputId="cf-close-summary">
+              "
+              inputId="cf-close-summary"
+            >
+              <app-field-help
+                label-suffix
+                scope="projects"
+                page="closeout"
+                field="summary"
+                [label]="'projects.closeout.summary' | transloco"
+              />
               <textarea
                 id="cf-close-summary"
                 rows="5"

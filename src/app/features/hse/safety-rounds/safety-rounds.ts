@@ -54,6 +54,7 @@ import {
   HseField,
   injectHsePermissions,
 } from '../shared/hse-shared';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const PAGE_SIZE = 25;
 type RoundFilter = 'open' | 'all';
@@ -137,6 +138,7 @@ export function findingsKey(walk: SafetyWalk): { key: string; params: Record<str
     TeachingEmpty,
     WhyItMatters,
     HseField,
+    DateInput,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -373,7 +375,7 @@ export function findingsKey(walk: SafetyWalk): { key: string; params: Record<str
           </select>
         </app-hse-field>
         <fieldset>
-          <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
+          <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
             {{ 'hse.rounds.fields.schedule' | transloco }}
           </legend>
           <div class="flex flex-wrap gap-4">
@@ -395,22 +397,20 @@ export function findingsKey(walk: SafetyWalk): { key: string; params: Record<str
         </fieldset>
         @if (schedule() === 'once') {
           <app-hse-field labelKey="hse.rounds.fields.due" inputId="round-due">
-            <input
-              id="round-due"
-              type="date"
+            <app-date-input
+              inputId="round-due"
               [value]="dueDay()"
-              (input)="dueDay.set($any($event.target).value)"
+              (valueChange)="dueDay.set($event ?? '')"
             />
           </app-hse-field>
         } @else {
           <app-recurrence-picker [(rrule)]="rrule" />
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <app-hse-field labelKey="hse.rounds.fields.start" inputId="round-start">
-              <input
-                id="round-start"
-                type="date"
+              <app-date-input
+                inputId="round-start"
                 [value]="startDay()"
-                (input)="startDay.set($any($event.target).value)"
+                (valueChange)="startDay.set($event ?? '')"
               />
             </app-hse-field>
             <app-hse-field

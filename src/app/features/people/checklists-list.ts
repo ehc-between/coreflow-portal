@@ -155,7 +155,7 @@ const PAGE_SIZE = 25;
                     </app-record-row>
                   }
                 </div>
-                <div class="border-t border-border px-4 py-2.5">
+                <div class="border-t border-border px-4 pb-3" [class.hidden]="total() <= pageSize">
                   <app-pager
                     [offset]="offset()"
                     [pageSize]="pageSize"

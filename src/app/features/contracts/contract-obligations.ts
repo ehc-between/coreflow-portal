@@ -38,6 +38,7 @@ import { ContractsApi } from './data/contracts-api';
 import { ObligationCreate } from './data/contract.models';
 import { provideSharedScope } from '../../core/i18n/shared-scope';
 import { contractErrorKey } from './data/contract-errors';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 /**
  * Contract obligations: platform tasks of kind `contract_obligation` on the
@@ -48,6 +49,7 @@ import { contractErrorKey } from './data/contract-errors';
 @Component({
   selector: 'app-contract-obligations',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -154,11 +156,10 @@ import { contractErrorKey } from './data/contract-errors';
             "
             inputId="cf-ob-due"
           >
-            <input
-              id="cf-ob-due"
-              type="date"
+            <app-date-input
+              inputId="cf-ob-due"
               [value]="dueDay()"
-              (change)="dueDay.set($any($event.target).value)"
+              (valueChange)="dueDay.set($event ?? '')"
             />
           </app-form-field>
           <label class="flex items-center gap-2 self-end pb-2 text-ui text-fg">

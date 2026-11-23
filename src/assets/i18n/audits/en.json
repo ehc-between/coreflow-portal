@@ -339,7 +339,19 @@
     "searchDocuments": "Search for a procedure or policy",
     "noPeople": "No people found in this organisation.",
     "fixTitle": "Could not save. Fill in the title.",
-    "fixDates": "Could not save. The end date must be on or after the start date."
+    "fixDates": "Could not save. The end date must be on or after the start date.",
+    "sections": {
+      "basics": "The audit",
+      "basicsHint": "What kind of audit it is, who owns it and what it covers.",
+      "coverage": "What is audited",
+      "coverageHint": "The processes and departments the audit looks at.",
+      "criteria": "Criteria",
+      "criteriaHint": "What the audit checks against: standards, requirements, procedures and goals.",
+      "when": "Time and place",
+      "whenHint": "When and where the audit takes place.",
+      "people": "People",
+      "peopleHint": "Who is interviewed and who receives the report."
+    }
   },
   "planDetail": {
     "about": "About this audit",
@@ -521,7 +533,13 @@
     "riskHint": "Name the processes, risks and earlier findings that decide what is audited more often.",
     "quarter": "Q{{ q }}",
     "proposedAudits": "Proposed audits:",
-    "fix": "Could not save. Fill in the title and a year between 2000 and 2100."
+    "fix": "Could not save. Fill in the title and a year between 2000 and 2100.",
+    "sections": {
+      "basics": "The programme",
+      "basicsHint": "Name, year, owner and a short description.",
+      "basis": "Basis",
+      "basisHint": "The standards it covers, its goals and the risk assessment behind the plan."
+    }
   },
   "findings": {
     "title": "What audits found (findings)",
@@ -545,7 +563,13 @@
     "fixTitle": "Could not save. Fill in the title.",
     "inAudit": "In the audit {{ audit }}",
     "askEvidence": "What counts as good objective evidence for this finding?",
-    "clauseHint": "The requirement that is not met. It is marked as a weak spot on the requirement in Standards."
+    "clauseHint": "The requirement that is not met. It is marked as a weak spot on the requirement in Standards.",
+    "sections": {
+      "finding": "The finding",
+      "findingHint": "What kind of finding it is, what was found and the evidence for it.",
+      "followUp": "Follow-up",
+      "followUpHint": "Who responds, by when, and the department it concerns."
+    }
   },
   "findingDetail": {
     "askAbout": "Explain finding {{ code }} and what a good response would look like.",
@@ -648,7 +672,13 @@
     "editTitle": "Edit certification",
     "supplier": "Certification body from Suppliers",
     "searchSupplier": "Search for a supplier",
-    "fix": "Could not save. Choose the certification body or type its name."
+    "fix": "Could not save. Choose the certification body or type its name.",
+    "sections": {
+      "basics": "The certificate",
+      "basicsHint": "Which standard, who issued it, what it covers and who follows it up.",
+      "dates": "Dates",
+      "datesHint": "When it was issued, when it expires and the next surveillance audit."
+    }
   },
   "auditors": {
     "title": "Auditor register",

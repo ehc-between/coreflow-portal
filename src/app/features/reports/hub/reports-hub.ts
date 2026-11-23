@@ -91,8 +91,8 @@ const FILES_LIMIT = 100;
   viewProviders: [provideSharedScope('reports', 'outputs')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1240px] px-4 py-7 sm:px-6" data-testid="reports-hub">
-      <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7" data-testid="reports-hub">
+      <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div class="min-w-0 flex-1 basis-[min(100%,420px)]">
           @if (recipient(); as r) {
             <a
@@ -115,7 +115,7 @@ const FILES_LIMIT = 100;
           <a
             routerLink="/standards"
             [class]="secondaryLink"
-            class="h-9"
+            class="mt-1 h-9"
             data-testid="reports-hub-standards"
           >
             {{ 'reports.hub.standards' | transloco }}

@@ -339,7 +339,13 @@
     "directionMin": "at least the threshold",
     "directionMax": "at most the threshold",
     "unit": "Unit (optional)",
-    "changeReasonHint": "Saved with the change history."
+    "changeReasonHint": "Saved with the change history.",
+    "sectionHints": {
+      "what": "What the system does and what it is used for.",
+      "source": "Who supplies it and which data it works with.",
+      "people": "Who owns it, who oversees it and when it is reviewed."
+    },
+    "fixFields": "Correct the marked fields."
   },
   "systemDetail": {
     "about": "About this system",
@@ -550,7 +556,11 @@
     "created": "{{ code }} created. Write the sections next.",
     "friaNotRequired": "(not required for this system)",
     "whatIsFria": "What is a FRIA?",
-    "nextReviewHint": "Leave empty to use the review interval from the settings."
+    "nextReviewHint": "Leave empty to use the review interval from the settings.",
+    "sections": {
+      "what": "Assessment",
+      "whatHint": "Which system you assess, what kind of assessment and who writes it."
+    }
   },
   "assessmentEdit": {
     "title": "Edit {{ code }}",
@@ -562,7 +572,9 @@
     "nothingDrafted": "Nothing to fill in: every section already has text.",
     "saved": "Assessment saved.",
     "draftedOne": "1 empty part has a draft. Review and edit it before you save.",
-    "inWizard": "Classifications are changed in the classification wizard, step by step."
+    "inWizard": "Classifications are changed in the classification wizard, step by step.",
+    "basics": "About the assessment",
+    "fillRequired": "Fill in this part before you submit."
   },
   "assessmentDetail": {
     "complete": "Complete",
@@ -932,6 +944,12 @@
         "label": "People who work with AI systems",
         "hint": "Owners and overseers of AI systems in use (Art. 4 covers staff who operate or use AI)."
       }
+    },
+    "sections": {
+      "policy": "AI policy",
+      "policyHint": "The document that sets your rules for using AI.",
+      "people": "Responsibility and training",
+      "peopleHint": "Who follows up AI governance, who needs training and how often things are reviewed."
     }
   },
   "ai": {

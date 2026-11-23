@@ -16,7 +16,7 @@ import { OrgMfaSettings } from '../mfa-settings/org-mfa-settings';
   imports: [PageHeader, OrgDocumentSettings, OrgMfaSettings, OrgAttachmentSettings],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[960px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="settings.security.title"
         descriptionKey="settings.security.description"

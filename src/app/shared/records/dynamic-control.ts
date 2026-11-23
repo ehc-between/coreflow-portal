@@ -26,10 +26,13 @@ let nextId = 0;
     @let f = field();
     <div class="flex flex-col gap-1.5" [attr.data-field]="f.key">
       @if (f.type !== 'checkbox') {
-        <label [attr.for]="controlId" class="text-[13px] font-semibold text-fg-muted">
+        <label
+          [attr.for]="controlId"
+          class="block min-h-6 text-ui leading-6 font-semibold text-fg-muted"
+        >
           {{ label() }}
           @if (f.required) {
-            <span class="text-fail" aria-hidden="true">*</span>
+            <span class="text-fail-ink" aria-hidden="true">*</span>
             <span class="sr-only">{{ 'records.form.required' | transloco }}</span>
           }
         </label>
@@ -50,7 +53,7 @@ let nextId = 0;
           />
         </div>
         @if (f.type === 'calculated' && !readonly()) {
-          <p class="text-[12px] text-fg-subtle">
+          <p class="text-meta leading-snug text-fg-subtle">
             {{ 'records.form.calculatedHint' | transloco: { formula: f.formula ?? '' } }}
           </p>
         }
@@ -246,10 +249,10 @@ let nextId = 0;
       }
 
       @if (help()) {
-        <p [id]="helpId" class="text-[12px] text-fg-subtle">{{ help() }}</p>
+        <p [id]="helpId" class="text-meta leading-snug text-fg-subtle">{{ help() }}</p>
       }
       @if (error()) {
-        <p [id]="errorId" class="text-[12px] font-medium text-fail">
+        <p [id]="errorId" class="text-meta leading-snug font-medium text-fail-ink">
           {{ errorKey() | transloco }}
         </p>
       }

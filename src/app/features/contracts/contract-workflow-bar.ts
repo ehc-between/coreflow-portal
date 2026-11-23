@@ -22,6 +22,8 @@ import {
   ReviewAnswer,
 } from './data/contract.models';
 import { actionVariant, addMonthsIso, reviewItemKey, todayIso } from './data/contract-display';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 export interface WorkflowRun {
   readonly action: ContractAction;
@@ -87,7 +89,7 @@ export function reviewState(
  */
 @Component({
   selector: 'app-contract-workflow-bar',
-  imports: [TranslocoPipe, Button, ConfirmDialog, MenuItem, OverflowMenu],
+  imports: [TranslocoPipe, Button, ConfirmDialog, DateInput, FormField, MenuItem, OverflowMenu],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (forward().length || side().length || exits().length) {
@@ -194,34 +196,36 @@ export function reviewState(
             }
           }
           @if (inputs()?.date; as kind) {
-            <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
-              {{ 'contracts.actionDialog.' + kind | transloco }}
-              <input
-                type="date"
-                class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+            <app-form-field
+              [label]="'contracts.actionDialog.' + kind | transloco"
+              inputId="cf-action-date"
+            >
+              <app-date-input
+                inputId="cf-action-date"
                 [value]="date()"
-                (change)="date.set($any($event.target).value)"
+                (valueChange)="date.set($event ?? '')"
                 data-testid="action-date"
               />
-            </label>
+            </app-form-field>
           }
-          <label class="flex flex-col gap-1 text-ui font-semibold text-fg-muted">
-            {{
+          <app-form-field
+            [label]="
               (inputs()?.note === 'required'
                 ? 'contracts.actionDialog.noteRequired'
                 : 'contracts.actionDialog.note'
               ) | transloco
-            }}
+            "
+            inputId="cf-action-note"
+          >
             <textarea
               id="cf-action-note"
               rows="3"
               maxlength="2000"
-              class="rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
               [value]="note()"
               (input)="note.set($any($event.target).value)"
               data-testid="action-note"
             ></textarea>
-          </label>
+          </app-form-field>
         </div>
       }
     </app-confirm-dialog>

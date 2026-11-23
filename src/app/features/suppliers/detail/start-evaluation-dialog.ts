@@ -30,6 +30,7 @@ import {
 } from '../data/supplier.models';
 import { SuppliersApi } from '../data/suppliers-api';
 import { SupplierUserSelect } from '../shared/people-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /** The questionnaire language for the active UI language (the backend has en and nb). */
 export function questionnaireLang(active: string): 'en' | 'nb' {
@@ -78,7 +79,16 @@ export function offeredKinds(
  */
 @Component({
   selector: 'app-start-evaluation-dialog',
-  imports: [TranslocoPipe, Alert, Button, FieldHelp, FormField, SlideOver, SupplierUserSelect],
+  imports: [
+    DateInput,
+    TranslocoPipe,
+    Alert,
+    Button,
+    FieldHelp,
+    FormField,
+    SlideOver,
+    SupplierUserSelect,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-slide-over
@@ -88,46 +98,52 @@ export function offeredKinds(
       [closeLabel]="'common.cancel' | transloco"
       (closed)="closed.emit()"
     >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); create()">
-        <div>
-          <app-form-field [label]="'suppliers.evaluations.kind' | transloco" inputId="ev-kind">
-            <app-field-help label-suffix scope="suppliers" page="evaluation" field="kind" />
-            <select id="ev-kind" (change)="setKind($any($event.target).value)">
-              @for (k of kinds(); track k) {
-                <option [value]="k" [selected]="kind() === k">
-                  {{
-                    (isRecommended(k)
-                      ? 'suppliers.evaluations.kindRecommended'
-                      : 'suppliers.evaluationKind.' + k
-                    ) | transloco: { kind: ('suppliers.evaluationKind.' + k | transloco) }
-                  }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          @if (reasonOf(kind()); as reason) {
-            <p class="mt-1 text-meta text-fg-muted" data-testid="kind-reason">
-              {{ 'suppliers.required.why.' + reason | transloco }}
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); create()">
+        <app-form-field [label]="'suppliers.evaluations.kind' | transloco" inputId="ev-kind">
+          <app-field-help
+            label-suffix
+            scope="suppliers"
+            page="evaluation"
+            field="kind"
+            [label]="'suppliers.evaluations.kind' | transloco"
+          />
+          <select id="ev-kind" (change)="setKind($any($event.target).value)">
+            @for (k of kinds(); track k) {
+              <option [value]="k" [selected]="kind() === k">
+                {{
+                  (isRecommended(k)
+                    ? 'suppliers.evaluations.kindRecommended'
+                    : 'suppliers.evaluationKind.' + k
+                  ) | transloco: { kind: ('suppliers.evaluationKind.' + k | transloco) }
+                }}
+              </option>
+            }
+          </select>
+          <div hint class="flex flex-col items-start gap-1 text-meta leading-snug">
+            @if (reasonOf(kind()); as reason) {
+              <p class="text-fg-muted" data-testid="kind-reason">
+                {{ 'suppliers.required.why.' + reason | transloco }}
+              </p>
+            }
+            <p class="text-fg-subtle">
+              {{
+                (affectsStatus()
+                  ? 'suppliers.evaluations.kindSetsStatus'
+                  : 'suppliers.evaluations.kindRecordsOnly'
+                ) | transloco
+              }}
             </p>
-          }
-          <p class="mt-1 text-meta text-fg-subtle">
-            {{
-              (affectsStatus()
-                ? 'suppliers.evaluations.kindSetsStatus'
-                : 'suppliers.evaluations.kindRecordsOnly'
-              ) | transloco
-            }}
-          </p>
-          @if (!showAll() && hiddenKinds() > 0) {
-            <button
-              type="button"
-              class="mt-1 text-meta font-semibold text-accent hover:underline"
-              (click)="showAll.set(true)"
-            >
-              {{ 'suppliers.evaluations.showAllKinds' | transloco }}
-            </button>
-          }
-        </div>
+            @if (!showAll() && hiddenKinds() > 0) {
+              <button
+                type="button"
+                class="font-semibold text-accent hover:underline"
+                (click)="showAll.set(true)"
+              >
+                {{ 'suppliers.evaluations.showAllKinds' | transloco }}
+              </button>
+            }
+          </div>
+        </app-form-field>
         <app-form-field
           [label]="'suppliers.evaluations.questionnaire' | transloco"
           inputId="ev-template"
@@ -164,12 +180,10 @@ export function offeredKinds(
           />
         </app-form-field>
         <app-form-field [label]="'suppliers.evaluations.dueAt' | transloco" inputId="ev-due">
-          <input
-            id="ev-due"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="ev-due"
             [value]="dueDay()"
-            (input)="dueDay.set($any($event.target).value)"
+            (valueChange)="dueDay.set($event ?? '')"
           />
         </app-form-field>
         @if (formError(); as key) {

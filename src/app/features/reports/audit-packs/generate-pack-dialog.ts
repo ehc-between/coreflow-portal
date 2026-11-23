@@ -23,6 +23,7 @@ import { FlowBanner } from '../../../shared/kit/flow-banner';
 import { frameworkOf } from '../../../shared/requirement-links/requirement-label';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
@@ -96,6 +97,7 @@ export function validPeriod(start: string, end: string): boolean {
     FlowBanner,
     Alert,
     Button,
+    DateInput,
     FormField,
     Icon,
     SlideOver,
@@ -195,21 +197,17 @@ export function validPeriod(start: string, end: string): boolean {
 
           <div class="grid gap-3 sm:grid-cols-2">
             <app-form-field [label]="'reports.packs.periodStart' | transloco" inputId="pack-from">
-              <input
-                id="pack-from"
-                type="date"
-                [attr.lang]="uiLang()"
+              <app-date-input
+                inputId="pack-from"
                 [value]="periodStart()"
-                (change)="periodStart.set($any($event.target).value)"
+                (valueChange)="periodStart.set($event ?? '')"
               />
             </app-form-field>
             <app-form-field [label]="'reports.packs.periodEnd' | transloco" inputId="pack-to">
-              <input
-                id="pack-to"
-                type="date"
-                [attr.lang]="uiLang()"
+              <app-date-input
+                inputId="pack-to"
                 [value]="periodEnd()"
-                (change)="periodEnd.set($any($event.target).value)"
+                (valueChange)="periodEnd.set($event ?? '')"
               />
             </app-form-field>
           </div>

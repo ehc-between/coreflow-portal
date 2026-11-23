@@ -13,7 +13,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
   imports: [EmptyState, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1120px] px-4 pt-7 pb-12 sm:px-8">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header titleKey="orgAccess.title" />
       <div data-testid="no-org-access">
         <app-empty-state

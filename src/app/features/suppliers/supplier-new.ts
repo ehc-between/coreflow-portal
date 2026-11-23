@@ -26,7 +26,7 @@ import { SupplierForm, SupplierFormValue } from './supplier-form';
   imports: [TranslocoPipe, Alert, FlowBanner, HelpStrip, PageHeader, SupplierForm, WhyItMatters],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="suppliers.form.newTitle"
         descriptionKey="suppliers.form.newSubtitle"
@@ -38,9 +38,9 @@ import { SupplierForm, SupplierFormValue } from './supplier-form';
         backLabelKey="suppliers.common.backToRegister"
       />
       <app-help-strip scope="suppliers" page="form" />
-      <app-flow-banner [flow]="flow()" />
+      <app-flow-banner class="empty:hidden" [flow]="flow()" />
       @if (error(); as key) {
-        <div class="mb-4">
+        <div>
           <app-alert>{{ key | transloco }}</app-alert>
         </div>
       }
@@ -50,7 +50,7 @@ import { SupplierForm, SupplierFormValue } from './supplier-form';
         (submitted)="save($event)"
         (cancelled)="back()"
       />
-      <div class="mt-8"><app-why-it-matters scope="suppliers" page="form" /></div>
+      <div class="mt-3"><app-why-it-matters scope="suppliers" page="form" /></div>
     </div>
   `,
 })

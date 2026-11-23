@@ -403,3 +403,69 @@ body {
   background: var(--accent-soft);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
+
+/* A card that only wraps an empty requirements panel (`app-supports-requirements` hides
+   itself when there is nothing to show or do) is hidden too, so asides have no empty box. */
+app-card:has(> div > app-supports-requirements[data-empty]:only-child) {
+  display: none;
+}
+
+/* Record lists (app-record-row, docs/ux-guide.md §2.2): an optional column that no row
+   in the list fills (for slots: no visible projected element with content; a coverage chip
+   hidden by "Vis krav" counts as empty) collapses (RECORD_ROW_COLUMNS reads these variables), so the title
+   keeps the room and the header stays aligned with the rows. */
+[role='list']:has(> app-record-row):not(
+    :has(
+      > app-record-row
+        [data-testid='record-row-coverage']
+        > :not(:empty, [hidden], [style*='display: none'])
+    )
+  ) {
+  --cf-rr-coverage: 0px;
+}
+[role='list']:has(> app-record-row):not(
+    :has(
+      > app-record-row
+        [data-testid='record-row-badges']
+        > :not(:empty, [hidden], [style*='display: none'])
+    )
+  ) {
+  --cf-rr-badges: 0px;
+}
+[role='list']:has(> app-record-row):not(
+    :has(> app-record-row [data-testid='record-row-owner']:not(:empty))
+  ) {
+  --cf-rr-owner: 0px;
+}
+[role='list']:has(> app-record-row):not(
+    :has(> app-record-row [data-testid='record-row-date']:not(:empty))
+  ) {
+  --cf-rr-date: 0px;
+}
+/* A badge that does not fit the row's badge column: hidden visually, still read. */
+app-record-row .cf-rr-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* app-form-actions with one button and no message / [start]: no empty-looking card,
+   just the button on the right (still sticky). */
+app-form-actions
+  > [data-testid='form-actions']:has(> .cf-actions-start:empty):has(
+    > .cf-actions-end > :only-child
+  ) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* Record page header (app-record-detail-layout): when its actions would wrap to a second
+   row, the built-in "Diskuter" / "Spør KI" drop their text and keep icon + aria-label. */
+[data-testid='page-actions'][data-crowded] button > .cf-action-label {
+  display: none;
+}

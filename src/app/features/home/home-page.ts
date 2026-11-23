@@ -68,9 +68,10 @@ const DOT: Record<Tone, string> = {
   ok: 'bg-pass',
 };
 
+/** Coverage is an accent bar, never red (docs/ux-guide.md §2.5); a full bar reads as done. */
 const BAR: Record<Tone, string> = {
-  bad: 'bg-fail',
-  warn: 'bg-warn',
+  bad: 'bg-accent',
+  warn: 'bg-accent',
   info: 'bg-accent',
   ok: 'bg-pass',
 };
@@ -100,7 +101,7 @@ const BAR: Record<Tone, string> = {
   viewProviders: [provideSharedScope('home', 'tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1240px] px-4 pt-7 pb-12 sm:px-6">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <header class="mb-6">
         <h1
           class="font-display text-page font-bold text-balance text-fg"

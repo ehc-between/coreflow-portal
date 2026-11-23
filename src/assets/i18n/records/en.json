@@ -106,7 +106,8 @@
     "deletedToast": "The record type is deleted.",
     "blockKeyEmpty": "Add a key under the name.",
     "codePrefixPlaceholder": "NC",
-    "requirementsHint": "These are the requirements this kind of record usually supports. They stay suggestions: a requirement only counts as covered once a record of this type exists with the linked fields filled in."
+    "requirementsHint": "These are the requirements this kind of record usually supports. They stay suggestions: a requirement only counts as covered once a record of this type exists with the linked fields filled in.",
+    "basicsHint": "What the register type is called and which module it belongs to."
   },
   "workflow": {
     "newTitle": "New workflow",
@@ -124,7 +125,8 @@
     "deleteTitle": "Delete this workflow?",
     "deleteMessage": "“{{ name }}” is removed. A workflow that a record type still uses can't be deleted.",
     "deletedToast": "The workflow is deleted.",
-    "create": "Create workflow"
+    "create": "Create workflow",
+    "basicsHint": "The name people see and the module the workflow is used in."
   },
   "fields": {
     "title": "Fields",

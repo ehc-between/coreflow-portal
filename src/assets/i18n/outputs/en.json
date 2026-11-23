@@ -166,7 +166,9 @@
     "langAuto": "Same as the user's language",
     "save": "Save",
     "saved": "Branding saved.",
-    "logoSaved": "Logo saved."
+    "logoSaved": "Logo saved.",
+    "documentTitle": "Documents",
+    "documentHint": "Colour, marking, language and footer on every document CoreFlow makes."
   },
   "classification": {
     "public": "Public",

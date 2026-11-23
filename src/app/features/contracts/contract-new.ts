@@ -24,6 +24,7 @@ import { FlowBanner } from '../../shared/kit/flow-banner';
 import { Card } from '../../shared/ui/card/card';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
+import { FormField } from '../../shared/ui/form-field/form-field';
 import { Breadcrumb, PageHeader } from '../../shared/ui/page-header/page-header';
 import { ContractForm, ContractFormSubmit } from './contract-form';
 import { CONTRACTS_CRUMB } from './contracts-nav';
@@ -63,6 +64,7 @@ export const MIN_EXTRACT_CHARS = 40;
     WhyItMatters,
     FlowBanner,
     Card,
+    FormField,
     HelpStrip,
     Icon,
     PageHeader,
@@ -71,22 +73,17 @@ export const MIN_EXTRACT_CHARS = 40;
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-24 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="contracts.form.newTitle"
         [breadcrumbs]="breadcrumbs"
         backLink="/contracts"
         backLabelKey="contracts.common.backToList"
       />
-      <app-help-strip
-        class="mb-5 block"
-        scope="contracts"
-        page="form"
-        lesson="notice-and-renewal"
-      />
-      <app-flow-banner [flow]="flow()" />
+      <app-help-strip scope="contracts" page="form" lesson="notice-and-renewal" />
+      <app-flow-banner class="empty:hidden" [flow]="flow()" />
 
-      <div class="mb-5">
+      <div>
         <app-form-suggest
           [suggestKey]="suggestKey"
           labelKey="ask.formSuggest.labels.contract"
@@ -109,17 +106,18 @@ export const MIN_EXTRACT_CHARS = 40;
           </summary>
           <div class="mt-3 flex flex-col gap-3">
             <p class="text-ui text-fg-muted">{{ 'contracts.extract.intro' | transloco }}</p>
-            <label for="cf-extract-text" class="text-ui font-semibold text-fg-muted">
-              {{ 'contracts.extract.textLabel' | transloco }}
-            </label>
-            <textarea
-              id="cf-extract-text"
-              rows="8"
-              maxlength="120000"
-              class="w-full rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
-              [value]="extractText()"
-              (input)="extractText.set($any($event.target).value)"
-            ></textarea>
+            <app-form-field
+              [label]="'contracts.extract.textLabel' | transloco"
+              inputId="cf-extract-text"
+            >
+              <textarea
+                id="cf-extract-text"
+                rows="8"
+                maxlength="120000"
+                [value]="extractText()"
+                (input)="extractText.set($any($event.target).value)"
+              ></textarea>
+            </app-form-field>
             <div class="flex flex-wrap items-center gap-2">
               <app-ai-assist-button
                 assist="contracts.extract"
@@ -159,7 +157,7 @@ export const MIN_EXTRACT_CHARS = 40;
         </details>
       </app-card>
 
-      <div class="mt-5">
+      <div>
         <app-contract-form
           mode="create"
           [value]="seed()"
@@ -170,7 +168,7 @@ export const MIN_EXTRACT_CHARS = 40;
         />
       </div>
 
-      <div class="mt-8"><app-why-it-matters scope="contracts" page="form" /></div>
+      <div class="mt-3"><app-why-it-matters scope="contracts" page="form" /></div>
     </div>
   `,
 })

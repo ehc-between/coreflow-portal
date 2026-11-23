@@ -25,7 +25,6 @@ import { FlowBanner } from '../../shared/kit/flow-banner';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { RecurrencePicker } from '../../shared/tasks/recurrence-picker';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { ErrorState } from '../../shared/ui/error-state/error-state';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
@@ -61,6 +60,9 @@ import {
   injectEnvPermissions,
 } from './environment-shared';
 import { EnvRecordPicker } from './record-picker';
+import { FormSection } from '../../shared/ui/form-section/form-section';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 type PlanText = 'scenario' | 'potential_impact' | 'response_procedure' | 'resources';
 
@@ -100,6 +102,9 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
 @Component({
   selector: 'app-env-plan-editor',
   imports: [
+    DateInput,
+    FormActions,
+    FormSection,
     TranslocoPipe,
     AiAssistButton,
     AskAbout,
@@ -107,7 +112,6 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
     MarkdownPipe,
     RecurrencePicker,
     Button,
-    Card,
     ErrorState,
     HelpStrip,
     Icon,
@@ -119,8 +123,8 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-      <div class="max-w-[760px]">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+      <div>
         <app-page-header
           [titleKey]="id() ? 'environment.plan.editTitle' : 'environment.plan.newTitle'"
           [titleParams]="{ code: original()?.code ?? '' }"
@@ -143,85 +147,77 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
               (submit)="$event.preventDefault(); submit()"
               novalidate
             >
-              <p class="text-meta text-fg-muted">
-                <span class="text-fail" aria-hidden="true">*</span>
-                {{ 'environment.form.requiredHint' | transloco }}
-              </p>
+              <app-form-section
+                [title]="'environment.plan.sections.scenario' | transloco"
+                [description]="'environment.plan.sections.scenarioHint' | transloco"
+              >
+                <app-env-field
+                  class="sm:col-span-2"
+                  labelKey="environment.fields.title"
+                  inputId="cf-env-p-title"
+                  page="planForm"
+                  help="title"
+                  [required]="true"
+                  [errorKey]="shown()['title']"
+                >
+                  <input
+                    id="cf-env-p-title"
+                    type="text"
+                    maxlength="255"
+                    required
+                    [value]="form().title"
+                    (input)="set('title', $any($event.target).value)"
+                    [attr.aria-invalid]="!!shown()['title']"
+                    data-testid="plan-title"
+                  />
+                </app-env-field>
+                <app-env-field
+                  class="sm:col-span-2"
+                  labelKey="environment.fields.scenario"
+                  inputId="cf-env-p-scenario"
+                  page="planForm"
+                  help="scenario"
+                >
+                  <textarea
+                    id="cf-env-p-scenario"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="form().scenario"
+                    (input)="setText('scenario', $any($event.target).value)"
+                  ></textarea>
+                </app-env-field>
+                <app-env-field
+                  class="sm:col-span-2"
+                  labelKey="environment.fields.potentialImpact"
+                  inputId="cf-env-p-impact"
+                  page="planForm"
+                  help="potential_impact"
+                >
+                  <textarea
+                    id="cf-env-p-impact"
+                    rows="2"
+                    maxlength="20000"
+                    [value]="form().potential_impact"
+                    (input)="setText('potential_impact', $any($event.target).value)"
+                  ></textarea>
+                </app-env-field>
+                <app-env-field labelKey="environment.fields.site" inputId="cf-env-p-site">
+                  <input
+                    id="cf-env-p-site"
+                    type="text"
+                    maxlength="128"
+                    [value]="form().site"
+                    (input)="set('site', $any($event.target).value)"
+                  />
+                </app-env-field>
+              </app-form-section>
 
-              <app-card>
-                <h2 class="mb-4 font-display text-card font-bold text-fg">
-                  {{ 'environment.plan.sections.scenario' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-env-field
-                    class="sm:col-span-2"
-                    labelKey="environment.fields.title"
-                    inputId="cf-env-p-title"
-                    page="planForm"
-                    help="title"
-                    [required]="true"
-                    [errorKey]="shown()['title']"
-                  >
-                    <input
-                      id="cf-env-p-title"
-                      type="text"
-                      maxlength="255"
-                      required
-                      [value]="form().title"
-                      (input)="set('title', $any($event.target).value)"
-                      [attr.aria-invalid]="!!shown()['title']"
-                      data-testid="plan-title"
-                    />
-                  </app-env-field>
-                  <app-env-field
-                    class="sm:col-span-2"
-                    labelKey="environment.fields.scenario"
-                    inputId="cf-env-p-scenario"
-                    page="planForm"
-                    help="scenario"
-                  >
-                    <textarea
-                      id="cf-env-p-scenario"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().scenario"
-                      (input)="setText('scenario', $any($event.target).value)"
-                    ></textarea>
-                  </app-env-field>
-                  <app-env-field
-                    class="sm:col-span-2"
-                    labelKey="environment.fields.potentialImpact"
-                    inputId="cf-env-p-impact"
-                    page="planForm"
-                    help="potential_impact"
-                  >
-                    <textarea
-                      id="cf-env-p-impact"
-                      rows="2"
-                      maxlength="20000"
-                      [value]="form().potential_impact"
-                      (input)="setText('potential_impact', $any($event.target).value)"
-                    ></textarea>
-                  </app-env-field>
-                  <app-env-field labelKey="environment.fields.site" inputId="cf-env-p-site">
-                    <input
-                      id="cf-env-p-site"
-                      type="text"
-                      maxlength="128"
-                      [value]="form().site"
-                      (input)="set('site', $any($event.target).value)"
-                    />
-                  </app-env-field>
-                </div>
-              </app-card>
-
-              <app-card id="aspects">
-                <h2 class="mb-1 font-display text-card font-bold text-fg">
-                  {{ 'environment.plan.sections.aspects' | transloco }}
-                </h2>
-                <p class="mb-4 text-ui text-fg-muted">
-                  {{ 'environment.plan.aspectsFormHint' | transloco }}
-                </p>
+              <app-form-section
+                id="aspects"
+                [title]="'environment.plan.sections.aspects' | transloco"
+                [description]="'environment.plan.aspectsFormHint' | transloco"
+                [columns]="1"
+              >
                 <app-env-field
                   labelKey="environment.fields.coveredAspects"
                   inputId="cf-env-p-aspects"
@@ -239,100 +235,102 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                     (valueChange)="set('aspects', $event)"
                   />
                 </app-env-field>
-              </app-card>
+              </app-form-section>
 
-              <app-card>
-                <h2 class="mb-4 font-display text-card font-bold text-fg">
-                  {{ 'environment.plan.sections.response' | transloco }}
-                </h2>
-                <div class="flex flex-col gap-4">
-                  <app-env-field
-                    labelKey="environment.fields.responseProcedure"
-                    inputId="cf-env-p-procedure"
-                    page="planForm"
-                    help="response_procedure"
-                  >
-                    <app-ask-about
-                      label-extra
-                      [prompt]="'environment.ask.procedureField' | transloco"
-                      field="response_procedure"
-                      [fieldLabel]="'environment.fields.responseProcedure' | transloco"
-                      [requirements]="['iso14001:8.2']"
-                    />
-                    <textarea
-                      id="cf-env-p-procedure"
-                      rows="8"
-                      maxlength="20000"
-                      [value]="form().response_procedure"
-                      (input)="setText('response_procedure', $any($event.target).value)"
-                      data-testid="plan-procedure"
-                    ></textarea>
-                  </app-env-field>
-                  <div class="flex flex-col items-start gap-2">
-                    <app-ai-assist-button
-                      [assist]="draftAssist"
-                      labelKey="environment.plan.draftResponse"
-                      [input]="draftInput()"
-                      [disabled]="!form().scenario.trim()"
-                      (text)="draft.set($event)"
-                      data-testid="draft-response"
-                    />
-                    @if (!form().scenario.trim()) {
-                      <p class="text-meta text-fg-subtle">
-                        {{ 'environment.plan.draftNeedsScenario' | transloco }}
+              <app-form-section
+                [title]="'environment.plan.sections.response' | transloco"
+                [description]="'environment.plan.sections.responseHint' | transloco"
+                [columns]="1"
+              >
+                <app-env-field
+                  labelKey="environment.fields.responseProcedure"
+                  inputId="cf-env-p-procedure"
+                  page="planForm"
+                  help="response_procedure"
+                >
+                  <app-ask-about
+                    label-extra
+                    [prompt]="'environment.ask.procedureField' | transloco"
+                    field="response_procedure"
+                    [fieldLabel]="'environment.fields.responseProcedure' | transloco"
+                    [requirements]="['iso14001:8.2']"
+                  />
+                  <textarea
+                    id="cf-env-p-procedure"
+                    rows="8"
+                    maxlength="20000"
+                    [value]="form().response_procedure"
+                    (input)="setText('response_procedure', $any($event.target).value)"
+                    data-testid="plan-procedure"
+                  ></textarea>
+                </app-env-field>
+                <div class="flex flex-col items-start gap-2">
+                  <app-ai-assist-button
+                    [assist]="draftAssist"
+                    labelKey="environment.plan.draftResponse"
+                    [input]="draftInput()"
+                    [disabled]="!form().scenario.trim()"
+                    (text)="draft.set($event)"
+                    data-testid="draft-response"
+                  />
+                  @if (!form().scenario.trim()) {
+                    <p class="text-meta text-fg-subtle">
+                      {{ 'environment.plan.draftNeedsScenario' | transloco }}
+                    </p>
+                  }
+                  @if (draft()) {
+                    <div
+                      class="w-full rounded-card border border-accent-border bg-accent-soft p-3"
+                      data-testid="response-draft"
+                    >
+                      <p class="mb-2 text-meta font-semibold text-fg-muted">
+                        {{ 'environment.plan.draftTitle' | transloco }}
                       </p>
-                    }
-                    @if (draft()) {
                       <div
-                        class="w-full rounded-card border border-accent-border bg-accent-soft p-3"
-                        data-testid="response-draft"
-                      >
-                        <p class="mb-2 text-meta font-semibold text-fg-muted">
-                          {{ 'environment.plan.draftTitle' | transloco }}
-                        </p>
-                        <div
-                          class="cf-prose text-ui text-fg"
-                          [innerHTML]="draft() | appMarkdown"
-                        ></div>
-                        <div class="mt-3 flex flex-wrap gap-2">
-                          <app-button size="sm" (click)="useDraft()" data-testid="use-draft">
-                            {{ 'environment.plan.useDraft' | transloco }}
-                          </app-button>
-                          <app-button size="sm" variant="ghost" (click)="draft.set('')">
-                            {{ 'environment.plan.discardDraft' | transloco }}
-                          </app-button>
-                        </div>
+                        class="cf-prose text-ui text-fg"
+                        [innerHTML]="draft() | appMarkdown"
+                      ></div>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <app-button size="sm" (click)="useDraft()" data-testid="use-draft">
+                          {{ 'environment.plan.useDraft' | transloco }}
+                        </app-button>
+                        <app-button size="sm" variant="ghost" (click)="draft.set('')">
+                          {{ 'environment.plan.discardDraft' | transloco }}
+                        </app-button>
                       </div>
-                    }
-                  </div>
-                  <app-env-field
-                    labelKey="environment.fields.resources"
-                    inputId="cf-env-p-resources"
-                    page="planForm"
-                    help="resources"
-                  >
-                    <textarea
-                      id="cf-env-p-resources"
-                      rows="3"
-                      maxlength="20000"
-                      [value]="form().resources"
-                      (input)="setText('resources', $any($event.target).value)"
-                    ></textarea>
-                  </app-env-field>
+                    </div>
+                  }
                 </div>
-              </app-card>
+                <app-env-field
+                  labelKey="environment.fields.resources"
+                  inputId="cf-env-p-resources"
+                  page="planForm"
+                  help="resources"
+                >
+                  <textarea
+                    id="cf-env-p-resources"
+                    rows="3"
+                    maxlength="20000"
+                    [value]="form().resources"
+                    (input)="setText('resources', $any($event.target).value)"
+                  ></textarea>
+                </app-env-field>
+              </app-form-section>
 
-              <app-card>
-                <h2 class="mb-1 font-display text-card font-bold text-fg">
-                  {{ 'environment.fields.contacts' | transloco }}
-                </h2>
-                <p class="mb-4 text-ui text-fg-muted">
-                  {{ 'environment.plan.contactsHint' | transloco }}
-                </p>
-                <ul class="flex flex-col gap-3" data-testid="plan-contacts-form">
+              <app-form-section
+                [title]="'environment.fields.contacts' | transloco"
+                [description]="'environment.plan.contactsHint' | transloco"
+                [columns]="1"
+              >
+                <ol class="flex flex-col gap-3" data-testid="plan-contacts-form">
                   @for (c of form().contacts; track $index; let i = $index) {
-                    <li class="rounded-tile border border-border p-3">
-                      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <li class="rounded-tile border border-border bg-bg p-3 sm:p-4">
+                      <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <span
+                          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-surface-2 px-1.5 text-micro font-semibold text-fg-muted"
+                          aria-hidden="true"
+                          >{{ i + 1 }}</span
+                        >
                         <div
                           class="inline-flex rounded-tile border border-border p-0.5"
                           role="radiogroup"
@@ -356,6 +354,7 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                           }
                         </div>
                         <app-button
+                          class="ml-auto"
                           variant="ghost"
                           size="sm"
                           [attr.aria-label]="
@@ -369,7 +368,7 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                           }}</span>
                         </app-button>
                       </div>
-                      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
                         @if (c.kind === 'member') {
                           <app-env-field
                             labelKey="environment.fields.contactPerson"
@@ -439,12 +438,14 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                       </div>
                     </li>
                   } @empty {
-                    <li class="text-ui text-fg-muted">
+                    <li
+                      class="rounded-tile border border-dashed border-border px-3 py-2.5 text-ui text-fg-muted"
+                    >
                       {{ 'environment.plan.noContacts' | transloco }}
                     </li>
                   }
-                </ul>
-                <div class="mt-3 flex flex-wrap gap-2">
+                </ol>
+                <div class="flex flex-wrap gap-2">
                   <app-button
                     variant="secondary"
                     size="sm"
@@ -465,16 +466,16 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                     {{ 'environment.plan.addExternalContact' | transloco }}
                   </app-button>
                 </div>
-              </app-card>
+              </app-form-section>
 
-              <app-card id="drills">
-                <h2 class="mb-1 font-display text-card font-bold text-fg">
-                  {{ 'environment.plan.sections.drillRhythm' | transloco }}
-                </h2>
-                <p class="mb-4 text-ui text-fg-muted">
-                  {{ 'environment.plan.drillRhythmHint' | transloco }}
-                </p>
-                <label class="mb-3 flex items-center gap-2 text-body text-fg">
+              <app-form-section
+                id="drills"
+                [title]="'environment.plan.sections.drillRhythm' | transloco"
+                [description]="'environment.plan.drillRhythmHint' | transloco"
+              >
+                <label
+                  class="flex min-h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg sm:col-span-2"
+                >
                   <input
                     type="checkbox"
                     class="h-4 w-4 accent-[var(--accent)]"
@@ -485,81 +486,74 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                   {{ 'environment.plan.scheduleDrills' | transloco }}
                 </label>
                 @if (form().drill_enabled) {
-                  <div class="flex flex-col gap-3">
-                    <app-recurrence-picker
-                      idPrefix="cf-env-drill"
-                      [rrule]="form().drill_rrule"
-                      (rruleChange)="set('drill_rrule', $event)"
-                    />
-                    <app-env-field
-                      labelKey="environment.fields.firstDrill"
-                      inputId="cf-env-p-drill-start"
-                      hintKey="environment.plan.firstDrillHint"
-                    >
-                      <input
-                        id="cf-env-p-drill-start"
-                        type="date"
-                        aria-describedby="cf-env-p-drill-start-hint"
-                        [value]="form().drill_start"
-                        (change)="set('drill_start', $any($event.target).value)"
-                      />
-                    </app-env-field>
-                  </div>
-                }
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-4 font-display text-card font-bold text-fg">
-                  {{ 'environment.plan.sections.ownership' | transloco }}
-                </h2>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <app-env-field labelKey="environment.fields.owner" inputId="cf-env-p-owner">
-                    <app-env-directory-select
-                      inputId="cf-env-p-owner"
-                      [value]="form().owner_user_id"
-                      [currentName]="original()?.owner_name ?? null"
-                      (valueChange)="set('owner_user_id', $event)"
-                    />
-                  </app-env-field>
-                  <app-env-field labelKey="environment.fields.department" inputId="cf-env-p-dept">
-                    <app-env-directory-select
-                      kind="department"
-                      inputId="cf-env-p-dept"
-                      noneKey="environment.form.noDepartment"
-                      [value]="form().department_id"
-                      (valueChange)="set('department_id', $event)"
-                    />
-                  </app-env-field>
+                  <app-recurrence-picker
+                    class="sm:col-span-2"
+                    idPrefix="cf-env-drill"
+                    [plain]="true"
+                    [rrule]="form().drill_rrule"
+                    (rruleChange)="set('drill_rrule', $event)"
+                  />
                   <app-env-field
-                    labelKey="environment.fields.status"
-                    inputId="cf-env-p-status"
-                    page="planForm"
-                    help="status"
+                    labelKey="environment.fields.firstDrill"
+                    inputId="cf-env-p-drill-start"
+                    hintKey="environment.plan.firstDrillHint"
                   >
-                    <select
-                      id="cf-env-p-status"
-                      (change)="set('status', $any($event.target).value)"
-                    >
-                      @for (s of statuses; track s) {
-                        <option [value]="s" [selected]="form().status === s">
-                          {{ 'environment.status.' + s | transloco }}
-                        </option>
-                      }
-                    </select>
-                  </app-env-field>
-                  <app-env-field labelKey="environment.fields.reviewDue" inputId="cf-env-p-review">
-                    <input
-                      id="cf-env-p-review"
-                      type="date"
-                      [value]="form().review_due"
-                      (change)="set('review_due', $any($event.target).value)"
+                    <app-date-input
+                      inputId="cf-env-p-drill-start"
+                      describedBy="cf-env-p-drill-start-hint"
+                      [value]="form().drill_start"
+                      (valueChange)="set('drill_start', $event ?? '')"
                     />
                   </app-env-field>
-                </div>
-              </app-card>
+                }
+              </app-form-section>
+
+              <app-form-section
+                [title]="'environment.plan.sections.ownership' | transloco"
+                [description]="'environment.plan.sections.ownershipHint' | transloco"
+              >
+                <app-env-field labelKey="environment.fields.owner" inputId="cf-env-p-owner">
+                  <app-env-directory-select
+                    inputId="cf-env-p-owner"
+                    [value]="form().owner_user_id"
+                    [currentName]="original()?.owner_name ?? null"
+                    (valueChange)="set('owner_user_id', $event)"
+                  />
+                </app-env-field>
+                <app-env-field labelKey="environment.fields.department" inputId="cf-env-p-dept">
+                  <app-env-directory-select
+                    kind="department"
+                    inputId="cf-env-p-dept"
+                    noneKey="environment.form.noDepartment"
+                    [value]="form().department_id"
+                    (valueChange)="set('department_id', $event)"
+                  />
+                </app-env-field>
+                <app-env-field
+                  labelKey="environment.fields.status"
+                  inputId="cf-env-p-status"
+                  page="planForm"
+                  help="status"
+                >
+                  <select id="cf-env-p-status" (change)="set('status', $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="form().status === s">
+                        {{ 'environment.status.' + s | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-env-field>
+                <app-env-field labelKey="environment.fields.reviewDue" inputId="cf-env-p-review">
+                  <app-date-input
+                    inputId="cf-env-p-review"
+                    [value]="form().review_due"
+                    (valueChange)="set('review_due', $event ?? '')"
+                  />
+                </app-env-field>
+              </app-form-section>
 
               @if (id()) {
-                <app-card>
+                <app-form-section [columns]="1">
                   <app-env-field
                     labelKey="environment.fields.changeReason"
                     inputId="cf-env-p-reason"
@@ -574,17 +568,16 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                       (input)="changeReason.set($any($event.target).value)"
                     />
                   </app-env-field>
-                </app-card>
+                </app-form-section>
               }
 
-              <div
-                class="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-bg px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0"
+              <app-form-actions
+                [message]="
+                  attempted() && errorCount()
+                    ? ('environment.form.fixErrors' | transloco: { count: errorCount() })
+                    : ''
+                "
               >
-                @if (attempted() && errorCount()) {
-                  <p class="mr-auto text-meta font-semibold text-fail" role="alert">
-                    {{ 'environment.form.fixErrors' | transloco: { count: errorCount() } }}
-                  </p>
-                }
                 <app-button variant="secondary" (click)="back()">
                   {{ 'common.cancel' | transloco }}
                 </app-button>
@@ -596,7 +589,7 @@ export function prefillAspectIds(prefill: Readonly<Record<string, unknown>>): st
                 >
                   {{ (id() ? 'common.save' : 'environment.plan.create') | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             </form>
           }
         }

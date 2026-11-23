@@ -32,6 +32,8 @@ import { AuditFormPage } from '../shared/form-page';
 import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
 import { AuditUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 
 export interface FindingFormValue {
   title: string;
@@ -91,6 +93,8 @@ export function parseDraftFinding(data: unknown): Partial<FindingFormValue> {
 @Component({
   selector: 'app-audit-finding-form',
   imports: [
+    FormSection,
+    DateInput,
     FormsModule,
     TranslocoPipe,
     AiAssistButton,
@@ -114,126 +118,139 @@ export function parseDraftFinding(data: unknown): Partial<FindingFormValue> {
       (save)="save()"
       (cancelled)="back()"
     >
-      @if (planLabel(); as label) {
-        <p class="-mt-1 text-meta text-fg-muted">
-          {{ 'audits.findingForm.inAudit' | transloco: { audit: label } }}
-        </p>
-      }
-
-      <fieldset>
-        <legend class="mb-1.5 text-ui font-semibold text-fg-muted">
-          {{ 'audits.fields.findingType' | transloco }}
-        </legend>
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          @for (t of types; track t) {
-            <label
-              class="flex cursor-pointer items-start gap-2 rounded-tile border p-2.5 text-ui"
-              [class]="f().type === t ? 'border-accent bg-accent-soft' : 'border-border'"
-            >
-              <input
-                type="radio"
-                name="fd-type"
-                class="mt-0.5"
-                [checked]="f().type === t"
-                (change)="patch({ type: t })"
-              />
-              <span>
-                <span class="block font-semibold text-fg">{{
-                  'audits.findingType.' + t | transloco
-                }}</span>
-                <span class="text-meta text-fg-muted">{{
-                  'audits.findingTypeHelp.' + t | transloco
-                }}</span>
-              </span>
-            </label>
-          }
-        </div>
-      </fieldset>
-
-      <app-audit-field
-        inputId="fd-title"
-        labelKey="audits.fields.title"
-        [required]="true"
-        helpPage="findingForm"
-        helpField="title"
+      <app-form-section
+        [title]="'audits.findingForm.sections.finding' | transloco"
+        [description]="'audits.findingForm.sections.findingHint' | transloco"
       >
-        @if (planId()) {
-          <app-ai-assist-button
-            ask
-            assist="audits.draft_finding"
-            labelKey="audits.ai.draftFinding"
-            variant="ghost"
-            entityType="audit_plan"
-            [entityId]="planId() ?? null"
-            [input]="{
-              plan_id: planId(),
-              checklist_item_id: f().checklistItemId || null,
-              notes: f().description || f().evidence || null,
-              clause_ref: f().clauseRef || null,
-              finding_type: f().type,
-            }"
-            (result)="applyDraft($event)"
-          />
+        @if (planLabel(); as label) {
+          <p class="text-meta text-fg-muted sm:col-span-2">
+            {{ 'audits.findingForm.inAudit' | transloco: { audit: label } }}
+          </p>
         }
-        <input
-          id="fd-title"
-          required
-          aria-required="true"
-          maxlength="255"
-          [value]="f().title"
-          (input)="patch({ title: $any($event.target).value })"
-        />
-      </app-audit-field>
-      <app-audit-field
-        inputId="fd-description"
-        labelKey="audits.fields.description"
-        helpPage="findingForm"
-        helpField="description"
-      >
-        <textarea
-          id="fd-description"
-          rows="4"
-          [value]="f().description"
-          (input)="patch({ description: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-      <app-audit-field
-        inputId="fd-evidence"
-        labelKey="audits.fields.evidence"
-        helpPage="findingForm"
-        helpField="evidence"
-      >
-        <app-ask-about
-          ask
-          field="evidence"
-          [fieldLabel]="'audits.fields.evidence' | transloco"
-          [prompt]="'audits.findingForm.askEvidence' | transloco"
-        />
-        <textarea
-          id="fd-evidence"
-          rows="3"
-          [value]="f().evidence"
-          (input)="patch({ evidence: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-      <app-audit-field
-        inputId="fd-clause"
-        labelKey="audits.fields.clauseRef"
-        helpPage="findingForm"
-        helpField="clauseRef"
-        [plain]="true"
-      >
-        <app-clause-picker
+
+        <fieldset class="min-w-0 sm:col-span-2">
+          <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
+            {{ 'audits.fields.findingType' | transloco }}
+          </legend>
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (t of types; track t) {
+              <label
+                class="flex cursor-pointer items-start gap-2 rounded-tile border p-2.5 text-ui"
+                [class]="f().type === t ? 'border-accent bg-accent-soft' : 'border-border'"
+              >
+                <input
+                  type="radio"
+                  name="fd-type"
+                  class="mt-0.5"
+                  [checked]="f().type === t"
+                  (change)="patch({ type: t })"
+                />
+                <span>
+                  <span class="block font-semibold text-fg">{{
+                    'audits.findingType.' + t | transloco
+                  }}</span>
+                  <span class="text-meta text-fg-muted">{{
+                    'audits.findingTypeHelp.' + t | transloco
+                  }}</span>
+                </span>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <app-audit-field
+          span="full"
+          inputId="fd-title"
+          labelKey="audits.fields.title"
+          [required]="true"
+          helpPage="findingForm"
+          helpField="title"
+        >
+          @if (planId()) {
+            <app-ai-assist-button
+              ask
+              assist="audits.draft_finding"
+              labelKey="audits.ai.draftFinding"
+              variant="ghost"
+              entityType="audit_plan"
+              [entityId]="planId() ?? null"
+              [input]="{
+                plan_id: planId(),
+                checklist_item_id: f().checklistItemId || null,
+                notes: f().description || f().evidence || null,
+                clause_ref: f().clauseRef || null,
+                finding_type: f().type,
+              }"
+              (result)="applyDraft($event)"
+            />
+          }
+          <input
+            id="fd-title"
+            required
+            aria-required="true"
+            maxlength="255"
+            [value]="f().title"
+            (input)="patch({ title: $any($event.target).value })"
+          />
+        </app-audit-field>
+        <app-audit-field
+          span="full"
+          inputId="fd-description"
+          labelKey="audits.fields.description"
+          helpPage="findingForm"
+          helpField="description"
+        >
+          <textarea
+            id="fd-description"
+            rows="4"
+            [value]="f().description"
+            (input)="patch({ description: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+        <app-audit-field
+          span="full"
+          inputId="fd-evidence"
+          labelKey="audits.fields.evidence"
+          helpPage="findingForm"
+          helpField="evidence"
+        >
+          <app-ask-about
+            ask
+            field="evidence"
+            [fieldLabel]="'audits.fields.evidence' | transloco"
+            [prompt]="'audits.findingForm.askEvidence' | transloco"
+          />
+          <textarea
+            id="fd-evidence"
+            rows="3"
+            [value]="f().evidence"
+            (input)="patch({ evidence: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+        <app-audit-field
+          span="full"
           inputId="fd-clause"
-          [multiple]="false"
-          [frameworks]="planFrameworks()"
-          [ngModel]="f().clauseRef || null"
-          (ngModelChange)="patch({ clauseRef: $event ?? '' })"
-          [ngModelOptions]="{ standalone: true }"
-        />
-        <span hint>{{ 'audits.findingForm.clauseHint' | transloco }}</span>
-      </app-audit-field>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          labelKey="audits.fields.clauseRef"
+          helpPage="findingForm"
+          helpField="clauseRef"
+          [plain]="true"
+        >
+          <app-clause-picker
+            inputId="fd-clause"
+            [multiple]="false"
+            [frameworks]="planFrameworks()"
+            [ngModel]="f().clauseRef || null"
+            (ngModelChange)="patch({ clauseRef: $event ?? '' })"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <span hint>{{ 'audits.findingForm.clauseHint' | transloco }}</span>
+        </app-audit-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'audits.findingForm.sections.followUp' | transloco"
+        [description]="'audits.findingForm.sections.followUpHint' | transloco"
+      >
         <app-audit-field
           inputId="fd-owner"
           labelKey="audits.fields.findingOwner"
@@ -253,12 +270,10 @@ export function parseDraftFinding(data: unknown): Partial<FindingFormValue> {
           helpPage="findingForm"
           helpField="responseDue"
         >
-          <input
-            id="fd-due"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="fd-due"
             [value]="f().due"
-            (input)="patch({ due: $any($event.target).value })"
+            (valueChange)="patch({ due: $event ?? '' })"
           />
         </app-audit-field>
         <app-audit-field inputId="fd-department" labelKey="audits.fields.department">
@@ -269,16 +284,18 @@ export function parseDraftFinding(data: unknown): Partial<FindingFormValue> {
             }
           </select>
         </app-audit-field>
-      </div>
+      </app-form-section>
       @if (id()) {
-        <app-audit-field inputId="fd-reason" labelKey="audits.fields.changeReason">
-          <input
-            id="fd-reason"
-            maxlength="2000"
-            [value]="f().changeReason"
-            (input)="patch({ changeReason: $any($event.target).value })"
-          />
-        </app-audit-field>
+        <app-form-section [columns]="1">
+          <app-audit-field inputId="fd-reason" labelKey="audits.fields.changeReason">
+            <input
+              id="fd-reason"
+              maxlength="2000"
+              [value]="f().changeReason"
+              (input)="patch({ changeReason: $any($event.target).value })"
+            />
+          </app-audit-field>
+        </app-form-section>
       }
     </app-audit-form-page>
   `,

@@ -80,7 +80,7 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
   template: `
     @switch (kind()) {
       @case ('analysis') {
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
           <app-context-form-row
             labelKey="context.fields.method"
             inputId="f-method"
@@ -179,7 +179,7 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
             </ul>
           </section>
         }
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
           <app-context-form-row
             labelKey="context.fields.category"
             inputId="f-category"
@@ -223,7 +223,7 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
             (input)="patch({ description: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
           <app-context-form-row
             labelKey="context.fields.needs"
             inputId="f-needs"
@@ -268,8 +268,10 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
             (input)="patch({ requirements: $any($event.target).value })"
           ></textarea>
         </app-context-form-row>
-        <div class="flex flex-col gap-1">
-          <label class="flex min-h-6 items-center gap-2 text-ui text-fg">
+        <div class="flex flex-col gap-1.5">
+          <label
+            class="flex min-h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+          >
             <input
               type="checkbox"
               class="h-4 w-4"
@@ -285,11 +287,11 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
               [requirements]="['iso14001:6.1.3', 'iso45001:6.1.3']"
             />
           </label>
-          <p id="f-oblig-hint" class="pl-6 text-meta text-fg-muted">
+          <p id="f-oblig-hint" class="text-meta leading-snug text-fg-subtle">
             {{ 'context.form.hints.obligation' | transloco }}
           </p>
         </div>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-3">
           <app-context-form-row
             labelKey="context.fields.influence"
             inputId="f-infl"
@@ -318,13 +320,19 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
               }
             </select>
           </app-context-form-row>
-          <div>
-            <p class="mb-1.5 text-ui font-semibold text-fg-muted">
+          <div class="flex flex-col gap-1.5">
+            <p class="flex min-h-6 items-center text-ui leading-6 font-semibold text-fg-muted">
               {{ 'context.fields.priority' | transloco }}
             </p>
             @let pr = priorityView();
-            <app-status-badge [meaning]="pr.meaning" [value]="pr.value" [labelKey]="pr.labelKey" />
-            <p class="mt-1 text-meta text-fg-muted">
+            <div class="flex min-h-10 items-center">
+              <app-status-badge
+                [meaning]="pr.meaning"
+                [value]="pr.value"
+                [labelKey]="pr.labelKey"
+              />
+            </div>
+            <p class="text-meta leading-snug text-fg-subtle">
               {{ 'context.priorityHints.' + priority() | transloco }}
             </p>
           </div>
@@ -613,8 +621,10 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
             />
           }
         </app-context-form-row>
-        <div class="flex flex-col gap-1">
-          <label class="flex min-h-6 items-center gap-2 text-ui text-fg">
+        <div class="flex flex-col gap-1.5">
+          <label
+            class="flex min-h-10 items-center gap-2 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+          >
             <input
               type="checkbox"
               class="h-4 w-4"
@@ -624,7 +634,7 @@ import { POLICY_SUGGEST_KEY, policyPatch, policySuggestValues } from './policy-s
             />
             {{ 'context.fields.availableToParties' | transloco }}
           </label>
-          <p id="f-avail-hint" class="pl-6 text-meta text-fg-muted">
+          <p id="f-avail-hint" class="text-meta leading-snug text-fg-subtle">
             {{ 'context.form.hints.available' | transloco }}
           </p>
         </div>

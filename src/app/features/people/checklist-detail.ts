@@ -47,6 +47,7 @@ import {
 } from './data/people.models';
 import { EmployeeHandoverSection } from './ui/employee-training';
 import { PEOPLE_ROOT, PEOPLE_SETTINGS_LINK } from './ui/people-nav';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments', 'attachments'];
 
@@ -85,6 +86,7 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
     ProgressBar,
     StatusBadge,
     EmployeeHandoverSection,
+    FormField,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -364,42 +366,43 @@ const TABS: readonly RecordTab[] = ['details', 'related', 'activity', 'comments'
 
                 @if (editable()) {
                   <form
-                    class="mt-4 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-end"
+                    class="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end"
                     (submit)="$event.preventDefault(); addItem()"
                   >
-                    <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <span class="flex items-center gap-1.5">
-                        <label for="cf-new-item" class="text-meta font-semibold text-fg-muted">
-                          {{ 'people.checklists.newItem' | transloco }}
-                        </label>
-                        <app-field-help scope="people" page="checklistDetail" field="items" />
-                      </span>
+                    <app-form-field
+                      class="flex-1"
+                      [label]="'people.checklists.newItem' | transloco"
+                      inputId="cf-new-item"
+                    >
+                      <app-field-help
+                        label-suffix
+                        scope="people"
+                        page="checklistDetail"
+                        field="items"
+                        [label]="'people.checklists.newItem' | transloco"
+                      />
                       <input
                         id="cf-new-item"
                         type="text"
                         maxlength="500"
-                        class="h-10 rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                         [value]="newText()"
                         (input)="newText.set($any($event.target).value)"
                         data-testid="new-item-text"
                       />
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label for="cf-new-cat" class="text-meta font-semibold text-fg-muted">
-                        {{ 'people.fields.category' | transloco }}
-                      </label>
-                      <select
-                        id="cf-new-cat"
-                        class="h-10 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
-                        (change)="newCategory.set($any($event.target).value)"
-                      >
+                    </app-form-field>
+                    <app-form-field
+                      class="sm:w-48"
+                      [label]="'people.fields.category' | transloco"
+                      inputId="cf-new-cat"
+                    >
+                      <select id="cf-new-cat" (change)="newCategory.set($any($event.target).value)">
                         @for (k of categories; track k) {
                           <option [value]="k" [selected]="newCategory() === k">
                             {{ 'people.itemCategories.' + k | transloco }}
                           </option>
                         }
                       </select>
-                    </div>
+                    </app-form-field>
                     <label class="flex h-10 items-center gap-2 text-ui text-fg">
                       <input
                         type="checkbox"

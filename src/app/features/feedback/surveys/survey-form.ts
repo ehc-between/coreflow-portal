@@ -15,7 +15,9 @@ import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { questionTypeKey, thresholdOnFive } from '../data/feedback-display';
@@ -48,9 +50,6 @@ export interface SurveyFormSubmit {
 
 const INPUT =
   'h-10 w-full rounded-tile border border-border bg-bg px-3 text-body text-fg outline-none focus:border-accent';
-const TEXTAREA =
-  'w-full rounded-tile border border-border bg-bg px-3 py-2 text-body text-fg outline-none focus:border-accent';
-
 /**
  * The survey form with its question builder (create and edit). Questions can be
  * added, reordered, changed and previewed while the survey is a draft; once it is
@@ -63,8 +62,10 @@ const TEXTAREA =
     FieldHelp,
     Alert,
     Button,
-    Card,
+    DateInput,
+    FormActions,
     FormField,
+    FormSection,
     Icon,
     SurveyQuestion,
     CustomerPicker,
@@ -72,228 +73,227 @@ const TEXTAREA =
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
-      <app-card>
-        <h2 class="mb-4 font-display text-section font-bold text-fg">
-          {{ 'feedback.surveyForm.sections.basics' | transloco }}
-        </h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <app-form-field
-              [label]="'feedback.surveyFields.title' | transloco"
-              inputId="cf-sv-title"
-            >
-              <input
-                id="cf-sv-title"
-                type="text"
-                maxlength="255"
-                required
-                [value]="form().title"
-                (input)="set('title', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['title']"
-                data-testid="survey-title"
-              />
-            </app-form-field>
-            @if (shownErrors()['title']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <div class="sm:col-span-2">
-            <label for="cf-sv-desc" class="mb-1.5 block text-ui font-semibold text-fg-muted">
-              {{ 'feedback.surveyFields.description' | transloco }}
-            </label>
-            <textarea
-              id="cf-sv-desc"
-              rows="3"
-              maxlength="5000"
-              [class]="textarea"
-              [value]="form().description"
-              (input)="set('description', $any($event.target).value)"
-            ></textarea>
-            <p class="mt-1 text-meta text-fg-subtle">
-              {{ 'feedback.surveyForm.descriptionHint' | transloco }}
-            </p>
-          </div>
-          <app-form-field
-            [label]="'feedback.surveyFields.opensOn' | transloco"
-            inputId="cf-sv-opens"
-          >
-            <input
-              id="cf-sv-opens"
-              type="date"
-              [value]="form().opens_on"
-              (change)="set('opens_on', $any($event.target).value)"
-            />
-          </app-form-field>
-          <div>
-            <app-form-field
-              [label]="'feedback.surveyFields.closesOn' | transloco"
-              inputId="cf-sv-closes"
-            >
-              <input
-                id="cf-sv-closes"
-                type="date"
-                [value]="form().closes_on"
-                (change)="set('closes_on', $any($event.target).value)"
-                [attr.aria-invalid]="!!shownErrors()['closes_on']"
-              />
-            </app-form-field>
-            @if (shownErrors()['closes_on']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <div>
-            <label class="inline-flex items-center gap-2 text-ui text-fg">
-              <input
-                type="checkbox"
-                class="h-4 w-4 accent-[var(--accent)]"
-                [checked]="form().anonymous"
-                (change)="set('anonymous', $any($event.target).checked)"
-                data-testid="survey-anonymous"
-              />
-              {{ 'feedback.surveyFields.anonymous' | transloco }}
-              <app-field-help scope="feedback" page="surveyForm" field="anonymous" />
-            </label>
-          </div>
-          <div>
-            <label
-              for="cf-sv-threshold"
-              class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted"
-            >
-              {{ 'feedback.surveyFields.lowScoreThreshold' | transloco }}
-              <app-field-help scope="feedback" page="surveyForm" field="low_score_threshold" />
-            </label>
-            <input
-              id="cf-sv-threshold"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              [class]="input"
-              [value]="form().low_score_threshold"
-              (input)="set('low_score_threshold', $any($event.target).value)"
-              [attr.aria-invalid]="!!shownErrors()['low_score_threshold']"
-              aria-describedby="cf-sv-threshold-hint"
-              data-testid="survey-threshold"
-            />
-            <p id="cf-sv-threshold-hint" class="mt-1 text-meta text-fg-subtle">
-              @if (thresholdFive(); as five) {
-                {{ 'feedback.surveyForm.thresholdHint' | transloco: { five } }}
-              } @else {
-                {{ 'feedback.surveyForm.thresholdOff' | transloco }}
-              }
-            </p>
-            @if (shownErrors()['low_score_threshold']; as e) {
-              <p class="mt-1 text-meta text-fail">{{ e | transloco }}</p>
-            }
-          </div>
-          <div>
-            <label
-              for="cf-sv-language"
-              class="mb-1.5 flex items-center gap-1 text-ui font-semibold text-fg-muted"
-            >
-              {{ 'feedback.surveyFields.language' | transloco }}
-              <app-field-help scope="feedback" page="surveyForm" field="language" />
-            </label>
-            <app-form-field inputId="cf-sv-language">
-              <select
-                id="cf-sv-language"
-                (change)="set('language', $any($event.target).value)"
-                data-testid="survey-language"
-              >
-                @for (l of languages; track l) {
-                  <option [value]="l" [selected]="form().language === l">
-                    {{ 'feedback.surveyLanguages.' + l | transloco }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-            <p class="mt-1 text-meta text-fg-subtle">
-              {{ 'feedback.surveyForm.languageHint' | transloco }}
-            </p>
-          </div>
-          <app-form-field [label]="'feedback.fields.owner' | transloco" inputId="cf-sv-owner">
-            <select id="cf-sv-owner" (change)="set('owner_user_id', $any($event.target).value)">
-              <option value="" [selected]="!form().owner_user_id">
-                {{
-                  (mode() === 'create' ? 'feedback.form.ownerMe' : 'feedback.form.ownerKeep')
-                    | transloco
-                }}
-              </option>
-              @if (ownerOrphan()) {
-                <option [value]="form().owner_user_id" selected>
-                  {{ ownerName() || ('feedback.form.currentOwner' | transloco) }}
-                </option>
-              }
-              @for (u of users(); track u.id) {
-                <option [value]="u.id" [selected]="form().owner_user_id === u.id">
-                  {{ u.label }}
-                </option>
-              }
-            </select>
-          </app-form-field>
-          @if (customers.enabled()) {
-            <app-form-field
-              [label]="'feedback.fields.customer' | transloco"
-              inputId="cf-sv-customer"
-            >
-              <app-customer-picker
-                inputId="cf-sv-customer"
-                [value]="form().customer_id || null"
-                [current]="form().customer"
-                (valueChange)="set('customer_id', $event ?? '')"
-                (refChange)="set('customer', $event)"
-                data-testid="survey-customer"
-              />
-            </app-form-field>
-          }
-          <div class="sm:col-span-2">
-            <label for="cf-sv-thanks" class="mb-1.5 block text-ui font-semibold text-fg-muted">
-              {{ 'feedback.surveyFields.thankYouMessage' | transloco }}
-            </label>
-            <textarea
-              id="cf-sv-thanks"
-              rows="2"
-              maxlength="2000"
-              [class]="textarea"
-              [value]="form().thank_you_message"
-              (input)="set('thank_you_message', $any($event.target).value)"
-            ></textarea>
-          </div>
-        </div>
-      </app-card>
-
-      <app-card>
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="flex items-center gap-1 font-display text-section font-bold text-fg">
-            {{ 'feedback.surveyForm.sections.questions' | transloco }}
-            <app-field-help scope="feedback" page="surveyForm" field="questions" />
-          </h2>
-          @if (!questionsLocked() && form().questions.length) {
-            <app-button
-              size="sm"
-              variant="ghost"
-              [attr.aria-pressed]="preview()"
-              (click)="preview.set(!preview())"
-              data-testid="survey-preview-toggle"
-            >
+      <app-form-section
+        [title]="'feedback.surveyForm.sections.basics' | transloco"
+        [description]="'feedback.surveyForm.sections.basicsHint' | transloco"
+      >
+        <app-form-field
+          span="full"
+          [label]="'feedback.surveyFields.title' | transloco"
+          inputId="cf-sv-title"
+          [required]="true"
+          [error]="shownErrors()['title'] ?? '' | transloco"
+        >
+          <input
+            id="cf-sv-title"
+            type="text"
+            maxlength="255"
+            required
+            [value]="form().title"
+            (input)="set('title', $any($event.target).value)"
+            data-testid="survey-title"
+          />
+        </app-form-field>
+        <app-form-field
+          span="full"
+          [label]="'feedback.surveyFields.description' | transloco"
+          inputId="cf-sv-desc"
+          [hint]="'feedback.surveyForm.descriptionHint' | transloco"
+        >
+          <textarea
+            id="cf-sv-desc"
+            rows="3"
+            maxlength="5000"
+            [value]="form().description"
+            (input)="set('description', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+        <app-form-field [label]="'feedback.fields.owner' | transloco" inputId="cf-sv-owner">
+          <select id="cf-sv-owner" (change)="set('owner_user_id', $any($event.target).value)">
+            <option value="" [selected]="!form().owner_user_id">
               {{
-                (preview() ? 'feedback.surveyForm.editQuestions' : 'feedback.surveyForm.preview')
+                (mode() === 'create' ? 'feedback.form.ownerMe' : 'feedback.form.ownerKeep')
                   | transloco
               }}
-            </app-button>
-          }
+            </option>
+            @if (ownerOrphan()) {
+              <option [value]="form().owner_user_id" selected>
+                {{ ownerName() || ('feedback.form.currentOwner' | transloco) }}
+              </option>
+            }
+            @for (u of users(); track u.id) {
+              <option [value]="u.id" [selected]="form().owner_user_id === u.id">
+                {{ u.label }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        @if (customers.enabled()) {
+          <app-form-field [label]="'feedback.fields.customer' | transloco" inputId="cf-sv-customer">
+            <app-customer-picker
+              inputId="cf-sv-customer"
+              [value]="form().customer_id || null"
+              [current]="form().customer"
+              (valueChange)="set('customer_id', $event ?? '')"
+              (refChange)="set('customer', $event)"
+              data-testid="survey-customer"
+            />
+          </app-form-field>
+        }
+      </app-form-section>
+
+      <app-form-section
+        [title]="'feedback.surveyForm.sections.settings' | transloco"
+        [description]="'feedback.surveyForm.sections.settingsHint' | transloco"
+      >
+        <app-form-field [label]="'feedback.surveyFields.opensOn' | transloco" inputId="cf-sv-opens">
+          <app-date-input
+            inputId="cf-sv-opens"
+            [value]="form().opens_on"
+            (changed)="set('opens_on', $event)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.surveyFields.closesOn' | transloco"
+          inputId="cf-sv-closes"
+          [error]="shownErrors()['closes_on'] ?? '' | transloco"
+        >
+          <app-date-input
+            inputId="cf-sv-closes"
+            [value]="form().closes_on"
+            [invalid]="!!shownErrors()['closes_on']"
+            (changed)="set('closes_on', $event)"
+          />
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.surveyFields.language' | transloco"
+          inputId="cf-sv-language"
+          [hint]="'feedback.surveyForm.languageHint' | transloco"
+        >
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="surveyForm"
+            field="language"
+            [label]="'feedback.surveyFields.language' | transloco"
+          />
+          <select
+            id="cf-sv-language"
+            (change)="set('language', $any($event.target).value)"
+            data-testid="survey-language"
+          >
+            @for (l of languages; track l) {
+              <option [value]="l" [selected]="form().language === l">
+                {{ 'feedback.surveyLanguages.' + l | transloco }}
+              </option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          [label]="'feedback.surveyFields.lowScoreThreshold' | transloco"
+          inputId="cf-sv-threshold"
+          [error]="shownErrors()['low_score_threshold'] ?? '' | transloco"
+        >
+          <app-field-help
+            label-suffix
+            scope="feedback"
+            page="surveyForm"
+            field="low_score_threshold"
+            [label]="'feedback.surveyFields.lowScoreThreshold' | transloco"
+          />
+          <input
+            id="cf-sv-threshold"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            [value]="form().low_score_threshold"
+            (input)="set('low_score_threshold', $any($event.target).value)"
+            data-testid="survey-threshold"
+          />
+          <p hint class="text-meta leading-snug text-fg-subtle">
+            @if (thresholdFive(); as five) {
+              {{ 'feedback.surveyForm.thresholdHint' | transloco: { five } }}
+            } @else {
+              {{ 'feedback.surveyForm.thresholdOff' | transloco }}
+            }
+          </p>
+        </app-form-field>
+        <div class="flex items-center gap-1.5 sm:col-span-2">
+          <label
+            class="flex h-10 flex-1 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 accent-[var(--accent)]"
+              [checked]="form().anonymous"
+              (change)="set('anonymous', $any($event.target).checked)"
+              data-testid="survey-anonymous"
+            />
+            {{ 'feedback.surveyFields.anonymous' | transloco }}
+          </label>
+          <app-field-help
+            scope="feedback"
+            page="surveyForm"
+            field="anonymous"
+            [label]="'feedback.surveyFields.anonymous' | transloco"
+          />
         </div>
+        <app-form-field
+          span="full"
+          [label]="'feedback.surveyFields.thankYouMessage' | transloco"
+          inputId="cf-sv-thanks"
+        >
+          <textarea
+            id="cf-sv-thanks"
+            rows="2"
+            maxlength="2000"
+            [value]="form().thank_you_message"
+            (input)="set('thank_you_message', $any($event.target).value)"
+          ></textarea>
+        </app-form-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'feedback.surveyForm.sections.questions' | transloco"
+        [description]="'feedback.surveyForm.sections.questionsHint' | transloco"
+        [columns]="1"
+      >
+        <app-field-help
+          title-suffix
+          scope="feedback"
+          page="surveyForm"
+          field="questions"
+          [label]="'feedback.surveyForm.sections.questions' | transloco"
+        />
+        @if (!questionsLocked() && form().questions.length) {
+          <app-button
+            section-actions
+            size="sm"
+            variant="secondary"
+            [attr.aria-pressed]="preview()"
+            (click)="preview.set(!preview())"
+            data-testid="survey-preview-toggle"
+          >
+            {{
+              (preview() ? 'feedback.surveyForm.editQuestions' : 'feedback.surveyForm.preview')
+                | transloco
+            }}
+          </app-button>
+        }
 
         @if (questionsLocked()) {
-          <app-alert tone="info">{{ 'feedback.surveyForm.locked' | transloco }}</app-alert>
-          <ol class="mt-3 flex flex-col gap-1 text-body text-fg">
-            @for (q of form().questions; track q.key; let i = $index) {
-              <li>
-                <span class="text-fg-subtle">{{ i + 1 }}.</span> {{ q.label }}
-                <span class="text-meta text-fg-subtle">({{ typeKey(q.type) | transloco }})</span>
-              </li>
-            }
-          </ol>
+          <div>
+            <app-alert tone="info">{{ 'feedback.surveyForm.locked' | transloco }}</app-alert>
+            <ol class="mt-3 flex flex-col gap-1 text-body text-fg">
+              @for (q of form().questions; track q.key; let i = $index) {
+                <li>
+                  <span class="text-fg-subtle">{{ i + 1 }}.</span> {{ q.label }}
+                  <span class="text-meta text-fg-subtle">({{ typeKey(q.type) | transloco }})</span>
+                </li>
+              }
+            </ol>
+          </div>
         } @else if (preview()) {
           <div class="flex flex-col gap-5" data-testid="survey-preview">
             @for (q of previewQuestions(); track q.id; let i = $index) {
@@ -307,12 +307,12 @@ const TEXTAREA =
           </div>
         } @else {
           @if (form().questions.length === 0) {
-            <div class="rounded-tile border border-dashed border-border p-4 text-center">
+            <div class="rounded-tile border border-dashed border-border p-5 text-center">
               <p class="text-ui text-fg-muted">
                 {{ 'feedback.surveyForm.noQuestions' | transloco }}
               </p>
               <app-button
-                class="mt-2 inline-block"
+                class="mt-3 inline-block"
                 size="sm"
                 variant="secondary"
                 (click)="addStarter()"
@@ -322,12 +322,15 @@ const TEXTAREA =
               </app-button>
             </div>
           }
-          <ol class="flex flex-col gap-4" data-testid="question-list">
+          <ol class="flex flex-col gap-3 empty:hidden" data-testid="question-list">
             @for (q of form().questions; track q.key; let i = $index; let last = $last) {
-              <li class="rounded-tile border border-border p-3">
-                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <span class="text-meta font-semibold text-fg-subtle">
-                    {{ 'feedback.surveyForm.questionN' | transloco: { n: i + 1 } }}
+              <li class="rounded-tile border border-border bg-bg p-4">
+                <div class="mb-3 flex items-center justify-between gap-2">
+                  <span
+                    class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-soft px-1.5 text-meta font-bold text-accent"
+                    [attr.aria-label]="'feedback.surveyForm.questionN' | transloco: { n: i + 1 }"
+                  >
+                    {{ i + 1 }}
                   </span>
                   <span class="flex gap-1">
                     <button
@@ -359,29 +362,27 @@ const TEXTAREA =
                     </button>
                   </span>
                 </div>
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_200px]">
-                  <div>
-                    <label [for]="'cf-sq-label-' + q.key" class="sr-only">
-                      {{ 'feedback.surveyFields.questionLabel' | transloco }}
-                    </label>
+                <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
+                  <app-form-field
+                    span="full"
+                    [label]="'feedback.surveyFields.questionLabel' | transloco"
+                    [inputId]="'cf-sq-label-' + q.key"
+                  >
                     <input
                       [id]="'cf-sq-label-' + q.key"
                       type="text"
                       maxlength="500"
-                      [class]="input"
-                      [placeholder]="'feedback.surveyFields.questionLabel' | transloco"
                       [value]="q.label"
                       (input)="patch(i, { label: $any($event.target).value })"
                       [attr.data-testid]="'question-label-' + i"
                     />
-                  </div>
-                  <div>
-                    <label [for]="'cf-sq-type-' + q.key" class="sr-only">
-                      {{ 'feedback.surveyFields.questionType' | transloco }}
-                    </label>
+                  </app-form-field>
+                  <app-form-field
+                    [label]="'feedback.surveyFields.questionType' | transloco"
+                    [inputId]="'cf-sq-type-' + q.key"
+                  >
                     <select
                       [id]="'cf-sq-type-' + q.key"
-                      [class]="input"
                       (change)="setType(i, $any($event.target).value)"
                     >
                       @for (t of types; track t) {
@@ -390,73 +391,93 @@ const TEXTAREA =
                         </option>
                       }
                     </select>
-                  </div>
-                  <div class="sm:col-span-2">
-                    <label [for]="'cf-sq-help-' + q.key" class="sr-only">
-                      {{ 'feedback.surveyFields.questionHelp' | transloco }}
-                    </label>
+                  </app-form-field>
+                  @if (q.type === 'rating') {
+                    <app-form-field
+                      [label]="'feedback.surveyFields.scale' | transloco"
+                      [inputId]="'cf-sq-scale-' + q.key"
+                    >
+                      <select
+                        [id]="'cf-sq-scale-' + q.key"
+                        (change)="patch(i, { scale: +$any($event.target).value })"
+                      >
+                        @for (n of scales; track n) {
+                          <option [value]="n" [selected]="q.scale === n">{{ n }}</option>
+                        }
+                      </select>
+                    </app-form-field>
+                  } @else {
+                    <div class="hidden sm:block" aria-hidden="true"></div>
+                  }
+                  <app-form-field
+                    span="full"
+                    [label]="'feedback.surveyFields.questionHelp' | transloco"
+                    [inputId]="'cf-sq-help-' + q.key"
+                  >
                     <input
                       [id]="'cf-sq-help-' + q.key"
                       type="text"
                       maxlength="1000"
-                      [class]="input"
-                      [placeholder]="'feedback.surveyFields.questionHelp' | transloco"
                       [value]="q.help"
                       (input)="patch(i, { help: $any($event.target).value })"
                     />
-                  </div>
-                </div>
+                  </app-form-field>
 
-                @if (isChoice(q.type)) {
-                  <fieldset class="mt-3">
-                    <legend class="mb-1 text-meta font-semibold text-fg-muted">
-                      {{ 'feedback.surveyFields.options' | transloco }}
-                    </legend>
-                    <div class="flex flex-col gap-1.5">
-                      @for (o of q.options; track $index; let j = $index) {
-                        <div class="flex items-center gap-2">
-                          <label [for]="'cf-sq-opt-' + q.key + '-' + j" class="sr-only">
-                            {{ 'feedback.surveyForm.optionN' | transloco: { n: j + 1 } }}
-                          </label>
-                          <input
-                            [id]="'cf-sq-opt-' + q.key + '-' + j"
-                            type="text"
-                            maxlength="200"
-                            [class]="input"
-                            [placeholder]="'feedback.surveyForm.optionN' | transloco: { n: j + 1 }"
-                            [value]="o"
-                            (input)="setOption(i, j, $any($event.target).value)"
-                          />
-                          <button
-                            type="button"
-                            [class]="iconButton"
-                            [disabled]="q.options.length <= 2"
-                            [attr.aria-label]="
-                              'feedback.surveyForm.removeOption' | transloco: { n: j + 1 }
-                            "
-                            (click)="removeOption(i, j)"
-                          >
-                            <app-icon name="x" [size]="14" />
-                          </button>
-                        </div>
-                      }
-                    </div>
-                    @if (q.options.length < maxOptions) {
-                      <app-button
-                        class="mt-2 inline-block"
-                        size="sm"
-                        variant="ghost"
-                        (click)="addOption(i)"
+                  @if (isChoice(q.type)) {
+                    <fieldset class="sm:col-span-2">
+                      <legend
+                        class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted"
                       >
-                        <app-icon name="plus" [size]="13" />
-                        {{ 'feedback.surveyForm.addOption' | transloco }}
-                      </app-button>
-                    }
-                  </fieldset>
-                }
+                        {{ 'feedback.surveyFields.options' | transloco }}
+                      </legend>
+                      <div class="flex flex-col gap-2">
+                        @for (o of q.options; track $index; let j = $index) {
+                          <div class="flex items-center gap-2">
+                            <label [for]="'cf-sq-opt-' + q.key + '-' + j" class="sr-only">
+                              {{ 'feedback.surveyForm.optionN' | transloco: { n: j + 1 } }}
+                            </label>
+                            <input
+                              [id]="'cf-sq-opt-' + q.key + '-' + j"
+                              type="text"
+                              maxlength="200"
+                              [class]="input"
+                              [placeholder]="
+                                'feedback.surveyForm.optionN' | transloco: { n: j + 1 }
+                              "
+                              [value]="o"
+                              (input)="setOption(i, j, $any($event.target).value)"
+                            />
+                            <button
+                              type="button"
+                              [class]="iconButton"
+                              [disabled]="q.options.length <= 2"
+                              [attr.aria-label]="
+                                'feedback.surveyForm.removeOption' | transloco: { n: j + 1 }
+                              "
+                              (click)="removeOption(i, j)"
+                            >
+                              <app-icon name="x" [size]="14" />
+                            </button>
+                          </div>
+                        }
+                      </div>
+                      @if (q.options.length < maxOptions) {
+                        <app-button
+                          class="mt-2 inline-block"
+                          size="sm"
+                          variant="ghost"
+                          (click)="addOption(i)"
+                        >
+                          <app-icon name="plus" [size]="13" />
+                          {{ 'feedback.surveyForm.addOption' | transloco }}
+                        </app-button>
+                      }
+                    </fieldset>
+                  }
 
-                <div class="mt-3 flex flex-wrap items-center gap-4">
-                  <label class="inline-flex items-center gap-2 text-ui text-fg">
+                  <label
+                    class="flex h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-surface px-3 text-ui text-fg sm:col-span-2"
+                  >
                     <input
                       type="checkbox"
                       class="h-4 w-4 accent-[var(--accent)]"
@@ -465,34 +486,21 @@ const TEXTAREA =
                     />
                     {{ 'feedback.surveyFields.required' | transloco }}
                   </label>
-                  @if (q.type === 'rating') {
-                    <label class="inline-flex items-center gap-2 text-ui text-fg">
-                      {{ 'feedback.surveyFields.scale' | transloco }}
-                      <select
-                        class="h-8 rounded-tile border border-border bg-bg px-2 text-ui"
-                        (change)="patch(i, { scale: +$any($event.target).value })"
-                      >
-                        @for (n of scales; track n) {
-                          <option [value]="n" [selected]="q.scale === n">{{ n }}</option>
-                        }
-                      </select>
-                    </label>
-                  }
                 </div>
                 @for (p of problemsFor(i + 1); track p) {
-                  <p class="mt-2 text-meta text-fail">{{ p | transloco }}</p>
+                  <p class="mt-2 text-meta font-medium text-fail-ink">{{ p | transloco }}</p>
                 }
               </li>
             }
           </ol>
           @if (form().questions.length < maxQuestions) {
-            <div class="mt-3 flex flex-wrap items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <label for="cf-sv-add-type" class="text-ui font-semibold text-fg-muted">
                 {{ 'feedback.surveyForm.addLabel' | transloco }}
               </label>
               <select
                 id="cf-sv-add-type"
-                class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
+                [class]="input + ' w-auto! min-w-48'"
                 (change)="newType.set($any($event.target).value)"
               >
                 @for (t of types; track t) {
@@ -508,10 +516,10 @@ const TEXTAREA =
             </div>
           }
         }
-      </app-card>
+      </app-form-section>
 
       @if (mode() === 'edit') {
-        <app-card>
+        <app-form-section [columns]="1">
           <app-form-field [label]="'feedback.form.changeReason' | transloco" inputId="cf-sv-reason">
             <input
               id="cf-sv-reason"
@@ -521,15 +529,15 @@ const TEXTAREA =
               (input)="changeReason.set($any($event.target).value)"
             />
           </app-form-field>
-        </app-card>
+        </app-form-section>
       }
 
-      @if (attempted() && hasProblems()) {
-        <app-alert tone="error">{{ 'feedback.surveyForm.fixProblems' | transloco }}</app-alert>
-      }
-
-      <div class="flex flex-wrap justify-end gap-2">
-        <app-button variant="ghost" (click)="cancelled.emit()">
+      <app-form-actions
+        [message]="
+          attempted() && hasProblems() ? ('feedback.surveyForm.fixProblems' | transloco) : ''
+        "
+      >
+        <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()" [disabled]="busy()" data-testid="survey-save">
@@ -537,7 +545,7 @@ const TEXTAREA =
             (mode() === 'create' ? 'feedback.surveyForm.create' : 'feedback.form.save') | transloco
           }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
@@ -556,7 +564,6 @@ export class SurveyForm {
   readonly cancelled = output<void>();
 
   protected readonly input = INPUT;
-  protected readonly textarea = TEXTAREA;
   protected readonly iconButton =
     'inline-flex h-8 w-8 items-center justify-center rounded-tile text-fg-subtle outline-none hover:bg-surface-2 hover:text-fg focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40';
   protected readonly types = QUESTION_TYPES;

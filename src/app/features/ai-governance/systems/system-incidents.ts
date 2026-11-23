@@ -79,7 +79,7 @@ const MIN_QUERY = 2;
             {{ 'aiGovernance.incidents.searchLabel' | transloco }}
             <input
               type="search"
-              class="h-9 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
+              class="h-10 rounded-tile border border-border bg-bg px-3 text-ui font-normal text-fg"
               [placeholder]="'aiGovernance.incidents.searchPlaceholder' | transloco"
               [value]="query()"
               (input)="query.set($any($event.target).value)"

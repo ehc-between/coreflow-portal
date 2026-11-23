@@ -261,7 +261,10 @@
       "inherent": "Iboende risiko (før tiltak)",
       "treatment": "Beslutning om behandling",
       "residual": "Restrisiko (etter tiltak)",
-      "ownership": "Eier og gjennomgang"
+      "ownership": "Eier og gjennomgang",
+      "contextHint": "Hva som er utsatt, og hva som kan gå galt.",
+      "residualHint": "Risikoen som er igjen når tiltakene er på plass.",
+      "ownershipHint": "Hvem som følger opp, og hvor ofte den gjennomgås."
     },
     "inherentLegend": "Vurder risikoen slik den er i dag, før planlagte tiltak",
     "residualLegend": "Vurder risikoen du forventer når tiltakene er på plass",
@@ -288,7 +291,8 @@
     "controlPickerPlaceholder": "Søk på nummer eller tittel, f.eks. A.8.13 eller backup",
     "controlsHint": "Valgte kontroller merkes som dokumentert av denne risikoen.",
     "appetiteNote": "Risikoer med mer enn {{ score }} poeng må behandles eller aksepteres formelt.",
-    "residualAfterStrategy": "Velg en behandlingsstrategi først. Vurder deretter risikoen du forventer etter tiltakene."
+    "residualAfterStrategy": "Velg en behandlingsstrategi først. Vurder deretter risikoen du forventer etter tiltakene.",
+    "fixFields": "Rett feltene som er markert."
   },
   "detail": {
     "assessment": "Vurdering",
@@ -511,6 +515,12 @@
       "score": "Vurder nytte og gjennomførbarhet",
       "plan": "Beskriv hvordan dere skal ta ut muligheten",
       "owner": "Velg en eier"
+    },
+    "sections": {
+      "basics": "Muligheten",
+      "basicsHint": "Hva muligheten er, og hvem som følger den opp.",
+      "source": "Hvor den kommer fra",
+      "sourceHint": "Hva muligheten gjelder, og hvilket register den hører til."
     }
   },
   "soa": {
@@ -733,7 +743,11 @@
     "deleteMessage": "{{ name }} kan bare slettes når ingen registre bruker den.",
     "descriptionExample": "For eksempel: {{ example }}",
     "missingDescriptions": "{{ count }} nivåer mangler beskrivelse. Revisorer forventer at hvert nivå er definert.",
-    "fillDescriptions": "Fyll inn eksempler"
+    "fillDescriptions": "Fyll inn eksempler",
+    "sections": {
+      "basics": "Matrisen",
+      "basicsHint": "Navnet, hva den bygger på og den høyeste poengsummen dere aksepterer."
+    }
   },
   "ai": {
     "suggestThreats": "Foreslå trusler",

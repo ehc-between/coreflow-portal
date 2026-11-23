@@ -28,6 +28,7 @@ import {
   RequirementIn,
   SuggestedCompetence,
 } from './data/people.models';
+import { FormField } from '../../shared/ui/form-field/form-field';
 
 export interface RequirementDraft {
   readonly competence_id: string;
@@ -66,13 +67,19 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
  */
 @Component({
   selector: 'app-people-position-requirements',
-  imports: [RouterLink, TranslocoPipe, AiAssistButton, FieldHelp, Button, Icon],
+  imports: [RouterLink, TranslocoPipe, AiAssistButton, FieldHelp, Button, Icon, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-pos-req-h">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="cf-pos-req-h" class="text-card font-bold text-fg">
+        <h2 id="cf-pos-req-h" class="flex min-h-6 items-center gap-1.5 text-card font-bold text-fg">
           {{ 'people.requirements.title' | transloco }}
+          <app-field-help
+            scope="people"
+            page="positionDetail"
+            field="requirements"
+            [label]="'people.requirements.title' | transloco"
+          />
         </h2>
         @if (canManage()) {
           <div class="flex flex-wrap gap-2">
@@ -97,7 +104,6 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
           </div>
         }
       </div>
-      <app-field-help scope="people" page="positionDetail" field="requirements" />
 
       @if (suggestions().length) {
         <div
@@ -157,18 +163,17 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
           @for (d of drafts(); track $index; let i = $index) {
             <li class="rounded-tile border border-border p-3">
               <fieldset
-                class="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr_auto_auto] sm:items-end"
+                class="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-[2fr_1fr_auto_auto] sm:items-end"
               >
                 <legend class="sr-only">
                   {{ 'people.requirements.row' | transloco: { n: i + 1 } }}
                 </legend>
-                <div class="flex flex-col gap-1">
-                  <label [for]="'cf-req-comp-' + i" class="text-meta font-semibold text-fg-muted">
-                    {{ 'people.fields.competence' | transloco }}
-                  </label>
+                <app-form-field
+                  [label]="'people.fields.competence' | transloco"
+                  [inputId]="'cf-req-comp-' + i"
+                >
                   <select
                     [id]="'cf-req-comp-' + i"
-                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                     (change)="setCompetence(i, $any($event.target).value)"
                   >
                     <option value="" [selected]="!d.competence_id">
@@ -183,14 +188,13 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                       </option>
                     }
                   </select>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <label [for]="'cf-req-level-' + i" class="text-meta font-semibold text-fg-muted">
-                    {{ 'people.fields.requiredLevel' | transloco }}
-                  </label>
+                </app-form-field>
+                <app-form-field
+                  [label]="'people.fields.requiredLevel' | transloco"
+                  [inputId]="'cf-req-level-' + i"
+                >
                   <select
                     [id]="'cf-req-level-' + i"
-                    class="h-9 rounded-tile border border-border bg-bg px-2 text-ui text-fg"
                     (change)="patch(i, { required_level: +$any($event.target).value })"
                   >
                     @for (l of levels; track l) {
@@ -199,8 +203,8 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                       </option>
                     }
                   </select>
-                </div>
-                <label class="flex h-9 items-center gap-2 text-ui text-fg">
+                </app-form-field>
+                <label class="flex h-10 items-center gap-2 text-ui text-fg">
                   <input
                     type="checkbox"
                     class="h-4 w-4 accent-[var(--accent)]"
@@ -209,7 +213,7 @@ export function toRequirementsBody(drafts: readonly RequirementDraft[]): Require
                   />
                   {{ 'people.competences.mandatory' | transloco }}
                 </label>
-                <app-button size="sm" variant="ghost" (click)="removeRow(i)">
+                <app-button class="sm:mb-1" size="sm" variant="ghost" (click)="removeRow(i)">
                   <app-icon name="trash" [size]="14" />
                   <span class="sr-only">{{ 'people.requirements.remove' | transloco }}</span>
                 </app-button>

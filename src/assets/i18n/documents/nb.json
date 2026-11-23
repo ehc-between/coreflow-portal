@@ -217,7 +217,14 @@
         }
       },
       "needAudience": "Legg til minst én mottaker for å starte.",
-      "needDocument": "Velg først et godkjent dokument."
+      "needDocument": "Velg først et godkjent dokument.",
+      "sections": {
+        "what": "Hva som skal leses",
+        "whatHint": "Det godkjente dokumentet og meldingen folk får sammen med det.",
+        "how": "Bekreftelse og frist",
+        "howHint": "Om folk må bekrefte, og innen når.",
+        "audienceHint": "Hvem som får dokumentet. Legg til personer, roller eller avdelinger."
+      }
     },
     "external": {
       "title": "Eksterne dokumenter",
@@ -256,7 +263,14 @@
         "notes": "Merknader",
         "lastReviewed": "Sist gjennomgått"
       },
-      "fillMissing": "Legg inn versjon og utgivelsesdato, så alle ser hvilken utgave dere jobber etter."
+      "fillMissing": "Legg inn versjon og utgivelsesdato, så alle ser hvilken utgave dere jobber etter.",
+      "sections": {
+        "source": "Dokumentet",
+        "sourceHint": "Hva dokumentet er, hvem som gir det ut og hvilken utgave dere bruker.",
+        "care": "Ansvar og gjennomgang",
+        "careHint": "Hvem som holder det oppdatert, hvor ofte det sjekkes og hvor lenge det oppbevares."
+      },
+      "askAppliesLabel": "Hvordan gjelder dette for oss?"
     },
     "types": {
       "title": "Dokumenttyper",
@@ -288,7 +302,13 @@
       "advanced": "Avansert",
       "keyAuto": "Lages fra navnet",
       "format": "Kodeformat",
-      "formatCustom": "Eget format"
+      "formatCustom": "Eget format",
+      "sections": {
+        "basics": "Typen",
+        "basicsHint": "Navnet folk velger når de oppretter et dokument.",
+        "numberingHint": "Hvordan nye dokumenter av denne typen får koden sin.",
+        "defaultsHint": "Det nye dokumenter av denne typen starter med. Hvert dokument kan endre det."
+      }
     },
     "templates": {
       "title": "Dokumentmaler",
@@ -304,6 +324,12 @@
       "deleteMessage": "«{{ name }}» fjernes. Dokumenter som er laget fra den, påvirkes ikke.",
       "fields": {
         "name": "Navn"
+      },
+      "sections": {
+        "basics": "Malen",
+        "basicsHint": "Navnet og typen folk ser når de starter et nytt dokument.",
+        "content": "Innhold",
+        "contentHint": "Strukturen alle nye dokumenter fra denne malen starter med."
       }
     },
     "retention": {
@@ -354,7 +380,13 @@
         "usage": "I bruk"
       },
       "periodYears": "{{ count }} år · {{ trigger }}",
-      "equalsYears": "Det tilsvarer {{ count }} år."
+      "equalsYears": "Det tilsvarer {{ count }} år.",
+      "sections": {
+        "rule": "Regelen",
+        "ruleHint": "Hva regelen gjelder, hvor lenge registreringene oppbevares og hva som skjer etterpå.",
+        "basis": "Grunnlag",
+        "basisHint": "Hvorfor perioden er satt slik, så andre kan kontrollere det senere."
+      }
     },
     "compare": {
       "title": "Historikk: {{ title }}",
@@ -522,6 +554,11 @@
       "errors": {
         "type": "Velg hva slags dokument dette er.",
         "title": "Gi dokumentet en tittel."
+      },
+      "sections": {
+        "aboutHint": "Tittel, type og kode folk finner dokumentet igjen på.",
+        "content": "Innhold",
+        "contentHint": "Skriv dokumentet, start fra et utkast, eller la det stå tomt og skriv det senere."
       }
     },
     "editor": {

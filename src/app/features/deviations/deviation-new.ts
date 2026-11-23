@@ -63,6 +63,10 @@ import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
 import { Icon } from '../../shared/ui/icon/icon';
 import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormField } from '../../shared/ui/form-field/form-field';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { DeviationClassificationFields } from './classification-fields';
 import {
   DEVIATIONS_ROOT_CRUMB,
@@ -141,10 +145,15 @@ export function linksFromParams(params: {
     DeviationEventFacts,
     DeviationFormRow,
     CustomerPicker,
+    DateInput,
+    FormActions,
+    FormField,
+    FormSection,
   ],
+
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-28 sm:px-8 sm:pt-7 sm:pb-12">
+    <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         titleKey="deviations.new"
         descriptionKey="deviations.create.description"
@@ -153,9 +162,8 @@ export function linksFromParams(params: {
       />
       <app-help-strip scope="deviations" page="new" tour="new" lesson="good-deviation-report" />
 
-      <div class="max-w-[760px]">
-        <app-flow-banner [flow]="flow()" />
-
+      <app-flow-banner [flow]="flow()" />
+      <div class="flex flex-col gap-5">
         @if (loadingTypes()) {
           <app-loading-state [rows]="3" />
         } @else if (types().length === 0) {
@@ -178,11 +186,11 @@ export function linksFromParams(params: {
             </app-teaching-empty>
           </app-card>
         } @else {
-          <app-card class="mb-5 block">
-            <div class="flex flex-col gap-2" appTourStep="deviations-describe">
-              <label for="dev-freetext" class="text-ui font-semibold text-fg-muted">
-                {{ 'deviations.assist.describeLabel' | transloco }}
-              </label>
+          <app-form-section [columns]="1" appTourStep="deviations-describe">
+            <app-form-field
+              [label]="'deviations.assist.describeLabel' | transloco"
+              inputId="dev-freetext"
+            >
               <textarea
                 id="dev-freetext"
                 rows="3"
@@ -190,21 +198,20 @@ export function linksFromParams(params: {
                 [ngModel]="freeText()"
                 (ngModelChange)="freeText.set($event)"
                 [placeholder]="'deviations.assist.describePlaceholder' | transloco"
-                class="w-full rounded-tile border border-border bg-bg px-3 py-2.5 text-ui text-fg outline-none focus:border-accent"
               ></textarea>
-              <app-form-suggest
-                suggestKey="deviations.deviation"
-                labelKey="ask.formSuggest.labels.deviation"
-                [fields]="suggestFields()"
-                [values]="suggestValues()"
-                [context]="{ from: 'deviations', text: freeText().trim() }"
-                (applied)="applySuggestion($event)"
-              />
-            </div>
-          </app-card>
+            </app-form-field>
+            <app-form-suggest
+              suggestKey="deviations.deviation"
+              labelKey="ask.formSuggest.labels.deviation"
+              [fields]="suggestFields()"
+              [values]="suggestValues()"
+              [context]="{ from: 'deviations', text: freeText().trim() }"
+              (applied)="applySuggestion($event)"
+            />
+          </app-form-section>
 
           @if (!selectedType()) {
-            <h2 class="mb-3 font-display text-section font-bold text-fg">
+            <h2 class="-mb-2 font-display text-section font-bold text-fg">
               {{ 'deviations.create.pickType' | transloco }}
             </h2>
             <div class="grid gap-2.5 sm:grid-cols-2" data-testid="type-picker">
@@ -258,115 +265,100 @@ export function linksFromParams(params: {
                 </button>
               </div>
 
-              <app-card>
-                <h2 class="mb-1 font-display text-section font-bold text-fg">
-                  {{ 'deviations.create.sections.what' | transloco }}
-                </h2>
-                <p class="mb-4 text-meta text-fg-muted">
-                  {{ 'deviations.create.sections.whatHint' | transloco }}
-                </p>
-                <div class="flex flex-col gap-4">
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.title"
-                    inputId="dev-title"
-                    help="title"
-                    [required]="true"
-                    [errorKey]="titleError() ? 'deviations.create.titleRequired' : null"
+              <app-form-section
+                [title]="'deviations.create.sections.what' | transloco"
+                [description]="'deviations.create.sections.whatHint' | transloco"
+              >
+                <app-deviation-form-row
+                  span="full"
+                  labelKey="deviations.create.fields.title"
+                  inputId="dev-title"
+                  help="title"
+                  [required]="true"
+                  [errorKey]="titleError() ? 'deviations.create.titleRequired' : null"
+                >
+                  <input
+                    id="dev-title"
+                    type="text"
+                    name="title"
+                    maxlength="255"
+                    autocomplete="off"
+                    [ngModel]="title()"
+                    (ngModelChange)="title.set($event); titleError.set(false)"
+                  />
+                </app-deviation-form-row>
+                <app-deviation-form-row
+                  span="full"
+                  labelKey="deviations.create.fields.description"
+                  inputId="dev-desc"
+                  help="description"
+                >
+                  <textarea
+                    id="dev-desc"
+                    name="description"
+                    rows="3"
+                    [ngModel]="description()"
+                    (ngModelChange)="description.set($event)"
+                  ></textarea>
+                </app-deviation-form-row>
+                <app-deviation-event-facts
+                  idPrefix="dev"
+                  [(occurred)]="occurred"
+                  [(detected)]="detected"
+                  [(location)]="location"
+                  [(immediateAction)]="immediateAction"
+                />
+              </app-form-section>
+
+              <app-form-section
+                [title]="'deviations.create.sections.classify' | transloco"
+                [description]="'deviations.create.sections.classifyHint' | transloco"
+              >
+                <app-deviation-form-row
+                  labelKey="deviations.create.fields.severity"
+                  inputId="dev-severity"
+                  help="severity"
+                >
+                  <app-ask-about
+                    ask
+                    field="severity"
+                    [fieldLabel]="'deviations.create.fields.severity' | transloco"
+                  />
+                  <select
+                    id="dev-severity"
+                    name="severity"
+                    [ngModel]="severity()"
+                    (ngModelChange)="severity.set($event)"
                   >
-                    <input
-                      id="dev-title"
-                      type="text"
-                      name="title"
-                      maxlength="255"
-                      autocomplete="off"
-                      [ngModel]="title()"
-                      (ngModelChange)="title.set($event); titleError.set(false)"
+                    @for (option of severityOptions; track option) {
+                      <option [value]="option">
+                        {{ severityLabelKey(option) | transloco }}
+                      </option>
+                    }
+                  </select>
+                </app-deviation-form-row>
+                @if (customers.enabled()) {
+                  <app-deviation-form-row
+                    labelKey="deviations.create.fields.customer"
+                    inputId="dev-customer"
+                    [required]="customerRequired()"
+                    [errorKey]="customerError() ? 'deviations.apiErrors.customer_required' : null"
+                  >
+                    <app-customer-picker
+                      inputId="dev-customer"
+                      [value]="customerId()"
+                      [current]="customerRef()"
+                      [required]="customerRequired()"
+                      (valueChange)="setCustomer($event)"
+                      (refChange)="customerRef.set($event)"
+                      data-testid="deviation-customer"
                     />
                   </app-deviation-form-row>
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.description"
-                    inputId="dev-desc"
-                    help="description"
-                  >
-                    <textarea
-                      id="dev-desc"
-                      name="description"
-                      rows="3"
-                      [ngModel]="description()"
-                      (ngModelChange)="description.set($event)"
-                    ></textarea>
-                  </app-deviation-form-row>
-                  <app-deviation-event-facts
-                    idPrefix="dev"
-                    [(occurred)]="occurred"
-                    [(detected)]="detected"
-                    [(location)]="location"
-                    [(immediateAction)]="immediateAction"
-                  />
-                </div>
-              </app-card>
-
-              <app-card>
-                <h2 class="mb-1 font-display text-section font-bold text-fg">
-                  {{ 'deviations.create.sections.classify' | transloco }}
-                </h2>
-                <p class="mb-4 text-meta text-fg-muted">
-                  {{ 'deviations.create.sections.classifyHint' | transloco }}
-                </p>
-                <div class="flex flex-col gap-4">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <app-deviation-form-row
-                      labelKey="deviations.create.fields.severity"
-                      inputId="dev-severity"
-                      help="severity"
-                    >
-                      <app-ask-about
-                        ask
-                        field="severity"
-                        [fieldLabel]="'deviations.create.fields.severity' | transloco"
-                      />
-                      <select
-                        id="dev-severity"
-                        name="severity"
-                        [ngModel]="severity()"
-                        (ngModelChange)="severity.set($event)"
-                      >
-                        @for (option of severityOptions; track option) {
-                          <option [value]="option">
-                            {{ severityLabelKey(option) | transloco }}
-                          </option>
-                        }
-                      </select>
-                    </app-deviation-form-row>
-                    @if (customers.enabled()) {
-                      <app-deviation-form-row
-                        labelKey="deviations.create.fields.customer"
-                        inputId="dev-customer"
-                        [required]="customerRequired()"
-                        [errorKey]="
-                          customerError() ? 'deviations.apiErrors.customer_required' : null
-                        "
-                      >
-                        <app-customer-picker
-                          inputId="dev-customer"
-                          [value]="customerId()"
-                          [current]="customerRef()"
-                          [required]="customerRequired()"
-                          (valueChange)="setCustomer($event)"
-                          (refChange)="customerRef.set($event)"
-                          data-testid="deviation-customer"
-                        />
-                      </app-deviation-form-row>
-                    }
-                  </div>
-                </div>
-              </app-card>
+                }
+              </app-form-section>
 
               @if (recordVersion(); as version) {
-                <app-card>
-                  <h2 class="mb-3 font-display text-section font-bold text-fg">
-                    {{ 'deviations.wf.fieldsTitle' | transloco }}
-                  </h2>
+                <app-form-section [title]="'deviations.wf.fieldsTitle' | transloco" [columns]="1">
                   <app-dynamic-form
                     [fields]="version.fields"
                     [layout]="version.layout"
@@ -376,84 +368,70 @@ export function linksFromParams(params: {
                     [departments]="departments()"
                     (valueChange)="setRecordData($event)"
                   />
-                </app-card>
+                </app-form-section>
               } @else if (loadingRecordType()) {
                 <app-loading-state [rows]="2" />
               }
 
               @if (schemaSections().length) {
-                <app-card>
-                  <h2 class="mb-4 font-display text-section font-bold text-fg">
-                    {{ 'deviations.create.sections.typeFields' | transloco: { type: type.name } }}
-                  </h2>
-                  <div class="flex flex-col gap-6">
-                    @for (section of schemaSections(); track section.title) {
-                      <div class="flex flex-col gap-4">
-                        @if (!section.isDefault) {
-                          <h3 class="text-ui font-semibold text-fg-muted">{{ section.title }}</h3>
-                        }
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          @for (def of section.fields; track def.key) {
-                            <div [class.sm:col-span-2]="def.width === 'full'">
-                              <app-dynamic-field
-                                [field]="def"
-                                [value]="data()[def.key]"
-                                [options]="optionsFor(def.type)"
-                                [error]="dataErrors()[def.key] ?? null"
-                                (valueChange)="setData(def.key, $event)"
-                              />
-                            </div>
-                          }
-                        </div>
-                      </div>
+                @for (section of schemaSections(); track section.title) {
+                  <app-form-section
+                    [title]="
+                      section.isDefault
+                        ? ('deviations.create.sections.typeFields' | transloco: { type: type.name })
+                        : section.title
+                    "
+                  >
+                    @for (def of section.fields; track def.key) {
+                      <app-dynamic-field
+                        [class.sm:col-span-2]="def.width === 'full'"
+                        [field]="def"
+                        [value]="data()[def.key]"
+                        [options]="optionsFor(def.type)"
+                        [error]="dataErrors()[def.key] ?? null"
+                        (valueChange)="setData(def.key, $event)"
+                      />
                     }
-                  </div>
-                </app-card>
+                  </app-form-section>
+                }
               }
 
-              <app-card>
-                <h2 class="mb-1 font-display text-section font-bold text-fg">
-                  {{ 'deviations.create.sections.who' | transloco }}
-                </h2>
-                <p class="mb-4 text-meta text-fg-muted">
-                  {{ 'deviations.create.sections.whoHint' | transloco }}
-                </p>
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.owner"
-                    inputId="dev-owner"
-                    help="owner"
+              <app-form-section
+                [title]="'deviations.create.sections.who' | transloco"
+                [description]="'deviations.create.sections.whoHint' | transloco"
+              >
+                <app-deviation-form-row
+                  labelKey="deviations.create.fields.owner"
+                  inputId="dev-owner"
+                  help="owner"
+                >
+                  <select
+                    id="dev-owner"
+                    name="owner"
+                    [ngModel]="ownerId()"
+                    (ngModelChange)="ownerId.set($event)"
                   >
-                    <select
-                      id="dev-owner"
-                      name="owner"
-                      [ngModel]="ownerId()"
-                      (ngModelChange)="ownerId.set($event)"
-                    >
-                      <option value="">{{ 'deviations.create.unassigned' | transloco }}</option>
-                      @for (user of users(); track user.id) {
-                        <option [value]="user.id">{{ user.name }}</option>
-                      }
-                    </select>
-                  </app-deviation-form-row>
-                  <app-deviation-form-row
-                    labelKey="deviations.create.fields.due"
+                    <option value="">{{ 'deviations.create.unassigned' | transloco }}</option>
+                    @for (user of users(); track user.id) {
+                      <option [value]="user.id">{{ user.name }}</option>
+                    }
+                  </select>
+                </app-deviation-form-row>
+                <app-deviation-form-row
+                  labelKey="deviations.create.fields.due"
+                  inputId="dev-due"
+                  help="due"
+                >
+                  <app-date-input
                     inputId="dev-due"
-                    help="due"
-                  >
-                    <input
-                      id="dev-due"
-                      type="date"
-                      name="due"
-                      [ngModel]="dueAt()"
-                      (ngModelChange)="dueAt.set($event)"
-                    />
-                  </app-deviation-form-row>
-                </div>
-              </app-card>
+                    [value]="dueAt()"
+                    (valueChange)="dueAt.set($event ?? '')"
+                  />
+                </app-deviation-form-row>
+              </app-form-section>
 
               <app-more-fields [count]="moreFieldCount()" [open]="moreFieldsOpen()">
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
                   <app-deviation-form-row
                     labelKey="deviations.create.fields.source"
                     inputId="dev-source"
@@ -507,13 +485,13 @@ export function linksFromParams(params: {
                       </option>
                     </select>
                   </app-deviation-form-row>
+                  <app-deviation-classification-fields
+                    idPrefix="dev"
+                    [typical]="type.default_clauses ?? []"
+                    [(refs)]="refs"
+                    [(tags)]="tags"
+                  />
                 </div>
-                <app-deviation-classification-fields
-                  idPrefix="dev"
-                  [typical]="type.default_clauses ?? []"
-                  [(refs)]="refs"
-                  [(tags)]="tags"
-                />
               </app-more-fields>
 
               @if (links().length) {
@@ -522,11 +500,11 @@ export function linksFromParams(params: {
                 }}</app-alert>
               }
 
-              <div
-                class="sticky bottom-0 z-20 -mx-4 flex items-center justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
+              <app-form-actions
+                [message]="titleError() ? ('deviations.create.titleRequired' | transloco) : ''"
               >
                 <a routerLink="/deviations" tabindex="-1">
-                  <app-button type="button" variant="ghost">
+                  <app-button type="button" variant="secondary">
                     {{ 'deviations.create.cancel' | transloco }}
                   </app-button>
                 </a>
@@ -534,7 +512,7 @@ export function linksFromParams(params: {
                   <app-icon name="check" [size]="15" />
                   {{ 'deviations.create.submit' | transloco }}
                 </app-button>
-              </div>
+              </app-form-actions>
             </form>
           }
         }

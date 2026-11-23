@@ -17,8 +17,10 @@ import { locationName } from '../../shared/locale/countries';
 import { MarkdownPipe } from '../../shared/markdown/markdown.pipe';
 import { Alert } from '../../shared/ui/alert/alert';
 import { Button } from '../../shared/ui/button/button';
-import { Card } from '../../shared/ui/card/card';
 import { CountryPicker } from '../../shared/ui/country-picker/country-picker';
+import { DateInput } from '../../shared/ui/date-input/date-input';
+import { FormActions } from '../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../shared/ui/form-section/form-section';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -58,6 +60,52 @@ import { TagInput } from './fields/tag-input';
 export interface PrivacyFormSubmit {
   readonly values: FormValues;
   readonly changeReason: string;
+}
+
+/** Kinds that take both columns of the section grid (chips, long text, groups). */
+const WIDE_KINDS: ReadonlySet<string> = new Set([
+  'textarea',
+  'tags',
+  'countries',
+  'refs',
+  'entities',
+  'customers',
+  'multi',
+  'screening',
+  'risks',
+]);
+
+/** Whether a field spans both columns of the form section grid. */
+export function isWideField(f: FieldDef): boolean {
+  return !!f.wide || WIDE_KINDS.has(f.kind);
+}
+
+/**
+ * Keeps half-width fields in pairs (docs/ux-guide.md §2.4, rule 5): a run of half
+ * fields with an odd length that is followed by a wide field would leave a lone half
+ * cell mid-section, so its last field moves to the end of the section.
+ */
+export function layoutFields(fields: readonly FieldDef[]): FieldDef[] {
+  const out: FieldDef[] = [];
+  const tail: FieldDef[] = [];
+  let run: FieldDef[] = [];
+  const flush = (beforeWide: boolean) => {
+    if (beforeWide && run.length % 2 === 1) {
+      tail.push(run.pop()!);
+    }
+    out.push(...run);
+    run = [];
+  };
+  for (const f of fields) {
+    if (isWideField(f)) {
+      flush(true);
+      out.push(f);
+    } else {
+      run.push(f);
+    }
+  }
+  flush(false);
+  return [...out, ...tail];
 }
 
 interface Section {
@@ -103,9 +151,11 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
     FieldHelp,
     Alert,
     Button,
-    Card,
     CountryPicker,
+    DateInput,
+    FormActions,
     FormField,
+    FormSection,
     Icon,
     StatusBadge,
     RecordPicker,
@@ -146,7 +196,7 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
       }
 
       @if (register().key === 'ropa' && mode() === 'edit' && entityId()) {
-        <app-card>
+        <div class="rounded-card border border-accent-border bg-accent-soft/40 p-4">
           <h2 class="mb-1 flex items-center gap-2 font-display text-card font-bold text-fg">
             <app-icon name="spark" [size]="16" />
             {{ 'privacy.ai.checkRopaTitle' | transloco }}
@@ -167,21 +217,22 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
               data-testid="ropa-check"
             ></div>
           }
-        </app-card>
+        </div>
       }
 
       @for (section of sections(); track section.key) {
-        <app-card [attr.data-section]="section.key">
-          <h2 class="mb-4 font-display text-section font-bold text-fg">
-            {{ 'privacy.form.sections.' + section.key | transloco }}
-          </h2>
-          @if (section.key === 'authority' || section.key === 'subjects') {
-            <p class="-mt-2 mb-4 text-ui text-fg-muted">
-              {{ 'privacy.breach.decisionHint.' + section.key | transloco }}
-            </p>
-          }
+        <app-form-section
+          [attr.data-section]="section.key"
+          [title]="'privacy.form.sections.' + section.key | transloco"
+          [description]="
+            (section.key === 'authority' || section.key === 'subjects'
+              ? 'privacy.breach.decisionHint.' + section.key
+              : 'privacy.form.sectionHints.' + section.key
+            ) | transloco
+          "
+        >
           @if (section.key === 'tests' && register().key === 'lba' && isLia()) {
-            <div class="-mt-1 mb-4 flex flex-wrap items-center gap-2">
+            <div section-actions class="flex flex-wrap items-center gap-2">
               <app-ai-assist-button
                 assist="privacy.draft_lia"
                 [input]="liaInput()"
@@ -197,38 +248,95 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
               }
             </div>
           }
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            @for (f of section.fields; track f.key) {
-              <div [class.sm:col-span-2]="f.wide" [attr.data-field]="f.key">
-                @switch (f.kind) {
-                  @case ('screening') {
-                    <app-privacy-screening-field
-                      [value]="screeningValue()"
-                      [rationale]="rationale()"
-                      (valueChange)="set('screening', $event)"
-                    />
-                  }
-                  @case ('risks') {
-                    <app-privacy-risks-field
-                      [value]="risksValue()"
-                      (valueChange)="set('risks', $event)"
-                    />
-                    <app-field-help scope="privacy" [page]="register().key" field="risks" />
-                  }
-                  @case ('boolean') {
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
-                      <label class="flex items-center gap-2 text-body text-fg">
-                        <input
-                          type="checkbox"
-                          class="h-4 w-4 accent-[var(--accent)]"
-                          [id]="fid(f)"
-                          [checked]="form()[f.key] === true"
-                          (change)="set(f.key, $any($event.target).checked)"
-                          [attr.data-testid]="'field-' + f.key"
-                        />
-                        {{ label(f) | transloco }}
-                      </label>
-                      <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
+          @for (f of section.fields; track f.key) {
+            <div class="min-w-0" [class.sm:col-span-2]="isWide(f)" [attr.data-field]="f.key">
+              @switch (f.kind) {
+                @case ('screening') {
+                  <app-privacy-screening-field
+                    [value]="screeningValue()"
+                    [rationale]="rationale()"
+                    (valueChange)="set('screening', $event)"
+                  />
+                }
+                @case ('risks') {
+                  <app-privacy-risks-field
+                    [value]="risksValue()"
+                    (valueChange)="set('risks', $event)"
+                  />
+                  <app-field-help scope="privacy" [page]="register().key" field="risks" />
+                }
+                @case ('boolean') {
+                  <div
+                    class="flex min-h-10 flex-wrap items-center gap-x-2 gap-y-1 rounded-tile border border-border bg-bg px-3 py-2 sm:mt-[30px]"
+                  >
+                    <label
+                      class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-ui text-fg"
+                    >
+                      <input
+                        type="checkbox"
+                        class="h-4 w-4 accent-[var(--accent)]"
+                        [id]="fid(f)"
+                        [checked]="form()[f.key] === true"
+                        (change)="set(f.key, $any($event.target).checked)"
+                        [attr.data-testid]="'field-' + f.key"
+                      />
+                      {{ label(f) | transloco }}
+                    </label>
+                    <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
+                    @if (askable(f.key)) {
+                      <app-ask-about
+                        [field]="f.key"
+                        [fieldLabel]="labelText(f)"
+                        labelKey="privacy.ask.fieldTooltip"
+                        [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
+                      />
+                    }
+                  </div>
+                }
+                @case ('multi') {
+                  <fieldset>
+                    <legend
+                      class="mb-1.5 flex min-h-6 items-center gap-1.5 text-ui font-semibold text-fg-muted"
+                    >
+                      {{ label(f) | transloco }}
+                      <app-field-help
+                        scope="privacy"
+                        [page]="register().key"
+                        [field]="f.key"
+                        [label]="labelText(f)"
+                      />
+                    </legend>
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                      @for (o of f.options ?? []; track o) {
+                        <label
+                          class="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg"
+                        >
+                          <input
+                            type="checkbox"
+                            class="h-4 w-4 accent-[var(--accent)]"
+                            [checked]="listValue(f.key).includes(o)"
+                            (change)="toggleOption(f.key, o, $any($event.target).checked)"
+                          />
+                          {{ 'privacy.options.' + f.optionSet + '.' + o | transloco }}
+                        </label>
+                      }
+                    </div>
+                  </fieldset>
+                }
+                @default {
+                  <app-form-field
+                    [label]="label(f) | transloco"
+                    [inputId]="fid(f)"
+                    [required]="!!f.required"
+                    [error]="shownErrors()[f.key] ?? '' | transloco"
+                  >
+                    <ng-container ngProjectAs="[label-suffix]">
+                      <app-field-help
+                        scope="privacy"
+                        [page]="register().key"
+                        [field]="f.key"
+                        [label]="labelText(f)"
+                      />
                       @if (askable(f.key)) {
                         <app-ask-about
                           [field]="f.key"
@@ -237,322 +345,284 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
                           [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
                         />
                       }
-                    </div>
-                  }
-                  @case ('multi') {
-                    <fieldset>
-                      <legend
-                        class="mb-1.5 flex items-center gap-2 text-ui font-semibold text-fg-muted"
-                      >
-                        {{ label(f) | transloco }}
-                        <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
-                      </legend>
-                      <div class="flex flex-wrap gap-3">
-                        @for (o of f.options ?? []; track o) {
-                          <label class="flex items-center gap-2 text-body text-fg">
-                            <input
-                              type="checkbox"
-                              class="h-4 w-4 accent-[var(--accent)]"
-                              [checked]="listValue(f.key).includes(o)"
-                              (change)="toggleOption(f.key, o, $any($event.target).checked)"
-                            />
-                            {{ 'privacy.options.' + f.optionSet + '.' + o | transloco }}
-                          </label>
-                        }
-                      </div>
-                    </fieldset>
-                  }
-                  @default {
-                    <app-form-field [inputId]="fid(f)">
-                      <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                        <label [for]="fid(f)" class="text-ui font-semibold text-fg-muted">
-                          {{ labelText(f) }}
-                        </label>
-                        @if (askable(f.key)) {
-                          <app-ask-about
-                            [field]="f.key"
-                            [fieldLabel]="labelText(f)"
-                            labelKey="privacy.ask.fieldTooltip"
-                            [prompt]="'privacy.ask.field' | transloco: { field: labelText(f) }"
-                          />
-                        }
-                        <app-field-help scope="privacy" [page]="register().key" [field]="f.key" />
-                      </div>
-                      @switch (f.kind) {
-                        @case ('textarea') {
-                          <textarea
-                            [id]="fid(f)"
-                            rows="3"
-                            [attr.maxlength]="f.maxLength ?? null"
-                            [value]="text(f.key)"
-                            (input)="set(f.key, $any($event.target).value)"
-                            [attr.aria-invalid]="!!shownErrors()[f.key]"
-                            [attr.aria-describedby]="shownErrors()[f.key] ? fid(f) + '-err' : null"
-                            [attr.data-testid]="'field-' + f.key"
-                          ></textarea>
-                        }
-                        @case ('select') {
-                          <select
-                            [id]="fid(f)"
-                            (change)="set(f.key, $any($event.target).value)"
-                            [attr.aria-invalid]="!!shownErrors()[f.key]"
-                            [attr.data-testid]="'field-' + f.key"
-                          >
-                            <option value="" [selected]="!form()[f.key]">
-                              {{ 'privacy.common.notSet' | transloco }}
+                    </ng-container>
+                    @switch (f.kind) {
+                      @case ('date') {
+                        <app-date-input
+                          [inputId]="fid(f)"
+                          [value]="text(f.key)"
+                          [required]="!!f.required"
+                          (valueChange)="set(f.key, $event ?? '')"
+                          [attr.data-testid]="'field-' + f.key"
+                        />
+                      }
+                      @case ('textarea') {
+                        <textarea
+                          [id]="fid(f)"
+                          rows="3"
+                          [attr.maxlength]="f.maxLength ?? null"
+                          [value]="text(f.key)"
+                          (input)="set(f.key, $any($event.target).value)"
+                          [attr.aria-invalid]="!!shownErrors()[f.key]"
+                          [attr.data-testid]="'field-' + f.key"
+                        ></textarea>
+                      }
+                      @case ('select') {
+                        <select
+                          [id]="fid(f)"
+                          (change)="set(f.key, $any($event.target).value)"
+                          [attr.aria-invalid]="!!shownErrors()[f.key]"
+                          [attr.data-testid]="'field-' + f.key"
+                        >
+                          <option value="" [selected]="!form()[f.key]">
+                            {{ 'privacy.common.notSet' | transloco }}
+                          </option>
+                          @for (o of f.options ?? []; track o) {
+                            <option [value]="o" [selected]="form()[f.key] === o">
+                              {{ 'privacy.options.' + f.optionSet + '.' + o | transloco }}
                             </option>
-                            @for (o of f.options ?? []; track o) {
-                              <option [value]="o" [selected]="form()[f.key] === o">
-                                {{ 'privacy.options.' + f.optionSet + '.' + o | transloco }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @case ('tristate') {
-                          <select
-                            [id]="fid(f)"
-                            (change)="setTristate(f.key, $any($event.target).value)"
-                            [attr.data-testid]="'field-' + f.key"
-                          >
-                            <option value="" [selected]="form()[f.key] === null">
-                              {{ 'privacy.common.undecided' | transloco }}
-                            </option>
-                            <option value="yes" [selected]="form()[f.key] === true">
-                              {{ 'privacy.common.yes' | transloco }}
-                            </option>
-                            <option value="no" [selected]="form()[f.key] === false">
-                              {{ 'privacy.common.no' | transloco }}
-                            </option>
-                          </select>
-                        }
-                        @case ('tags') {
-                          <app-privacy-tag-input
-                            [inputId]="fid(f)"
-                            [value]="listValue(f.key)"
-                            (valueChange)="set(f.key, $event)"
-                          />
-                        }
-                        @case ('country') {
-                          <app-country-picker
-                            [inputId]="fid(f)"
-                            [multiple]="false"
-                            [options]="countryCodes"
-                            [value]="text(f.key) ? [text(f.key)] : []"
-                            [invalid]="!!shownErrors()[f.key]"
-                            [attr.data-testid]="'field-' + f.key"
-                            (valueChange)="set(f.key, $event[0] ?? '')"
-                          />
-                          @if (countryHint(f.key); as hint) {
-                            <p
-                              class="mt-1 flex flex-wrap items-center gap-2 text-meta text-fg-muted"
-                              [attr.data-testid]="'country-hint-' + f.key"
-                            >
-                              <app-status-badge
-                                [meaning]="
-                                  hint.status === 'third_country' ? 'lifecycle' : 'compliance'
-                                "
-                                [value]="hint.status === 'third_country' ? 'due' : 'met'"
-                                [labelKey]="countryStatusKey(hint.status)"
-                              />
-                              @if (hint.mechanism) {
-                                {{
-                                  'privacy.form.mechanismHint'
-                                    | transloco
-                                      : {
-                                          mechanism:
-                                            ('privacy.options.mechanism.' + hint.mechanism
-                                            | transloco),
-                                        }
-                                }}
-                              }
-                            </p>
                           }
-                        }
-                        @case ('countries') {
-                          <app-country-picker
-                            [inputId]="fid(f)"
-                            [options]="countryCodes"
-                            [value]="listValue(f.key)"
-                            [label]="labelText(f)"
-                            [flagged]="thirdCountries(f.key)"
-                            [attr.data-testid]="'field-' + f.key"
-                            (valueChange)="set(f.key, $event)"
-                          />
-                        }
-                        @case ('refs') {
-                          <app-privacy-record-picker
-                            [inputId]="fid(f)"
-                            [testId]="'field-' + f.key"
-                            [label]="labelText(f)"
-                            [options]="refOptions(f)"
-                            [value]="listValue(f.key)"
-                            (valueChange)="set(f.key, $event)"
-                          />
-                        }
-                        @case ('entities') {
-                          <app-privacy-record-picker
-                            [inputId]="fid(f)"
-                            [testId]="'field-' + f.key"
-                            [label]="labelText(f)"
-                            [options]="entityOptions(f)"
-                            [value]="listValue(f.key)"
-                            (valueChange)="set(f.key, $event)"
-                          />
-                        }
-                        @case ('owner') {
-                          <select [id]="fid(f)" (change)="set(f.key, $any($event.target).value)">
-                            @if (mode() === 'create') {
-                              <option value="" [selected]="!form()[f.key]">
-                                {{ 'privacy.form.ownerMe' | transloco }}
-                              </option>
-                            }
-                            @if (orphan(f.key, users())) {
-                              <option [value]="form()[f.key]" selected>
-                                {{ 'privacy.form.currentOwner' | transloco }}
-                              </option>
-                            }
-                            @for (u of users(); track u.id) {
-                              <option [value]="u.id" [selected]="form()[f.key] === u.id">
-                                {{ u.label }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @case ('department') {
-                          <select [id]="fid(f)" (change)="set(f.key, $any($event.target).value)">
-                            <option value="" [selected]="!form()[f.key]">
-                              {{ 'privacy.common.notSet' | transloco }}
-                            </option>
-                            @if (orphan(f.key, departments())) {
-                              <option [value]="form()[f.key]" selected>
-                                {{ 'privacy.form.currentValue' | transloco }}
-                              </option>
-                            }
-                            @for (d of departments(); track d.id) {
-                              <option [value]="d.id" [selected]="form()[f.key] === d.id">
-                                {{ d.label }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @case ('ref') {
-                          <select
-                            [id]="fid(f)"
-                            (change)="set(f.key, $any($event.target).value)"
-                            [attr.data-testid]="'field-' + f.key"
+                        </select>
+                      }
+                      @case ('tristate') {
+                        <select
+                          [id]="fid(f)"
+                          (change)="setTristate(f.key, $any($event.target).value)"
+                          [attr.data-testid]="'field-' + f.key"
+                        >
+                          <option value="" [selected]="form()[f.key] === null">
+                            {{ 'privacy.common.undecided' | transloco }}
+                          </option>
+                          <option value="yes" [selected]="form()[f.key] === true">
+                            {{ 'privacy.common.yes' | transloco }}
+                          </option>
+                          <option value="no" [selected]="form()[f.key] === false">
+                            {{ 'privacy.common.no' | transloco }}
+                          </option>
+                        </select>
+                      }
+                      @case ('tags') {
+                        <app-privacy-tag-input
+                          [inputId]="fid(f)"
+                          [value]="listValue(f.key)"
+                          (valueChange)="set(f.key, $event)"
+                        />
+                      }
+                      @case ('country') {
+                        <app-country-picker
+                          [inputId]="fid(f)"
+                          [multiple]="false"
+                          [options]="countryCodes"
+                          [value]="text(f.key) ? [text(f.key)] : []"
+                          [invalid]="!!shownErrors()[f.key]"
+                          [attr.data-testid]="'field-' + f.key"
+                          (valueChange)="set(f.key, $event[0] ?? '')"
+                        />
+                        @if (countryHint(f.key); as hint) {
+                          <p
+                            class="flex flex-wrap items-center gap-2 text-meta text-fg-muted"
+                            [attr.data-testid]="'country-hint-' + f.key"
                           >
-                            <option value="" [selected]="!form()[f.key]">
-                              {{ 'privacy.common.notSet' | transloco }}
-                            </option>
-                            @if (orphan(f.key, refOptions(f))) {
-                              <option [value]="form()[f.key]" selected>
-                                {{ 'privacy.form.currentValue' | transloco }}
-                              </option>
-                            }
-                            @for (o of refOptions(f); track o.id) {
-                              <option [value]="o.id" [selected]="form()[f.key] === o.id">
-                                {{ o.label }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @case ('customer') {
-                          <app-customer-picker
-                            [inputId]="fid(f)"
-                            [value]="text(f.key) || null"
-                            [current]="customerRef(text(f.key))"
-                            (valueChange)="set(f.key, $event ?? '')"
-                            (refChange)="rememberCustomer($event)"
-                            [attr.data-testid]="'field-' + f.key"
-                          />
-                        }
-                        @case ('customers') {
-                          <div class="flex flex-col gap-2" [attr.data-testid]="'field-' + f.key">
-                            @if (listValue(f.key).length) {
-                              <ul class="flex flex-wrap gap-2">
-                                @for (cid of listValue(f.key); track cid) {
-                                  <li
-                                    class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-ui"
-                                  >
-                                    <app-customer-chip [ref]="customerRef(cid)" />
-                                    <button
-                                      type="button"
-                                      class="text-fg-muted hover:text-fg"
-                                      [attr.aria-label]="'privacy.form.removeCustomer' | transloco"
-                                      (click)="removeCustomer(f.key, cid)"
-                                    >
-                                      <span aria-hidden="true">✕</span>
-                                    </button>
-                                  </li>
-                                }
-                              </ul>
-                            }
-                            <app-customer-picker
-                              [inputId]="fid(f)"
-                              [value]="null"
-                              (valueChange)="addCustomer(f.key, $event)"
-                              (refChange)="rememberCustomer($event)"
+                            <app-status-badge
+                              [meaning]="
+                                hint.status === 'third_country' ? 'lifecycle' : 'compliance'
+                              "
+                              [value]="hint.status === 'third_country' ? 'due' : 'met'"
+                              [labelKey]="countryStatusKey(hint.status)"
                             />
-                          </div>
-                        }
-                        @case ('entity') {
-                          <select
-                            [id]="fid(f)"
-                            (change)="set(f.key, $any($event.target).value)"
-                            [attr.aria-invalid]="!!shownErrors()[f.key]"
-                            [attr.data-testid]="'field-' + f.key"
-                          >
-                            <option value="" [selected]="!form()[f.key]">
-                              {{ 'privacy.common.notSet' | transloco }}
-                            </option>
-                            @if (orphan(f.key, entityOptions(f))) {
-                              <option [value]="form()[f.key]" selected>
-                                {{ 'privacy.form.currentValue' | transloco }}
-                              </option>
+                            @if (hint.mechanism) {
+                              {{
+                                'privacy.form.mechanismHint'
+                                  | transloco
+                                    : {
+                                        mechanism:
+                                          ('privacy.options.mechanism.' + hint.mechanism
+                                          | transloco),
+                                      }
+                              }}
                             }
-                            @for (o of entityOptions(f); track o.id) {
-                              <option [value]="o.id" [selected]="form()[f.key] === o.id">
-                                {{ o.label }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @default {
-                          <input
-                            [id]="fid(f)"
-                            [type]="inputType(f)"
-                            [attr.maxlength]="f.maxLength ?? null"
-                            [attr.min]="f.kind === 'number' ? 0 : null"
-                            [attr.required]="f.required ? '' : null"
-                            [value]="text(f.key)"
-                            (input)="set(f.key, $any($event.target).value)"
-                            [attr.aria-invalid]="!!shownErrors()[f.key]"
-                            [attr.aria-describedby]="shownErrors()[f.key] ? fid(f) + '-err' : null"
-                            [attr.data-testid]="'field-' + f.key"
-                          />
+                          </p>
                         }
                       }
-                    </app-form-field>
+                      @case ('countries') {
+                        <app-country-picker
+                          [inputId]="fid(f)"
+                          [options]="countryCodes"
+                          [value]="listValue(f.key)"
+                          [label]="labelText(f)"
+                          [flagged]="thirdCountries(f.key)"
+                          [attr.data-testid]="'field-' + f.key"
+                          (valueChange)="set(f.key, $event)"
+                        />
+                      }
+                      @case ('refs') {
+                        <app-privacy-record-picker
+                          [inputId]="fid(f)"
+                          [testId]="'field-' + f.key"
+                          [label]="labelText(f)"
+                          [options]="refOptions(f)"
+                          [value]="listValue(f.key)"
+                          (valueChange)="set(f.key, $event)"
+                        />
+                      }
+                      @case ('entities') {
+                        <app-privacy-record-picker
+                          [inputId]="fid(f)"
+                          [testId]="'field-' + f.key"
+                          [label]="labelText(f)"
+                          [options]="entityOptions(f)"
+                          [value]="listValue(f.key)"
+                          (valueChange)="set(f.key, $event)"
+                        />
+                      }
+                      @case ('owner') {
+                        <select [id]="fid(f)" (change)="set(f.key, $any($event.target).value)">
+                          @if (mode() === 'create') {
+                            <option value="" [selected]="!form()[f.key]">
+                              {{ 'privacy.form.ownerMe' | transloco }}
+                            </option>
+                          }
+                          @if (orphan(f.key, users())) {
+                            <option [value]="form()[f.key]" selected>
+                              {{ 'privacy.form.currentOwner' | transloco }}
+                            </option>
+                          }
+                          @for (u of users(); track u.id) {
+                            <option [value]="u.id" [selected]="form()[f.key] === u.id">
+                              {{ u.label }}
+                            </option>
+                          }
+                        </select>
+                      }
+                      @case ('department') {
+                        <select [id]="fid(f)" (change)="set(f.key, $any($event.target).value)">
+                          <option value="" [selected]="!form()[f.key]">
+                            {{ 'privacy.common.notSet' | transloco }}
+                          </option>
+                          @if (orphan(f.key, departments())) {
+                            <option [value]="form()[f.key]" selected>
+                              {{ 'privacy.form.currentValue' | transloco }}
+                            </option>
+                          }
+                          @for (d of departments(); track d.id) {
+                            <option [value]="d.id" [selected]="form()[f.key] === d.id">
+                              {{ d.label }}
+                            </option>
+                          }
+                        </select>
+                      }
+                      @case ('ref') {
+                        <select
+                          [id]="fid(f)"
+                          (change)="set(f.key, $any($event.target).value)"
+                          [attr.data-testid]="'field-' + f.key"
+                        >
+                          <option value="" [selected]="!form()[f.key]">
+                            {{ 'privacy.common.notSet' | transloco }}
+                          </option>
+                          @if (orphan(f.key, refOptions(f))) {
+                            <option [value]="form()[f.key]" selected>
+                              {{ 'privacy.form.currentValue' | transloco }}
+                            </option>
+                          }
+                          @for (o of refOptions(f); track o.id) {
+                            <option [value]="o.id" [selected]="form()[f.key] === o.id">
+                              {{ o.label }}
+                            </option>
+                          }
+                        </select>
+                      }
+                      @case ('customer') {
+                        <app-customer-picker
+                          [inputId]="fid(f)"
+                          [value]="text(f.key) || null"
+                          [current]="customerRef(text(f.key))"
+                          (valueChange)="set(f.key, $event ?? '')"
+                          (refChange)="rememberCustomer($event)"
+                          [attr.data-testid]="'field-' + f.key"
+                        />
+                      }
+                      @case ('customers') {
+                        <div class="flex flex-col gap-2" [attr.data-testid]="'field-' + f.key">
+                          @if (listValue(f.key).length) {
+                            <ul class="flex flex-wrap gap-2">
+                              @for (cid of listValue(f.key); track cid) {
+                                <li
+                                  class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-0.5 text-ui"
+                                >
+                                  <app-customer-chip [ref]="customerRef(cid)" />
+                                  <button
+                                    type="button"
+                                    class="text-fg-muted hover:text-fg"
+                                    [attr.aria-label]="'privacy.form.removeCustomer' | transloco"
+                                    (click)="removeCustomer(f.key, cid)"
+                                  >
+                                    <span aria-hidden="true">✕</span>
+                                  </button>
+                                </li>
+                              }
+                            </ul>
+                          }
+                          <app-customer-picker
+                            [inputId]="fid(f)"
+                            [value]="null"
+                            (valueChange)="addCustomer(f.key, $event)"
+                            (refChange)="rememberCustomer($event)"
+                          />
+                        </div>
+                      }
+                      @case ('entity') {
+                        <select
+                          [id]="fid(f)"
+                          (change)="set(f.key, $any($event.target).value)"
+                          [attr.aria-invalid]="!!shownErrors()[f.key]"
+                          [attr.data-testid]="'field-' + f.key"
+                        >
+                          <option value="" [selected]="!form()[f.key]">
+                            {{ 'privacy.common.notSet' | transloco }}
+                          </option>
+                          @if (orphan(f.key, entityOptions(f))) {
+                            <option [value]="form()[f.key]" selected>
+                              {{ 'privacy.form.currentValue' | transloco }}
+                            </option>
+                          }
+                          @for (o of entityOptions(f); track o.id) {
+                            <option [value]="o.id" [selected]="form()[f.key] === o.id">
+                              {{ o.label }}
+                            </option>
+                          }
+                        </select>
+                      }
+                      @default {
+                        <input
+                          [id]="fid(f)"
+                          [type]="inputType(f)"
+                          [attr.maxlength]="f.maxLength ?? null"
+                          [attr.min]="f.kind === 'number' ? 0 : null"
+                          [attr.required]="f.required ? '' : null"
+                          [value]="text(f.key)"
+                          (input)="set(f.key, $any($event.target).value)"
+                          [attr.aria-invalid]="!!shownErrors()[f.key]"
+                          [attr.data-testid]="'field-' + f.key"
+                        />
+                      }
+                    }
                     @if (mode() === 'edit' && f.editHintKey) {
                       <p
-                        class="mt-1 text-meta text-fg-subtle"
+                        hint
+                        class="text-meta leading-snug text-fg-subtle"
                         [attr.data-testid]="'edit-hint-' + f.key"
                       >
                         {{ f.editHintKey | transloco }}
                       </p>
                     }
-                    @if (shownErrors()[f.key]; as key) {
-                      <p [id]="fid(f) + '-err'" class="mt-1 text-meta text-fail">
-                        {{ key | transloco }}
-                      </p>
-                    }
-                  }
+                  </app-form-field>
                 }
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
           @if (register().key === 'breach' && section.key === 'impact') {
-            <div class="mt-4">
+            <div class="sm:col-span-2">
               <app-ai-assist-button
                 assist="privacy.draft_breach_assessment"
                 [input]="{ description: breachText() }"
@@ -578,7 +648,7 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
             </div>
           }
           @if (register().key === 'transfer' && section.key === 'tia') {
-            <div class="mt-4">
+            <div class="sm:col-span-2">
               <app-ai-assist-button
                 assist="privacy.draft_tia"
                 [input]="tiaInput()"
@@ -603,17 +673,19 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
               }
             </div>
           }
-        </app-card>
+        </app-form-section>
       }
 
       @if (mode() === 'edit' && register().revisions) {
-        <app-card>
+        <app-form-section [columns]="1">
           <app-form-field
             [label]="
               (reasonRequired() ? 'privacy.form.changeReasonRequired' : 'privacy.form.changeReason')
                 | transloco
             "
             inputId="cf-pf-reason"
+            [hint]="'privacy.form.changeReasonHint' | transloco"
+            [error]="shownErrors()[reasonField] ?? '' | transloco"
           >
             <input
               id="cf-pf-reason"
@@ -622,20 +694,10 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
               [value]="changeReason()"
               (input)="changeReason.set($any($event.target).value)"
               [attr.required]="reasonRequired() ? '' : null"
-              [attr.aria-invalid]="!!shownErrors()[reasonField]"
-              [attr.aria-describedby]="shownErrors()[reasonField] ? 'cf-pf-reason-err' : null"
               data-testid="change-reason"
             />
           </app-form-field>
-          <p class="mt-1 text-meta text-fg-subtle">
-            {{ 'privacy.form.changeReasonHint' | transloco }}
-          </p>
-          @if (shownErrors()[reasonField]; as key) {
-            <p id="cf-pf-reason-err" class="mt-1 text-meta text-fail">
-              {{ key | transloco }}
-            </p>
-          }
-        </app-card>
+        </app-form-section>
       }
 
       @if (error(); as e) {
@@ -644,16 +706,14 @@ const QUICK_BREACH_FIELDS = new Set(['title', 'aware_at', 'description']);
         </app-alert>
       }
 
-      <div
-        class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
-      >
+      <app-form-actions>
         <app-button variant="secondary" (click)="cancelled.emit()">
           {{ 'privacy.common.cancel' | transloco }}
         </app-button>
         <app-button type="submit" [loading]="busy()" data-testid="privacy-save">
           {{ saveLabel() | transloco }}
         </app-button>
-      </div>
+      </app-form-actions>
     </form>
   `,
 })
@@ -718,7 +778,7 @@ export class PrivacyRegisterForm {
       }
       grouped.get(f.section)!.push(f);
     }
-    return order.map((key) => ({ key, fields: grouped.get(key)! }));
+    return order.map((key) => ({ key, fields: layoutFields(grouped.get(key)!) }));
   });
 
   protected readonly reasonField = REASON_ERROR_FIELD;
@@ -788,6 +848,10 @@ export class PrivacyRegisterForm {
 
   protected label(f: FieldDef): string {
     return fieldLabelKey(f);
+  }
+
+  protected isWide(f: FieldDef): boolean {
+    return isWideField(f);
   }
 
   protected labelText(f: FieldDef): string {

@@ -26,6 +26,7 @@ import { LoadingState } from '../../shared/ui/loading-state/loading-state';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
 import { Button } from '../../shared/ui/button/button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { SlideOver } from '../../shared/ui/slide-over/slide-over';
@@ -132,6 +133,7 @@ export function groupMilestones(items: readonly Milestone[]): {
     StatusBadge,
     Button,
     ConfirmDialog,
+    DateInput,
     FormField,
     Icon,
     SlideOver,
@@ -307,34 +309,31 @@ export function groupMilestones(items: readonly Milestone[]): {
                 </select>
               </app-form-field>
             }
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
               <app-form-field
                 [label]="'projects.fields.startDate' | transloco"
                 inputId="cf-ms-start"
               >
-                <input
-                  id="cf-ms-start"
-                  type="date"
+                <app-date-input
+                  inputId="cf-ms-start"
                   [value]="d.start_date"
-                  (change)="patch({ start_date: $any($event.target).value })"
+                  (valueChange)="patch({ start_date: $event ?? '' })"
                 />
               </app-form-field>
-              <app-form-field [label]="'projects.fields.dueDate' | transloco" inputId="cf-ms-due">
-                <input
-                  id="cf-ms-due"
-                  type="date"
+              <app-form-field
+                [label]="'projects.fields.dueDate' | transloco"
+                inputId="cf-ms-due"
+                [error]="datesOk() ? '' : ('projects.form.errors.dueBeforeStart' | transloco)"
+              >
+                <app-date-input
+                  inputId="cf-ms-due"
                   [value]="d.due_date"
-                  (change)="patch({ due_date: $any($event.target).value })"
+                  (valueChange)="patch({ due_date: $event ?? '' })"
                   data-testid="milestone-due"
                 />
               </app-form-field>
             </div>
-            @if (!datesOk()) {
-              <p class="text-meta text-fail-ink" role="alert">
-                {{ 'projects.form.errors.dueBeforeStart' | transloco }}
-              </p>
-            }
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
               <app-form-field [label]="'projects.fields.status' | transloco" inputId="cf-ms-status">
                 <select id="cf-ms-status" (change)="setStatus($any($event.target).value)">
                   @for (s of statuses; track s) {

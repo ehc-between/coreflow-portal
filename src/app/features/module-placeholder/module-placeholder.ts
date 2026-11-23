@@ -14,7 +14,7 @@ import { Icon } from '../../shared/ui/icon/icon';
   imports: [TranslocoPipe, AgentBanner, Card, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[1080px] px-8 pt-7 pb-12">
+    <div class="mx-auto max-w-[1180px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <div class="mb-[18px]">
         <h1 class="font-display text-[26px] font-bold tracking-[-0.025em] text-fg">
           {{ titleKey() | transloco }}

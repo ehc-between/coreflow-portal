@@ -29,6 +29,8 @@ import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
 import { AuditRecordSelect } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 
 export interface CertificationFormValue {
   framework: string;
@@ -73,7 +75,15 @@ export function certificationFormToInput(
  */
 @Component({
   selector: 'app-audit-certification-form',
-  imports: [TranslocoPipe, AuditField, AuditFormPage, AuditRecordSelect, AuditUserSelect],
+  imports: [
+    FormSection,
+    DateInput,
+    TranslocoPipe,
+    AuditField,
+    AuditFormPage,
+    AuditRecordSelect,
+    AuditUserSelect,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-audit-form-page
@@ -87,7 +97,10 @@ export function certificationFormToInput(
       (save)="save()"
       (cancelled)="back()"
     >
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-form-section
+        [title]="'audits.certificationForm.sections.basics' | transloco"
+        [description]="'audits.certificationForm.sections.basicsHint' | transloco"
+      >
         <app-audit-field
           inputId="cert-framework"
           labelKey="audits.fields.framework"
@@ -117,25 +130,24 @@ export function certificationFormToInput(
             }
           </select>
         </app-audit-field>
-      </div>
-      <app-audit-field
-        inputId="cert-supplier"
-        labelKey="audits.certificationForm.supplier"
-        helpPage="certificationForm"
-        helpField="supplier"
-        [plain]="true"
-      >
-        <app-audit-record-select
+        <app-audit-field
+          span="full"
           inputId="cert-supplier"
-          [types]="['supplier']"
-          [max]="1"
           labelKey="audits.certificationForm.supplier"
-          placeholderKey="audits.certificationForm.searchSupplier"
-          [value]="f().supplier ? [f().supplier!] : []"
-          (valueChange)="setSupplier($event[0] ?? null)"
-        />
-      </app-audit-field>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          helpPage="certificationForm"
+          helpField="supplier"
+          [plain]="true"
+        >
+          <app-audit-record-select
+            inputId="cert-supplier"
+            [types]="['supplier']"
+            [max]="1"
+            labelKey="audits.certificationForm.supplier"
+            placeholderKey="audits.certificationForm.searchSupplier"
+            [value]="f().supplier ? [f().supplier!] : []"
+            (valueChange)="setSupplier($event[0] ?? null)"
+          />
+        </app-audit-field>
         <app-audit-field
           inputId="cert-body"
           labelKey="audits.fields.certificationBody"
@@ -159,28 +171,46 @@ export function certificationFormToInput(
             (input)="patch({ number: $any($event.target).value })"
           />
         </app-audit-field>
-      </div>
-      <app-audit-field
-        inputId="cert-scope"
-        labelKey="audits.fields.scope"
-        helpPage="certificationForm"
-        helpField="scope"
+        <app-audit-field
+          span="full"
+          inputId="cert-scope"
+          labelKey="audits.fields.scope"
+          helpPage="certificationForm"
+          helpField="scope"
+        >
+          <textarea
+            id="cert-scope"
+            rows="3"
+            [value]="f().scope"
+            (input)="patch({ scope: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+        <app-audit-field inputId="cert-owner" labelKey="audits.fields.owner">
+          <app-audit-user-select
+            inputId="cert-owner"
+            [value]="f().ownerId"
+            [currentName]="existing.value()?.owner?.name ?? null"
+            (valueChange)="patch({ ownerId: $event })"
+          />
+        </app-audit-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'audits.certificationForm.sections.dates' | transloco"
+        [description]="'audits.certificationForm.sections.datesHint' | transloco"
       >
-        <textarea
-          id="cert-scope"
-          rows="3"
-          [value]="f().scope"
-          (input)="patch({ scope: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <app-audit-field inputId="cert-issued" labelKey="audits.fields.issuedAt">
-          <input
-            id="cert-issued"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="cert-issued"
             [value]="f().issued"
-            (input)="patch({ issued: $any($event.target).value })"
+            (valueChange)="patch({ issued: $event ?? '' })"
+          />
+        </app-audit-field>
+        <app-audit-field inputId="cert-expires" labelKey="audits.fields.expiresAt">
+          <app-date-input
+            inputId="cert-expires"
+            [value]="f().expires"
+            (valueChange)="patch({ expires: $event ?? '' })"
           />
         </app-audit-field>
         <app-audit-field
@@ -189,49 +219,32 @@ export function certificationFormToInput(
           helpPage="certificationForm"
           helpField="surveillance"
         >
-          <input
-            id="cert-surv"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="cert-surv"
             [value]="f().surveillance"
-            (input)="patch({ surveillance: $any($event.target).value })"
+            (valueChange)="patch({ surveillance: $event ?? '' })"
           />
         </app-audit-field>
-        <app-audit-field inputId="cert-expires" labelKey="audits.fields.expiresAt">
-          <input
-            id="cert-expires"
-            type="date"
-            [attr.lang]="lang()"
-            [value]="f().expires"
-            (input)="patch({ expires: $any($event.target).value })"
-          />
+        <app-audit-field span="full" inputId="cert-notes" labelKey="audits.fields.notes">
+          <textarea
+            id="cert-notes"
+            rows="2"
+            [value]="f().notes"
+            (input)="patch({ notes: $any($event.target).value })"
+          ></textarea>
         </app-audit-field>
-      </div>
-      <app-audit-field inputId="cert-owner" labelKey="audits.fields.owner">
-        <app-audit-user-select
-          inputId="cert-owner"
-          [value]="f().ownerId"
-          [currentName]="existing.value()?.owner?.name ?? null"
-          (valueChange)="patch({ ownerId: $event })"
-        />
-      </app-audit-field>
-      <app-audit-field inputId="cert-notes" labelKey="audits.fields.notes">
-        <textarea
-          id="cert-notes"
-          rows="2"
-          [value]="f().notes"
-          (input)="patch({ notes: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
+      </app-form-section>
       @if (id()) {
-        <app-audit-field inputId="cert-reason" labelKey="audits.fields.changeReason">
-          <input
-            id="cert-reason"
-            maxlength="2000"
-            [value]="f().changeReason"
-            (input)="patch({ changeReason: $any($event.target).value })"
-          />
-        </app-audit-field>
+        <app-form-section [columns]="1">
+          <app-audit-field inputId="cert-reason" labelKey="audits.fields.changeReason">
+            <input
+              id="cert-reason"
+              maxlength="2000"
+              [value]="f().changeReason"
+              (input)="patch({ changeReason: $any($event.target).value })"
+            />
+          </app-audit-field>
+        </app-form-section>
       }
     </app-audit-form-page>
   `,

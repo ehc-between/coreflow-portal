@@ -38,6 +38,7 @@ import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
 import { AuditRecordSelect } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 export interface ProfileFormValue {
   userId: string;
@@ -113,6 +114,7 @@ export function profileState(p: AuditorProfile): 'expired' | 'inactive' | 'activ
 @Component({
   selector: 'app-audit-auditor-register',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -452,7 +454,7 @@ export function profileState(p: AuditorProfile): 'expired' | 'inactive' | 'activ
       [width]="520"
       (closed)="editorOpen.set(false)"
     >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
+      <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()">
         @if (!editing()) {
           <app-audit-field inputId="ap-user" labelKey="audits.auditors.person" [required]="true">
             <app-audit-user-select
@@ -472,10 +474,13 @@ export function profileState(p: AuditorProfile): 'expired' | 'inactive' | 'activ
           [selected]="f().frameworks"
           (selectedChange)="patch({ frameworks: $event })"
         />
-        <div class="flex flex-wrap items-center gap-1.5">
-          <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
+        <div>
+          <label
+            class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+          >
             <input
               type="checkbox"
+              class="h-4 w-4 accent-[var(--accent)]"
               [checked]="f().lead"
               (change)="patch({ lead: $any($event.target).checked })"
             />
@@ -513,29 +518,28 @@ export function profileState(p: AuditorProfile): 'expired' | 'inactive' | 'activ
             (input)="patch({ qualifications: $any($event.target).value })"
           ></textarea>
         </app-audit-field>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
           <app-audit-field inputId="ap-trained" labelKey="audits.auditors.trainedAt">
-            <input
-              id="ap-trained"
-              type="date"
-              [attr.lang]="lang()"
+            <app-date-input
+              inputId="ap-trained"
               [value]="f().trained"
-              (input)="patch({ trained: $any($event.target).value })"
+              (valueChange)="patch({ trained: $event ?? '' })"
             />
           </app-audit-field>
           <app-audit-field inputId="ap-valid" labelKey="audits.auditors.validUntil">
-            <input
-              id="ap-valid"
-              type="date"
-              [attr.lang]="lang()"
+            <app-date-input
+              inputId="ap-valid"
               [value]="f().validUntil"
-              (input)="patch({ validUntil: $any($event.target).value })"
+              (valueChange)="patch({ validUntil: $event ?? '' })"
             />
           </app-audit-field>
         </div>
-        <label class="inline-flex min-h-8 items-center gap-2 text-ui text-fg">
+        <label
+          class="flex h-10 cursor-pointer items-center gap-2 rounded-tile border border-border bg-bg px-3 text-ui text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+        >
           <input
             type="checkbox"
+            class="h-4 w-4 accent-[var(--accent)]"
             [checked]="f().active"
             (change)="patch({ active: $any($event.target).checked })"
           />

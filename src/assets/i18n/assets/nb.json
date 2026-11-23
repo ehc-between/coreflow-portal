@@ -102,7 +102,7 @@
     },
     "noMatch": "Ingen treff med disse filtrene.",
     "attention": "Oppfølging",
-    "anyAttention": "All oppfølging",
+    "anyAttention": "Alle oppfølgingsbehov",
     "needsAttention": "Trenger oppfølging",
     "responsibility": "Ansvar",
     "heldByMe": "Hos meg",
@@ -283,7 +283,15 @@
     "reviewIntervalDefault": "Hver 12. måned (standard)",
     "quarantinedHint": "Ute av bruk: eiendelen skal ikke brukes før den er reparert eller kalibrert. En godkjent kalibrering setter den tilbake i bruk.",
     "nextCalibrationComputed": "Beregnes fra siste kalibrering pluss intervallet, og oppdateres når du registrerer en kalibrering.",
-    "nextCalibrationOverride": "Velg en annen dato"
+    "nextCalibrationOverride": "Velg en annen dato",
+    "sectionHints": {
+      "identity": "Navnet og typen eiendel, så andre kjenner den igjen.",
+      "classification": "Hvor sensitiv den er, og hvor viktig den er for virksomheten.",
+      "responsibility": "Hvem som eier den, hvem som tar seg av den og hvor den er.",
+      "lifecycle": "Hvor den er i livsløpet, og når den gjennomgås.",
+      "notes": "Annet som er nyttig å vite om eiendelen."
+    },
+    "fixFields": "Rett feltene som er markert."
   },
   "detail": {
     "notFound": "Denne eiendelen finnes ikke, eller du har ikke tilgang til den.",
@@ -463,6 +471,12 @@
       "6": "Hvert halvår",
       "12": "Hvert år",
       "oneOff": "Én gang"
+    },
+    "sections": {
+      "what": "Hva som gjennomgås",
+      "whatHint": "Systemet dere sjekker tilgangene til, og hva gjennomgangen omfatter.",
+      "who": "Hvem og når",
+      "whoHint": "Hvem som gjør gjennomgangen, når den skal være ferdig og hvor ofte den gjentas."
     }
   },
   "reviewDetail": {
@@ -645,7 +659,12 @@
     "save": "Lagre endringer",
     "created": "{{ code }} er meldt.",
     "saved": "Endringene er lagret.",
-    "relatedHint": "Søk opp prosessene, dokumentene, leverandørene og risikoene endringen berører. De kobles til endringen når du lagrer."
+    "relatedHint": "Søk opp prosessene, dokumentene, leverandørene og risikoene endringen berører. De kobles til endringen når du lagrer.",
+    "sectionHints": {
+      "request": "Hva dere vil endre, hvorfor, og hva det berører.",
+      "assessment": "Konsekvensene og risikoen ved endringen, før den godkjennes.",
+      "implementation": "Når den ble gjennomført, og om den virket som planlagt."
+    }
   },
   "changeStep": {
     "title": "Før neste steg",

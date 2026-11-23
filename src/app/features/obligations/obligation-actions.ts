@@ -28,6 +28,7 @@ import {
   taskStatusKey,
 } from '../../shared/tasks/task-display';
 import { Button } from '../../shared/ui/button/button';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -74,6 +75,7 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
 @Component({
   selector: 'app-obligation-actions',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -108,7 +110,7 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
 
       @if (adding()) {
         <form
-          class="my-3 grid grid-cols-1 gap-3 rounded-tile border border-border p-3 sm:grid-cols-2"
+          class="my-3 grid grid-cols-1 items-start gap-x-4 gap-y-5 rounded-tile border border-border p-4 sm:grid-cols-2"
           (submit)="$event.preventDefault(); add()"
           data-testid="action-form"
         >
@@ -164,14 +166,13 @@ export function sortTasks(tasks: readonly Task[]): Task[] {
             </select>
           </app-form-field>
           <app-form-field [label]="'obligations.actions.dueDate' | transloco" inputId="cf-oa-due">
-            <input
-              id="cf-oa-due"
-              type="date"
+            <app-date-input
+              inputId="cf-oa-due"
               [value]="dueDay()"
-              (change)="dueDay.set($any($event.target).value)"
+              (valueChange)="dueDay.set($event ?? '')"
             />
           </app-form-field>
-          <div class="flex items-end justify-end gap-2">
+          <div class="flex justify-end gap-2 sm:col-span-2">
             <app-button variant="ghost" size="sm" (click)="reset()">
               {{ 'common.cancel' | transloco }}
             </app-button>

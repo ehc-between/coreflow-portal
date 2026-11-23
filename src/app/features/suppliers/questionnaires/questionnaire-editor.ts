@@ -27,7 +27,8 @@ import { LoadingState } from '../../../shared/ui/loading-state/loading-state';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 
 import { blankToNull } from '../data/supplier-display';
@@ -60,7 +61,8 @@ import {
     FormSuggest,
     Alert,
     Button,
-    Card,
+    FormActions,
+    FormSection,
     FieldHelp,
     FormField,
     HelpStrip,
@@ -70,7 +72,7 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto max-w-[760px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+    <div class="mx-auto flex max-w-[808px] flex-col gap-5 px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
       <app-page-header
         [titleKey]="
           qid() ? 'suppliers.questionnaires.editTitle' : 'suppliers.questionnaires.newTitle'
@@ -109,94 +111,89 @@ import {
             [titleOnly]="!!name().trim() && !hasQuestions()"
             (applied)="applySuggestion($event)"
           />
-          <app-card>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'suppliers.questionnaires.name' | transloco"
-                  inputId="qn-name"
-                >
-                  <input
-                    id="qn-name"
-                    type="text"
-                    maxlength="255"
-                    required
-                    [value]="name()"
-                    (input)="name.set($any($event.target).value)"
-                  />
-                </app-form-field>
-              </div>
-              <app-form-field [label]="'suppliers.evaluations.kind' | transloco" inputId="qn-kind">
-                <select id="qn-kind" (change)="kind.set($any($event.target).value)">
-                  @for (k of kinds; track k) {
-                    <option [value]="k" [selected]="kind() === k">
-                      {{ 'suppliers.evaluationKind.' + k | transloco }}
-                    </option>
-                  }
-                </select>
-              </app-form-field>
-              <div>
-                <app-form-field
-                  [label]="'suppliers.evaluation.passScore' | transloco"
-                  inputId="qn-pass"
-                >
-                  <app-field-help
-                    label-suffix
-                    scope="suppliers"
-                    page="questionnaire"
-                    field="pass_score"
-                  />
-                  <input
-                    id="qn-pass"
-                    type="number"
-                    min="0"
-                    max="100"
-                    [value]="passScore()"
-                    (change)="passScore.set(+$any($event.target).value)"
-                  />
-                </app-form-field>
-              </div>
-              <div class="sm:col-span-2">
-                <app-form-field
-                  [label]="'suppliers.questionnaires.description' | transloco"
-                  inputId="qn-desc"
-                >
-                  <textarea
-                    id="qn-desc"
-                    rows="2"
-                    maxlength="5000"
-                    [value]="description()"
-                    (input)="description.set($any($event.target).value)"
-                  ></textarea>
-                </app-form-field>
-              </div>
-            </div>
-          </app-card>
+          <app-form-section
+            [title]="'suppliers.questionnaires.sections.basics' | transloco"
+            [description]="'suppliers.questionnaires.sections.basicsHint' | transloco"
+          >
+            <app-form-field
+              span="full"
+              [label]="'suppliers.questionnaires.name' | transloco"
+              inputId="qn-name"
+              [required]="true"
+            >
+              <input
+                id="qn-name"
+                type="text"
+                maxlength="255"
+                required
+                [value]="name()"
+                (input)="name.set($any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field [label]="'suppliers.evaluations.kind' | transloco" inputId="qn-kind">
+              <select id="qn-kind" (change)="kind.set($any($event.target).value)">
+                @for (k of kinds; track k) {
+                  <option [value]="k" [selected]="kind() === k">
+                    {{ 'suppliers.evaluationKind.' + k | transloco }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field
+              [label]="'suppliers.evaluation.passScore' | transloco"
+              inputId="qn-pass"
+            >
+              <app-field-help
+                label-suffix
+                scope="suppliers"
+                page="questionnaire"
+                field="pass_score"
+                [label]="'suppliers.evaluation.passScore' | transloco"
+              />
+              <input
+                id="qn-pass"
+                type="number"
+                min="0"
+                max="100"
+                [value]="passScore()"
+                (change)="passScore.set(+$any($event.target).value)"
+              />
+            </app-form-field>
+            <app-form-field
+              span="full"
+              [label]="'suppliers.questionnaires.description' | transloco"
+              inputId="qn-desc"
+            >
+              <textarea
+                id="qn-desc"
+                rows="2"
+                maxlength="5000"
+                [value]="description()"
+                (input)="description.set($any($event.target).value)"
+              ></textarea>
+            </app-form-field>
+          </app-form-section>
 
-          <app-card>
-            <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
-              <h2 class="font-display text-card font-bold text-fg">
-                {{ 'suppliers.evaluation.questions' | transloco }}
-              </h2>
-            </div>
+          <app-form-section
+            [title]="'suppliers.evaluation.questions' | transloco"
+            [description]="'suppliers.questionnaires.sections.questionsHint' | transloco"
+            [columns]="1"
+          >
             <app-question-editor
               [questions]="questions()"
               [disabled]="busy()"
               (questionsChange)="questions.set($event)"
             />
-          </app-card>
+          </app-form-section>
 
-          @if (error(); as key) {
-            <app-alert>{{ key | transloco }}</app-alert>
-          }
-          <div class="flex justify-end gap-2">
-            <app-button variant="ghost" (click)="back()">{{
+          <app-form-actions [message]="error() ? (error()! | transloco) : ''">
+            <app-button variant="secondary" (click)="back()">{{
               'common.cancel' | transloco
             }}</app-button>
             <app-button type="submit" [loading]="busy()">{{
               'common.save' | transloco
             }}</app-button>
-          </div>
+          </app-form-actions>
         </form>
       }
     </div>

@@ -29,6 +29,7 @@ import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { AssigneeSelect } from '../../shared/tasks/assignee-select';
 import { decodeAssignee, dueAtFromDay, taskPriorityKey } from '../../shared/tasks/task-display';
 import { Button } from '../../shared/ui/button/button';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 import { FormField } from '../../shared/ui/form-field/form-field';
 import { Icon } from '../../shared/ui/icon/icon';
 import { StatusBadge } from '../../shared/ui/status-badge/status-badge';
@@ -53,6 +54,7 @@ import { ObligationRecordPicker } from './obligation-record-picker';
 @Component({
   selector: 'app-obligation-duties',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     FieldHelp,
@@ -228,7 +230,7 @@ import { ObligationRecordPicker } from './obligation-record-picker';
                 }
                 @if (openFor() === d.id + ':task') {
                   <form
-                    class="mt-3 grid grid-cols-1 gap-3 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2"
+                    class="mt-3 grid grid-cols-1 items-start gap-x-4 gap-y-5 rounded-tile border border-border bg-surface-2 p-4 sm:grid-cols-2"
                     (submit)="$event.preventDefault(); addTask(d)"
                     [attr.data-testid]="'duty-task-form-' + d.code"
                   >
@@ -262,11 +264,10 @@ import { ObligationRecordPicker } from './obligation-record-picker';
                       [label]="'obligations.actions.dueDate' | transloco"
                       [inputId]="'cf-dt-due-' + d.id"
                     >
-                      <input
-                        [id]="'cf-dt-due-' + d.id"
-                        type="date"
+                      <app-date-input
+                        [inputId]="'cf-dt-due-' + d.id"
                         [value]="taskDue()"
-                        (change)="taskDue.set($any($event.target).value)"
+                        (valueChange)="taskDue.set($event ?? '')"
                       />
                     </app-form-field>
                     <app-form-field

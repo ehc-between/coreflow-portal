@@ -26,7 +26,7 @@ export const ACCOUNT_NAV: readonly ModuleNavItem[] = [
   imports: [RouterOutlet, TranslocoPipe, ModuleNav],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto w-full max-w-[1080px] px-4 pt-6 sm:px-8">
+    <div class="mx-auto w-full max-w-[808px] px-4 pt-6 sm:px-8 sm:pt-7">
       <p class="mb-1 text-meta font-semibold tracking-wide text-fg-subtle uppercase">
         {{ 'account.title' | transloco }}
       </p>

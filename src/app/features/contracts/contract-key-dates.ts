@@ -10,7 +10,6 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { SelectedOrgService } from '../../core/org/selected-org.service';
-import { GuidanceService } from '../../core/guidance/guidance.service';
 import { FieldHelp } from '../../shared/guidance/field-help';
 import { LocalDayPipe } from '../../shared/locale/locale-pipes';
 import { Badge } from '../../shared/ui/badge/badge';
@@ -20,6 +19,7 @@ import { Icon } from '../../shared/ui/icon/icon';
 import { ContractsApi } from './data/contracts-api';
 import { KEY_DATE_KINDS, KeyDate, KeyDateKind } from './data/contract.models';
 import { contractErrorKey } from './data/contract-errors';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 interface KeyDateDraft {
   readonly kind: KeyDateKind;
@@ -36,7 +36,7 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
  */
 @Component({
   selector: 'app-contract-key-dates',
-  imports: [TranslocoPipe, FieldHelp, LocalDayPipe, Badge, Button, FormField, Icon],
+  imports: [DateInput, TranslocoPipe, FieldHelp, LocalDayPipe, Badge, Button, FormField, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="cf-keydates-h">
@@ -46,9 +46,7 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
           class="flex items-center gap-1.5 font-display text-card font-bold text-fg"
         >
           {{ 'contracts.keyDates.title' | transloco }}
-          @if (!beginner()) {
-            <app-field-help scope="contracts" page="detail" field="key_dates" />
-          }
+          <app-field-help scope="contracts" page="detail" field="key_dates" />
         </h2>
         @if (canEdit() && !adding()) {
           <app-button
@@ -62,9 +60,6 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
           </app-button>
         }
       </div>
-      @if (beginner()) {
-        <app-field-help scope="contracts" page="detail" field="key_dates" />
-      }
 
       @if (adding()) {
         <form
@@ -92,12 +87,11 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
             />
           </app-form-field>
           <app-form-field [label]="'contracts.keyDates.dueDate' | transloco" inputId="cf-kd-due">
-            <input
-              id="cf-kd-due"
-              type="date"
-              required
+            <app-date-input
+              inputId="cf-kd-due"
+              [required]="true"
               [value]="draft().due_date"
-              (change)="patch({ due_date: $any($event.target).value })"
+              (valueChange)="patch({ due_date: $event ?? '' })"
             />
           </app-form-field>
           <div class="sm:col-span-3">
@@ -175,7 +169,6 @@ const EMPTY: KeyDateDraft = { kind: 'renewal', label: '', due_date: '', notes: '
   `,
 })
 export class ContractKeyDates {
-  protected readonly beginner = inject(GuidanceService).isBeginner;
   private readonly api = inject(ContractsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
   private readonly notifications = inject(NotificationService);

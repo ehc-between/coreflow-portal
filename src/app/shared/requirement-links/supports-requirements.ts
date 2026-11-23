@@ -293,7 +293,13 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
   // The strings live in the `standards` scope; hosts don't load it themselves.
   viewProviders: [provideSharedScope('standards')],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block', '[style.display]': "reqVis.show() ? null : 'none'" },
+  // Hidden when "Vis krav" is off, and when there is nothing to show or do (no links,
+  // no suggestions, and the user cannot add any), so a record aside has no empty block.
+  host: {
+    class: 'block',
+    '[style.display]': "reqVis.show() && !hideEmpty() ? null : 'none'",
+    '[attr.data-empty]': "hideEmpty() ? 'true' : null",
+  },
   template: `
     @if (canRead() && compact()) {
       <section
@@ -329,9 +335,7 @@ export function groupByClause(rows: readonly PanelRow[]): ClauseRow[] {
         @if (loading()) {
           <p class="text-meta text-fg-muted">{{ 'common.loading' | transloco }}</p>
         } @else if (confirmedClauses().length === 0) {
-          <p class="text-meta text-fg-muted" data-testid="supports-none">
-            {{ 'standards.reqs.none' | transloco }}
-          </p>
+          <!-- Nothing linked: the heading and its "Legg til" are enough (no empty line). -->
         } @else if (beginner()) {
           <button
             type="button"
@@ -697,6 +701,27 @@ export class SupportsRequirements {
   protected readonly canManage = computed(
     () => this.canRead() && (this.permissions().includes('standards:manage') || !!this.canEdit()),
   );
+  /**
+   * Nothing to show and nothing to do: no links (own or on actions), no suggestions,
+   * no error and the user may not add any. Compact record panels also stay hidden
+   * while loading, so the aside does not flash an empty heading.
+   */
+  protected readonly hideEmpty = computed(() => {
+    if (!this.canRead()) {
+      return true;
+    }
+    if (this.loading()) {
+      return this.compact();
+    }
+    const hasContent =
+      this.confirmed().length > 0 ||
+      this.suggestions().length > 0 ||
+      this.suggesting() ||
+      this.actionGroups().length > 0 ||
+      !!this.errorKey() ||
+      this.adding();
+    return !hasContent && !this.canManage();
+  });
   /** U40: the user is a beginner. */
   protected readonly beginner = computed(() => this.guidance.isBeginner());
   /** U40: no suggestions for a beginner, unless they came to confirm them. */

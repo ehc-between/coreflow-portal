@@ -18,7 +18,9 @@ import { Term } from '../../../shared/guidance/term';
 import { dueAtFromDay } from '../../../shared/tasks/task-display';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
-import { Card } from '../../../shared/ui/card/card';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 import { AiGovernanceApi } from '../data/ai-governance-api';
 import { aiGovernanceErrorKey } from '../data/ai-governance-errors';
 import { ASSESSMENT_KINDS, AiSystemSummary, AssessmentKind } from '../data/ai-governance.models';
@@ -43,7 +45,18 @@ function asKind(value: string | undefined): AssessmentKind {
  */
 @Component({
   selector: 'app-ai-assessment-new',
-  imports: [TranslocoPipe, Term, Alert, Button, Card, AiField, AiGovPage, AiUserSelect],
+  imports: [
+    TranslocoPipe,
+    Term,
+    Alert,
+    Button,
+    DateInput,
+    FormActions,
+    FormSection,
+    AiField,
+    AiGovPage,
+    AiUserSelect,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-ai-gov-page
@@ -52,128 +65,128 @@ function asKind(value: string | undefined): AssessmentKind {
       page="assessmentNew"
       [nav]="false"
       [why]="false"
+      [narrow]="true"
       backLink="/ai-governance/assessments"
     >
       <form
-        class="flex max-w-[760px] flex-col gap-5"
+        class="mt-5 flex flex-col gap-5"
         (submit)="$event.preventDefault(); submit()"
         novalidate
       >
-        <app-card>
-          <div class="flex flex-col gap-4">
-            <app-ai-field
-              inputId="aia-system"
-              labelKey="aiGovernance.fields.system"
-              [required]="true"
-              helpPage="assessmentNew"
-              helpField="system"
-              [error]="
-                submitted() && !systemId() ? 'aiGovernance.assessmentNew.systemRequired' : null
-              "
-            >
-              <select id="aia-system" required (change)="systemId.set($any($event.target).value)">
-                <option value="" [selected]="!systemId()">
-                  {{ 'aiGovernance.assessmentNew.pickSystem' | transloco }}
+        <app-form-section
+          [title]="'aiGovernance.assessmentNew.sections.what' | transloco"
+          [description]="'aiGovernance.assessmentNew.sections.whatHint' | transloco"
+        >
+          <app-ai-field
+            span="full"
+            inputId="aia-system"
+            labelKey="aiGovernance.fields.system"
+            [required]="true"
+            helpPage="assessmentNew"
+            helpField="system"
+            [error]="
+              submitted() && !systemId() ? 'aiGovernance.assessmentNew.systemRequired' : null
+            "
+          >
+            <select id="aia-system" required (change)="systemId.set($any($event.target).value)">
+              <option value="" [selected]="!systemId()">
+                {{ 'aiGovernance.assessmentNew.pickSystem' | transloco }}
+              </option>
+              @for (s of systems(); track s.id) {
+                <option [value]="s.id" [selected]="systemId() === s.id">
+                  {{ s.code }} {{ s.name }}
                 </option>
-                @for (s of systems(); track s.id) {
-                  <option [value]="s.id" [selected]="systemId() === s.id">
-                    {{ s.code }} {{ s.name }}
-                  </option>
-                }
-              </select>
+              }
+            </select>
+          </app-ai-field>
+          <app-ai-field
+            span="full"
+            inputId="aia-kind"
+            labelKey="aiGovernance.fields.kind"
+            helpPage="assessmentNew"
+            helpField="kind"
+            [plain]="true"
+            [legend]="true"
+          >
+            <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby="aia-kind-label">
+              @for (k of kinds; track k) {
+                <label
+                  class="flex cursor-pointer items-start gap-2.5 rounded-tile border border-border bg-bg px-3 py-2.5 text-body text-fg has-[:checked]:border-accent has-[:checked]:bg-accent-soft"
+                >
+                  <input
+                    type="radio"
+                    name="aia-kind"
+                    class="mt-1"
+                    [value]="k"
+                    [checked]="chosenKind() === k"
+                    (change)="chosenKind.set(k)"
+                  />
+                  <span>
+                    <span class="font-semibold">{{ kindKey(k) | transloco }}</span>
+                    @if (k === 'fria' && systemId() && !friaRelevant()) {
+                      <span class="ml-1 text-meta font-normal text-fg-subtle">{{
+                        'aiGovernance.assessmentNew.friaNotRequired' | transloco
+                      }}</span>
+                    }
+                    <span class="block text-meta text-fg-muted">{{
+                      'aiGovernance.kindHelp.' + k | transloco
+                    }}</span>
+                  </span>
+                </label>
+              }
+            </div>
+            <span hint>
+              <app-term scope="ai-governance" key="fria">{{
+                'aiGovernance.assessmentNew.whatIsFria' | transloco
+              }}</app-term>
+            </span>
+          </app-ai-field>
+          @if (chosenKind() !== 'classification') {
+            <app-ai-field span="full" inputId="aia-title" labelKey="aiGovernance.fields.title">
+              <input
+                id="aia-title"
+                type="text"
+                maxlength="200"
+                [placeholder]="'aiGovernance.assessmentNew.titlePlaceholder' | transloco"
+                [value]="title()"
+                (input)="title.set($any($event.target).value)"
+              />
             </app-ai-field>
             <app-ai-field
-              inputId="aia-kind"
-              labelKey="aiGovernance.fields.kind"
+              inputId="aia-owner"
+              labelKey="aiGovernance.fields.owner"
               helpPage="assessmentNew"
-              helpField="kind"
+              helpField="owner"
               [plain]="true"
-              [legend]="true"
             >
-              <div class="flex flex-col gap-2" role="radiogroup" aria-labelledby="aia-kind-label">
-                @for (k of kinds; track k) {
-                  <label class="flex items-start gap-2 text-body text-fg">
-                    <input
-                      type="radio"
-                      name="aia-kind"
-                      class="mt-1"
-                      [value]="k"
-                      [checked]="chosenKind() === k"
-                      (change)="chosenKind.set(k)"
-                    />
-                    <span>
-                      <span class="font-semibold">{{ kindKey(k) | transloco }}</span>
-                      @if (k === 'fria' && systemId() && !friaRelevant()) {
-                        <span class="ml-1 text-meta font-normal text-fg-subtle">{{
-                          'aiGovernance.assessmentNew.friaNotRequired' | transloco
-                        }}</span>
-                      }
-                      <span class="block text-meta text-fg-muted">{{
-                        'aiGovernance.kindHelp.' + k | transloco
-                      }}</span>
-                    </span>
-                  </label>
-                }
-              </div>
-              <span hint>
-                <app-term scope="ai-governance" key="fria">{{
-                  'aiGovernance.assessmentNew.whatIsFria' | transloco
-                }}</app-term>
-              </span>
+              <app-ai-user-select selectId="aia-owner" [(value)]="owner" />
             </app-ai-field>
-            @if (chosenKind() !== 'classification') {
-              <app-ai-field inputId="aia-title" labelKey="aiGovernance.fields.title">
-                <input
-                  id="aia-title"
-                  type="text"
-                  maxlength="200"
-                  [placeholder]="'aiGovernance.assessmentNew.titlePlaceholder' | transloco"
-                  [value]="title()"
-                  (input)="title.set($any($event.target).value)"
-                />
-              </app-ai-field>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <app-ai-field
-                  inputId="aia-owner"
-                  labelKey="aiGovernance.fields.owner"
-                  helpPage="assessmentNew"
-                  helpField="owner"
-                  [plain]="true"
-                >
-                  <app-ai-user-select selectId="aia-owner" [(value)]="owner" />
-                </app-ai-field>
-                <app-ai-field inputId="aia-due" labelKey="aiGovernance.fields.dueAt">
-                  <input
-                    id="aia-due"
-                    type="date"
-                    [value]="due()"
-                    (input)="due.set($any($event.target).value)"
-                  />
-                </app-ai-field>
-                <app-ai-field
-                  inputId="aia-review"
-                  labelKey="aiGovernance.fields.nextReview"
-                  helpPage="assessmentNew"
-                  helpField="next_review"
-                >
-                  <input
-                    id="aia-review"
-                    type="date"
-                    [value]="nextReview()"
-                    (input)="nextReview.set($any($event.target).value)"
-                  />
-                  <span hint>{{ 'aiGovernance.assessmentNew.nextReviewHint' | transloco }}</span>
-                </app-ai-field>
-              </div>
-            }
-          </div>
-        </app-card>
+            <app-ai-field inputId="aia-due" labelKey="aiGovernance.fields.dueAt">
+              <app-date-input
+                inputId="aia-due"
+                [value]="due()"
+                (valueChange)="due.set($event ?? '')"
+              />
+            </app-ai-field>
+            <app-ai-field
+              inputId="aia-review"
+              labelKey="aiGovernance.fields.nextReview"
+              helpPage="assessmentNew"
+              helpField="next_review"
+            >
+              <app-date-input
+                inputId="aia-review"
+                [value]="nextReview()"
+                (valueChange)="nextReview.set($event ?? '')"
+              />
+              <span hint>{{ 'aiGovernance.assessmentNew.nextReviewHint' | transloco }}</span>
+            </app-ai-field>
+          }
+        </app-form-section>
         @if (error()) {
           <app-alert tone="error">{{ error()! | transloco }}</app-alert>
         }
-        <div
-          class="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0"
-        >
+        <app-form-actions>
           <app-button variant="secondary" (click)="cancel()">{{
             'aiGovernance.common.cancel' | transloco
           }}</app-button>
@@ -185,7 +198,7 @@ function asKind(value: string | undefined): AssessmentKind {
               ) | transloco
             }}
           </app-button>
-        </div>
+        </app-form-actions>
       </form>
     </app-ai-gov-page>
   `,

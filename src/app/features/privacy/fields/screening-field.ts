@@ -24,7 +24,7 @@ const RESULT_TONE: Readonly<Record<string, string>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fieldset class="flex flex-col gap-2">
-      <legend class="mb-1 text-ui font-semibold text-fg-muted">
+      <legend class="mb-1.5 flex min-h-6 items-center text-ui font-semibold text-fg-muted">
         {{ 'privacy.fields.screening' | transloco }}
       </legend>
       <ul class="grid grid-cols-1 gap-2 md:grid-cols-2">

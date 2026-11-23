@@ -13,30 +13,36 @@ import { FormField } from '../../../shared/ui/form-field/form-field';
   selector: 'app-inspection-field',
   imports: [TranslocoPipe, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: {
+    class: 'block min-w-0',
+    '[class.sm:col-span-2]': "span() === 'full'",
+  },
   template: `
-    <div class="mb-1.5 flex min-h-6 items-center gap-1.5">
-      <label [attr.for]="inputId()" class="text-ui font-semibold text-fg-muted">
-        {{ labelKey() | transloco }}
+    <app-form-field
+      [label]="labelKey() | transloco"
+      [inputId]="inputId()"
+      [required]="required()"
+      [hint]="hintKey() ? (hintKey()! | transloco: hintParams()) : ''"
+      [error]="errorKey() ? (errorKey()! | transloco) : ''"
+    >
+      <span label-suffix class="inline-flex items-center gap-1.5">
         @if (optional()) {
-          <span class="font-normal text-fg-subtle">{{
+          <span class="text-ui font-normal text-fg-subtle">{{
             'inspections.form.optional' | transloco
           }}</span>
         }
-      </label>
-      @if (help(); as field) {
-        <app-field-help scope="inspections" [page]="page()" [field]="field" />
-      }
-      <span class="ml-auto"><ng-content select="[label-extra]" /></span>
-    </div>
-    <app-form-field>
+        @if (help(); as field) {
+          <app-field-help
+            scope="inspections"
+            [page]="page()"
+            [field]="field"
+            [label]="labelKey() | transloco"
+          />
+        }
+      </span>
+      <span label-suffix class="ml-auto empty:hidden"><ng-content select="[label-extra]" /></span>
       <ng-content />
     </app-form-field>
-    @if (hintKey(); as hint) {
-      <p class="mt-1 text-meta text-fg-muted" [id]="inputId() + '-hint'">
-        {{ hint | transloco: hintParams() }}
-      </p>
-    }
   `,
 })
 export class InspectionField {
@@ -50,4 +56,10 @@ export class InspectionField {
   readonly hintKey = input<string | null>(null);
   readonly hintParams = input<Record<string, unknown> | undefined>(undefined);
   readonly optional = input(false);
+  /** Mark the label as required ("*"). */
+  readonly required = input(false);
+  /** i18n key of the error shown under the control. */
+  readonly errorKey = input<string | null>(null);
+  /** Grid span inside an `app-form-section`. */
+  readonly span = input<'half' | 'full'>('half');
 }

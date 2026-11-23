@@ -79,6 +79,7 @@ import {
 } from '../shared/question-editor';
 import { EvaluationDecideDialog } from './decide-dialog';
 import { AnswerChange, DraftAnswer, QuestionnaireAnswers } from './questionnaire-answers';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 const TABS: readonly RecordTab[] = [
   'details',
@@ -147,6 +148,7 @@ export function answersBody(
 @Component({
   selector: 'app-evaluation-detail',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -466,12 +468,10 @@ export function answersBody(
                       [label]="'suppliers.evaluations.dueAt' | transloco"
                       inputId="ed-due"
                     >
-                      <input
-                        id="ed-due"
-                        type="date"
-                        [attr.lang]="lang()"
+                      <app-date-input
+                        inputId="ed-due"
                         [value]="dueDraft()"
-                        (input)="dueDraft.set($any($event.target).value)"
+                        (valueChange)="dueDraft.set($event ?? '')"
                       />
                     </app-form-field>
                     <div class="flex justify-end gap-2">

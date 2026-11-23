@@ -13,7 +13,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { Observable, map, of, switchMap } from 'rxjs';
+import { Observable, forkJoin, map, of, switchMap, take } from 'rxjs';
 import { hasAnyPermission } from '../../core/auth/permission';
 import { LanguageService } from '../../core/i18n/language.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -46,6 +46,8 @@ import { Button } from '../../shared/ui/button/button';
 import { Card } from '../../shared/ui/card/card';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog/confirm-dialog';
 import { FormField } from '../../shared/ui/form-field/form-field';
+import { FormSection } from '../../shared/ui/form-section/form-section';
+import { FieldHelp } from '../../shared/guidance/field-help';
 import { Icon } from '../../shared/ui/icon/icon';
 import { Switch } from '../../shared/ui/switch/switch';
 import { AskPanelService } from '../ask/ask-panel.service';
@@ -69,7 +71,6 @@ import { FieldBuilder } from './designer/field-builder';
 import { VersionEntry, VersionHistory } from './designer/version-history';
 import { WorkflowEditor } from './designer/workflow-editor';
 import { RecordDraftStore } from './draft-store';
-import { RecordsFieldHelp } from './guidance/records-guidance';
 import { providePageContext } from '../../core/ai/page-context';
 import { SupportsRequirements } from '../../shared/requirement-links/supports-requirements';
 
@@ -107,13 +108,14 @@ interface PendingWorkflow {
     Card,
     ConfirmDialog,
     FormField,
+    FormSection,
+    FieldHelp,
     Icon,
     Switch,
     AiDraftPanel,
     FieldBuilder,
     VersionHistory,
     WorkflowEditor,
-    RecordsFieldHelp,
     SupportsRequirements,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -201,10 +203,16 @@ interface PendingWorkflow {
 
         <div class="grid gap-5 lg:grid-cols-[1fr_300px]">
           <div class="flex min-w-0 flex-col gap-5">
-            <app-card>
-              <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2" [disabled]="readonly()">
-                <legend class="sr-only">{{ 'records.designer.basics' | transloco }}</legend>
-                <app-form-field [label]="'records.designer.name' | transloco" inputId="rt-name">
+            <fieldset class="contents" [disabled]="readonly()">
+              <app-form-section
+                [title]="'records.designer.basics' | transloco"
+                [description]="'records.designer.basicsHint' | transloco"
+              >
+                <app-form-field
+                  [label]="'records.designer.name' | transloco"
+                  inputId="rt-name"
+                  [required]="true"
+                >
                   <input
                     id="rt-name"
                     type="text"
@@ -216,6 +224,13 @@ interface PendingWorkflow {
                   />
                 </app-form-field>
                 <app-form-field [label]="'records.designer.module' | transloco" inputId="rt-module">
+                  <app-field-help
+                    label-suffix
+                    scope="records"
+                    page="designer"
+                    field="module"
+                    [label]="'records.designer.module' | transloco"
+                  />
                   <select
                     id="rt-module"
                     [ngModel]="module()"
@@ -226,9 +241,19 @@ interface PendingWorkflow {
                       <option [value]="key">{{ moduleLabel(key) | transloco }}</option>
                     }
                   </select>
-                  <app-records-field-help page="designer" field="module" />
                 </app-form-field>
-                <app-form-field [label]="'records.designer.key' | transloco" inputId="rt-key">
+                <app-form-field
+                  [label]="'records.designer.key' | transloco"
+                  inputId="rt-key"
+                  [error]="keyInvalid() ? ('records.designer.keyInvalid' | transloco) : ''"
+                >
+                  <app-field-help
+                    label-suffix
+                    scope="records"
+                    page="designer"
+                    field="key"
+                    [label]="'records.designer.key' | transloco"
+                  />
                   <input
                     id="rt-key"
                     type="text"
@@ -238,14 +263,20 @@ interface PendingWorkflow {
                     [ngModel]="key()"
                     (ngModelChange)="key.set($event); keyTouched.set(true)"
                     [disabled]="!isNew() || readonly()"
-                    [attr.aria-invalid]="keyInvalid() || null"
                   />
-                  <app-records-field-help page="designer" field="key" />
                 </app-form-field>
                 <app-form-field
                   [label]="'records.designer.codePrefix' | transloco"
                   inputId="rt-prefix"
+                  [error]="prefixInvalid() ? ('records.designer.prefixInvalid' | transloco) : ''"
                 >
+                  <app-field-help
+                    label-suffix
+                    scope="records"
+                    page="designer"
+                    field="code_prefix"
+                    [label]="'records.designer.codePrefix' | transloco"
+                  />
                   <input
                     id="rt-prefix"
                     type="text"
@@ -254,26 +285,25 @@ interface PendingWorkflow {
                     class="font-mono uppercase"
                     [ngModel]="codePrefix()"
                     (ngModelChange)="codePrefix.set(($event ?? '').toUpperCase())"
-                    [attr.aria-invalid]="prefixInvalid() || null"
                     [placeholder]="'records.designer.codePrefixPlaceholder' | transloco"
                   />
-                  <app-records-field-help page="designer" field="code_prefix" />
                 </app-form-field>
-                <div class="sm:col-span-2">
-                  <app-form-field
-                    [label]="'records.designer.description' | transloco"
-                    inputId="rt-description"
-                  >
-                    <textarea
-                      id="rt-description"
-                      rows="2"
-                      maxlength="5000"
-                      [ngModel]="description()"
-                      (ngModelChange)="description.set($event)"
-                    ></textarea>
-                  </app-form-field>
-                </div>
-                <div class="sm:col-span-2">
+                <app-form-field
+                  span="full"
+                  [label]="'records.designer.description' | transloco"
+                  inputId="rt-description"
+                >
+                  <textarea
+                    id="rt-description"
+                    rows="2"
+                    maxlength="5000"
+                    [ngModel]="description()"
+                    (ngModelChange)="description.set($event)"
+                  ></textarea>
+                </app-form-field>
+                <div
+                  class="flex min-h-10 items-center rounded-tile border border-border px-3 sm:col-span-2"
+                >
                   <app-switch
                     [checked]="isActive()"
                     (checkedChange)="!readonly() && isActive.set($event)"
@@ -281,18 +311,8 @@ interface PendingWorkflow {
                     {{ 'records.designer.active' | transloco }}
                   </app-switch>
                 </div>
-              </fieldset>
-              @if (keyInvalid() || prefixInvalid()) {
-                <div class="mt-3 flex flex-col gap-1 text-meta font-medium text-fail">
-                  @if (keyInvalid()) {
-                    <p>{{ 'records.designer.keyInvalid' | transloco }}</p>
-                  }
-                  @if (prefixInvalid()) {
-                    <p>{{ 'records.designer.prefixInvalid' | transloco }}</p>
-                  }
-                </div>
-              }
-            </app-card>
+              </app-form-section>
+            </fieldset>
 
             <div
               role="tablist"
@@ -392,7 +412,12 @@ interface PendingWorkflow {
                             }
                           }
                         </select>
-                        <app-records-field-help page="designer" field="workflow" />
+                        <app-field-help
+                          label-suffix
+                          scope="records"
+                          page="designer"
+                          field="workflow"
+                        />
                       </app-form-field>
                       @if (pinnedOlder()) {
                         <p class="text-meta text-warn">
@@ -1029,8 +1054,14 @@ export class RecordTypeDesigner {
         this.loadDraft(pending.draft);
         this.fromDraft.set(true);
       } else {
-        const details = this.transloco.translate('records.layout.defaultLabel');
-        this.sections.set([{ key: 'details', label: { en: details, nb: details }, columns: 1 }]);
+        // Both languages' "Details", read from the scope files (a synchronous translate runs
+        // before the scope has loaded and would store the raw key as the label).
+        forkJoin({
+          en: this.transloco.selectTranslate('layout.defaultLabel', {}, 'records/en').pipe(take(1)),
+          nb: this.transloco.selectTranslate('layout.defaultLabel', {}, 'records/nb').pipe(take(1)),
+        }).subscribe((label: { en: string; nb: string }) =>
+          this.sections.set([{ key: 'details', label, columns: 1 }]),
+        );
       }
       this.baseline.set({ schema: '', meta: '' });
       return;

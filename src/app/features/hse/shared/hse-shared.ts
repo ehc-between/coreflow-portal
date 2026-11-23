@@ -14,6 +14,7 @@ import { SelectedOrgService } from '../../../core/org/selected-org.service';
 import { FieldHelp } from '../../../shared/guidance/field-help';
 import { AssigneeOptionsService } from '../../../shared/tasks/assignee-options';
 import { Button } from '../../../shared/ui/button/button';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { ModuleNavItem } from '../../../shared/ui/module-nav/module-nav';
 import { Breadcrumb } from '../../../shared/ui/page-header/page-header';
@@ -144,70 +145,37 @@ export function departmentName(
 }
 
 /**
- * One HSE form field: the label with its "?" help right next to it, the control
- * (projected), an always-visible one-line hint underneath and an error line.
+ * One HSE form field, on the shared form anatomy (`app-form-field`): the label row
+ * with its "?" help, the control (projected), a one-line hint and an error line.
  * Hints live in their own keys (`…Hint`) so read-only labels never carry them.
  */
 @Component({
   selector: 'app-hse-field',
-  imports: [TranslocoPipe, FieldHelp],
+  imports: [TranslocoPipe, FieldHelp, FormField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
-  styles: [
-    `
-      :host ::ng-deep input:not([type='checkbox']):not([type='radio']):not([data-bare]),
-      :host ::ng-deep select,
-      :host ::ng-deep textarea {
-        width: 100%;
-        min-height: 40px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--fg);
-        font-family: inherit;
-        font-size: 13.5px;
-        padding: 0 12px;
-        outline: none;
-      }
-      :host ::ng-deep textarea {
-        padding: 10px 12px;
-      }
-      :host ::ng-deep input:not([data-bare]):focus,
-      :host ::ng-deep select:focus,
-      :host ::ng-deep textarea:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-      :host ::ng-deep [aria-invalid='true'] {
-        border-color: var(--fail);
-      }
-    `,
-  ],
+  host: { class: 'block min-w-0', '[class.sm:col-span-2]': "span() === 'full'" },
   template: `
-    <div class="mb-1.5 flex min-h-6 flex-wrap items-center gap-1.5">
-      <label [attr.for]="inputId() || null" class="text-ui font-semibold text-fg-muted">
-        {{ labelKey() | transloco }}
-        @if (required()) {
-          <span class="text-fail" aria-hidden="true">*</span>
-          <span class="sr-only">{{ 'hse.common.required' | transloco }}</span>
-        }
-      </label>
+    <app-form-field
+      [label]="labelKey() | transloco"
+      [inputId]="inputId()"
+      [required]="required()"
+      [hint]="hintKey() ? (hintKey()! | transloco) : ''"
+      [error]="errorKey() ? (errorKey()! | transloco) : ''"
+    >
       @if (help()) {
-        <app-field-help scope="hse" [page]="page()" [field]="help()!" />
+        <app-field-help
+          label-suffix
+          scope="hse"
+          [page]="page()"
+          [field]="help()!"
+          [label]="labelKey() | transloco"
+        />
       }
-      <span class="ml-auto empty:hidden"><ng-content select="[label-extra]" /></span>
-    </div>
-    <ng-content />
-    @if (hintKey()) {
-      <p class="mt-1 text-meta text-fg-muted" [id]="inputId() + '-hint'">
-        {{ hintKey()! | transloco }}
-      </p>
-    }
-    @if (errorKey()) {
-      <p class="mt-1 text-meta font-semibold text-fail" role="alert" [id]="inputId() + '-error'">
-        {{ errorKey()! | transloco }}
-      </p>
-    }
+      <span label-suffix class="ml-auto inline-flex h-6 items-center empty:hidden"
+        ><ng-content select="[label-extra]"
+      /></span>
+      <ng-content />
+    </app-form-field>
   `,
 })
 export class HseField {
@@ -221,6 +189,8 @@ export class HseField {
   /** Shown in red under the control (validation). */
   readonly errorKey = input<string | null>(null);
   readonly required = input(false);
+  /** `full` spans both columns of an `app-form-section` grid (textareas, pickers). */
+  readonly span = input<'half' | 'full'>('half');
 }
 
 /**

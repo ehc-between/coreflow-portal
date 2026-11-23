@@ -87,7 +87,11 @@
     "positionIntro": "Start med en stilling i Personer for å bruke tittel, avdeling, risikonivå og kompetansekrav derfra.",
     "findPosition": "Finn en stilling i Personer",
     "removePosition": "Fjern koblingen",
-    "prefilled": "Fylt ut fra stillingen. Sjekk feltene og endre det som ikke passer."
+    "prefilled": "Fylt ut fra stillingen. Sjekk feltene og endre det som ikke passer.",
+    "needSection": "Behov og ansvar",
+    "needHint": "Hvorfor stillingen trengs, risikonivået og hvem som har ansvaret for rekrutteringen.",
+    "criteriaHint": "De jobbrelaterte kriteriene alle søkere vurderes etter.",
+    "postingHint": "Teksten søkerne ser, og når søknadsfristen er."
   },
   "requisition": {
     "pipeline": "Kandidatløp",
@@ -214,7 +218,9 @@
     "noRights": "Bare rekrutteringsteamet, den som opprettet kandidaten eller en rekrutteringsansvarlig kan redigere kandidaten.",
     "created": "Kandidat {{ code }} er registrert.",
     "saved": "Kandidat {{ code }} er lagret.",
-    "create": "Registrer kandidat"
+    "create": "Registrer kandidat",
+    "section": "Kandidat",
+    "sectionHint": "Bare personopplysningene rekrutteringen trenger."
   },
   "candidate": {
     "applications": "Søknader",
@@ -279,7 +285,12 @@
     "newCandidate": "Ny kandidat",
     "findCandidate": "Finn en kandidat",
     "submit": "Legg til søknad",
-    "created": "Søknad {{ code }} er lagt til."
+    "created": "Søknad {{ code }} er lagt til.",
+    "requisitionSection": "Stillingsbehov",
+    "requisitionHint": "Det åpne stillingsbehovet kandidaten søker på.",
+    "candidateHint": "Velg en registrert kandidat eller registrer en ny.",
+    "applicationSection": "Søknaden",
+    "applicationHint": "Et kort notat om søknaden, for eksempel hvordan den kom inn."
   },
   "application": {
     "backToPipeline": "Tilbake til kandidatløpet",

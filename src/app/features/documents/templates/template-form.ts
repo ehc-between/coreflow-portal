@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -21,7 +21,10 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { PromptDialog } from '../../../shared/ui/prompt-dialog/prompt-dialog';
 import { DocumentEditor } from '../editor/document-editor';
@@ -44,7 +47,6 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
   selector: 'app-template-form',
   imports: [
     NgTemplateOutlet,
-    RouterLink,
     TranslocoPipe,
     FieldHelp,
     RecordDetailLayout,
@@ -53,7 +55,10 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
     Button,
     Card,
     ConfirmDialog,
+    FormActions,
     FormField,
+    FormSection,
+    PageHeader,
     Icon,
     PromptDialog,
     DocumentEditor,
@@ -63,15 +68,19 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #formTpl>
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-5">
         <app-documents-page-guide page="templateForm" />
         @if (errorKey(); as key) {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         }
-        <app-card>
-          <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2" [disabled]="!perms.canManage()">
+        <fieldset class="contents" [disabled]="!perms.canManage()">
+          <app-form-section
+            [title]="'documents.control.templates.sections.basics' | transloco"
+            [description]="'documents.control.templates.sections.basicsHint' | transloco"
+          >
             <app-form-field
               inputId="tpl-name"
+              [required]="true"
               [label]="'documents.control.templates.fields.name' | transloco"
             >
               <input
@@ -84,24 +93,28 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
                 data-testid="template-name"
               />
             </app-form-field>
-            <div>
-              <app-form-field
-                inputId="tpl-type"
-                [label]="'documents.control.fields.type' | transloco"
-              >
-                <select id="tpl-type" (change)="typeId.set($any($event.target).value)">
-                  <option value="" [selected]="!typeId()">
-                    {{ 'documents.control.templates.anyType' | transloco }}
-                  </option>
-                  @for (t of types(); track t.id) {
-                    <option [value]="t.id" [selected]="t.id === typeId()">{{ t.name }}</option>
-                  }
-                </select>
-              </app-form-field>
-              <app-field-help scope="documents" page="templateForm" field="type" />
-            </div>
             <app-form-field
-              class="sm:col-span-2"
+              inputId="tpl-type"
+              [label]="'documents.control.fields.type' | transloco"
+            >
+              <app-field-help
+                label-suffix
+                scope="documents"
+                page="templateForm"
+                field="type"
+                [label]="'documents.control.fields.type' | transloco"
+              />
+              <select id="tpl-type" (change)="typeId.set($any($event.target).value)">
+                <option value="" [selected]="!typeId()">
+                  {{ 'documents.control.templates.anyType' | transloco }}
+                </option>
+                @for (t of types(); track t.id) {
+                  <option [value]="t.id" [selected]="t.id === typeId()">{{ t.name }}</option>
+                }
+              </select>
+            </app-form-field>
+            <app-form-field
+              span="full"
               inputId="tpl-description"
               [label]="'documents.control.fields.description' | transloco"
             >
@@ -113,27 +126,39 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
                 (input)="description.set($any($event.target).value)"
               ></textarea>
             </app-form-field>
-          </fieldset>
-        </app-card>
+          </app-form-section>
+        </fieldset>
+
+        <section class="flex flex-col gap-3" aria-labelledby="tpl-content-heading">
+          <div>
+            <h2 id="tpl-content-heading" class="font-display text-card font-bold text-fg">
+              {{ 'documents.control.templates.sections.content' | transloco }}
+            </h2>
+            <p class="mt-0.5 text-meta text-fg-muted">
+              {{ 'documents.control.templates.sections.contentHint' | transloco }}
+            </p>
+          </div>
+          @if (perms.canManage()) {
+            <app-documents-ai-draft
+              [title]="name()"
+              [documentType]="selectedTypeKey()"
+              (apply)="replaceContent($event)"
+            />
+          }
+          @for (key of [editorKey()]; track key) {
+            <app-document-editor
+              [embedded]="true"
+              [content]="content()"
+              (contentChange)="content.set($event)"
+            />
+          }
+        </section>
 
         @if (perms.canManage()) {
-          <app-documents-ai-draft
-            [title]="name()"
-            [documentType]="selectedTypeKey()"
-            (apply)="replaceContent($event)"
-          />
-        }
-
-        @for (key of [editorKey()]; track key) {
-          <app-document-editor
-            [embedded]="true"
-            [content]="content()"
-            (contentChange)="content.set($event)"
-          />
-        }
-
-        @if (perms.canManage()) {
-          <div class="flex flex-wrap items-center gap-2">
+          <app-form-actions>
+            <app-button type="button" variant="secondary" (click)="cancel()">
+              {{ 'documents.control.common.cancel' | transloco }}
+            </app-button>
             <app-button
               [disabled]="!name().trim()"
               [loading]="saving()"
@@ -142,12 +167,7 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
             >
               {{ 'documents.control.common.save' | transloco }}
             </app-button>
-            <a routerLink="/settings/modules/documents/templates">
-              <app-button type="button" variant="ghost">
-                {{ 'documents.control.common.cancel' | transloco }}
-              </app-button>
-            </a>
-          </div>
+          </app-form-actions>
         }
       </div>
     </ng-template>
@@ -230,17 +250,19 @@ const TABS: readonly RecordTab[] = ['details', 'activity', 'related'];
         </p>
       }
     } @else {
-      <div class="mx-auto max-w-[980px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-        <a
-          routerLink="/settings/modules/documents/templates"
-          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
-        >
-          <app-icon name="back" [size]="16" />
-          {{ 'documents.control.templates.back' | transloco }}
-        </a>
-        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
-          {{ 'documents.control.templates.new' | transloco }}
-        </h1>
+      <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+        <app-page-header
+          titleKey="documents.control.templates.new"
+          [breadcrumbs]="[
+            {
+              labelKey: 'documents.control.templates.title',
+              link: '/settings/modules/documents/templates',
+            },
+            { labelKey: 'documents.control.templates.new' },
+          ]"
+          backLink="/settings/modules/documents/templates"
+          backLabelKey="documents.control.templates.back"
+        />
         <ng-container [ngTemplateOutlet]="formTpl" />
       </div>
     }
@@ -315,6 +337,10 @@ export class TemplateFormPage {
   protected replaceContent(html: string): void {
     this.content.set(html);
     this.editorKey.update((k) => k + 1);
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/settings/modules/documents/templates']);
   }
 
   protected save(): void {

@@ -30,6 +30,7 @@ import { PeopleApi } from './data/people-api';
 import { textOrNull } from './data/people-display';
 import { peopleErrorKey } from './data/people-errors';
 import { Checklist, ChecklistCreate, ChecklistKind } from './data/people.models';
+import { DateInput } from '../../shared/ui/date-input/date-input';
 
 export interface StartDraft {
   readonly kind: ChecklistKind;
@@ -76,6 +77,7 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
 @Component({
   selector: 'app-people-employee-checklists',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -184,25 +186,21 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
       (cancelled)="draft.set(null)"
     >
       @if (draft(); as d) {
-        <div class="mt-4 flex flex-col gap-3">
+        <div class="mt-4 flex flex-col gap-4">
           @if (d.kind === 'offboarding') {
             <app-form-field
               [label]="'people.checklists.lastWorkingDay' | transloco"
               inputId="cf-cl-end"
+              [hint]="'people.checklists.lastWorkingDayHint' | transloco"
             >
-              <input
-                id="cf-cl-end"
-                type="date"
-                required
-                aria-describedby="cf-cl-end-hint"
+              <app-date-input
+                inputId="cf-cl-end"
+                [required]="true"
                 [value]="d.end_date"
-                (change)="patch({ end_date: $any($event.target).value })"
+                (valueChange)="patch({ end_date: $event ?? '' })"
                 data-testid="start-end-date"
               />
             </app-form-field>
-            <p id="cf-cl-end-hint" class="-mt-1 text-meta text-fg-muted">
-              {{ 'people.checklists.lastWorkingDayHint' | transloco }}
-            </p>
           }
           <app-form-field
             [label]="'people.fields.checklistTitle' | transloco"
@@ -218,21 +216,26 @@ export function assigneeFromValue(value: string): ChecklistCreate['assignee'] {
             />
           </app-form-field>
           <app-form-field [label]="'people.fields.dueDate' | transloco" inputId="cf-cl-due">
-            <input
-              id="cf-cl-due"
-              type="date"
+            <app-date-input
+              inputId="cf-cl-due"
               [value]="d.due_date"
-              (change)="patch({ due_date: $any($event.target).value })"
+              (valueChange)="patch({ due_date: $event ?? '' })"
             />
           </app-form-field>
           <app-form-field [label]="'people.fields.assignee' | transloco" inputId="cf-cl-assignee">
+            <app-field-help
+              label-suffix
+              scope="people"
+              page="detail"
+              field="checklist_assignee"
+              [label]="'people.fields.assignee' | transloco"
+            />
             <app-assignee-select
               inputId="cf-cl-assignee"
               [value]="d.assignee"
               (valueChange)="patch({ assignee: $event })"
             />
           </app-form-field>
-          <app-field-help scope="people" page="detail" field="checklist_assignee" />
           @if (d.kind === 'offboarding') {
             <p class="text-meta text-fg-muted">
               {{ 'people.checklists.offboardingHint' | transloco }}

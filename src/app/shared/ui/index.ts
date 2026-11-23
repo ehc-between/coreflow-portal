@@ -46,6 +46,7 @@ export { FieldList, FieldItem, type EmptyWord } from './field-list/field-list';
 export { OverflowMenu, MenuItem } from './overflow-menu/overflow-menu';
 export { EmptyState, type EmptyStateKind } from './empty-state/empty-state';
 export { DateInput, parseTypedDate, formatTypedDate } from './date-input/date-input';
+export { DateTimeInput, parseTypedTime, splitLocalDateTime } from './datetime-input/datetime-input';
 export { LoadingState } from './loading-state/loading-state';
 export { ErrorState } from './error-state/error-state';
 export { TitleService, CoreflowTitleStrategy } from './title/title.service';

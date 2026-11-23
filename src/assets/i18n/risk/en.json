@@ -261,7 +261,10 @@
       "inherent": "Inherent risk (before treatment)",
       "treatment": "Treatment decision",
       "residual": "Residual risk (after treatment)",
-      "ownership": "Owner and review"
+      "ownership": "Owner and review",
+      "contextHint": "What is exposed, and what could go wrong.",
+      "residualHint": "The risk that remains once the treatment is in place.",
+      "ownershipHint": "Who follows it up, and how often it is reviewed."
     },
     "inherentLegend": "Rate the risk as it is today, before any planned treatment",
     "residualLegend": "Rate the risk you expect once the treatments are in place",
@@ -288,7 +291,8 @@
     "controlPickerPlaceholder": "Search by number or title, e.g. A.8.13 or backup",
     "controlsHint": "Chosen controls are marked as documented by this risk.",
     "appetiteNote": "Risks scoring above {{ score }} need treatment or a formal acceptance.",
-    "residualAfterStrategy": "Choose a treatment strategy first. Then rate the risk you expect after the treatment."
+    "residualAfterStrategy": "Choose a treatment strategy first. Then rate the risk you expect after the treatment.",
+    "fixFields": "Fix the marked fields."
   },
   "detail": {
     "assessment": "Assessment",
@@ -511,6 +515,12 @@
       "score": "Assess benefit and feasibility",
       "plan": "Describe how you will realise the opportunity",
       "owner": "Choose an owner"
+    },
+    "sections": {
+      "basics": "The opportunity",
+      "basicsHint": "What the opportunity is, and who follows it up.",
+      "source": "Where it comes from",
+      "sourceHint": "What the opportunity concerns, and which register it belongs to."
     }
   },
   "soa": {
@@ -733,7 +743,11 @@
     "deleteMessage": "{{ name }} can only be deleted while no register uses it.",
     "descriptionExample": "For example: {{ example }}",
     "missingDescriptions": "{{ count }} levels have no description. Auditors expect each level to be defined.",
-    "fillDescriptions": "Fill in examples"
+    "fillDescriptions": "Fill in examples",
+    "sections": {
+      "basics": "The matrix",
+      "basicsHint": "Its name, where it starts from and the highest score you accept."
+    }
   },
   "ai": {
     "suggestThreats": "Suggest threats",

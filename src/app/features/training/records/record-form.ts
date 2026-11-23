@@ -19,6 +19,8 @@ import { LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { SlideOver } from '../../../shared/ui/slide-over/slide-over';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormField } from '../../../shared/ui/form-field/form-field';
 import { SupplierOption, TrainingApi } from '../data/training-api';
 import {
   TrainingAccess,
@@ -118,6 +120,8 @@ export function defaultExpiry(
     AskAbout,
     Button,
     SlideOver,
+    DateInput,
+    FormField,
     FieldHelp,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -128,228 +132,211 @@ export function defaultExpiry(
       [closeLabel]="'training.common.close' | transloco"
       (closed)="closed.emit()"
     >
-      <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); submit()" novalidate>
-        <div class="flex flex-col gap-1.5">
-          <label for="record-course" class="text-ui font-semibold text-fg-muted">
-            {{ 'training.fields.course' | transloco }}
-          </label>
-          <select
-            id="record-course"
-            name="course"
-            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-            [ngModel]="form.courseId"
-            (ngModelChange)="form.courseId = $event; courseId.set($event)"
+      <form class="flex flex-col gap-6" (submit)="$event.preventDefault(); submit()" novalidate>
+        <div class="grid grid-cols-1 items-start gap-x-4 gap-y-5 sm:grid-cols-2">
+          <app-form-field
+            span="full"
+            [label]="'training.fields.course' | transloco"
+            inputId="record-course"
           >
-            <option value="">{{ 'training.assign.pickCourse' | transloco }}</option>
-            @for (c of courses(); track c.id) {
-              <option [value]="c.id">{{ c.code }} · {{ c.title }}</option>
-            }
-          </select>
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label for="record-user" class="text-ui font-semibold text-fg-muted">
-            {{ 'training.fields.person' | transloco }}
-          </label>
-          <select
-            id="record-user"
-            name="user"
-            class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-            [(ngModel)]="form.userId"
-          >
-            <option value="">{{ 'training.recordForm.pickPerson' | transloco }}</option>
-            @for (p of directory.people(); track p.id) {
-              <option [value]="p.id">{{ p.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
-          <div class="flex flex-col gap-1.5">
-            <label for="record-method" class="text-ui font-semibold text-fg-muted">
-              {{ 'training.fields.method' | transloco }}
-            </label>
             <select
-              id="record-method"
-              name="method"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-              [(ngModel)]="form.method"
+              id="record-course"
+              name="course"
+              [ngModel]="form.courseId"
+              (ngModelChange)="form.courseId = $event; courseId.set($event)"
             >
+              <option value="">{{ 'training.assign.pickCourse' | transloco }}</option>
+              @for (c of courses(); track c.id) {
+                <option [value]="c.id">{{ c.code }} · {{ c.title }}</option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'training.fields.person' | transloco"
+            inputId="record-user"
+          >
+            <select id="record-user" name="user" [(ngModel)]="form.userId">
+              <option value="">{{ 'training.recordForm.pickPerson' | transloco }}</option>
+              @for (p of directory.people(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          </app-form-field>
+          <app-form-field [label]="'training.fields.method' | transloco" inputId="record-method">
+            <select id="record-method" name="method" [(ngModel)]="form.method">
               <option value="external">{{ 'training.method.external' | transloco }}</option>
               <option value="manual">{{ 'training.method.manual' | transloco }}</option>
             </select>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label for="record-completed" class="text-ui font-semibold text-fg-muted">
-              {{ 'training.fields.completed' | transloco }}
-            </label>
-            <input
-              id="record-completed"
+          </app-form-field>
+          <app-form-field
+            [label]="'training.fields.completed' | transloco"
+            inputId="record-completed"
+          >
+            <app-date-input
+              inputId="record-completed"
               name="completed"
-              type="date"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
               [max]="today"
               [ngModel]="form.completedOn"
               (ngModelChange)="form.completedOn = $event; completedOn.set($event)"
             />
-          </div>
+          </app-form-field>
         </div>
 
-        <fieldset class="flex flex-col gap-3 rounded-tile border border-border p-3">
-          <legend class="px-1 text-ui font-semibold text-fg">
+        <fieldset
+          class="grid min-w-0 grid-cols-1 items-start gap-x-4 gap-y-5 border-t border-border pt-5 sm:grid-cols-2"
+        >
+          <legend class="sr-only">{{ 'training.recordForm.providerTitle' | transloco }}</legend>
+          <h3 class="font-display text-card font-bold text-fg sm:col-span-2" aria-hidden="true">
             {{ 'training.recordForm.providerTitle' | transloco }}
-          </legend>
+          </h3>
           @if (suppliers().length) {
-            <div class="flex flex-col gap-1.5">
-              <label
-                for="record-supplier"
-                class="flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-              >
-                {{ 'training.fields.providerSupplier' | transloco }}
-                <app-field-help scope="training" page="records" field="provider" />
-              </label>
-              <select
-                id="record-supplier"
-                name="supplier"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                [(ngModel)]="form.providerSupplierId"
-              >
+            <app-form-field
+              span="full"
+              [label]="'training.fields.providerSupplier' | transloco"
+              inputId="record-supplier"
+            >
+              <app-field-help
+                label-suffix
+                scope="training"
+                page="records"
+                field="provider"
+                [label]="'training.fields.providerSupplier' | transloco"
+              />
+              <select id="record-supplier" name="supplier" [(ngModel)]="form.providerSupplierId">
                 <option value="">{{ 'training.recordForm.noSupplier' | transloco }}</option>
                 @for (s of suppliers(); track s.id) {
                   <option [value]="s.id">{{ s.code ? s.code + ' · ' : '' }}{{ s.name }}</option>
                 }
               </select>
-            </div>
+            </app-form-field>
           }
           @if (!form.providerSupplierId) {
-            <div class="flex flex-col gap-1.5">
-              <label for="record-provider" class="text-ui font-semibold text-fg-muted">
-                {{ 'training.fields.providerName' | transloco }}
-              </label>
+            <app-form-field
+              span="full"
+              [label]="'training.fields.providerName' | transloco"
+              inputId="record-provider"
+            >
               <input
                 id="record-provider"
                 name="provider"
                 maxlength="255"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
                 [placeholder]="'training.recordForm.providerPlaceholder' | transloco"
                 [(ngModel)]="form.providerName"
               />
-            </div>
+            </app-form-field>
           }
-          <div class="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
-            <div class="flex flex-col gap-1.5">
-              <label for="record-instructor" class="text-ui font-semibold text-fg-muted">
-                {{ 'training.fields.instructor' | transloco }}
-              </label>
-              <input
-                id="record-instructor"
-                name="instructor"
-                maxlength="200"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                [(ngModel)]="form.instructor"
-              />
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label for="record-hours" class="text-ui font-semibold text-fg-muted">
-                {{ 'training.fields.hours' | transloco }}
-              </label>
-              <input
-                id="record-hours"
-                name="hours"
-                type="number"
-                min="0"
-                step="0.5"
-                class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
-                [(ngModel)]="form.hours"
-              />
-            </div>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label for="record-location" class="text-ui font-semibold text-fg-muted">
-              {{ 'training.fields.location' | transloco }}
-            </label>
+          <app-form-field
+            [label]="'training.fields.instructor' | transloco"
+            inputId="record-instructor"
+          >
+            <input
+              id="record-instructor"
+              name="instructor"
+              maxlength="200"
+              [(ngModel)]="form.instructor"
+            />
+          </app-form-field>
+          <app-form-field [label]="'training.fields.hours' | transloco" inputId="record-hours">
+            <input
+              id="record-hours"
+              name="hours"
+              type="number"
+              min="0"
+              step="0.5"
+              [(ngModel)]="form.hours"
+            />
+          </app-form-field>
+          <app-form-field
+            span="full"
+            [label]="'training.fields.location' | transloco"
+            inputId="record-location"
+          >
             <input
               id="record-location"
               name="location"
               maxlength="200"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
               [(ngModel)]="form.location"
             />
-          </div>
+          </app-form-field>
         </fieldset>
 
-        <div class="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
-          <div class="flex flex-col gap-1.5">
-            <label for="record-score" class="text-ui font-semibold text-fg-muted">
-              {{ 'training.fields.scoreOptional' | transloco }}
-            </label>
+        <div
+          class="grid grid-cols-1 items-start gap-x-4 gap-y-5 border-t border-border pt-5 sm:grid-cols-2"
+        >
+          <app-form-field
+            [label]="'training.fields.scoreOptional' | transloco"
+            inputId="record-score"
+          >
             <input
               id="record-score"
               name="score"
               type="number"
               min="0"
               max="100"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
               [(ngModel)]="form.score"
             />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label
-              for="record-expires"
-              class="flex items-center gap-1.5 text-ui font-semibold text-fg-muted"
-            >
-              {{ 'training.fields.expires' | transloco }}
-              <app-field-help scope="training" page="records" field="expires" />
-              <app-ask-about field="expires_at" [prompt]="'training.ask.validity' | transloco" />
-            </label>
-            <input
-              id="record-expires"
+          </app-form-field>
+          <app-form-field [label]="'training.fields.expires' | transloco" inputId="record-expires">
+            <app-field-help
+              label-suffix
+              scope="training"
+              page="records"
+              field="expires"
+              [label]="'training.fields.expires' | transloco"
+            />
+            <app-ask-about
+              label-suffix
+              field="expires_at"
+              [prompt]="'training.ask.validity' | transloco"
+            />
+            <app-date-input
+              inputId="record-expires"
               name="expires"
-              type="date"
-              class="h-10 w-full rounded-tile border border-border bg-bg px-3 text-ui text-fg outline-none focus:border-accent"
               [min]="form.completedOn"
               [(ngModel)]="form.expiresOn"
             />
-          </div>
-        </div>
-        <p class="-mt-2 text-meta text-fg-muted" data-testid="record-expiry-hint">
-          @if (suggestedExpiry(); as date) {
-            {{ 'training.recordForm.expiryDefault' | transloco: { date: (date | localDay) } }}
-          } @else if (selectedCourse()) {
-            {{ 'training.recordForm.expiryNever' | transloco }}
-          } @else {
-            {{ 'training.recordForm.expiryPickCourse' | transloco }}
-          }
-        </p>
-
-        <label class="flex min-h-8 items-center gap-2 text-ui text-fg">
-          <input
-            type="checkbox"
-            class="h-4 w-4 accent-accent"
-            name="passed"
-            [(ngModel)]="form.passed"
-          />
-          {{ 'training.recordForm.passed' | transloco }}
-        </label>
-        <div class="flex flex-col gap-1.5">
-          <label for="record-notes" class="text-ui font-semibold text-fg-muted">
-            {{ 'training.fields.notes' | transloco }}
+            <p hint class="text-meta leading-snug text-fg-subtle" data-testid="record-expiry-hint">
+              @if (suggestedExpiry(); as date) {
+                {{ 'training.recordForm.expiryDefault' | transloco: { date: (date | localDay) } }}
+              } @else if (selectedCourse()) {
+                {{ 'training.recordForm.expiryNever' | transloco }}
+              } @else {
+                {{ 'training.recordForm.expiryPickCourse' | transloco }}
+              }
+            </p>
+          </app-form-field>
+          <label
+            class="flex min-h-10 items-center gap-2.5 rounded-tile border border-border bg-bg px-3 text-ui text-fg sm:col-span-2"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 accent-accent"
+              name="passed"
+              [(ngModel)]="form.passed"
+            />
+            {{ 'training.recordForm.passed' | transloco }}
           </label>
-          <textarea
-            id="record-notes"
-            name="notes"
-            rows="3"
-            maxlength="5000"
-            class="w-full min-w-0 rounded-tile border border-border bg-bg px-3 py-2 text-ui text-fg outline-none focus:border-accent"
-            [(ngModel)]="form.notes"
-          ></textarea>
+          <app-form-field
+            span="full"
+            [label]="'training.fields.notes' | transloco"
+            inputId="record-notes"
+            [hint]="'training.recordForm.evidenceHint' | transloco"
+          >
+            <textarea
+              id="record-notes"
+              name="notes"
+              rows="3"
+              maxlength="5000"
+              [(ngModel)]="form.notes"
+            ></textarea>
+          </app-form-field>
         </div>
-        <p class="rounded-tile bg-info-soft/60 px-3 py-2 text-meta text-fg-muted">
-          {{ 'training.recordForm.evidenceHint' | transloco }}
-        </p>
 
         @if (error(); as key) {
           <app-alert>{{ key | transloco }}</app-alert>
         }
-        <div class="flex flex-wrap justify-end gap-2">
+        <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
           <app-button variant="secondary" (click)="closed.emit()">
             {{ 'training.common.cancel' | transloco }}
           </app-button>

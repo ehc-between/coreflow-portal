@@ -15,10 +15,13 @@ import { Subscription } from 'rxjs';
 import { providePageContext } from '../../../core/ai/page-context';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { WatchButton } from '../../../shared/activity/watch-button';
-import { AskAbout } from '../../../shared/ask/ask-about';
+import { AskPanelService } from '../../ask/ask-panel.service';
+import { LanguageService } from '../../../core/i18n/language.service';
+import { MenuItem } from '../../../shared/ui/overflow-menu/overflow-menu';
 import { RecordDetailLayout, RecordTab } from '../../../shared/kit/record-detail-layout';
 import { LocalDatePipe, LocalDayPipe } from '../../../shared/locale/locale-pipes';
 import { SupportsRequirements } from '../../../shared/requirement-links/supports-requirements';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Button } from '../../../shared/ui/button/button';
@@ -74,10 +77,11 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
 @Component({
   selector: 'app-external-detail',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     WatchButton,
-    AskAbout,
+    MenuItem,
     RecordDetailLayout,
     LocalDatePipe,
     LocalDayPipe,
@@ -97,6 +101,12 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
       <app-record-detail-layout
         entityType="external_document"
         [entityId]="r.id"
+        [title]="r.title"
+        [breadcrumbs]="[
+          { labelKey: 'documents.control.nav.documents', link: '/documents' },
+          { labelKey: 'documents.control.nav.external', link: '/documents/external' },
+          { label: r.title },
+        ]"
         [tabs]="tabs"
         [canEdit]="perms.canDraft()"
         [includeAudit]="perms.canReadAudit()"
@@ -104,38 +114,32 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
         backLink="/documents/external"
         backLabelKey="documents.control.external.back"
       >
-        <div header>
-          <p class="mb-1 flex flex-wrap items-center gap-2 text-meta text-fg-subtle">
-            @if (r.code) {
-              <span class="font-mono">{{ r.code }}</span>
-            }
-            @if (r.publisher) {
-              <span>{{ r.publisher }}</span>
-            }
-            @if (r.reference) {
-              <span class="font-mono">{{ r.reference }}</span>
-            }
-          </p>
-          <h1
-            class="flex items-start gap-1.5 font-display text-page font-bold tracking-[-0.03em] text-fg"
-          >
-            {{ r.title }}
-            <app-ask-about
-              class="mt-1.5"
-              [prompt]="'documents.control.external.askApplies' | transloco: { title: r.title }"
-            />
-          </h1>
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <app-badge [tone]="tone()">{{
-              'documents.control.external.status.' + r.status | transloco
+        <p meta class="flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-fg-muted">
+          @if (r.code) {
+            <span class="font-mono">{{ r.code }}</span>
+            <span aria-hidden="true">·</span>
+          }
+          @if (r.publisher) {
+            <span>{{ r.publisher }}</span>
+            <span aria-hidden="true">·</span>
+          }
+          @if (r.reference) {
+            <span class="font-mono">{{ r.reference }}</span>
+            <span aria-hidden="true">·</span>
+          }
+          <app-badge [tone]="tone()">{{
+            'documents.control.external.status.' + r.status | transloco
+          }}</app-badge>
+          @if (r.review_overdue) {
+            <app-badge tone="warn">{{
+              'documents.control.external.reviewOverdue' | transloco
             }}</app-badge>
-            @if (r.review_overdue) {
-              <app-badge tone="warn">{{
-                'documents.control.external.reviewOverdue' | transloco
-              }}</app-badge>
-            }
-          </div>
-        </div>
+          }
+        </p>
+        <button appMenuItem ask type="button" (click)="askApplies(r.title)">
+          <app-icon name="spark" [size]="15" />
+          {{ 'documents.control.external.askAppliesLabel' | transloco }}
+        </button>
 
         <ng-container actions>
           <app-watch-button entityType="external_document" [entityId]="r.id" />
@@ -320,11 +324,10 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
             inputId="ext-review-next"
             [label]="'documents.control.external.nextReviewOptional' | transloco"
           >
-            <input
-              id="ext-review-next"
-              type="date"
+            <app-date-input
+              inputId="ext-review-next"
               [value]="reviewNext()"
-              (input)="reviewNext.set($any($event.target).value)"
+              (valueChange)="reviewNext.set($event ?? '')"
             />
           </app-form-field>
           <app-form-field
@@ -371,6 +374,8 @@ export function safeExternalUrl(url: string | null | undefined): string | null {
 })
 export class ExternalDetailPage {
   private readonly api = inject(DocumentControlApi);
+  private readonly askPanel = inject(AskPanelService);
+  private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly toasts = inject(NotificationService);
   protected readonly perms = inject(DocumentControlPermissions);
@@ -428,6 +433,12 @@ export class ExternalDetailPage {
         this.state.set('error');
       },
     });
+  }
+
+  protected askApplies(title: string): void {
+    this.askPanel.askAbout(
+      this.language.translate('documents.control.external.askApplies', { title }),
+    );
   }
 
   protected edit(): void {

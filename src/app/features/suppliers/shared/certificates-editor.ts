@@ -13,8 +13,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Subscription, catchError, of } from 'rxjs';
 import { AttachmentsApi } from '../../../core/attachments/attachments-api';
 import { Attachment } from '../../../core/attachments/attachment.models';
-import { LanguageService } from '../../../core/i18n/language.service';
 import { SelectedOrgService } from '../../../core/org/selected-org.service';
+import { Button } from '../../../shared/ui/button/button';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 import { FormField } from '../../../shared/ui/form-field/form-field';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { CERTIFICATE_STANDARDS, CertificateIn, CertificateStandard } from '../data/supplier.models';
@@ -61,12 +62,12 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-supplier-certificates-editor',
-  imports: [TranslocoPipe, FormField, Icon],
+  imports: [TranslocoPipe, Button, DateInput, FormField, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ul class="flex flex-col gap-3" data-testid="certificate-rows">
+    <ul class="flex flex-col gap-3 empty:hidden" data-testid="certificate-rows">
       @for (c of rows(); track $index; let i = $index) {
-        <li class="rounded-tile border border-border bg-bg p-3">
+        <li class="rounded-tile border border-border bg-bg p-4">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="text-meta font-semibold text-fg-subtle">
               {{ 'suppliers.certificates.row' | transloco: { n: i + 1 } }}
@@ -80,7 +81,7 @@ let nextId = 0;
               <app-icon name="trash" [size]="14" />
             </button>
           </div>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2">
             <app-form-field
               [label]="'suppliers.certificates.standard' | transloco"
               [inputId]="id + '-std-' + i"
@@ -140,12 +141,10 @@ let nextId = 0;
               [label]="'suppliers.certificates.validUntilField' | transloco"
               [inputId]="id + '-until-' + i"
             >
-              <input
-                [id]="id + '-until-' + i"
-                type="date"
-                [attr.lang]="lang()"
+              <app-date-input
+                [inputId]="id + '-until-' + i"
                 [value]="c.valid_until ?? ''"
-                (input)="patch(i, { valid_until: $any($event.target).value })"
+                (valueChange)="patch(i, { valid_until: $event ?? '' })"
               />
             </app-form-field>
             <app-form-field
@@ -167,7 +166,10 @@ let nextId = 0;
                   }
                 </select>
               } @else {
-                <p [id]="id + '-file-' + i" class="text-meta text-fg-subtle">
+                <p
+                  [id]="id + '-file-' + i"
+                  class="flex min-h-10 items-center text-meta text-fg-subtle"
+                >
                   {{ 'suppliers.certificates.fileAfterCreate' | transloco }}
                 </p>
               }
@@ -181,21 +183,21 @@ let nextId = 0;
         {{ 'suppliers.certificates.noFilesYet' | transloco }}
       </p>
     }
-    <button
-      type="button"
-      class="mt-3 inline-flex items-center gap-1.5 rounded-tile px-3 py-1.5 text-ui font-semibold text-accent hover:bg-accent-soft"
+    <app-button
+      class="mt-3 inline-block"
+      variant="secondary"
+      size="sm"
       (click)="add()"
       data-testid="certificate-add"
     >
       <app-icon name="plus" [size]="14" />
       {{ 'suppliers.certificates.add' | transloco }}
-    </button>
+    </app-button>
   `,
 })
 export class SupplierCertificatesEditor {
   private readonly attachmentsApi = inject(AttachmentsApi);
   private readonly selectedOrg = inject(SelectedOrgService);
-  private readonly language = inject(LanguageService);
 
   readonly rows = input.required<readonly CertificateIn[]>();
   /** The supplier being edited (files can only be picked once it exists). */
@@ -205,7 +207,6 @@ export class SupplierCertificatesEditor {
   protected readonly id = `sup-cert-${++nextId}`;
   protected readonly standards = CERTIFICATE_STANDARDS;
   protected readonly attachments = signal<readonly Attachment[]>([]);
-  protected readonly lang = () => (this.language.active() === 'nb' ? 'nb' : 'en');
 
   private request = new Subscription();
 

@@ -12,6 +12,7 @@ import { gapActionLook, textOrNull, todayIso } from '../data/people-display';
 import { peopleErrorKey } from '../data/people-errors';
 import { GapAction, GapActionStatus } from '../data/people.models';
 import { PeopleField } from './people-field';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
 
 /** How an action can be closed by hand (re-assessment closes it automatically). */
 type Evaluation = 'effective' | 'not_effective';
@@ -24,6 +25,7 @@ type Evaluation = 'effective' | 'not_effective';
 @Component({
   selector: 'app-people-gap-actions',
   imports: [
+    DateInput,
     RouterLink,
     TranslocoPipe,
     LocalDayPipe,
@@ -124,11 +126,10 @@ type Evaluation = 'effective' | 'not_effective';
           }
         </fieldset>
         <app-people-field labelKey="people.gapActions.evaluatedOn" inputId="cf-eval-date">
-          <input
-            id="cf-eval-date"
-            type="date"
+          <app-date-input
+            inputId="cf-eval-date"
             [value]="evaluatedOn()"
-            (change)="evaluatedOn.set($any($event.target).value)"
+            (valueChange)="evaluatedOn.set($event ?? '')"
           />
         </app-people-field>
         <app-people-field labelKey="people.gapActions.evaluationNote" inputId="cf-eval-note">

@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { providePageContext } from '../../../core/ai/page-context';
 import { LanguageService } from '../../../core/i18n/language.service';
@@ -22,7 +22,10 @@ import { Alert } from '../../../shared/ui/alert/alert';
 import { Button } from '../../../shared/ui/button/button';
 import { Card } from '../../../shared/ui/card/card';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog/confirm-dialog';
+import { FormActions } from '../../../shared/ui/form-actions/form-actions';
 import { FormField } from '../../../shared/ui/form-field/form-field';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { DocumentControlApi } from '../data/document-control-api';
 import { documentControlErrorKey } from '../data/document-control-errors';
@@ -111,7 +114,6 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
   selector: 'app-retention-form',
   imports: [
     NgTemplateOutlet,
-    RouterLink,
     TranslocoPipe,
     AskAbout,
     FieldHelp,
@@ -121,7 +123,10 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
     Button,
     Card,
     ConfirmDialog,
+    FormActions,
     FormField,
+    FormSection,
+    PageHeader,
     Icon,
     DocumentsPageGuide,
   ],
@@ -133,12 +138,16 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
         @if (errorKey(); as key) {
           <app-alert tone="error">{{ key | transloco }}</app-alert>
         }
-        <form class="flex flex-col gap-4" (submit)="$event.preventDefault(); save()">
-          <app-card>
-            <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2" [disabled]="!perms.canManage()">
+        <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); save()" novalidate>
+          <fieldset class="contents" [disabled]="!perms.canManage()">
+            <app-form-section
+              [title]="'documents.control.retention.sections.rule' | transloco"
+              [description]="'documents.control.retention.sections.ruleHint' | transloco"
+            >
               <app-form-field
-                class="sm:col-span-2"
+                span="full"
                 inputId="ret-name"
+                [required]="true"
                 [label]="'documents.control.retention.fields.name' | transloco"
               >
                 <input
@@ -163,98 +172,120 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
                   }
                 </select>
               </app-form-field>
-              <div>
-                <app-form-field
-                  inputId="ret-months"
+              <app-form-field
+                inputId="ret-months"
+                [required]="true"
+                [label]="'documents.control.retention.fields.months' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="documents"
+                  page="retentionForm"
+                  field="months"
                   [label]="'documents.control.retention.fields.months' | transloco"
-                >
-                  <input
-                    id="ret-months"
-                    type="number"
-                    min="0"
-                    max="1200"
-                    required
-                    [value]="form().months"
-                    (input)="set('months', $any($event.target).value)"
-                    data-testid="retention-months"
-                  />
-                </app-form-field>
+                />
+                <input
+                  id="ret-months"
+                  type="number"
+                  min="0"
+                  max="1200"
+                  required
+                  [value]="form().months"
+                  (input)="set('months', $any($event.target).value)"
+                  data-testid="retention-months"
+                />
                 @if (yearsHint(); as years) {
-                  <p class="mt-1 text-meta text-fg-muted" data-testid="retention-years">
+                  <p
+                    hint
+                    class="text-meta leading-snug text-fg-subtle"
+                    data-testid="retention-years"
+                  >
                     {{ 'documents.control.retention.equalsYears' | transloco: { count: years } }}
                   </p>
                 }
-                <app-field-help scope="documents" page="retentionForm" field="months" />
-              </div>
-              <div>
-                <app-form-field
-                  inputId="ret-trigger"
-                  [label]="'documents.control.retention.fields.trigger' | transloco"
-                >
-                  <select id="ret-trigger" (change)="set('trigger', $any($event.target).value)">
-                    @for (t of triggers; track t) {
-                      <option [value]="t" [selected]="t === form().trigger">
-                        {{ 'documents.control.retention.triggers.' + t | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help scope="documents" page="retentionForm" field="trigger" />
-              </div>
-              <div>
-                <app-form-field
-                  inputId="ret-disposition"
-                  [label]="'documents.control.retention.fields.disposition' | transloco"
-                >
-                  <select
-                    id="ret-disposition"
-                    (change)="set('disposition', $any($event.target).value)"
-                  >
-                    @for (d of dispositions; track d) {
-                      <option [value]="d" [selected]="d === form().disposition">
-                        {{ 'documents.control.retention.dispositions.' + d | transloco }}
-                      </option>
-                    }
-                  </select>
-                </app-form-field>
-                <app-field-help scope="documents" page="retentionForm" field="disposition" />
-              </div>
-              <div class="sm:col-span-2">
-                <div class="flex items-end gap-1.5">
-                  <app-form-field
-                    class="flex-1"
-                    inputId="ret-legal"
-                    [label]="'documents.control.retention.fields.legalBasis' | transloco"
-                  >
-                    <input
-                      id="ret-legal"
-                      type="text"
-                      maxlength="255"
-                      [value]="form().legalBasis"
-                      (input)="set('legalBasis', $any($event.target).value)"
-                    />
-                  </app-form-field>
-                  <app-ask-about
-                    class="mb-2"
-                    [prompt]="'documents.control.retention.askLegalBasis' | transloco"
-                    field="legal_basis"
-                  />
-                </div>
-              </div>
+              </app-form-field>
               <app-form-field
-                class="sm:col-span-2"
+                inputId="ret-trigger"
+                [label]="'documents.control.retention.fields.trigger' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="documents"
+                  page="retentionForm"
+                  field="trigger"
+                  [label]="'documents.control.retention.fields.trigger' | transloco"
+                />
+                <select id="ret-trigger" (change)="set('trigger', $any($event.target).value)">
+                  @for (t of triggers; track t) {
+                    <option [value]="t" [selected]="t === form().trigger">
+                      {{ 'documents.control.retention.triggers.' + t | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+              <app-form-field
+                inputId="ret-disposition"
+                [label]="'documents.control.retention.fields.disposition' | transloco"
+              >
+                <app-field-help
+                  label-suffix
+                  scope="documents"
+                  page="retentionForm"
+                  field="disposition"
+                  [label]="'documents.control.retention.fields.disposition' | transloco"
+                />
+                <select
+                  id="ret-disposition"
+                  (change)="set('disposition', $any($event.target).value)"
+                >
+                  @for (d of dispositions; track d) {
+                    <option [value]="d" [selected]="d === form().disposition">
+                      {{ 'documents.control.retention.dispositions.' + d | transloco }}
+                    </option>
+                  }
+                </select>
+              </app-form-field>
+            </app-form-section>
+
+            <app-form-section
+              [title]="'documents.control.retention.sections.basis' | transloco"
+              [description]="'documents.control.retention.sections.basisHint' | transloco"
+            >
+              <app-form-field
+                span="full"
+                inputId="ret-legal"
+                [label]="'documents.control.retention.fields.legalBasis' | transloco"
+              >
+                <app-ask-about
+                  label-suffix
+                  [prompt]="'documents.control.retention.askLegalBasis' | transloco"
+                  field="legal_basis"
+                  [fieldLabel]="'documents.control.retention.fields.legalBasis' | transloco"
+                />
+                <input
+                  id="ret-legal"
+                  type="text"
+                  maxlength="255"
+                  [value]="form().legalBasis"
+                  (input)="set('legalBasis', $any($event.target).value)"
+                />
+              </app-form-field>
+              <app-form-field
+                span="full"
                 inputId="ret-description"
                 [label]="'documents.control.fields.description' | transloco"
               >
                 <textarea
                   id="ret-description"
-                  rows="2"
+                  rows="3"
                   maxlength="4000"
                   [value]="form().description"
                   (input)="set('description', $any($event.target).value)"
                 ></textarea>
               </app-form-field>
-              <label class="inline-flex items-center gap-2 text-ui text-fg sm:col-span-2">
+              <label
+                class="flex min-h-10 items-center gap-2 rounded-tile border border-border px-3 text-ui text-fg sm:col-span-2"
+              >
                 <input
                   type="checkbox"
                   [checked]="form().active"
@@ -262,9 +293,11 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
                 />
                 {{ 'documents.control.common.active' | transloco }}
               </label>
-              @if (id()) {
+            </app-form-section>
+
+            @if (id()) {
+              <app-form-section [columns]="1">
                 <app-form-field
-                  class="sm:col-span-2"
                   inputId="ret-reason"
                   [label]="'documents.control.fields.changeReason' | transloco"
                 >
@@ -276,11 +309,14 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
                     (input)="changeReason.set($any($event.target).value)"
                   />
                 </app-form-field>
-              }
-            </fieldset>
-          </app-card>
+              </app-form-section>
+            }
+          </fieldset>
           @if (perms.canManage()) {
-            <div class="flex flex-wrap items-center gap-2">
+            <app-form-actions>
+              <app-button type="button" variant="secondary" (click)="cancel()">
+                {{ 'documents.control.common.cancel' | transloco }}
+              </app-button>
               <app-button
                 type="submit"
                 [disabled]="!body() || saving()"
@@ -289,12 +325,7 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
               >
                 {{ 'documents.control.common.save' | transloco }}
               </app-button>
-              <a routerLink="/settings/modules/documents/retention">
-                <app-button type="button" variant="ghost">
-                  {{ 'documents.control.common.cancel' | transloco }}
-                </app-button>
-              </a>
-            </div>
+            </app-form-actions>
           }
         </form>
       </div>
@@ -362,17 +393,19 @@ export function ruleBody(v: RetentionFormValue): RetentionRuleCreate | null {
         </p>
       }
     } @else {
-      <div class="mx-auto max-w-[860px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
-        <a
-          routerLink="/settings/modules/documents/retention"
-          class="mb-3 inline-flex items-center gap-1.5 text-ui font-semibold text-fg-muted hover:text-fg"
-        >
-          <app-icon name="back" [size]="16" />
-          {{ 'documents.control.retention.back' | transloco }}
-        </a>
-        <h1 class="mb-4 font-display text-page font-bold tracking-[-0.03em] text-fg">
-          {{ 'documents.control.retention.new' | transloco }}
-        </h1>
+      <div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+        <app-page-header
+          titleKey="documents.control.retention.new"
+          [breadcrumbs]="[
+            {
+              labelKey: 'documents.control.retention.title',
+              link: '/settings/modules/documents/retention',
+            },
+            { labelKey: 'documents.control.retention.new' },
+          ]"
+          backLink="/settings/modules/documents/retention"
+          backLabelKey="documents.control.retention.back"
+        />
         <ng-container [ngTemplateOutlet]="formTpl" />
       </div>
     }
@@ -438,6 +471,10 @@ export class RetentionFormPage {
 
   protected set<K extends keyof RetentionFormValue>(key: K, value: RetentionFormValue[K]): void {
     this.form.update((f) => ({ ...f, [key]: value }));
+  }
+
+  protected cancel(): void {
+    void this.router.navigate(['/settings/modules/documents/retention']);
   }
 
   protected save(): void {

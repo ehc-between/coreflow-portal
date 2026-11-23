@@ -15,6 +15,7 @@ import { WhyItMatters } from '../../../shared/guidance/why-it-matters';
 import { HelpStrip } from '../../../shared/ui/help-strip/help-strip';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { Card } from '../../../shared/ui/card/card';
+import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { CategoryPreferences } from './category-preferences';
 import { provideSharedScope } from '../../../core/i18n/shared-scope';
 import { QuietHours } from './quiet-hours';
@@ -26,28 +27,35 @@ import { QuietHours } from './quiet-hours';
  */
 @Component({
   selector: 'app-notification-preferences',
-  imports: [TranslocoPipe, Alert, Card, HelpStrip, WhyItMatters, CategoryPreferences, QuietHours],
+  imports: [
+    TranslocoPipe,
+    Alert,
+    Card,
+    HelpStrip,
+    PageHeader,
+    WhyItMatters,
+    CategoryPreferences,
+    QuietHours,
+  ],
   viewProviders: [provideSharedScope('activity')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      <h1 class="font-display text-page font-bold text-fg">
-        {{ 'notifications.preferences.title' | transloco }}
-      </h1>
-      <p class="mt-1 text-ui text-fg-muted">
-        {{ 'notifications.preferences.subtitle' | transloco }}
-      </p>
+    <div class="mx-auto w-full max-w-[808px] px-4 pt-5 pb-12 sm:px-8">
+      <app-page-header
+        titleKey="notifications.preferences.title"
+        descriptionKey="notifications.preferences.subtitle"
+      />
 
       <app-help-strip
-        class="mt-6 block"
+        class="block"
         scope="settings"
         page="notification-preferences"
         lesson="following-records"
       />
 
-      <app-category-preferences class="mt-6 block" [digestOff]="digestOff()" />
+      <app-category-preferences class="mt-5 block" [digestOff]="digestOff()" />
 
-      <app-card class="mt-6 block" [padded]="false" data-testid="digest-card">
+      <app-card class="mt-5 block" [padded]="false" data-testid="digest-card">
         <div class="border-b border-border px-4 py-3.5">
           <h2 class="text-body font-semibold text-fg">
             {{ 'notifications.preferences.digestTitle' | transloco }}

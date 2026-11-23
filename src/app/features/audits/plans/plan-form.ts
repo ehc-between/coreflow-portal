@@ -59,6 +59,8 @@ import { loadable } from '../shared/loadable';
 import { mutator } from '../shared/mutator';
 import { AuditRecordSelect } from '../shared/record-picker';
 import { AuditUserSelect } from '../shared/user-select';
+import { DateInput } from '../../../shared/ui/date-input/date-input';
+import { FormSection } from '../../../shared/ui/form-section/form-section';
 
 /** The form state of an audit plan. */
 export interface PlanFormValue {
@@ -283,6 +285,8 @@ export function planPrefill(
 @Component({
   selector: 'app-audit-plan-form',
   imports: [
+    FormSection,
+    DateInput,
     FormSuggest,
     FormsModule,
     TranslocoPipe,
@@ -312,35 +316,40 @@ export function planPrefill(
     >
       <app-flow-banner before [flow]="flow()" />
 
-      <app-form-suggest
-        suggestKey="audits.plan"
-        labelKey="ask.formSuggest.labels.auditPlan"
-        [fields]="suggestFields()"
-        [values]="suggestValues()"
-        [context]="{ from: 'audits' }"
-        [editing]="!!id()"
-        [titleOnly]="!!f().title.trim() && !f().scope.trim()"
-        (applied)="applySuggestion($event)"
-      />
-
-      <app-audit-field
-        inputId="plan-title"
-        labelKey="audits.fields.title"
-        [required]="true"
-        helpField="title"
-        [error]="titleError()"
+      <app-form-section
+        [title]="'audits.planForm.sections.basics' | transloco"
+        [description]="'audits.planForm.sections.basicsHint' | transloco"
       >
-        <input
-          id="plan-title"
-          required
-          aria-required="true"
-          maxlength="255"
-          [value]="f().title"
-          (input)="patch({ title: $any($event.target).value })"
+        <app-form-suggest
+          class="sm:col-span-2"
+          suggestKey="audits.plan"
+          labelKey="ask.formSuggest.labels.auditPlan"
+          [fields]="suggestFields()"
+          [values]="suggestValues()"
+          [context]="{ from: 'audits' }"
+          [editing]="!!id()"
+          [titleOnly]="!!f().title.trim() && !f().scope.trim()"
+          (applied)="applySuggestion($event)"
         />
-      </app-audit-field>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-audit-field
+          span="full"
+          inputId="plan-title"
+          labelKey="audits.fields.title"
+          [required]="true"
+          helpField="title"
+          [error]="titleError()"
+        >
+          <input
+            id="plan-title"
+            required
+            aria-required="true"
+            maxlength="255"
+            [value]="f().title"
+            (input)="patch({ title: $any($event.target).value })"
+          />
+        </app-audit-field>
+
         <app-audit-field inputId="plan-kind" labelKey="audits.fields.kind" helpField="kind">
           <select id="plan-kind" (change)="patch({ kind: $any($event.target).value })">
             @for (k of kinds; track k) {
@@ -359,12 +368,8 @@ export function planPrefill(
             }
           </select>
         </app-audit-field>
-      </div>
 
-      @if (f().kind === 'external') {
-        <div
-          class="grid grid-cols-1 gap-4 rounded-tile border border-border bg-surface-2 p-3 sm:grid-cols-2"
-        >
+        @if (f().kind === 'external') {
           <app-audit-field inputId="plan-party-type" labelKey="audits.fields.partyType">
             <select id="plan-party-type" (change)="patch({ partyType: $any($event.target).value })">
               <option value="">{{ 'audits.common.choose' | transloco }}</option>
@@ -375,12 +380,16 @@ export function planPrefill(
               }
             </select>
           </app-audit-field>
+          <app-audit-field inputId="plan-party-name" labelKey="audits.fields.partyName">
+            <input
+              id="plan-party-name"
+              maxlength="200"
+              [value]="f().partyName"
+              (input)="patch({ partyName: $any($event.target).value })"
+            />
+          </app-audit-field>
           @if (f().partyType === 'customer' && customers.enabled()) {
-            <app-audit-field
-              class="sm:col-span-2"
-              inputId="plan-customer"
-              labelKey="audits.fields.customer"
-            >
+            <app-audit-field span="full" inputId="plan-customer" labelKey="audits.fields.customer">
               <app-customer-picker
                 inputId="plan-customer"
                 [value]="f().customerId || null"
@@ -391,16 +400,8 @@ export function planPrefill(
               />
             </app-audit-field>
           }
-          <app-audit-field inputId="plan-party-name" labelKey="audits.fields.partyName">
-            <input
-              id="plan-party-name"
-              maxlength="200"
-              [value]="f().partyName"
-              (input)="patch({ partyName: $any($event.target).value })"
-            />
-          </app-audit-field>
           <app-audit-field
-            class="sm:col-span-2"
+            span="full"
             inputId="plan-cert"
             labelKey="audits.fields.certification"
             helpField="certification"
@@ -414,143 +415,172 @@ export function planPrefill(
               }
             </select>
           </app-audit-field>
-        </div>
-      }
+        }
 
-      <app-audit-field
-        inputId="plan-programme"
-        labelKey="audits.fields.programme"
-        helpField="programme"
+        <app-audit-field
+          inputId="plan-programme"
+          labelKey="audits.fields.programme"
+          helpField="programme"
+        >
+          <select id="plan-programme" (change)="patch({ programmeId: $any($event.target).value })">
+            <option value="">{{ 'common.empty.none' | transloco }}</option>
+            @for (p of programmes(); track p.id) {
+              <option [value]="p.id" [selected]="f().programmeId === p.id">
+                {{ p.code }} · {{ p.title }}
+              </option>
+            }
+          </select>
+        </app-audit-field>
+        <app-audit-field inputId="plan-owner" labelKey="audits.fields.owner" helpField="owner">
+          <app-audit-user-select
+            inputId="plan-owner"
+            [value]="f().ownerId"
+            [currentName]="existing.value()?.owner?.name ?? null"
+            (valueChange)="patch({ ownerId: $event })"
+          />
+        </app-audit-field>
+
+        <app-audit-field
+          span="full"
+          inputId="plan-scope"
+          labelKey="audits.fields.scope"
+          helpField="scope"
+        >
+          <textarea
+            id="plan-scope"
+            rows="3"
+            [value]="f().scope"
+            (input)="patch({ scope: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'audits.planForm.sections.coverage' | transloco"
+        [description]="'audits.planForm.sections.coverageHint' | transloco"
       >
-        <select id="plan-programme" (change)="patch({ programmeId: $any($event.target).value })">
-          <option value="">{{ 'common.empty.none' | transloco }}</option>
-          @for (p of programmes(); track p.id) {
-            <option [value]="p.id" [selected]="f().programmeId === p.id">
-              {{ p.code }} · {{ p.title }}
-            </option>
-          }
-        </select>
-      </app-audit-field>
-
-      <app-audit-field inputId="plan-scope" labelKey="audits.fields.scope" helpField="scope">
-        <textarea
-          id="plan-scope"
-          rows="3"
-          [value]="f().scope"
-          (input)="patch({ scope: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-
-      <app-audit-field
-        inputId="plan-processes"
-        labelKey="audits.fields.processes"
-        helpField="processes"
-        [plain]="true"
-      >
-        <app-audit-record-select
+        <app-audit-field
+          span="full"
           inputId="plan-processes"
-          [types]="['process']"
           labelKey="audits.fields.processes"
-          placeholderKey="audits.planForm.searchProcesses"
-          [value]="f().processes"
-          (valueChange)="patch({ processes: $event })"
+          helpField="processes"
+          [plain]="true"
+        >
+          <app-audit-record-select
+            inputId="plan-processes"
+            [types]="['process']"
+            labelKey="audits.fields.processes"
+            placeholderKey="audits.planForm.searchProcesses"
+            [value]="f().processes"
+            (valueChange)="patch({ processes: $event })"
+          />
+        </app-audit-field>
+
+        <app-audit-choice-checkboxes
+          [legend]="'audits.fields.departments' | transloco"
+          [choices]="departmentChoices()"
+          [translate]="false"
+          [selected]="f().departments"
+          [emptyText]="'audits.planForm.noDepartments' | transloco"
+          (selectedChange)="patch({ departments: $event })"
         />
-      </app-audit-field>
+      </app-form-section>
 
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.departments' | transloco"
-        [choices]="departmentChoices()"
-        [translate]="false"
-        [selected]="f().departments"
-        [emptyText]="'audits.planForm.noDepartments' | transloco"
-        (selectedChange)="patch({ departments: $event })"
-      />
-
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.frameworks' | transloco"
-        [choices]="frameworkChoices()"
-        [selected]="f().frameworks"
-        (selectedChange)="patch({ frameworks: $event })"
-      />
-
-      <app-audit-field
-        inputId="plan-clauses"
-        labelKey="audits.fields.clauseRefs"
-        helpField="clauseRefs"
-        [plain]="true"
+      <app-form-section
+        [title]="'audits.planForm.sections.criteria' | transloco"
+        [description]="'audits.planForm.sections.criteriaHint' | transloco"
       >
-        <app-ask-about
-          ask
-          field="clause_refs"
-          [fieldLabel]="'audits.fields.clauseRefs' | transloco"
-          [prompt]="'audits.planForm.askClauses' | transloco"
+        <app-audit-choice-checkboxes
+          [legend]="'audits.fields.frameworks' | transloco"
+          [choices]="frameworkChoices()"
+          [selected]="f().frameworks"
+          (selectedChange)="patch({ frameworks: $event })"
         />
-        <app-clause-picker
+
+        <app-audit-field
+          span="full"
           inputId="plan-clauses"
-          [frameworks]="f().frameworks.length ? f().frameworks : null"
-          [ngModel]="f().clauseRefs"
-          (ngModelChange)="patch({ clauseRefs: $event ?? [] })"
-          [ngModelOptions]="{ standalone: true }"
-        />
-        <span hint>{{ 'audits.planForm.clausesHint' | transloco }}</span>
-      </app-audit-field>
+          labelKey="audits.fields.clauseRefs"
+          helpField="clauseRefs"
+          [plain]="true"
+        >
+          <app-ask-about
+            ask
+            field="clause_refs"
+            [fieldLabel]="'audits.fields.clauseRefs' | transloco"
+            [prompt]="'audits.planForm.askClauses' | transloco"
+          />
+          <app-clause-picker
+            inputId="plan-clauses"
+            [frameworks]="f().frameworks.length ? f().frameworks : null"
+            [ngModel]="f().clauseRefs"
+            (ngModelChange)="patch({ clauseRefs: $event ?? [] })"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <span hint>{{ 'audits.planForm.clausesHint' | transloco }}</span>
+        </app-audit-field>
 
-      <app-audit-field
-        inputId="plan-criteria"
-        labelKey="audits.fields.criteria"
-        helpField="criteria"
-      >
-        <app-ask-about
-          ask
-          field="criteria"
-          [fieldLabel]="'audits.fields.criteria' | transloco"
-          [prompt]="'audits.planForm.askCriteria' | transloco"
-        />
-        <textarea
-          id="plan-criteria"
-          rows="3"
-          [value]="f().criteria"
-          (input)="patch({ criteria: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
+        <app-audit-field
+          span="full"
+          inputId="plan-criteria"
+          labelKey="audits.fields.criteria"
+          helpField="criteria"
+        >
+          <app-ask-about
+            ask
+            field="criteria"
+            [fieldLabel]="'audits.fields.criteria' | transloco"
+            [prompt]="'audits.planForm.askCriteria' | transloco"
+          />
+          <textarea
+            id="plan-criteria"
+            rows="3"
+            [value]="f().criteria"
+            (input)="patch({ criteria: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
 
-      <app-audit-field
-        inputId="plan-criteria-docs"
-        labelKey="audits.fields.criteriaDocuments"
-        helpField="criteriaDocuments"
-        [plain]="true"
-      >
-        <app-audit-record-select
+        <app-audit-field
+          span="full"
           inputId="plan-criteria-docs"
-          [types]="['document']"
           labelKey="audits.fields.criteriaDocuments"
-          placeholderKey="audits.planForm.searchDocuments"
-          [value]="f().criteriaDocuments"
-          (valueChange)="patch({ criteriaDocuments: $event })"
-        />
-      </app-audit-field>
+          helpField="criteriaDocuments"
+          [plain]="true"
+        >
+          <app-audit-record-select
+            inputId="plan-criteria-docs"
+            [types]="['document']"
+            labelKey="audits.fields.criteriaDocuments"
+            placeholderKey="audits.planForm.searchDocuments"
+            [value]="f().criteriaDocuments"
+            (valueChange)="patch({ criteriaDocuments: $event })"
+          />
+        </app-audit-field>
 
-      <app-audit-field
-        inputId="plan-objectives"
-        labelKey="audits.fields.objectives"
-        helpField="objectives"
+        <app-audit-field
+          span="full"
+          inputId="plan-objectives"
+          labelKey="audits.fields.objectives"
+          helpField="objectives"
+        >
+          <textarea
+            id="plan-objectives"
+            rows="2"
+            [value]="f().objectives"
+            (input)="patch({ objectives: $any($event.target).value })"
+          ></textarea>
+        </app-audit-field>
+      </app-form-section>
+
+      <app-form-section
+        [title]="'audits.planForm.sections.when' | transloco"
+        [description]="'audits.planForm.sections.whenHint' | transloco"
       >
-        <textarea
-          id="plan-objectives"
-          rows="2"
-          [value]="f().objectives"
-          (input)="patch({ objectives: $any($event.target).value })"
-        ></textarea>
-      </app-audit-field>
-
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <app-audit-field inputId="plan-start" labelKey="audits.fields.plannedStart">
-          <input
-            id="plan-start"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="plan-start"
             [value]="f().start"
-            (input)="patch({ start: $any($event.target).value })"
+            (valueChange)="patch({ start: $event ?? '' })"
           />
         </app-audit-field>
         <app-audit-field
@@ -558,12 +588,11 @@ export function planPrefill(
           labelKey="audits.fields.plannedEnd"
           [error]="datesInvalid() ? 'audits.errors.invalid_dates' : null"
         >
-          <input
-            id="plan-end"
-            type="date"
-            [attr.lang]="lang()"
+          <app-date-input
+            inputId="plan-end"
+            [invalid]="datesInvalid()"
             [value]="f().end"
-            (input)="patch({ end: $any($event.target).value })"
+            (valueChange)="patch({ end: $event ?? '' })"
           />
         </app-audit-field>
         <app-audit-field
@@ -578,42 +607,41 @@ export function planPrefill(
             (input)="patch({ location: $any($event.target).value })"
           />
         </app-audit-field>
-        <app-audit-field inputId="plan-owner" labelKey="audits.fields.owner" helpField="owner">
-          <app-audit-user-select
-            inputId="plan-owner"
-            [value]="f().ownerId"
-            [currentName]="existing.value()?.owner?.name ?? null"
-            (valueChange)="patch({ ownerId: $event })"
-          />
-        </app-audit-field>
-      </div>
+      </app-form-section>
 
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.auditees' | transloco"
-        [choices]="userChoices()"
-        [translate]="false"
-        [selected]="f().auditees"
-        [emptyText]="'audits.planForm.noPeople' | transloco"
-        (selectedChange)="patch({ auditees: $event })"
-      />
-      <app-audit-choice-checkboxes
-        [legend]="'audits.fields.distribution' | transloco"
-        [choices]="userChoices()"
-        [translate]="false"
-        [selected]="f().distribution"
-        [emptyText]="'audits.planForm.noPeople' | transloco"
-        (selectedChange)="patch({ distribution: $event })"
-      />
+      <app-form-section
+        [title]="'audits.planForm.sections.people' | transloco"
+        [description]="'audits.planForm.sections.peopleHint' | transloco"
+      >
+        <app-audit-choice-checkboxes
+          [legend]="'audits.fields.auditees' | transloco"
+          [choices]="userChoices()"
+          [translate]="false"
+          [selected]="f().auditees"
+          [emptyText]="'audits.planForm.noPeople' | transloco"
+          (selectedChange)="patch({ auditees: $event })"
+        />
+        <app-audit-choice-checkboxes
+          [legend]="'audits.fields.distribution' | transloco"
+          [choices]="userChoices()"
+          [translate]="false"
+          [selected]="f().distribution"
+          [emptyText]="'audits.planForm.noPeople' | transloco"
+          (selectedChange)="patch({ distribution: $event })"
+        />
+      </app-form-section>
 
       @if (id()) {
-        <app-audit-field inputId="plan-reason" labelKey="audits.fields.changeReason">
-          <input
-            id="plan-reason"
-            maxlength="2000"
-            [value]="f().changeReason"
-            (input)="patch({ changeReason: $any($event.target).value })"
-          />
-        </app-audit-field>
+        <app-form-section [columns]="1">
+          <app-audit-field inputId="plan-reason" labelKey="audits.fields.changeReason">
+            <input
+              id="plan-reason"
+              maxlength="2000"
+              [value]="f().changeReason"
+              (input)="patch({ changeReason: $any($event.target).value })"
+            />
+          </app-audit-field>
+        </app-form-section>
       }
     </app-audit-form-page>
   `,
@@ -635,7 +663,6 @@ export class PlanForm {
   protected readonly kinds = PLAN_KINDS;
   protected readonly risks = RISK_LEVELS;
   protected readonly partyTypes = EXTERNAL_PARTY_TYPES;
-  protected readonly lang = this.language.active;
   protected readonly flow = this.flows.consume(this.route, { targetType: 'audit_plan' });
 
   protected readonly existing = loadable<PlanDetail>();

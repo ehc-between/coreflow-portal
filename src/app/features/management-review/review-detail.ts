@@ -100,6 +100,7 @@ import {
   textOrNull,
   toneValue,
 } from './management-review-display';
+import { FieldHelp } from '../../shared/guidance/field-help';
 
 /** Open inputs shown before "Vis N flere" (U37: at most a handful of controls). */
 const OPEN_INPUTS_SHOWN = 3;
@@ -434,6 +435,7 @@ export function meetingChip(m: MeetingDetail): EntityChipRef {
     MeetingWorkspace,
     ReviewInputRow,
     SignoffChecklist,
+    FieldHelp,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
@@ -843,6 +845,12 @@ export function meetingChip(m: MeetingDetail): EntityChipRef {
                           <h2 class="font-display text-card font-bold text-fg">
                             {{ 'managementReview.fields.inputsSummary' | transloco }}
                           </h2>
+                          <app-field-help
+                            [scope]="scope"
+                            page="detail"
+                            field="inputsSummary"
+                            [label]="'managementReview.fields.inputsSummary' | transloco"
+                          />
                         </div>
                         @if (r.can_edit) {
                           <app-ai-assist-button
@@ -858,13 +866,9 @@ export function meetingChip(m: MeetingDetail): EntityChipRef {
                         }
                       </div>
                       @if (r.can_edit) {
-                        <app-mr-field-label
-                          controlId="mr-inputs-summary"
-                          [label]="'managementReview.fields.inputsSummary' | transloco"
-                          page="detail"
-                          field="inputsSummary"
-                          [srOnly]="true"
-                        />
+                        <label for="mr-inputs-summary" class="sr-only">{{
+                          'managementReview.fields.inputsSummary' | transloco
+                        }}</label>
                         <app-form-field inputId="mr-inputs-summary">
                           <textarea
                             id="mr-inputs-summary"
