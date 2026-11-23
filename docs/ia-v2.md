@@ -24,6 +24,7 @@ Contents
 9. Work split, file ownership, merge rules
 10. Verification checklist (final round)
 11. Decision log
+12. Final verification round (2026-11-23)
 
 ---
 
@@ -1287,3 +1288,37 @@ rewrite; ARSHJUL does not edit the file.
 | D13 | Fixed migration chain cf230 → cf231 → cf232 with no-op placeholders. | Parallel branches must not create multiple alembic heads. |
 | D14 | Registrer dialog kept for non-incident quick creates; its nav button retired. | Meld fra covers incidents; "+ Ny" buttons still need the quick form. |
 | D15 | Area overview routes are not module-guarded; Håndbok is (it is entirely the processes module) with fallback to `/documents`. | Areas must never vanish while enabled; Håndbok without processes has nothing to show. |
+
+---
+
+## 12. Final verification round (2026-11-23)
+
+Run on origin/main (portal `3fef3ba1`, core `2ea38f1`) plus the `fix/ia-final` fixes, against
+the dev env (demo org "CoreFlow Demo AS", Kari, admin). Crawler and raw results:
+`cf-test/ia-v2/final/` (`coverage.js`, `cov-*.json`). Read-only: every non-GET API call was
+blocked.
+
+| Check (section 10) | Result |
+|---|---|
+| 1. Inventory (§3) | 177 URLs for every static row of P/W/S/M plus 17 record pages opened through their lists: all open on their stated home. Redirects that look like moves are earlier, intended decisions: `/context/policies` → `/documents/all?type=policy` (U16, one policy concept), `/review` → `/my-work?tab=review`, `/feedback/items` → `/feedback`, `/training` → `/training/courses`, `/management-review` → `/reviews`, `/settings/modules/<m>` → its first tab. `/hse/**` lands on Oversikt in the demo org because the HSE module is off there (module guard, correct); Folk › HMS is then hidden as specified in 10.4. |
+| 2. Redirects (§7) | 22 old URLs, all land on the right page with the query string kept, no loops. |
+| 3. Top menu | 9 areas in order; label → overview, ▾ → every dropdown item (49 incl. one row per process in Håndbok) and "Se hele oversikten →" open the right page. Below 1180 px the row becomes the "Meny" button + panel (all areas and their items; Håndbok process rows load on open); at 360 px every area and one item per area open, no horizontal page scroll. |
+| 6. Inbox | Badge 7 = 1 task + 6 notifications (no unread chat); tabs Oppgaver / Meldinger / Varsler work; "Se alt" → `/my-work`, "Åpne meldinger" → `/chat`. |
+| 7. Account menu | Every link opens (passord, totrinn, enheter, varsler, læringssenter, innstillinger, moduler, oppsett); theme, language, guidance level, Spør CoreFlow, logg ut present. "Alle organisasjoner" is superuser-only (Kari is not). |
+| Public routes (P1–P6) | All open without login. |
+| 9. Build | portal: lint clean, 400 files / 3984 tests, production build OK (initial bundle 3.6 kB over the 900 kB warning budget, not an error). core: ruff, format, mypy (989 files), alembic upgrade head (cf230 → cf232 chain), pytest 2482 passed. |
+| 10. i18n | en/nb 23 828 keys each, parity 0 problems; 0 keys used in code and missing (the earlier "207/223 missing" were non-keys, see below). |
+
+Fixed in this round: Dokumenter › Planer after Policyer kept showing policies (the list did
+not follow a query-only change); suppliers list DPA badge was not projected into the row's
+badge slot (NG8011); stale backend test `test_people_pickers_list_real_members_only`
+(written before operator access, cf196). The i18n audit tool
+(`cf-test/tools/i18n-audit.mjs`) now counts only literals used as translation keys (piped to
+`transloco`, passed to `translate()`, or given to an i18n `*Key` input); before, it flagged
+AI capability ids (`assist="risk.suggest_controls"`), register ids
+(`locationKey="suppliers.register"`), flow-action ids, realtime event names, template
+expressions and doc-comment examples.
+
+Not done (noted for later): section 10.5 (Vis krav per page) and 10.8 (writing flows: Meld
+fra with AI on/off, Årshjul propose/accept, report downloads) need mutations and were not
+exercised by the read-only crawl; their unit tests pass.
