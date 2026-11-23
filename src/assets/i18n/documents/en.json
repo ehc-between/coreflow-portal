@@ -281,8 +281,10 @@
         "nextNumber": "Next number",
         "nextCode": "Next code",
         "documents": "Documents",
-        "ack": "Require read and acknowledge"
+        "ack": "Require read and acknowledge",
+        "handbook": "Show in the Handbook"
       },
+      "handbookHint": "Documents of this type are work procedures and show in the Handbook. Other types live under Documents.",
       "advanced": "Advanced",
       "keyAuto": "Made from the name",
       "format": "Code format",
