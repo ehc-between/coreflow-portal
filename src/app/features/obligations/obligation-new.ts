@@ -16,8 +16,8 @@ import { NotificationService } from '../../core/notifications/notification.servi
 import { SelectedOrgService } from '../../core/org/selected-org.service';
 import { WhyItMatters } from '../../shared/guidance/why-it-matters';
 import { FlowBanner } from '../../shared/kit/flow-banner';
-import { Card } from '../../shared/ui/card/card';
 import { HelpStrip } from '../../shared/ui/help-strip/help-strip';
+import { PresetOption, PresetPicker } from '../../shared/ui/preset-picker/preset-picker';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { customerIdFromRoute } from '../../shared/customers';
 import { ObligationsApi } from './data/obligations-api';
@@ -50,8 +50,8 @@ import { ObligationProposal, ProposalAccepted } from './requirement-proposal';
     TranslocoPipe,
     WhyItMatters,
     FlowBanner,
-    Card,
     HelpStrip,
+    PresetPicker,
     PageHeader,
     ObligationForm,
     ObligationProposal,
@@ -81,39 +81,18 @@ import { ObligationProposal, ProposalAccepted } from './requirement-proposal';
         (cancelled)="cancel()"
       >
         @if (!flow()) {
-          <app-card before>
-            <h2 class="font-display text-section font-bold text-fg">
-              {{ 'obligations.library.title' | transloco }}
-            </h2>
-            <p class="mt-1 mb-3 text-meta text-fg-muted">
-              {{ 'obligations.library.body' | transloco }}
-            </p>
-            <ul class="flex flex-wrap gap-2" data-testid="library">
-              @for (e of library; track e.key) {
-                <li>
-                  <button
-                    type="button"
-                    class="rounded-full border px-3 py-1.5 text-ui font-semibold focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                    [class]="
-                      picked() === e.key
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-border bg-surface text-fg hover:bg-surface-2'
-                    "
-                    [attr.aria-pressed]="picked() === e.key"
-                    (click)="useLibrary(e)"
-                    [attr.data-testid]="'library-' + e.key"
-                  >
-                    {{ libraryKey(e, 'short') | transloco }}
-                  </button>
-                </li>
-              }
-            </ul>
-            @if (picked()) {
-              <p class="mt-3 text-meta text-fg-muted" role="status">
-                {{ 'obligations.library.applied' | transloco }}
-              </p>
-            }
-          </app-card>
+          <app-preset-picker
+            before
+            [title]="'obligations.library.title' | transloco"
+            [description]="'obligations.library.body' | transloco"
+            [options]="presets"
+            [selected]="picked()"
+            [appliedText]="picked() ? ('obligations.library.applied' | transloco) : ''"
+            icon="scale"
+            testIdPrefix="library-"
+            (picked)="useLibraryKey($event)"
+            data-testid="library"
+          />
         }
         <app-obligation-proposal proposal [text]="assistText()" (accepted)="apply($event)" />
       </app-obligation-form>
@@ -132,8 +111,10 @@ export class ObligationNew {
   private readonly router = inject(Router);
   private readonly flows = inject(CreateFlowService);
 
-  protected readonly library = OBLIGATION_LIBRARY;
-  protected readonly libraryKey = libraryKey;
+  protected readonly presets: readonly PresetOption[] = OBLIGATION_LIBRARY.map((e) => ({
+    key: e.key,
+    labelKey: libraryKey(e, 'short'),
+  }));
   /** The create-from-here flow this form was opened with (`?flow=`), if any. */
   private readonly route = inject(ActivatedRoute);
   protected readonly flow = this.flows.consume(this.route, {
@@ -169,6 +150,13 @@ export class ObligationNew {
         untracked(() => this.replace(applySeed(this.draft(), seedFromPrefill(flow.prefill))));
       }
     });
+  }
+
+  protected useLibraryKey(key: string): void {
+    const entry = OBLIGATION_LIBRARY.find((e) => e.key === key);
+    if (entry) {
+      this.useLibrary(entry);
+    }
   }
 
   protected useLibrary(entry: LibraryEntry): void {

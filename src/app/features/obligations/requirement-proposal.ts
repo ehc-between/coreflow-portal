@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { AiAvailability } from '../../core/ai/ai-availability';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AiAssistButton } from '../../shared/ask/ai-assist-button';
 import { RuleSummary } from '../../shared/tasks/rule-summary';
@@ -56,26 +65,38 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
   imports: [TranslocoPipe, AiAssistButton, RuleSummary, Button, Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col items-end gap-1">
-      <app-ai-assist-button
-        assist="obligations.propose_requirements"
-        labelKey="obligations.proposal.run"
-        [input]="text() ? { text: text() } : {}"
-        [entityType]="entityId() ? entityType : null"
-        [entityId]="entityId()"
-        [disabled]="!text() && !entityId()"
-        (result)="onResult($event)"
-        data-testid="propose-requirements"
-      />
-      @if (!text() && !entityId()) {
-        <span class="text-meta text-fg-muted">{{
-          'obligations.proposal.needText' | transloco
-        }}</span>
-      }
-    </div>
+    @if (!availability.unavailable()) {
+      <div
+        class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-tile border border-accent-border bg-accent-soft/50 px-3 py-2.5"
+        data-testid="proposal-strip"
+      >
+        <span
+          class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-surface text-accent"
+          aria-hidden="true"
+        >
+          <app-icon name="spark" [size]="14" />
+        </span>
+        <p class="min-w-0 flex-1 basis-[min(100%,240px)] text-meta leading-snug text-fg-muted">
+          {{
+            (text() || entityId() ? 'obligations.proposal.intro' : 'obligations.proposal.needText')
+              | transloco
+          }}
+        </p>
+        <app-ai-assist-button
+          assist="obligations.propose_requirements"
+          labelKey="obligations.proposal.run"
+          [input]="text() ? { text: text() } : {}"
+          [entityType]="entityId() ? entityType : null"
+          [entityId]="entityId()"
+          [disabled]="!text() && !entityId()"
+          (result)="onResult($event)"
+          data-testid="propose-requirements"
+        />
+      </div>
+    }
     @if (proposal(); as p) {
       <section
-        class="mt-3 w-full basis-full rounded-tile border border-accent/40 bg-accent-soft/40 p-4"
+        class="mt-3 w-full rounded-tile border border-accent/40 bg-accent-soft/40 p-4"
         aria-labelledby="cf-o-proposal-h"
         data-testid="proposal"
       >
@@ -186,6 +207,7 @@ export function normaliseProposal(raw: unknown): RequirementProposal | null {
   host: { class: 'contents' },
 })
 export class ObligationProposal {
+  protected readonly availability = inject(AiAvailability);
   /** Text describing the obligation (unsaved form content). */
   readonly text = input('');
   /** The saved obligation, if any (the backend then reads it as context). */

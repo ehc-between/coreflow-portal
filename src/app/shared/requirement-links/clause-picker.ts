@@ -129,7 +129,7 @@ interface Option {
             type="text"
             role="combobox"
             autocomplete="off"
-            class="h-7 min-w-[10rem] flex-1 bg-transparent px-1 text-ui text-fg outline-none placeholder:text-fg-placeholder"
+            class="cf-bare h-7 min-w-[10rem] flex-1 bg-transparent px-1 text-ui text-fg outline-none placeholder:text-fg-placeholder"
             [id]="inputId() || autoId"
             [disabled]="locked()"
             [value]="query()"

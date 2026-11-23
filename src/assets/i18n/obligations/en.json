@@ -166,7 +166,11 @@
       "source": "Source and validity",
       "requirements": "Duties and how they apply",
       "standards": "Requirements in the standards",
-      "evaluation": "Periodic compliance evaluation"
+      "evaluation": "Periodic compliance evaluation",
+      "basicsHint": "What the obligation is and who follows it up.",
+      "sourceHint": "Where it comes from and how long it applies.",
+      "requirementsHint": "What it concretely requires of you, and who does what.",
+      "evaluationHint": "Check at fixed intervals that you still comply."
     },
     "titlePlaceholder": "For example: Working Environment Act",
     "ownerMe": "Me",
@@ -187,7 +191,7 @@
     "dutyOwner": "Responsible",
     "dutyOwnerDefault": "The obligation's owner",
     "dutyClauses": "Clauses it documents",
-    "standardsHelp": "Tick the standards this obligation concerns. CoreFlow proposes the usual clauses; adjust them as needed. The clauses you keep count as documentation in the standards.",
+    "standardsHelp": "Tick the standards it concerns. The usual clauses are proposed for you; the ones you keep count as documentation.",
     "clausesProposed": "{{ count }} clauses were proposed. Remove any that do not fit.",
     "scheduleEvaluation": "Evaluate compliance on a regular schedule",
     "evaluationStartHint": "Leave empty to start from today.",
@@ -204,7 +208,7 @@
   },
   "library": {
     "title": "Start from a common law",
-    "body": "Pick one to fill in the authority, the link to the legal text, typical duties and the standards' clauses. Adjust everything to your organisation before saving.",
+    "body": "Fills in the authority, legal text, typical duties and clauses. Adjust before saving.",
     "applied": "The form is filled in. Check the duties and describe how they apply to you.",
     "entries": {
       "arbeidsmiljoloven": {
@@ -335,7 +339,8 @@
     "none": "No specific duties were suggested.",
     "evidence": "Documentation usually kept",
     "apply": "Add {{ count }} to the form",
-    "applied": "The suggestions were added to the form. Review them before saving."
+    "applied": "The suggestions were added to the form. Review them before saving.",
+    "intro": "The assistant can suggest duties and an evaluation frequency from the title and description."
   },
   "summarise": {
     "run": "Explain in plain words",

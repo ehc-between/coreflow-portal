@@ -166,7 +166,11 @@
       "source": "Kilde og gyldighet",
       "requirements": "Plikter og hvordan de gjelder",
       "standards": "Krav i standardene",
-      "evaluation": "Periodisk samsvarsvurdering"
+      "evaluation": "Periodisk samsvarsvurdering",
+      "basicsHint": "Hva forpliktelsen er, og hvem som følger den opp.",
+      "sourceHint": "Hvor den kommer fra, og hvor lenge den gjelder.",
+      "requirementsHint": "Hva den konkret krever av dere, og hvem som gjør hva.",
+      "evaluationHint": "Sjekk med faste mellomrom at dere fortsatt oppfyller den."
     },
     "titlePlaceholder": "For eksempel: Arbeidsmiljøloven",
     "ownerMe": "Meg",
@@ -187,7 +191,7 @@
     "dutyOwner": "Ansvarlig",
     "dutyOwnerDefault": "Forpliktelsens eier",
     "dutyClauses": "Punkter den dokumenterer",
-    "standardsHelp": "Kryss av for standardene forpliktelsen gjelder. CoreFlow foreslår de vanlige punktene, og du kan justere dem. Punktene du beholder, teller som dokumentasjon i standardene.",
+    "standardsHelp": "Kryss av for standardene den gjelder. De vanlige punktene foreslås for deg; punktene du beholder, teller som dokumentasjon.",
     "clausesProposed": "{{ count }} punkter ble foreslått. Fjern dem som ikke passer.",
     "scheduleEvaluation": "Vurder samsvaret etter en fast plan",
     "evaluationStartHint": "La feltet stå tomt for å starte fra i dag.",
@@ -204,7 +208,7 @@
   },
   "library": {
     "title": "Start fra en vanlig lov",
-    "body": "Velg en for å fylle inn myndighet, lenke til lovteksten, typiske plikter og punktene i standardene. Tilpass alt til organisasjonen før du lagrer.",
+    "body": "Fyller inn myndighet, lovtekst, typiske plikter og punkter i standardene. Tilpass før du lagrer.",
     "applied": "Skjemaet er fylt ut. Sjekk pliktene og beskriv hvordan de gjelder dere.",
     "entries": {
       "arbeidsmiljoloven": {
@@ -335,7 +339,8 @@
     "none": "Ingen konkrete plikter ble foreslått.",
     "evidence": "Dokumentasjon som vanligvis oppbevares",
     "apply": "Legg {{ count }} inn i skjemaet",
-    "applied": "Forslagene ble lagt inn i skjemaet. Gå gjennom dem før du lagrer."
+    "applied": "Forslagene ble lagt inn i skjemaet. Gå gjennom dem før du lagrer.",
+    "intro": "Assistenten kan foreslå plikter og hvor ofte de bør vurderes, ut fra tittel og beskrivelse."
   },
   "summarise": {
     "run": "Forklar med enkle ord",

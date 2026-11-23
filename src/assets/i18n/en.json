@@ -2912,6 +2912,10 @@
       "on": "Showing which requirements each item meets",
       "off": "Requirements are hidden again",
       "pickerHidden": "Switch on “Show requirements” to link requirements."
+    },
+    "presets": {
+      "showAll": "Show all ({{ count }})",
+      "showFewer": "Show fewer"
     }
   },
   "account": {

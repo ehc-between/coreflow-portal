@@ -97,6 +97,50 @@ list             app-record-row-header + app-record-row … (or a table with the
   An empty filter result (not an empty register): `app-empty-state` with
   `ui.empty.noResults` and "Fjern filtrene".
 
+**List page snippet (copy this)**
+
+```html
+<app-record-list-page
+  titleKey="modules.names.x"
+  descriptionKey="x.list.description"
+  scope="x"
+  [breadcrumbs]="[{ labelKey: 'modules.names.x' }]"
+  settingsLink="/settings/modules/x"
+  [query]="q()"
+  [filters]="{ status: status() }"
+  [moreFiltersActive]="moreActive()"
+  [empty]="state() === 'ready' && rows().length === 0 && !filtered()"
+  (search)="q.set($event)"
+  (viewApplied)="applyView($event)"
+>
+  <app-button primary (click)="create()">{{ 'x.actions.new' | transloco }}</app-button>
+  <app-module-nav nav [items]="nav" />
+  <app-help-strip help scope="x" page="list" />
+  <select filters aria-label="…" class="h-9 rounded-tile border border-border bg-bg px-3 text-ui">
+    …
+  </select>
+  <div more-filters>…</div>
+
+  @switch (state()) { @case ('loading') { <app-loading-state [rows]="5" /> } @case ('error') {
+  <app-error-state (retry)="reload()" /> } @default { @if (rows().length) {
+  <app-record-row-header />
+  <div role="list">
+    @for (r of rows(); track r.id) {
+    <app-record-row [link]="['/x', r.id]" [code]="r.code" [title]="r.title" … />
+    }
+  </div>
+  } @else {
+  <app-empty-state kind="filtered" (cta)="clearFilters()" />
+  } } }
+  <app-teaching-empty empty … />
+  <app-why-it-matters below scope="x" page="list" />
+</app-record-list-page>
+```
+
+Rules: one primary action (same words as the form title it opens); search + at most two
+visible filters, the rest in `[more-filters]`; rows, never cards, for records; an empty
+register teaches (`[empty]`), an empty filter result offers "Fjern filtrene".
+
 ### 2.3 Detail page
 
 Use `app-record-detail-layout`:
@@ -120,16 +164,166 @@ aside             1 [aside-requirements]  Krav dette dokumenterer (requirementsP
 - New and reworked record pages use the **detail-page anatomy** (§2.7, `[anatomy]="true"`):
   Hovedinformasjon first, empty fields hidden, one "Oppfølging" card, AI actions in "Spør KI".
 
-### 2.4 Form page
+**Detail page snippet:** copy the `app-record-detail-layout [anatomy]="true"` snippet in §2.7.
+Header (title, one meta line: code · type · status badge, ≤ 1 primary + ≤ 2 secondary
+actions, Slett in "Mer ⋯") → Hovedinformasjon (`app-record-lead`, 2-4 fields) → tabs with
+`app-record-details` → one "Oppfølging" card in the aside. Labels sit above values
+(`app-field-item`), empty values are hidden.
 
-- Max width **760 px**, one column below 768 px.
-- `app-form-field` for **every** control (no raw `<label>`). `app-field-help` sits inline
-  after the label, never above it.
-- A field that is evidence for a requirement shows "Dokumenterer: ISO 9001 · 8.4.1"
-  (guidance `fields.<field>.requirements`, P1).
-- "Lagre" bottom-right (sticky on mobile), "Avbryt" secondary to its left.
-- The form title uses the same words as the button that opened it ("Ny risiko" → "Ny risiko").
-- Errors say what to fix: "Kunne ikke lagre. Fyll ut tittel."
+### 2.4 Form page (form anatomy)
+
+Reference implementation: `features/obligations/obligation-form.ts` (+ `obligation-new.ts`,
+`obligation-edit.ts`). Build every create/edit form exactly like it.
+
+```
+page wrapper     mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7   (flex col, gap-5 between blocks)
+app-page-header  breadcrumbs (Module › [Record ›] Ny … / Rediger) · h1 = the words of the button that opened it
+app-help-strip   (optional, the page's only learning entry)
+[presets]        app-preset-picker – ONE compact card ("Start fra …"), equal tiles, ≤ 6 + "Vis alle (N)"
+app-form-section ×N   card: h2 title [+ ?] · one-line description · [section-actions]
+                      body grid: 1 column on phones, 2 from 640 px, cells top-aligned,
+                      gap-x-4 gap-y-5; long fields span both columns
+  app-form-field      label row (24 px: Label [*] [?] [✦ask]) → control (40 px) → hint → error
+app-form-actions sticky bottom bar: [error summary] … Avbryt (secondary) · Lagre (primary, right)
+```
+
+**Rules**
+
+1. **Every control is in an `app-form-field`** – never a hand-rolled `<label>` + `<div>` above
+   it. The label row is always 24 px high, so labels and controls in neighbouring columns
+   line up whether or not a field has a `?`.
+2. **Help is a `?` toggletip in the label row**: `<app-field-help label-suffix … [label]>`.
+   Never help text beside or under a label. Section-level help goes in `title-suffix`.
+3. **Hint = one muted line under the control** (`[hint]`); **error under that** (`[error]`,
+   already translated). Both are wired to `aria-describedby`; `error` sets `aria-invalid`.
+   Don't write `<p class="mt-1 text-meta …">` under fields yourself.
+4. **Required** = `[required]="true"` on the field (the `*`) and `required` on the control.
+5. **Span**: textareas, multi-selects, chip pickers (`app-clause-picker`, `app-country-picker`),
+   checkbox groups and the recurrence picker take both columns (`span="full"` on
+   `app-form-field`, `class="sm:col-span-2"` on any other child). Short fields (select,
+   date, number, short text) are half width. Pair related fields (From | Until, Owner | Dept).
+   Never leave a lone half field mid-section; move it to the end of the section.
+6. **Control heights**: input/select/date/customer/country pickers are 40 px; use
+   `app-date-input` (nb day-first format), never `<input type="date">`. Don't add
+   `h-*`/`border`/`rounded` classes to controls inside a field – the field styles them. A
+   composite picker whose inner input must not get the field style marks it `class="cf-bare"`.
+7. **Sections** = `app-form-section` with a short noun title and one-line description that
+   says what the section is for. 3-6 sections; the first holds title + type/status + owner +
+   description. Edit-only fields (change reason) go in a last, untitled `[columns]="1"` section.
+8. **Checkbox groups** (e.g. standards) = a `fieldset` spanning both columns with a legend
+   styled like a label (`flex min-h-6 items-center text-ui font-semibold text-fg-muted`)
+   and a grid of equal 40 px tiles (`grid grid-cols-2 gap-2 sm:grid-cols-4`). A single on/off
+   option = one 40 px bordered row with the checkbox and its label.
+9. **Repeating rows** (duties, steps) = bordered `rounded-tile` cards in an `ol`, a small
+   number badge, the main text control, a ghost trash button; their sub-fields are
+   `app-form-field`s in a 2-column grid. "+ Legg til …" (`secondary`, `sm`) below the list.
+10. **Assistant suggestions** = one compact tinted strip at the top of the section it fills
+    (icon · one line of what it does · the button on the right), see
+    `features/obligations/requirement-proposal.ts`. Hidden when the assistant is unavailable.
+11. **Actions** = `app-form-actions` as the last child of the `<form>`: Avbryt then the one
+    primary button on the right; a failed submit shows `[message]` ("Rett feltene som er
+    markert"). It sticks to the bottom and leaves room for the floating "Spør CoreFlow".
+12. A field that is evidence for a requirement shows "Dokumenterer: ISO 9001 · 8.4.1" through
+    its `app-field-help` (guidance `fields.<field>.requirements`).
+
+**Snippet (copy this)**
+
+```html
+<div class="mx-auto max-w-[808px] px-4 pt-6 pb-12 sm:px-8 sm:pt-7">
+  <app-page-header
+    titleKey="x.form.newTitle"
+    [breadcrumbs]="[{ labelKey: 'modules.names.x', link: '/x' }, { labelKey: 'x.form.newTitle' }]"
+    backLink="/x"
+  />
+  <form class="flex flex-col gap-5" (submit)="$event.preventDefault(); submit()" novalidate>
+    <app-preset-picker
+      [title]="'x.presets.title' | transloco"
+      [description]="'x.presets.body' | transloco"
+      [options]="presets"
+      [selected]="picked()"
+      [appliedText]="picked() ? ('x.presets.applied' | transloco) : ''"
+      (picked)="usePreset($event)"
+    />
+
+    <app-form-section
+      [title]="'x.form.sections.basics' | transloco"
+      [description]="'x.form.sections.basicsHint' | transloco"
+    >
+      <app-form-field
+        span="full"
+        [label]="'x.fields.title' | transloco"
+        inputId="x-title"
+        [required]="true"
+        [error]="shownErrors()['title'] ?? '' | transloco"
+      >
+        <input id="x-title" type="text" required [value]="form().title" (input)="…" />
+      </app-form-field>
+      <app-form-field [label]="'x.fields.owner' | transloco" inputId="x-owner">
+        <app-field-help
+          label-suffix
+          scope="x"
+          page="form"
+          field="owner"
+          [label]="'x.fields.owner' | transloco"
+        />
+        <select id="x-owner" (change)="…">
+          …
+        </select>
+      </app-form-field>
+      <app-form-field
+        [label]="'x.fields.dueDate' | transloco"
+        inputId="x-due"
+        [hint]="'x.form.dueHint' | transloco"
+      >
+        <app-date-input
+          inputId="x-due"
+          [value]="form().due"
+          (valueChange)="set('due', $event ?? '')"
+        />
+      </app-form-field>
+      <app-form-field span="full" [label]="'x.fields.description' | transloco" inputId="x-desc">
+        <textarea id="x-desc" rows="3" [value]="form().description" (input)="…"></textarea>
+      </app-form-field>
+    </app-form-section>
+
+    <app-form-section [title]="'x.form.sections.more' | transloco">
+      <app-field-help title-suffix scope="x" page="form" field="more" />
+      …
+    </app-form-section>
+
+    <app-form-actions
+      [message]="attempted() && hasErrors() ? ('x.form.errors.fix' | transloco) : ''"
+    >
+      <app-button variant="secondary" (click)="cancel()"
+        >{{ 'common.cancel' | transloco }}</app-button
+      >
+      <app-button type="submit" [loading]="busy()" [disabled]="busy()">
+        {{ 'common.save' | transloco }}
+      </app-button>
+    </app-form-actions>
+  </form>
+</div>
+```
+
+**Component API** (`src/app/shared/ui`)
+
+| Component               | Inputs / slots                                                                                                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app-form-field`        | `label`, `inputId`, `required`, `hint`, `error`, `span` (`half` \| `full`); slots `[label-suffix]` (`?`, ✦ ask), default (the control), `[hint]` (rich hint). Unchanged API is backwards compatible. |
+| `app-form-section`      | `title`, `description`, `columns` (`2` default \| `1`); slots `[title-suffix]`, `[section-actions]`, default (grid cells).                                                                           |
+| `app-form-actions`      | `message` (error summary); slots `[start]` (rare left extra), default (Avbryt, Lagre).                                                                                                               |
+| `app-preset-picker`     | `title`, `description`, `options` (`{ key, label? , labelKey? }[]`), `selected`, `appliedText`, `visible` (6), `icon` (`book`), `testIdPrefix`; output `picked(key)`.                                |
+| `app-recurrence-picker` | new `[plain]="true"` drops the grey box so it sits in a section grid (span both columns).                                                                                                            |
+
+**Checklist for moving a form over**
+
+- [ ] No `<div class="mb-1.5 flex …"><label>` blocks left; every control in `app-form-field`.
+- [ ] No `<p class="mt-1 text-meta …">` hints/errors under fields; use `[hint]` / `[error]`.
+- [ ] `app-card` + `<h2>` sections replaced by `app-form-section` (title + one-line description).
+- [ ] Native `type="date"` replaced by `app-date-input`.
+- [ ] Chip walls replaced by `app-preset-picker`; AI buttons in a compact strip.
+- [ ] Bottom buttons in `app-form-actions`.
+- [ ] New i18n keys in en + nb; screenshots at 1280 and 390 px: labels/controls line up.
 
 ### 2.5 Overview pages
 
@@ -284,6 +478,7 @@ move other record pages over as they are touched.
 | `app-module-nav [items]`                                                                                                                   | sub-navigation (replaces the per-module `*-nav` / `*-tabs`)                  |
 | `app-help-strip [scope] [page] [tour] [lesson]`                                                                                            | the only learning entry on a page                                            |
 | `app-record-row` / `app-record-row-header`                                                                                                 | list rows with fixed slots                                                   |
+| `app-form-section` / `app-form-field` / `app-form-actions` / `app-preset-picker`                                                           | form anatomy (§2.4)                                                          |
 | `app-field-list` / `app-field-item`                                                                                                        | read-only fields on detail pages                                             |
 | `app-overflow-menu` + `appMenuItem`                                                                                                        | "Mer ⋯" (keyboard: arrows, Home/End, Escape, focus return)                   |
 | `app-status-badge [meaning] [value]`                                                                                                       | every status / severity badge                                                |
@@ -603,6 +798,7 @@ Before: about 900 px wide, raw `<label>`s, "?" above the label, Save top-right.
 After:
 
 ```html
+<!-- Full, current version: §2.4 snippet. -->
 <form class="mx-auto max-w-[760px]" (ngSubmit)="save()">
   <app-page-header
     titleKey="risk.form.newTitle"

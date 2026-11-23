@@ -31,12 +31,15 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
   viewProviders: [provideSharedScope('tasks')],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <fieldset class="flex flex-col gap-3 rounded-card border border-border bg-surface-2 p-3.5">
-      <legend class="px-1 text-[13px] font-semibold text-fg-muted">
+    <fieldset
+      class="flex flex-col"
+      [class]="plain() ? 'gap-5' : 'gap-3 rounded-card border border-border bg-surface-2 p-3.5'"
+    >
+      <legend [class]="plain() ? 'sr-only' : 'px-1 text-[13px] font-semibold text-fg-muted'">
         {{ 'tasks.rrule.legend' | transloco }}
       </legend>
 
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2" [class]="plain() ? 'gap-x-4 gap-y-5' : 'gap-3'">
         <app-form-field [label]="'tasks.rrule.freq' | transloco" [inputId]="id('freq')">
           <select
             [id]="id('freq')"
@@ -89,7 +92,10 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
       }
 
       @if (rule().freq === 'MONTHLY' || rule().freq === 'YEARLY') {
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2"
+          [class]="plain() ? 'gap-x-4 gap-y-5' : 'gap-3'"
+        >
           @if (rule().freq === 'YEARLY') {
             <app-form-field [label]="'tasks.rrule.month' | transloco" [inputId]="id('month')">
               <select [id]="id('month')" (change)="setMonth($any($event.target).value)">
@@ -122,7 +128,10 @@ const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
         <div class="mb-1.5 text-[13px] font-semibold text-fg-muted">
           {{ 'tasks.rrule.ends' | transloco }}
         </div>
-        <div class="flex flex-col gap-2 text-[13px] text-fg">
+        <div
+          class="flex text-[13px] text-fg"
+          [class]="plain() ? 'flex-wrap items-center gap-x-5 gap-y-2' : 'flex-col gap-2'"
+        >
           <label class="flex items-center gap-2">
             <input
               type="radio"
@@ -180,6 +189,11 @@ export class RecurrencePicker {
   readonly rrule = model('FREQ=MONTHLY');
   /** Prefix for element ids, unique per form. */
   readonly idPrefix = input('task-rrule');
+  /**
+   * `true` drops the grey box and the visible legend, so the picker sits inside an
+   * `app-form-section` grid (span it over both columns) like any other fields.
+   */
+  readonly plain = input(false);
 
   protected readonly freqs = RRULE_FREQS;
   protected readonly weekdays = WEEKDAYS;

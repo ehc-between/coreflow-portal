@@ -2912,6 +2912,10 @@
       "on": "Viser hvilke krav hver ting oppfyller",
       "off": "Kravene er skjult igjen",
       "pickerHidden": "Slå på «Vis krav» for å koble til krav."
+    },
+    "presets": {
+      "showAll": "Vis alle ({{ count }})",
+      "showFewer": "Vis færre"
     }
   },
   "account": {
