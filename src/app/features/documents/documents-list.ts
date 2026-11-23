@@ -7,6 +7,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
@@ -358,6 +359,15 @@ export class DocumentsList {
   private listRequest: Subscription | null = null;
 
   constructor() {
+    // The top menu's Policyer / Planer links reuse this page with another `?type=`: follow
+    // it (the component is not re-created when only the query string changes).
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((q) => {
+      const type = q.get('type') ?? '';
+      if (type !== this.type()) {
+        this.type.set(type);
+        this.resetAndLoad();
+      }
+    });
     // The assistant knows the user is on the documents list.
     providePageContext(() => ({
       module: 'documents',

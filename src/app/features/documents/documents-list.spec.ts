@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AuthService } from '../../core/auth/auth.service';
 import { APP_CONFIG } from '../../core/config/app-config';
@@ -153,6 +153,20 @@ describe('DocumentsList', () => {
     expect(titles.join(' ')).toContain('Doc 2');
     expect(titles.join(' ')).toContain('Doc 3');
     expect(titles.join(' ')).not.toContain('Doc 1');
+    flushRest(http);
+  });
+
+  it('follows a new ?type= on the same page (menu: Policyer, then Planer)', async () => {
+    const { fixture, http } = await setup();
+    http.expectOne((r) => r.url === URL).flush([summary(1)]);
+    await fixture.whenStable();
+
+    await TestBed.inject(Router).navigate([], { queryParams: { type: 'plan' } });
+    await fixture.whenStable();
+    const req = http.expectOne((r) => r.url === URL);
+    expect(req.request.params.get('type')).toBe('plan');
+    req.flush([summary(2, { type: 'plan' })]);
+    await fixture.whenStable();
     flushRest(http);
   });
 

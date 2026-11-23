@@ -133,6 +133,34 @@ app in "open" mode (guard allows navigation); empty DSN disables Sentry entirely
 org/company/workspace concept is introduced, resolve it in a `core/` signal-based
 service and document the resolution here.
 
+**Chat and realtime** (design: `docs/chat-design.md`; shipped deviations in §8.1):
+- **Endpoint**: one shared WebSocket, `core/realtime/RealtimeService`, at
+  `{apiBaseUrl}/v1/realtime/ws` (`realtimeUrl()` turns http/https into ws/wss; with a
+  relative `apiBaseUrl` like `/api` it is same-origin). It does not connect by itself: the
+  chat store calls `start()`/`stop()`, so pages without chat never open a socket. REST goes
+  through `core/chat/chat-api.ts` → `/orgs/{org}/chat/...` (admin: `/chat/admin/...`).
+- **Auth**: after open, the first frame is `{"type": "auth", "token": <access token>}` from
+  `AuthService` (in memory). Re-send `auth` whenever the token refreshes; on `4401` refresh
+  and reconnect. Never put the token in the URL and never rely on the refresh cookie.
+- **Publish / subscribe**: the server pushes; the portal never mutates over the socket
+  (all writes are REST). `RealtimeService.events(typeOrPrefix)` (e.g. `'chat.'`,
+  `'resync'`) and `send(type, payload)` for ephemeral commands only
+  (`chat.typing` throttled to 1 per 3 s by `ChatStore.notifyTyping`, `chat.focus`). After a
+  reconnect or `resync`, `ChatStore` catches up with `GET .../changes` (by seq); while the
+  socket is not open it polls `GET /conversations` every 60 s. State lives in
+  `core/chat/ChatStore` (signals); load it lazily via `shared/chat/chat-access.ts`
+  (`lazyChatStore()`), never eagerly from the shell.
+- **Where it shows**: `/chat` (guarded by `moduleGuard('chat')` + `chat:use`), the inbox
+  "Meldinger" tab and badge (IA v2), and "Diskuter" (`shared/chat/discuss-button`) on every
+  record page via `app-record-detail-layout`. Message bodies are rendered as tokens, never
+  with `innerHTML`.
+- **Deploy**: the reverse proxy must forward WebSocket upgrades for
+  `/api/v1/realtime/ws` with an idle timeout >= 75 s (ping every 25 s). The dev server
+  proxies `/api` including WebSockets (`ws: true` in the proxy config). With the backend's
+  `REALTIME_ENABLED=false` the socket closes `1013` and chat keeps working on polling.
+- **Tests**: use `core/realtime/realtime.testing.ts` and `core/chat/chat.testing.ts`
+  fakes; never open a real socket in unit tests.
+
 **Build verification** (run before declaring done, with Node 24 active):
 - `npm run lint` — ESLint (angular-eslint), must be clean.
 - `npm test` — Vitest unit tests, must pass.
