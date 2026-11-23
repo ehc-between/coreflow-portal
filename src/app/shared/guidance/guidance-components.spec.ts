@@ -78,12 +78,15 @@ function setup(level: 'beginner' | 'standard' | 'expert') {
 }
 
 describe('guidance components', () => {
-  it('shows the full intro and inline field help to beginners', () => {
-    const { el, q } = setup('beginner');
+  it('shows the full intro to beginners and field help behind the "?" toggletip', () => {
+    const { el, q, render } = setup('beginner');
     expect(q('[data-testid="guide-intro"]')?.textContent).toContain('Intro body');
     expect(el.textContent).toContain('Step two');
-    expect(q('[data-testid="field-help-inline"]')?.textContent).toContain('How likely');
-    expect(q('[data-testid="field-help-toggle"]')).toBeNull();
+    // Field help never renders inline (it broke the form grid); it opens from the "?".
+    expect(q('[data-testid="field-help-inline"]')).toBeNull();
+    q<HTMLButtonElement>('[data-testid="field-help-toggle"]')!.click();
+    render();
+    expect(q('[data-testid="field-help-popover"]')?.textContent).toContain('How likely');
     // The field says which requirement it documents.
     expect(q('[data-testid="field-help-requirements"]')?.textContent).toContain(
       'standards.reqs.fieldDocuments',
