@@ -56,7 +56,7 @@
         "label": "Overview"
       },
       "speakUp": {
-        "label": "Report",
+        "label": "Deviations",
         "items": {
           "report": {
             "label": "Report something",

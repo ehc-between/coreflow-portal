@@ -52,7 +52,7 @@ describe('IA v2 areas (docs/ia-v2.md §2)', () => {
     ]);
     expect(AREAS.map((a) => lookup(nb, a.labelKey))).toEqual([
       'Oversikt',
-      'Meld fra',
+      'Avvik',
       'Årshjul',
       'Bedriften',
       'Folk',
